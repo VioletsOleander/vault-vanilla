@@ -1,0 +1,15 @@
+### 9.2.3 Shared Memory
+#### 9.2.3.1 Shared Memory and Memory Banks
+To achieve high memory bandwidth for concurrent accesses, shared memory is divided into equally sized memory modules (_banks_) that can be accessed simultaneously. Therefore, any memory load or store of _n_ addresses that spans _n_ distinct memory banks can be serviced simultaneously, yielding an effective bandwidth that is _n_ times as high as the bandwidth of a single bank.
+
+However, if multiple addresses of a memory request map to the same memory bank, the accesses are serialized. The hardware splits a memory request that has bank conflicts into as many separate conflict-free requests as necessary, decreasing the effective bandwidth by a factor equal to the number of separate memory requests. The one exception here is when multiple threads in a warp address the same shared memory location, resulting in a broadcast. In this case, multiple broadcasts from different banks are coalesced into a single multicast from the requested shared memory locations to the threads.
+
+To minimize bank conflicts, it is important to understand how memory addresses map to memory banks and how to optimally schedule memory requests.
+
+On devices of compute capability 5.x or newer, each bank has a bandwidth of 32 bits every clock cycle, and successive 32-bit words are assigned to successive banks. The warp size is 32 threads and the number of banks is also 32, so bank conflicts can occur between any threads in the warp. See Compute Capability 5.x in the CUDA C++ Programming Guide for further details.
+#### 9.2.3.2 Shared Memory in Matrix Multiplication (C=AB)
+Shared memory enables cooperation between threads in a block. When multiple threads in a block use the same data from global memory, shared memory can be used to access the data from global memory only once. Shared memory can also be used to avoid uncoalesced memory accesses by loading and storing data in a coalesced pattern from global memory and then reordering it in shared memory. Aside from memory bank conflicts, there is no penalty for non-sequential or unaligned accesses by a warp in shared memory.
+
+The use of shared memory is illustrated via the simple example of a matrix multiplication C = AB for the case with A of dimension Mxw, B of dimension wxN, and C of dimension MxN. To keep the kernels simple, M and N are multiples of 32, since the warp size (w) is 32 for current devices.
+
+A natural decomposition of the problem is to use a block and tile size of wxw threads. Therefore, in terms of wxw tiles, A is a column matrix, B is a row matrix, and C is their outer product; see [Figure 11](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#shared-memory-in-matrix-multiplication-c-ab__block-column-matrix-A-multiplied-block-row-matrix-B-product-matrix-c). A grid of N/w by M/w blocks is launched, where each thread block calculates the elements of a different tile in C from a single tile of A and a single tile of B.
