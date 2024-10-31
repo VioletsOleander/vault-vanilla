@@ -1334,8 +1334,9 @@ $$
 $$
 \begin{align}
 \frac {\partial \phi}{\partial S_{ij}} &= \sum_{k=1}^n\sum_{l=1}^n \frac {\partial \phi}{\partial P_{kl}} \frac {\partial P_{kl}}{\partial S_{ij}}\\
-&=\frac {\partial \phi}{\partial P_{ij}}\frac {\partial P_{ij}}{\partial S_{ij}}\\
-&=dP_{ij}\frac {\partial P_{ij}}{\partial S_{ij}}
+&=\sum_{l=1}^n\frac {\partial \phi}{\partial P_{il}}\frac {\partial P_{il}}{\partial S_{ij}}\\
+&=\sum_{l=1}^ndP_{il}\frac {\partial P_{il}}{\partial S_{ij}}\\
+&=\langle dP_{i:}, \frac {\partial P_{i:}}{\partial S_{ij}}\rangle
 \end{align}
 $$
 
@@ -1343,9 +1344,48 @@ $$
 
 $$
 \begin{align}
-\frac {\partial \phi}{\partial S_{i:}} &=[dP_{ij}\frac {\partial P_{ij}}{\partial S_{ij}}
+\frac {\partial \phi}{\partial S_{i:}} &=\left[\frac {\partial \phi}{\partial S_{i1}}, \dots, \frac {\partial \phi}{\partial S_{in}}\right]^T\\
+&=\left[\langle dP_{i:}, \frac {\partial P_{i:}}{\partial S_{i1}}\rangle, \dots, \langle dP_{i:}, \frac {\partial P_{i:}}{\partial S_{in}}\rangle\right]^T\\
+&=\left[\frac {\partial P_{i:}}{\partial S_{i1}}, \dots, \frac {\partial P_{i:}}{\partial S_{in}}\right]^TdP_{i:}\\
+&=\begin{bmatrix}
+\frac {\partial P_{i1}}{\partial S_{i1}} & \cdots & \frac {\partial P_{in}}{\partial S_{i1}}\\
+\vdots & \ddots & \vdots\\
+\frac {\partial P_{i1}}{\partial S_{in}} & \cdots &\frac {\partial P_{in}}{\partial S_{in}}
+\end{bmatrix}dP_{i:}\\
+&=J\cdot dP_{i:}\\
+&=(\text{diag}(P_{i:}) - P_{i:}P_{i:}^T)dP_{i:}\\
+&=\text{diag}(P_{i:})dP_{i:} - P_{i:}P_{i:}^TdP_{i:}\\
+&=P_{i:}\circ dP_{i:} - (P_{i:}^TdP_{i:})P_{i:}
 \end{align}
 $$
 
-$\begin{array}{r}{d S_{i\colon}=(\mathrm{diag}(P_{i\colon})-P_{i\colon}P_{i\colon}^{T}) d P_{i\colon}=P_{i\colon}\circ d P_{i\colon}-(P_{i\colon}^{T}d P_{i\colon}) P_{i\colon},}\end{array}$
+## Figure Illustration for FlashAttention Backward Algorithm
+### $\mathbf {dV}$
+外层 + 内层循环：
 
+![[FlashAttention-App-Fig1.png]]
+
+内层循环：
+
+![[FlashAttention-App-Fig2.png]]
+
+### $\mathbf {dP}$
+外层 + 内层循环：
+
+![[FlashAttention-App-Fig3.png]]
+### $\mathbf {dQ}$
+外层 + 内层循环：
+
+![[FlashAttention-App-Fig4.png]]
+
+外层循环：
+
+![[FlashAttention-App-Fig5.png]]
+
+### $\mathbf {dK}$
+外层 + 内层循环：
+
+![[FlashAttention-App-Fig6.png]]
+内层循环：
+
+![[FlashAttention-App-Fig7.png]]
