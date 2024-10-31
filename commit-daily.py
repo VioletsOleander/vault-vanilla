@@ -4,7 +4,6 @@ import os
 
 
 def parse_arg() -> bool:
-    print(sys.argv)
     if len(sys.argv) > 2:
         print("Too many arguments, abort!")
         sys.exit(1)
