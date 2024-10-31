@@ -73,80 +73,191 @@ where $\text{softmax}$ is applied row-wise.
 For multi-head attention (MHA), this same computation is performed in parallel across many heads, and parallel over the batch dimension (number of input sequences in a batch). 
 > MHA 下，attention 计算在多个头中并行执行，而 MHA 在 batch 维度下并行执行 (为 batch 中的多个输入序列计算 MHA)
 
-The backward pass of attention proceeds as follows. Let $\mathbf{dO}\in\mathbb{R}^{N\times d}$ be the gradient of $\mathbf O$ with respect to some loss function. Then by the chain rule (aka backpropagation): 
+The backward pass of attention proceeds as follows. Let $\mathbf{dO}\in\mathbb{R}^{N\times d}$ be the gradient of $\mathbf O$ with respect to some loss function. Then by the chain rule (aka backpropagation):  
 
 $$
 \begin{array}{r l r l}&{\mathbf{d}\mathbf{V}\!=\!\mathbf{P}^{\top}\mathbf{d}\mathbf{O}\!\in\!\mathbb{R}^{N\times d}}&&{\mathbf{d}\mathbf{P}\!=\!\mathbf{d}\mathbf{O}\mathbf{V}^{\top}\!\in\!\mathbb{R}^{N\times N}}\\ &{\mathbf{d}\mathbf{S}\!=\!\mathrm{d}\mathrm{softmax}(\mathbf{d}\mathbf{P})\!\in\!\mathbb{R}^{N\times N}}&&{\mathbf{d}\mathbf{Q}\!=\!\mathbf{d}\mathbf{S}\mathbf{K}\!\in\!\mathbb{R}^{N\times d}}&&{\mathbf{d}\mathbf{K}\!=\!\mathbf{d}\mathbf{S}^{\top}\mathbf{Q}\!\in\!\mathbb{R}^{N\times d},}\end{array}
 $$ 
-where $\text{dsoftmax}$ is the gradient (backward pass) of softmax applied row-wise. One can work out $p=\operatorname{softmax}(s)$ for some vector $s$ and $p$ , then with output gradient $d p$ , the input gradient $\begin{array}{r}{d s\!=\!(\mathrm{diag}(p)\!-\!p p^{\top})d p}\end{array}$ . 
+where $\text{dsoftmax}$ is the gradient (backward pass) of softmax applied row-wise. One can work out that if $p=\operatorname{softmax}(s)$ for some vector $s$ and $p$ , then with output gradient $d p$ , the input gradient $\begin{array}{r}{d s\!=\!(\mathrm{diag}(p)\!-\!p p^{\top})d p}\end{array}$ . 
 
-Standard attention lementati s materialize the s S a d $\mathbf{P}$ to HBM, which takes $O(N^{2})$ memory. Often $N\!\gg\!d$ ≫ (typically 𝑁 is on the order of 1k–8k and 𝑑 is around 64–128). Th attention implementation (1) calls the matrix multiply (GEMM) subroutine to multiply $\begin{array}{r}{\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}}\end{array}$ , writes the result to HBM, then (2) loads S from HBM to compute softmax and write the result $\mathbf{P}$ to HBM, and finally (3) calls GEMM to get $\mathbf{O}\!=\!\mathbf{P}\mathbf{V}$ . As most of the operations are bounded by memory bandwidth, the large number of memory accesses translates to slow wall-clock time. Moreover, the required memory is $O(N^{2})$ due to having to materialize S and P . Moreover, one has to save ${\bf P}\!\in\!\mathbb{R}^{\dot{N}\times N}$ for the backward pass to compute the gradients. 
+Standard attention implementation materialize the matrices $\mathbf S$ and $\mathbf{P}$ to HBM, which takes $O(N^{2})$ memory. Often $N\!\gg\!d$ (typically 𝑁 is on the order of 1k–8k and 𝑑 is around 64–128). The standard attention implementation (1) calls the matrix multiply (GEMM) subroutine to multiply $\begin{array}{r}{\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}}\end{array}$ , writes the result to HBM, then (2) loads $\mathbf S$ from HBM to compute softmax and write the result $\mathbf{P}$ to HBM, and finally (3) calls GEMM to get $\mathbf{O}\!=\!\mathbf{P}\mathbf{V}$ . As most of the operations are bounded by memory bandwidth, the large number of memory accesses translates to slow wall-clock time. Moreover, the required memory is $O(N^{2})$ due to having to materialize $\bf S$ and $\bf P$ . Moreover, one has to save ${\bf P}\!\in\!\mathbb{R}^{{N}\times N}$ for the backward pass to compute the gradients. 
+> 标准 attention 实现需要将 $\mathbf {S, P} \in \mathbb R^{N\times N}$ 写入 HBM，占用 $O (N^2)$ 内存
+> ( $N$ 的数量级一般在 1k-8k，$d$ 的数量级一般在 64-128，故 $N\gg d$)
+> 标准 attention 的计算流程为：
+> 1. GEMM 计算 $\mathbf {S = QK}^{\top}$，$\bf S$ 写回 HBM
+> 2. load $\mathbf S$，计算 $\bf P$，$\bf P$ 写回 HBM
+> 3. GEMM 计算 $\bf O = PV$
+> 标准 attention 计算的劣势：
+> 1. memory bound
+> 2. 需要 $O (N^2)$ memory
+> 3. 需要存储 $\mathbf P \in \mathbb R^{N\times N}$ 用于反向
 
-# 2.3 FlashAttention 
-
+## 2.3 FlashAttention 
 To speed up attention on hardware accelerators such as GPU, (Dao et al., 2022) proposes an algorithm to reduce the memory reads/writes while maintaining the same output (without approximation). 
 
-# 2.3.1 F ORWARD PASS 
+### 2.3.1 Forward pass
+FlashAttention applies the classical technique of tiling to reduce memory IOs, by (1) loading blocks of inputs from HBM to SRAM, (2) computing attention with respect to that block, and then (3) updating the output without writing the large intermediate matrices $\bf S$ and $\mathbf{P}$ to HBM. As the softmax couples entire rows or blocks of row, online softmax (Milakov and Gimelshein, 2018; Rabe and Staats, 2021) can split the attention computation into blocks, and rescale the output of each block to finally get the right result (with no approximation). By significantly reducing the amount of memory read/writes, FlashAttention yields $2–4\times$ wall-clock speedup over optimized baseline attention implementations. 
+> FlashAttention 减少了 memory IO，其流程为：
+> 1. 将输入的 block 从 HBM load 到 SRAM
+> 2. 计算 block attention
+> 3. 不写回中间结果 $\bf {S, P}$，直接在片上更新 $\bf O$ 
+> FlashAttention 利用了 online softmax 将 attention 计算划分为块，通过 rescale 保持 block attention 的计算结果是正确的
+> FlashAttention 将计算加速了 2-4 倍
 
-FlashAttention applies the classical technique of tiling to reduce memory IOs, by (1) loading blocks of inputs from HBM to SRAM, (2) computing attention with respect to that block, and then (3) updating the output without writing the large intermediate matrices S and $\mathbf{P}$ to HBM. As the softmax couples entire rows or blocks of row, online softmax (Milakov and Gimelshein, 2018; Rabe and Staats, 2021) can split the attention computation into blocks, and rescale the output of each block to finally get 
+We describe the online softmax technique (Milakov and Gimelshein, 2018) and how it is used in attention (Rabe and Staats, 2021). For simplicity, consider just one row block of the attention matrix $\bf S$ , of the form $\left[\mathbf{S}^{(1)}\quad\mathbf{S}^{(2)}\right]$ for some matrices ${\mathbf{S}}^{(1)},\mathbf{S}^{(2)}\in{\mathbb{R}}^{B_{r}\times B_{c}}$ , where $B_{r}$ and $B_{c}$ are the row and column block sizes. We want to compute softmax of this row block and multiply with the value, of $\bf V$ the form $\begin{bmatrix}\mathbf V^{(1)} \\ \mathbf V^{(2)}\end{bmatrix}$ for some matrices $\mathbf{V}^{(1)},\mathbf{V}^{(2)}\in\mathbb{R}^{B_{c}\times d}$ . Standard softmax would compute: 
 
-FlashAttention yields $2–4\times$ wall-clock speedup over optimized baseline attention implementations. We describe the online softmax technique (Milakov and Gimelshein, 2018) and how it is used in attention (Rabe and Staats, 2021). For simplicity, consider just one row block of the attention matrix  S , of the form $\left[\mathbf{S}^{(1)}\quad\mathbf{S}^{(2)}\right]$ for some matrices $\dot{\mathbf{S}}^{(1)},\mathbf{S}^{(2)}\in\dot{\mathbb{R}}^{B_{r}\times B_{c}}$ , where $B_{r}$ and $B_{c}$ are the row and column block sizes. We want to compute softmax of this row block and multiply with the value, of  the form $\binom{\mathbf{V}^{(1)}}{\mathbf{V}^{(2)}}$ for some matrices $\mathbf{V}^{(1)},\mathbf{V}^{(2)}\in\mathbb{R}^{B_{c}\times d}$ . Standard softmax would compute: $\begin{array}{r l}&{m\!=\!\operatorname*{max}(\mathrm{rowmax}(\mathbf{S}^{(1)}),\mathrm{rowmax}({\mathbf{S}^{(2)}}))\!\in\!\mathbb{R}^{B_{r}}\qquad\ell\!=\!\mathrm{rowsum}(e^{s^{(1)}-m})\!+\!\mathrm{rowsum}(e^{{s^{(2)}}-m})\!\in\!\mathbb{R}^{B_{r}}}\\ &{\mathbf{P}\!=\!\left[\mathbf{P}^{(1)}\quad\mathbf{P}^{(2)}\right]\!=\!\mathrm{diag}(\ell)^{-1}\!\left[e^{s^{(1)}-m}\quad e^{{s}^{(2)}-m}\right]\!\in\!\mathbb{R}^{B_{r}\times2B_{c}}}\\ &{\mathbf{O}\!=\!\left[\mathbf{P}^{(1)}\quad\mathbf{P}^{(2)}\right]\!\left[\!\!\mathbf{V}^{(1)}\!\!\right]\!=\!\mathrm{diag}(\ell)^{-1}e^{{s}^{(1)}-m}\mathbf{V}^{(1)}\!+\!e^{s^{(2)}-m}\mathbf{V}^{(2)}\!\in\!\mathbb{R}^{B_{r}\times d}.}\end{array}$ Online softmax instead computes “local” softmax with respect to each block and rescale to get the right output at the end: $\begin{array}{r l}&{m^{(1)}\!=\!\mathrm{rowmax}(\mathbf{S}^{(1)})\!\in\!\mathbb{R}^{B_{r}}\qquad\ell^{(1)}\!=\!\mathrm{rowsum}(e^{\mathbf{S}^{(1)}-m^{(1)}})\!\in\!\mathbb{R}^{B_{r}}}\\ &{\tilde{\mathbf{P}}^{(1)}\!=\!\mathrm{diag}(\ell^{(1)})^{-1}e^{\mathbf{S}^{(1)}-m^{(1)}}\!\in\!\mathbb{R}^{B_{r}\times B_{c}}\qquad\mathbf{O}^{(1)}\!=\!\tilde{\mathbf{P}}^{(1)}{\mathbf{V}}^{(1)}\!=\!\mathrm{diag}(\ell^{(1)})^{-1}e^{\mathbf{S}^{(1)}-m^{(1)}}{\mathbf{V}}^{(1)}\!\in\!\mathbb{R}^{B_{r}\times d}}\\ &{m^{(2)}\!=\!\mathrm{max}(m^{(1)},\mathrm{rowmax}(\mathbf{S}^{(2)}))\!=\!m}\\ &{\ell^{(2)}\!=\!e^{m^{(1)}-m^{(2)}}\ell^{(1)}\!+\!\mathrm{rowsum}(e^{\mathbf{S}^{(2)}-m^{(2)}})\!=\!\mathrm{rowsum}(e^{\mathbf{S}^{(1)}-m})\!+\!\mathrm{rowsum}(e^{\mathbf{S}^{(2)}-m})\!=\!\ell}\\ &{\tilde{\mathbf{P}}^{(2)}\!=\!\mathrm{diag}(\ell^{(2)})^{-1}e^{\mathbf{S}^{(2)}-m^{(2)}}}\\ &{\mathbf{O}^{(2)}\!=\!\mathrm{diag}(\ell^{(1)}/\ell^{(2)})\mathbf{O}^{(1)}\!+\!\tilde{\mathbf{P}}^{(2)}{\mathbf{V}}^{(2)}\!=\!\mathrm{diag}(\ell^{(2)})^{-1}e^{s^{(1)}-m}{\mathbf{V}}^{(1)}\!+\!\mathrm{diag}(\ell^{(2)})^{-1}e^{s^{(2)}-m}{\mathbf{V}}^{(2)}\!=\!\mathbf{0}.}\end{array}$ 
+$$\begin{align*} m &= \operatorname*{max}(\mathrm{rowmax}(\mathbf{S}^{(1)}), \mathrm{rowmax}(\mathbf{S}^{(2)})) \in \mathbb{R}^{B_{r}} \\ 
+\ell &= \mathrm{rowsum}(e^{\mathbf S^{(1)} - m}) + \mathrm{rowsum}(e^{\mathbf S^{(2)} - m}) \in \mathbb{R}^{B_{r}} \\ 
+\mathbf{P} &= \left[\mathbf{P}^{(1)} \quad \mathbf{P}^{(2)}\right] = \mathrm{diag}(\ell)^{-1} \left[e^{\mathbf S^{(1)} - m} \quad e^{\mathbf S^{(2)} - m}\right] \in \mathbb{R}^{B_{r} \times 2B_{c}} \\ 
+\mathbf{O} &= \left[\mathbf{P}^{(1)} \quad \mathbf{P}^{(2)}\right] \begin{bmatrix}\mathbf{V}^{(1)} \\ \mathbf V^{(2)}\end{bmatrix} = \mathrm{diag}(\ell)^{-1} \left(e^{\mathbf S^{(1)} - m} \mathbf{V}^{(1)} + e^{\mathbf S^{(2)} - m} \mathbf{V}^{(2)}\right) \in \mathbb{R}^{B_{r} \times d}. \end{align*}$$
+
+Online softmax instead computes "local" softmax with respect to each block and rescale to get the right out at the end:
+
+$$
+\begin{align}
+m^{(1)} & = \text{rowmax}(\mathbf S^{(1)})\in \mathbb R^{B_r}\\
+\ell^{(1)} &= \text{rowsum}(e^{\mathbf S^{(1)}-m^{(1)}}) \in \mathbb R^{B_r}\\
+\tilde {\mathbf P}^{(1)} &= \text{diag}(\ell^{(1)})^{-1} e^{\mathbf S^{(1)}- m^{(1)}} \in \mathbb R^{B_r \times B_c}\\
+\mathbf O^{(1)}&=\tilde {\mathbf P}^{(1)}\mathbf V^{(1)} =\text{diag}(\ell^{(1)})^{-1}e^{\mathbf S^{(1)}- m^{(1)}}\mathbf V^{(1)} \in \mathbb R^{B_r \times d}\\\\
+m^{(2)} & = \max(m^{(1)},\text{rowmax}(\mathbf S^{(2)})) = m\\
+\ell^{(2)} &= e^{m^{(1)} - m^{(2)}}\ell^{(1)} + \text{rowsum}(e^{\mathbf S^{(2)}-m^{(2)}}) = \text{rowsum}(e^{\mathbf S^{(1)}-m}) +\text{rowsum}(e^{\mathbf S^{(2)}-m}) = \ell\\
+\tilde {\mathbf P}^{(2)} &= \text{diag}(\ell^{(2)})^{-1} e^{\mathbf S^{(2)}- m^{(2)}} \in \mathbb R^{B_r \times B_c}\\
+\mathbf O^{(2)}&=\text{diag}(\ell^{(1)}/\ell^{(2)})e^{m^{(1)}-m}\mathbf O^{(1)} + \tilde {\mathbf P}^{(2)}\mathbf V^{(2)} =
+\text{diag}(\ell^{(2)})^{-1}e^{\mathbf S^{(1)}- m}\mathbf V^{(1)}+
+\text{diag}(\ell^{(2)})^{-1}e^{\mathbf S^{(2)}- m}\mathbf V^{(1)}=\mathbf O
+\end{align}
+$$
+
+> 常规的 softmax 耦合了输入矩阵的所有的列，online softmax 对其进行解耦合
+> 考虑每一行，在列维度进行分块时，online softmax 计算每个块的局部 softmax，并随着列维度上块的遍历不断更新 softmax 统计量 $\ell, m$ (规范化指数和、最大值)，用更新的最大值重缩放之前块的局部 softmax 计算结果
 
 We show how FlashAttention uses online softmax to enable tiling (Fig. 1) to reduce memory reads/writes. 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/8ef60b87d8708e1d64c8658c4051eb5efd7c7030e686464c2033288bfeba60c4.jpg) 
+> FlashAttention 使用 online softmax 将 attention 计算 tile 为多个 block attention
+> 其中，每个 block attention 更新 softmax 统计量，重缩放当前的累积 values 加权和，计算该 block 相关的 values 加权和并将其累积
+> block attention 仅计算一块 $\mathbf S, \mathbf P$，并且用后即弃，不写入 HBM，故节约了读写中间结果 $\mathbf S, \mathbf P$ 需要的大量 HBM 访问，同时节约了 HBM 空间
+> FlashAttention 减少了 $\mathbf {S, P}$ 的 HBM 读写次数，但实际上相应增加了 $\mathbf {Q, O}$ 的读写次数，但由于 $N\gg d$，故总体的 HBM 读写的次数是大幅减少的，因此 FlashAttention 本质上利用了 $\mathbf {QK}^\top$ 的低秩性质
 
-Figure 1: Diagram of how FlashAttention forward pass is performed, when the key $\mathbf{K}$ is partitioned into two blocks and the value V is also partitioned into two blocks. By computing attention with respect to each block and rescaling the output, we get the right answer at the end, while avoiding expensive memory reads/writes of the intermediate matrices S and P . We simplify the diagram, omitting the step in softmax that subtracts each element by the row-wise max. 
+![[FlashAttention2-Fig1.png]]
 
-# 2.3.2 B ACKWARD PASS 
-
-In the backward pass, by re-computing the values of the attention matrices S and $\mathbf{P}$ once blocks of inputs $\mathbf{Q},\mathbf{K},\mathbf{V}$ are already loaded to SRAM, FlashAttention avoids having to store large interm alues. By not having to save the large matrices S and $\mathbf{P}$ of size $N{\times}N$ , FlashAttention yields $10–20\times$ × memory saving depending on sequence length (mem quired in linear in sequence length 𝑁 instead of quadratic). The backward pass also achieves 2-4 × wall-clock speedup due to reduce memory reads/writes. 
+### 2.3.2 Backward pass
+In the backward pass, by re-computing the values of the attention matrices $\bf S$ and $\mathbf{P}$ once blocks of inputs $\mathbf{Q},\mathbf{K},\mathbf{V}$ are already loaded to SRAM, FlashAttention avoids having to store large intermediate values. By not having to save the large matrices $\bf S$ and $\mathbf{P}$ of size $N{\times}N$ , FlashAttention yields $10–20\times$ memory saving depending on sequence length (memory required in linear in sequence length 𝑁 instead of quadratic). The backward pass also achieves 2-4 × wall-clock speedup due to reduce memory reads/writes. 
+> FlashAttention 在前向中没有保存 $\bf S, P$，在反向过程会根据 SRAM 上的 $\bf Q, K, V$ 重新计算 $\bf S, P$，这将 memory 需求降为了 $O (N)$，同时也减少了 HBM 读写，原理和前向完全类似
 
 The backward pass applies tiling to the equations in Section 2.2. Though the backward pass is simpler than the forward pass conceptually (there is no softmax rescaling), the implementation is significantly more involved. This is because there are more values to be kept in SRAM to perform 5 matrix multiples in the backward pass, compared to just 2 matrix multiples in the forward pass. 
+> 反向没有重复的 rescale，故在概念上简单于前向
+> 反向的实现则比前向显著复杂，前向仅需要完成两个矩阵乘 ($\mathbf {QK}^\top = \mathbf S$, $\mathbf {PV} = \mathbf O$)，反向需要完成五个矩阵乘 ($\mathbf {QK}^\top = \mathbf S$, $\mathbf {dV} = \mathbf P^\top \mathbf {dO}$, $\mathbf {dP} = \mathbf {dO}\mathbf V^\top$, $\mathbf {dQ} = \mathbf {dS}\mathbf K$, $\mathbf {dK} = \mathbf {dS}^{\top}\mathbf {dQ}$)，因而在 SRAM 中需要保存更多的矩阵
 
-# 3 FlashAttention -2: 
+# 3 FlashAttention-2: Algorithm, Parallelism, and Work Partitioning
+We describe the FlashAttention-2 algorithm, which includes several tweaks to FlashAttention to reduce the number of non-matmul FLOPs. We then describe how to parallelize the computation on different thread blocks to make full use the GPU resources. Finally we describe we partition the work between different warps within one thread block to reduce the amount of shared memory access. These improvements lead to $2–3\times$ speedup as validated in Section 4. 
 
-# A LGORITHM , P ARALLELISM , AND W ORK P ARTITIONING 
+## 3.1 Algorithm
+We tweak the algorithm from FlashAttention to reduce the number of non-matmul FLOPs. This is because modern GPUs have specialized compute units (e.g., Tensor Cores on Nvidia GPUs) that makes matmul much faster. As an example, the A100 GPU has a max theoretical throughput of 312 TFLOPs/s of FP16/BF16 matmul, but only 19.5 TFLOPs/s of non-matmul FP32. Another way to think about this is that each non-matmul FLOP is $16\times$ more expensive than a matmul FLOP. To maintain high throughput (e.g., more than 50% of the maximum theoretical TFLOPs/s), we want to spend as much time on matmul FLOPs as possible. 
+> A100的 Tensor core 处理 FP16/BF16 的 matmul 运算的理论峰值吞吐量为 312 TFLOPs/s，而 Cuda core 处理 FP32的 non-matmul 运算的理论峰值吞吐量仅为 19.5 TFLOPs/s
+> 可以理解为每个非 matmul 的浮点运算都16倍昂贵于 matmul 浮点运算，故需要提高 matmul 运算的比例
 
-We describe the FlashAttention -2 algorithm, which includes several tweaks to FlashAttention to reduce the number of non-matmul FLOPs. We then describe how to parallelize the computation on different thread blocks to make full use the GPU resources. Finally we describe we partition the work between different warps within one thread block to reduce the amount of shared memory access. These improvements lead to $2–3\times$ speedup as validated in Section 4. 
-
-# 3.1 A LGORITHM 
-
-We tweak the algorithm from FlashAttention to reduce the number of non-matmul FLOPs. This is because modern GPUs have specialized compute units (e.g., Tensor Cores on Nvidia GPUs) that makes matmul much faster. As an example, the A100 GPU has a max theoretical throughput of 312 TFLOPs/s of FP16/BF16 matmul, but only 19.5 TFLOPs/s of non-matmul FP32. Another way to think about this is that each non-matm OP is $16\times$ more expensive than a matmul FLOP. To maintain high throughput (e.g., more than 50% of the maximum theoretical TFLOPs/s), we want to spend as much time on matmul FLOPs as possible. 
-
-# 3.1.1 F ORWARD PASS 
-
+### 3.1.1 Forward pass
 We revisit the online softmax trick as shown in Section 2.3 and make two minor tweaks to reduce non-matmul FLOPs: 
 
-1. We do not have to rescale both terms of the output update by $\mathrm{diag}(\ell^{(2)})^{-1}$ : 
+(1) We do not have to rescale both terms of the output update by $\mathrm{diag}(\ell^{(2)})^{-1}$ : 
 
 $$
-{\bf O}^{(2)}\!=\!\mathrm{diag}(\ell^{(1)}/\ell^{(2)}){\bf O}^{(1)}\!+\!\mathrm{diag}(\ell^{(2)})^{-1}e^{{\bf S}^{(2)}-m^{(2)}}{\bf V}^{(2)}.
+{\bf O}^{(2)}\!=\!\mathrm{diag}(\ell^{(1)}/\ell^{(2)})e^{m^{(1)}-m^{(2)}}{\bf O}^{(1)}\!+\!\mathrm{diag}(\ell^{(2)})^{-1}e^{{\bf S}^{(2)}-m^{(2)}}{\bf V}^{(2)}.
 $$ 
-We can instead maintain an “un-scaled” version of $\mathbf{O}^{(2)}$ and keep around the statistics $\ell^{(2)}$ : Only at the every end of the loop do we scale the final $\tilde{\mathbf{O}}^{(\mathrm{lasst})}$ by $\mathrm{diag}(\ell^{(\mathrm{lasst})})^{-1}$ to get the right output. 
-
-2. We do not have to save both the max $m^{(j)}$ and the sum of exponentials $\ell^{(j)}$ for the backward pass. We only need to store the logsumexp $L^{(j)}{=}m^{(j)}{+}{\log}(\ell^{(j)})$ . 
+We can instead maintain an “un-scaled” version of $\mathbf{O}^{(2)}$ and keep around the statistics $\ell^{(2)}$ : 
 
 $$
-\begin{array}{r l}&{m^{(1)}\!=\!\mathrm{rowmax}(\mathbf{S}^{(1)})\!\in\!\mathbb{R}^{B_{r}}\qquad\ell^{(1)}\!=\!\mathrm{rowsum}(e^{\mathbf{S}^{(1)}-m^{(1)}})\!\in\!\mathbb{R}^{B_{r}}}\\ &{\mathbf{O}^{(1)}\!=\!e^{\mathbf{S}^{(1)}-m^{(1)}}\mathbf{V}^{(1)}\!\in\!\mathbb{R}^{B_{r}\times d}\qquad m^{(2)}\!=\!\operatorname*{max}(m^{(1)},\mathrm{rowmax}(\mathbf{S}^{(2)}))\!=\!m}\\ &{\ell^{(2)}\!=\!e^{m^{(1)}-m^{(2)}}\ell^{(1)}\!+\!\mathrm{rowsum}(e^{\mathbf{S}^{(2)}-m^{(2)}})\!=\!\mathrm{rowsum}(e^{\mathbf{S}^{(1)}-m})\!+\!\mathrm{rowsum}(e^{\mathbf{S}^{(2)}-m})\!=\!\ell}\\ &{\tilde{\mathbf{P}}^{(2)}\!=\!\mathrm{diag}(\ell^{(2)})^{-1}e^{\mathbf{S}^{(2)}-m^{(2)}}}\\ &{\tilde{\mathbf{O}}^{(2)}\!=\!\mathrm{diag}(e^{m^{(1)}-m^{(2)}})\tilde{\mathbf{O}}^{(1)}\!+\!e^{\mathbf{S}^{(2)}-m^{(2)}}\mathbf{V}^{(2)}\!=\!e^{s^{(1)}-m}\mathbf{V}^{(1)}\!+\!e^{s^{(2)}-m}\mathbf{V}^{(2)}}\\ &{\mathbf{O}^{(2)}\!=\!\mathrm{diag}(\ell^{(2)})^{-1}\tilde{\mathbf{O}}^{(2)}\!=\!\mathbf{O}.}\end{array}
-$$ 
+\tilde {\mathbf O}^{(2)} = \text{diag}(\ell^{(1)})^{-1}e^{m^{(1)} - m^{(2)}}\mathbf O^{(1)} + e^{\mathbf S^{(2)}-m^{(2)}}\mathbf V^{(2)}
+$$
 
-We describe the full FlashAttention -2 forward pass in Algorithm 1. 
+Only at the every end of the loop do we scale the final $\tilde{\mathbf{O}}^{(\mathrm{last})}$ by $\mathrm{diag}(\ell^{(\mathrm{last})})^{-1}$ to get the right output. 
 
-# Algorithm 1 FlashAttention -2 forward pass 
+(2) We do not have to save both the max $m^{(j)}$ and the sum of exponentials $\ell^{(j)}$ for the backward pass. We only need to store the logsumexp $L^{(j)}{=}m^{(j)}{+}{\log}(\ell^{(j)})$ . 
 
-Require: Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ l in HBM, block sizes $B_{c}, B_{r}$ . l m 1: Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\ldots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\!\times\! d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $\begin{array}{r}{T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil}\end{array}$ blocks $\mathbf{K}_{1},...,\mathbf{K}_{T_{c}}$ $\dot{\mathbf{V}}_{1},...,\mathbf{V}_{T_{c}}$ of size $B_{c}\!\times\! d$ each. 2: ivid e outpu $\mathbf{O}\!\in\!\mathbb{R}^{N\times d}$ into $T_{r}$ locks $\mathbf{0}_{i},...,\mathbf{0}_{T_{r}}$ of size $B_{r}\!\times\! d$ each, and divide the logsumexp $L$ into $T_{r}$ blocks $L_{i},..., L_{T_{r}}$ of size $B_{r}$ each. 3: for $1\!\le\! i\!\le\! T_{r}$ do 4: Load $\mathbf{Q}_{i}$ from HBM to on-chip SRAM. 5: On chip, initialize $\mathbf{O}_{i}^{(0)}\mathop{=}(0)_{B_{r}\times d}\in\mathbb{R}^{B_{r}\times d},\ell_{i}^{(0)}\mathop{=}(0)_{B_{r}}\in\mathbb{R}^{B_{r}}, m_{i}^{(0)}\mathop{=}(-\infty)_{B_{r}}\in\mathbb{R}^{B_{r}}.$ 6: for $1\le j\le T_{c}$ 7: Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM. 8: On chip, compute $\mathbf{S}_{i}^{(j)}\!=\!\mathbf{Q}_{i}\mathbf{K}_{j}^{T}\in\mathbb{R}^{B_{r}\times B_{c}}$ . $\mathbb{R}^{B_{r}\times B_{c}}$ $\begin{array}{r l}&{\mathbf{\Phi}_{m_{i}^{(j)}}^{\iota}=\operatorname*{max}(m_{i}^{(j-1)},\mathrm{rowmax}(\mathbf{S}_{i}^{(j)}))\in\mathbb{R}^{B_{r}},\,\tilde{\mathbf{P}}_{i}^{(j)}=\exp (\mathbf{S}_{i}^{(j)}-m_{i}^{(j)})\in\mathrm{\Sigma}_{m_{i}^{(j)}}^{\iota},}\\ &{),\ell_{i}^{(j)}\!=\! e^{m_{i}^{j-1}-m_{i}^{(j)}}\ell_{i}^{(j-1)}\!+\!\mathrm{rowsum}(\tilde{\mathbf{P}}_{i}^{(j)})\!\in\!\mathbb{R}^{B_{r}}.}\\ &{\mathbf{D}_{i}^{(j)}\!=\!\mathrm{diag}(e^{m_{i}^{(j-1)}-m_{i}^{(j)}})\mathbf{O}_{i}^{(j-1)}\!+\!\tilde{\mathbf{P}}_{i}^{(j)}\mathbf{V}_{j}.}\end{array}$ 10: On chip, compute O 11: end for 12: On chip, compute $\mathbf{O}_{i}\!=\!\mathrm{diag}(\ell_{i}^{(T_{c})})^{-1}\mathbf{O}_{i}^{(T_{c})}$ ) . 13: On chip, compute $L_{i}\!=\! m_{i}^{(T_{c})}\!+\!\log (\ell_{i}^{(T_{c})})$ . 14: Write $\mathbf{0}_{i}$ to HBM as the $i$ -th block of O . 15: Write $L_{i}$ to HBM as the $i$ -th block of $L$ . 16: end for 17: Return the output O and the logsumexp $L$ . 
+> FlashAttention-2 对 FlashAttention 做的两项微调：
+> 1. 不再用 $\text{diag}(\ell^{(i)})$ 在每一步缩放 $\mathbf O^{(i)}$，仅在累积到最后时用最终的 $\text{diag}(\ell )$ 进行缩放，此时 $\ell^{(i)}$ 在算法中仅需要保持更新，不参与计算。换句话说，算法中除了最后一步，对 values 的加权求和都不会对权重进行归一化 (但权重本身一定在 $[0,1]$ 之间，因此对数值稳定性不会有太大影响)
+> 2. 将分别储存 $m^{(j)}, \ell^{(j)}$ (用于反向传播) 改为仅储存 $L^{(j)} = m^{(j)} + \log (\ell^{(j)})$
 
-# Causal masking. 
+In the simple case of 2 blocks in Section 2.3, the online softmax trick now becomes:
 
-One common use case of attention is in auto-regressive language modeling, where we need to apply a causal mask to the attention matrix S (i.e., any entry $\mathbf{S}_{i j}$ with $j\!>\! i$ is set to $-\infty.$ ). 
+$$\begin{align} 
+m^{(1)} &= \mathrm{rowmax}(\mathbf{S}^{(1)}) \in \mathbb{R}^{B_{r}}\\
+\ell^{(1)} &= \mathrm{rowsum}(e^{\mathbf{S}^{(1)} - m^{(1)}}) \in \mathbb{R}^{B_{r}} \\ 
+\tilde {\mathbf{O}}^{(1)} &= e^{\mathbf{S}^{(1)} - m^{(1)}} \mathbf{V}^{(1)} \in \mathbb{R}^{B_{r} \times d}\\\\
+m^{(2)} &= \operatorname*{max}(m^{(1)}, \mathrm{rowmax}(\mathbf{S}^{(2)})) = m \\
+\ell^{(2)} &= e^{m^{(1)} - m^{(2)}} \ell^{(1)} + \mathrm{rowsum}(e^{\mathbf{S}^{(2)} - m^{(2)}}) = \mathrm{rowsum}(e^{\mathbf{S}^{(1)} - m}) + \mathrm{rowsum}(e^{\mathbf{S}^{(2)} - m}) = \ell \\
+\tilde{\mathbf{P}}^{(2)} &= \mathrm{diag}(\ell^{(2)})^{-1} e^{\mathbf{S}^{(2)} - m^{(2)}} \\ 
+\tilde{\mathbf{O}}^{(2)} &= \mathrm{diag}(e^{m^{(1)} - m^{(2)}}) \tilde{\mathbf{O}}^{(1)} + e^{\mathbf{S}^{(2)} - m^{(2)}} \mathbf{V}^{(2)} = e^{s^{(1)} - m} \mathbf{V}^{(1)} + e^{s^{(2)} - m} \mathbf{V}^{(2)} \\ 
+\mathbf{O}^{(2)} &= \mathrm{diag}(\ell^{(2)})^{-1} \tilde{\mathbf{O}}^{(2)} = \mathbf{O}. 
+\end{align}$$
+
+We describe the full FlashAttention-2 forward pass in Algorithm 1. 
+
+![[FlashAttention2-Algorithm 1.png]]
+
+**Algorithm 1** FlashAttention-2 forward pass
+**Require:** Matrices $\mathbf {Q,K,V}\in \mathbb R^{N\times d}$ in HBM, block sizes $B_c, B_r$.
+  1: Divide $\mathbf Q$ into $T_r = \lceil \frac N {B_r} \rceil$ blocks $\mathbf Q_1, \dots ,\mathbf Q_{T_r}$ of size $B_r \times d$ each, and divide $\mathbf K, \mathbf V$ into $T_c = \lceil \frac N{B_c} \rceil$ blocks $\mathbf K_1, \dots, \mathbf K_{T_c}$ and $\mathbf V_1, \dots, \mathbf V_{T_c}$ of size $B_c\times d$ each.
+> 划分 $\mathbf Q, \mathbf K, \mathbf V$，划分时保持嵌入维度 $d$ 不变，从序列长度的维度划分
+> $\mathbf Q$ 划分单位为 $B_r \times d$，$\mathbf K, \mathbf V$ 划分单位为 $B_c\times d$
+> 得到 $T_r$ 个 $\mathbf Q$ 块，得到 $T_c$ 个 $\mathbf K, \mathbf V$ 块
+
+  2: Divide $\mathbf O$ into $T_r$ blocks $\mathbf O_i, \dots, \mathbf O_{T_r}$ of size $B_r \times d$ each, divide the logsumexp $L$ into $T_r$ blocks $L_i,\dots, L_{T_r}$ of size $B_r$ each.
+> 划分 $\mathbf O$，划分时保持嵌入维度 $d$ 不变，从序列长度的维度划分
+> $\mathbf O$ 划分单位为 $B_r \times d$
+> 得到 $T_r$ 个 $\mathbf O$ 块
+> 划分 $L$，从序列长度的维度划分
+> $L$ 的划分单位为 $B_r$
+> 得到 $T_r$ 个 $L$ 块
+
+  3: **for** $1\le i \le T_r$ **do**
+  4:     Load $\mathbf Q_i$ from HBM to on-chip SRAM.
+  5:     On chip, initialize $\mathbf O_{i}^{(0)} = (0)_{B_r \times d}\in \mathbb R^{B_r \times d}$, $\ell^{(0)}_{i} = (0)_{B_r}\in \mathbb R^{B_r}$, $m_i^{(0)} = (\infty)_{B_r}\in \mathbb R^{B_r}$.
+> 外层循环：
+> 装载 $\mathbf Q$ 块到 SRAM
+> 在片上初始化 $\mathbf O, \ell, m$ 块
+
+  7:     **for** $1\le j \le T_c$ **do**
+  8:         Load $Q_i, O_i, \mathscr l_i, m_i$ from HBM to on-chip SRAM.
+  9:         On chip, computes $S_{ij} = Q_iK^T_j \in \mathbb R^{B_r\times B_c}$.
+ 10:        On chip, compute $\tilde m_{ij} = \text{rowmax}(S_{ij}) \in \mathbb R^{B_r}$，$\tilde P_{ij} = \exp(S_{ij}-\tilde m_{ij})\in \mathbb R^{B_r\times B_c}$(pointwise)，$\tilde {\mathscr l}_{ij} = \text{rowsum}(\tilde P_{ij}) \in \mathbb R^{B_r}$.
+ 11:         On chip, compute $m_i^{new} = \max(m_i, \tilde m_{ij})\in \mathbb R^{B_r}, \mathscr l_{i}^{new} = e^{m_i - m_i^{new}}\mathscr l_i + e^{\tilde m_{ij} - m_i^{new}}\tilde {\mathscr l}_{ij} \in \mathbb R^{B_r}$.
+ 12:        Write $O_i \leftarrow \text{diag}(\mathscr l_i^{new})^{-1}(\text{diag}(\mathscr l_i)e^{m_i - m_i^{new}}O_i+e^{\tilde m_{ij}- m_i^{new}}\tilde P_{ij} V_j)$ to HBM.
+ 13:       Write $\mathscr l_i \leftarrow \mathscr l_i^{new}, m_i \leftarrow m_i^{new}$ to HBM.
+> 内层循环：装载 $Q, O,\mathscr l, m$ 块到 SRAM
+> $Q, O$ 块占据空间 $2dB_r = 2d\min (\lceil \frac M {4d} \rceil, d)$，$\mathscr l, m$ 块占据空间 $2B_r = 2\min (\lceil \frac {M}{4d} \rceil, d)$
+> 
+> 在片上计算 $S$ 块：$S = QK^T \in \mathbb R^{B_r\times B_c}$ (score 是 final 的)
+> 按行取最大值: $\tilde m = \text{rowmax}(S) \in \mathbb R^{B_r}$，
+> 按行规范化 $S$: $S = S - \tilde m \in \mathbb R^{B_r\times B_c}$，
+> 取指数: $\tilde P = \exp (S-\tilde m) \in \mathbb R^{B_r \times B_c}$ ，($\exp (S-\tilde m) = \frac {\exp (S)}{\exp (\tilde m)}$，$\exp (S)$ 是 final 的)
+> 按行求和: $\mathscr {\tilde l} = \text{rowsum}(\tilde P) \in \mathbb R^{B_r}$
+>  
+> 计算 $m^{new} = \max (m, \tilde m) \in \mathbb R^{B_r}$，即更新记录的每行最大值；
+> 计算 $e^{m - m^{new}}\mathscr l\in \mathbb R^{B_r}$ ，即用更新的最大值重放缩目前为止累加的各行指数和，
+> 计算 $e^{\tilde m - m^{new}}\mathscr {\tilde l}\in \mathbb R^{B_r}$ ，即用更新的最大值重放缩当前 $S$ 块的各行指数和，
+> 计算 $\mathscr l^{new} = e^{m-m^{new}}\mathscr l + e^{\tilde m - m^{new}}\mathscr {\tilde l} \in \mathbb R^{B_r}$，即累加/更新目前为止的各行指数和；
+> 
+> 计算 $\text{diag}(\mathscr l) e^{m - m^{new}}O$，可以视为：对于每一行，先乘上目前为止的各行指数和，恢复目前为止注意到的样本的指数分数，然后用更新的最大值重放缩目前为止注意到的样本的指数分数，注意对于每一行，目前为止注意到的样本数量随着外层循环增长；
+> 计算 $e^{\tilde m_{ij} - m_i^{new}}\tilde P_{ij}V_j$，可以视为：对于每一行，用更新的最大值重放缩当前块注意到的样本的指数分数，然后按照指数分数对注意到的样本加权求和；
+> 计算 $\text{diag}(\mathscr l) e^{m - m^{new}}O + e^{\tilde m_{ij} - m_i^{new}}\tilde P_{ij}V_j$，可以视为：对于每一行，补充注意到的（当前块）样本的加权和；
+> 计算 $\text{diag}(\mathscr l_i^{new})^{-1}(\text{diag}(\mathscr l) e^{m - m^{new}}O + e^{\tilde m_{ij} - m_i^{new}}\tilde P_{ij}V_j)$，可以视为：对于每一行，规范化注意力权重（即除以各行的放缩指数分数和）；
+>
+> 将 $\mathscr l^{new}, m^{new}$ 写回 HBM，即更新 $\mathscr l, m$
+
+ 14:     **end for**
+ 15: **end for**
+ 16: Return $O$.
+
+**Causal masking.** 
+One common use case of attention is in auto-regressive language modeling, where we need to apply a causal mask to the attention matrix $\bf S$ (i.e., any entry $\mathbf{S}_{i j}$ with $j\!>\! i$ is set to $-\infty.$ ). 
 
 1. As FlashAttention and FlashAttention -2 already operate by blocks, for any blocks where all the column indices are more than the row indices (approximately half of the blocks for large sequence length), we can skip the computation of that block. This leads to around $1.7{\cdot}1.8\times$ speedup compared to attention without the causal mask. 
 
 2. We do not need to apply the causal mask for blocks whose row indices are guaranteed to be strictly less than the column indices. This means that for each row, we only need apply causal mask to 1 block (assuming square block). 
 
 Correctness, runtime, and memory requirement. As with FlashAttention , Algorithm 1 returns the correct output $\mathbf{O}\!=\!\mathrm{softmax}(\mathbf{Q}\mathbf{K}^{\intercal})\mathbf{V}$ (with no approximation), using $O (N^{2}d)$ FLOPs and requires $O (N)$ additional memory beyond inputs and output (to store the logsumexp $L$ ). The proof is almost the same as the proof of Dao et al. (2022, Theorem 1), so we omit it here. 
-# 3.1.2 B ACKWARD PASS 
 
+### 3.1.2 Backward pass
 The backward pass of FlashAttention -2 is almost the same as that of FlashAttention . We make a minor tweak to only use the row-wise logsumexp $L$ instead of both the row-wise max and row-wise sum of exponentials in the softmax. We include the backward pass description in Algorithm 2 for completeness. 
 
 Multi-query attention and grouped-query attention. Multi-query attention (MQA) (Shazeer, 2019) and grouped-query attention (GQA) (Ainslie et al., 2023) are variants of attention where multiple heads of query attend to the same head of key and value, in order to reduce the size of KV cache during inference. Instead of having to duplicate the key and value heads for the computation, we implicitly manipulate the indices into the head to perform the same computation. In the backward pass, we need to sum the gradients dK and dV across different heads that were implicitly duplicated. 
