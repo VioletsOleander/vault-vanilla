@@ -632,6 +632,16 @@ scopes:
     - course
     - causal
     - homework
+- log
+    - daily
+    - weekly
+
+subjects:
+- note
+    `update <notename-abbrevation>`
+- log
+    daily: `<yyyy-mm-dd> <day-of-week>`
+    weekly: `<yyyy-mm-dd> week<week-of-month> of <mm>`
 
 **Rules:**
 1. General guideline refers to the angular style.
