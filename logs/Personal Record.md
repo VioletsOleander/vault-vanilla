@@ -211,6 +211,7 @@
 ## November
 ### Week 1
 \[**Paper**\]
+- [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]: Sec0-Sec2
 
 \[**Book**\]
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
@@ -218,3 +219,4 @@
 \[**Doc**\]
 - [[Learn the Basics|pytorch-tutorials-beginner: Learn the Basics]]
 - [[pillow v11.0.0]]: Overview, Tutorial
+- [[Repositories|huggingface-hub:Repositories]]: Sec1-Sec2
