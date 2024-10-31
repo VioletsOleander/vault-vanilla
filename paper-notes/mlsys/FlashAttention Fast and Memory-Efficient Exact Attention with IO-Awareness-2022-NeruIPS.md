@@ -684,15 +684,17 @@ We first describe the standard attention backward pass in Algorithm 3 for comple
 > 标准的 attention 反向传播在 HBM 中存储了完整的“权重矩阵” $\mathbf P \in \mathbb R^{N\times N}$
 
 1: Load $\bf P, dO$ by blocks from HBM, compute $\mathbf {dV = P^T dO} \in \mathbb R^{N\times d}$, write $\bf dV$ to HBM.
-> 有完整的 $\bf P$，故直接计算完整的 $\bf dV$
+> 根据 $\bf P$ 和 $\bf dO$ 计算 $\bf dV$
 
 2: Load $\bf O, V$ by blocks from HBM, compute $\mathbf {dP = dO V^T} \in \mathbb R^{N\times N}$, write $\bf dP$ to HBM.
 3: Read $\bf P, dP$ from HBM, compute $\mathbf {dS}\in \mathbb R^{N\times N}$ where $dS_{ij} = P_{ij}(dP_{ij} - \sum_l P_{il}dP_{il})$, write $\bf dS$ to HBM.
-> 计算 $\bf dP$，然后根据 $\bf dP$ 计算 $\bf dS$，以便后续使用
+> 根据 $\mathbf {OV}$ 计算 $\bf dP$ 
+> 根据 $\bf dP$ 计算 $\bf dS$
 
 4: Load $\bf dS$ and $\bf K$ by blocks from HBM, compute $\bf dQ = \bf dSK$, write $\bf dQ$ to HBM.
 5: Load $\bf dS$ and $\bf Q$ by blocks from HBM, compute $\bf dK = \bf dS^TQ$, write $\bf dK$ to HBM.
-> 有完整的 $\bf dS$，故直接计算完整的 $\bf dQ, dK$
+> 根据 $\bf dS$ 和 $\bf K$ 计算 $\bf dQ$
+> 根据 $\bf dS$ 和 $\bf Q$ 计算 $\bf dK$
 
 We now make two observations about FlashAttention backward pass: 
 
