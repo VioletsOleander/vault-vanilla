@@ -695,3 +695,163 @@ draft = L (128, 128)
 ```
 
 Note that the resulting image may not exactly match the requested mode and size. To make sure that the image is not larger than the given size, use the thumbnail method instead.
+
+# Concepts
+The Python Imaging Library handles _raster images_; that is, rectangles of pixel data.
+>PIL 处理的是光栅图像，即排列为矩形区域的像素数据
+>(光栅图像是由像素组成的数字图像，这些像素通常排列成规则的二维网格结构，每个像素都包含颜色信息，常见的光栅图像文件格式包括JPEG、PNG和BMP等)
+## Bands
+An image can consist of one or more bands of data. The Python Imaging Library allows you to store several bands in a single image, provided they all have the same dimensions and depth. For example, a PNG image might have ‘R’, ‘G’, ‘B’, and ‘A’ bands for the red, green, blue, and alpha transparency values. Many operations act on each band separately, e.g., histograms. It is often useful to think of each pixel as having one value per band.
+>一张图像可以由一个或多个数据带组成，PIL 允许我们在单个图像中存储多个带，前提是它们具有相同的尺寸和深度
+>例如，一个 PNG 图像可能有 'R'、'G'、'B' 和 'A' 带，分别对应红色、绿色、蓝色和 alpha 透明度值
+>许多操作会对每个单独的带进行处理，例如直方图
+>我们通常可以认为每个像素在每个带上各有一个值
+
+To get the number and names of bands in an image, use the [`getbands()`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.getbands "PIL.Image.Image.getbands") method.
+> `getbands()` 方法用于获取图像中的带的数量和名称
+
+## Modes
+The `mode` of an image is a string which defines the type and depth of a pixel in the image. Each pixel uses the full range of the bit depth. So a 1-bit pixel has a range of 0-1, an 8-bit pixel has a range of 0-255, a 32-signed integer pixel has the range of INT32 and a 32-bit floating point pixel has the range of FLOAT32. 
+>图像的 `mode` 是一个字符串，它定义了图像中像素的类型和深度
+>在图像中，位深度定义了每个像素取值的完整范围，例如，1位像素的范围是0-1，8位像素的范围是0-255，32位有符号整数像素的范围是 INT32，32位浮点像素的范围是 FLOAT32
+
+The current release supports the following standard modes:
+>PIL 当前版本支持以下标准模式 (mode)：
+
+> - `1` (1-bit pixels, black and white, stored with one pixel per byte)
+> - `L` (8-bit pixels, grayscale)
+> - `P` (8-bit pixels, mapped to any other mode using a color palette)
+> - `RGB` (3x8-bit pixels, true color)
+> - `RGBA` (4x8-bit pixels, true color with transparency mask)
+> - `CMYK` (4x8-bit pixels, color separation)
+> - `YCbCr` (3x8-bit pixels, color video format)
+>     - Note that this refers to the JPEG, and not the ITU-R BT.2020, standard
+> - `LAB` (3x8-bit pixels, the L*a*b color space)
+> - `HSV` (3x8-bit pixels, Hue, Saturation, Value color space)
+>     - Hue’s range of 0-255 is a scaled version of 0 degrees <= Hue < 360 degrees
+> - `I` (32-bit signed integer pixels)
+> - `F` (32-bit floating point pixels)
+
+Pillow also provides limited support for a few additional modes, including:
+> PIL 对部分额外的 mode 提供受限的支持，包括：
+
+> - `LA` (L with alpha)
+> - `PA` (P with alpha)
+> - `RGBX` (true color with padding)
+> - `RGBa` (true color with premultiplied alpha)
+> - `La` (L with premultiplied alpha)
+> - `I;16` (16-bit unsigned integer pixels)
+> - `I;16L` (16-bit little endian unsigned integer pixels)
+> - `I;16B` (16-bit big endian unsigned integer pixels)
+> - `I;16N` (16-bit native endian unsigned integer pixels)
+
+Premultiplied alpha is where the values for each other channel have been multiplied by the alpha. For example, an RGBA pixel of `(10, 20, 30, 127)` would convert to an RGBa pixel of `(5, 10, 15, 127)`. The values of the R, G and B channels are halved as a result of the half transparency in the alpha channel.
+> `RGBa` 中的预乘 alpha 是指其他每个通道的值都乘以 alpha 值
+>例如，一个RGBA像素 `(10, 20, 30, 127)` 会转换为 RGBa 像素 `(5, 10, 15, 127)`，因为 alpha 通道中的半透明度会将 R、G 和 B 通道的值被减半
+
+Apart from these additional modes, Pillow doesn’t yet support multichannel images with a depth of more than 8 bits per channel.
+>除了这些额外模式外，Pillow 尚不支持每个通道深度超过8位的多通道图像
+
+Pillow also doesn’t support user-defined modes; if you need to handle band combinations that are not listed above, use a sequence of Image objects.
+>Pillow 也不支持用户自定义模式；如果我们需要处理没有在上面列出的通道组合，需要使用 Image 对象的序列
+
+You can read the mode of an image through the [`mode`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.mode "PIL.Image.Image.mode") attribute. This is a string containing one of the above values.
+>可以通过 [`mode`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.mode) 属性读取图像的模式，`mode` 其实就是一个包含上述值之一的字符串
+
+## Size
+You can read the image size through the [`size`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.size "PIL.Image.Image.size") attribute. This is a 2-tuple, containing the horizontal and vertical size in pixels.
+> `size` 属性为 2-tuple，存储了图像在水平和垂直上的像素数量
+
+## Coordinate System
+The Python Imaging Library uses a Cartesian pixel coordinate system, with (0,0) in the upper left corner. Note that the coordinates refer to the implied pixel corners; the centre of a pixel addressed as (0, 0) actually lies at (0.5, 0.5).
+>PIL 使用笛卡尔像素坐标系统，其中 (0,0) 位于左上角
+>注意像素的坐标是指它的左上角的坐标位置，因此地址为 (0, 0) 的像素的中心实际上位于 (0.5, 0.5)
+
+Coordinates are usually passed to the library as 2-tuples (x, y). Rectangles are represented as 4-tuples, (x1, y1, x2, y2), with the upper left corner given first.
+>坐标通常作为 2-元组 (x, y) 传递给库，矩形表示为 4-元组，(x1, y1, x2, y2)，其中左上角首先给出
+
+## Palette
+The palette mode (`P`) uses a color palette to define the actual color for each pixel.
+>调色板模式（`P`）使用颜色调色板定义每个像素的实际颜色。
+
+## Info
+You can attach auxiliary information to an image using the [`info`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.info "PIL.Image.Image.info") attribute. This is a dictionary object.
+>可以使用 [`info`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. info  "PIL. Image. Image. info") 属性将辅助信息附加到图像上，`info`  是一个字典对象
+
+How such information is handled when loading and saving image files is up to the file format handler (see the chapter on [Image file formats](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#image-file-formats)). Most handlers add properties to the [`info`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.info "PIL.Image.Image.info") attribute when loading an image, but ignore it when saving images.
+>在加载和保存图像文件时如何处理附加信息取决于文件格式处理器（见[图像文件格式](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#image-file-formats)章节）
+>大多数处理器在加载图像时会向 [`info`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. info  "PIL. Image. Image. info") 添加属性，但在保存图像时会忽略它
+
+## Transparency
+If an image does not have an alpha band, transparency may be specified in the [`info`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.info "PIL.Image.Image.info") attribute with a “transparency” key.
+>如果图像没有 alpha 通道，透明度可以在 [`info`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. info  "PIL. Image. Image. info") 属性中使用 “transparency” 键指定
+
+Most of the time, the “transparency” value is a single integer, describing which pixel value is transparent in a “1”, “L”, “I” or “P” mode image. However, PNG images may have three values, one for each channel in an “RGB” mode image, or can have a byte string for a “P” mode image, to specify the alpha value for each palette entry.
+>大多数情况下，“transparency” 值是单个整数，它描述在 “1”，“L”，“I” 或 “P” 模式图像中哪个像素值是透明的
+>PNG 图像可以有三个值，分别对应 “RGB” 模式图像的每个通道，或者对于 “P” 模式图像，可以使用一个字节字符串来指定每个调色板条目的 alpha 值
+
+## Orientation
+A common element of the [`info`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.info "PIL.Image.Image.info") attribute for JPG and TIFF images is the EXIF orientation tag. This is an instruction for how the image data should be oriented. For example, it may instruct an image to be rotated by 90 degrees, or to be mirrored. To apply this information to an image, [`exif_transpose()`](https://pillow.readthedocs.io/en/stable/reference/ImageOps.html#PIL.ImageOps.exif_transpose "PIL.ImageOps.exif_transpose") can be used.
+>[`info`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. info  "PIL. Image. Image. info") 属性对于 JPG 和 TIFF 图像的一个常见元素是 EXIF 方向标签
+>这是一个指示图像数据应该如何定向的指令，它可指示图像旋转 90 度，或者进行镜像等，要将此信息应用于图像，可以使用 [`exif_transpose ()`](https://pillow. readthedocs. io/en/stable/reference/ImageOps. html#PIL. ImageOps. exif_transpose  "PIL. ImageOps. exif_transpose")
+
+## Filters
+For geometry operations that may map multiple input pixels to a single output pixel, the Python Imaging Library provides different resampling _filters_.
+>对于可能将多个输入像素映射到单个输出像素的几何操作，PIL 提供了不同的重采样滤波器
+
+`Resampling.NEAREST`
+Pick one nearest pixel from the input image. Ignore all other input pixels.
+>从输入图像中选择一个最近的像素。忽略所有其他输入像素
+
+`Resampling.BOX`
+Each pixel of source image contributes to one pixel of the destination image with identical weights. For upscaling is equivalent of [`Resampling.NEAREST`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.NEAREST "PIL.Image.Resampling.NEAREST"). This filter can only be used with the [`resize()`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.resize "PIL.Image.Image.resize") and [`thumbnail()`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.thumbnail "PIL.Image.Image.thumbnail") methods.
+>每个源图像像素以相同的权重贡献于目标图像的一个像素，对于放大，等同于 [`Resampling.NEAREST`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Resampling. NEAREST  "PIL. Image. Resampling. NEAREST")
+>这个滤波器只能与 [`resize ()`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. resize  "PIL. Image. Image. resize") 和 [`thumbnail ()`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. thumbnail  "PIL. Image. Image. thumbnail") 方法一起使用
+
+Added in version 3.4.0.
+
+`Resampling.BILINEAR`
+For resize calculate the output pixel value using linear interpolation on all pixels that may contribute to the output value. For other transformations linear interpolation over a 2x2 environment in the input image is used.
+>对于 resize ，使用线性插值计算输出像素值，其中可能对输出值的做出贡献的所有像素都参与计算
+>对于其他变换，使用输入图像中的 2x2 环境进行线性插值
+
+`Resampling.HAMMING`
+Produces a sharper image than [`Resampling.BILINEAR`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.BILINEAR "PIL.Image.Resampling.BILINEAR"), doesn’t have dislocations on local level like with [`Resampling.BOX`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.BOX "PIL.Image.Resampling.BOX"). This filter can only be used with the [`resize()`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.resize "PIL.Image.Image.resize") and [`thumbnail()`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.thumbnail "PIL.Image.Image.thumbnail") methods.
+>产生的图像比 [`resampling.BILINEAR`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Resampling. BILINEAR  "PIL. Image. Resampling. BILINEAR") 更锐利，不会像 [`resampling.BOX`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Resampling. BOX  "PIL. Image. Resampling. BOX") 那样在局部级别上有错位
+>这个滤波器只能与 [`resize ()`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. resize  "PIL. Image. Image. resize") 和 [`thumbnail ()`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. thumbnail  "PIL. Image. Image. thumbnail") 方法一起使用
+
+Added in version 3.4.0.
+
+`Resampling.BICUBIC`
+For resize calculate the output pixel value using cubic interpolation on all pixels that may contribute to the output value. For other transformations cubic interpolation over a 4x4 environment in the input image is used.
+>对于 resize，使用立方插值计算输出像素值，可能贡献输出值的所有像素都参与计算
+>对于其他变换，使用输入图像中的 4x4 环境进行立方插值
+
+`Resampling.LANCZOS`
+Calculate the output pixel value using a high-quality Lanczos filter (a truncated sinc) on all pixels that may contribute to the output value. This filter can only be used with the [`resize()`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.resize "PIL.Image.Image.resize") and [`thumbnail()`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.thumbnail "PIL.Image.Image.thumbnail") methods.
+>使用高质量的 Lanczos 过滤器（一个截断的 sinc）计算输出像素值，可能贡献输出值的所有像素都参与计算
+>这个过滤器只能与 [`resize ()`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. resize  "PIL. Image. Image. resize") 和 [`thumbnail ()`](https://pillow. readthedocs. io/en/stable/reference/Image. html#PIL. Image. Image. thumbnail  "PIL. Image. Image. thumbnail") 方法一起使用
+
+Added in version 1.1.3.
+
+### Filters comparison table
+
+|Filter|Downscaling quality|Upscaling quality|Performance|
+|---|---|---|---|
+|[`Resampling.NEAREST`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.NEAREST "PIL.Image.Resampling.NEAREST")|||⭐⭐⭐⭐⭐|
+|[`Resampling.BOX`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.BOX "PIL.Image.Resampling.BOX")|⭐||⭐⭐⭐⭐|
+|[`Resampling.BILINEAR`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.BILINEAR "PIL.Image.Resampling.BILINEAR")|⭐|⭐|⭐⭐⭐|
+|[`Resampling.HAMMING`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.HAMMING "PIL.Image.Resampling.HAMMING")|⭐⭐||⭐⭐⭐|
+|[`Resampling.BICUBIC`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.BICUBIC "PIL.Image.Resampling.BICUBIC")|⭐⭐⭐|⭐⭐⭐|⭐⭐|
+|[`Resampling.LANCZOS`](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.LANCZOS "PIL.Image.Resampling.LANCZOS")|⭐⭐⭐⭐|⭐⭐⭐⭐|⭐|
+
+
+
+
+
+
+
+
+
+
+
