@@ -644,7 +644,8 @@ subjects:
     `update <notename-abbrevation>`
 - log
     daily: `<yyyy-mm-dd> <day-of-week>`
-    weekly: `<yyyy-mm-dd> week<week-of-month> of <mm>`
+    weekly: `<yyyy-mm-dd> Week<week-of-month>-of-<mm>`
+    monthly: `<yyyy>-<mm>`
 
 **Rules:**
 1. General guideline refers to the angular style.
