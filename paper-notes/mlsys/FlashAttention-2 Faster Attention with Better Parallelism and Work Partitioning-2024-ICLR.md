@@ -201,7 +201,7 @@ We describe the full FlashAttention-2 forward pass in Algorithm 1.
 > $\mathbf Q$ 划分单位为 $B_r \times d$，$\mathbf K, \mathbf V$ 划分单位为 $B_c\times d$
 > 得到 $T_r$ 个 $\mathbf Q$ 块，得到 $T_c$ 个 $\mathbf K, \mathbf V$ 块
 
-  2: Divide $\mathbf O$ into $T_r$ blocks $\mathbf O_i, \dots, \mathbf O_{T_r}$ of size $B_r \times d$ each, divide the logsumexp $L$ into $T_r$ blocks $L_i,\dots, L_{T_r}$ of size $B_r$ each.
+  2: Divide the output $\mathbf O\in \mathbb R^{N\times d}$ into $T_r$ blocks $\mathbf O_i, \dots, \mathbf O_{T_r}$ of size $B_r \times d$ each, divide the logsumexp $L$ into $T_r$ blocks $L_i,\dots, L_{T_r}$ of size $B_r$ each.
 > 划分 $\mathbf O$，划分时保持嵌入维度 $d$ 不变，从序列长度的维度划分
 > $\mathbf O$ 划分单位为 $B_r \times d$
 > 得到 $T_r$ 个 $\mathbf O$ 块
@@ -216,55 +216,76 @@ We describe the full FlashAttention-2 forward pass in Algorithm 1.
 > 装载 $\mathbf Q$ 块到 SRAM
 > 在片上初始化 $\mathbf O, \ell, m$ 块
 
-  7:     **for** $1\le j \le T_c$ **do**
-  8:         Load $Q_i, O_i, \mathscr l_i, m_i$ from HBM to on-chip SRAM.
-  9:         On chip, computes $S_{ij} = Q_iK^T_j \in \mathbb R^{B_r\times B_c}$.
- 10:        On chip, compute $\tilde m_{ij} = \text{rowmax}(S_{ij}) \in \mathbb R^{B_r}$，$\tilde P_{ij} = \exp(S_{ij}-\tilde m_{ij})\in \mathbb R^{B_r\times B_c}$(pointwise)，$\tilde {\mathscr l}_{ij} = \text{rowsum}(\tilde P_{ij}) \in \mathbb R^{B_r}$.
- 11:         On chip, compute $m_i^{new} = \max(m_i, \tilde m_{ij})\in \mathbb R^{B_r}, \mathscr l_{i}^{new} = e^{m_i - m_i^{new}}\mathscr l_i + e^{\tilde m_{ij} - m_i^{new}}\tilde {\mathscr l}_{ij} \in \mathbb R^{B_r}$.
- 12:        Write $O_i \leftarrow \text{diag}(\mathscr l_i^{new})^{-1}(\text{diag}(\mathscr l_i)e^{m_i - m_i^{new}}O_i+e^{\tilde m_{ij}- m_i^{new}}\tilde P_{ij} V_j)$ to HBM.
- 13:       Write $\mathscr l_i \leftarrow \mathscr l_i^{new}, m_i \leftarrow m_i^{new}$ to HBM.
-> 内层循环：装载 $Q, O,\mathscr l, m$ 块到 SRAM
-> $Q, O$ 块占据空间 $2dB_r = 2d\min (\lceil \frac M {4d} \rceil, d)$，$\mathscr l, m$ 块占据空间 $2B_r = 2\min (\lceil \frac {M}{4d} \rceil, d)$
+  6:     **for** $1\le j \le T_c$ **do**
+  7:         Load $\mathbf K_j, \mathbf V_j$ from HBM to on-chip SRAM.
+  8:        On chip, computes $\mathbf S_{i}^{(j)} = \mathbf Q_i \mathbf K_j^\top \in \mathbb R^{B_r\times B_c}$.
+  9:        On chip, compute $m_{i}^{(j)} = \max(m_i^{(j-1)},\text{rowmax}(\mathbf S_{i}^{(j)})) \in \mathbb R^{B_r}$，$\tilde {\mathbf P}_{i}^{(j)} = \exp(\mathbf S_{i}^{(j)}- {m}_{i}^{(j)})\in \mathbb R^{B_r\times B_c}$ (pointwise)，${\mathscr l}_{i}^{(j)} = e^{m_i^{(j-1)}-m_i^{(j)}}\ell_i^{(j-1)}+\text{rowsum}(\tilde {\mathbf  P}_{i}^{(j)}) \in \mathbb R^{B_r}$.
+10:        Write $\mathbf O_i^{(j)} = \text{diag}(\mathscr e^{m_i^{(j-1)} - m_i^{(j)}})\mathbf O_i^{(j-1)}+\tilde {\mathbf P}_{i}^{(j)} \mathbf V_j$ to HBM.
+ 11:     **end for**
+> 内层循环：
+> 装载 $\mathbf K, \mathbf V$ 块到 SRAM
 > 
-> 在片上计算 $S$ 块：$S = QK^T \in \mathbb R^{B_r\times B_c}$ (score 是 final 的)
-> 按行取最大值: $\tilde m = \text{rowmax}(S) \in \mathbb R^{B_r}$，
-> 按行规范化 $S$: $S = S - \tilde m \in \mathbb R^{B_r\times B_c}$，
-> 取指数: $\tilde P = \exp (S-\tilde m) \in \mathbb R^{B_r \times B_c}$ ，($\exp (S-\tilde m) = \frac {\exp (S)}{\exp (\tilde m)}$，$\exp (S)$ 是 final 的)
-> 按行求和: $\mathscr {\tilde l} = \text{rowsum}(\tilde P) \in \mathbb R^{B_r}$
->  
-> 计算 $m^{new} = \max (m, \tilde m) \in \mathbb R^{B_r}$，即更新记录的每行最大值；
-> 计算 $e^{m - m^{new}}\mathscr l\in \mathbb R^{B_r}$ ，即用更新的最大值重放缩目前为止累加的各行指数和，
-> 计算 $e^{\tilde m - m^{new}}\mathscr {\tilde l}\in \mathbb R^{B_r}$ ，即用更新的最大值重放缩当前 $S$ 块的各行指数和，
-> 计算 $\mathscr l^{new} = e^{m-m^{new}}\mathscr l + e^{\tilde m - m^{new}}\mathscr {\tilde l} \in \mathbb R^{B_r}$，即累加/更新目前为止的各行指数和；
+> 在片上计算 $\mathbf S$ 块：$\mathbf S =  \mathbf Q\mathbf K^\top\in \mathbb R^{B_r\times B_c}$ (score 是 final 的)
+> 按行取最大值，并更新记录的每行最大值: $m^{(j)} = \max(m^{(j-1)},\text{rowmax}(\mathbf S) )\in \mathbb R^{B_r}$
+> 按行规范化 $\mathbf S$ 并取指数: $\tilde {\mathbf P}= \exp(\mathbf S - m^{(j)}) \in \mathbb R^{B_r\times B_c}$
+> 按行求和，并更新各行累加指数和: ${\ell}^{(j)} = e^{m^{(j-1)}-m^{(j)}}\ell^{(j-1)} + \text{rowsum}(\tilde {\mathbf P}) \in \mathbb R^{B_r}$
+> (其中 $e^{m^{(j-1)} - m^{(j)}}\ell^{(j-1)}$ 是用更新的各行最大值重放缩目前为止的各行累加指数和)
 > 
-> 计算 $\text{diag}(\mathscr l) e^{m - m^{new}}O$，可以视为：对于每一行，先乘上目前为止的各行指数和，恢复目前为止注意到的样本的指数分数，然后用更新的最大值重放缩目前为止注意到的样本的指数分数，注意对于每一行，目前为止注意到的样本数量随着外层循环增长；
-> 计算 $e^{\tilde m_{ij} - m_i^{new}}\tilde P_{ij}V_j$，可以视为：对于每一行，用更新的最大值重放缩当前块注意到的样本的指数分数，然后按照指数分数对注意到的样本加权求和；
-> 计算 $\text{diag}(\mathscr l) e^{m - m^{new}}O + e^{\tilde m_{ij} - m_i^{new}}\tilde P_{ij}V_j$，可以视为：对于每一行，补充注意到的（当前块）样本的加权和；
-> 计算 $\text{diag}(\mathscr l_i^{new})^{-1}(\text{diag}(\mathscr l) e^{m - m^{new}}O + e^{\tilde m_{ij} - m_i^{new}}\tilde P_{ij}V_j)$，可以视为：对于每一行，规范化注意力权重（即除以各行的放缩指数分数和）；
->
-> 将 $\mathscr l^{new}, m^{new}$ 写回 HBM，即更新 $\mathscr l, m$
+> 计算 $\text{diag} (e^{m^{(j-1)} - m^{(j)}})\mathbf O^{(j-1)}$，即对于每一行,用更新的最大值重放缩目前为止注意到的样本的指数分数，目前为止注意到的样本数量随着内层循环增长；
+> 计算 $\tilde {\mathbf P}_{i}^{(j)} \mathbf V_j$，即对于每一行，按照指数分数对当前块注意到的样本加权求和；
+> 计算 $\mathbf O_i^{(j)} = \text{diag}(\mathscr e^{m_i^{(j-1)} - m_i^{(j)}})\mathbf O_i^{(j-1)}+\tilde {\mathbf P}_{i}^{(j)} \mathbf V_j$，即对于每一行，补充注意到的（当前块）样本的加权和；
 
- 14:     **end for**
- 15: **end for**
- 16: Return $O$.
+ 12:     On chip, compute $\mathbf O_i = \text{diag}    (\ell_i^{(T_c)})^{-1}\mathbf O_i^{(T_c)}$.
+ 13:     On chip, compute $L_i = m_i^{(T_c)} + \log (\ell_i^{(T_c)})$.
+ 14:     Write $\mathbf O_i$ to HBM as the $i$ -th block of $\mathbf O$.
+ 15:     Write $L_i$ to HBM as the $i$ -th block of $L$.
+ 16: **end for**
+> 外层循环：
+> 对最终的 $\mathbf O$ 块用最终的 $\ell$ 块进行放缩，并将结果写回对应的 $\mathbf O$ 块
+> 用最终的 $m$ 块和 $\ell$ 块计算 $L$ 块： $L = m + \log (\ell)$，并将结果写回对应的 $L$ 块
+
+ 17: Return the output $\mathbf O$ and the logsumexp $L$.
+> 结束：返回完整的 $\mathbf O, L$
+
+> FlashAttention-2 相较于 FlashAttention
+> 1. 交换了内外层循环：FlashAttention-2 外层对 $\mathbf Q$ 块进行循环，每次外层循环完整计算一个 $\mathbf Q$ 块对应的 $\mathbf O$ 和 $m, \ell$ 
+> 2. 简化了计算流程：内层循环中，先更新 $m$，用更新的 $m$ 直接缩放当前的 $\mathbf P$ 块。因此，计算 $\ell$ 时，仅需要对之前的 $\ell$ 用新 $m$ 重缩放，不需要对当前块的 $\ell$ 重缩放；计算 $\mathbf O$ 时，仅需要对之前的 $\mathbf O$ 用新 $m$ 重缩放，不需要对当前块的 $\mathbf O$ 重缩放。这使得每次内层循环少了两次重缩放计算
+> 3. 移除了用 $\ell$ 对 $\mathbf O$ 的缩放，更新 $\mathbf O$ 时不再除去当前的各行指数分数和。这使得每次内层循环少了两次重缩放计算
+
+> FlashAttention-2 的图示见附录
 
 **Causal masking.** 
 One common use case of attention is in auto-regressive language modeling, where we need to apply a causal mask to the attention matrix $\bf S$ (i.e., any entry $\mathbf{S}_{i j}$ with $j\!>\! i$ is set to $-\infty.$ ). 
+> 自回归语言建模时，attention 矩阵 $\mathbf S$ 需要进行 causal mask
+> causal mask 令当前 token 仅注意自己和之前的 token，其简单实现就是将所有 $\mathbf S_{ij}(j>i)$ 赋值为 $-\infty$
 
-1. As FlashAttention and FlashAttention -2 already operate by blocks, for any blocks where all the column indices are more than the row indices (approximately half of the blocks for large sequence length), we can skip the computation of that block. This leads to around $1.7{\cdot}1.8\times$ speedup compared to attention without the causal mask. 
+1. As FlashAttention and FlashAttention-2 already operate by blocks, for any blocks where all the column indices are more than the row indices (approximately half of the blocks for large sequence length), we can skip the computation of that block. This leads to around $1.7-1.8\times$ speedup compared to attention without the causal mask. 
 
 2. We do not need to apply the causal mask for blocks whose row indices are guaranteed to be strictly less than the column indices. This means that for each row, we only need apply causal mask to 1 block (assuming square block). 
 
-Correctness, runtime, and memory requirement. As with FlashAttention , Algorithm 1 returns the correct output $\mathbf{O}\!=\!\mathrm{softmax}(\mathbf{Q}\mathbf{K}^{\intercal})\mathbf{V}$ (with no approximation), using $O (N^{2}d)$ FLOPs and requires $O (N)$ additional memory beyond inputs and output (to store the logsumexp $L$ ). The proof is almost the same as the proof of Dao et al. (2022, Theorem 1), so we omit it here. 
+> 对于 FlashAttention-2：
+> 考虑外层循环的一次迭代，本次迭代计算 $\mathbf Q_i$ 块对应的 attention 结果 $\mathbf O_i$
+> 在内层循环装载 $\mathbf K_j$ 并计算 $\mathbf Q_i \mathbf K_j^\top$ 时：
+> 如果 `j > i`，直接跳过整个内层循环以及后续的所有内层循环，也就是本次 $\mathbf O_i$ 的计算直接结束
+> 如果 `j < i`，不需要应用 causal mask
+> 如果 `j == i`，为 $\mathbf S_{ij}$ 块应用 causal mask
+
+**Correctness, runtime, and memory requirement.** As with FlashAttention , Algorithm 1 returns the correct output $\mathbf{O}\!=\!\mathrm{softmax}(\mathbf{Q}\mathbf{K}^{\intercal})\mathbf{V}$ (with no approximation), using $O (N^{2}d)$ FLOPs and requires $O (N)$ additional memory beyond inputs and output (to store the logsumexp $L$ ). The proof is almost the same as the proof of Dao et al. (2022, Theorem 1), so we omit it here. 
+> Algorithm 1 精确的 attention 计算结果 $\mathbf O = \text{softmax}(\mathbf Q\mathbf K^\top) \mathbf V$，FLOPs 为 $O (N^2d)$，额外 memory 需求为 $O (N)$ 
 
 ### 3.1.2 Backward pass
-The backward pass of FlashAttention -2 is almost the same as that of FlashAttention . We make a minor tweak to only use the row-wise logsumexp $L$ instead of both the row-wise max and row-wise sum of exponentials in the softmax. We include the backward pass description in Algorithm 2 for completeness. 
+The backward pass of FlashAttention-2 is almost the same as that of FlashAttention . We make a minor tweak to only use the row-wise logsumexp $L$ instead of both the row-wise max and row-wise sum of exponentials in the softmax. We include the backward pass description in Algorithm 2 for completeness. 
+> FlashAttention-2 的反向和 FlashAttention 几乎一致
+> 微小的改动在于使用 $L$ 替代了 $\ell, m$
 
-Multi-query attention and grouped-query attention. Multi-query attention (MQA) (Shazeer, 2019) and grouped-query attention (GQA) (Ainslie et al., 2023) are variants of attention where multiple heads of query attend to the same head of key and value, in order to reduce the size of KV cache during inference. Instead of having to duplicate the key and value heads for the computation, we implicitly manipulate the indices into the head to perform the same computation. In the backward pass, we need to sum the gradients dK and dV across different heads that were implicitly duplicated. 
+**Multi-query attention and grouped-query attention.** Multi-query attention (MQA) (Shazeer, 2019) and grouped-query attention (GQA) (Ainslie et al., 2023) are variants of attention where multiple heads of query attend to the same head of key and value, in order to reduce the size of KV cache during inference. Instead of having to duplicate the key and value heads for the computation, we implicitly manipulate the indices into the head to perform the same computation. In the backward pass, we need to sum the gradients $\mathbf {dK}$ and $\mathbf {dV}$ across different heads that were implicitly duplicated. 
+> Multi-quary attention/Grouped-query attention: 
+> 多个 query 头，单个 key 头和 value 头，以减少推理时的 KV cache 大小 (仅需保存单个头的 KV 即可)
+> FlashAttention-2 对其的实现：
+> FlashAttention-2 没有选择将 key 头和 value 头进行 copy，而是隐式地修改索引，注意反向传播中，需要在不同的头中累积 $\mathbf {dK}, \mathbf {dV}$
 
-# 3.2 P ARALLELISM 
-
-The first version of FlashAttention parallelizes over batch size and number of heads. We use 1 thread block to process one attention head, and there are overall batch size $\cdot^{\bullet}$ number of heads thread blocks. Each thread block is scheduled to run on a streaming multiprocessor (SM), and there are 108 of these SMs on an A100 GPU for example. This scheduling is efficient when this number is large $(\mathrm{day}\geq80)$ ), since we can effectively use almost all of the compute resources on the GPU. 
+## 3.2 Parallelism
+The first version of FlashAttention parallelizes over batch size and number of heads. We use 1 thread block to process one attention head, and there are overall batch size $\cdot$ number of heads thread blocks. Each thread block is scheduled to run on a streaming multiprocessor (SM), and there are 108 of these SMs on an A100 GPU for example. This scheduling is efficient when this number is large $(\mathrm{day}\geq80)$ ), since we can effectively use almost all of the compute resources on the GPU. 
 
 In the case of long sequences (which usually means small batch sizes or small number of heads), to make better use of the multiprocessors on the GPU, we now additionally parallelize over the sequence length dimension. This results in significant speedup for this regime. 
 
@@ -347,47 +368,44 @@ In the near future, we plan to collaborate with researchers and engineers to mak
 A CKNOWLEDGMENTS 
 
 We thank Phil Tillet and Daniel Haziza, who have implemented versions of FlashAttention in Triton (Tillet et al., 2019) and the xformers library (Lefaudeux et al., 2022). FlashAttention -2 was motivated by exchange of ideas between different ways that attention could be implemented. We are grateful to the Nvidia CUTLASS team (especially Vijay Thakkar, Cris Cecka, Haicheng Wu, and Andrew Kerr) for their CUTLASS library, in particular the CUTLASS 3. x release, which provides clean abstractions and powerful building blocks for the implementation of FlashAttention -2. We thank Driss Guessous for integrating FlashAttention to PyTorch. FlashAttention -2 has benefited from helpful discussions with Phil Wang, Markus Rabe, James Bradbury, Young-Jun Ko, Julien Launay, Daniel Hesslow, Michaël Benesty, Horace He, Ashish Vaswani, and Erich Elsen. Thanks to Stanford CRFM and Stanford NLP for the compute support. We thank Dan Fu and Christopher Ré for their collaboration, constructive feedback, and constant encouragement on this line of work of designing hardware-efficient algorithms. We thank Albert Gu and Beidi Chen for their helpful suggestions on early drafts of this paper. 
+# Appendix
+## Figure Illustration for FlashAttention-2 forward pass
+### $\mathbf {S}$
+外层循环 + 内层循环：
 
-# R EFERENCES 
+![[FlashAttention2-App-Fig1.png]]
 
-Joshua Ainslie, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. Gqa: Training generalized multi-query transformer models from multi-head checkpoints. arXiv preprint arXiv: 2305.13245 , 2023. Iz Beltagy, Matthew E Peters, and Arman Cohan. Longformer: The long-document transformer. arXiv preprint arXiv: 2004.05150 , 2020. Beidi Chen, Tri Dao, Eric Winsor, Zhao Song, Atri Rudra, and Christopher Ré. Scatterbrain: Unifying sparse and low-rank attention. In Advances in Neural Information Processing Systems (NeurIPS) , 2021. Krzysztof Marcin Choromanski, Valerii Likhosherstov, David Dohan, Xingyou Song, Andreea Gane, Tamas Sarlos, Peter Hawkins, Jared Quincy Davis, Afroz Mohiuddin, Lukasz Kaiser, et al. Rethinking attention with performers. In International Conference on Learning Representations (ICLR) , 2020. Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. FlashAttention: Fast and memory-efficient exact attention with IO-awareness. In Advances in Neural Information Processing Systems , 2022. Zhe Jia and Peter Van Sandt. Dissecting the Ampere GPU architecture via micro benchmarking. GPU Technology Conference, 2021. Zhe Jia, Marco Maggioni, Benjamin Staiger, and Daniele P Scarpazza. Dissecting the nvidia Volta GPU architecture via micro benchmarking. arXiv preprint arXiv: 1804.06826 , 2018. Angelos Katharopoulos, Apoorv Vyas, Nikolaos Pappas, and François Fleuret. Transformers are RNNs: Fast autoregressive transformers with linear attention. In International Conference on Machine Learning , pages 5156–5165. PMLR, 2020. Nikita Kitaev, Łukasz Kaiser, and Anselm Levskaya. Reformer: The efficient transformer. In The International Conference on Machine Learning (ICML) , 2020. Benjamin Lefaudeux, Francisco Massa, Diana Liskovich, Wenhan Xiong, Vittorio Caggiano, Sean Naren, Min Xu, Jieru Hu, Marta Tintore, Susan Zhang, Patrick Labatut, and Daniel Haziza. xformers: A modular and hackable transformer modelling library. https://github. com/facebook research/xformers , 2022. Maxim Milakov and Natalia Gimelshein. Online normalizer calculation for softmax. arXiv preprint arXiv: 1805.02867 , 2018. OpenAI. Gpt-4 technical report. ArXiv , abs/2303.08774, 2023. 
+内层循环：
 
-Markus N Rabe and Charles Staats. Self-attention does not need memory. arXiv preprint arXiv: 2112.05682 , 2021. 
-Aurko Roy, Mohammad Saffar, Ashish Vaswani, and David Grangier. Efficient content-based sparse attention with routing transformers. Transactions of the Association for Computational Linguistics , 9:53–68, 2021. Noam Shazeer. Fast transformer decoding: One write-head is all you need. arXiv preprint arXiv: 1911.02150 , 2019. Mohammad Shoeybi, Mostofa Patwary, Raul Puri, Patrick LeGresley, Jared Casper, and Bryan Catanzaro. Megatron-LM: Training multi-billion parameter language models using model parallelism. arXiv preprint arXiv: 1909.08053 , 2019. Philippe Tillet, Hsiang-Tsung Kung, and David Cox. Triton: an intermediate language and compiler for tiled neural network computations. In Proceedings of the 3rd ACM SIGPLAN International Workshop on Machine Learning and Programming Languages , pages 10–19, 2019. Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems , 30, 2017. Sinong Wang, Belinda Z Li, Madian Khabsa, Han Fang, and Hao Ma. Linformer: Self-attention with linear complexity. arXiv preprint arXiv: 2006.04768 , 2020. Manzil Zaheer, Guru Guruganesh, Kumar Avinava Dubey, Joshua Ainslie, Chris Alberti, Santiago Ontanon, Philip Pham, Anirudh Ravula, Qifan Wang, Li Yang, et al. Big bird: Transformers for longer sequences. Advances in Neural Information Processing Systems , 33, 2020. 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/c88e132808d7d8735d3f71e85f641f961b594fabb6e5b0e01a13c0c7bc498e5b.jpg) 
+![[FlashAttention2-App-Fig2.png]]
 
-B B ENCHMARKING A TTENTION ON A100 AND H100 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/da07f1de71a48f73dce13fa52763cf975a6080249f97593e274d969230e6ba52.jpg) 
-(a) Without causal mask, head dimension 64 
+外层循环：
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/9a1b0f81f4a9dfe81cedbd6d2774d8d731a3c2dfa335efd5258281b75a2e266f.jpg) 
-(c) With causal mask, head dimension 64 
+![[FlashAttention2-App-Fig3.png]]
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/1fe84e601aa41556ce0c2a9afdaf2d35d7f2935fe6db80f34d7a795d40fdced6.jpg) 
-(a) Without causal mask, head dimension 64 
+### $\mathbf {O}$
+内层循环 + 外层循环：
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/b9aedb923fc371e587d9bf04e704d3cf55742ff1354ab58695b6b0a133c58d9b.jpg) 
-(c) With causal mask, head dimension 64 
+![[FlashAttention2-App-Fig4.png]]
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/43017a99d3bd4be0920abb6434e53cefb728e6cecf477288342a95bd0c8c7d5a.jpg) 
-(b) Without causal mask, head dimension 128 
+内层循环：
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/0c0a3b071be6aef435aa6398a893e549de0f9fc447d4bb7ea4a28b290b48a7b1.jpg) 
-(d) With causal mask, head dimension 128 
+![[FlashAttention2-App-Fig5.png]]
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/6d4d59ff96591187a2b2d11392cd0be238db3a91649b6e979e8a43737940f21d.jpg) 
-(b) Without causal mask, head dimension 128 
+外层循环：
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/d7defaeb59214e18501604a94cb3479ce74f78c01ac8282ac5c3ac4578210c3e.jpg) 
-(d) With causal mask, head dimension 128 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/07c34ed1c43de023eb676c885d13a940d51c18cbe401e21e521cb0455711bc66.jpg) 
-(a) Without causal mask, head dimension 64 
+![[FlashAttention2-App-Fig6.png]]
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/becf30417d036fbd22d7b8ea62ff4aef1dbc1dbdc2c9e2607a851ebb51ddb5a3.jpg) 
-(c) With causal mask, head dimension 64 
+### Generalization for forward pass
+内层循环 + 外层循环：
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/2d91ab1dfd89e21f84e8b1a53af696feed5341addf288d6aa70f50ec773ea4f9.jpg) 
-(b) Without causal mask, head dimension 128 
+![[FlashAttention2-App-Fig7.png]]
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/fcdb03e4f306f8b69366b5ace9403fb825565be0678cdbcbc34f7c00ed0924dd.jpg) 
-(d) With causal mask, head dimension 128 
+内层循环：
+
+![[FlashAttention2-App-Fig8.png]]
+
+外层循环：
+
+![[FlashAttention2-App-Fig9.png]]
+
