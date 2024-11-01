@@ -211,8 +211,7 @@ You can also hide a comment. Hiding a comment is irreversible, and nobody will b
 
 Read also [moderation](https://huggingface.co/docs/hub/moderation) to see how to report an abusive comment.
 
-## [](https://huggingface.co/docs/hub/repositories-pull-requests-discussions#can-i-use-markdown-and-latex-in-my-comments-and-discussions)Can I use Markdown and LaTeX in my comments and discussions?
-
+## Can I use Markdown and LaTeX in my comments and discussions?
 Yes! You can use Markdown to add formatting to your comments. Additionally, you can utilize LaTeX for mathematical typesetting, your formulas will be rendered with [KaTeX](https://katex.org/) before being parsed in Markdown.
 
 For LaTeX equations, you have to use the following delimiters:
@@ -220,55 +219,108 @@ For LaTeX equations, you have to use the following delimiters:
 - `$$ ... $$` for display mode
 - `\\(...\\)` for inline mode (no space between the slashes and the parenthesis).
 
-## [](https://huggingface.co/docs/hub/repositories-pull-requests-discussions#how-do-i-manage-pull-requests-locally)How do I manage Pull requests locally?
-
+## How do I manage Pull requests locally?
 Let’s assume your PR number is 42.
 
-Copied
-
+```
 git fetch origin refs/pr/42:pr/42
 git checkout pr/42
 # Do your changes
 git add .
 git commit -m "Add your change"
 git push origin pr/42:refs/pr/42
+```
 
-### [](https://huggingface.co/docs/hub/repositories-pull-requests-discussions#draft-mode)Draft mode
-
+### Draft mode
 Draft mode is the default status when opening a new Pull request from scratch in “Advanced mode”. With this status, other contributors know that your Pull request is under work and it cannot be merged. When your branch is ready, just hit the “Publish” button to change the status of the Pull request to “Open”. Note that once published you cannot go back to draft mode.
+> Draft mode 的 PR 不能被 merge，将 Draft mode 的 PR publish 为 Open mode 之后就可以被 merge，PR 变为 Open mode 之后不能再回到 Draft mode
 
-## [](https://huggingface.co/docs/hub/repositories-pull-requests-discussions#pull-requests-advanced-usage)Pull requests advanced usage
-
-### [](https://huggingface.co/docs/hub/repositories-pull-requests-discussions#where-in-the-git-repo-are-changes-stored)Where in the git repo are changes stored?
-
+## Pull requests advanced usage
+### Where in the git repo are changes stored?
 Our Pull requests do not use forks and branches, but instead custom “branches” called `refs` that are stored directly on the source repo.
 
 [Git References](https://git-scm.com/book/en/v2/Git-Internals-Git-References) are the internal machinery of git which already stores tags and branches.
 
 The advantage of using custom refs (like `refs/pr/42` for instance) instead of branches is that they’re not fetched (by default) by people (including the repo “owner”) cloning the repo, but they can still be fetched on demand.
+> Huggingface 的 PR 不使用 fork 和 branch，PR 统一由源 repo 中的 `refs` 管理
+> `refs` 相较于传统分支的优势在于 `refs`  默认不会被 fetch，可以按需显式指定 fetch
 
-### [](https://huggingface.co/docs/hub/repositories-pull-requests-discussions#fetching-all-pull-requests-for-git-magicians-)Fetching all Pull requests: for git magicians 🧙‍♀️
-
+### Fetching all Pull requests: for git magicians 🧙‍♀️
 You can tweak your local **refspec** to fetch all Pull requests:
 
 1. Fetch
 
-Copied
-
+```
 git fetch origin refs/pr/*:refs/remotes/origin/pr/*
+```
 
 2. create a local branch tracking the ref
 
-Copied
-
+```
 git checkout pr/{PR_NUMBER}
 # for example: git checkout pr/42
+```
 
 3. IF you make local changes, to push to the PR ref:
 
-Copied
-
+```
 git push origin pr/{PR_NUMBER}:refs/pr/{PR_NUMBER}
 # for example: git push origin pr/42:refs/pr/42
+```
 
-[<>Update on GitHub](https://github.com/huggingface/hub-docs/blob/main/docs/hub/repositories-pull-requests-discussions.md)
+# Notifications
+Notifications allow you to know when new activities (**Pull Requests or discussions**) happen on models, datasets, and Spaces belonging to users or organizations you are watching.
+
+By default, you’ll receive a notification if:
+
+- Someone mentions you in a discussion/PR.
+- A new comment is posted in a discussion/PR you participated in.
+- A new discussion/PR or comment is posted in one of the repositories of an organization or user you are watching.
+
+![Notifications page](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/notifications-page.png)
+
+You’ll get new notifications by email and [directly on the website](https://huggingface.co/notifications), you can change this in your [notifications settings](https://huggingface.co/docs/hub/notifications#notifications-settings).
+
+## Filtering and managing notifications
+On the [notifications page](https://huggingface.co/notifications), you have several options for filtering and managing your notifications more effectively:
+
+- Filter by Repository: Choose to display notifications from a specific repository only.
+- Filter by Read Status: Display only unread notifications or all notifications.
+- Filter by Participation: Show notifications you have participated in or those which you have been directly mentioned.
+
+Additionally, you can take the following actions to manage your notifications:
+
+- Mark as Read/Unread: Change the status of notifications to mark them as read or unread.
+- Mark as Done: Once marked as done, notifications will no longer appear in the notification center (they are deleted).
+
+By default, changes made to notifications will only apply to the selected notifications on the screen. However, you can also apply changes to all matching notifications (like in Gmail for instance) for greater convenience.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/notifications-select-all.png)
+
+## Watching users and organizations
+By default, you’ll be watching all the organizations you are a member of and will be notified of any new activity on those.
+
+You can also choose to get notified on arbitrary users or organizations. To do so, use the “Watch repos” button on their HF profiles. Note that you can also quickly watch/unwatch users and organizations directly from your [notifications settings](https://huggingface.co/docs/hub/notifications#notifications-settings).
+
+_Unlike GitHub or similar services, you cannot watch a specific repository. You must watch users/organizations to get notified about any new activity on any of their repositories. The goal is to simplify this functionality for users as much as possible and to make sure you don’t miss anything you might be interested in._
+> Huggingface 不支持 watch 特定 repo，仅支持 watch 特定 user 或 organization
+
+## Notifications settings
+In your [notifications settings](https://huggingface.co/settings/notifications) page, you can choose specific channels to get notified on depending on the type of activity, for example, receiving an email for direct mentions but only a web notification for new activity on watched users and organizations. By default, you’ll get an email and a web notification for any new activity but feel free to adjust your settings depending on your needs.
+
+_Note that clicking the unsubscribe link in an email will unsubscribe you for the type of activity, eg direct mentions._
+
+![Notifications settings page](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/notifications-settings.png)
+
+You can quickly add any user/organization to your watch list by searching them by name using the dedicated search bar. Unsubscribe from a specific user/organization simply by unticking the corresponding checkbox.
+
+## Mute notifications for a specific repository
+It’s possible to mute notifications for a particular repository by using the “Mute notifications” action in the repository’s contextual menu. This will prevent you from receiving any new notifications for that particular repository. You can unmute the repository at any time by clicking the “Unmute notifications” action in the same repository menu.
+
+![mute notification menu](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/notifications-mute-menu.png)
+
+_Note, if a repository is muted, you won’t receive any new notification unless you’re directly mentioned or participating to a discussion._
+
+The list of muted repositories is available from the notifications settings page:
+
+![Notifications settings page muted repositories](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/notifications-settings-muted.png)
