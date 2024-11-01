@@ -291,7 +291,7 @@ The positivity condition remains as yet unconquered and it would be of con- side
 >分布的正性条件这一要求目前仍未解决，了解其松弛的效果在理论上会非常有趣
 >另一方面，可以说，放宽这一条件在给定站点位置的空间交互分析中的实际意义不大
 
-Finally, we note that, for discrete variables, a further proof of the Hammersley- Clifford theorem has been given by Grimmett (1973). This is apparently based upon the Mobius inversion theorem (Rota, 1964). Other references on the specification of Markov fields include Averintsev (1970), Preston (1973) and Sherman (1973). 
+Finally, we note that, for discrete variables, a further proof of the Hammersley-Clifford theorem has been given by Grimmett (1973). This is apparently based upon the Mobius inversion theorem (Rota, 1964). Other references on the specification of Markov fields include Averintsev (1970), Preston (1973) and Sherman (1973). 
 >最后，我们注意到，对于离散变量，Grimmett (1973) 给出了 Hammersley-Clifford 定理的另一个证明。这显然是基于 Möbius 反演定理（Rota, 1964）
 >有关马尔可夫场规范化的其他参考文献包括 Averbintsev (1970)、Preston (1973) 和 Sherman (1973)
 
@@ -1004,37 +1004,94 @@ $$
 例如将 $x_ix_j G_{ij}(x_i, x_j)$ 定义为 $\mathcal Q (0,\dots,  x_i, \dots, x_j, \dots, 0)- \mathcal Q (\mathbf 0)$
 也就是左边是仅 $x_i, x_j$ 取值来源于 $\mathbf x$，其余都固定取为 $0$ 的 $\mathcal Q$ 函数，右边是 $\mathcal Q (\mathbf 0)$
 
-两边取指数：
+---
+
+式 (3.3) 写作：
 
 $$
 \begin{align}
-\exp\left\{(\mathcal Q(\mathbf x)\right\} &=\exp\left\{\sum_{1\le i \le n}x_i G_i(x_i)\right\} \cdot 
-\exp\left\{\sum_{1\le i<j\le n}x_ix_j G_{ij}(x_i, x_j)\right\}\\
-&\cdot\exp\left\{\sum_{1\le i< j < k \le n}x_ix_jx_k G_{ijk}(x_i, x_j, x_k)\right\} + \dots\\
-&\cdot\exp\left\{x_1x_2\dots x_n G_{1,2,\dots, n}(x_1, x_2, \dots, x_n)\right\}\\
+\mathcal Q(\mathbf x) &=\sum_{1\le i \le n}x_i G_i(x_i) + \sum_{1\le i<j\le n}x_ix_j G_{ij}(x_i, x_j)\\
+&+\sum_{1\le i< j < k \le n}x_ix_jx_k G_{ijk}(x_i, x_j, x_k) + \dots\\
+&+x_1x_2\dots x_n G_{1,2,\dots, n}(x_1, x_2, \dots, x_n).
 \end{align}
 $$
 
-考虑等式右边第一项：
+其中 $\mathcal Q (\mathbf x)$ 定义为 $\mathcal Q (\mathbf x) = \ln \frac {P (\mathbf x)}{P (\mathbf 0)}$
+
+首先证明式 (3.3) 本质上是包含-排斥原理的另一种表达形式：
+
+定义集合 $N= \{1, 2, \dots, n\}$
+定义函数 $f: N\to  \mathbb R$，满足 $f(i) = x_i \  \text{for}\ i \in N$ 
+为向量 $\mathbf x$ 定义运算符 $()$，满足 $\mathbf x (i) = x_i\ \ \text{for}\ i \in N$
+
+函数 $f$ 实质上和向量 $\mathbf x$ 等价：
+
+$$
+f(i) = \mathbf x(i) = x_i\ \ \text{for}\ i \in N \Longrightarrow f \text{ is equivalent to } \mathbf x
+$$
+
+因此，我们用 $\mathbf x$ 同时表示向量和函数
+
+对于 $N$ 的任意子集 $J \subseteq N$：
+定义 $\tilde {\mathbf x}_J$ 为 $N\to \mathbb R$ 的函数，满足：
+
+$$
+\tilde {\mathbf x}_J(i) = \begin{cases}
+x_i & i\in J\\
+0 & i\not\in J
+\end{cases}
+$$
+
+定义 $\mathbf x_J$ 为 $\mathbf x |_J = (x_i : x\in J)$，也就是函数 $\mathbf x$ 在集合 $J$ 的限制
+因此，$\tilde {\mathbf x}_J$ 等价于将 $\mathbf x_J$ 的定义域从 $J$ 拓展到 $N$，同时令拓展的值都映射到 0
+
+对于 $N$ 的任意子集 $K \subseteq N$，令：
+
+$$
+H_K(\mathbf x_K)  = \sum_{J \subseteq K}(-1)^{|K|-|J|}\mathcal Q(\tilde {\mathbf x}_J)
+$$
+
+如果对于某个 $j\in K$，有 $x_j = 0$，则 $H_K (\mathbf x _K) = 0$
+
+ 
+
+故：
 
 $$
 \begin{align}
-\exp\left\{\sum_{1\le i\le n}x_i G_i(x_i)\right\}
-&=\prod_{1\le i\le n}\exp\left\{x_i G_i(x_i)\right\}\\
-&=\prod_{1\le i\le n}\exp\left\{\mathcal Q(0, \dots, 0,x_i,0,\dots, 0)-\mathcal Q(\mathbf 0)\right\}\\
-&=\prod_{1\le i \le n}\frac {P(x_i\mid 0, \dots,0,0,\dots 0)}{P(0\mid 0,\dots, 0,0,\dots,0)}
+&\sum_{K \subseteq N}H_K(\mathbf x_K)\\
+=&\sum_{K\subseteq N}\sum_{J\subseteq K}(-1)^{|K|-|J|}\mathcal Q(\tilde {\mathbf x}_J)\\
+=&\sum_{J\subseteq K}\mathcal Q(\tilde {\mathbf x}_J)\left(\sum_{K:J\subseteq K \subseteq N}(-1)^{|K|-|J|}\right)\\
+=&\sum_{J\subseteq K}\mathcal Q(\tilde {\mathbf x}_J)\left(\sum_{k=|J|}^n(-1)^{k-|J|}\binom{n-|J|}{k-|J|}\right)\\
+=&\sum_{J\subseteq K}\mathcal Q(\tilde {\mathbf x}_J)\left(\sum_{m=0}^{n-|J|}(-1)^{m}\binom{n-|J|}{m}\right)\\
+=&\sum_{J\subseteq K}\mathcal Q(\tilde {\mathbf x}_J)\left(\sum_{m=0}^{n-|J|}(-1)^{m}\binom{n-|J|}{m}\right)\\
+=&\sum_{J\subseteq K}\mathcal Q(\tilde {\mathbf x}_J)\mathbb 1[|J| = n]\\
+=&\mathcal Q(\tilde {\mathbf x}_N)\\
+=&\mathcal Q(\mathbf x)
 \end{align}
 $$
 
-
-考虑等式右边第二项：
+其中第三个等号来自于：
 
 $$
-\begin{align}
-\exp\left\{\sum_{1\le i<j\le n}x_ix_j G_{ij}(x_i,x_j)\right\}
-&=\prod_{1\le i<j\le n}\exp\left\{x_ix_j G_{ij}(x_i,x_j)\right\}\\
-&=\prod_{1\le i<j\le n}\exp\left\{\mathcal Q(0, \dots, x_i,\dots,x_j,\dots, 0)-\mathcal Q(\mathbf 0)\right\}\\
-&=\prod_{1\le i<j \le n}\frac {P(x_i,x_j\mid 0, \dots,0,\dots,0,\dots 0)}{P(0,0\mid 0,\dots, 0,\dots,0,\dots,0)}
-\end{align}
+\sum_{K:J\subseteq K \subseteq N}(-1)^{|K|-|J|}=
+\sum_{k=|J|}^n(-1)^{k-|J|}\binom{n-|J|}{k-|J|}
 $$
+
+也就是对满足 $J\subseteq K \subseteq N$ 的集合 $K$ 根据大小 (从 $|J|$ 到 $n$) 分别枚举，大小为 $k$ 的满足 $J\subseteq K \subseteq N$ 的集合 $K$ 的数量为 $\binom{n - |J|}{k-|J|}$，也就是从 $N$ 中不是 $J$ 的元素中选出 $k-|J|$ 个元素的方案数
+
+其中第五个等号来自于组合恒等式：
+
+$$
+\sum_{k=0}^n(-1)^k\binom{n}{k} =\begin{cases}0 & n > 0\\
+1 & n=0
+\end{cases}
+$$
+该恒等式来自于二项式定理：
+
+$$
+(x + y)^n = \sum_{k=0}^n \binom{n}{k}x^{n-k}y^k
+$$
+
+令 $x = 1, y = -1$，即可得到该恒等式
 
