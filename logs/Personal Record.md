@@ -218,5 +218,5 @@
 
 \[**Doc**\]
 - [[Learn the Basics|pytorch-tutorials-beginner: Learn the Basics]]
-- [[pillow v11.0.0]]: Overview, Tutorial
+- [[pillow v11.0.0]]: Overview, Tutorial, Concepts
 - [[Repositories|huggingface-hub:Repositories]]: Sec1-Sec2
