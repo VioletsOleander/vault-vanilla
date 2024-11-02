@@ -64,7 +64,7 @@ In doing so, you will learn about:
 - The `triton.jit` decorator, which is used to define Triton kernels.
 - The best practices for validating and benchmarking your custom ops against native reference implementations.
 
-## Compute Kernel
+### Compute Kernel
 
 ```python
 import torch
@@ -127,10 +127,10 @@ def add(x: torch.Tensor, y: torch.Tensor):
 ```
 
 > 本例中：
-> `add()` 函数负责分配 `output` 张量的空间，并且计算合适的 grid/block 大小参数，调用 `@triton.jit` 修饰的 kernel
-> `add()` 函数接受 `torch.Tensor` ，在将 `torch.Tensor` 传入给 `@triton.jit` 修饰的 kernel 时，`torch.Tensor` 会被隐式转化为指向其第一个元素的指针
-> `grid` 用于指定 grid 参数，它应该是 `Tuple[int]` 或者 `Callable(metaparamters) -> Tuple[int]` ，即一个整数元组或者一个接受 (kernel 的) 元参数，返回整数元组的可调用对象
-> `@triton.jit` 修饰的 kernel 调用时需要添加 `[grid]` 以传递 grid 参数，`@triton.jit` 修饰的 kernel 的 meta-parameter 通过关键字参数的形式传入
+> - `add() ` 函数负责分配 ` output ` 张量的空间，并且计算合适的 grid/block 大小参数，调用 ` @triton.jit ` 修饰的 kernel
+> -  `add()` 函数接受 `torch.Tensor` ，在将 `torch.Tensor` 传入给 `@triton.jit` 修饰的 kernel 时，`torch.Tensor` 会被隐式转化为指向其第一个元素的指针
+> -  `grid` 用于指定 grid 参数，它应该是 `Tuple[int]` 或者 `Callable(metaparamters) -> Tuple[int]` ，即一个整数元组或者一个接受 (kernel 的) 元参数，返回整数元组的可调用对象
+> - `@triton.jit` 修饰的 kernel 调用时需要添加 `[grid]` 以传递 grid 参数，`@triton.jit` 修饰的 kernel 的 meta-parameter 通过关键字参数的形式传入
 
 We can now use the above function to compute the element-wise sum of two `torch.tensor` objects and test its correctness:
 
@@ -157,7 +157,7 @@ The maximum difference between torch and triton is 0.0
 
 Seems like we’re good to go!
 
-## Benchmark
+### Benchmark
 We can now benchmark our custom op on vectors of increasing sizes to get a sense of how it does relative to PyTorch. To make things easier, Triton has a set of built-in utilities that allow us to concisely plot the performance of our custom ops. for different problem sizes.
 
 ```python
@@ -228,7 +228,7 @@ In doing so, you will learn about:
 - The benefits of kernel fusion for bandwidth-bound operations.
 - Reduction operators in Triton.
 
-## Motivation
+### Motivation
 Custom GPU kernels for elementwise additions are educationally valuable but won’t get you very far in practice. Let us consider instead the case of a simple (numerically stabilized) softmax operation:
 
 ```python
@@ -272,7 +272,7 @@ When implemented naively in PyTorch, computing `y = naive_softmax(x)` for $
 
 The `torch.jit.script` flags aims to perform this kind of “kernel fusion” automatically but, as we will see later, it is still far from ideal.
 
-## Compute Kernel
+### Compute Kernel
 Our softmax kernel works as follows: each program loads a set of rows of the input matrix X strided by number of programs, normalizes it and writes back the result to the output Y.
 > softmax kernel 实现的思想是：每个 block 处理输入 X 的一部分行，将结果写回输出 Y
 
@@ -309,9 +309,9 @@ def softmax_kernel(output_ptr, input_ptr, input_row_stride, output_row_stride, n
 ```
 
 > 本例中：
-> 每个 block 负责处理一定数量的行，且是按照循环一行一行地处理
-> `BLOCK_SIZE` 被设定为 `n_cols` 之后最近的2次幂，以在满足约束的情况下将一整行元素放入 block 中
-> `mask = col_offsets < n_cols` 用于防止访问大于 `n_cols` 之后的内容
+> - 每个 block 负责处理一定数量的行，且是按照循环一行一行地处理
+> - `BLOCK_SIZE` 被设定为 `n_cols` 之后最近的2次幂，以在满足约束的情况下将一整行元素放入 block 中
+> - `mask = col_offsets < n_cols` 用于防止访问大于 `n_cols` 之后的内容
 > `tl.load()` 返回的 `row` 被传入 `tl.max()` 得到其中的最大元素
 
 We can create a helper function that enqueues the kernel and its (meta-)arguments for any given input tensor.
@@ -391,18 +391,18 @@ def softmax(x):
 
 
 > 本例中：
-> `driver.active.utils.get_device_properties()` 用于获得设备性质
-> `NUM_REGS = properties['max_num_regs]` 用于获得常规目的的寄存器数量，大多数情况下它就等于总寄存器数量，在 CDNA 设备中它是总寄存器数量的一半
-> 块大小通过 `triton.next_power_of_2(n_cols)` 得到
-> `kernel, num_programs = kernel.get(BLOCK_SIZE, (None, 0))` 用于检查是否有为特定的 `BLOCK_SIZE` 预编译 kernel，如果没有，则进行预热以编译内核
-> `@triton.jit` 修饰的 kernel 可以调用 `warmup` 函数，其中 `num_stages` 参数指定流水线阶段，`num_warps` 指定每个 block 的 warp 数量
-> CUDA 架构下的 occupancy 计算通过 `occupancy = NUM_REGS // (n_regs * WARP_SIZE * num_warps)` 得到，其逻辑就是总的寄存器数除去每个 block 使用的寄存器数，得到每个 SM 上允许执行的 block 数量
-> HIP/ROCm 架构下的 occupancy 计算通过 `occupancy = min(NUM_GPRS // WARP_SIZE // n_regs, max_num_waves) // num_warps` 得到，其逻辑和 CUDA 类似，先计算得到一个 CU 上允许执行的最大 warp 数量，然后除以 `num_warps` 得到一个 CU 上允许执行的 block 数量
-> `occupancy = min(occupancy, SIZE_SMEM // size_smem)` 中 `SIZE_SMEM // size_smem` 表示总的共享内存大小除去 block 使用的共享内存大小，结果和之前计算的 `occupancy` ，防止 block 使用的共享内存大小溢出
-> `kernels[BLOCK_SIZE] = (kernel, num_programs)` 将预编译的内核和计算得到的 `num_programs` (内核的总 block 数量) 储存
-> `kernel[(num_programs, 1, 1)]()` 指定了 grid 维度，并执行内核
+> - `driver.active.utils.get_device_properties()` 用于获得设备性质
+> - `NUM_REGS = properties['max_num_regs]` 用于获得常规目的的寄存器数量，大多数情况下它就等于总寄存器数量，在 CDNA 设备中它是总寄存器数量的一半
+> - 块大小通过 `triton.next_power_of_2(n_cols)` 得到
+> - `kernel, num_programs = kernel.get(BLOCK_SIZE, (None, 0))` 用于检查是否有为特定的 `BLOCK_SIZE` 预编译 kernel，如果没有，则进行预热以编译内核
+> - `@triton.jit` 修饰的 kernel 可以调用 `warmup` 函数，其中 `num_stages` 参数指定流水线阶段，`num_warps` 指定每个 block 的 warp 数量
+> - CUDA 架构下的 occupancy 计算通过 `occupancy = NUM_REGS // (n_regs * WARP_SIZE * num_warps)` 得到，其逻辑就是总的寄存器数除去每个 block 使用的寄存器数，得到每个 SM 上允许执行的 block 数量
+> - HIP/ROCm 架构下的 occupancy 计算通过 `occupancy = min(NUM_GPRS // WARP_SIZE // n_regs, max_num_waves) // num_warps` 得到，其逻辑和 CUDA 类似，先计算得到一个 CU 上允许执行的最大 warp 数量，然后除以 `num_warps` 得到一个 CU 上允许执行的 block 数量
+> - `occupancy = min(occupancy, SIZE_SMEM // size_smem)` 中 `SIZE_SMEM // size_smem` 表示总的共享内存大小除去 block 使用的共享内存大小，结果和之前计算的 `occupancy` ，防止 block 使用的共享内存大小溢出
+> - `kernels[BLOCK_SIZE] = (kernel, num_programs)` 将预编译的内核和计算得到的 `num_programs` (内核的总 block 数量) 储存
+> - `kernel[(num_programs, 1, 1)]()` 指定了 grid 维度，并执行内核
 
-## Unit Test
+### Unit Test
 We make sure that we test our kernel on a matrix with an irregular number of rows and columns. This will allow us to verify that our padding mechanism works.
 
 ```python
@@ -415,7 +415,7 @@ assert torch.allclose(y_triton, y_torch), (y_triton, y_torch)
 
 As expected, the results are identical.
 
-## Benchmark
+### Benchmark
 Here we will benchmark our operation as a function of the number of columns in the input matrix – assuming 4096 rows. We will then compare its performance against (1) `torch.softmax` and (2) the `naive_softmax` defined above.
 
 ```python
@@ -567,7 +567,7 @@ You will specifically learn about:
 - Program re-ordering for improved L2 cache hit rate.
 - Automatic performance tuning.
 
-## Motivations
+### Motivations
 Matrix multiplications are a key building block of most modern high-performance computing systems. They are notoriously hard to optimize, hence their implementation is generally done by hardware vendors themselves as part of so-called “kernel libraries” (e.g., cuBLAS). Unfortunately, these libraries are often proprietary and cannot be easily customized to accommodate the needs of modern deep learning workloads (e.g., fused activation functions). In this tutorial, you will learn how to implement efficient matrix multiplications by yourself with Triton, in a way that is easy to customize and extend.
 
 Roughly speaking, the kernel that we will write will implement the following blocked algorithm to multiply a (M, K) by a (K, N) matrix:
@@ -589,12 +589,18 @@ where each iteration of the doubly-nested for-loop is performed by a dedicated T
 > 该例中，最外两层循环是 block 级别并行
 > block 内部则在 K 维度进行了划分
 
-## Compute Kernel
+### Compute Kernel
 The above algorithm is, actually, fairly straightforward to implement in Triton. The main difficulty comes from the computation of the memory locations at which blocks of `A` and `B` must be read in the inner loop. For that, we need multi-dimensional pointer arithmetic.
 > 处理指针算数：找到每个 block 应该读取的存储区域
 
-### Pointer Arithmetic
-For a row-major 2D tensor `X`, the memory location of `X[i, j]` is given by `&X[i, j] = X + i*stride_xi + j*stride_xj`. Therefore, blocks of pointers for `A[m : m+BLOCK_SIZE_M, k:k+BLOCK_SIZE_K]` and `B[k : k+BLOCK_SIZE_K, n : n+BLOCK_SIZE_N]` can be defined in pseudo-code as:
+#### Pointer Arithmetic
+For a row-major 2D tensor `X`, the memory location of `X[i, j]` is given by `&X[i, j] = X + i*stride_xi + j*stride_xj`. 
+> 例如对于二维张量 `X` ，`X[i, j]` 元素的逻辑位置是在 `X` 的第 `i` 行第 `j` 列，但其指针/物理位置应该是 `X` 的起始指针/物理位置加上 `i*stride_xi + j*stride_xj` ，其中 `stride_xi` 表示 `i` 维度每加1，元素的指针/物理位置需要移动多少，`stride_xj` 表示 `j` 维度每加1，元素的指针/物理位置需要移动多少
+
+> 指针算数就是要正确地根据元素的逻辑位置和张量的起始地址计算出元素的指针/物理位置
+> Triton 是以 block 思维编程的，因此我们需要通过指针算数，根据 block 需要处理的所有元素的逻辑位置计算出该 block 需要处理的所有元素的指针位置
+
+Therefore, blocks of pointers for `A[m : m+BLOCK_SIZE_M, k:k+BLOCK_SIZE_K]` and `B[k : k+BLOCK_SIZE_K, n : n+BLOCK_SIZE_N]` can be defined in pseudo-code as:
 
 ```
 &A[m : m+BLOCK_SIZE_M, k:k+BLOCK_SIZE_K] =  a_ptr + (m : m+BLOCK_SIZE_M)[:, None]*A.stride(0) + (k : k+BLOCK_SIZE_K)[None, :]*A.stride(1);
@@ -603,8 +609,8 @@ For a row-major 2D tensor `X`, the memory location of `X[i, j]` is given by�
 ```
 
 Which means that pointers for blocks of A and B can be initialized (i.e., `k=0`) in Triton as the following code. Also note that we need an extra modulo to handle the case where `M` is not a multiple of `BLOCK_SIZE_M` or `N` is not a multiple of `BLOCK_SIZE_N`, in which case we can pad the data with some useless values, which will not contribute to the results. For the `K` dimension, we will handle that later using masking load semantics.
-> 如果 `M` 不是 `BLOCK_SIZE_M` 的倍数，以及 `N` 不是 `BLOCK_SIZE_N` 的倍数，就做 padding
-> 对于 `K` 维，如果 `K` 不是 `BLOCK_SIZE_K` 的倍数，则使用 masking load
+> 注意如果 `M` 不是 `BLOCK_SIZE_M` 的倍数，以及 `N` 不是 `BLOCK_SIZE_N` 的倍数，我们可以做 padding，也可以添加边界处理
+> 对于 `K` 维，如果 `K` 不是 `BLOCK_SIZE_K` 的倍数，我们将使用 masking load (在 `tl.load` 中指定 `mask` 参数)
 
 ```python
 offs_am = (pid_m * BLOCK_SIZE_M + tl.arange(0, BLOCK_SIZE_M)) % M
@@ -614,18 +620,18 @@ a_ptrs = a_ptr + (offs_am[:, None]*stride_am + offs_k [None, :]*stride_ak)
 b_ptrs = b_ptr + (offs_k [:, None]*stride_bk + offs_bn[None, :]*stride_bn)
 ```
 
-> 该例中，`offs_am` 表示在 `A` 的第几行，`offs_bn` 表示在 `B` 的第几列
-> `offs_k` 表示在 `A` 的第几列/在 `B` 的第几行
+> 该例中，`offs_am` 存储了 block 需要处理的 `A`  中元素各自在 ` A ` 的第几行，` offs_bn ` 存储了 block 需要处理的 `B` 中元素各自在在 ` B ` 的第几列
+> `offs_k` 存储了 block 需要处理的 `A` / `B` 中元素各自在 ` A ` 的第几列/在 ` B ` 的第几行
 
 And then updated in the inner loop as follows:
-> k-loop 中，每次在 `K` 维度处理 ` BLOCK_SIZE_K ` 的数据
+> k-loop 中，每次在 `K` 维度处理 `BLOCK_SIZE_K ` 个元素，也就是 `K` 维度在循环之间会前进 `BLOCK_SIZE_K` 个元素，故各个指针都相应前进 `stride_ak/stride_bk * BLOCK_SIZE_K`
 
 ```python
 a_ptrs += BLOCK_SIZE_K * stride_ak;
 b_ptrs += BLOCK_SIZE_K * stride_bk;
 ```
 
-### L2 Cache Optimizations
+#### L2 Cache Optimizations
 As mentioned above, each program instance computes a `[BLOCK_SIZE_M, BLOCK_SIZE_N]` block of `C`. 
 > 每个程序实例负责为 `[BLOCK_SIZE_M, BLOCK_SIZE_N]` 的 `C` 块 
 > (可以看出 Triton 的编码单元是 block，写代码时需要站在 block 的角度思考，
@@ -674,8 +680,9 @@ For example, in the following matmul where each matrix is 9 blocks by 9 blocks, 
 > ![../../_images/grouped_vs_row_major_ordering.png](https://triton-lang.org/main/_images/grouped_vs_row_major_ordering.png)
 
 In practice, this can improve the performance of our matrix multiplication kernel by more than 10% on some hardware architecture (e.g., 220 to 245 TFLOPS on A100).
+> 示例图中，Row-major ordering 的算术密度显然要低于 Grouped ordering 的算数密度，这在 A100 上会带来 10% 的性能差距
 
-## Final Result
+### Final Result
 
 ```python
 import torch
@@ -842,9 +849,21 @@ def matmul_kernel(
 @triton.jit
 def leaky_relu(x):
     return tl.where(x >= 0, x, 0.01 * x)
+```
+
+> 本例中
+> - `get_cuda/hip_autotune_config()` 返回 `List[triton.Config]` ，其中 `triton.Config` 封装了 kernel 的配置参数，包括 `BLOCK_SIZE_M/N/K` , `GROUP_SIZE_M` , `num_stages` , `num_warps` 
+> - `@triton.autotune` 装饰器用于装饰 `@triton.jit` 装饰的 kernel，`@triton.autotune` 接受 `List[triton.Config]` 形式的预定义配置以及 `List[str]` 形式的一组 keys，key 应该是某个传入给 kernel 的参数名称，当 key 发生变化，`autotune` 就会将 kernel 按所有预定义配置运行一遍。本例中，keys 是 `['M', 'N', 'K']` ，即矩阵维度
+> - `stride_am` 表示 `ptr_a` 随着 `M` 维度的坐标变化相应加上 `stride_am` ，其他的与此类似
+> - `tl.dot(a, b, accumulator)` 直接对已经 `tl.load` 的两个矩阵 `a,b` 进行乘法，将结果累加到 `accumulator` 返回更新的 `accumulator`
+> - `c = accumulator.to(tl.float16)` 转化了 `accumulator` 的精度
+> - `matmul_kernel` 可以调用 `@triton.jit` 修饰的 `leaky_relu`
 
 We can now create a convenience wrapper function that only takes two input tensors, and (1) checks any shape constraint; (2) allocates the output; (3) launches the above kernel.
+> 定义完 `matmul_kernel` ，我们接着定义该 kernel 的包装函数，负责：
+> 接受 tensor 输入、检查 tensor 形状限制、分配输出、发起 `matmul_kernel`
 
+```python
 def matmul(a, b, activation=""):
     # Check constraints.
     assert a.shape[1] == b.shape[0], "Incompatible dimensions"
@@ -864,11 +883,12 @@ def matmul(a, b, activation=""):
         ACTIVATION=activation  #
     )
     return c
+```
 
-# Unit Test[¶](https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html#unit-test "Link to this heading")
-
+### Unit Test
 We can test our custom matrix multiplication operation against a native torch implementation (i.e., cuBLAS).
 
+```python
 torch.manual_seed(0)
 a = torch.randn((512, 512), device='cuda', dtype=torch.float16)
 b = torch.randn((512, 512), device='cuda', dtype=torch.float16)
@@ -902,7 +922,9 @@ if TORCH_HAS_FP8 and is_cuda():
         print("✅ Triton and Torch match")
     else:
         print("❌ Triton and Torch differ")
+```
 
+```
 triton_output_with_fp16_inputs=tensor([[-10.9531,  -4.7109,  15.6953,  ..., -28.4062,   4.3320, -26.4219],
         [ 26.8438,  10.0469,  -5.4297,  ..., -11.2969,  -8.5312,  30.7500],
         [-13.2578,  15.8516,  18.0781,  ..., -21.7656,  -8.6406,  10.2031],
@@ -937,13 +959,13 @@ torch_output_with_fp8_inputs=tensor([[-21.4375,  13.1719,   6.0352,  ...,  28.70
         [-23.9688,  -3.2637, -33.6875,  ...,  17.3125, -36.6250,  25.8594]],
        device='cuda:0', dtype=torch.float16)
 ✅ Triton and Torch match
+```
 
-# Benchmark[¶](https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html#benchmark "Link to this heading")
-
-## Square Matrix Performance[¶](https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html#square-matrix-performance "Link to this heading")
-
+### Benchmark
+#### Square Matrix Performance
 We can now compare the performance of our kernel against that of cuBLAS or rocBLAS. Here we focus on square matrices, but feel free to arrange this script as you wish to benchmark any other matrix shape.
 
+```python
 ref_lib = 'cuBLAS' if is_cuda() else 'rocBLAS'
 
 configs = []
@@ -983,10 +1005,12 @@ def benchmark(M, N, K, provider, fp8_inputs):
     return perf(ms), perf(max_ms), perf(min_ms)
 
 benchmark.run(show_plots=True, print_data=True)
+```
 
-- ![03 matrix multiplication](https://triton-lang.org/main/_images/sphx_glr_03-matrix-multiplication_001.png)
- - ![03 matrix multiplication](https://triton-lang.org/main/_images/sphx_glr_03-matrix-multiplication_002.png)
+![03 matrix multiplication](https://triton-lang.org/main/_images/sphx_glr_03-matrix-multiplication_001.png)
+ ![03 matrix multiplication](https://triton-lang.org/main/_images/sphx_glr_03-matrix-multiplication_002.png)
 
+```
 matmul-performance-fp16:
          M       N       K      cuBLAS      Triton
 0    256.0   256.0   256.0    4.096000    4.096000
@@ -1053,5 +1077,166 @@ matmul-performance-fp8:
 28  3840.0  3840.0  3840.0  137.895263
 29  3968.0  3968.0  3968.0  147.016795
 30  4096.0  4096.0  4096.0  154.985826
+```
 
-**Total running time of the script:** (2 minutes 16.598 seconds)
+# Low-Memory Dropout[¶](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#low-memory-dropout "Link to this heading")
+
+In this tutorial, you will write a memory-efficient implementation of dropout whose state will be composed of a single int32 seed. This differs from more traditional implementations of dropout, whose state is generally composed of a bit mask tensor of the same shape as the input.
+
+In doing so, you will learn about:
+
+- The limitations of naive implementations of Dropout with PyTorch.
+    
+- Parallel pseudo-random number generation in Triton.
+    
+
+## Baseline[¶](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#baseline "Link to this heading")
+
+The _dropout_ operator was first introduced in [[SRIVASTAVA2014]](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#srivastava2014) as a way to improve the performance of deep neural networks in low-data regime (i.e. regularization).
+
+It takes a vector as input and produces a vector of the same shape as output. Each scalar in the output has a probability p of being changed to zero and otherwise it is copied from the input. This forces the network to perform well even when only 1−p scalars from the input are available.
+
+At evaluation time we want to use the full power of the network so we set p=0. Naively this would increase the norm of the output (which can be a bad thing, e.g. it can lead to artificial decrease in the output softmax temperature). To prevent this we multiply the output by 11−p, which keeps the norm consistent regardless of the dropout probability.
+
+Let’s first take a look at the baseline implementation.
+
+import tabulate
+import torch
+
+import triton
+import triton.language as tl
+
+@triton.jit
+def _dropout(
+    x_ptr,  # pointer to the input
+    x_keep_ptr,  # pointer to a mask of 0s and 1s
+    output_ptr,  # pointer to the output
+    n_elements,  # number of elements in the `x` tensor
+    p,  # probability that an element of `x` is changed to zero
+    BLOCK_SIZE: tl.constexpr,
+):
+    pid = tl.program_id(axis=0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    mask = offsets < n_elements
+    # Load data
+    x = tl.load(x_ptr + offsets, mask=mask)
+    x_keep = tl.load(x_keep_ptr + offsets, mask=mask)
+    # The line below is the crucial part, described in the paragraph above!
+    output = tl.where(x_keep, x / (1 - p), 0.0)
+    # Write-back output
+    tl.store(output_ptr + offsets, output, mask=mask)
+
+def dropout(x, x_keep, p):
+    output = torch.empty_like(x)
+    assert x.is_contiguous()
+    n_elements = x.numel()
+    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )
+    _dropout[grid](x, x_keep, output, n_elements, p, BLOCK_SIZE=1024)
+    return output
+
+# Input tensor
+x = torch.randn(size=(10, )).cuda()
+# Dropout mask
+p = 0.5
+x_keep = (torch.rand(size=(10, )) > p).to(torch.int32).cuda()
+#
+output = dropout(x, x_keep=x_keep, p=p)
+print(tabulate.tabulate([
+    ["input"] + x.tolist(),
+    ["keep mask"] + x_keep.tolist(),
+    ["output"] + output.tolist(),
+]))
+
+/home/runner/_work/triton/triton/python/triton/language/semantic.py:1598: UserWarning: tl.where with a non-boolean condition is deprecated and will error out in a future triton release. Got int32
+  warnings.warn(
+---------  -------  ---------  --------  --------  --------  --------  --------  --------  ---------  ---------
+input      1.541    -0.293429  -2.17879  0.568431  -1.08452  -1.3986   0.403347  0.838026  -0.719258  -0.403344
+keep mask  1         1          0        1          0         1        1         0          0          0
+output     3.08199  -0.586858   0        1.13686    0        -2.79719  0.806694  0          0          0
+---------  -------  ---------  --------  --------  --------  --------  --------  --------  ---------  ---------
+
+## Seeded dropout[¶](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#seeded-dropout "Link to this heading")
+
+The above implementation of dropout works fine, but it can be a bit awkward to deal with. Firstly we need to store the dropout mask for backpropagation. Secondly, dropout state management can get very tricky when using recompute/checkpointing (e.g. see all the notes about preserve_rng_state in [https://pytorch.org/docs/stable/checkpoint.html](https://pytorch.org/docs/stable/checkpoint.html)). In this tutorial we’ll describe an alternative implementation that (1) has a smaller memory footprint; (2) requires less data movement; and (3) simplifies the management of persisting randomness across multiple invocations of the kernel.
+
+Pseudo-random number generation in Triton is simple! In this tutorial we will use the `triton.language.rand` function which generates a block of uniformly distributed `float32` values in [0, 1), given a seed and a block of `int32` offsets. But if you need it, Triton also provides other [random number generation strategies](https://triton-lang.org/main/python-api/triton.language.html#random-number-generation).
+
+Note
+
+Triton’s implementation of PRNG is based on the Philox algorithm (described on [[SALMON2011]](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#salmon2011)).
+
+Let’s put it all together.
+
+@triton.jit
+def _seeded_dropout(
+    x_ptr,
+    output_ptr,
+    n_elements,
+    p,
+    seed,
+    BLOCK_SIZE: tl.constexpr,
+):
+    # compute memory offsets of elements handled by this instance
+    pid = tl.program_id(axis=0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    # load data from x
+    mask = offsets < n_elements
+    x = tl.load(x_ptr + offsets, mask=mask)
+    # randomly prune it
+    random = tl.rand(seed, offsets)
+    x_keep = random > p
+    # write-back
+    output = tl.where(x_keep, x / (1 - p), 0.0)
+    tl.store(output_ptr + offsets, output, mask=mask)
+
+def seeded_dropout(x, p, seed):
+    output = torch.empty_like(x)
+    assert x.is_contiguous()
+    n_elements = x.numel()
+    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )
+    _seeded_dropout[grid](x, output, n_elements, p, seed, BLOCK_SIZE=1024)
+    return output
+
+x = torch.randn(size=(10, )).cuda()
+# Compare this to the baseline - dropout mask is never instantiated!
+output = seeded_dropout(x, p=0.5, seed=123)
+output2 = seeded_dropout(x, p=0.5, seed=123)
+output3 = seeded_dropout(x, p=0.5, seed=512)
+
+print(
+    tabulate.tabulate([
+        ["input"] + x.tolist(),
+        ["output (seed = 123)"] + output.tolist(),
+        ["output (seed = 123)"] + output2.tolist(),
+        ["output (seed = 512)"] + output3.tolist(),
+    ]))
+
+-------------------  ---------  --------  --------  -------  --------  --------  ---------  ---------  ---------  ---------
+input                -0.952835  0.371721  0.408716  1.42142  0.149397  -0.67086  -0.214186  -0.431969  -0.707878  -0.106434
+output (seed = 123)   0         0.743443  0         0        0         -1.34172   0          0         -1.41576   -0.212868
+output (seed = 123)   0         0.743443  0         0        0         -1.34172   0          0         -1.41576   -0.212868
+output (seed = 512)   0         0         0.817432  2.84284  0         -1.34172  -0.428372   0          0          0
+-------------------  ---------  --------  --------  -------  --------  --------  ---------  ---------  ---------  ---------
+
+Et Voilà! We have a triton kernel that applies the same dropout mask provided the seed is the same! If you’d like explore further applications of pseudorandomness in GPU programming, we encourage you to explore the python/triton/language/random.py!
+
+## Exercises[¶](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#exercises "Link to this heading")
+
+1. Extend the kernel to operate over a matrix and use a vector of seeds - one per row.
+    
+2. Add support for striding.
+    
+3. (challenge) Implement a kernel for sparse Johnson-Lindenstrauss transform which generates the projection matrix on the fly each time using a seed.
+    
+
+## References[¶](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#references "Link to this heading")
+
+[[SALMON2011](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#id2)]
+
+John K. Salmon, Mark A. Moraes, Ron O. Dror, and David E. Shaw, “Parallel Random Numbers: As Easy as 1, 2, 3”, 2011
+
+[[SRIVASTAVA2014](https://triton-lang.org/main/getting-started/tutorials/04-low-memory-dropout.html#id1)]
+
+Nitish Srivastava and Geoffrey Hinton and Alex Krizhevsky and Ilya Sutskever and Ruslan Salakhutdinov, “Dropout: A Simple Way to Prevent Neural Networks from Overfitting”, JMLR 2014
