@@ -191,7 +191,7 @@
 \[**Doc**\]
 - [[Pytorch 2.x]]: CH0
     CH0-General Introduction: `torch.compile` : TorchDynamo --> FX Graph in Torch IR --> AOTAutograd --> FX graph in Aten/Prims IR --> TorchInductor --> Triton code/OpenMP code...
-- [[Getting Started]]: Vector Addition, Fused Softmax
+- [[Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
     Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapasulates all the compilcated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
 
 ### Week4
@@ -211,7 +211,7 @@
 ## November
 ### Week 1
 \[**Paper**\]
-- [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]: Sec0-Sec2
+- [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]: Sec0-Sec3.2
 
 \[**Book**\]
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
@@ -220,3 +220,5 @@
 - [[Learn the Basics|pytorch-tutorials-beginner: Learn the Basics]]
 - [[pillow v11.0.0]]: Overview, Tutorial, Concepts
 - [[Repositories|huggingface-hub:Repositories]]: Sec1-Sec2
+- [[Getting Started|Triton: Tutorials]]: Matrix Multiply
+
