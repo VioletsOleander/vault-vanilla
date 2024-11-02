@@ -651,7 +651,7 @@ subjects:
 1. General guideline refers to the angular style.
 2. Log commit should be done daily, and the commit message should summarize the daily progress.
 3. Log commit should in principle be the last commit of the day, before log commit, other types of commit related to the daily progress should be done.
-4. In `<subject>` , surround file name with ` ' ' ` if there are blanks or special characters in it. This is no necessary for abbrevation names.
-5. In `<subject>`, emit file extension.
+4. In `<subject>` , surround file name with ` ' ' ` if there are blanks or special characters (e.g. `/` ) in it. This is not necessary for meaningful abbrevation names.
+5. In `<subject>`, emit file extension, except for source code files.
 
 
