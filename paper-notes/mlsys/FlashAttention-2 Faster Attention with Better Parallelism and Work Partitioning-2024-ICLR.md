@@ -252,7 +252,7 @@ We describe the full FlashAttention-2 forward pass in Algorithm 1.
 > 2. 简化了计算流程：内层循环中，先更新 $m$，用更新的 $m$ 直接缩放当前的 $\mathbf P$ 块。因此，计算 $\ell$ 时，仅需要对之前的 $\ell$ 用新 $m$ 重缩放，不需要对当前块的 $\ell$ 重缩放；计算 $\mathbf O$ 时，仅需要对之前的 $\mathbf O$ 用新 $m$ 重缩放，不需要对当前块的 $\mathbf O$ 重缩放。这使得每次内层循环少了两次重缩放计算
 > 3. 移除了用 $\ell$ 对 $\mathbf O$ 的缩放，更新 $\mathbf O$ 时不再除去当前的各行指数分数和。这使得每次内层循环少了两次重缩放计算
 
-> FlashAttention-2 的图示见附录
+> FlashAttention-2 的图示见[[#Figure Illustration for FlashAttention-2 forward pass|附录]]
 
 **Causal masking.** 
 One common use case of attention is in auto-regressive language modeling, where we need to apply a causal mask to the attention matrix $\bf S$ (i.e., any entry $\mathbf{S}_{i j}$ with $j\!>\! i$ is set to $-\infty.$ ). 
@@ -285,24 +285,33 @@ The backward pass of FlashAttention-2 is almost the same as that of FlashAttenti
 > FlashAttention-2 没有选择将 key 头和 value 头进行 copy，而是隐式地修改索引，注意反向传播中，需要在不同的头中累积 $\mathbf {dK}, \mathbf {dV}$
 
 ## 3.2 Parallelism
-The first version of FlashAttention parallelizes over batch size and number of heads. We use 1 thread block to process one attention head, and there are overall batch size $\cdot$ number of heads thread blocks. Each thread block is scheduled to run on a streaming multiprocessor (SM), and there are 108 of these SMs on an A100 GPU for example. This scheduling is efficient when this number is large $(\mathrm{day}\geq80)$ ), since we can effectively use almost all of the compute resources on the GPU. 
+The first version of FlashAttention parallelizes over batch size and number of heads. We use 1 thread block to process one attention head, and there are overall batch size $\cdot$ number of heads thread blocks. Each thread block is scheduled to run on a streaming multiprocessor (SM), and there are 108 of these SMs on an A100 GPU for example. This scheduling is efficient when this number is large $(\mathrm{say}\geq80)$, since we can effectively use almost all of the compute resources on the GPU. 
+> FlashAttention 在 batch size 和 number of heads 维度并行，在每个 batch 中，每个 thread block 处理一个 attention head，因此总的 thread block 数量就是 batch size 乘上 number of heads
+> GPU 将每个 thread block 调度到一个 SM 上，当 thread block 数量较大时，可以有高的 occupancy，以有效利用大部分 GPU 计算资源。例如 A100 有108个 SM，当 thread block 数量大于 80 时，occupancy 就较高
 
 In the case of long sequences (which usually means small batch sizes or small number of heads), to make better use of the multiprocessors on the GPU, we now additionally parallelize over the sequence length dimension. This results in significant speedup for this regime. 
+> 当序列较长，batch size 和 number of heads 一般就会较少，因此，为了提高这种情况下的 occupancy，我们对 FlashAttention 做出改进，使其额外在序列长度维度并行
+> 这可以带来显著的加速
 
-Forward pass. We see that the outer loop (over sequence length) is embarrassingly parallel, and we schedule them on different thread blocks that do not need to communicate with each other. We also parallelize over the batch dimension and number of heads dimension, as done in FlashAttention . The increased parallelism over sequence length helps improve occupancy (fraction of GPU resources being used) when the batch size and number of heads are small, leading to speedup in this case. 
+**Forward pass.** We see that the outer loop (over sequence length) is embarrassingly parallel, and we schedule them on different thread blocks that do not need to communicate with each other. We also parallelize over the batch dimension and number of heads dimension, as done in FlashAttention . The increased parallelism over sequence length helps improve occupancy (fraction of GPU resources being used) when the batch size and number of heads are small, leading to speedup in this case. 
+> Algorithm 1中，外层循环是可以并行的 ($\mathbf {Q}$ 块之间不相互依赖)，因此 FlashAttention-2 将多个外层迭代调度到不同的 thread block 上 (thread block 之间不能相互通讯)，换句话说就是展开了外层循环
+> 同时，FlashAttention-2 保持了在 batch size 维度和 number of heads 维度的并行
+> 在序列长度 ($\mathbf {Q}$ 块) 维度上额外的并行帮助提高了当 batch size 和 number of heads 较小时的 occupancy (GPU 资源被使用的比例)
 
-Backward pass. Notice that the only shared computation between different column blocks is in update dQ in Algorithm 2, where we need to load $\mathbf{d}\mathbf{Q}_{i}$ from HBM to SRAM, then on chip, update $\mathbf{d}\mathbf{Q}_{i}\longleftarrow\mathbf{d}\mathbf{Q}_{i}\!+\!\mathbf{d}\mathbf{S}_{i}^{(j)}\mathbf{K}_{j}$ , and write back to HBM. We thus parallelize over the sequence length dimension as well, and schedule 1 thread block for each column block of the backward pass. We use atomic adds to communicate between different thread blocks to update dQ . 
+**Backward pass.** Notice that the only shared computation between different column blocks is in update $\mathbf {dQ}$ in Algorithm 2, where we need to load $\mathbf{d}\mathbf{Q}_{i}$ from HBM to SRAM, then on chip, update $\mathbf{d}\mathbf{Q}_{i}\longleftarrow\mathbf{d}\mathbf{Q}_{i}\!+\!\mathbf{d}\mathbf{S}_{i}^{(j)}\mathbf{K}_{j}$ , and write back to HBM. We thus parallelize over the sequence length dimension as well, and schedule 1 thread block for each column block of the backward pass. We use atomic adds to communicate between different thread blocks to update $\mathbf {dQ}$ .
+> Algorithm 2中，对于 $\mathbf {dQ}$ 块的更新是唯一的在列块 ($\mathbf {K}$) 之间共享的计算 ($\mathbf {dQ}_i \longleftarrow \mathbf {dQ}_i + \mathbf {dS}_i^{(j)}\mathbf K_j$)，也就是需要全部外层循环才能完成的计算，但该计算仅是共享，不存在外层循环间的依赖；而对于 $\mathbf {dK, dV}$ 块的计算都是完全在内层循环中完成的，也没有外层循环间的依赖，因此可以将外层循环展开
+> 因此我们同样考虑在序列长度维度 ($\mathbf {K, V}$ 块) 并行，为每个列块调度一个 thread block，每个 thread block 计算各自的 $\mathbf {dK, dV}$ 时不需要互相通讯，各自并行计算，而对于 $\mathbf {dQ}$ 的更新则采用 atomic add 进行通讯
 
-![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/1a2571b795cfc527f7e7c1d158ef7e22dfc7ff76c5b15f08269b7010f1f37bd1.jpg) 
+> 并行化的前向和反向的图解见[[#Figure Illustration for FlashAttention-2 Parallism|附录]]
+
 We describe the parallelization scheme in Fig. 2. 
 
-Figure 2: In the forward pass (left), we parallelize the workers (thread blocks) where each worker takes care of a block of rows of the attention matrix. In the backward pass (right), each worker takes care of a block of columns of the attention matrix. 
+![[FlashAttention2-Fig2.png]]
 
-Decoding. During LLM inference, most of the time is spent on iterative decoding, where one token is predicted at a time. The bottleneck for the attention operation during decoding is different from that during training or prefill (prompt processing), because the query length is very short (often query length is 1 since only the new extra token is attending to all the previous tokens, stored in the KV cache). As a result, the bottleneck is no longer the read/write of intermediate matrices (the scores $\mathbf{Q}\mathbf{K}^{\top}$ and attention probabilities softmax ( QK ⊤ ) ). Instead, the bottleneck is to load the KV cache as quickly as possible. 
+**Decoding.** During LLM inference, most of the time is spent on iterative decoding, where one token is predicted at a time. The bottleneck for the attention operation during decoding is different from that during training or prefill (prompt processing), because the query length is very short (often query length is 1 since only the new extra token is attending to all the previous tokens, stored in the KV cache). As a result, the bottleneck is no longer the read/write of intermediate matrices (the scores $\mathbf{Q}\mathbf{K}^{\top}$ and attention probabilities $\text{softmax}(\mathbf Q\mathbf K^\top)$ ). Instead, the bottleneck is to load the KV cache as quickly as possible. 
 To accommodate this setting, we split the KV cache loading among different thread blocks, to increase occupancy and saturate the HBM bandwidth. However, since the thread blocks cannot easily communicate with each other, we write intermediate results to HBM, then call a separate kernel to reduce the results and produce final output. 
 
-# 3.3 W ORK P ARTITIONING B ETWEEN W ARPS 
-
+## 3.3 Work Partitioning Between Warps
 As Section 3.2 describe how we schedule thread blocks, even within each thread block, we also have to decide how to partition the work between different warps. We typically use 4 or 8 warps per thread block, and the partitioning is described in Fig. 3. 
 
 Forward pass. For each block, FlashAttention splits $\mathbf{K}$ and $\mathbf{V}$ across 4 warps while keeping $\mathbf{Q}$ accessible by all warps. Each warp multiplies to get a slice of $\mathbf{Q}\mathbf{K}^{\top}$ , then they need to multiply with a slice of $\mathbf{V}$ and communicate to add up the result. This is referred to as the “split-K” scheme. However, this is inefficient since all warps need to write their intermediate results out to shared memory, synchronize, then add up the intermediate results. These shared memory reads/writes slow down the forward pass in FlashAttention . 
@@ -318,15 +327,13 @@ Tuning block sizes Increasing block sizes generally reduces shared memory loads/
 
 We manually tune for each head dimensions since there are essentially only 4 choices for block sizes, but this could benefit from auto-tuning to avoid this manual labor. We leave this to future work. 
 
-# 4 E MPIRICAL V ALIDATION 
-
+# 4 Empirical Validation
 We evaluate the impact of using FlashAttention -2 to train Transformer models. 
 
 • Benchmarking attention. We measure the runtime of FlashAttention -2 across different sequence lengths and compare it to a standard implementation in PyTorch, FlashAttention , and F LASH A TTENTI ton. We confirm that FlashAttention -2 is $1.7{-}3.0\times$ faster than FlashAttention , 1.3-2.5 × faster than FlashAttention in Triton, and 3-10 × faste n a standard attention implementation. FlashAttention -2 reaches up to 230 TFLOPs/s, 73% of the theoretical maximum TFLOPs/s on A100 GPUs. 
 
 • End-to-end training speed When used end-to-end to train GPT-style models of size 1.3B and 2.7B on sequence lengths either 2k or 8k, FlashAttention -2 yields up to $1.3\times$ speedup compared to FlashAttention and $2.8\times$ speedup compar a baseline without FlashAttention . FlashAttention -2 reaches up to 225 TFLOPs/s (72% model FLOPs utilization) per A100 GPU. 
-# 4.1 B ENCHMARKING A TTENTION F OR T RAINING 
-
+## 4.1 Benchmarking Attention for Training
 We measure the runtime of different attention methods on an A100 80GB SXM4 GPU for different settings (without / with causal mask, head dimension 64 or 128). We report the results in Fig. 4, Fig. 6 and Fig. 7, showing that FlashAttention -2 is around $2\times$ faster than FlashAttention and FlashAttention in xformers (the “cutlass” implementation). FlashAttention -2 is around $1.3{\cdot}1.5\times$ faster than FlashAttention in Triton in the forward pass and around $2\times$ faster in the backward pass. Compared to a standard attention implementation in PyTorch, FlashAttention -2 can be up to $10\times$ faster. 
 
 Benchmark setting: we vary the sequence length from 512, 1k, ..., 16k, and set batch size so that the total number of tokens is 16k. We set hidden dimension to 2048, and head dimension to be either 64 or 128 (i.e., 32 heads or 16 heads). To calculate the FLOPs of the forward pass, we use: 
@@ -339,15 +346,13 @@ With causal mask, we divide this number by 2 to account for the fact that approx
 
 Just running the same implementation on H100 GPUs (using no special instructions to make use of new features such as TMA and 4th-gen Tensor Cores), we obtain up to 335 TFLOPs/s (Fig. 8). We expect that by using new instructions, we can obtain another $1.5\mathbf{x}–2\mathbf{x}$ speedup on H100 GPUs. We leave that to future work. 
 
-# 4.2 B ENCHMARKING A TTENTION F OR I NFERENCE 
-
+## 4.2 Benchmarking Attention for Inference
 We benchmark the attention kernel during decoding for the case of multi-query attention, where the bot- tleneck is loading the KV cache. In Fig. 5, we see that the attention kernel from FlashAttention -2 is up to $28\times$ faster than a naive implementation in PyTorch, and up to $7\times$ faster than an implementation from Faster Transformer. This is thanks to better work partitioning where multiple thread blocks are loading the KV cache at the same time to saturate HBM bandwidth. 
 ![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/764256b172e075c48d8fff865760692c7818486d9a9570ff5f185b83c3416e23.jpg) 
 
 Figure 5: Attention decoding time on A100 80GB, with hidden dimension 2048 and multi-query atten- tion e attention kernel from FlashAttention -2 is up to $7\times$ faster than that of Faster Transformer and 28 $28\times$ faster than a naive implementation in PyTorch. 
 
-# 4.3 E ND - TO - END P ERFORMANCE 
-
+## 4.3 End-to-End Performance
 We measure the training throughput of GPT-style models with either 1.3B or 2.7B parameters, on $8{\times}\mathrm{A}100$ 80GB SXM4. As shown in Table 1 SH A TTENTION -2 yields $2.8\times$ speedup compared to a baseline without FlashAttention and 1.3 $1.3\times$ × speedup compared to FlashAttention , reaching up to 225 TFLOPs/s per A100 GPU. 
 
 Note that we calculate the FLOPs by the formula, following Megatron-LM (Shoeybi et al., 2019) (and many other papers and libraries): 
@@ -360,8 +365,7 @@ Table 1: Training speed (TFLO GPU) of GPT-style models on $8{\times}\mathrm{A}10
 
 ![](https://cdn-xlab-data.openxlab.org.cn/pdf/02d75799-1854-43ad-ab99-f2dda6088b50.pdf/e27f364eb48d9a351d38ecdfcfca0cf8e337dc6af52a7284ad404ffae7987f3f.jpg) 
 
-# 5 D ISCUSSION AND F UTURE D IRECTIONS 
-
+# 5 Discussion and Future Directions
 FlashAttention -2 is $2\times$ faster than FlashAttention , which ans that we can train models with 16k longer context for the same price as previously training a 8k context model, for the same number of tokens. We are excited about how this can be used to understand long books and reports, high resolution images, audio and video. FlashAttention -2 will also speed up training, finetuning, and inference of existing models. 
 
 In the near future, we plan to collaborate with researchers and engineers to make FlashAttention widely applicable in different kinds of devices (e.g., H100 GPUs, AMD GPUs), as well as new data types such as FP8. As an immediate next step, we plan to optimize FlashAttention-2 for H100 GPUs to use new hardware features (TMA, 4th-gen Tensor Cores, fp8). Combining the low-level optimizations in FlashAttention-2 with high-level algorithmic changes (e.g., local, dilated, block-sparse attention) could allow us to train AI models with much longer context. We are also excited to work with compiler researchers to make these optimization techniques easily programmable. 
@@ -408,4 +412,22 @@ We thank Phil Tillet and Daniel Haziza, who have implemented versions of FlashAt
 外层循环：
 
 ![[FlashAttention2-App-Fig9.png]]
+
+## Figure Illustration for FlashAttention-2 Parallism
+### Forward pass
+
+![[FlashAttention2-App-Fig10.png]]
+
+### Backward pass
+#### $\mathbf {dV}$
+
+![[FlashAttention2-App-Fig11.png]]
+
+#### $\mathbf {dQ}$
+
+![[FlashAttention2-App-Fig12.png]]
+
+#### $\mathbf {dK}$
+
+![[FlashAttention2-App-Fig13.png]]
 
