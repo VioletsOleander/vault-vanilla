@@ -14,7 +14,7 @@ def parse_arg() -> bool:
         if arg == 'late':
             return True
         else:
-            print("Illeagle argument, abort!")
+            print("Illegal argument, abort!")
             sys.exit(1)
 
 
