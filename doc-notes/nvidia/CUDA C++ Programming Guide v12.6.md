@@ -1,36 +1,3 @@
-- [1. Introduction](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#)
-- [2. Programming Model](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model)
-    - [2.1. Kernels](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels)
-    - [2.2. Thread Hierarchy](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#thread-hierarchy)
-    - [2.3. Memory Hierarchy](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#memory-hierarchy)
-    - [2.4. Heterogeneous Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#heterogeneous-programming)
-    - [2.5. Asynchronous SIMT Programming Model](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#asynchronous-simt-programming-model)
-        - [2.5.1. Asynchronous Operations](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#asynchronous-operations)
-    - [2.6. Compute Capability](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capability)
-- [3. Programming Interface](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-interface)
-- [4. Hardware Implementation](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#hardware-implementation)
-- [5. Performance Guidelines](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#performance-guidelines)
-- [6. CUDA-Enabled GPUs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-enabled-gpus)
-- [7. C++ Language Extensions](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#c-language-extensions)
-- [8. Cooperative Groups](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cooperative-groups)
-- [9. CUDA Dynamic Parallelism](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-dynamic-parallelism)
-- [10. Virtual Memory Management](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#virtual-memory-management)
-- [11. Stream Ordered Memory Allocator](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#stream-ordered-memory-allocator)
-- [12. Graph Memory Nodes](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#graph-memory-nodes)
-- [13. Mathematical Functions](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#mathematical-functions-appendix)
-- [14. C++ Language Support](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#c-language-support)
-- [15. Texture Fetching](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#texture-fetching)
-- [16. Compute Capabilities](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities)
-- [17. Driver API](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#driver-api)
-- [18. CUDA Environment Variables](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-environment-variables)
-- [19. Unified Memory Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#unified-memory-programming)
-- [20. Lazy Loading](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#lazy-loading)
-- [21. Notices](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#notices)
-
-- v12.6 | [PDF](https://docs.nvidia.com/cuda/pdf/CUDA_C_Programming_Guide.pdf) | [Archive](https://developer.nvidia.com/cuda-toolkit-archive)  
-
----
-
 # 1. Introduction
 ## 1.1. The Benefits of Using GPUs
 The Graphics Processing Unit (GPU) [1](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#fn1) provides much higher instruction throughput and memory bandwidth than the CPU within a similar price and power envelope. Many applications leverage these higher capabilities to run faster on the GPU than on the CPU (see [GPU Applications](https://www.nvidia.com/object/gpu-applications.html)). Other computing devices, like FPGAs, are also very energy efficient, but offer much less programming flexibility than GPUs.
@@ -38,18 +5,23 @@ The Graphics Processing Unit (GPU) [1](https://docs.nvidia.com/cuda/cuda-c-progr
 This difference in capabilities between the GPU and the CPU exists because they are designed with different goals in mind. While the CPU is designed to excel at executing a sequence of operations, called a _thread_, as fast as possible and can execute a few tens of these threads in parallel, the GPU is designed to excel at executing thousands of them in parallel (amortizing the slower single-thread performance to achieve greater throughput).
 
 The GPU is specialized for highly parallel computations and therefore designed such that more transistors are devoted to data processing rather than data caching and flow control. The schematic [Figure 1](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#from-graphics-processing-to-general-purpose-parallel-computing-gpu-devotes-more-transistors-to-data-processing) shows an example distribution of chip resources for a CPU versus a GPU.
+> GPU 聚焦于高度并行的计算，因此相较于 CPU，它的更多晶体管被设计用于数据处理而不是数据缓存和流程控制
+> GPU 和 CPU 的芯片资源的分布差异见 Figure 1
 
 [![The GPU Devotes More Transistors to Data Processing](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/gpu-devotes-more-transistors-to-data-processing.png)](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/gpu-devotes-more-transistors-to-data-processing.png)
 
 Figure 1 The GPU Devotes More Transistors to Data Processing
 
 Devoting more transistors to data processing, for example, floating-point computations, is beneficial for highly parallel computations; the GPU can hide memory access latencies with computation, instead of relying on large data caches and complex flow control to avoid long memory access latencies, both of which are expensive in terms of transistors.
+> GPU 通过计算来隐藏 memory access latency，而不是像 CPU 通过大的数据缓存和复杂的流程控制来隐藏 memory access latency
 
 In general, an application has a mix of parallel parts and sequential parts, so systems are designed with a mix of GPUs and CPUs in order to maximize overall performance. Applications with a high degree of parallelism can exploit this massively parallel nature of the GPU to achieve higher performance than on the CPU.
+> 具有高度并行性质的应用在 GPU 上会取得比在 CPU 上显著更好的表现
 
 ## 1.2. CUDA®: A General-Purpose Parallel Computing Platform and Programming Model
-
 In November 2006, NVIDIA® introduced CUDA®, a general purpose parallel computing platform and programming model that leverages the parallel compute engine in NVIDIA GPUs to solve many complex computational problems in a more efficient way than on a CPU.
+> CUDA 是一个通用目的的并行计算平台和编程模型
+> CUDA 利用 NVIDIA GPUs 的计算引擎来解决计算问题
 
 CUDA comes with a software environment that allows developers to use C++ as a high-level programming language. As illustrated by [Figure 2](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-general-purpose-parallel-computing-architecture-cuda-is-designed-to-support-various-languages-and-application-programming-interfaces), other languages, application programming interfaces, or directives-based approaches are supported, such as FORTRAN, DirectCompute, OpenACC.
 
@@ -58,90 +30,82 @@ CUDA comes with a software environment that allows developers to use C++ as a hi
 Figure 2 GPU Computing Applications. CUDA is designed to support various languages and application programming interfaces.
 
 ## 1.3. A Scalable Programming Model
-
 The advent of multicore CPUs and manycore GPUs means that mainstream processor chips are now parallel systems. The challenge is to develop application software that transparently scales its parallelism to leverage the increasing number of processor cores, much as 3D graphics applications transparently scale their parallelism to manycore GPUs with widely varying numbers of cores.
 
 The CUDA parallel programming model is designed to overcome this challenge while maintaining a low learning curve for programmers familiar with standard programming languages such as C.
+> 可拓展的应用程序可以随着处理器核心数量的增长透明地拓展自身的并行性
+> CUDA 并行编程模型的设计目的就是编写可拓展的应用程序
 
 At its core are three key abstractions — a hierarchy of thread groups, shared memories, and barrier synchronization — that are simply exposed to the programmer as a minimal set of language extensions.
+> CUDA 的三大核心抽象是：
+> thread group 层次结构
+> shared memory
+> barrier 同步
+> 这三大核心抽象都通过语言拓展的方式暴露给程序员
 
 These abstractions provide fine-grained data parallelism and thread parallelism, nested within coarse-grained data parallelism and task parallelism. They guide the programmer to partition the problem into coarse sub-problems that can be solved independently in parallel by blocks of threads, and each sub-problem into finer pieces that can be solved cooperatively in parallel by all threads within the block.
+> 这些抽象引导程序员将问题先划分为粗粒度的子问题
+> 这些子问题可以各自并行地由 thread block 解决，而每个子问题被更细粒度地划分给 block 内的 thread 协作解决
 
 This decomposition preserves language expressivity by allowing threads to cooperate when solving each sub-problem, and at the same time enables automatic scalability. Indeed, each block of threads can be scheduled on any of the available multiprocessors within a GPU, in any order, concurrently or sequentially, so that a compiled CUDA program can execute on any number of multiprocessors as illustrated by [Figure 3](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#scalable-programming-model-automatic-scalability), and only the runtime system needs to know the physical multiprocessor count.
+> 这种分解方式通过允许线程协作解决子问题保留了语言表达性，同时启用了自动的可拓展性
+> 每个 thread block 可以被调度到任意可用的 SM，顺序任意，也就是编译好的 CUDA 程序可以在任意的 SM 上执行，仅 runtime 系统需要知道具体是哪个 SM
 
 This scalable programming model allows the GPU architecture to span a wide market range by simply scaling the number of multiprocessors and memory partitions: from the high-performance enthusiast GeForce GPUs and professional Quadro and Tesla computing products to a variety of inexpensive, mainstream GeForce GPUs (see [CUDA-Enabled GPUs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-enabled-gpus) for a list of all CUDA-enabled GPUs).
+> 这样可拓展的编程模型使得 CUDA 程序可以在高端和低端的 GPU 上都可以运行
 
 ![Automatic Scalability](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/automatic-scalability.png)
 
 Figure 3 Automatic Scalability
 
 Note
-
 A GPU is built around an array of Streaming Multiprocessors (SMs) (see [Hardware Implementation](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#hardware-implementation) for more details). A multithreaded program is partitioned into blocks of threads that execute independently from each other, so that a GPU with more multiprocessors will automatically execute the program in less time than a GPU with fewer multiprocessors.
 
 ## 1.4. Document Structure
-
 This document is organized into the following sections:
 
 - [Introduction](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#introduction) is a general introduction to CUDA.
-    
 - [Programming Model](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model) outlines the CUDA programming model.
-    
 - [Programming Interface](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-interface) describes the programming interface.
-    
 - [Hardware Implementation](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#hardware-implementation) describes the hardware implementation.
-    
 - [Performance Guidelines](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#performance-guidelines) gives some guidance on how to achieve maximum performance.
-    
 - [CUDA-Enabled GPUs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-enabled-gpus) lists all CUDA-enabled devices.
-    
 - [C++ Language Extensions](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#c-language-extensions) is a detailed description of all extensions to the C++ language.
-    
 - [Cooperative Groups](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cooperative-groups) describes synchronization primitives for various groups of CUDA threads.
-    
 - [CUDA Dynamic Parallelism](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-dynamic-parallelism) describes how to launch and synchronize one kernel from another.
-    
 - [Virtual Memory Management](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#virtual-memory-management) describes how to manage the unified virtual address space.
-    
 - [Stream Ordered Memory Allocator](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#stream-ordered-memory-allocator) describes how applications can order memory allocation and deallocation.
-    
 - [Graph Memory Nodes](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#graph-memory-nodes) describes how graphs can create and own memory allocations.
-    
 - [Mathematical Functions](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#mathematical-functions-appendix) lists the mathematical functions supported in CUDA.
-    
 - [C++ Language Support](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#c-cplusplus-language-support) lists the C++ features supported in device code.
-    
 - [Texture Fetching](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#texture-fetching) gives more details on texture fetching.
-    
 - [Compute Capabilities](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities) gives the technical specifications of various devices, as well as more architectural details.
-    
 - [Driver API](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#driver-api) introduces the low-level driver API.
-    
 - [CUDA Environment Variables](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars) lists all the CUDA environment variables.
-    
 - [Unified Memory Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-unified-memory-programming-hd) introduces the Unified Memory programming model.
-    
 
-[1](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#id2)
-
-The _graphics_ qualifier comes from the fact that when the GPU was originally created, two decades ago, it was designed as a specialized processor to accelerate graphics rendering. Driven by the insatiable market demand for real-time, high-definition, 3D graphics, it has evolved into a general processor used for many more workloads than just graphics rendering.
-
+[1](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#id2) The _graphics_ qualifier comes from the fact that when the GPU was originally created, two decades ago, it was designed as a specialized processor to accelerate graphics rendering. Driven by the insatiable market demand for real-time, high-definition, 3D graphics, it has evolved into a general processor used for many more workloads than just graphics rendering.
 # 2. Programming Model
-
 This chapter introduces the main concepts behind the CUDA programming model by outlining how they are exposed in C++.
+> 本章通过阐述 CUDA 编程模型的主要概念是如何暴露给 C++的来介绍 CUDA 编程模型的主要概念
 
 An extensive description of CUDA C++ is given in [Programming Interface](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-interface).
 
 Full code for the vector addition example used in this chapter and the next can be found in the [vectorAdd CUDA sample](https://docs.nvidia.com/cuda/cuda-samples/index.html#vector-addition).
 
 ## 2.1. Kernels
-
 CUDA C++ extends C++ by allowing the programmer to define C++ functions, called _kernels_, that, when called, are executed N times in parallel by N different _CUDA threads_, as opposed to only once like regular C++ functions.
+> CUDA 允许程序员定义称为 kernel 的 C++ 函数
+> 普通 C++ 函数仅被执行一次，kernel 会被 N 个不同的 CUDA 线程并行执行 N 次
 
-A kernel is defined using the `__global__` declaration specifier and the number of CUDA threads that execute that kernel for a given kernel call is specified using a new `<<<...>>>`_execution configuration_ syntax (see [C++ Language Extensions](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#c-language-extensions)). Each thread that executes the kernel is given a unique _thread ID_ that is accessible within the kernel through built-in variables.
+A kernel is defined using the `__global__` declaration specifier and the number of CUDA threads that execute that kernel for a given kernel call is specified using a new `<<<...>>>` _execution configuration_ syntax (see [C++ Language Extensions](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#c-language-extensions)). Each thread that executes the kernel is given a unique _thread ID_ that is accessible within the kernel through built-in variables.
+> kernel 通过 `__global__` 声明指示符定义
+> kernel 调用时需要通过 `<<<...>>>` 给定执行配置，指定执行 kernel 的 CUDA 线程数量
+> 每个执行 kernel 的 thread 都具有唯一的 thread ID，thread ID 可以在 kernel 中通过内建变量 `threadIdx` 访问
 
 As an illustration, the following sample code, using the built-in variable `threadIdx`, adds two vectors _A_ and _B_ of size _N_ and stores the result into vector _C_:
 
+```cpp
 // Kernel definition
 __global__ void VecAdd(float* A, float* B, float* C)
 {
@@ -156,17 +120,23 @@ int main()
     VecAdd<<<1, N>>>(A, B, C);
     ...
 }
+```
 
 Here, each of the _N_ threads that execute `VecAdd()` performs one pair-wise addition.
 
 ## 2.2. Thread Hierarchy
-
 For convenience, `threadIdx` is a 3-component vector, so that threads can be identified using a one-dimensional, two-dimensional, or three-dimensional _thread index_, forming a one-dimensional, two-dimensional, or three-dimensional block of threads, called a _thread block_. This provides a natural way to invoke computation across the elements in a domain such as a vector, matrix, or volume.
+> `threadIdx` 是一个三成员 vector，指定 thread 的索引，因此 thread 可以被一维/二维/三维索引指定，对应一维/二维/三维的 thread block
 
 The index of a thread and its thread ID relate to each other in a straightforward way: For a one-dimensional block, they are the same; for a two-dimensional block of size _(Dx, Dy)_, the thread ID of a thread of index _(x, y)_ is _(x + y Dx)_; for a three-dimensional block of size _(Dx, Dy, Dz)_, the thread ID of a thread of index _(x, y, z)_ is _(x + y Dx + z Dx Dy)_.
+> thread ID 和 thread 索引的关系：
+> 对于一维 thread block，二者相等
+> 对于二维 thread block of size (Dx, Dy)，索引为 (x, y) 的 thread 的 ID 为 (x + y Dx)
+> 对于三维 thread block of size (Dx, Dy, Dz)，索引为 (x, y, z) 的 thread 的 ID 为 (x + y Dx + z Dx Dy)
 
 As an example, the following code adds two matrices _A_ and _B_ of size _NxN_ and stores the result into matrix _C_:
 
+```cpp
 // Kernel definition
 __global__ void MatAdd(float A[N][N], float B[N][N],
                        float C[N][N])
@@ -185,6 +155,7 @@ int main()
     MatAdd<<<numBlocks, threadsPerBlock>>>(A, B, C);
     ...
 }
+```
 
 There is a limit to the number of threads per block, since all threads of a block are expected to reside on the same streaming multiprocessor core and must share the limited memory resources of that core. On current GPUs, a thread block may contain up to 1024 threads.
 
