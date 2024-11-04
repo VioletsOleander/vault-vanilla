@@ -3486,6 +3486,7 @@ Two variables in $\mathcal{H}$ are connected by an (undirected) edge whenever th
 > 在 $\mathcal{H}$ 中，当且仅当两个变量同时出现在某个因子的作用范围内时，它们由一条无向边连接
 
 > CRF 中，计算 $\tilde P (\pmb Y, \pmb X)$ 时不需要考虑仅属于 $\pmb X$ 的团，这些团可以视作编码了 $\pmb X$ 的先验，而因为 $\pmb X$ 总是给定，故不需要考虑 $\pmb X$ 自己的先验，或者可以认为 $\pmb X$ 取任意 $\pmb x$ 值的概率是相等的，此时只需要考虑它和 $\pmb Y$ 的交互的影响，因为就算考虑了，当 $\pmb X$ 取任意 $\pmb x$ 值的先验概率相等时， $\tilde P (\pmb Y, \pmb X)$ 和 $Z (\pmb X)$ 在任意的 $\pmb x$ 值下也只是同时乘上一个固定的常数，最后还是被消掉
+> 事实上将 $\tilde P (\pmb Y, \pmb X)$ 直接视为一个未规范化的 $\pmb Y$ 条件于 $\pmb X$ 的条件分布会更加直观 (也就是写为 $\tilde P (\pmb Y \mid \pmb X)$)，因为它只考虑了 $\pmb Y$ 自己内部的交互和 $\pmb Y$ 和 $\pmb X$ 之间的交互，规范化常数是 $Z (\pmb X)$ 是条件于 $\pmb X$ 下 $\pmb Y$ 的所有可能取值的分数总和，因此它是和 $\pmb Y$ 无关的常数，因为 $\pmb X$ 是前提条件，故和 $\pmb X$ 有关，就写为 $Z (\pmb X)$
 
 The only diference between equation (4.11) and the (unconditional) Gibbs distribution of deﬁnition 4.3 is the diferent normalization used in the partition function $Z(X)$ . The deﬁnition of a CRF induces a diferent value for the partition function for every assignment ${x}$ to $X$ . This diference is denoted graphically by having the feature variables grayed out. 
 > 式 (4.11) 和定义4.3中对于 (无条件) Gibbs 分布的定义的差异仅在于在分区函数 $Z (\pmb X)$ 计算的不同，CRF 的定义为 $\pmb X$ 的不同赋值 $\pmb x$ 都引入一个不同的分区函数值
@@ -3501,43 +3502,71 @@ $$
 $$
 
 Note that, unlike the deﬁnition of a conditional Bayesian network, the structure of a CRF may still contain edges between variables in $X$ , which arise when two such variables appear together in a factor that also contains a target variable. However, these edges do not encode the structure of any distribution over $X$ , since the network explicitly does not encode any such distribution. 
+> 条件随机场和条件贝叶斯网络在图表示中不同的地方在于 CRF 的图表示中允许出现 $\pmb X$ 中的变量相连，这种情况在相连的 $X_i, X_j$ 都和 $\pmb Y$ 中的某个变量相连，并且一同处于一个团中
+> 因为 CRF 的分布在定义上是不考虑 $\pmb X$ 之内的任意分布的，因此这条边并没有编码 $\pmb X$ 上的分布中的任意结构
 
-The fact that we avoid encoding the distribution over the variables in $X$ is one of the main strengths of the CRF representation. This ﬂexibility allows us to incorporate into the model a rich set of observed variables whose dependencies may be quite complex or even poorly understood. It also allows us to include continuous variables whose distribution may not have a simple parametric form. This ﬂexibility allows us to use domain knowledge in order to deﬁne a rich set of features characterizing our domain, without worrying about modeling their joint distribution. For example, returning to the vision MRFs of box 4.B, rather than deﬁning a joint distribution over pixel values and their region assignment, we can deﬁne a conditional distribution over segment assignments given the pixel values. The use of a conditional distribution here allows us to avoid making a parametric assumption over the (continuous) pixel values. Even more important, we can use image-processing routines to deﬁne rich features, such as the presence or direction of an image gradient at a pixel. Such features can be highly informative in determining the region assignment of a pixel. However, the deﬁnition of such features usually relies on multiple pixels, and deﬁning a correct joint distribution or a set of independence assumptions over these features is far from trivial. The fact that we can condition on these features and avoid this whole issue allows us the ﬂexibility to include them in the model. See box 4.E for another example. 
+**The fact that we avoid encoding the distribution over the variables in $X$ is one of the main strengths of the CRF representation. This ﬂexibility allows us to incorporate into the model a rich set of observed variables whose dependencies may be quite complex or even poorly understood. It also allows us to include continuous variables whose distribution may not have a simple parametric form. This ﬂexibility allows us to use domain knowledge in order to deﬁne a rich set of features characterizing our domain, without worrying about modeling their joint distribution.** 
+>避免对变量集 $\pmb X$ 上的分布进行编码，这是 CRF 表示的主要优点之一，这种灵活性使我们能够将一组丰富的观测变量纳入模型，无论这些变量之间的依赖关系有多复杂和难以理解。此外，这也使我们能够引入那些分布可能没有简单参数形式的连续变量。这种灵活性允许我们利用领域知识来定义丰富的特征集，而不必担心对其联合分布进行建模
+
+For example, returning to the vision MRFs of box 4.B, rather than deﬁning a joint distribution over pixel values and their region assignment, we can deﬁne a conditional distribution over segment assignments given the pixel values. The use of a conditional distribution here allows us to avoid making a parametric assumption over the (continuous) pixel values. Even more important, we can use image-processing routines to deﬁne rich features, such as the presence or direction of an image gradient at a pixel. Such features can be highly informative in determining the region assignment of a pixel. However, the deﬁnition of such features usually relies on multiple pixels, and deﬁning a correct joint distribution or a set of independence assumptions over these features is far from trivial. The fact that we can condition on these features and avoid this whole issue allows us the ﬂexibility to include them in the model. See box 4.E for another example. 
+>举例来说，回到第4.B节中的视觉马尔可夫随机场（MRF），我们不必定义像素值及其区域分配的联合分布，而是可以在给定像素值的情况下定义区域分配的条件分布。这里使用条件分布使我们能够避免对（连续）像素值做出参数假设
+>更重要的是，我们可以使用图像处理技术来定义丰富的特征，例如像素处的图像梯度的存在或方向。这些特征在确定像素的区域分配时是非常有信息量的，但定义这样的特征通常依赖于多个像素，在这些特征上定义正确的联合分布或一套独立性假设远非易事。而我们能够通过条件于这些特征来避免这一问题，从而赋予我们在模型中包含它们的灵活性。参见第4.E节中的另一个示例
+>( 直观地说，就是建模 $P (\pmb Y \mid \pmb X)$ 比建模 $P (\pmb Y, \pmb X)$ 更简单，条件分布考虑了 $\pmb Y$ 和 $\pmb X$ 之间的交互、$\pmb Y$ 内部的交互，而不需要考虑 $\pmb X$ 内部的交互；条件分布的语义就是如此，$\pmb X$ 是给定的，我们仅关心它对 $\pmb Y$ 的影响如何，这或许和 $\pmb X$ 内部的交互有关，但它对外的表现就是 $\pmb X$ 和 $\pmb Y$ 之间的交互，故我们只需要关注后者就行 )
 
 #### 4.6.1.2 Directed and Undirected Dependencies 
 A CRF deﬁnes a conditional distribution of $Y$ on $X$ ; thus, it can be viewed as a partially directed graph, where we have an undirected component over $Y$ , which has the variables in $X$ as parents. 
+> CRF 定义了 $\pmb Y$ 条件于 $\pmb X$ 的条件分布，因为引入了有向的条件依赖，因此它可以被视作部分有向图，图中对应 $\pmb Y$ 的成分是无向的，但它们有 $\pmb X$ 对应的节点作为父变量
 
 Example 4.20 naive Markov 
-
-Consider a CRF over the b ary-valued iables $X\;=\;\{X_{1},.\,.\,.\,,X_{k}\}$ and ${\cal Y}\,=\,\{{\cal Y}\}$ , and $^a$ pairwise potential between Y $Y$ and each $X_{i}$ ; this model is sometimes known as a naive Markov model, due to its similarity to the naive Bayes model. Assume that the pairwise potentials deﬁned via the following log-linear model 
+Consider a CRF over the binary-valued variables $\pmb X\;=\;\{X_{1},.\,.\,.\,,X_{k}\}$ and ${\pmb Y}\,=\,\{{Y}\}$ , and a pairwise potential between $Y$ and each $X_{i}$ ; this model is sometimes known as a naive Markov model, due to its similarity to the naive Bayes model. Assume that the pairwise potentials deﬁned via the following log-linear model 
 
 $$
-\phi_{i}(X_{i},Y)=\exp\left\{w_{i}{\cal I}\{X_{i}=1,Y=1\}\right\}.
+\phi_{i}(X_{i},Y)=\exp\left\{w_{i}{\pmb 1}\{X_{i}=1,Y=1\}\right\}.
 $$ 
+We also introduce a single-node potential $\phi_{0}(Y)=\exp\left\{w_{0}{\pmb 1}\{Y=1\}\right\}$ . 
+> 根据 HC 定理，朴素 Markov 模型的团势能函数定义如上
 
-We also introduce a single-node potential $\phi_{0}(Y)=\exp\left\{w_{0}{\pmb I}\{Y=1\}\right\}$ { }} . Following equation (4.11), we now have: 
+Following equation (4.11), we now have: 
 
 $$
 \begin{array}{c c l}{{\displaystyle\tilde{P}(Y=1\mid x_{1},\ldots,x_{k})}}&{{=}}&{{\displaystyle\exp\left\{w_{0}+\sum_{i=1}^{k}w_{i}x_{i}\right\}}}\\ {{\displaystyle\tilde{P}(Y=0\mid x_{1},\ldots,x_{k})}}&{{=}}&{{\displaystyle\exp\left\{0\right\}=1.}}\end{array}
 $$ 
+
 
 In this case, we can show (exercise 5.16) that 
 
 $$
 P(Y=1\mid x_{1},\dots,x_{k})=\mathrm{sigmoid}\left(w_{0}+\sum_{i=1}^{k}w_{i}x_{i}\right),
 $$ 
-
 where 
 
 $$
 \mathrm{sigmoid}(z)=\frac{e^{z}}{1+e^{z}}
 $$ 
+> 推导：
+> 根据式 (4.11)
 
-sigmoid 
+$$
+\begin{align}
+\tilde P(Y\mid \pmb X) &={\phi_0(Y)\prod_i\phi_i(X_i,Y)}\\
+\end{align}
+$$
 
-logistic CPD is the sigmoid function. This conditional distribution $P(Y\mid X)$ is of great practical interest: It deﬁnes a CPD that is not structured as a table, but that is induced by a small set of parameters $w_{0},\ldots,w_{k}$ — parameters whose number is linear, rather than exponential, in the number of parents. This type of CPD, often called a logistic CPD , is a natural model for many real-world applications, inasmuch as it naturally aggregates the inﬂuence of diferent parents. We discuss this CPD in greater detail in section 5.4.2 as part of our general presentation of structured CPDs. 
+> 因此
 
-The partially directed model for the CRF of example 4.19 is shown in ﬁgure 4.14b. We may be tempted to believe that we can construct an equivalent model that is fully directed, such as the one in ﬁgure $4.14\mathrm{c}$ . In particular, conditioned on any assignment $_{_{x}}$ , the posterior distributions over $Y$ in the two models satisfy the same independence assignments (the ones deﬁned by the chain structure). However, the two models are not equivalent: In the Bayesian network, we have that $Y_{1}$ is independent of $X_{2}$ if we are not given $Y_{2}$ . By contrast, in the original CRF, the unnormalized marginal measure of $Y$ depends on the entire parameter iz ation of the chain, and speciﬁcally the values of all of the variables in $X$ . A sound conditional Bayesian network for this distribution would require edges from all of the variables in $X$ to each of the variables $Y_{i}$ , thereby losing much of the structure in the distribution. See also box 20.A for further discussion. 
+$$\begin{align}\tilde P(Y=1\mid \pmb X) &={\exp \{w_0\}\prod_i\exp\{w_ix_i\}}\\
+&=\exp\left\{w_0 + \sum_i w_i x_i\right\}\\
+
+\tilde P(Y=0\mid \pmb X) &= {\exp \{0\}\prod_i\exp\{0\}}=1
+\end{align}
+$$
+
+> 再将具体的值代入 $P (Y=y \mid \pmb X) = P (Y = y \mid \pmb X) / \sum_Y P (Y \mid \pmb X)$ 计算即可
+
+is the sigmoid function. This conditional distribution $P(Y\mid X)$ is of great practical interest: It deﬁnes a CPD that is not structured as a table, but that is induced by a small set of parameters $w_{0},\ldots,w_{k}$ — parameters whose number is linear, rather than exponential, in the number of parents. This type of CPD, often called a logistic CPD , is a natural model for many real-world applications, inasmuch as it naturally aggregates the inﬂuence of diferent parents. We discuss this CPD in greater detail in section 5.4.2 as part of our general presentation of structured CPDs. 
+
+The partially directed model for the CRF of example 4.19 is shown in ﬁgure 4.14b. We may be tempted to believe that we can construct an equivalent model that is fully directed, such as the one in ﬁgure $4.14\mathrm{c}$ . In particular, conditioned on any assignment $\mathbf {x}$ , the posterior distributions over $Y$ in the two models satisfy the same independence assignments (the ones deﬁned by the chain structure). However, the two models are not equivalent: In the Bayesian network, we have that $Y_{1}$ is independent of $X_{2}$ if we are not given $Y_{2}$ . By contrast, in the original CRF, the unnormalized marginal measure of $Y$ depends on the entire parameter iz ation of the chain, and speciﬁcally the values of all of the variables in $X$ . A sound conditional Bayesian network for this distribution would require edges from all of the variables in $X$ to each of the variables $Y_{i}$ , thereby losing much of the structure in the distribution. See also box 20.A for further discussion. 
+> Fig 4.14 中 b 图和 c 图的独立性语义不是等价的，c 图中的贝叶斯网络中，$Y_1$ 在不给定 $Y_2$ 时是和 $X_2$ 相互独立的，而 b 图的 CRF 中 $Y_i$ 是依赖于所有的 $X_i$ 的，因此如果要建模为一个条件贝叶斯网络，我们需要将所有的 $X_i$ 向 $Y_i$ 引入一条有向边，这会导致失去所有 CRF 编码的 $Y_i$ 之间的独立性关系
 
 Box 4.E — Case Study: CRFs for Text Analysis. One important use for the CRF framework is in the domain of text analysis. Various models have been proposed for diferent tasks, including part-of-speech labeling, identifying named entities (people, places, organizations, and so forth), and extracting structured information from the text (for example, extracting from a reference list the publication titles, authors, journals, years, and the like). Most of these models share a similar structure: We have a target variable for each word (or perhaps short phrase) in the document, which encodes the possible labels for that word. Each target variable is connected to a set of feature variables that capture properties relevant to the target distinction. These methods are very popular in text analysis, both because the structure of the networks is a good ﬁt for this domain, and because they produce state-of-the-art results for a broad range of natural-language processing problems. 
 
@@ -3547,7 +3576,7 @@ linear-chain CRF
 
 hidden Markov model 
 
-A common structure for this problem is $a$ linear-chain CRF often having two factors for each word: one factor $\phi_{t}^{1}(Y_{t},Y_{t+1})$ to represent the dependency between neighboring target variables, and another factor $\phi_{t}^{2}(Y_{t},X_{1},\dots.,X_{T})$ that represents the dependency between a target and its context in the word sequence. Note that the second factor can depend on arbitrary features of the entire input word sequence. We generally do not encode this model using table factors, but using a log-linear model. Thus, the factors are derived from a number of feature functions, such as $f_{t}\!\left(Y_{t},X_{t}\right)\,=\,I\!\left\{Y_{t}=\mathrm{B}$ { B-Organization , $X_{t}="T i m e s"\}$ . We note that, just as logistic CPDs are the conditional analog of the naive Bayes classiﬁer (example 4.20), the linear-chain CRF is the conditional analog of the hidden Markov model (HMM) that we present in section 6.2.3.1. 
+A common structure for this problem is $a$ linear-chain CRF often having two factors for each word: one factor $\phi_{t}^{1}(Y_{t},Y_{t+1})$ to represent the dependency between neighboring target variables, and another factor $\phi_{t}^{2}(Y_{t},X_{1},\dots.,X_{T})$ that represents the dependency between a target and its context in the word sequence. Note that the second factor can depend on arbitrary features of the entire input word sequence. We generally do not encode this model using table factors, but using a log-linear model. Thus, the factors are derived from a number of feature functions, such as . We note that, just as logistic CPDs are the conditional analog of the naive Bayes classiﬁer (example 4.20), the linear-chain CRF is the conditional analog of the hidden Markov model (HMM) that we present in section 6.2.3.1. 
 
 A large number of features of the word $X_{t}$ and neighboring words are relevant to the named entity decision. These include features of the word itself: is it capitalized; does it appear in a list of common person names; does it appear in an atlas of location names; does it end with the character string “ton”; is it exactly the string “York”; is the following word “Times.” Also relevant are aggregate features of the entire word sequence, such as whether it contains more than two sports-related words, which might be an indicator that “New York” is an organization (sports team) rather than a location. In addition, including features that are conjunctions of all these features often increases accuracy. The total number of features can be quite large, often in the hundreds of thousands or more if conjunctions of word pairs are used as features. However, the features are sparse, meaning that most features are zero for most words. 
 
@@ -3557,18 +3586,7 @@ Linear-chain CRFs frequently provide per-token accuracies in the high 90 percent
 
 skip-chain CRF 
 
-Although the linear-chain model is often efective, additional information can be incorporated into the model by augmenting the graphical structure. For example, often when a word occurs multiple times in the same document, it often has the same label. This knowledge can be incor- porated by including factors that connect identical words, resulting in a skip-chain CRF , as shown in ﬁgure 4.E.1a. The ﬁrst occurrence of the word “Green” has neighboring words that provide strong 
-
-![](images/9ea3c112732d8fa6a5a1fd329ec20514da47b55090fe9554dee8863ac7eb24d2.jpg) 
-KEY 
-
-B-PER Begin person name I-LOC Within location name I-PER Within person name OTH Not an entitiy B-LOC Begin location name 
-
-(a) 
-
-![](images/7c290cb642285d4b79cc196ed1e5173a469ba00506a6652d839b4e36a70bfcf3.jpg) 
-
-$B$ Begin noun phrase V Verb $I$ Within noun phrase IN Preposition $O$ Not a noun phrase PRP Possesive pronoun $N$ Noun DT Determiner (e.g., a, an, the) $A D J$ Adjective 
+Although the linear-chain model is often efective, additional information can be incorporated into the model by augmenting the graphical structure. For example, often when a word occurs multiple times in the same document, it often has the same label. This knowledge can be incor- porated by including factors that connect identical words, resulting in a skip-chain CRF , as shown in ﬁgure 4.E.1a. The ﬁrst occurrence of the word “Green” has neighboring words that provide strong  KEY  B-PER Begin person name I-LOC Within location name I-PER Within person name OTH Not an entitiy B-LOC Begin location name  (a)  $B$ Begin noun phrase V Verb $I$ Within noun phrase IN Preposition $O$ Not a noun phrase PRP Possesive pronoun $N$ Noun DT Determiner (e.g., a, an, the) $A D J$ Adjective 
 
 Figure 4.E.1 — Two models for text analysis based on a linear chain CRF Gray nodes indicate $_{X}$ and clear nodes $\mathbf{Y}$ . The annotations inside the $\mathbf{Y}$ are the true labels. (a) A skip chain CRF for named entity recognition, with connections between adjacent words and long-range connections between multiple occurrences of the same word. (b) A pair of coupled linear-chain CRFs that performs joint part-of-speech labeling and noun-phrase segmentation. Here, B indicates the beginning of a noun phrase, I other words in the noun phrase, and O words not in a noun phrase. The labels for the second chain are parts of speech. 
 
@@ -3622,7 +3640,6 @@ $$
 $$ 
 
 #### 4.6.2.2 Independencies in Chain Graphs 
-
 boundary As for undirected graphs, there are three distinct interpretations for the independence properties induced by a PDAG. Recall that in a PDAG, we have both the notion of parents of $X$ (variables $Y$ such that $Y\rightarrow X$ is in the graph) and neighbors of $X$ (variable $Y$ such that $Y{-}X$ is in the graph). Recall that the union of these two sets is the boundary of X , denoted Boundary $X$ . Also recall, from deﬁnition 2.15, that the descendants of $X$ are those nodes $Y$ that can be reached using any directed path, where a directed path can involve both directed and undirected edges but must contain at least one edge directed from $X$ to $Y$ , and no edges directed from $Y$ to 
 
  
@@ -3673,18 +3690,30 @@ As in the case of directed and undirected models, we have an equivalence between
 Theorem 4.14 A positive distribution $P$ factorizes over a PDAG K if and only if $P\vDash\mathcal{Z}(\mathcal{K})$ I K . We omit the proof. 
 
 ## 4.7 Summary and Discussion 
-
 In this chapter, we introduced Markov networks , an alternative graphical modeling language for probability distributions, based on undirected graphs. 
+> 本章介绍了描述概率分布的无向图语言，也就是 Markov 网络
 
 We showed that Markov networks, like Bayesian networks, can be viewed as deﬁning a set of independence assumptions determined by the graph structure. In the case of undirected models, there are several possible deﬁnitions for the independence assumptions induced by the graph, which are equivalent for positive distributions. As in the case of Bayesian network, we also showed that the graph can be viewed as a data structure for specifying a probability distribution in a factored form. The factorization is deﬁned as a product of factors (general nonnegative functions) over cliques in the graph. We showed that, for positive distributions, the two characterizations of undirected graphs — as specifying a set of independence assumptions and as deﬁning a factorization — are equivalent. 
+> Markov 网络也可以被视为编码了由图结构定义的一组独立性假设，这和贝叶斯网络是类似的
+> Markov 网络的多个对独立性的定义对于正分布是等价的
+> Markov 网络也可以视为以分解的形式指定了一个概率分布的数据结构，这和贝叶斯网络也是类似的。Markov 网络的分解定义为在图中的 cliques 上的 (非负) 因子的乘积
+>对于正分布，无向图对于分布的两种表征——指定一组独立性假设和指定一种分布形式——是等价的
 
-Markov networks also provide useful insight on Bayesian networks. In particular, we showed how a Bayesian network can be viewed as a Gibbs distribution. More importantly, the unnor- malized measure we obtain by introducing evidence into a Bayesian network is also a Gibbs distribution, whose partition function is the probability of the evidence. This observation will play a critical role in providing a uniﬁed view of inference in graphical models. 
+Markov networks also provide useful insight on Bayesian networks. In particular, we showed how a Bayesian network can be viewed as a Gibbs distribution. More importantly, the unnormalized measure we obtain by introducing evidence into a Bayesian network is also a Gibbs distribution, whose partition function is the probability of the evidence. This observation will play a critical role in providing a uniﬁed view of inference in graphical models. 
+> Markov 网络也帮助我们理解贝叶斯网络
+> 例如，我们可以将贝叶斯网络也视为定义了 Gibbs 分布，向贝叶斯网络引入 evidence 得到的未规范化的分布也是 Gibbs 分布，其划分函数就是 evidence 的概率
+> 这会帮助我们为图模型的推理提供一个统一视角
 
-We investigated the relationship between Bayesian networks and Markov networks and showed that the two represent diferent families of independence assumptions. The diference in these independence assumptions is a key factor in deciding which of the two representations to use in encoding a particular domain. There are domains where interactions have a natural directionality, often derived from causal intuitions. In this case, the independencies derived 
+We investigated the relationship between Bayesian networks and Markov networks and showed that the two represent diferent families of independence assumptions. The diference in these independence assumptions is a key factor in deciding which of the two representations to use in encoding a particular domain. There are domains where interactions have a natural directionality, often derived from causal intuitions. In this case, the independencies derived from the network structure directly reﬂect patterns such as intercausal reasoning. Markov networks represent only monotonic independence patterns: observing a variable can only serve to remove dependencies, not to activate them. Of course, we can encode a distribution with “causal” connections as a Gibbs distribution, and it will exhibit the same nonmonotonic independencies. However, these independencies will not be manifest in the network structure. 
+> 贝叶斯网络和 Markov 网络各自表示不同的一族独立性假设，这些独立性假设的差异是我们决定具体要使用哪种模型解决问题的关键
+> 一些领域中，交互具有自然的有向性，例如因果推理，此时网络结构中的独立性就表示了因果关系；Markov 网络则仅表示单调的独立性模式：观察到一个变量仅能移除依赖性，而不能激活依赖性 (对比于贝叶斯网络中的 v-structure)
+> 我们当然可以将带有因果关系的分布编码为 Gibbs 分布，该分布也会展示出相同的非单调独立性，但对应的网络结构就无法完美反映这一关系
 
-from the network structure directly reﬂect patterns such as intercausal reasoning. Markov networks represent only monotonic independence patterns: observing a variable can only serve to remove dependencies, not to activate them. Of course, we can encode a distribution with “causal” connections as a Gibbs distribution, and it will exhibit the same nonmonotonic independencies. However, these independencies will not be manifest in the network structure. 
-
-In other domains, the interactions are more symmetrical, and attempts to force a directionality give rise to models that are unintuitive and that often are incapable of cap- turing the independencies in the domain (see, for example, section 6.6). As a consequence, the use of undirected models has increased steadily, most notably in ﬁelds such as computer vision and natural language processing, where the acyclicity requirements of directed graphical models are often at odds with the nature of the model. The ﬂexibility of the undirected model also allows the distribution to be decomposed into factors over multiple overlapping “features” without having to worry about deﬁning a single normalized generating distribution for each variable. Conversely, this very ﬂexibility and the associated lack of clear semantics for the model parameters often make it difcult to elicit models from experts. Therefore, many recent applications use learning techniques to estimate parameters from data, avoiding the need to provide a precise semantic meaning for each of them. 
+In other domains, the interactions are more symmetrical, and attempts to force a directionality give rise to models that are unintuitive and that often are incapable of capturing the independencies in the domain (see, for example, section 6.6). As a consequence, the use of undirected models has increased steadily, most notably in ﬁelds such as computer vision and natural language processing, where the acyclicity requirements of directed graphical models are often at odds with the nature of the model. The ﬂexibility of the undirected model also allows the distribution to be decomposed into factors over multiple overlapping “features” without having to worry about deﬁning a single normalized generating distribution for each variable. Conversely, this very ﬂexibility and the associated lack of clear semantics for the model parameters often make it difcult to elicit models from experts. Therefore, many recent applications use learning techniques to estimate parameters from data, avoiding the need to provide a precise semantic meaning for each of them. 
+> 一些领域中，交互是对称的，添加有向性会使得图结构无法捕获领域中的一些独立性 (菱形结构)
+> 在 CV 和 NLP 领域使用较多的是无向图，这些领域中，有向图的无环要求有时会和模型的自然性质冲突，而无向图的灵活性较高
+> 使用无向图建模时，我们可以定义多个交叉的“特征”作为因子，进而表示分布，使用有向图则需要为每个变量定义一个规范化的条件分布
+> 但灵活性意味着模型的参数缺乏清晰语义，使得专家不便于定义模型参数，因此我们开始使用学习方法，从数据中学习和估计参数，不再为它们确定详细的语义含义
 
 Finally, the question of which class of models better encodes the properties of the distribution is only one factor in the selection of a representation. There are other important distinctions between these two classes of models, especially when it comes to learning from data. We return to these topics later in the book (see, for example, box 20.A). 
 
@@ -5379,3 +5408,388 @@ There are, of course, other ways to produce these large, richly structured model
 In addition, by making objects and relations first-class citizens in the model, we have laid a foundation for the option of allowing probability distributions over probability spaces that are significantly richer than simply properties of objects. For example, as we saw, we can consider modeling uncertainty about the network of interrelationships between objects, and even about the actual set of objects included in our domain. These extensions raise many important and difcult questions regarding the appropriate type of distribution that one should use for such richly structured probability spaces. These questions become even more complex as we introduce more of the expressive power of relational languages, such as function symbols, quantifiers, and more. These issues are an active area of research. 
 
 These representations also raise important questions regarding inference. At first glance, the problem appears straightforward: The semantics for each of our representation languages depends on instantiating the template-based model to produce a specific ground network; clearly, we can simply run standard inference algorithms on the resulting network. This approach is has been called knowledge-based model construction , because a knowledge-base (or skeleton) is used to construct a model. However, this approach is problematic, because the models produced by this process can pose a significant challenge to inference algorithms. First, the network produced by this process is often quite large — much larger than models that one can reasonably construct by hand. Second, such models are often quite densely connected, due to the multiple interactions between variables. Finally, structural uncertainty, both about the relations and about the presence of objects, also makes for densely connected models. On the other side, such models often have unique characteristics, such as multiple similar fragments across the network, or large amounts of context-specific independence, which could, perhaps, be exploited by an appropriate choice of inference algorithm. Chapter 15 presents some techniques for addressing the inference problems in temporal models. The question of inference in the models defined by the object-relational frameworks — and specifically of inference algorithms that exploit their special structure — is very much a topic of current work. 
+# 7 Gaussian Network Models 
+Although much of our presentation focuses on discrete variables, we mentioned in chapter 5 that the Bayesian network framework, and the associated results relating independencies to factorization of the distribution, also apply to continuous variables. The same statement holds for Markov networks. However, whereas table CPDs provide a general-purpose mechanism for describing any discrete distribution (albeit potentially not very compactly), the space of possible parameterizations in the case of continuous variables is essentially unbounded. 
+> 贝叶斯网络和 Markov 网络对于分布的分解定理对于连续变量也是成立的
+> 连续变量的可能的参数化空间是无界的
+
+In this chapter, we focus on a type of continuous distribution that is of particular interest: the class of multivariate Gaussian distributions. Gaussians are a particularly simple subclass of distributions that make very strong assumptions, such as the exponential decay of the distribution away from its mean, and the linearity of interactions between variables. While these assumptions are often invalid, Gaussians are nevertheless a surprisingly good approximation for many real-world distributions. Moreover, the Gaussian distribution has been generalized in many ways, to nonlinear interactions, or mixtures of Gaussians; many of the tools developed for Gaussians can be extended to that setting, so that the study of Gaussian provides a good foundation for dealing with a broad class of distributions. 
+> 本章介绍多元高斯分布
+> 高斯分布对分布的结构做出了很强的假设，例如从分布均值向其他方向的指数衰减、变量交互的线性性质等
+> 这些假设在现实问题不一定成立，但高斯分布同样存在拓展，例如拓展到非线性交互、混合高斯等
+
+In the remainder of this chapter, we ﬁrst review the class of multivariate Gaussian distributions and some of its properties. We then discuss how a multivariate Gaussian can be encoded using probabilistic graphical models, both directed and undirected. 
+
+## 7.1 Multivariate Gaussians 
+### 7.1.1 Basic Parameterization 
+We have already described the univariate Gaussian distribution in chapter 2. We now describe its generalization to the multivariate case. As we discuss, there are two diferent parameterizations for a joint Gaussian density, with quite diferent properties. 
+> 对于联合高斯密度有两种参数化，二者的性质不同
+
+The univariate Gaussian is deﬁned in terms of two parameters: a mean and a variance. In its most common representation, a multivariate Gaussian distribution over $X_{1},\dots,X_{n}$ is characterized by an $n$ -dimensional mean vector $\mu$ , and a symmetric $n\times n$ covariance matrix $\Sigma$ ; the density function is most often deﬁned as: 
+
+$$
+p({\pmb x})=\frac{1}{(2\pi)^{n/2}|{\Sigma}|^{1/2}}\exp\left[-\frac{1}{2}({\pmb x}-{\pmb\mu})^{T}{\Sigma}^{-1}({\pmb x}-{\pmb\mu})\right]\tag{7.1}
+$$
+
+where $|\Sigma|$ is the determinant of $\Sigma$ . 
+>  $X_, \dots, X_n$ 上的多元高斯分布相关的参数是 $n$ 维均值向量 $\pmb \mu$ 和对称的协方差矩阵 $\Sigma$ ($\Sigma_{ij} = \text {cov} (X_i, X_j)$)，密度函数定义如上
+>  其中 $|\Sigma|$ 为 $\Sigma$ 的行列式
+
+We extend the notion of a standard Gaussian to the multidimensional case, deﬁning it to be a Gaussian whose mean is the all-zero vector 0 and whose covariance matrix is the identity matrix $I$ , which has 1 ’s on the diagonal and zeros elsewhere. The multidimensional standard Gaussian is simply a product of independent standard Gaussians for each of the dimensions. 
+> 标准的多元高斯分布其均值向量为全零向量，协方差矩阵为单位矩阵 $I$
+> 标准的多元高斯分布本质是由每一个维度的相互独立的标准单元高斯分布相乘得到的
+
+In order for this equation to induce a well-deﬁned density (that integrates to 1), the matrix $\Sigma$ must be positive deﬁnite : for any $\mathbf{\Psi}^{\mathcal{X}}\in I\!\!R^{n}$ such that $\pmb{x}\neq0$ , we have that ${\pmb x}^{T}\Sigma{\pmb x}>0$ . Positive deﬁnite matrices are guaranteed to be nonsingular, and hence have nonzero determinant, a necessary requirement for the coherence of this deﬁnition. A somewhat more complex deﬁnition can be used to generalize the multivariate Gaussian to the case of a positive semi-deﬁnite covariance matrix: for any $\pmb{x}\in\mathbb{R}^{n}$ , we have that ${\pmb x}^{T}\Sigma{\pmb x}\geq0$ . This extension is useful, since it allows for singular covariance matrices, which arise in several applications. For the remainder of our discussion, we focus our attention on Gaussians with positive deﬁnite covariance matrices. 
+>为了让式 7.1 是良定义的(积分值为1)，矩阵 $\Sigma$ 必须是正定的：对于任何 $\pmb x\in \mathbb{R}^{n}, \pmb{x}\neq0$，我们有 ${\pmb x}^{T}\Sigma{\pmb x}>0$ 。正定矩阵保证是非奇异的，因此具有非零行列式 (正定矩阵所有特征值为正数)，这是这个定义一致性的必要条件 (正定矩阵保证线性变化不会降维) 
+>一个更复杂的定义将多元高斯分布推广到协方差矩阵半正定的情况：对于任何 $\pmb{x}\in\mathbb{R}^{n}$，我们有 ${\pmb x}^{T}\Sigma{\pmb x}\geq0$。这种扩展是有用的，因为它允许奇异的协方差矩阵 (半正定矩阵允许零特征值)，在许多应用中都会出现这种情况
+>在我们讨论的剩余部分，我们将重点关注协方差矩阵为正定的高斯分布
+
+Because positive deﬁnite matrices are invertible, one can also utilize an alternative parameterization, where the Gaussian is deﬁned in terms of its inverse covariance matrix $J=\Sigma^{-1}$ , called information matrix (or precision matrix). This representation induces an alternative form for the Gaussian density. Consider the expression in the exponent of equation (7.1): 
+
+$$
+\begin{array}{r c l}{{-\displaystyle\frac{1}{2}({\boldsymbol x}-{\boldsymbol\mu})^{T}\Sigma^{-1}({\boldsymbol x}-{\boldsymbol\mu})}}&{{=}}&{{-\displaystyle\frac{1}{2}({\boldsymbol x}-{\boldsymbol\mu})^{T}J({\boldsymbol x}-{\boldsymbol\mu})}}\\ {{}}&{{=}}&{{-\displaystyle\frac{1}{2}\left[{\boldsymbol x}^{T}J{\boldsymbol x}-2{\boldsymbol x}^{T}J{\boldsymbol\mu}+{\boldsymbol\mu}^{T}J{\boldsymbol\mu}\right].}}\end{array}
+$$ 
+The last term is constant, so we obtain: 
+
+$$
+p(\pmb{x})\propto\exp\left[-\frac12\pmb{x}^{T}J\pmb{x}+(J\pmb{\mu})^{T}\pmb{x}\right].\tag{7.2}
+$$ 
+This formulation of the Gaussian density is generally called the information form , and the vector $h=J\mu$ is called the potential vector . The information form deﬁnes a valid Gaussian density if and only if the information matrix is symmetric and positive deﬁnite, since $\Sigma$ is positive deﬁnite if and only if $\Sigma^{-1}$ is positive deﬁnite. The information form is useful in several settings, some of which are described here. 
+> 另一种参数化利用了协方差矩阵的正定性质
+> 因为正定矩阵一定有逆，我们定义信息矩阵 $J = \Sigma^{-1}$ 为协方差矩阵的逆
+> 我们将式 7.1 中的指数项中的 $\Sigma^{-1}$ 用 $J$ 替代，经过化简，就得到式 7.2
+> 该形式的高斯密度称为信息形式，向量 $\pmb h = J\pmb \mu$ 称为势能向量
+> 信息形式当且仅当信息矩阵 $J$ 是对称且正定时才定义有效的高斯分布 (正定的协方差矩阵就满足这一要求，$\Sigma$ 和 $\Sigma^{-1}$ 的正定性是一致的)
+
+Intuitively, a multivariate Gaussian distribution speciﬁes a set of ellipsoidal contours around the mean vector $\mu$ . The contours are parallel, and each corresponds to some particular value of the density function. The shape of the ellipsoid, as well as the “steepness” of the contours, are determined by the covariance matrix $\Sigma$ . 
+> 直观上，多元高斯分布指定了围绕均值向量 $\pmb \mu$ 的一组平行的椭圆等高线，每一条对应于密度函数的特定值
+> 椭圆的形状和等高线的陡峭程度由协方差矩阵决定
+
+Figure 7.1 shows two multivariate Gaussians, one where the covariances are zero, and one where they are positive. 
+>图7.1展示了两个多元高斯分布，一个是协方差为零的情况，另一个是协方差为正的情况
+
+As in the univariate case, the mean vector and covariance matrix correspond to the ﬁrst two moments of the normal distribution. In matrix notation, $\pmb{\mu}=\pmb{{\cal E}}[\pmb{X}]$ and $\Sigma=E[X X^{T}]-E[X]E[X]^{T}$ − . Breaking this expression down to the level of individual variables, we have that $\mu_{i}$ is the mean of $X_{i}$ , $\Sigma_{i,i}$ is the variance of $X_{i}$ , and $\Sigma_{i,j}\;=\;\Sigma_{j,i}$ (for $i\ne j)$ ) is the covariance between $X_{i}$ and $X_{j}$ : $\mathbf{C}o v[X_{i};X_{j}]=\mathbf{E}[X_{i}X_{j}]-\mathbf{E}[X_{i}]\mathbf{E}[X_{j}]$ . 
+>正如单变量情况一样，均值向量和协方差矩阵对应于正态分布的前两阶矩，即 $\pmb{\mu}=\pmb{E}[\pmb{X}]$ 和 $\Sigma=\pmb E[\pmb X\pmb X^{T}]-\pmb E[\pmb X]\pmb E[\pmb X]^{T}$。将这个表达式分解到单个变量的层面，我们有：
+>- $\mu_{i}$ 是 $X_{i}$ 的均值，
+>- $\Sigma_{i,i}$ 是 $X_{i}$ 的方差，
+>- $\Sigma_{i,j} = \Sigma_{j,i}$ （对于 $i \neq j$） 是 $X_{i}$ 和 $X_{j}$ 之间的协方差：$\mathbf{Cov}[X_{i};X_{j}]=\pmb{E}[X_{i}X_{j}]-\pmb{E}[X_{i}]\pmb{E}[X_{j}]$。
+>
+>简而言之，多元高斯分布的均值向量和协方差矩阵分别对应于各个变量的均值、方差以及不同变量之间的协方差
+
+Example 7.1 
+Consider a particular joint distribution p(X1; X2; X3) over three random variables. We can parameterize it via a mean vector $\mu$ and a covariance matrix $\Sigma$ : 
+
+$$
+\mu=\left(\begin{array}{r}{{1}}\\ {{-3}}\\ {{4}}\end{array}\right)\qquad\quad\Sigma=\left(\begin{array}{r r r}{{4}}&{{2}}&{{-2}}\\ {{2}}&{{5}}&{{-5}}\\ {{-2}}&{{-5}}&{{8}}\end{array}\right)
+$$ 
+As we can see, the covariances $\pmb{C}o\nu[X_{1};X_{3}]$ and $C o v[X_{2};X_{3}]$ are both negative. Thus, $X_{3}$ is negatively correlated with $X_{1}$ : when $X_{1}$ goes up, $X_{3}$ goes down (and similarly for $X_{3}$ and $X_{2}$ ). 
+> $X_1, X_3$ 协方差为 0 -> $X_1, X_3$ 负相关 -> 总体趋势上，$X_1$ 上升，$X_3$ 下降，或者说二者远离各自均值的方向不同
+
+> 协方差计算公式：
+
+$$
+\begin{align}
+\text{cov}(X_1, X_2)&=E[(X_1 - E[X_1])(X_2 - E[X_2])]\\
+&=E[X_1X_2 - X_1E[X_2] - X_2 E[X_1] + E[X_1]E[X_2]]\\
+&=E[X_1X_2] - E[X_1]E[X_2]
+\end{align}
+$$
+
+### 7.1.2 Operations on Gaussians 
+There are two main operations that we wish to perform on a distribution: compute the marginal distribution over some subset of the variables $Y$ , and conditioning the distribution on some assignment of values $Z=z$ . It turns out that each of these operations is very easy to perform in one of the two ways of encoding a Gaussian, and not so easy in the other. 
+> 对于分布我们常执行的两种计算：在某个变量子集 $\pmb Y$ 上计算边际分布、将分布条件于某个变量赋值 $\pmb Z = \mathbf z$ ，对于之前的两种参数化的高斯分布都容易完成
+
+Marginalization is trivial to perform in the covariance form. Speciﬁcally, the marginal Gaussian distribution over any subset of the variables can simply be read from the mean and covariance matrix. For instance, in example 7.1, we can obtain the marginal Gaussian distribution over $X_{2}$ and $X_{3}$ by simply considering only the relevant entries in both the mean vector the covariance matrix. 
+> 对于协方差的参数化形式，某个变量子集的边际分布可以直接从均值向量和协方差矩阵中读出来，只需要其中查看相关的 entries 即可
+
+More generally, assume that we have a joint normal distribution over $\{X,Y\}$ where $X\,\in\,I\!\!R^{n}$ and $\pmb{Y}\,\in\,I\!\!R^{m}$ . Then we can decompose the mean and covariance of this joint distribution as follows: 
+
+$$
+p(\pmb X,\pmb Y)=\mathcal{N}\left({\left(\begin{array}{l}{\pmb \mu_{\pmb X}}\\ {\pmb \mu_{\pmb Y}}\end{array}\right)};\left[\begin{array}{l l}{\Sigma_{\pmb X \pmb X}}&{\Sigma_{\pmb X \pmb Y}}\\ {\Sigma_{\pmb Y \pmb X}}&{\Sigma_{\pmb Y \pmb Y}}\end{array}\right]\right)\tag{7.3}
+$$ 
+where  $\pmb \mu_{X}\in{I\!\!R}^{n},\,\pmb \mu_{Y}\in{I\!\!R}^{m},\,\Sigma_{X X}$ is a matrix of size $n\times n,\,\Sigma_{X Y}$ is a matrix of size $n\times m$ , $\Sigma_{Y X}=\Sigma_{X T}^{T}$ is a matrix of size $m\times n$ and $\Sigma_{Y Y}$ is a matrix of size $m\times m$   
+> 一般地，如果我们有 $\pmb X \in \mathbb R^n, \pmb Y \in \mathbb R^m$ 上的联合高斯分布，我们可以按照式 7.3 分解该联合分布的均值和协方差
+
+**Lemma 7.1** Let $\{X,Y\}$ ave a joint normal distribution deﬁned in equation (7.3). Then the marginal distri- bution over $Y$ is a normal distribution $\mathcal{N}\left(\mu_{Y};\Sigma_{Y Y}\right)$ . 
+> 引理：
+> $\pmb X, \pmb Y$ 服从式 7.3 定义的联合高斯分布，则 $\pmb Y$ 上的边际分布是高斯分布 $\mathcal N (\pmb \mu_{\pmb Y}, \Sigma_{\pmb Y\pmb Y}$)
+> (高斯分布的一个基本性质就是高斯分布的边缘分布仍然是高斯分布)
+
+The proof follows directly from the deﬁnitions (see exercise 7.1). 
+
+On the other hand, conditioning a Gaussian on an observation $Z=z$ is very easy to perform in the information form. We simply assign the values $Z=z$ in equation (7.2). This process turns some of the quadratic terms into linear terms or even constant terms, and some of the linear terms into constant terms. The resulting expression, however, is still in the same form as in equation (7.2), albeit over a smaller subset of variables. 
+> 将高斯分布条件于某个观测 $\pmb Z = \mathbf z$ 则在信息形式容易执行，我们在式 7.2 中直接赋值 $\pmb Z = \mathbf z$，这会将部二次项转化为线性项，将部分线性项转化为常数项
+> 最后得到的表达式形式仍然是式 7.2，此时仅基于一个更小的变量子集
+
+In summary, although the two representations both encode the same information, they have diferent computational properties. To marginalize a Gaussian over a subset of the variables, one essentially needs to compute their pairwise covariances, which is precisely generating the distribution in its covariance form. Similarly, to condition a Gaussian on an observation, one essentially needs to invert the covariance matrix to obtain the information form. For small matrices, inverting a matrix may be feasible, but in high-dimensional spaces, matrix inversion may be far too costly. 
+> 小结：两种表示编码了相同信息，但计算性质不同
+> 信息形式需要转置协方差矩阵，这在高维空间会过于昂贵
+
+### 7.1.3 Independencies in Gaussians 
+For multivariate Gaussians, independence is easy to determine directly from the parameters of the distribution. 
+> 多元高斯分布可以直接从分布的参数中决定变量之间的独立性
+
+**Theorem 7.1** 
+Let $X=X_{1},...,X_{n}$ have a joint normal distribution $\mathcal{N}\left(\boldsymbol{\mu};\boldsymbol{\Sigma}\right)$ . Then $X_{i}$ and $X_{j}$ are independent if and only if $\Sigma_{i,j}=0$ . 
+> 定理：
+> $\pmb X  = X_1, \dots, X_2$ 有联合高斯分布 $\mathcal N (\pmb \mu; \Sigma)$，则当且仅当 $\Sigma_{ij} = 0$ ，$X_i, X_j$ 相互独立
+
+The proof is left as an exercise (exercise 7.2). 
+
+>证明：
+>**必要性：** 如果 $X_i, X_j$ 相互独立，则 $\Sigma_{ij} = 0$
+>假设 $X_i, X_j$ 相互独立。根据独立性的定义，随机变量 $X_i$ 和 $X_j$ 的联合概率密度函数等于它们各自边缘概率密度函数的乘积，即：
+
+$$ p(X_i, X_j) = p(X_i) \cdot p(X_j) $$
+
+>联合高斯分布中，协方差矩阵的非对角线元素表示了不同随机变量之间的线性相关性，如果两个随机变量相互独立，它们之间的线性相关性为零，故其协方差矩阵 $\Sigma$ 中对应于 $X_i$ 和 $X_j$ 之间的协方差项 $\Sigma_{ij}$ 必须为零。
+>
+> **充分性**：如果 $\Sigma_{ij} = 0$，则 $X_i, X_j$ 相互独立。
+>
+>假设 $\Sigma_{ij} = 0$。我们需要证明 $X_i$ 和 $X_j$ 相互独立。根据高斯分布的性质，如果 $\Sigma_{ij} = 0$，则 $X_i$ 和 $X_j$ 之间的线性相关性为零。
+>在高斯分布的情况下，从两个随机变量之间没有线性关系是可以推出它们是统计上独立的。
+>
+>具体来说，对于联合高斯分布 $\mathcal{N}(\pmb \mu; \Sigma)$，如果协方差矩阵 $\Sigma$ 中的某个非对角线元素 $\Sigma_{ij} = 0$，那么 $X_i$ 和 $X_j$ 的联合分布可以分解为两个独立的边缘分布的乘积：
+
+$$ p(X_i, X_j) = p(X_i) \cdot p(X_j) $$
+
+>这是因为高斯分布的联合概率密度函数可以写成：
+
+$$ p(\pmb X) = \frac{1}{(2\pi)^{n/2} |\Sigma|^{1/2}} \exp\left(-\frac{1}{2} (\pmb X - \pmb \mu)^T \Sigma^{-1} (\pmb X - \pmb \mu)\right) $$
+
+>当 $\Sigma_{ij} = 0$ 时，协方差矩阵 $\Sigma$ 的逆矩阵 $\Sigma^{-1}$ 中对应的元素也为零，这使得联合概率密度函数可以分解为：
+
+$$ p(X_i, X_j) = \frac{1}{(2\pi)^{1/2} \sqrt{\sigma_{ii}}} \exp\left(-\frac{1}{2} \frac{(X_i - \mu_i)^2}{\sigma_{ii}}\right) \cdot \frac{1}{(2\pi)^{1/2} \sqrt{\sigma_{jj}}} \exp\left(-\frac{1}{2} \frac{(X_j - \mu_j)^2}{\sigma_{jj}}\right) $$
+
+>这表明 $X_i$ 和 $X_j$ 的联合分布确实可以分解为它们各自边缘分布的乘积，从而证明了它们的独立性。
+
+Note that this property does not hold in general. In other words, if $p(X,Y)$ is not Gaussian, then it is possible that $C o v[X;Y]=0$ while $X$ and $Y$ are still dependent in $p$ . (See exercise 7.2.) 
+> 在高斯分布中，线性不相关可以直接表示统计上的不相关，但在其他分布中不一定
+
+At ﬁrst glance, it seems that conditional independencies are not quite as apparent as marginal independencies. However, it turns out that the independence structure in the distribution is apparent not in the covariance matrix, but in the information matrix. 
+> 协方差矩阵容易看出边际独立性，信息矩阵容易看出条件独立性
+
+**Theorem 7.2** 
+Consider a Gaussian distribution $p(X_{1},.\,.\,.\,,X_{n})=\mathcal{N}\left(\pmb{\mu};\Sigma\right)$ , and let $J=\Sigma^{-1}$ be the informa- tion matrix. Then ${{J}_{i,j}}=0$ if and only if $\cdot p=(X_{i}\perp X_{j}\mid\mathcal{X}-\{X_{i},X_{j}\})$ ⊥ | X −{ } . 
+> 定理：
+> 
+
+The proof is left as an exercise (exercise 7.3). 
+
+Example 7.2
+Consider the covariance matrix of example 7.1. Simple algebraic operations allow us to compute its inverse: 
+
+$$
+J=\left(\begin{array}{c c c}{{0.3125}}&{{-0.125}}&{{0}}\\ {{-0.125}}&{{0.5833}}&{{0.3333}}\\ {{0}}&{{0.3333}}&{{0.3333}}\end{array}\right)
+$$ 
+As we can see, the entry in the matrix corresponding to $X_{1},X_{3}$ is zero, reﬂecting the fact that they are conditionally independent given $X_{2}$ . 
+
+Theorem 7.2 asserts the fact that the information matrix captures independencies between pairs of variables, conditioned on all of the remaining variables in the model. These are precisely the same independencies as the pairwise Markov independencies of deﬁnition 4.10. Thus, we can view the information matrix $J$ for a Gaussian density $p$ as precisely capturing the pairwise Markov independencies in a Markov network representing $p$ . Because a Gaussian density is a positive distribution, we can now use theorem 4.5 to construct a Markov network that is a unique minimal I-map for $p$ : As stated in this theorem, the construction simply introduces an edge between $X_{i}$ and $X_{j}$ whenever $\left(X_{i}\perp X_{j}\mid{\mathcal{X}}-\{X_{i},X_{j}\}\right)$ does not hold in $p$ . But this latter condition holds precisely when $J_{i,j}\,\ne\,0$ ̸ . Thus, we can ew the information matrix as directly deﬁning a minimal I-map Markov network for p , whereby nonzero entries correspond to edges in the network. 
+
+# 7.2 Gaussian Bayesian Networks 
+
+We now show how we can deﬁne a continuous joint distribution using a Bayesian network. This representation is based on the linear Gaussian model , which we deﬁned in deﬁnition 5.14. Although this model can be used as a CPD within any network, it turns out that continuous networks deﬁned solely in terms of linear Gaussian CPDs are of particular interest: 
+
+# Deﬁnition 7.1 
+
+Gaussian Bayesian network 
+
+An important and surprising result is that linear Gaussian Bayesian networks are an alternative representation for the class of multivariate Gaussian distributions. This result has two parts. The ﬁrst is that a linear Gaussian network always deﬁnes a joint multivariate Gaussian distribution. 
+
+Theorem 7.3 
+
+$$
+p(Y\mid\mathbf{\boldsymbol{x}})=\mathcal{N}\left(\beta_{0}+\beta^{T}\mathbf{\boldsymbol{x}};\sigma^{2}\right).
+$$ 
+
+Assume that $X_{1},\ldots,X_{k}$ are jointly Gaussian with distribution $\mathcal{N}\left(\boldsymbol{\mu};\boldsymbol{\Sigma}\right)$ . Then: 
+
+• The distribution of $Y$ is a normal distribution $p(Y)=\mathcal{N}\left(\mu_{Y};\sigma_{Y}^{2}\right)$ where: 
+
+$$
+\begin{array}{r c l}{{\mu_{Y}}}&{{=}}&{{\beta_{0}+\beta^{T}\mu}}\\ {{\sigma_{Y}^{2}}}&{{=}}&{{\sigma^{2}+\beta^{T}\Sigma\beta.}}\end{array}
+$$ 
+
+• The joint distribution over $\{X,Y\}$ is a normal distribution where: 
+
+$$
+\pmb{C}o v[X_{i};Y]=\sum_{j=1}^{k}\beta_{j}\Sigma_{i,j}.
+$$ 
+
+From this theorem, it follows easily by induction that if $\mathcal{B}$ is a linear Gaussian Bayesian network, then it deﬁnes a joint distribution that is jointly Gaussian. 
+
+Example 7.3 Consider the linear Gaussian network $X_{1}\rightarrow X_{2}\rightarrow X_{3}$ , where 
+
+$$
+\begin{array}{r c l}{p(X_{1})}&{=}&{\mathcal{N}\left(1;4\right)}\\ {p(X_{2}\mid X_{1})}&{=}&{\mathcal{N}\left(0.5X_{1}-3.5;4\right)}\\ {p(X_{3}\mid X_{2})}&{=}&{\mathcal{N}\left(-X_{2}+1;3\right).}\end{array}
+$$ 
+
+Using the equations in theorem 7.3, we can compute the joint Gaussian distribution $p(X_{1},X_{2},X_{3})$ . For the mean, we have that: 
+
+$$
+\begin{array}{l l l}{{\mu_{2}}}&{{=}}&{{0.5\mu_{1}-3.5=0.5\cdot1-3.5=-3}}\\ {{\mu_{3}}}&{{=}}&{{(-1)\mu_{2}+1=(-1)\cdot(-3)+1=4.}}\end{array}
+$$ 
+
+The variance of $X_{2}$ and $X_{3}$ can be computed as: 
+
+$$
+\begin{array}{r c l}{{\Sigma_{22}}}&{{=}}&{{4+(1/2)^{2}\cdot4=5}}\\ {{\Sigma_{33}}}&{{=}}&{{3+(-1)^{2}\cdot5=8.}}\end{array}
+$$ 
+
+We see that the variance of the variable is a sum of two terms: the variance arising from its own Gaussian noise parameter, and the variance of its parent variables weighted by the strength of the dependence. Finally, we can compute the covariances as follows: 
+
+$$
+\begin{array}{l c l}{{\Sigma_{12}}}&{{=}}&{{(1/2)\cdot4=2}}\\ {{\Sigma_{23}}}&{{=}}&{{(-1)\cdot\Sigma_{22}=-5}}\\ {{\Sigma_{13}}}&{{=}}&{{(-1)\cdot\Sigma_{12}=-2.}}\end{array}
+$$ 
+
+The third equation shows that, although $X_{3}$ does not depend directly on $X_{1}$ , they have a nonzero covariance. Intuitively, this is clear: $X_{3}$ depends on $X_{2}$ , which depends on $X_{1}$ ; hence, we expect $X_{1}$ and $X_{3}$ to be correlated, a fact that is reﬂected in their covariance. As we can see, the covariance between $X_{1}$ and $X_{3}$ is the covariance between $X_{1}$ and $X_{2}$ , weighted by the strength of the dependence of $X_{3}$ on $X_{2}$ . 
+
+In general, putting these results together, we can see that the mean and covariance matrix for $p(X_{1},X_{2},X_{3})$ is precisely our covariance matrix of example 7.1. 
+
+The converse to this theorem also holds: the result of conditioning is a normal distribution where there is a linear dependency on the conditioning variables. The expressions for converting a multivariate Gaussian to a linear Gaussian network appear complex, but they are based on simple algebra. They can be derived by taking the linear equations speciﬁed in theorem 7.3, and reformulating them as deﬁning the parameters $\beta_{i}$ in terms of the means and covariance matrix entries. 
+
+Theorem 7.4 Let $\{X,Y\}$ have a joint normal distribution deﬁned in equation (7.3). Then the conditional density 
+
+$$
+p(\boldsymbol{Y}\mid\boldsymbol{X})=\mathcal{N}\left(\beta_{0}+\beta^{T}\boldsymbol{X};\sigma^{2}\right),
+$$ 
+
+is such that: 
+
+$$
+\begin{array}{r c l}{{\beta_{0}}}&{{=}}&{{\mu_{Y}-\Sigma_{Y X}\Sigma_{X X}^{-1}\mu_{X}}}\\ {{\beta}}&{{=}}&{{\Sigma_{X X}^{-1}\Sigma_{Y X}}}\\ {{\sigma^{2}}}&{{=}}&{{\Sigma_{Y Y}-\Sigma_{Y X}\Sigma_{X X}^{-1}\Sigma_{X Y}.}}\end{array}
+$$ 
+
+This result allows us to take a joint Gaussian distribution and produce a Bayesian network, using an identical process to our construction of a minimal I-map in section 3.4.1. 
+
+Theorem 7.5 Let $\mathcal{X}=\{X_{1},\ldots,X_{n}\}$ , and let $p$ be a joint Gaussian distributio over $\mathcal{X}$ . Given any orderi $X_{1},\dots,X_{n}$ over X , we can construct a Bayesian network graph G and a Bayesian network B over such that: 
+
+1. $\mathrm{Pa}_{X_{i}}^{\mathcal{G}}\subseteq\{X_{1},\ldots,X_{i-1}\};$ ;
+
+2. the CPD of $X_{i}$ in $\mathcal{B}$ is a linear Gaussian of its parents;
+
+ 3. $\mathcal{G}$ is a minimal $I^{,}$ -map for $p$ . 
+
+The proof is left as an exercise (exercise 7.4). As for the case of discrete networks, the minimal I-map is not unique: diferent choices of orderings over the variables will lead to diferent network structures. For example, the distribution in ﬁgure 7.1b can be represented either as the network where $X\rightarrow Y$ or as the network where $Y\rightarrow X$ . 
+
+# 
+
+This equivalence between Gaussian distributions and linear Gaussian networks has important practical ramiﬁcations. On one hand, we can conclude that, for linear Gaussian networks, the joint distribution has a compact representation (one that is quadratic in the number of variables). Furthermore, the transformations from the network to the joint and back have a fairly simple and efciently computable closed form. Thus, we can easily convert one representation to another, using whichever is more convenient for the current task. Conversely, while the two representations are equivalent in their expressive power, there is not a one-to-one correspondence between their parameter iz at ions. In particular, although in the worst case, the linear Gaussian representation and the Gaussian representation have the same number of parameters (exercise 7.6), there are cases where one representation can be signiﬁcantly more compact than the other. 
+
+Example 7.4 Consider a linear Gaussian network structured as a chain: 
+
+$$
+X_{1}\rightarrow X_{2}\rightarrow\cdot\cdot\cdot\rightarrow X_{n}.
+$$ 
+
+Assuming the network parameter iz ation is not degenerate (that is, the network is a minimal I-map of its distribution), we have that each pair of variables $X_{i},X_{j}$ are correlated. In this case, as shown in theorem 7.1, the covariance matrix would be dense — none of the entries would be zero. Thus, the representation of the covariance matrix would require a quadratic number of parameters. In the information matrix, however, for all $X_{i},X_{j}$ that are not neighbors in the chain, we have that $X_{i}$ and $X_{j}$ are conditionally independent given the rest of the variables in the network; hence, by theorem 7.2, ${{J}_{i,j}}\mathrm{~=~}0$ . Thus, the information matrix has most of the entries being zero; the only nonzero entries are on the tridiagonal (the entries $i,j$ for $j=i-1,i,i+1)$ . 
+
+However, not all structure in a linear Gaussian network is represented in the information matrix. 
+
+Example 7.5 In a v-structure $X\rightarrow Z\leftarrow Y$ , we have that $X$ and $Y$ are marginally independent, but not con- ditionally independent given Z . Thus, according to theorem 7.2, the $X,Y$ entry in the information matrix would not be 0 . Conversely, because the variables are marginally independent, the $X,Y$ entry in the covariance entry would be zero. 
+
+Complicating the example somewhat, assume that $X$ and $Y$ also have a joint parent $W$ ; that is, the network is structured as a diamond. In this case, $X$ and $Y$ are still not independent given the remaining network variables $Z,W$ , and hence the $X,Y$ entry in the information matrix is nonzero. Conversely, they are also not marginally independent, and thus the $X,Y$ entry in the covariance matrix is also nonzero. 
+
+These examples simply recapitulate, in the context of Gaussian networks, the fundamental diference in expressive power between Bayesian networks and Markov networks. 
+
+# 7.3 Gaussian Markov Random Fields 
+
+We now turn to the representation of multivariate Gaussian distributions via an undirected graphical model. We ﬁrst show how a Gaussian distribution can be viewed as an MRF. This formulation is derived almost immediately from the information form of the Gaussian. Consider again equation (7.2). We can break up the expression in the exponent into two types of terms: those that involve single variables $X_{i}$ and those that involve pairs of variables $X_{i},X_{j}$ . The terms that involve only the variable $X_{i}$ are: 
+
+$$
+-\frac{1}{2}J_{i,i}x_{i}^{2}+h_{i}x_{i},
+$$ 
+
+where we recall that the potential vector $h=J\mu$ . The terms that involve the pair $X_{i},X_{j}$ are: 
+
+$$
+-\frac{1}{2}[J_{i,j}x_{i}x_{j}+J_{j,i}x_{j}x_{i}]=-J_{i,j}x_{i}x_{j},
+$$ 
+
+due to the symmetry of the information matrix. Thus, the information form immediately induces a pairwise Markov network, whose node potentials are derived from the potential vector and the diagonal elements of the information matrix, and whose edge potentials are derived from the of-diagonal entries of the information matrix. We also note that, when ${{J}_{i,j}}\mathrm{~=~}0$ , there is no edge between $X_{i}$ and $X_{j}$ in the model, corresponding directly to the independence assumption of the Markov network. 
+
+Gaussian MRF 
+
+Thus, any Gaussian distribution can be represented as a pairwise Markov network with quadratic node and edge potentials. This Markov network is generally called a Gaussian Markov random ﬁeld (GMRF) . Conversely, consider any pairwise Markov network with quadratic node and edge potentials. Ignoring constant factors, which can be assimilated into the partition function, we can write the node and edge energy functions (log-potentials) as: 
+
+$$
+\begin{array}{r l}&{\ \ \ \epsilon_{i}(x_{i})=d_{0}^{i}+d_{1}^{i}x_{i}+d_{2}^{i}x_{i}^{2}}\\ &{\epsilon_{i,j}(x_{i},x_{j})=a_{00}^{i,j}+a_{01}^{i,j}x_{i}+a_{10}^{i,j}x_{j}+a_{11}^{i,j}x_{i}x_{j}+a_{02}^{i,j}x_{i}^{2}+a_{20}^{i,j}x_{j}^{2},}\end{array}
+$$ 
+
+where we used the log-linear notation of section 4.4.1.2. By aggregating like terms, we can reformulate any such set of potentials in the log-quadratic form: 
+
+$$
+p^{\prime}(\pmb{x})=\exp(-\frac{1}{2}\pmb{x}^{T}J\pmb{x}+h^{T}\pmb{x}),
+$$ 
+
+where we can assume without loss of generality that $J$ is symmetric. This Markov network deﬁnes a valid Gaussian density if and only if $J$ is a positive deﬁnite matrix. If so, then $J$ is a legal information matrix, and we can take $h$ to be a potential vector, resulting in a distribution in the form of equation (7.2). 
+
+# 
+
+However, unlike the case of Gaussian Bayesian networks, it is not the case that every set of quadratic node and edge potentials induces a legal Gaussian distribution. Indeed, the decom- position of equation (7.4) and equation (7.5) can be performed for any quadratic form, including one not corresponding to a positive deﬁnite matrix. For such matrices, the resulting function $\exp({\pmb x}^{T}A{\pmb x}+\bar{\pmb b}^{T}{\pmb x})$ will have an inﬁnite integral, and cannot be normalized to produce a valid density. Unfortunately, other than generating the entire information matrix and testing whether it is positive deﬁnite, there is no simple way to check whether the MRF is valid. In particular, there is no local test that can be applied to the network parameters that precisely characterizes valid Gaussian densities. However, there are simple tests that are sufcient to induce a valid density. While these conditions are not necessary, they appear to cover many of the cases that occur in practice. 
+
+We ﬁrst provide one very simple test that can be veriﬁed by direct examination of the information matrix. 
+
+Deﬁnition 7.2 diagonally dominant 
+
+$$
+\sum_{j\neq i}|J_{i,j}|<J_{i,i}.
+$$ 
+
+For example, the information matrix in example 7.2 is diagonally dominant; for instance, for $i=2$ we have: 
+
+$$
+|-0.125|+0.3333<0.5833.
+$$ 
+
+One can now show the following result: 
+
+Proposition 7.1 Let $\begin{array}{r}{p^{\prime}(x)=\exp(-\frac{1}{2}x^{T}J x+\overline{{h}}^{T}x)}\end{array}$ be a quadratic pairwise MRF. If $J$ is diagonally dominant, then $p^{\prime}$ deﬁnes a valid Gaussian MRF. 
+
+The proof is straightforward algebra and is left as an exercise (exercise 7.8). 
+
+The following condition is less easily veriﬁed, since it cannot be tested by simple examination of the information matrix. Rather, it checks whether the distribution can be written as a quadratic pairwise MRF whose node and edge potentials satisfy certain conditions. Speciﬁcally, recall that a Gaussian MRF consists of a set of node potentials, which are log-quadratic forms in $x_{i}$ , and a set of edge potentials, which are log-quadratic forms in $x_{i},x_{j}$ . We can state a condition in terms of the coefcients for the nonlinear components of this parameter iz ation: 
+
+Deﬁnition 7.3 pairwise normalizable 
+
+A quadratic MRF parameterized as in equation (7.6) is said to be pairwise normalizable if: 
+
+• for all i , $d_{2}^{i}>0$ ; • for all $i,j$ , the $2\times2$ matrix $\left(\begin{array}{c c}{{a_{02}^{i,j}}}&{{a_{11}^{i,j}/2}}\\ {{a_{11}^{i,j}/2}}&{{a_{20}^{i,j}}}\end{array}\right)$ is positive semideﬁnite. 
+
+Intuitively, this deﬁnition states that each edge potential, considered in isolation, is normalizable (hence the name “pairwise-normalizable”). We can show the following result: 
+
+Proposition 7.2 Let $p^{\prime}(x)$ be a quadratic pairwise MRF, parameterized as in equation (7.6). If $p^{\prime}$ is pairwise normalizable, then it deﬁnes a valid Gaussian distribution. 
+
+Once again, the proof follows from standard algebraic manipulations, and is left as an exercise (exercise 7.9). 
+
+We note that, like the preceding conditions, this condition is sufcient but not necessary: 
+
+Example 7.6 Consider the following information matrix: 
+
+$$
+\left(\begin{array}{l l l}{1}&{0.6}&{0.6}\\ {0.6}&{1}&{0.6}\\ {0.6}&{0.6}&{1}\end{array}\right)
+$$ 
+
+It is not difcult to show that this information matrix is positive deﬁnite, and hence deﬁnes a legal Gaussian distribution. However, it turns out that it is not possible to decompose this matrix into a set of three edge potentials, each of which is positive deﬁnite. 
+
+Unfortunately, evaluating whether pairwise normalizability holds for a given MRF is not al- ways trivial, since it can be the case that one parameter iz ation is not pairwise normalizable, yet a diferent parameter iz ation that induces precisely the same density function is pairwise normalizable. 
+
+Consider the information matrix of example 7.2, with a mean vector 0 . We can deﬁne this distribution using an MRF by simply choosing the node potential for $X_{i}$ to be $J_{i,i}x_{i}^{2}$ and the edge potential for $X_{i},X_{j}$ to be $2J_{i,j}x_{i}x_{j}$ . Clearly, the $X_{1},X_{2}$ edge does not deﬁne a nor- malizable density over $X_{1},X_{2}$ , and hence this MRF is not pairwise normalizable. However, as we discussed in the context of discrete MRFs, the MRF parameter iz ation is nonunique, and the same density can be induced using a continuum of diferent parameter iz at ions. In this case, one alternative parameter iz ation of the same density is to deﬁne all node potentials as $\epsilon_{i}(x_{i})=0.05x_{i}^{2}$ , and the edge potentials to be $\epsilon_{1,2}(x_{1},x_{2})=0.2625x_{1}^{2}+0.0033x_{2}^{2}-0.25x_{1}x_{2}.$ − , and $\epsilon_{2,3}(x_{2},x_{3})=0.53x_{2}^{2}+0.2833x_{3}^{2}+0.6666x_{2}x_{3}$ . Straightforward arithmetic shows that this set of potentials induces the information matrix of example 7.2. Moreover, we can show that this formulation is pairwise normalizable: The three node potentials are all positive, and the two edge potentials are both positive deﬁnite. (This latter fact can be shown either directly or as a conse- quence of the fact that each of the edge potentials is diagonally dominant, and hence also positive deﬁnite.) 
+
+This example illustrates that the pairwise normalizability condition is easily checked for a speciﬁc MRF parameter iz ation. However, if our aim is to encode a particular Gaussian density as an MRF, we may have to actively search for a decomposition that satisﬁes the relevant constraints. If the information matrix is small enough to manipulate directly, this process is not difcult, but if the information matrix is large, ﬁnding an appropriate parameter iz ation may incur a nontrivial computational cost. 
+
+# 7.4 Summary 
+
+This chapter focused on the representation and independence properties of Gaussian networks. 
+
+We showed an equivalence of expressive power between three representational classes: mul- tivariate Gaussians, linear Gaussian Bayesian networks, and Gaussian MRFs. In particular, any distribution that can be represented in one of those forms can also be represented in another. We provided closed-form formulas that allow us convert between the multivariate Gaussian rep- resentation and the linear Gaussian Bayesian network. The conversion for Markov networks is simpler in some sense, inasmuch as there is a direct mapping between the entries in the infor- mation (inverse covariance) matrix of the Gaussian and the quadratic forms that parameterize the edge potentials in the Markov network. However, unlike the case of Bayesian networks, here we must take care, since not every quadratic parameter iz ation of a pairwise Markov network induces a legal Gaussian distribution: The quadratic form that arises when we combine all the pairwise potentials may not have a ﬁnite integral, and therefore may not be normalizable. In general, there is no local way of determining whether a pairwise MRF with quadratic potentials is normalizable; however, we provided some easily checkable sufcient conditions that are often sufcient in practice. 
+
+The equivalence between the diferent representations is analogous to the equivalence of Bayesian networks, Markov networks, and discrete distributions: any discrete distribution can be encoded both as a Bayesian network and as a Markov network, and vice versa. However, as in the discrete case, this equivalence does not imply equivalence of expressive power with respect to independence assumptions. In particular, the expressive power of the directed and undirected representations in terms of independence assumptions is exactly the same as in the discrete case: Directed models can encode the independencies associated with immoralities, whereas undirected models cannot; conversely, undirected models can encode a symmetric diamond, whereas directed models cannot. As we saw, the undirected models have a particularly elegant connection to the natural representation of the Gaussian distribution in terms of the information matrix; in particular, zeros in the information matrix for $p$ correspond precisely to missing edges in the minimal I-map Markov network for $p$ . 
+
+Finally, we note that the class of Gaussian distributions is highly restrictive, making strong assumptions that often do not hold in practice. Nevertheless, it is a very useful class, due to its compact representation and computational tractability (see section 14.2). Thus, in many cases, we may be willing to make the assumption that a distribution is Gaussian even when that is only a rough approximation. This approximation may happen a priori, in encoding a distribution as a Gaussian even when it is not. Or, in many cases, we perform the approximation as part of our inference process, representing intermediate results as a Gaussian, in order to keep the computation tractable. Indeed, as we will see, the Gaussian representation is ubiquitous in methods that perform inference in a broad range of continuous models. 
+
+# 7.5 Relevant Literature 
+
+The equivalence between the multivariate and linear Gaussian representations was ﬁrst derived by Wermuth (1980), who also provided the one-to-one transformations between them. The introduction of linear Gaussian dependencies into a Bayesian network framework was ﬁrst proposed by Shachter and Kenley (1989), in the context of inﬂuence diagrams. 
+
+Speed and Kiiveri (1986) were the ﬁrst to make the connection between the structure of the information matrix and the independence assumptions in the distribution. Building on earlier results for discrete Markov networks, they also made the connection to the undirected graph as a representation. Lauritzen (1996, Chapter 5) and Malioutov et al. (2006) give a good overview of the properties of Gaussian MRFs. 
