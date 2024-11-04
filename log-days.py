@@ -45,7 +45,7 @@ class GitLogDays:
             return
 
         try:
-            index = -self.arg_val if self.arg_val else 0
+            index = self.arg_val if self.arg_val else 0
             subprocess.run(
                 ['git', 'log', f'{self.hash_list[index]}..HEAD', '--oneline'])
         except IndexError:
