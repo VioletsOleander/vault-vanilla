@@ -1174,3 +1174,34 @@ $$
 根据 $\mathbf x$ 和 $K$ 构造 $\mathbf y$， $\mathbf y$ 中不属于 $K$ 的值设为 0，属于 $K$ 的值保持不变 ($\mathbf x_K = \mathbf y_K$)
 写出 $\mathcal Q (\mathbf  y )$ 的展开式，除去系数为 0 的项，容易得到： $\mathcal Q (\mathbf y) = p_K (\mathbf y) G_K (\mathbf y_K)$
 因为 $p_K (\mathbf y) \ne 0$，因此该方程仅有唯一一个对 $G_K (\mathbf y_K)$ 的解，也就是 $G_K (\mathbf y_K) = G_K (\mathbf x_K)$ 是唯一的
+
+## Deduction from $\mathcal Q (\mathbf x)$ to $P (\mathbf x)$
+假设包含 $\mathbf x$ 的全部取值的集合为 $\mathcal X$，我们有：
+
+$$
+\begin{align}
+P(\mathbf x)&= \frac {P(\mathbf x)}{1}\\
+&=\frac {P(\mathbf x)}{\sum_{\mathbf z\in \mathcal X}P(\mathbf z)}\\
+&=\frac {\frac {P(\mathbf x)}{P(\mathbf 0)}}{\frac {\sum_{\mathbf z \in \mathcal X}P(\mathbf z)}{P(\mathbf 0)}}\\
+&=\frac {\frac {P(\mathbf x)}{P(\mathbf 0)}}{\sum_{\mathbf z \in \mathcal X} \frac {P(\mathbf z)}{P(\mathbf 0)}}\\
+&=\frac {\exp\left\{\ln \frac {P(\mathbf x)}{P(\mathbf 0)}\right\}}{
+\sum_{\mathbf z \in \mathcal X}\exp\left\{\ln \frac {P(\mathbf z)}{P(\mathbf 0)}\right\} }\\
+&=\frac {\exp\{\mathcal Q(\mathbf x)\}}{\sum_{\mathbf z \in \mathcal X}\exp\{\mathcal Q(\mathbf z )\}}
+\end{align}
+$$
+
+也就是：
+
+$$
+P(\mathbf x)=\frac {\exp\{\mathcal Q(\mathbf x)\}}{\sum_{\mathbf z\in \mathcal X}\exp\{\mathcal Q(\mathbf z)\}}
+$$
+
+其中 $\mathcal Q (\mathbf x)$ 可以展开为：
+
+$$
+\begin{align}
+\mathcal Q(\mathbf x) &=\mathcal Q(\mathbf 0) + \sum_{1\le i \le n}x_i G_i(x_i) + \sum_{1\le i<j\le n}x_ix_j G_{ij}(x_i, x_j)\\
+&+\sum_{1\le i< j < k \le n}x_ix_jx_k G_{ijk}(x_i, x_j, x_k) + \dots\\
+&+x_1x_2\dots x_n G_{1,2,\dots, n}(x_1, x_2, \dots, x_n)\\
+\end{align}
+$$
