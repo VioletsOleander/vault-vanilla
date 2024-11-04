@@ -212,11 +212,17 @@
 ### Week 1
 \[**Paper**\]
 - [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]
+    FlashAttention-2: 
+    (1) tweak the algorithm, reducing the non-mamul op: remove the rescale of softmax weights in each inner loop, only do it in the end of inner loop
+    (2) parallize in thread blocks to improve occupancy: exchange the inner loop and outerloop,  which makes each iteration in outerloop independent of each other, therefore parallelize them by assigning $\mathbf {O}$ blocks to thread blocks
+    (3) distribute the work between warps to reduce shared memory communication: divide $\mathbf Q$ block to warps and keep $\mathbf {K, V}$ blocks intact, the idea is similar to exchanging outer loop and inner loop, whichi makes the $\mathbf O$ blocks the warp responsible for be independent of each other, thus primarily reducing the shared memory reads/writes for the final accumlation
+    FlashAttention-2 also uses thread blocks to load KV cache in parallel for iterative decoding
 
 \[**Book**\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
-    CH4.6.1-Bayesian Networks and Markov Networks: chordal graph can be represented by either sturcture without loss of information 
+    CH4.6.1-Conditional Random Fields: CRF models conditional distribution by partially directely graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditoinal distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict explanability, because the parameters learned has less semantics on their own.
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
+    Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
 \[**Doc**\]
 - [[Learn the Basics|pytorch-tutorials-beginner: Learn the Basics]]
