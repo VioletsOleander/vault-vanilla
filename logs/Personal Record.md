@@ -211,16 +211,21 @@
 ## November
 ### Week 1
 \[**Paper**\]
-- [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]:
+- [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]
 
 \[**Book**\]
+- [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
+    CH4.6.1-Bayesian Networks and Markov Networks: chordal graph can be represented by either sturcture without loss of information 
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
-- [[A Tour of C++]]
 
 \[**Doc**\]
 - [[Learn the Basics|pytorch-tutorials-beginner: Learn the Basics]]
 - [[pillow v11.0.0]]: Overview, Tutorial, Concepts
 - [[Repositories|huggingface-hub:Repositories]]: Sec1-Sec2
 - [[Getting Started|Triton: Tutorials]]: Matrix Multiply
+- [[Argparse Tutorial|argparse tutorial]]
+- [[CUDA C++ Programming Guide v12.6]]: CH1
 
-
+## Week2
+\[**Book**\]
+- [[A Tour of C++]] : CH7
