@@ -4506,66 +4506,73 @@ int y = fct("foo", "bar", s);
 ```
 
 ### 7.4.2 Forwarding Arguments
-Passing arguments unchanged through an interface is an important use of variadic templates. Con- sider a notion of a network input channel for which the actual method of moving values is a param- eter. Different transport mechanisms have different sets of constructor parameters:
+Passing arguments unchanged through an interface is an important use of variadic templates. Consider a notion of a network input channel for which the actual method of moving values is a parameter. Different transport mechanisms have different sets of constructor parameters:
+> 可变模板的一个重要用途是在接口中传递未经修改的实参
+> 考虑一个网络输入通道的概念，其实际移动值的方法是一个参数，不同的传输机制 ( `_transport` ) 具有不同的构造函数参数集：
 
-template<typename Transpor t> requires concepts:: InputTranspor t<Transpor t> class InputChannel { public: // ... InputChannel (Transpor tArgs&&... transportArgs) : \_transpor t (std::forward<Transpor tArgs>(transpor tArgs)...) {} // ... Transpor t \_transpor t; };
+```cpp
+template<typename Transport>
+    requires concepts::InputTransport<Transport>
+class InputChannel {
+public:
+    // ...
+    InputChannel(TransportArgs&&... transportArgs)
+        : _transport(std::forward<TransportArgs>(transportArgs)...)
+    {}
+    // ...
+    Transport _transport;
+};
+```
 
-The standard-library function forward () (§13.2.2) is used to move the arguments unchanged from the InputChannel constructor to the Transpor constructor.
+The standard-library function `forward()` (§13.2.2) is used to move the arguments unchanged from the `InputChannel` constructor to the `Transport` constructor.
+> 标准库函数 `forward()`（§13.2.2）用于将 `InputChannel` 构造函数中的参数原封不动地传递给 `Transport` 的构造函数。
 
-The point here is that the writer of InputChannel can construct an object of type Transpor with- out having to know what arguments are required to construct a particular Transpor . The imple- menter of InputChannel needs only to know the common user interface for all Transpor objects.
+The point here is that the writer of `InputChannel` can construct an object of type `Transport` without having to know what arguments are required to construct a particular `Transport` . The implementer of `InputChannel` needs only to know the common user interface for all `Transport` objects.
+> 这里的关键点是，`InputChannel` 的编写者可以在不需要了解构建特定 `Transport` 所需的具体参数的情况下构造 `Transport` 类型的对象，`InputChannel` 的实现者只需知道所有 `Transport` 对象的通用用户接口
 
-Forwarding is very common in foundational libraries where generality and low run-time over- head are necessary and very general interfaces are common.
+Forwarding is very common in foundational libraries where generality and low run-time overhead are necessary and very general interfaces are common.
+> 在基础库中，这种转发非常常见，因为这些库需要高度通用性和较低的运行时开销，并且非常通用的接口也很常见
 
-# 7.5 Template Compilation Model
-
+## 7.5 Template Compilation Model
 Assuming concepts $(\S7.2)$ , the arguments for a template are checked against its concepts. Errors found here will be reported and the programmer has to fix the problems. What cannot be checked at this point, such as arguments for unconstrained template arguments, is postponed until code is generated for the template and a set of template arguments: ‘‘at template instantiation time.’’ For pre-concept code, this is where all type checking happens. When using concepts, we get here only after concept checking succeeded.
+>当我们在模板中使用了概念，模板的参数就会根据这些概念进行检查，如果此时发现错误，编译器会报告这些错误，程序员需要修复这些问题
+>对于无约束模板，此时没有概念用于检查参数合法性，则检查将推迟到为模板以及生成一组模板实参生成代码时进行，也就是在模板实例化时
+>在概念引入之前的代码，模板的所有类型检查发生都发生在模板实例化时，概念引入后，对于使用了概念的模板，只有在概念检查成功后，才有机会进行模板实例化以及类型检查
+>因此概念实际上是为模板实参额外添加了一道检查
 
 An unfortunate side effect of instantiation-time (late) type checking is that a type error can be found uncomfortably late and can result in spectacularly bad error messages because the compiler found the problem only after combining information from several places in the program.
+>在实例化时 (晚期) 进行类型检查的一个副作用就是类型错误可能会在令人不适的后期才被发现，并可能导致极其糟糕的错误消息，因为编译器必须在程序中的多个地方结合信息后才能发现问题
 
-The instantiation-time type checking provided for templates checks the use of arguments in the template definition. This provides a compile-time variant of what is often called duck typing (‘‘If it walks like a duck and it quacks like a duck, it’s a duck’’). Or – using more technical terminology – we operate on values, and the presence and meaning of an operation depend solely on its operand values. This differs from the alternative view that objects have types, which determine the presence and meaning of operations. Values ‘‘live’’ in objects. This is the way objects (e.g., variables) work in $\mathrm{C++}$ , and only values that meet an object’s requirements can be put into it. What is done at com- pile time using templates mostly does not involve objects, only values. The exception is local vari- ables in a constexpr function (§1.6) that are used as objects inside the compiler.
+The instantiation-time type checking provided for templates checks the use of arguments in the template definition. This provides a compile-time variant of what is often called duck typing (‘‘If it walks like a duck and it quacks like a duck, it’s a duck’’). Or – using more technical terminology – we operate on values, and the presence and meaning of an operation depend solely on its operand values. This differs from the alternative view that objects have types, which determine the presence and meaning of operations. Values ‘‘live’’ in objects. This is the way objects (e.g., variables) work in $\mathrm{C++}$ , and only values that meet an object’s requirements can be put into it. What is done at compile time using templates mostly does not involve objects, only values. The exception is local variables in a constexpr function (§1.6) that are used as objects inside the compiler.
+>模板实例化时的类型检查会检查模板定义中模板实参的使用情况，这提供了一种编译时版本的鸭子类型检查（“如果它走起来像鸭子并且叫起来也像鸭子，那它就是鸭子”），或者——使用更专业的术语——我们是对值进行操作，操作的存在和意义完全取决于其操作数的值 (而不是操作数的类型，因此只要值符合要求就可以进行操作，更进一步说，就是只要某个类型提供了所需的接口/方法/操作等，即使没有明确声明类型，也可以在模板中使用该类型，例如有一个模板函数 `template<typename T> void print(T value)`，只要 `T` 类型支持 `<<` 操作符，这个函数就能正常工作，而不需要 `T` 具体是什么类型)，这与另一种观点不同，即对象有类型，这些类型决定了操作的存在和意义
+>在 C++ 中，值 “存在于” (存储于) 对象中，这是在 C++ 中对象 (例如变量) 的工作方式，只有满足对象要求的值才能放入其中
+>使用模板在编译时所做的大多数事情并不涉及对象，只涉及值 (模板实参实际都在类型检查时被视为值，不关注它是什么对象类型)，唯一例外是在 `constexpr` 函数 (第1.6节) 中的局部变量，它们在编译器内部被用作对象 (`constexpr` 函数中的局部变量在编译时具有确定的值，也就是在编译时被评估，而尽管在编译时被评估，这些变量的行为类似于运行时的对象，可以进行赋值、计算等操作)
 
-To use an unconstrained template, its definition (not just its declaration) must be in scope at its point of use. For example, the standard header <vector> holds the definition of vector . In practice, this means that template definitions are typically found in header files, rather than .cpp files. This changes when we start to use modules (§3.3). Using modules, the source code is organized in the same way for ordinary functions and template functions. In both cases, definitions will be pro- tected against the problems of textual inclusion.
+To use an unconstrained template, its definition (not just its declaration) must be in scope at its point of use. For example, the standard header `<vector>` holds the definition of vector . In practice, this means that template definitions are typically found in header files, rather than .cpp files. This changes when we start to use modules (§3.3). Using modules, the source code is organized in the same way for ordinary functions and template functions. In both cases, definitions will be protected against the problems of textual inclusion.
+>要使用无约束模板，它的定义必须 (不仅仅是声明) 和它的使用点处于相同的作用域，例如，标准头文件 `<vector>` 就包含了 `vector` 的定义
+>实际上，这意味着模板定义通常就位于头文件中，而不是 `.cpp` 文件中
+>这种情况在我们开始使用模块 (第3.3节) 时会发生变化，使用模块时，源代码的组织方式对于普通函数和模板函数是相同的
+>在这两种情况下，定义都受到文本包含问题的保护
 
-# 7.6 Advice
-
+## 7.6 Advice
 [1] Templates provide a general mechanism for compile-time programming; $\S7.1$ .
-
 [2] When designing a template, carefully consider the concepts (requirements) assumed for its template arguments; $\S7.3.2$ .
-
 [3] When designing a template, use a concrete version for initial implementation, debugging, and measurement; $\S7.3.2$ .
-
 [4] Use concepts as a design tool; $\S7.2.1$ .
-
 [5] Specify concepts for all template arguments; $\S7.2$ ; [CG: T.10].
-
 [6] Whenever possible use standard concepts (e.g., the Ranges concepts); $\S7.2.4$ ; [CG: T.11].
-
 [7] Use a lambda if you need a simple function object in one place only; $\S6.3.2$ .
-
 [8] There is no separate compilation of templates: #include template definitions in every transla- tion unit that uses them.
-
 [9] Use templates to express containers and ranges; $\S7.3.2$ ; [CG: T.3].
-
 [10] Avoid ‘‘concepts’’ without meaningful semantics; $\S7.2$ ; [CG: T.20].
-
 [11] Require a complete set of operations for a concept; $\S7.2$ ; [CG: T.21].
-
 [12] Use variadic templates when you need a function that takes a variable number of arguments of a variety of types; $\S7.4$ .
-
 [13] Don’t use variadic templates for homogeneous argument lists (prefer initializer lists for that); $\S7.4$ .
-
 [14] To use a template, make sure its definition (not just its declaration) is in scope; $\S7.5$ .
-
 [15] Templates offer compile-time ‘‘duck typing’’; $\S7.5$ .
 
-# Library Overview
-
-Why waste time learning when ignorance is instantaneous? – Hobbes
-
-• Introduction • Standard-Library Components • Standard-Library Headers and Namespace • Advice
-
-# 8.1 Introduction
-
+# 8 Library Overview
+## 8.1 Introduction
 No significant program is written in just a bare programming language. First, a set of libraries is developed. These then form the basis for further work. Most programs are tedious to write in the bare language, whereas just about any task can be rendered simple by the use of good libraries.
 
 Continuing from Chapters 1–7, Chapters 9–15 give a quick tour of key standard-library facili- ties. I very brieﬂy present useful standard-library types, such as string , ostream , variant , vector , map , path , unique_ptr , thread , reg ex , and complex , as well as the most common ways of using them.
