@@ -5456,7 +5456,7 @@ p(\pmb{x})\propto\exp\left[-\frac12\pmb{x}^{T}J\pmb{x}+(J\pmb{\mu})^{T}\pmb{x}\r
 $$ 
 This formulation of the Gaussian density is generally called the information form , and the vector $h=J\mu$ is called the potential vector . The information form deﬁnes a valid Gaussian density if and only if the information matrix is symmetric and positive deﬁnite, since $\Sigma$ is positive deﬁnite if and only if $\Sigma^{-1}$ is positive deﬁnite. The information form is useful in several settings, some of which are described here. 
 > 另一种参数化利用了协方差矩阵的正定性质
-> 因为正定矩阵一定有逆，我们定义信息矩阵 $J = \Sigma^{-1}$ 为协方差矩阵的逆
+> 因为正定矩阵一定有逆，我们定义信息/精度矩阵 $J = \Sigma^{-1}$ 为协方差矩阵的逆
 > 我们将式 7.1 中的指数项中的 $\Sigma^{-1}$ 用 $J$ 替代，经过化简，就得到式 7.2
 > 该形式的高斯密度称为信息形式，向量 $\pmb h = J\pmb \mu$ 称为势能向量
 > 信息形式当且仅当信息矩阵 $J$ 是对称且正定时才定义有效的高斯分布 (正定的协方差矩阵就满足这一要求，$\Sigma$ 和 $\Sigma^{-1}$ 的正定性是一致的)
@@ -5544,8 +5544,7 @@ $$ p(X_i, X_j) = p(X_i) \cdot p(X_j) $$
 
 >联合高斯分布中，协方差矩阵的非对角线元素表示了不同随机变量之间的线性相关性，如果两个随机变量相互独立，它们之间的线性相关性为零，故其协方差矩阵 $\Sigma$ 中对应于 $X_i$ 和 $X_j$ 之间的协方差项 $\Sigma_{ij}$ 必须为零。
 >
-> **充分性**：如果 $\Sigma_{ij} = 0$，则 $X_i, X_j$ 相互独立。
->
+>**充分性**：如果 $\Sigma_{ij} = 0$，则 $X_i, X_j$ 相互独立。
 >假设 $\Sigma_{ij} = 0$。我们需要证明 $X_i$ 和 $X_j$ 相互独立。根据高斯分布的性质，如果 $\Sigma_{ij} = 0$，则 $X_i$ 和 $X_j$ 之间的线性相关性为零。
 >在高斯分布的情况下，从两个随机变量之间没有线性关系是可以推出它们是统计上独立的。
 >
@@ -5570,9 +5569,10 @@ At ﬁrst glance, it seems that conditional independencies are not quite as appa
 > 协方差矩阵容易看出边际独立性，信息矩阵容易看出条件独立性
 
 **Theorem 7.2** 
-Consider a Gaussian distribution $p(X_{1},.\,.\,.\,,X_{n})=\mathcal{N}\left(\pmb{\mu};\Sigma\right)$ , and let $J=\Sigma^{-1}$ be the informa- tion matrix. Then ${{J}_{i,j}}=0$ if and only if $\cdot p=(X_{i}\perp X_{j}\mid\mathcal{X}-\{X_{i},X_{j}\})$ ⊥ | X −{ } . 
+Consider a Gaussian distribution $p(X_{1},.\,.\,.\,,X_{n})=\mathcal{N}\left(\pmb{\mu};\Sigma\right)$ , and let $J=\Sigma^{-1}$ be the information matrix. Then ${{J}_{i,j}}=0$ if and only if $\cdot p=(X_{i}\perp X_{j}\mid\mathcal{X}-\{X_{i},X_{j}\})$ ⊥ | X −{ } . 
 > 定理：
-> 
+> 考虑高斯分布 $p (X_1, \dots, X_n) = \mathcal N (\pmb \mu; \Sigma)$，$J = \Sigma^{-1}$ 为信息矩阵，则 $J_{ij} = 0$ 当且仅当 $p \vDash (X_1 \perp X_j \mid \mathcal X - \{X_1, X_j\}$)
+> ($J_{ij} \ne 0$ 意味着 $X_j, X_i$ 之间存在直接的相互作用，因此给定其他所有变量后，二者仍然相互依赖；$J_{ij} = 0$ 意味着 $X_j, X_i$ 之间没有直接的相互作用，二者的相关性是通过其他变量间接产生的，因此二者在给定其他变量时条件独立)
 
 The proof is left as an exercise (exercise 7.3). 
 
@@ -5584,128 +5584,151 @@ J=\left(\begin{array}{c c c}{{0.3125}}&{{-0.125}}&{{0}}\\ {{-0.125}}&{{0.5833}}&
 $$ 
 As we can see, the entry in the matrix corresponding to $X_{1},X_{3}$ is zero, reﬂecting the fact that they are conditionally independent given $X_{2}$ . 
 
-Theorem 7.2 asserts the fact that the information matrix captures independencies between pairs of variables, conditioned on all of the remaining variables in the model. These are precisely the same independencies as the pairwise Markov independencies of deﬁnition 4.10. Thus, we can view the information matrix $J$ for a Gaussian density $p$ as precisely capturing the pairwise Markov independencies in a Markov network representing $p$ . Because a Gaussian density is a positive distribution, we can now use theorem 4.5 to construct a Markov network that is a unique minimal I-map for $p$ : As stated in this theorem, the construction simply introduces an edge between $X_{i}$ and $X_{j}$ whenever $\left(X_{i}\perp X_{j}\mid{\mathcal{X}}-\{X_{i},X_{j}\}\right)$ does not hold in $p$ . But this latter condition holds precisely when $J_{i,j}\,\ne\,0$ ̸ . Thus, we can ew the information matrix as directly deﬁning a minimal I-map Markov network for p , whereby nonzero entries correspond to edges in the network. 
+Theorem 7.2 asserts the fact that the information matrix captures independencies between pairs of variables, conditioned on all of the remaining variables in the model. These are precisely the same independencies as the pairwise Markov independencies of deﬁnition 4.10. Thus, we can view the information matrix $J$ for a Gaussian density $p$ as precisely capturing the pairwise Markov independencies in a Markov network representing $p$ . Because a Gaussian density is a positive distribution, we can now use theorem 4.5 to construct a Markov network that is a unique minimal I-map for $p$ : As stated in this theorem, the construction simply introduces an edge between $X_{i}$ and $X_{j}$ whenever $\left(X_{i}\perp X_{j}\mid{\mathcal{X}}-\{X_{i},X_{j}\}\right)$ does not hold in $p$ . But this latter condition holds precisely when $J_{i,j}\,\ne\,0$ ̸ . **Thus, we can ew the information matrix as directly deﬁning a minimal I-map Markov network for p , whereby nonzero entries correspond to edges in the network.** 
+> 定理 7.2 表明信息矩阵 $J$ 捕获了成对变量之间的给定其他所有变量时的条件独立性，这恰好也就是成对 Markov 独立性的定义
+> 因此，我们可以将一个高斯密度 $p$ 的信息矩阵 $J$ 视作精确地捕获了表示 $p$ 的 Markov 网络中的成对 Markov 独立性
+> 因为高斯密度是正分布，因此我们可以根据定理 4.5 构造是 $p$ 的唯一极小 I-map 的 Markov 网络，构造时，我们为 $(X_i \perp X_j \mid \mathcal X - \{X_i, X_j\}$ 不成立的 $X_i, X_j$ 之间引入一条边，也就是等价于 $J_{ij} \ne 0$ 时为 $X_i, X_j$ 引入一条边。因此 $J$ 也可以视为直接定义了 $p$ 的极小 I-mapMarkov 网络，$J$ 中的非零项就对应于网络中的一条边
 
-# 7.2 Gaussian Bayesian Networks 
-
+## 7.2 Gaussian Bayesian Networks 
 We now show how we can deﬁne a continuous joint distribution using a Bayesian network. This representation is based on the linear Gaussian model , which we deﬁned in deﬁnition 5.14. Although this model can be used as a CPD within any network, it turns out that continuous networks deﬁned solely in terms of linear Gaussian CPDs are of particular interest: 
+> 本小节展示使用贝叶斯网络定义连续联合分布
 
-# Deﬁnition 7.1 
+**Deﬁnition 7.1**  Gaussian Bayesian network 
+We define a Gaussian Bayesian network to be a Bayesian network all of whose variables are continuous, and where all of the CPDs are linear Gaussians.
+> 定义：
+> 对于一个贝叶斯网络，如果它的所有变量都是连续变量，并且所有的 CPD 都是线性高斯模型，则该网络就是高斯贝叶斯网络
 
-Gaussian Bayesian network 
+An important and surprising result is that linear Gaussian Bayesian networks are an alternative representation for the class of multivariate Gaussian distributions. . 
+> 线性高斯贝叶斯网络实际上是一类多元高斯分布的替代性表示
 
-An important and surprising result is that linear Gaussian Bayesian networks are an alternative representation for the class of multivariate Gaussian distributions. This result has two parts. The ﬁrst is that a linear Gaussian network always deﬁnes a joint multivariate Gaussian distribution. 
+This result has two parts. The ﬁrst is that a linear Gaussian network always deﬁnes a joint multivariate Gaussian distribution
+> 线性高斯网络总是定义一个联合多元高斯分布：
 
-Theorem 7.3 
+**Theorem 7.3** 
+Let $Y$ be the linear Gaussian of its parents $X_1, \dots, X_k$
 
 $$
-p(Y\mid\mathbf{\boldsymbol{x}})=\mathcal{N}\left(\beta_{0}+\beta^{T}\mathbf{\boldsymbol{x}};\sigma^{2}\right).
+p(Y\mid\mathbf{\boldsymbol{x}})=\mathcal{N}\left(\beta_{0}+\pmb \beta^{T}\mathbf{\boldsymbol{x}};\sigma^{2}\right).
 $$ 
-
 Assume that $X_{1},\ldots,X_{k}$ are jointly Gaussian with distribution $\mathcal{N}\left(\boldsymbol{\mu};\boldsymbol{\Sigma}\right)$ . Then: 
 
-• The distribution of $Y$ is a normal distribution $p(Y)=\mathcal{N}\left(\mu_{Y};\sigma_{Y}^{2}\right)$ where: 
+- The distribution of $Y$ is a normal distribution $p(Y)=\mathcal{N}\left(\mu_{Y};\sigma_{Y}^{2}\right)$ where: 
 
 $$
-\begin{array}{r c l}{{\mu_{Y}}}&{{=}}&{{\beta_{0}+\beta^{T}\mu}}\\ {{\sigma_{Y}^{2}}}&{{=}}&{{\sigma^{2}+\beta^{T}\Sigma\beta.}}\end{array}
+\begin{array}{r c l}{{\mu_{Y}}}&{{=}}&{{\beta_{0}+\pmb \beta^{T}\pmb \mu}}\\ {{\sigma_{Y}^{2}}}&{{=}}&{{\sigma^{2}+\pmb \beta^{T}\Sigma\pmb \beta.}}\end{array}
 $$ 
-
-• The joint distribution over $\{X,Y\}$ is a normal distribution where: 
+- The joint distribution over $\{X,Y\}$ is a normal distribution where: 
 
 $$
 \pmb{C}o v[X_{i};Y]=\sum_{j=1}^{k}\beta_{j}\Sigma_{i,j}.
 $$ 
+> 定理：
+> $Y$ 是其父变量 $X_1,\dots, X_k$ 的线性高斯模型，假设 $X_1, \dots, X_k$ 服从联合高斯分布 $\mathcal N (\pmb \mu , \Sigma)$，则：
+>  $Y$ 也服从高斯分布，其均值和方差分别和 $\pmb \mu, \Sigma$ 相关
+>  $\pmb X, Y$ 上的联合分布也是高斯分布，其中 $X_i, Y$ 的协方差等于 $\beta_j \Sigma_{ij}$ 对所有 $j$ 求和 ($\Sigma_{ij}$ 表示 $X_i, X_j$ 的协方差，$\beta_j$ 是 $X_j$ 和 $Y$ 相关的系数)
 
 From this theorem, it follows easily by induction that if $\mathcal{B}$ is a linear Gaussian Bayesian network, then it deﬁnes a joint distribution that is jointly Gaussian. 
+> 线性高斯网络的所有 CPD 都是线性高斯模型，因此根据该定理，线性高斯网络 $\mathcal B$ 就定义了一个联合的多元高斯分布
 
 Example 7.3 Consider the linear Gaussian network $X_{1}\rightarrow X_{2}\rightarrow X_{3}$ , where 
 
 $$
 \begin{array}{r c l}{p(X_{1})}&{=}&{\mathcal{N}\left(1;4\right)}\\ {p(X_{2}\mid X_{1})}&{=}&{\mathcal{N}\left(0.5X_{1}-3.5;4\right)}\\ {p(X_{3}\mid X_{2})}&{=}&{\mathcal{N}\left(-X_{2}+1;3\right).}\end{array}
 $$ 
-
 Using the equations in theorem 7.3, we can compute the joint Gaussian distribution $p(X_{1},X_{2},X_{3})$ . For the mean, we have that: 
 
 $$
 \begin{array}{l l l}{{\mu_{2}}}&{{=}}&{{0.5\mu_{1}-3.5=0.5\cdot1-3.5=-3}}\\ {{\mu_{3}}}&{{=}}&{{(-1)\mu_{2}+1=(-1)\cdot(-3)+1=4.}}\end{array}
 $$ 
-
 The variance of $X_{2}$ and $X_{3}$ can be computed as: 
 
 $$
 \begin{array}{r c l}{{\Sigma_{22}}}&{{=}}&{{4+(1/2)^{2}\cdot4=5}}\\ {{\Sigma_{33}}}&{{=}}&{{3+(-1)^{2}\cdot5=8.}}\end{array}
-$$ 
+$$
 
-We see that the variance of the variable is a sum of two terms: the variance arising from its own Gaussian noise parameter, and the variance of its parent variables weighted by the strength of the dependence. Finally, we can compute the covariances as follows: 
+We see that the variance of the variable is a sum of two terms: the variance arising from its own Gaussian noise parameter, and the variance of its parent variables weighted by the strength of the dependence. 
+> 可以看到，本例中，变量的方差是两项的和：一项是自己的高斯噪声参数，一项是其父变量的方差乘上依赖性计算得到的权重
+
+Finally, we can compute the covariances as follows: 
 
 $$
 \begin{array}{l c l}{{\Sigma_{12}}}&{{=}}&{{(1/2)\cdot4=2}}\\ {{\Sigma_{23}}}&{{=}}&{{(-1)\cdot\Sigma_{22}=-5}}\\ {{\Sigma_{13}}}&{{=}}&{{(-1)\cdot\Sigma_{12}=-2.}}\end{array}
 $$ 
-
 The third equation shows that, although $X_{3}$ does not depend directly on $X_{1}$ , they have a nonzero covariance. Intuitively, this is clear: $X_{3}$ depends on $X_{2}$ , which depends on $X_{1}$ ; hence, we expect $X_{1}$ and $X_{3}$ to be correlated, a fact that is reﬂected in their covariance. As we can see, the covariance between $X_{1}$ and $X_{3}$ is the covariance between $X_{1}$ and $X_{2}$ , weighted by the strength of the dependence of $X_{3}$ on $X_{2}$ . 
+> 本例中，可以看到 $X_1, X_3$ 之间的协方差等于 $X_1, X_2$ 之间的协方差乘上 $X_3, X_2$ 之间的依赖性作为权重
 
 In general, putting these results together, we can see that the mean and covariance matrix for $p(X_{1},X_{2},X_{3})$ is precisely our covariance matrix of example 7.1. 
 
 The converse to this theorem also holds: the result of conditioning is a normal distribution where there is a linear dependency on the conditioning variables. The expressions for converting a multivariate Gaussian to a linear Gaussian network appear complex, but they are based on simple algebra. They can be derived by taking the linear equations speciﬁed in theorem 7.3, and reformulating them as deﬁning the parameters $\beta_{i}$ in terms of the means and covariance matrix entries. 
+> 该定理的逆命题同样成立：联合高斯分布下的条件分布也是高斯分布，并且是线性高斯模型
+> 将多元高斯分布转换为线性高斯网络的公式看起来很复杂，但实际上它们基于简单的代数运算。这些公式可以通过定理7.3中指定的线性方程推导出来，并重新表述为通过均值和协方差矩阵元素来定义参数$\beta_{i}$。 
 
-Theorem 7.4 Let $\{X,Y\}$ have a joint normal distribution deﬁned in equation (7.3). Then the conditional density 
+**Theorem 7.4** 
+Let $\{X,Y\}$ have a joint normal distribution deﬁned in equation (7.3). Then the conditional density 
 
 $$
-p(\boldsymbol{Y}\mid\boldsymbol{X})=\mathcal{N}\left(\beta_{0}+\beta^{T}\boldsymbol{X};\sigma^{2}\right),
-$$ 
+p({Y}\mid\boldsymbol{X})=\mathcal{N}\left(\beta_{0}+\pmb \beta^{T}\boldsymbol{X};\sigma^{2}\right),
+$$
 
 is such that: 
 
 $$
-\begin{array}{r c l}{{\beta_{0}}}&{{=}}&{{\mu_{Y}-\Sigma_{Y X}\Sigma_{X X}^{-1}\mu_{X}}}\\ {{\beta}}&{{=}}&{{\Sigma_{X X}^{-1}\Sigma_{Y X}}}\\ {{\sigma^{2}}}&{{=}}&{{\Sigma_{Y Y}-\Sigma_{Y X}\Sigma_{X X}^{-1}\Sigma_{X Y}.}}\end{array}
+\begin{array}{r c l}{{\beta_{0}}}&{{=}}&{{\mu_{Y}-\Sigma_{Y \pmb X}\Sigma_{\pmb X \pmb X}^{-1}\mu_{\pmb X}}}\\ {{\pmb \beta}}&{{=}}&{{\Sigma_{\pmb X \pmb X}^{-1}\Sigma_{Y \pmb X}}}\\ {{\sigma^{2}}}&{{=}}&{{\Sigma_{Y Y}-\Sigma_{Y \pmb X}\Sigma_{\pmb X \pmb X}^{-1}\Sigma_{\pmb X Y}.}}\end{array}
 $$ 
+> 定理：
+> $\{\pmb X, Y\}$ 服从式 7.3 定义的联合正态分布，则 $Y$ 条件于 $\pmb X$ 的条件分布也是正态分布，并且是线性高斯模型
 
 This result allows us to take a joint Gaussian distribution and produce a Bayesian network, using an identical process to our construction of a minimal I-map in section 3.4.1. 
+> 根据该定理，我们可以根据联合高斯分布写出分布中的各个条件概率分布，因此可以根据给定的独立性构建分布的极小 I-map
 
-Theorem 7.5 Let $\mathcal{X}=\{X_{1},\ldots,X_{n}\}$ , and let $p$ be a joint Gaussian distributio over $\mathcal{X}$ . Given any orderi $X_{1},\dots,X_{n}$ over X , we can construct a Bayesian network graph G and a Bayesian network B over such that: 
+**Theorem 7.5** 
+Let $\mathcal{X}=\{X_{1},\ldots,X_{n}\}$ , and let $p$ be a joint Gaussian distributio over $\mathcal{X}$ . Given any orderi $X_{1},\dots,X_{n}$ over X , we can construct a Bayesian network graph G and a Bayesian network B over G such that: 
 
 1. $\mathrm{Pa}_{X_{i}}^{\mathcal{G}}\subseteq\{X_{1},\ldots,X_{i-1}\};$ ;
-
 2. the CPD of $X_{i}$ in $\mathcal{B}$ is a linear Gaussian of its parents;
+3. $\mathcal{G}$ is a minimal $I^{,}$ -map for $p$ . 
 
- 3. $\mathcal{G}$ is a minimal $I^{,}$ -map for $p$ . 
+> 定理：
+> $p$ 为 $\mathcal X = \{X_1, \dots, X_n\}$ 上的联合高斯分布，给定 $\mathcal X$ 上的任意顺序 $X_1, \dots, X_n$，我们可以构建贝叶斯网络图 $\mathcal G$ 和 $\mathcal G$ 上的贝叶斯网络 $\mathcal B$，满足：图中任意变量的父变量都在 $\mathcal X$ 中，$X_i$ 在 $\mathcal B$ 中的 CPD 是关于它的父变量的线性高斯模型，$\mathcal G$ 是 $p$ 的 minimal I-map
 
-The proof is left as an exercise (exercise 7.4). As for the case of discrete networks, the minimal I-map is not unique: diferent choices of orderings over the variables will lead to diferent network structures. For example, the distribution in ﬁgure 7.1b can be represented either as the network where $X\rightarrow Y$ or as the network where $Y\rightarrow X$ . 
+The proof is left as an exercise (exercise 7.4). 
 
-# 
+As for the case of discrete networks, the minimal I-map is not unique: diferent choices of orderings over the variables will lead to diferent network structures. For example, the distribution in ﬁgure 7.1b can be represented either as the network where $X\rightarrow Y$ or as the network where $Y\rightarrow X$ . 
+>至于离散网络的情况，最小的 I-map 不是唯一的：变量的不同排序将导致不同的网络结构。例如，图7.1b 中的分布可以用 $X\rightarrow Y$ 的网络或 $Y\rightarrow X$ 的网络来表示。
 
 This equivalence between Gaussian distributions and linear Gaussian networks has important practical ramiﬁcations. On one hand, we can conclude that, for linear Gaussian networks, the joint distribution has a compact representation (one that is quadratic in the number of variables). Furthermore, the transformations from the network to the joint and back have a fairly simple and efciently computable closed form. Thus, we can easily convert one representation to another, using whichever is more convenient for the current task. Conversely, while the two representations are equivalent in their expressive power, there is not a one-to-one correspondence between their parameter iz at ions. In particular, although in the worst case, the linear Gaussian representation and the Gaussian representation have the same number of parameters (exercise 7.6), there are cases where one representation can be signiﬁcantly more compact than the other. 
+>高斯分布与线性高斯网络之间的这种等价性具有重要的实际意义。一方面，我们可以得出结论，对于线性高斯网络，联合分布有一个紧凑的表示形式（即在变量数量上是二次的）
+>此外，从网络到联合分布及其逆变换都有相对简单且可有效计算的闭式形式。因此，我们可以轻松地在这两种表示形式之间进行转换，使用对当前任务更方便的一种。另一方面，尽管这两种表示在表达能力上是等价的，但它们的参数化之间并没有一对一的对应关系
+>特别是，虽然最坏情况下，线性高斯表示和高斯表示具有相同数量的参数（习题7.6），但在某些情况下，一种表示形式可以比另一种显著更紧凑。
 
-Example 7.4 Consider a linear Gaussian network structured as a chain: 
+Example 7.4 
+Consider a linear Gaussian network structured as a chain: 
 
 $$
 X_{1}\rightarrow X_{2}\rightarrow\cdot\cdot\cdot\rightarrow X_{n}.
-$$ 
+$$
 
-Assuming the network parameter iz ation is not degenerate (that is, the network is a minimal I-map of its distribution), we have that each pair of variables $X_{i},X_{j}$ are correlated. In this case, as shown in theorem 7.1, the covariance matrix would be dense — none of the entries would be zero. Thus, the representation of the covariance matrix would require a quadratic number of parameters. In the information matrix, however, for all $X_{i},X_{j}$ that are not neighbors in the chain, we have that $X_{i}$ and $X_{j}$ are conditionally independent given the rest of the variables in the network; hence, by theorem 7.2, ${{J}_{i,j}}\mathrm{~=~}0$ . Thus, the information matrix has most of the entries being zero; the only nonzero entries are on the tridiagonal (the entries $i,j$ for $j=i-1,i,i+1)$ . 
+Assuming the network parameterization is not degenerate (that is, the network is a minimal I-map of its distribution), we have that each pair of variables $X_{i},X_{j}$ are correlated. In this case, as shown in theorem 7.1, the covariance matrix would be dense — none of the entries would be zero. Thus, the representation of the covariance matrix would require a quadratic number of parameters. In the information matrix, however, for all $X_{i},X_{j}$ that are not neighbors in the chain, we have that $X_{i}$ and $X_{j}$ are conditionally independent given the rest of the variables in the network; hence, by theorem 7.2, ${{J}_{i,j}}\mathrm{~=~}0$ . Thus, the information matrix has most of the entries being zero; the only nonzero entries are on the tridiagonal (the entries $i,j$ for $j=i-1,i,i+1)$ . 
 
 However, not all structure in a linear Gaussian network is represented in the information matrix. 
 
-Example 7.5 In a v-structure $X\rightarrow Z\leftarrow Y$ , we have that $X$ and $Y$ are marginally independent, but not con- ditionally independent given Z . Thus, according to theorem 7.2, the $X,Y$ entry in the information matrix would not be 0 . Conversely, because the variables are marginally independent, the $X,Y$ entry in the covariance entry would be zero. 
+Example 7.5 In a v-structure $X\rightarrow Z\leftarrow Y$ , we have that $X$ and $Y$ are marginally independent, but not conditionally independent given Z . Thus, according to theorem 7.2, the $X,Y$ entry in the information matrix would not be 0 . Conversely, because the variables are marginally independent, the $X,Y$ entry in the covariance entry would be zero. 
 
 Complicating the example somewhat, assume that $X$ and $Y$ also have a joint parent $W$ ; that is, the network is structured as a diamond. In this case, $X$ and $Y$ are still not independent given the remaining network variables $Z,W$ , and hence the $X,Y$ entry in the information matrix is nonzero. Conversely, they are also not marginally independent, and thus the $X,Y$ entry in the covariance matrix is also nonzero. 
 
 These examples simply recapitulate, in the context of Gaussian networks, the fundamental diference in expressive power between Bayesian networks and Markov networks. 
 
-# 7.3 Gaussian Markov Random Fields 
-
+## 7.3 Gaussian Markov Random Fields 
 We now turn to the representation of multivariate Gaussian distributions via an undirected graphical model. We ﬁrst show how a Gaussian distribution can be viewed as an MRF. This formulation is derived almost immediately from the information form of the Gaussian. Consider again equation (7.2). We can break up the expression in the exponent into two types of terms: those that involve single variables $X_{i}$ and those that involve pairs of variables $X_{i},X_{j}$ . The terms that involve only the variable $X_{i}$ are: 
 
 $$
 -\frac{1}{2}J_{i,i}x_{i}^{2}+h_{i}x_{i},
 $$ 
-
 where we recall that the potential vector $h=J\mu$ . The terms that involve the pair $X_{i},X_{j}$ are: 
 
 $$
 -\frac{1}{2}[J_{i,j}x_{i}x_{j}+J_{j,i}x_{j}x_{i}]=-J_{i,j}x_{i}x_{j},
 $$ 
-
 due to the symmetry of the information matrix. Thus, the information form immediately induces a pairwise Markov network, whose node potentials are derived from the potential vector and the diagonal elements of the information matrix, and whose edge potentials are derived from the of-diagonal entries of the information matrix. We also note that, when ${{J}_{i,j}}\mathrm{~=~}0$ , there is no edge between $X_{i}$ and $X_{j}$ in the model, corresponding directly to the independence assumption of the Markov network. 
 
 Gaussian MRF 
@@ -5715,16 +5738,13 @@ Thus, any Gaussian distribution can be represented as a pairwise Markov network 
 $$
 \begin{array}{r l}&{\ \ \ \epsilon_{i}(x_{i})=d_{0}^{i}+d_{1}^{i}x_{i}+d_{2}^{i}x_{i}^{2}}\\ &{\epsilon_{i,j}(x_{i},x_{j})=a_{00}^{i,j}+a_{01}^{i,j}x_{i}+a_{10}^{i,j}x_{j}+a_{11}^{i,j}x_{i}x_{j}+a_{02}^{i,j}x_{i}^{2}+a_{20}^{i,j}x_{j}^{2},}\end{array}
 $$ 
-
 where we used the log-linear notation of section 4.4.1.2. By aggregating like terms, we can reformulate any such set of potentials in the log-quadratic form: 
 
 $$
 p^{\prime}(\pmb{x})=\exp(-\frac{1}{2}\pmb{x}^{T}J\pmb{x}+h^{T}\pmb{x}),
 $$ 
-
 where we can assume without loss of generality that $J$ is symmetric. This Markov network deﬁnes a valid Gaussian density if and only if $J$ is a positive deﬁnite matrix. If so, then $J$ is a legal information matrix, and we can take $h$ to be a potential vector, resulting in a distribution in the form of equation (7.2). 
 
-# 
 
 However, unlike the case of Gaussian Bayesian networks, it is not the case that every set of quadratic node and edge potentials induces a legal Gaussian distribution. Indeed, the decom- position of equation (7.4) and equation (7.5) can be performed for any quadratic form, including one not corresponding to a positive deﬁnite matrix. For such matrices, the resulting function $\exp({\pmb x}^{T}A{\pmb x}+\bar{\pmb b}^{T}{\pmb x})$ will have an inﬁnite integral, and cannot be normalized to produce a valid density. Unfortunately, other than generating the entire information matrix and testing whether it is positive deﬁnite, there is no simple way to check whether the MRF is valid. In particular, there is no local test that can be applied to the network parameters that precisely characterizes valid Gaussian densities. However, there are simple tests that are sufcient to induce a valid density. While these conditions are not necessary, they appear to cover many of the cases that occur in practice. 
 
@@ -5778,8 +5798,7 @@ Consider the information matrix of example 7.2, with a mean vector 0 . We can de
 
 This example illustrates that the pairwise normalizability condition is easily checked for a speciﬁc MRF parameter iz ation. However, if our aim is to encode a particular Gaussian density as an MRF, we may have to actively search for a decomposition that satisﬁes the relevant constraints. If the information matrix is small enough to manipulate directly, this process is not difcult, but if the information matrix is large, ﬁnding an appropriate parameter iz ation may incur a nontrivial computational cost. 
 
-# 7.4 Summary 
-
+## 7.4 Summary 
 This chapter focused on the representation and independence properties of Gaussian networks. 
 
 We showed an equivalence of expressive power between three representational classes: mul- tivariate Gaussians, linear Gaussian Bayesian networks, and Gaussian MRFs. In particular, any distribution that can be represented in one of those forms can also be represented in another. We provided closed-form formulas that allow us convert between the multivariate Gaussian rep- resentation and the linear Gaussian Bayesian network. The conversion for Markov networks is simpler in some sense, inasmuch as there is a direct mapping between the entries in the infor- mation (inverse covariance) matrix of the Gaussian and the quadratic forms that parameterize the edge potentials in the Markov network. However, unlike the case of Bayesian networks, here we must take care, since not every quadratic parameter iz ation of a pairwise Markov network induces a legal Gaussian distribution: The quadratic form that arises when we combine all the pairwise potentials may not have a ﬁnite integral, and therefore may not be normalizable. In general, there is no local way of determining whether a pairwise MRF with quadratic potentials is normalizable; however, we provided some easily checkable sufcient conditions that are often sufcient in practice. 
@@ -5787,9 +5806,3 @@ We showed an equivalence of expressive power between three representational clas
 The equivalence between the diferent representations is analogous to the equivalence of Bayesian networks, Markov networks, and discrete distributions: any discrete distribution can be encoded both as a Bayesian network and as a Markov network, and vice versa. However, as in the discrete case, this equivalence does not imply equivalence of expressive power with respect to independence assumptions. In particular, the expressive power of the directed and undirected representations in terms of independence assumptions is exactly the same as in the discrete case: Directed models can encode the independencies associated with immoralities, whereas undirected models cannot; conversely, undirected models can encode a symmetric diamond, whereas directed models cannot. As we saw, the undirected models have a particularly elegant connection to the natural representation of the Gaussian distribution in terms of the information matrix; in particular, zeros in the information matrix for $p$ correspond precisely to missing edges in the minimal I-map Markov network for $p$ . 
 
 Finally, we note that the class of Gaussian distributions is highly restrictive, making strong assumptions that often do not hold in practice. Nevertheless, it is a very useful class, due to its compact representation and computational tractability (see section 14.2). Thus, in many cases, we may be willing to make the assumption that a distribution is Gaussian even when that is only a rough approximation. This approximation may happen a priori, in encoding a distribution as a Gaussian even when it is not. Or, in many cases, we perform the approximation as part of our inference process, representing intermediate results as a Gaussian, in order to keep the computation tractable. Indeed, as we will see, the Gaussian representation is ubiquitous in methods that perform inference in a broad range of continuous models. 
-
-# 7.5 Relevant Literature 
-
-The equivalence between the multivariate and linear Gaussian representations was ﬁrst derived by Wermuth (1980), who also provided the one-to-one transformations between them. The introduction of linear Gaussian dependencies into a Bayesian network framework was ﬁrst proposed by Shachter and Kenley (1989), in the context of inﬂuence diagrams. 
-
-Speed and Kiiveri (1986) were the ﬁrst to make the connection between the structure of the information matrix and the independence assumptions in the distribution. Building on earlier results for discrete Markov networks, they also made the connection to the undirected graph as a representation. Lauritzen (1996, Chapter 5) and Malioutov et al. (2006) give a good overview of the properties of Gaussian MRFs. 
