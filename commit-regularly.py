@@ -23,10 +23,9 @@ class GitCommitRegularly:
 
     def generate_headline(self) -> str:
         today = datetime.datetime.today()
+        day = today - datetime.timedelta(days=1) if self.late else today
 
         if self.status == 'daily':
-            day = today - datetime.timedelta(days=1) if self.late else today
-
             date_str = day.strftime("%Y-%m-%d")
             weekday_str = day.strftime("%A")
 
@@ -34,8 +33,6 @@ class GitCommitRegularly:
             return
 
         elif self.status == 'weekly':
-            day = today - datetime.timedelta(days=1)
-
             day_of_month = int(day.strftime("%d"))
             week_of_month = (day_of_month) // 7 + 1
 
