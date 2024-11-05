@@ -210,7 +210,7 @@
 
 ## November
 ### Week 1
-\[**Paper**\]
+\[Paper\]
 - [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]
     FlashAttention-2: 
     (1) tweak the algorithm, reducing the non-mamul op: remove the rescale of softmax weights in each inner loop, only do it in the end of inner loop
@@ -218,20 +218,34 @@
     (3) distribute the work between warps to reduce shared memory communication: divide $\mathbf Q$ block to warps and keep $\mathbf {K, V}$ blocks intact, the idea is similar to exchanging outer loop and inner loop, whichi makes the $\mathbf O$ blocks the warp responsible for be independent of each other, thus primarily reducing the shared memory reads/writes for the final accumlation
     FlashAttention-2 also uses thread blocks to load KV cache in parallel for iterative decoding
 
-\[**Book**\]
+\[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
     CH4.6.1-Conditional Random Fields: CRF models conditional distribution by partially directely graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditoinal distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict explanability, because the parameters learned has less semantics on their own.
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
     Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
-\[**Doc**\]
+\[Doc\]
 - [[Learn the Basics|pytorch-tutorials-beginner: Learn the Basics]]
 - [[pillow v11.0.0]]: Overview, Tutorial, Concepts
-- [[Repositories|huggingface-hub:Repositories]]: Sec1-Sec2
+- [[Repositories|huggingface-hub:Repositories]]: Sec1-Sec4
 - [[Getting Started|Triton: Tutorials]]: Matrix Multiply
 - [[Argparse Tutorial|argparse tutorial]]
 - [[CUDA C++ Programming Guide v12.6]]: CH1
 
 ## Week2
-\[**Book**\]
+\[Book\]
+- [[Probabilistic Graphical Models-Principles and Techniques]]: CH7.1-CH7.2
+    CH7.1-Multivariate Gaussians: 
+        Two parameterization: Standard, Information Matrix
+        Marginal and Conditional density of Joint Gaussian is Gaussian, and the Conditional density is also linear Gaussian model
+        Zero in $\Sigma$ implies linear independence in Joint Gaussian, which in turn implies statistical independence
+        Zero in $J$ implies conditional independence
+    CH7.2-Gaussian Bayesian Networks:
+        All CPDs being linear Gaussian model implies the joint density is Gaussian
 - [[A Tour of C++]] : CH7
+
+\[Doc\]
+- [[Annotations Best Practices]]
+    Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
+- [[Repositories|huggingface-hub:Repositories]]: Sec4-Sec10
+- [[CUDA C++ Programming Guide v12.6]]: CH1
