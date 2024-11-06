@@ -244,6 +244,7 @@
         All CPDs being linear Gaussian model implies the joint density is Gaussian
 - [[A Tour of C++]] : CH7
 
+
 \[Doc\]
 - [[Annotations Best Practices]]
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
