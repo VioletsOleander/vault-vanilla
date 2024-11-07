@@ -10,11 +10,13 @@ def get_content_after_heading(path, heading):
         else:
             content_lines.append('# ' + line.replace('**', ''))
 
-    return ''.join(reversed(content_lines))
+    return reversed(content_lines)
 
 
 if __name__ == "__main__":
     path = 'casual-notes/Commit Message Guide.md'
     heading = '## Commit Message Guide for Obsidian Vault'
-    content = get_content_after_heading(path, heading)
-    print(content)
+    content_lines = get_content_after_heading(path, heading)
+
+    with open('.git/COMMIT_EDITMSG', 'a', encoding='utf-8', newline='\n') as file:
+        file.writelines(content_lines)
