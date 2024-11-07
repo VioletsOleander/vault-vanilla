@@ -132,48 +132,84 @@ To address this problem, fine-grained batching mechanisms, such as cellular batc
 >此外，通过使用特殊的GPU kernel，这些技术消除了填充输入和输出的需求
 >细粒度的批处理机制通过减少排队延迟和填充所带来的低效率，显著提高了LLM服务的吞吐量
 
+# 3 Memory Challenges in LLM Serving 
+Although fine-grained batching reduces the waste of computing and enables requests to be batched in a more flexible way, the number of requests that can be batched together is still constrained by GPU memory capacity, particularly the space allocated to store the KV cache. In other words, the serving system’s throughput is memory-bound . Overcoming this memory-bound requires addressing the following challenges in the memory management: 
+> 细粒度的批处理减少了计算浪费 (消除了填充)，并且使得 requests 可以更灵活地批处理，但可以批处理的 requests 数量仍然受限于 GPU 显存容量，尤其是分配于存储 KV cache 的那部分显存空间大小
+> 换句话说，LLM 服务系统的吞吐量是 memory-bound，要克服它，需要我们解决以下显存管理的挑战：
+
+**Large KV cache.** The KV Cache size grows quickly with the number of requests. As an example, for the 13B parameter OPT model [62], the KV cache of a single token demands 800 KB of space, calculated as 2 (key and value vectors) $\times5120$ (hidden state size) $\times\ 40$ (number of layers) $\times\;2$ (bytes per FP16). Since OPT can generate sequences up to 2048 tokens, the memory required to store the KV cache of one request can be as much as 1.6 GB. Concurrent GPUs have memory capacities in the tens of GBs. Even if all available memory was allocated to KV cache, only a few tens of requests could be accommodated. Moreover, inefficient memory management can further decrease the batch size, as shown in Fig. 2. Additionally, given the current trends, the GPU’s computation speed grows faster than the memory capacity [17]. For example, from NVIDIA A100 to H100, The FLOPS increases by more than $2\mathrm{x}$ , but the GPU memory stays at 80GB maximum. Therefore, we believe the memory will become an increasingly significant bottleneck. 
+> Large KV cache
+> KV cache 的大小会随着 requests 数量快速增长
+> 例如，13B OPT 模型中单个 token 的 FP16 KV cache 需要 800KB 的空间 
+> ($2\times 5120\times 40 \times 2\  \text{bytes} = 800\ \text{KB}$)，OPT 生成序列长度上限是 2048 tokens，故单个 request 所需的 KV cache 空间可以达到 1.6 GB
+> 当前的 GPU 设备显存容量在几十 GB 的规模，因此即便全部显存分配给 KV cache，也仅能存下十几个 requests 的 KV cache
+> 并且，低效的内存管理会进一步减少 batch size
+> 当前的发展趋势是 GPU 的计算速度增长快于显存容量，例如 A100 到 H100 FLOPs 增长1倍，而显存保持 80GB 最大不变
+> 因此，显存将逐渐成为越加显著的瓶颈
+
+**Complex decoding algorithms.** LLM services offer a range of decoding algorithms for users to select from, each with varying implications for memory management complexity. For example, when users request multiple random samples from a single input prompt, a typical use case in program suggestion [18], the KV cache of the prompt part, which accounts for $12\%$ of the total KV cache memory in our experiment (§6.3), can be shared to minimize memory usage. On the other hand, the KV cache during the auto regressive generation phase should remain unshared due to the different sample results and their dependence on context and position. The extent of KV cache sharing depends on the specific decoding algorithm employed. In more sophisticated algorithms like beam search [49], different request beams can share larger portions (up to $55\%$ memory saving, see $\S6.3)$ of their KV cache, and the sharing pattern evolves as the decoding process advances. 
+> 复杂解码算法
+> LLM 服务提供了一系列解码算法供用户选择，这些算法各自都对内存管理的复杂有不同的影响
+> 例如，当用户从单个输入 prompt 请求多个随机样本时，prompt 部分的 KV cache (在我们的实验中占总 KV cache 内存的 $12\%$ )，可以被共享以最小化内存使用，当然自回归生成阶段的 KV cache 仍然是不共享的，因为每个采样的生成结果不同
+> KV cache 的共享程度取决于采用的特定解码算法，在更为复杂的算法例如 beam search 中，不同的 request beam 可以共享更大部分的 KV cache (因此节约最多 55% 的内存)，并且随着解码过程的推进，它们的共享模式也会发生变化
+
+**Scheduling for unknown input & output lengths.** The requests to an LLM service exhibit variability in their input and output lengths. This requires the memory management system to accommodate a wide range of prompt lengths. In addition, as the output length of a request grows at decoding, the memory required for its KV cache also expands and may exhaust available memory for incoming requests or ongoing generation for existing prompts. The system needs to make scheduling decisions, such as deleting or swapping out the KV cache of some requests from GPU memory. 
+> 对未知输入、输出长度的调度
+> 对 LLM 服务的 requests 的输入和输出长度一般都是不同的，这要求内存管理系统能够适应各种长度的 prompt
+> 另外，随着 request 的输出长度在解码中增长，其 KV cache 所需的内存也将增长，进而消耗掉为新的 request 或者为现存 prompt 的生成过程所准备的内存
+> 因此，系统需要进行调度决策，例如从 GPU 显存中删去或者换出一些 requests 的 KV cache
+
+## 3.1 Memory Management in Existing Systems
+Since most operators in current deep learning frameworks [33 , 39] require tensors to be stored in contiguous memory, previous LLM serving systems [31 , 60] also store the KV cache of one request as a contiguous tensor across the different positions. Due to the unpredictable output lengths from the LLM, they statically allocate a chunk of memory for a request based on the request’s maximum possible sequence length, irrespective of the actual input or eventual output length of the request. 
+> 当前的 DL 框架的大多数算子要求 tensor 存储在连续内存中，故之前的 LLM 服务系统将一个 request 的 KV cache 也作为连续的 tensor 存储
+> 因为 request 的输出长度不同，故这些系统基于 request 的最大可能序列长度为 request 静态地分配一个内存块，不关心 request 的实际输入和最终输出长度
+
+Fig. 3 illustrates two requests: request A with 2048 maximum possible sequence length and request B with a maximum of 512. The chunk pre-allocation scheme in existing systems has three primary sources of memory wastes: reserved slots for future tokens, internal fragmentation due to over-provisioning for potential maximum sequence lengths, and external fragmentation from the memory allocator like the buddy allocator. The external fragmentation will never be used for generated tokens, which is known before serving a request. Internal fragmentation also remains unused, but this is only realized after a request has finished sampling. They are both pure memory waste. Although the reserved memory is eventually used, reserving this space for the entire request’s duration, especially when the reserved space is large, occupies the space that could otherwise be used to process other requests. We visualize the average percentage of memory wastes in our experiments in Fig. 2, revealing that the actual effective memory in previous systems can be as low as $20.4\%$ . 
+> 如 Figure 3 所示，request A 的最大可能序列长度为 2048，request B 的最大可能序列长度是 512，现存系统的内存块预分配策略存在三种主要的内存浪费：为未来的 token 预留的 slot、为最大序列长度过度分配的内存导致的内部碎片、来自内存分配器 (例如 buddy 分配器) 的外部碎片
+> 其中，外部碎片在服务 request 之前就已知不会被使用，内部碎片仅在 request 完成采样之后才能确定不会被使用，二者都是完全的内存浪费
+> 而为未来 token 预留的内存虽然最终会被使用，但该空间也会在 request 的整个持续周期被预留，当预留的空间较大时，这也会占用本可以用于处理其他 request 的空间
+> Figure 2 展示了之前系统的实际有效内存使用率可能低至 20.4%
+
 
 ![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/0eae5fffcfcd85d0cc86275c3efdcda8af4e0bab90529cf121b6be6eb02bfc9d.jpg) 
 Figure 3. KV cache memory management in existing systems. Three types of memory wastes – reserved, internal fragmentation, and external fragmentation – exist that prevent other requests from fitting into the memory. The token in each memory slot represents its KV cache. Note the same tokens can have different KV cache when at different positions. 
 
-# 3 Memory Challenges in LLM Serving 
-Although fine-grained batching reduces the waste of computing and enables requests to be batched in a more flexible way, the number of requests that can be batched together is still constrained by GPU memory capacity, particularly the space allocated to store the KV cache. In other words, the serving system’s throughput is memory-bound . Overcoming this memory-bound requires addressing the following challenges in the memory management: 
-
-Large KV cache. The KV Cache size grows quickly with the number of requests. As an example, for the 13B parameter OPT model [62], the KV cache of a single token demands 800 KB of space, calculated as 2 (key and value vectors) $\times\times\times5120$ (hidden state size) $\times\ 40$ (number of layers) $\times\;2$ (bytes per FP16). Since OPT can generate sequences up to 2048 tokens, the memory required to store the KV cache of one request can be as much as 1.6 GB. Concurrent GPUs have memory capacities in the tens of GBs. Even if all available memory was allocated to KV cache, only a few tens of requests could be accommodated. Moreover, inefficient memory management can further decrease the batch size, as shown in Fig. 2. Additionally, given the current trends, the GPU’s computation speed grows faster than the memory capacity [17]. For example, from NVIDIA A100 to H100, The FLOPS increases by more than $2\mathrm{x}$ , but the GPU memory stays at 80GB maximum. Therefore, we believe the memory will become an increasingly significant bottleneck. 
-
-Complex decoding algorithms. LLM services offer a range of decoding algorithms for users to select from, each with varying implications for memory management complexity. For example, when users request multiple random samples from a single input prompt, a typical use case in program suggestion [18], the KV cache of the prompt part, which accounts for $12\%$ of the total KV cache memory in our experiment (§6.3), can be shared to minimize memory usage. On the other hand, the KV cache during the auto regressive generation phase should remain unshared due to the different sample results and their dependence on context and position. The extent of KV cache sharing depends on the specific decoding algorithm employed. In more sophisticated algorithms like beam search [49], different request beams can share larger portions (up to $55\%$ memory saving, see $\S6.3)$ of their KV cache, and the sharing pattern evolves as the decoding process advances. 
-
-Scheduling for unknown input & output lengths. The requests to an LLM service exhibit variability in their input and output lengths. This requires the memory management system to accommodate a wide range of prompt lengths. In addition, as the output length of a request grows at decoding, the memory required for its KV cache also expands and may exhaust available memory for incoming requests or ongoing generation for existing prompts. The system needs to make scheduling decisions, such as deleting or swapping out the KV cache of some requests from GPU memory. 
-
-## 3.1 Memory Management in Existing Systems
-Since most operators in current deep learning frameworks [33 , 39] require tensors to be stored in contiguous memory, previous LLM serving systems [31 , 60] also store the KV cache of one request as a contiguous tensor across the different positions. Due to the unpredictable output lengths from the LLM, they statically allocate a chunk of memory for a request based on the request’s maximum possible sequence length, irrespective of the actual input or eventual output length of the request. 
-
-Fig. 3 illustrates two requests: request A with 2048 maximum possible sequence length and request B with a maximum of 512. The chunk pre-allocation scheme in existing systems has three primary sources of memory wastes: reserved slots for future tokens, internal fragmentation due to over-provisioning for potential maximum sequence lengths, and external fragmentation from the memory allocator like the buddy allocator. The external fragmentation will never be used for generated tokens, which is known before serving a request. Internal fragmentation also remains unused, but this is only realized after a request has finished sampling. They are both pure memory waste. Although the reserved memory is eventually used, reserving this space for the entire request’s duration, especially when the reserved space is large, occupies the space that could otherwise be used to process other requests. We visualize the average percentage of memory wastes in our experiments in Fig. 2, revealing that the actual effective memory in previous systems can be as low as $20.4\%$ . 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/f21af158804c76b4975845649f35c1d88155ee443f9934ddeb5b6bda7f1fa0da.jpg) 
-Figure 4. vLLM system overview. 
-
 Although compaction [54] has been proposed as a potential solution to fragmentation, performing compaction in a performance-sensitive LLM serving system is impractical due to the massive KV cache. Even with compaction, the pre-allocated chunk space for each request prevents memory sharing specific to decoding algorithms in existing memory management systems. 
+> 一个解决碎片的方法是 compaction，但在性能敏感的 LLM 服务系统中执行 compaction 是不现实的，因为其 KV cache 十分庞大
+> 且即便使用 compaction，为每个 request 预留块空间的方法也不能实现 request 在特定的解码算法下共享内存
 
 # 4 Method 
-In this work, we develop a new attention algorithm, PagedAttention , and build an LLM serving engine, vLLM , to tackle the challenges outlined in $\S3$ . The architecture of vLLM is shown in Fig. 4. vLLM adopts a centralized scheduler tocoordinate the execution of distributed GPU workers. The KV cache manager effectively manages the KV cache in a paged fashion, enabled by Paged Attention. Specifically, the KV cache manager manages the physical KV cache memory on the GPU workers through the instructions sent by the centralized scheduler. 
+In this work, we develop a new attention algorithm, PagedAttention , and build an LLM serving engine, vLLM , to tackle the challenges outlined in $\S3$ . The architecture of vLLM is shown in Fig. 4. vLLM adopts a centralized scheduler to coordinate the execution of distributed GPU workers. The KV cache manager effectively manages the KV cache in a paged fashion, enabled by Paged Attention. Specifically, the KV cache manager manages the physical KV cache memory on the GPU workers through the instructions sent by the centralized scheduler. 
+> 我们提出新的 attention 算法 PagedAttention，并基于此构建 LLM 服务引擎 vLLM，vLLM 框架如 Figure 4 所示
+> Figure 4 中，中心化的调度器来协调分布式 GPU workers 的执行，KV cache 管理器通过中心化的调度器发送指令来管理 GPU workers 中的物理 KV cache 内存
+
+
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/f21af158804c76b4975845649f35c1d88155ee443f9934ddeb5b6bda7f1fa0da.jpg) 
+
+Figure 4. vLLM system overview. 
 
 Next, We describe the Paged Attention algorithm in $\S4.1$ . With that, we show the design of the KV cache manager in $\S4.2$ and how it facilitates Paged Attention in $\S4.3$ , respectively. Then, we show how this design facilitates effective memory management for various decoding methods (§4.4) and handles the variable length input and output sequences (§4.5). Finally, we show how the system design of vLLM works in a distributed setting (§4.6). 
 
 ## 4.1 Paged Attention 
-To address the memory challenges in $\S3$ , we introduce PagedAttention , an attention algorithm inspired by the classic idea of paging [25] in operating systems. Unlike the traditional attention algorithms, Paged Attention allows storing continuous keys and values in non-contiguous memory space. Specifically, Paged Attention partitions the KV cache of each sequence into KV blocks . Each block contains the key and value vectors for a fixed number of tokens, which we denote as $K V$ 
-
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/045cb8319a5cda9cc8c962eb581c9386cc9a1faf746e8d1e0f845d6759f1402f.jpg) 
-Figure 5. Illustration of the Paged Attention algorithm, where the attention key and values vectors are stored as non-contiguous blocks in the memory. 
-
-block size ( 𝐵 ). Denote the key block $K_{j}=(k_{(j-1)B+1},.\.\.,k_{j B})$ and value block $V_{j}=(v_{(j-1)B+1},.\.\.,v_{j B})$ . The attention computation in Eq. 4 can be transformed into the following blockwise computation: 
+To address the memory challenges in $\S3$ , we introduce PagedAttention , an attention algorithm inspired by the classic idea of paging [25] in operating systems. Unlike the traditional attention algorithms, Paged Attention allows storing continuous keys and values in non-contiguous memory space. Specifically, Paged Attention partitions the KV cache of each sequence into KV blocks . Each block contains the key and value vectors for a fixed number of tokens, which we denote as $K V$ block size ( $B$ ). Denote the key block $K_{j}=(k_{(j-1)B+1},\dots,k_{j B})$ and value block $V_{j}=(v_{(j-1)B+1},\dots,v_{j B})$ . The attention computation in Eq. 4 can be transformed into the following blockwise computation: 
 
 $$
-A_{i j}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}1/\sqrt{d})},\;o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{i j}^{\top},
-$$ 
+A_{i j}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}\mathbf 1/\sqrt{d})},\;o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{i j}^{\top},\tag{4}
+$$
 
-where $A_{i j}=\left(a_{i,(j-1)B+1},.\.\,.\,,a_{i,j B}\right)$ is the row vector of attention score on $j$ -th KV block. 
+where $A_{i j}=\left(a_{i,(j-1)B+1},\dots,a_{i,j B}\right)$ is the row vector of attention score on $j$ -th KV block. 
 
-During the attention computation, the Paged Attention kernel identifies and fetches different KV blocks separately. We show an example of Paged Attention in Fig. 5: The key and value vectors are spread across three blocks, and the three blocks are not contiguous on the physical memory. At each time, the kernel multiplies the query vector $q_{i}$ of the query token $(^{\alpha}f o r t h")$ and the key vectors $K_{j}$ in a block (e.g., key vectors of “ Four score and seven ” for block 0) to compute the attention score $A_{i j}$ , and later multiplies $A_{i j}$ with the value vectors $V_{j}$ in a block to derive the final attention output $o_{i}$ . 
+> PagedAttention 允许将连续的 keys 和 values 存储在非连续的内存空间
+> 具体地说，PagedAttention 将每个序列的 KV cache 划分为 KV  blocks，包括 key blocks 和 value blocks，每个 key/value block 包含序列中 block size ( $B$ ) 个 token 对应的 keys 和 values，分别记作 $K_j = (k_{(j-1) B + 1}, \dots, k_{jB})$ 和 $V_j = (v_{(j-1)B + 1}, \dots, v_{jB})$
+> PagedAttention 进而将 eq 3 的 attention 计算转化为如上的逐块的运算，其中 $A_{ij} = (a_{i, (j-1) B+1}, \dots, a_{i, jB})$ 为 $q_i$ 相对于第 $j$ 个 K block 的 attention score 向量
+> (注：公式 (4) 显然存在错误，正确的公式应该将 $\mathbf 1$ 放在 $\exp$ 外，并且 $\mathbf 1$ 应该同时作为 indicator function，满足第 $\lceil i / B \rceil$ 的块中 $j > i$ 的 $k_j$ 对应的 $\exp (q_i^\top k_j/\sqrt d)$ 乘上零) 
+
+During the attention computation, the Paged Attention kernel identifies and fetches different KV blocks separately. We show an example of Paged Attention in Fig. 5: The key and value vectors are spread across three blocks, and the three blocks are not contiguous on the physical memory. At each time, the kernel multiplies the query vector $q_{i}$ of the query token (*"forth"*) and the key vectors $K_{j}$ in a block (e.g., key vectors of *“Four score and seven”* for block 0) to compute the attention score $A_{i j}$ , and later multiplies $A_{i j}$ with the value vectors $V_{j}$ in a block to derive the final attention output $o_{i}$ . 
+> 在 attention 计算过程中，PagedAttention kernel 会识别并分别取不同的 KV blocks
+
+
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/045cb8319a5cda9cc8c962eb581c9386cc9a1faf746e8d1e0f845d6759f1402f.jpg) 
+Figure 5. Illustration of the Paged Attention algorithm, where the attention key and values vectors are stored as non-contiguous blocks in the memory.
 
 In summary, the Paged Attention algorithm allows the KV blocks to be stored in non-contiguous physical memory, which enables more flexible paged memory management in vLLM. 
 
