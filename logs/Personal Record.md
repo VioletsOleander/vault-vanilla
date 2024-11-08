@@ -233,6 +233,9 @@
 - [[CUDA C++ Programming Guide v12.6]]: CH1
 
 ## Week2
+\[Paper\]
+- [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]
+
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH7.1-CH7.2
     CH7.1-Multivariate Gaussians: 
@@ -242,7 +245,7 @@
         Zero in $J$ implies conditional independence
     CH7.2-Gaussian Bayesian Networks:
         All CPDs being linear Gaussian model implies the joint density is Gaussian
-- [[A Tour of C++]] : CH7
+- [[A Tour of C++]] : CH7-CH8
 
 
 \[Doc\]
