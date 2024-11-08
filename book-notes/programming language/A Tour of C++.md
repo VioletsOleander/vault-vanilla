@@ -189,7 +189,7 @@ The order of evaluation of expressions is left to right, except for assignments,
 > 赋值表达式是例外，从右到左
 > 函数参数估值的顺序一般未定义
 ### 1.4.2 Initialization
-Before an object can be used, it must be given a value. $\mathrm{C++}$ offers a variety of notations for expressing initialization, such as the $=$ used above, and a universal form based on curly-brace- delimited initializer lists:
+Before an object can be used, it must be given a value. $\mathrm{C++}$ offers a variety of notations for expressing initialization, such as the $=$ used above, and a universal form based on curly-brace-delimited initializer lists:
 > 对象被使用之前必须被给定一个值
 > C++提供了 `=` 以及 `{}` 用于初始化
 
@@ -4551,8 +4551,19 @@ The instantiation-time type checking provided for templates checks the use of ar
 To use an unconstrained template, its definition (not just its declaration) must be in scope at its point of use. For example, the standard header `<vector>` holds the definition of vector . In practice, this means that template definitions are typically found in header files, rather than .cpp files. This changes when we start to use modules (§3.3). Using modules, the source code is organized in the same way for ordinary functions and template functions. In both cases, definitions will be protected against the problems of textual inclusion.
 >要使用无约束模板，它的定义必须 (不仅仅是声明) 和它的使用点处于相同的作用域，例如，标准头文件 `<vector>` 就包含了 `vector` 的定义
 >实际上，这意味着模板定义通常就位于头文件中，而不是 `.cpp` 文件中
->这种情况在我们开始使用模块 (第3.3节) 时会发生变化，使用模块时，源代码的组织方式对于普通函数和模板函数是相同的
->在这两种情况下，定义都受到文本包含问题的保护
+>这种情况在我们开始使用模块 (第3.3节) 时会发生变化，使用模块时，源代码的组织方式对于普通函数和模板函数是相同的，并且普通函数的定义和模板函数的定义都能被保护起来，避免传统头文件包含 (textual inclusion) 带来的问题
+
+>[! 传统的头文件包含带来的问题]
+>1. 重复编译：在传统的头文件包含机制中，如果多个源文件都包含了同一个头文件，那么该头文件中的代码会被多次编译，增加了编译时间和资源消耗。
+>2. 命名冲突：头文件中的全局名称（如函数名、变量名等）可能会与其他头文件中的名称发生冲突，导致编译错误。
+>3. 依赖关系复杂：随着项目的增大，头文件之间的依赖关系变得越来越复杂，管理这些依赖关系变得更加困难。
+>4. 编译单元污染：包含不必要的头文件可能会将不需要的符号引入到编译单元中，导致代码膨胀和潜在的性能问题。
+
+>[! 使用模块的优势]
+>- 模块化编译：模块在编译时被单独处理，生成中间表示（如 C++20的模块接口单元），这样在其他地方使用该模块时，只需要链接这些预编译的中间表示，而不是重新编译模块的源代码。
+>- 命名空间隔离：模块提供了一个独立的命名空间，可以避免不同模块之间的命名冲突。
+>- 依赖管理：模块明确指定了其依赖关系，编译器可以更有效地管理和解析这些依赖，减少编译时间和复杂性。
+>- 减少编译单元污染：模块只导出显式声明的接口，不会将不必要的符号引入到使用该模块的编译单元中。
 
 ## 7.6 Advice
 [1] Templates provide a general mechanism for compile-time programming; $\S7.1$ .
@@ -4562,7 +4573,7 @@ To use an unconstrained template, its definition (not just its declaration) must
 [5] Specify concepts for all template arguments; $\S7.2$ ; [CG: T.10].
 [6] Whenever possible use standard concepts (e.g., the Ranges concepts); $\S7.2.4$ ; [CG: T.11].
 [7] Use a lambda if you need a simple function object in one place only; $\S6.3.2$ .
-[8] There is no separate compilation of templates: #include template definitions in every transla- tion unit that uses them.
+[8] There is no separate compilation of templates: #include template definitions in every translation unit that uses them.
 [9] Use templates to express containers and ranges; $\S7.3.2$ ; [CG: T.3].
 [10] Avoid ‘‘concepts’’ without meaningful semantics; $\S7.2$ ; [CG: T.20].
 [11] Require a complete set of operations for a concept; $\S7.2$ ; [CG: T.21].
@@ -4570,6 +4581,22 @@ To use an unconstrained template, its definition (not just its declaration) must
 [13] Don’t use variadic templates for homogeneous argument lists (prefer initializer lists for that); $\S7.4$ .
 [14] To use a template, make sure its definition (not just its declaration) is in scope; $\S7.5$ .
 [15] Templates offer compile-time ‘‘duck typing’’; $\S7.5$ .
+
+> 1. 模板为编译时编程提供了通用的机制
+> 2. 设计模板时，仔细考虑为模板参数需要服从的概念 (要求)
+> 3. 设计模板时，在最初实现、debug、衡量时使用具体的版本
+> 4. 使用概念作为设计工具
+> 5. 为所有模板参数指定概念
+> 6. 尽可能使用标准概念，例如 Ranges 等
+> 7. 如果仅需要在一个地方使用简单的函数对象，使用 lambda 表达式
+> 8. 模板不能进行分离编译，需要在每个使用模板的编译单元中 `#include` 模板定义
+> 9. 使用模板表示容器和范围
+> 10. 避免没有有意义的语义的概念
+> 11. 要求概念具有完整的一组操作
+> 12. 需要一个可以处理多个数量、各种类型的参数的函数时，使用变参模板
+> 13. 不要为同质参数列表使用变参模板 (该情况下使用初始化列表更好)
+> 14. 使用模板时，确保其定义 (不仅仅是声明) 在作用域内
+> 15. 模板提供了编译时的“鸭子类型”
 
 # 8 Library Overview
 ## 8.1 Introduction
@@ -4579,67 +4606,126 @@ Continuing from Chapters 1–7, Chapters 9–15 give a quick tour of key standar
 
 As in Chapters 1–7, you are strongly encouraged not to be distracted or discouraged by an incomplete understanding of details. The purpose of this chapter is to convey a basic understanding of the most useful library facilities.
 
-The specification of the standard library is over two thirds of the ISO $\mathrm{C++}$ standard. Explore it, and prefer it to home-made alternatives. Much thought has gone into its design, more still into its implementations, and much effort will go into its maintenance and extension.
+The specification of the standard library is over two thirds of the ISO $\mathrm{C++}$ standard. Explore it, and prefer it to home-made alternatives. Much thought has gone into its design, more still into its implementations, and much effort will go into its maintenance and extension. 
+> 标准库的规范占据了ISO C++标准的三分之二以上。应该探索标准库，并优先选择它提供的功能，而不是自制的替代方案。标准库的设计经过了深思熟虑，实现过程更是耗费了大量精力，未来还将持续投入精力对其进行维护和扩展。
 
-The standard-library facilities described in this book are part of every complete $\mathrm{C++}$ implemen- tation. In addition to the standard-library components, most implementations offer ‘‘graphical user interface’’ systems (GUIs), Web interfaces, database interfaces, etc. Similarly, most application- development environments provide ‘‘foundation libraries’’ for corporate or industrial ‘‘standard’’ development and/or execution environments. Here, I do not describe such systems and libraries.
+The standard-library facilities described in this book are part of every complete $\mathrm{C++}$ implementation. In addition to the standard-library components, most implementations offer ‘‘graphical user interface’’ systems (GUIs), Web interfaces, database interfaces, etc. Similarly, most application- development environments provide ‘‘foundation libraries’’ for corporate or industrial ‘‘standard’’ development and/or execution environments. Here, I do not describe such systems and libraries.
+>这本书中介绍的标准库功能是每个完整的 C++ 实现的一部分
+>除了标准库组件外，大多数 C++ 实现还提供“图形用户界面”系统（GUI）、Web 接口、数据库接口等，同样地，大多数应用程序开发环境为公司或工业“标准”开发和/或运行环境提供了“基础库”，这里不对这些库进行描述
 
-The intent is to provide a self-contained description of $\mathrm{C++}$ as defined by the standard and to keep the examples portable. Naturally, a programmer is encouraged to explore the more extensive facili- ties available on most systems.
+The intent is to provide a self-contained description of $\mathrm{C++}$ as defined by the standard and to keep the examples portable. Naturally, a programmer is encouraged to explore the more extensive facilities available on most systems.
+>这里的目的是提供一个由标准定义的 C++ 的自洽的描述，并保持示例的可移植性
 
-# 8.2 Standard-Library Components
-
+## 8.2 Standard-Library Components
 The facilities provided by the standard library can be classified like this:
 
-• Run-time language support (e.g., for allocation and run-time type information). • The C standard library (with very minor modifications to minimize violations of the type system). • Strings (with support for international character sets, localization, and read-only views of substrings); see $\S9.2$ . • Support for regular expression matching; see $\S9.4$ . • I/O streams is an extensible framework for input and output to which users can add their own types, streams, buffering strategies, locales, and character sets (Chapter 10). There is also a library for manipulating file systems in a portable manner (§10.10). • A framework of containers (such as vector and map ) and algorithms (such as find () , sor t () , and merge () ); see Chapter 11 and Chapter 12. This framework, conventionally called the STL [Stepanov, 1994], is extensible so users can add their own containers and algorithms. • Support for numerical computation (such as standard mathematical functions, complex numbers, vectors with arithmetic operations, and random number generators); see $\S4.2.1$ and Chapter 14. • Support for concurrent programming, including thread s and locks; see Chapter 15. The con- currency support is foundational so that users can add support for new models of concur- rency as libraries. • Parallel versions of most STL algorithms and some numerical algorithms (e.g., sor t () and reduce () ); see $\S12.9$ and $\S14.3.1$ . • Utilities to support template metaprogramming (e.g., type traits; $\S13.9$ ), STL-style generic programming (e.g., pair ; $\S13.4.3)$ , general programming (e.g., variant and optional; $\S13.5.1$ , $\S13.5.2)$ , and clock (§13.7). • Support for efficient and safe management of general resources, plus an interface to optional garbage collectors (§5.3). • ‘‘Smart pointers’’ for resource management (e.g., unique_ptr and shared_ptr ; $\S13.2.1$ ). • Special-purpose containers, such as array (§13.4.1), bitset $(\S13.4.2)$ , and tuple (§13.4.3). • Suffixes for popular units, such as ms for milliseconds and i for imaginary (§5.4.4). The main criteria for including a class in the library were that: • it could be helpful to almost every $\mathrm{C++}$ programmer (both novices and experts), • it could be provided in a general form that did not add significant overhead compared to a simpler version of the same facility, and • simple uses should be easy to learn (relative to the inherent complexity of their task).
+- Run-time language support (e.g., for allocation and run-time type information). 
+- The C standard library (with very minor modifications to minimize violations of the type system). 
+- Strings (with support for international character sets, localization, and read-only views of substrings); see $\S9.2$ . 
+- Support for regular expression matching; see $\S9.4$ . 
+- I/O streams is an extensible framework for input and output to which users can add their own types, streams, buffering strategies, locales, and character sets (Chapter 10). There is also a library for manipulating file systems in a portable manner (§10.10). 
+- A framework of containers (such as vector and map ) and algorithms (such as find () , sort () , and merge () ); see Chapter 11 and Chapter 12. This framework, conventionally called the STL [Stepanov, 1994], is extensible so users can add their own containers and algorithms. 
+- Support for numerical computation (such as standard mathematical functions, complex numbers, vectors with arithmetic operations, and random number generators); see $\S4.2.1$ and Chapter 14. 
+- Support for concurrent programming, including thread s and locks; see Chapter 15. The concurrency support is foundational so that users can add support for new models of concurrency as libraries. 
+- Parallel versions of most STL algorithms and some numerical algorithms (e.g., sort() and reduce() ); see $\S12.9$ and $\S14.3.1$ . 
+- Utilities to support template metaprogramming (e.g., type traits; $\S13.9$ ), STL-style generic programming (e.g., pair ; $\S13.4.3)$ , general programming (e.g., variant and optional; $\S13.5.1$ , $\S13.5.2)$ , and clock (§13.7). 
+- Support for efficient and safe management of general resources, plus an interface to optional garbage collectors (§5.3). 
+- ‘‘Smart pointers’’ for resource management (e.g., unique_ptr and shared_ptr ; $\S13.2.1$ ). 
+- Special-purpose containers, such as array (§13.4.1), bitset $(\S13.4.2)$ , and tuple (§13.4.3). 
+- Suffixes for popular units, such as ms for milliseconds and i for imaginary (§5.4.4). 
+
+>标准库提供的功能可以分类如下：
+>- 运行时语言支持（例如，用于内存分配和运行时类型信息）。
+>- C 标准库（进行了非常小的修改以尽量减少对类型系统的违反）。
+>- 字符串（支持国际化字符集、本地化以及只读子字符串视图）；见第9.2节。
+>- 正则表达式匹配支持；见第9.4节。
+>- 输入输出流是一个可扩展框架，用户可以添加自己的类型、流、缓冲策略、区域设置和字符集（第十章）。还有一个库用于以可移植方式操作文件系统（10.10节）。
+>- 容器（如 `vector`  和 `map`）和算法（如 `find()`、`sort()` 和 `merge()`）的框架；见第十一章和第十二章。这个框架通常称为STL [Stepanov, 1994]，是可扩展的，因此用户可以添加自己的容器和算法。
+>- 数值计算支持（如标准数学函数、复数、带算术运算的向量和随机数生成器）；见第4.2.1节和第十四章。
+>- 并发编程支持，包括线程和锁；见第十五章。并发支持是基础性的，以便用户可以添加新的并发模型作为库
+>- 大多数STL算法和一些数值算法的并行版本（如 `sort()` 和 `reduce()`）；见第12.9节和第14.3.1节。
+>- 支持模板元编程（如类型特征；第13.9节）、STL风格泛型编程（如 `pair`；第13.4.3节）、通用编程（如 `variant` 和 `optional`；第13.5.1节、第13.5.2节）和 `clock`（第13.7节）的工具。
+>- 高效且安全地管理通用资源的工具，以及一个对可选的垃圾收集器的接口（第5.3节）。
+>- 资源管理的“智能指针”（如 `unique_ptr` 和 `shared_ptr`；第13.2.1节）。
+>- 特殊用途容器，如 `array`（第13.4.1节）、`bitset`（第13.4.2节）和 `tuple`（第13.4.3节）。
+>- 常用单位的后缀，如毫秒的 `ms` 和虚数的 `i`（第5.4.4节）。
+
+
+The main criteria for including a class in the library were that: 
+- it could be helpful to almost every $\mathrm{C++}$ programmer (both novices and experts), 
+- it could be provided in a general form that did not add significant overhead compared to a simpler version of the same facility, and 
+- simple uses should be easy to learn (relative to the inherent complexity of their task).
+>将类纳入库的主要标准是：
+>- 它几乎对每个 C++ 程序员（包括初学者和专家）都有帮助，
+>- 它可以以一种不会比同一功能的简单版增加显著开销的一般形式提供，
+>- 其简单的使用应该容易学习（相对于其执行的任务的固有复杂性而言）。
 
 Essentially, the $\mathrm{C++}$ standard library provides the most common fundamental data structures together with the fundamental algorithms used on them.
+>本质上，C++ 标准库提供了最常用的底层数据结构即对这些数据结构进行操作的算法
 
-# 8.3 Standard-Library Headers and Namespace
-
+## 8.3 Standard-Library Headers and Namespace
 Every standard-library facility is provided through some standard header. For example:
+>每个标准库功能都是通过某个标准头文件提供的。例如：
 
-#include<string> #include<list>
+```cpp
+#include<string>
+#include<list>
+```
 
-This makes the standard string and list available. The standard library is defined in a namespace (§3.4) called std . To use standard-library facili- ties, the std:: prefix can be used:
+This makes the standard `string` and `list` available. 
+>这使得标准的 `string` 和 `list` 可用。
 
-std:: string sheep {"Four legs Good; two legs Baaad!"}; std::list<std::string> slogans {"War is Peace", "Freedom is Slaver y", "Ignorance is Strength"};
+The standard library is defined in a namespace (§3.4) called `std` . To use standard-library facilities, the `std::` prefix can be used:
+>标准库定义在一个名为 `std` 的命名空间中（第3.4节）
+>要使用标准库功能，需要使用 `std::` 前缀：
 
-For simplicity, I will rarely use the std:: prefix explicitly in examples. Neither will I always #include the necessary headers explicitly. To compile and run the program fragments here, you must #include the appropriate headers and make the names they declare accessible. For example:
+```cpp
+std::string sheep {"Four legs Good; two legs Baaad!"};
+std::list<std::string> slogans {"War is Peace", "Freedom is Slaver y", "Ignorance is Strength"};
+```
 
-#include<string> // make the standard string facilities accessible using namespace std; // make std names available without std:: prefix
+For simplicity, I will rarely use the `std::` prefix explicitly in examples. Neither will I always `#include` the necessary headers explicitly. To compile and run the program fragments here, you must `#include` the appropriate headers and make the names they declare accessible. For example:
+>为了简化起见，示例中很少会显式使用 `std::` 前缀，也不会总是显式包含必要的头文件，但要编译和运行这里的程序片段，必须包含适当的头文件并使它们声明的名称可访问。例如：
 
-string s $\{"{\mathbb{C}}_{++}$ is a general−purpose programming language"}; // OK: string is std::string
+```cpp
+#include<string> // make the standard string facilities accessible
+using namespace std // make std names available without std:: prefix
 
-It is generally in poor taste to dump every name from a namespace into the global namespace. However, in this book, I use the standard library exclusively and it is good to know what it offers. Here is a selection of standard-library headers, all supplying declarations in namespace std :
+string s {"C++ is a general-purpose programming language"}; // OK: string is std::string
+```
 
-![](images/c7bc87d0fe6380e5051533da2d982f80f1b271924d8a75dc3e0f666cd286cc5b.jpg)
+It is generally in poor taste to dump every name from a namespace into the global namespace. However, in this book, I use the standard library exclusively and it is good to know what it offers. 
+>通常情况下，将命名空间中的所有名称都倒入全局命名空间是不好的做法
 
-![](images/e0ed7e0b99eea8b7c8c0deb1b8103092801246f525f29c9876988e221344c373.jpg) 
-This listing is far from complete. Headers from the C standard library, such as <stdlib. h> are provided. For each such header there is also a version with its name prefixed by c and the .h removed. This version, such as <cstdlib> places its declarations in the std namespace.
+Here is a selection of standard-library headers, all supplying declarations in namespace `std` :
+>以下是一些标准库头文件的选择，它们都在 `std` 命名空间中提供声明：
 
-# 8.4 Advice
+![[A Tour of C++-Selected Std Headers.png]]
 
+This listing is far from complete. Headers from the C standard library, such as `<stdlib.h>` are provided. For each such header there is also a version with its name prefixed by c and the .h removed. This version, such as `<cstdlib>` places its declarations in the std namespace.
+>这个列表远未完整。C 标准库的头文件，例如 `<stdlib.h>`，也已提供。对于每个这样的头文件，还有另一个版本，其名字前缀加上 `c` 并去掉了 `.h`。这种版本，如 `<cstdlib>`，将其声明放在 `std` 命名空间中。
+
+## 8.4 Advice
 [1] Don’t reinvent the wheel; use libraries; $\S8.1$ ; [CG: SL. 1.]
-
 [2] When you have a choice, prefer the standard library over other libraries; $\S8.1$ ; [CG: SL. 2].
-
 [3] Do not think that the standard library is ideal for everything; $\S8.1$ .
-
-[4] Remember to #include the headers for the facilities you use; $\S8.3$ .
-
+[4] Remember to `#include` the headers for the facilities you use; $\S8.3$ .
 [5] Remember that standard-library facilities are defined in namespace std ; $\S8.3$ ; [CG: SL. 3].
+>1. 不要重复造轮子，使用库；见第8.1节；[CG: SL. 1]。
+>2. 当你有选择时，优先使用标准库而非其他库；见第8.1节；[CG: SL. 2]。
+>3. 不要认为标准库适合一切；见第8.1节。
+>4. 记得 `#include`  你所使用的功能对应的头文件；见第8.3节。
+>5. 记住，标准库的功能是在 `std` 命名空间中定义的；见第8.3节；[CG: SL. 3]。
 
-# Strings and Regular Expressions
+# 9 Strings and Regular Expressions
+## 9.1 Introduction
+Text manipulation is a major part of most programs. The $\mathrm{C++}$ standard library offers a string type to save most users from C-style manipulation of arrays of characters through pointers. A string_view type allows us to manipulate sequences of characters however they may be stored (e.g., in a std:: string or a char[] ). In addition, regular expression matching is offered to help find patterns in text. The regular expressions are provided in a form similar to what is common in most modern languages. Both string s and reg ex objects can use a variety of character types (e.g., Unicode).
+> C++标准库提供 `string` 类型
+> `string_view` 类型方便我们在无视字符序列是如何存储的情况下 ( `std::string` 或 `char[]` ) 对其进行操作
+> C++标准库提供了正则表达式类型 `regex`
+> `string` 和 `regex` 类型都可以使用多种字符类型 (例如 Unicode)
 
-Prefer the standard to the offbeat. – Strunk & White
-
-• Introduction • Strings string Implementation; • String Views • Regular Expressions Searching; Regular Expression Notation; Iterators • Advice
-
-# 9.1 Introduction
-
-Te xt manipulation is a major part of most programs. The $\mathrm{C++}$ standard library offers a string type to save most users from C-style manipulation of arrays of characters through pointers. A string_view type allows us to manipulate sequences of characters however they may be stored (e.g., in a std:: string or a char[] ). In addition, regular expression matching is offered to help find patterns in text. The regular expressions are provided in a form similar to what is common in most modern languages. Both string s and reg ex objects can use a variety of character types (e.g., Unicode).
-
-# 9.2 Strings
-
+## 9.2 Strings
 The standard library provides a string type to complement the string literals (§1.2.1); string is a Reg- ular type $(\S7.2,\S12.7)$ for owning and manipulating a sequence of characters of various character types. The string type provides a variety of useful string operations, such as concatenation. For example:
 
 string compose (const string& name, const string& domain) { return name $+\ ^{\intercal}@^{\intercal}+$ domain; }
