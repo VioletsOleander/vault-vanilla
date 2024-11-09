@@ -629,15 +629,14 @@ scopes:
     - paper
     - book
     - lecture
-    - doc
     - course
     - causal
-    - homework
 - log
     - daily
     - weekly
 - doc
     - `<doc-dir>`
+- homework
 
 subjects:
 - note
