@@ -3194,7 +3194,6 @@ $$
 
 其中第三个等号来源于将每个因子根据上下文筛选和直接相乘再对乘积进行上下文筛选是一致的，其结果都等价于将原 Gibbs 分布在上下文下简化得到的 Gibbs 分布，因为因子乘积结果中和上下文一致的一项来源于每个因子中和上下文一致的各项相乘得到
 其中第四个等号直接来源于定义，即简化的因子应该满足 $\phi' (\pmb w)[\pmb e] = \phi (\pmb w, \pmb e)$
-
 因此，划分函数 $Z' = \sum_{\pmb w} P_{\mathcal B}(\pmb W, \pmb e) = P_{\mathcal B}(\pmb e)$
 证毕 )
 
@@ -5450,7 +5449,7 @@ Because positive deﬁnite matrices are invertible, one can also utilize an alte
 $$
 \begin{array}{r c l}{{-\displaystyle\frac{1}{2}({\boldsymbol x}-{\boldsymbol\mu})^{T}\Sigma^{-1}({\boldsymbol x}-{\boldsymbol\mu})}}&{{=}}&{{-\displaystyle\frac{1}{2}({\boldsymbol x}-{\boldsymbol\mu})^{T}J({\boldsymbol x}-{\boldsymbol\mu})}}\\ {{}}&{{=}}&{{-\displaystyle\frac{1}{2}\left[{\boldsymbol x}^{T}J{\boldsymbol x}-2{\boldsymbol x}^{T}J{\boldsymbol\mu}+{\boldsymbol\mu}^{T}J{\boldsymbol\mu}\right].}}\end{array}
 $$ 
-The last term is constant, so we obtain: 
+The last term is constant, so we obtain:
 
 $$
 p(\pmb{x})\propto\exp\left[-\frac12\pmb{x}^{T}J\pmb{x}+(J\pmb{\mu})^{T}\pmb{x}\right].\tag{7.2}
@@ -5570,7 +5569,7 @@ At ﬁrst glance, it seems that conditional independencies are not quite as appa
 > 协方差矩阵容易看出边际独立性，信息矩阵容易看出条件独立性
 
 **Theorem 7.2** 
-Consider a Gaussian distribution $p(X_{1},.\,.\,.\,,X_{n})=\mathcal{N}\left(\pmb{\mu};\Sigma\right)$ , and let $J=\Sigma^{-1}$ be the information matrix. Then ${{J}_{i,j}}=0$ if and only if $\cdot p=(X_{i}\perp X_{j}\mid\mathcal{X}-\{X_{i},X_{j}\})$ ⊥ | X −{ } . 
+Consider a Gaussian distribution $p(X_{1},.\,.\,.\,,X_{n})=\mathcal{N}\left(\pmb{\mu};\Sigma\right)$ , and let $J=\Sigma^{-1}$ be the information matrix. Then ${{J}_{i,j}}=0$ if and only if $\cdot p=(X_{i}\perp X_{j}\mid\mathcal{X}-\{X_{i},X_{j}\})$  . 
 > 定理：
 > 考虑高斯分布 $p (X_1, \dots, X_n) = \mathcal N (\pmb \mu; \Sigma)$，$J = \Sigma^{-1}$ 为信息矩阵，则 $J_{ij} = 0$ 当且仅当 $p \vDash (X_1 \perp X_j \mid \mathcal X - \{X_1, X_j\}$)
 > ($J_{ij} \ne 0$ 意味着 $X_j, X_i$ 之间存在直接的相互作用，因此给定其他所有变量后，二者仍然相互依赖；$J_{ij} = 0$ 意味着 $X_j, X_i$ 之间没有直接的相互作用，二者的相关性是通过其他变量间接产生的，因此二者在给定其他变量时条件独立)
@@ -5871,55 +5870,51 @@ Finally, we note that the class of Gaussian distributions is highly restrictive,
 
 # Part 2 Inference
 # 9  Exact Inference: Variable Elimination 
-In this chapter, we discuss the problem of performing inference in graphical models. We show that the structure of the network, both the conditional independence assertions it makes and the associated factorization of the joint distribution, is critical to our ability to perform inference efectively, allowing tractable inference even in complex networks. 
+In this chapter, we discuss the problem of performing inference in graphical models. We show that the structure of the network, both the conditional independence assertions it makes and the associated factorization of the joint distribution, is critical to our ability to perform inference effectively, allowing tractable inference even in complex networks. 
+> 本章讨论图模型中的推理
 
-conditional probability query 
+Our focus in this chapter is on the most common query type: the conditional probability query , $P(Y\mid E=e)$ (see section 2.1.5). We have already seen several examples of conditional probability queries in chapter 3 and chapter 4; as we saw, such queries allow for many useful reasoning patterns, including explanation, prediction, intercausal reasoning, and many more. 
+> 本章聚焦于条件概率查询 $P (\pmb Y \mid \pmb E = \pmb e)$
 
-Our focus in this chapter is on the most common query type: the conditional probability query , $P(Y\mid E=e)$ (see section 2.1.5). We have already seen several examples of conditional probability queries in chapter 3 and chapter 4; as we saw, such queries allow for many useful reasoning patterns, including explanation, prediction, intercausal reasoning, and many more. By the deﬁnition of conditional probability, we know that 
-
-$$
-P(Y\mid E=e)=\frac{P(Y,e)}{P(e)}.
-$$ 
-
-Each of the instantiations of the numerator is a probability expression $P(\pmb{y},e)$ , which can be computed by summing out all entries in the joint that correspond to assignments consistent with $\mathbfit{\Delta}_{\mathcal{Y},\mathbf{\Delta}e}$ . More precisely, let $W=\mathcal{X}-Y-E$ be the random variables that are neither query nor evidence. Then 
+By the deﬁnition of conditional probability, we know that 
 
 $$
-P(\pmb{y},e)=\sum_{\pmb{w}}P(\pmb{y},e,\pmb{w}).
+P(\pmb Y\mid \pmb E=\pmb e)=\frac{P(\pmb Y,\pmb e)}{P(\pmb e)}.\tag{9.1}
 $$ 
-
-Because $Y,E,W$ are all of the network variables, each term $P(\pmb{y},\pmb{e},\pmb{w})$ in the summation is simply an entry in the joint distribution. 
-
-The probability $P(e)$ can also be computed directly by summing out the joint. However, it can also be computed as 
+Each of the instantiations of the numerator is a probability expression $P(\pmb{y},\pmb e)$ , which can be computed by summing out all entries in the joint that correspond to assignments consistent with $\pmb y, \pmb e$ . More precisely, let $\pmb W=\mathcal{X}-\pmb Y-\pmb E$ be the random variables that are neither query nor evidence. Then
 
 $$
-P(e)=\sum_{y}P(y,e),
+P(\pmb{y},\pmb e)=\sum_{\pmb{w}}P(\pmb{y},\pmb e,\pmb{w}).\tag{9.2}
 $$ 
+Because $\pmb Y,\pmb E,\pmb W$ are all of the network variables, each term $P(\pmb{y},\pmb{e},\pmb{w})$ in the summation is simply an entry in the joint distribution. 
 
-renormalization which allows us to reuse our computation for equation (9.2). If we compute both equation (9.2) and equation (9.3), we can then divide each $P(\pmb{y},e)$ by $P(e)$ , to get the desired conditional probability $P(\pmb{y}\mid\pmb{e})$ Note that this process corresponds to taking the vector of marginal probabilities $P(\pmb{y}^{1},\pmb{e}),\dots,P(\pmb{y}^{k},\pmb{e})$ (where $k\,=\,|\mathit{V a l}(Y)|)$ and renormalizing the entries to sum to 1 . 
+The probability $P(\pmb e)$ can also be computed directly by summing out the joint. However, it can also be computed as 
 
-# 9.1 Analysis of Complexity 
+$$
+P(\pmb e)=\sum_{\pmb y}P(\pmb y,\pmb e),\tag{9.3}
+$$ 
+which allows us to reuse our computation for equation (9.2). If we compute both equation (9.2) and equation (9.3), we can then divide each $P(\pmb{y},\pmb e)$ by $P(\pmb e)$ , to get the desired conditional probability $P(\pmb{y}\mid\pmb{e})$ . Note that this process corresponds to taking the vector of marginal probabilities $P(\pmb{y}^{1},\pmb{e}),\dots,P(\pmb{y}^{k},\pmb{e})$ (where $k\,=\,|\mathit{V a l}(\pmb Y)|)$ and renormalizing the entries to sum to 1 . 
 
+## 9.1 Analysis of Complexity 
 In principle, a graphical model can be used to answer all of the query types described earlier. We simply generate the joint distribution and exhaustively sum out the joint (in the case of a conditional probability query), search for the most likely entry (in the case of a MAP query), or both (in the case of a marginal MAP query). However, this approach to the inference problem is not very satisfactory, since it returns us to the exponential blowup of the joint distribution that the graphical model representation was precisely designed to avoid. 
 
-Unfortunately, we now show that exponential blowup of the inference task is (almost  certainly) unavoidable in the worst case: The problem of inference in graphical models is $\mathcal{N P}$ -hard, and therefore ly requires exponential time in the worst ca except in the unlikely event that P $\mathcal{P}=\mathcal{N P}$ NP ). Even worse, approximate inference is also NP -hard. Importantly, however, the story does not end with this negative result. In general, we care not about the worst case, but about the cases that we encounter in practice. As we show in the remainder of this part of the book, many real-world applications can be tackled very efectively using exact or approximate inference algorithms for graphical models. 
+Unfortunately, we now show that exponential blowup of the inference task is (almost certainly) unavoidable in the worst case: The problem of inference in graphical models is $\mathcal{N P}$ -hard, and therefore ly requires exponential time in the worst ca except in the unlikely event that P $\mathcal{P}=\mathcal{N P}$ NP ). Even worse, approximate inference is also NP -hard. Importantly, however, the story does not end with this negative result. In general, we care not about the worst case, but about the cases that we encounter in practice. As we show in the remainder of this part of the book, many real-world applications can be tackled very efectively using exact or approximate inference algorithms for graphical models. 
 
 In our theoretical analysis, we focus our discussion on Bayesian networks. Because any Bayesian network can be encoded as a Markov network with no increase in its representation size, a hardness proof for inference in Bayesian networks immediately implies hardness of inference in Markov networks. 
 
-# 9.1.1 Analysis of Exact Inference 
-
+### 9.1.1 Analysis of Exact Inference 
 To address the question of the complexity of BN inference, we need to address the question of how we encode a Bayesian network. Without going into too much detail, we can assume that the encoding speciﬁes the DAG structure and the CPDs. For the following results, we assume the worst-case representation of a CPD as a full table of size $|V a l(\{X_{i}\}\cup\mathrm{Pa}_{X_{i}})|$ . 
 
 As we discuss in appendix A.3.4, most analyses of complexity are stated in terms of decision problems. We therefore begin with a formulation of the inference problem as a decision prob- lem, and then discuss the numerical version. One natural decision version of the conditional probability task is the problem $B N–P r–D P,$ , deﬁned as follows: 
 
 Given a $\mathcal{B}$ over $\mathcal{X}$ , a variable $X\in{\mathcal{X}}$ , and a value $x\in V a l(X)$ , decide whether $P_{\mathcal{B}}(X=x)>0$ . 
 
-# Theorem 9.1 
-
+Theorem 9.1 
 Proof It is straightforward to prove that $B N–P r–D P$ is in $\mathcal{N P}$ : In the guessing phase, we full assignment $\xi$ to the network variables. In the veriﬁcation phase, we check whether X $X=x$ in $\xi;$ , and whether $P(\xi)\,>\,0$ . One of these guesses succeeds if and only if $P(X\,=\,x)\,>\,0$ . Computing $P(\xi)$ for a full assignment of the network variables requires only that we multiply the relevant entries in the factors, as per the chain rule for Bayesian networks, and hence can be done in linear time. 
 
 To prove $\mathcal{N P}$ -hardness, we need to show that, if we can answer instances in BN-Pr-DP , we can use that as a subroutine to answer questions in a class of problems that is known to be $\mathcal{N P}$ -hard. We will use a reduction from the 3-SAT problem deﬁned in deﬁnition A.8. 
 
-![](images/b75ddde8f0c0af7656fa1e96b577b56a7d34cae1b516a18d67fb0541decb04cc.jpg) 
+ 
 Figure 9.1 An outline of the network structure used in the reduction of 3-SAT to Bayesian network inference. 
 
 To show the reduction, we show the following: Given any 3-SAT formula $\phi$ , we can create a Bayesian network $\mathcal{B}_{\phi}$ with some distinguished variable $X$ , such that $\phi$ is satisﬁable if and only if $P_{\mathcal{B}_{\phi}}(X=x^{1})>0$ . Thus, if we can solve the Bayesian network inference problem in polynomial time, we can also solve the 3-SAT problem in polynomial time. To enable this conclusion, our BN $\mathcal{B}_{\phi}$ has to be constructible in time that is polynomial in the length of the formula $\phi$ . 
@@ -5936,8 +5931,7 @@ Our task here is to compute the total probability of network instantiations that
 
 The problem BN-Pr is $\#\mathcal{P}$ -complete. We leave the proof as an exercise (exercise 9.1). 
 
-# 9.1.2 Analysis of Approximate Inference 
-
+### 9.1.2 Analysis of Approximate Inference 
 Upon noting the hardness of exact inference, a natural question is whether we can circumvent the difculties by compromising, to some extent, on the accuracies of our answers. Indeed, in many applications we can tolerate some imprecision in the ﬁnal probabilities: it is often unlikely that a change in probability from 0 . 87 to 0 . 92 will change our course of action. Thus, we now explore the computational complexity of approximate inference. 
 
 To analyze the approximate inference task formally, we must ﬁrst deﬁne a metric for evaluating the quality of our approximation. We can consider two perspectives on this issue, depending on how we choose to deﬁne our query. Consider ﬁrst our previous formulation of the conditional probabilit query task, wh e our goal is to compute the probability $P(Y\mid e)$ for some set of variables Y $Y$ and evidence e . The result of this type of query is a probability distribution over $Y$ . Given an approximate answer to this query, we can evaluate its quality using any of the distance metrics we deﬁne for probability distributions in appendix A.1.3.3. 
@@ -5988,61 +5982,67 @@ We can continue in this fashion, proving by induction on $k$ that $\phi$ has a s
 
 Because $\epsilon=1/2$ corresponds to random guessing, this result is quite discouraging. It tells us that, in the case where we have evidence, approximate inference is no easier than exact inference, in the worst case. 
 
-# 9.2 Variable Elimination: The Basic Ideas 
-
-We begin our discussion of inference by discussing the principles underlying exact inference in graphical models. As we show, the same graphical structure that allows a compact represen- tation of complex distributions also help support inference. In particular, we can use dynamic programming techniques (as discussed in appendix A.3.3) to perform inference even for certain large and complex networks in a very reasonable time. We now provide the intuition underlying these algorithms, an intuition that is presented more formally in the remainder of this chapter. 
+## 9.2 Variable Elimination: The Basic Ideas 
+We begin our discussion of inference by discussing the principles underlying exact inference in graphical models. As we show, the same graphical structure that allows a compact representation of complex distributions also help support inference. In particular, we can use dynamic programming techniques (as discussed in appendix A.3.3) to perform inference even for certain large and complex networks in a very reasonable time. We now provide the intuition underlying these algorithms, an intuition that is presented more formally in the remainder of this chapter. 
 
 We begin by considering the inference task in a very simple network $A\,\rightarrow\,B\,\rightarrow\,C\,\rightarrow$ $D$ . We ﬁrst provide a phased computation, which uses results from the previous phase for the computation in the next phase. We then reformulate this process in terms of a global computation on the joint distribution. 
+> 我们考虑网络 $A \rightarrow B \rightarrow C \rightarrow D$ 中的推理任务
+> 我们首先考虑一个分阶段的计算方法，每个阶段使用上个阶段的计算结果
+> 然后我们将该过程重构为在联合分布上的全局计算
 
 Assume that our ﬁrst goal is to compute the probability $P(B)$ , that is, the distribution over values $b$ of $B$ . Basic probabilistic reasoning (with no assumptions) tells us that 
 
 $$
-P(B)=\sum_{a}P(a)P(B\mid a).
+P(B)=\sum_{a}P(a)P(B\mid a).\tag{9.4}
 $$ 
-
-Fortunately, we have all the required numbers in our Bayesian network representation: each number $P(a)$ is in the CPD for $A$ , and each number $P(b\mid a)$ is in the CPD for $B$ . Note that if $A$ has $k$ values and $B$ has $m$ values, the number of basic arithmetic operations required is $O(k\times m)$ : to compute $P(b)$ , we m st multiply $P(b\mid a)$ $P(a)$ for each of the $k$ values of $A$ , and then add them u that is, $k$ multiplications and k $k-1$ − additions; this process must be repeated for each of the m values b . 
+Fortunately, we have all the required numbers in our Bayesian network representation: each number $P(a)$ is in the CPD for $A$ , and each number $P(b\mid a)$ is in the CPD for $B$ . Note that if $A$ has $k$ values and $B$ has $m$ values, the number of basic arithmetic operations required is $O(k\times m)$ : to compute $P(b)$ , we must multiply $P(b\mid a)$ $P(a)$ for each of the $k$ values of $A$ , and then add them up, that is, $k$ multiplications and $k-1$ additions; this process must be repeated for each of the m values b . 
+> 考虑计算 $B$ 的边际分布，将 $P (B)$ 根据图结构写为式 9.4 的形式
+> 式 9.4 中，$P (a)$ 为 $a$ 的 CPD，$P (B\mid a)$ 为 $B$ 的 CPD，二者在贝叶斯网络表示中已知，故可以直接计算
+> 假设 $|Val (A)| = k, |Val (B)| = m$，则式 9.4 的计算复杂度为 $O (k\times m)$，因为 $P (b)$ 的计算需要遍历 $A$ 的所有 $k$ 个取值，而 $P (B)$ 的计算需要遍历 $B$ 的所有 $m$ 个取值
 
 Now, assume we want to compute $P(C)$ . Using the same analysis, we have that 
 
 $$
-P(C)=\sum_{b}P(b)P(C\mid b).
+P(C)=\sum_{b}P(b)P(C\mid b).\tag{9.5}
 $$ 
-
-Again, the co itional probabilities $P(c\mid b)$ are known: they constitute the CPD for $C$ . The probability of B is not speciﬁed as part of the network parameters, but equation (9.4) shows us how it can be computed. Thus, we can compute $P(C)$ . We can continue the process in an analogous way, in order to compute $P(D)$ . 
+Again, the conditional probabilities $P(c\mid b)$ are known: they constitute the CPD for $C$ . The probability of B is not speciﬁed as part of the network parameters, but equation (9.4) shows us how it can be computed. Thus, we can compute $P(C)$ . We can continue the process in an analogous way, in order to compute $P(D)$ . 
+> 根据式 9.5，依赖于式 9.4 计算的结果和贝叶斯网络中 $C$ 的 CPD，我们可以进一步推理 $C$ 的边际分布，以此类推
 
 Note that the structure of the network, and its efect on the parameter iz ation of the CPDs, is critical for our ability to perform this computation as described. Speciﬁcally, assume that $A$ had been a parent of $C$ . In this case, the CPD for $C$ would have included $A$ , and our computation of $P(B)$ would not have sufced for equation (9.5). 
 
 Also note that this algorithm does not compute single values, but rather sets of values at a time. In particular equation (9.4) computes an entire distribution over all of the possible values of $B$ . All of these are then used in equation (9.5) to compute $P(C)$ . This property turns out to be critical for the performance of the general algorithm. 
+> 该算法并没有仅计算单个取值的概率，而是计算所有取值的概率
+> 并且，链式计算的下一个变量的边际概率依赖于上一个变量计算得到的所有取值的概率
 
-Let us analyze the complexity of this process on a general chain. Assume that we have a chain with $n$ variables $X_{1}\,\rightarrow\,.\,.\,\rightarrow\,X_{n},$ each e in $k$ values. As described, the algorithm would compute $P(X_{i+1})$ from $P(X_{i})$ , for $i=1,\dots,n-1$ − . Each such step would consist of the following computation: 
+Let us analyze the complexity of this process on a general chain. Assume that we have a chain with $n$ variables $X_{1}\,\rightarrow\,.\,.\,\rightarrow\,X_{n},$ each e in $k$ values. As described, the algorithm would compute $P(X_{i+1})$ from $P(X_{i})$ , for $i=1,\dots,n-1$  . Each such step would consist of the following computation: 
 
 $$
 P(X_{i+1})=\sum_{x_{i}}{P(X_{i+1}\mid x_{i})P(x_{i})},
 $$ 
+where $P(X_{i})$ is computed in the previous step. 
+> 将该算法推广到 $X_1 \rightarrow \dots \rightarrow X_n$，算法的每一步都会从 $P (X_i)$ 计算 $P (X_{i+1})$ ($i = 1, \dots, n-1$)，计算公式如上所示
 
-where $P(X_{i})$ is computed in the previous step. The cost of each such step is $O(k^{2})$ : The distributi er $X_{i}$ has $k$ va s, and the CPD $P(X_{i+1}\mid X_{i})$ s $k^{2}$ values; we need to multiply $P(x_{i})$ , for value x , with each CPD entry $P(x_{i+1}\mid x_{i})$ $\,\!\,k^{2}$ multiplications), and then, for each value $x_{i+1}$ , sum up the co entries ( $(k\times(k-1)$ × − additions). We need to perform this process for every variable $X_{2},\ldots,X_{n}$ ; hence, the total cost is $O(n k^{2})$ . 
+The cost of each such step is $O(k^{2})$ : The distributi er $X_{i}$ has $k$ va s, and the CPD $P(X_{i+1}\mid X_{i})$ has $k^{2}$ values; we need to multiply $P(x_{i})$ , for value x , with each CPD entry $P(x_{i+1}\mid x_{i})$ $\,\!\,k^{2}$ multiplications), and then, for each value $x_{i+1}$ , sum up the co entries ( $(k\times(k-1)$ additions). We need to perform this process for every variable $X_{2},\ldots,X_{n}$ ; hence, the total cost is $O(n k^{2})$ . 
+> 假设每个 $X_i$ 有 $k$ 个取值，则每一步的开销就是 $O (k^2)$，算法中，$X_2, \dots, X_n$ 各执行一步，因此总开销为 $O (nk^2)$，该开销和 $n$ 呈线性关系
 
 By comparison, consider the process of generating the entire joint and summing it out, which requires that we generate $k^{n}$ probabilities for the diferent events $x_{1},\dots,x_{n}$ . Hence, we have at least one example where, despite the exponential size of the joint distribution, we can do inference in linear time. 
+> 如果直接逐个计算 $(x_1, \dots, x_n)$ 每个赋值的概率来直接得到联合分布，我们需要计算 $k^n$ 个概率，该复杂度和 $n$ 呈指数关系
 
-Using this process, we have managed to do inference over the joint distribution without ever generating it explicitly. What is the basic insight that allows us to avoid the exhaustive enumeration? Let us reexamine this process in terms of the joint $P(A,B,C,D)$ . By the chain rule for Bayesian networks, the joint decomposes as 
+Using this process, we have managed to do inference over the joint distribution without ever generating it explicitly. 
+> 该过程让我们在不显示生成联合分布的情况下可以在其上进行推理
+
+What is the basic insight that allows us to avoid the exhaustive enumeration? Let us reexamine this process in terms of the joint $P(A,B,C,D)$ . By the chain rule for Bayesian networks, the joint decomposes as 
 
 $$
 P(A)P(B\mid A)P(C\mid B)P(D\mid C)
 $$ 
-
-To compute $P(D)$ , we need to sum together all of the entries where $D=d^{1}$ , and to (separately) sum together all of the entries where $D\ =\ d^{2}$ . The exact computation that needs to be 
-
-![](images/52a6137cf3ae5ad55699e70c707c9901c25b5aaae89da9334aabcbd8897f2c1a.jpg) 
-Figure 9.2 Computing $P(D)$ by summing over the joint distribution for a chain $A\to B\to C\to$ $D$ ; all of the variables are binary valued. 
-
-performed, for binary-valued variables $A,B,C,D$ , is shown in ﬁgure 9.2. 
+To compute $P(D)$ , we need to sum together all of the entries where $D=d^{1}$ , and to (separately) sum together all of the entries where $D\ =\ d^{2}$ . The exact computation that needs to be performed, for binary-valued variables $A,B,C,D$ , is shown in ﬁgure 9.2. 
 
 Examining this summation, we see that it has a lot of structure. For example, the third and fourth terms in the ﬁrst two entries are both $P(c^{1}\mid b^{1})P(d^{1}\mid c^{1})$ . We can therefore modify the computation to ﬁrst compute 
 
 $$
 P(a^{1})P(b^{1}\mid a^{1})+P(a^{2})P(b^{1}\mid a^{2})
 $$ 
-
 and only then multiply by the common term. The same structure is repeated throughout the table. If we perform the same transformation, we get a new expression, as shown in ﬁgure 9.3. 
 
 We now observe that certain terms are repeated several times in this expression. Speciﬁcally, $P(a^{1})P(b^{1}\mid a^{1})+P(a^{2})P(b^{1}\mid a^{2})$ and $P(a^{1})P(b^{2}\mid a^{1})+P(a^{2})P(b^{2}\mid a^{2})$ are each repeated four times. Thus, it seems clear that we can gain signiﬁcant computational savings by computing them once and then storing them. There are two such expressions, one for each value of $B$ . Thus, we e a function $\tau_{1}\ :\ \,V a l(B)\mapsto I\!\!R,$ , where $\tau_{1}(b^{1})$ is the ﬁrst of these two expressions, and $\tau_{1}(b^{2})$ is the second. Note that $\tau_{1}(B)$ corresponds exactly to $P(B)$ . 
@@ -6052,7 +6052,6 @@ The resulting expression, assuming $\tau_{1}(B)$ has been computed, is shown in 
 $$
 \begin{array}{l l l}{{\tau_{2}(c^{1})}}&{{=}}&{{\tau_{1}(b^{1})P(c^{1}\mid b^{1})+\tau_{1}(b^{2})P(c^{1}\mid b^{2})}}\\ {{\tau_{2}(c^{2})}}&{{=}}&{{\tau_{1}(b^{1})P(c^{2}\mid b^{1})+\tau_{1}(b^{2})P(c^{2}\mid b^{2})}}\end{array}
 $$ 
-
 1. When $D$ is binary-valued, we can get away with doing only the ﬁrst of these computations. However, this trick does not carry over to the case of variables with more than two values or to the case where we have evidence. Therefore, our example will show the computation in its generality. 
 
 $$
@@ -6086,131 +6085,134 @@ Written somewhat more compactly, the transformation we have performed takes the 
 $$
 P(D)=\sum_{C}\sum_{B}\sum_{A}P(A)P(B\mid A)P(C\mid B)P(D\mid C).
 $$ 
-
 We push in the ﬁrst summation, resulting in 
 
 $$
 \sum_{C}P(D\mid C)\sum_{B}P(C\mid B)\sum_{A}P(A)P(B\mid A).
 $$ 
-
 We compute the product $\psi_{1}(A,B)=P(A)P(B\mid A)$ a d then sum out $A$ to obtain the func- $\begin{array}{r}{\tau_{1}(B)=\sum_{A}\psi_{1}(A,B)}\end{array}$ . Speciﬁcally, for each value b , we compute $\begin{array}{r l r}{\tau_{1}(b)=\sum_{A}\psi_{1}(A,b)=}\end{array}$ $\textstyle\sum_{A}P(A)P(b\mid A)$ . We then continue by computing: 
 
 $$
 \begin{array}{r c l}{{\psi_{2}(B,C)}}&{{=}}&{{\tau_{1}(B)P(C\mid B)}}\\ {{\tau_{2}(C)}}&{{=}}&{{\displaystyle\sum_{B}\psi_{2}(B,C).}}\end{array}
 $$ 
-
 This computation results in a new vector $\tau_{2}(C)$ , which we then proceed to use in the ﬁnal phase of computing $P(D)$ . 
 
-dynamic programming 
+This procedure is performing dynamic programming (see appendix A.3.3); doing this sum- mation the naive way w uld h us compute every $\begin{array}{r}{P(b)=\sum_{A}P(A)P(b\mid A)}\end{array}$ many times, once for every value of C and D . In general, in a chain of length $n$ , this internal summation would be computed exponentially many times. Dynamic programming “inverts” the order of computation — performing it inside out instead of outside in. Speciﬁcally, we perform the innermost summation ﬁrst, computing once and for all the values in $\tau_{1}(B)$ ; that allows us to compute $\tau_{2}(C)$ once and for all, and so on. 
+> 链式算法将朴素算法的指数级复杂度降到了线性级别，该算法本质是一种动态规划，例如计算一个变量的边际分布 $P (B) = \sum_a P (a) P (B\mid a)$ ，我们将所有的 $P (a)$ 提前计算好并存储，避免每次计算 $P (b)$ 都需要重新计算 $P (A)$，导致指数级别的重复计算
 
-# 
+**To summarize, the two ideas that help us address the exponential blowup of the joint distribution are:** 
 
-This procedure is performing dynamic programming (see appendix A.3.3); doing this sum- mation the naive way w uld h us compute every $\begin{array}{r}{P(b)=\sum_{A}P(A)P(b\mid A)}\end{array}$ | many times, once for every value of C and D . In general, in a chain of length $n$ , this internal summation would be computed exponentially many times. Dynamic programming “inverts” the order of computation — performing it inside out instead of outside in. Speciﬁcally, we perform the innermost summation ﬁrst, computing once and for all the values in $\tau_{1}(B)$ ; that allows us to compute $\tau_{2}(C)$ once and for all, and so on. 
+- **Because of the structure of the Bayesian network, some subexpressions in the joint depend only on a small number of variables.**
+- **By computing these expressions once and caching the results, we can avoid generating them exponentially many times.** 
 
-To summarize, the two ideas that help us address the exponential blowup of the joint distribution are: 
+ >总结来说，帮助我们应对联合分布的指数爆炸的两个想法是：
+>- 由于贝叶斯网络的结构，联合分布中的一些子表达式只依赖于少数几个变量
+>- 通过一次性计算这些表达式并缓存结果，我们可以避免多次（指数次）生成它们
 
-• Because of the structure of the Bayesian network, some subexpressions in the joint depend only on a small number of variables.
+## 9.3 Variable Elimination 
+To formalize the algorithm demonstrated in the previous section, we need to introduce some basic concepts. In chapter 4, we introduced the notion of a factor $\phi$ over a scope $S c o p e[\phi]=X$ , which is a function $\phi:V a l(X)\mapsto I\!\!R$ . The main steps in the algorithm described here can be viewed as a manipulation of factors. Importantly, by using the factor-based view, we can deﬁne the algorithm in a general form that applies equally to Bayesian networks and Markov networks. 
+> 我们知道一个作用域为 $X$ 的因子 $\phi$ 定义为一个函数 $\phi: Val (X) \mapsto \mathbb R$
+> 上一节介绍的算法的主要步骤可以被视为对因子的操作，通过因子视角，我们将该算法推广到同时适用于贝叶斯网络和 Markov 网络
 
- • By computing these expressions once and caching the results, we can avoid generating them exponentially many times. 
+### 9.3.1 Basic Elimination 
+#### 9.3.1.1 Factor Marginalization 
+The key operation that we are performing when computing the probability of some subset of variables is that of marginalizing out variables from a distribution. That is, we have a distribution over a of variables $\mathcal{X}$ , and we want to compute the marginal of that distribution over some subset $\pmb X$ . We can view this computation as an operation on a factor: 
+>计算某些变量子集的概率的关键操作是从分布中消去变量
+>也就是说，我们有一个关于变量集合 $\mathcal{X}$ 的分布，我们想要计算该分布关于某个子集 $\pmb{X}$ 的边缘分布，我们可以将此计算视为对一个因子的操作：
 
-# 9.3 Variable Elimination 
-
-factor To formalize the algorithm demonstrated in the previous section, we need to introduce some basic concepts. In chapter 4, we introduced the notion of a factor $\phi$ over a scope $S c o p e[\phi]=X$ , which is a function $\phi:V a l(X)\mapsto I\!\!R$ . The main steps in the algorithm described here can be viewed as a manipulation of factors. Importantly, by using the factor-based view, we can deﬁne the algorithm in a general form that applies equally to Bayesian networks and Markov networks. 
-
-![](images/7910f7d1d1658bb966789c46e52c859b7c766f3e0c7732e16b190a3c9bd7e344.jpg) 
-Figure 9.7 Example of factor marginalization: summing out $B$ . 
-
-# 9.3.1 Basic Elimination 
-
-# 9.3.1.1 Factor Marginalization 
-
-The key operation that we are performing when computing the probability of some subset of variables is that of marginalizing out variables from a distribution. That is, we have a distribution over a of variables $\mathcal{X}$ , and we want to compute the marginal of that distribution over some subset X . We can view this computation as an operation on a factor: 
-
-Deﬁnition 9.3 factor marginalization Let $X$ be a set of v iab s, and $Y\notin X$ a variable. Let $\phi(X,Y)$ e a factor. We deﬁne the factor marginalization of Y $Y$ in φ , denoted $\textstyle\sum_{Y}\phi$ , to be a factor $\psi$ over X such that: 
+**Deﬁnition 9.3** factor marginalization 
+Let $X$ be a set of v iab s, and $Y\notin X$ a variable. Let $\phi(X,Y)$ e a factor. We deﬁne the factor marginalization of Y $Y$ in φ , denoted $\textstyle\sum_{Y}\phi$ , to be a factor $\psi$ over X such that: 
 
 $$
-\psi(X)=\sum_{Y}\phi(X,Y).
-$$ 
+\psi(\pmb X)=\sum_{Y}\phi(\pmb X,Y).
+$$
 
 This operation is also called summing out of $Y$ in $\psi$ . 
+>定义
+> $\pmb X$ 为变量集合，变量 $Y \not\in \pmb X$，$\phi (\pmb X, Y)$ 为因子，定义 $\phi$ 中对 $Y$ 的因子边际化 $\sum_Y \phi$ 为一个 $\pmb X$ 上的因子 $\psi$，满足 $\psi (\pmb X) = \sum_Y\phi (\pmb X, Y)$
+> 该运算也称为在 $\psi$ 中求和消去 $Y$
 
 The key point in this deﬁnition is that we only sum up entries in the table where the values of $X$ match up. Figure 9.7 illustrates this process. 
+>这个定义的关键在于我们只对表格中 $X$ 的取值匹配的部分进行求和
 
 The process of marginalizing a joint distribution $P(X,Y)$ onto $X$ in a Bayesian network is simply summing out the variables $Y$ in the factor corresponding to $P$ . If we sum out all variables, we get a factor consisting of a single number whose value is 1 . If we sum out all of the variables in the unnormalized distribution $\tilde{P}_{\Phi}$ deﬁned by the product of factors in a Markov network, we get the partition function. 
+>在贝叶斯网络中，将联合分布 $P(X,Y)$ 边际化到 $X$ 的过程就是对对应于 $P$ 的因子中的变量 $Y$ 求和。如果我们消去所有变量，我们得到一个只包含单个数值的因子，其值为1。如果我们消去马尔可夫随机场中未归一化的分布 $\tilde{P}_{\Phi}$（由因子的乘积定义）中的所有变量，我们得到分区函数。
 
-A key observation used in performing inference in graphical models is that the operations of factor product and summation behave precisely as do product and summation over numbers. , both operations are commutative, s $\phi_{1}\cdot\phi_{2}\,=\,\phi_{2}\,\cdot\,\phi_{1}$ and $\begin{array}{r l}{\sum_{\boldsymbol{X}}\sum_{\boldsymbol{Y}}\phi\;=}\end{array}$ P $\textstyle\sum_{Y}\sum_{X}\phi$ . Products are also associative, so that $\left(\phi_{1}\cdot\phi_{2}\right)\cdot\phi_{3}=\phi_{1}\cdot\left(\phi_{2}\cdot\phi_{3}\right)$ · · · · ) . Most importantly, 
+A key observation used in performing inference in graphical models is that the operations of factor product and summation behave precisely as do product and summation over numbers. , both operations are commutative, s $\phi_{1}\cdot\phi_{2}\,=\,\phi_{2}\,\cdot\,\phi_{1}$ and $\begin{array}{r l}{\sum_{\boldsymbol{X}}\sum_{\boldsymbol{Y}}\phi\;=}\end{array}$ $\textstyle\sum_{Y}\sum_{X}\phi$ . Products are also associative, so that $\left(\phi_{1}\cdot\phi_{2}\right)\cdot\phi_{3}=\phi_{1}\cdot\left(\phi_{2}\cdot\phi_{3}\right)$ · · · ·  . 
+> 因为因子本质是从作用域映射到标量的函数，因此我们允许在边际化中任意交换求和顺序，以及因子之间相乘也和标量一样满足结合律和交换律
 
-![](images/cc1c1a63031b2a68f051ab83d7b0ebe34448d256f2e8f04485bd4d5665ca7276.jpg) 
-
-we have a simple rule allowing us to exchange summation and product: If $X\not\in S c o p e[\phi_{1}]$ , then 
+Most importantly, we have a simple rule allowing us to exchange summation and product: If $X\not\in S c o p e[\phi_{1}]$ , then 
+> 并且，如果 $X$ 不属于因子 $\phi_1$ 的作用域，$\phi_1$ 相对于对 $X$ 的求和就仅仅是常数，可以直接提取到求和符号外面，如式 9.6 所示
 
 $$
-\sum_{X}(\phi_{1}\cdot\phi_{2})=\phi_{1}\cdot\sum_{X}\phi_{2}.
+\sum_{X}(\phi_{1}\cdot\phi_{2})=\phi_{1}\cdot\sum_{X}\phi_{2}.\tag{9.6}
 $$ 
-
-# 9.3.1.2 The Variable Elimination Algorithm 
-
-The key to both of our examples in the last section is the application of equation (9.6). Speciﬁ- cally, in our chain example of section 9.2, we can write: 
+#### 9.3.1.2 The Variable Elimination Algorithm 
+The key to both of our examples in the last section is the application of equation (9.6). Speciﬁcally, in our chain example of section 9.2, we can write: 
 
 $$
 P(A,B,C,D)=\phi_{A}\cdot\phi_{B}\cdot\phi_{C}\cdot\phi_{D}.
 $$ 
-
 On the other hand, the marginal distribution over $D$ is 
 
 $$
 P(D)=\sum_{C}\sum_{B}\sum_{A}P(A,B,C,D).
 $$ 
-
 Applying equation (9.6), we can now conclude: 
 
 $$
 \begin{array}{r c l}{{P(D)}}&{{=}}&{{\displaystyle\sum_{C}\displaystyle\sum_{B}\displaystyle\sum_{A}\phi_{A}\cdot\phi_{B}\cdot\phi_{C}\cdot\phi_{D}}}\\ {{}}&{{=}}&{{\displaystyle\sum_{C}\displaystyle\sum_{B}\phi_{C}\cdot\phi_{D}\cdot\left(\displaystyle\sum_{A}\phi_{A}\cdot\phi_{B}\right)}}\\ {{}}&{{=}}&{{\displaystyle\sum_{C}\phi_{D}\cdot\left(\displaystyle\sum_{B}\phi_{C}\cdot\left(\displaystyle\sum_{A}\phi_{A}\cdot\phi_{B}\right)\right),}}\end{array}
 $$ 
-
 where the diferent transformations are justiﬁed by the limited scope of the CPD factors; for example, the second equality is justiﬁed by the fact that the scope of $\phi_{C}$ and $\phi_{D}$ does not contain $A$ . In general, any marginal probability computation involves taking the product of all the CPDs, and doing a summation on all the variables except the query variables. We can do these steps in any order we want, as long as we only do a summation on a variable $X$ after multiplying in all of the factors that involve $X$ . 
+>其中不同的变换的合理性来自于 CPD 因子各自的有限范围；例如，第二个等式是因为 $\phi_{C}$ 和 $\phi_{D}$ 的作用范围不包含 $A$
+>一般来说，任何边际概率计算都涉及对所有 CPD 的乘积运算，并对除了查询变量之外的所有变量进行求和，就如以上的推导所示
+>只要我们在乘以所有包含变量 $X$ 的因子之后再对变量 $X$ 进行求和，也就是在和式中需要包含所有相关的因子，我们就可以任意地将不相关的因子移出和式，然后分别进行相应的求和
 
 In general, we can view the task at hand as that of computing the value of an expression of the form: 
 
 $$
-\sum_{Z}\prod_{\phi\in\Phi}\phi.
+\sum_{\pmb Z}\prod_{\phi\in\Phi}\phi.
 $$ 
+We call this task the sum-product inference task. The key insight that allows the efective computation of this expression is the fact that the scope of the factors is limited, allowing us to “push in” some of the summations, performing them over the product of only a subset of factors. 
+> 一般地说，我们可以将计算边际分布的任务视为计算形式为 $\sum_{\pmb Z} \prod_{\phi \in \Phi} \phi$ 的表达式的值，该任务也被称为和-积推理任务
+> 该表达式可以高效计算根本原因在于每个因子的作用域是有限制的，这使得我们可以将一些求和仅在相关的因子子集的积上进行 (而不是所有因子的乘积)
 
-sum-product 
+One simple instantiation of this algorithm is a procedure called sum-product variable elimination (VE), shown in algorithm 9.1. The basic idea in the algorithm is that we sum out variables one at a time. When we sum out any variable, we multiply all the factors that mention that variable, generating a product factor. Now, we sum out the variable from this combined factor, generating a new factor that we enter into our set of factors to be dealt with. 
+> 这类算法的一个简单应用实例就是和-积变量消除，算法流程见 Algorithm 9.1，该算法的基本思路就是一次求和消去一个变量，要求和消去某个变量时，我们将所有和该变量有关的因子从因子集合移除，然后相乘，并对相乘得到的该因子求和消除该变量，得到的新因子再加入我们的因子集合
 
-variable elimination 
-
-We call this task the sum-product inference task. The key insight that allows the efective computation of this expression is the fact that the scope of the factors is limited, allowing us to “push in” some of the summations, performing them over the product of only a subset of factors. One simple instantiation of this algorithm is a procedure called sum-product variable elimination (VE), shown in algorithm 9.1. The basic idea in the algorithm is that we sum out variables one at a time. When we sum out any variable, we multiply all the factors that mention that variable, generating a product factor. Now, we sum out the variable from this combined factor, generating a new factor that we enter into our set of factors to be dealt with. 
+![[PGM-Algorithm9.1.png]]
 
 Based on equation (9.6), the following result follows easily: 
 
-Theorem 9.5 Let $X$ e set of variables, and let $\Phi$ be a set o hat for each $\phi\in\Phi$ , $S c o p e[\phi]\subseteq X$ . Let Y $Y\subset X$ ⊂ be a set of query variables, and let $Z=X\mathrm{~-~}Y$ − . Then for any ordering ≺ over Z , Sum-Product $\textstyle\mathcal{\mathrm{NE}}(\Phi,Z,\prec)$ returns a factor $\phi^{*}(Y)$ such that 
+**Theorem 9.5** 
+Let $X$ e set of variables, and let $\Phi$ be a set o hat for each $\phi\in\Phi$ , $S c o p e[\phi]\subseteq X$ . Let $Y\subset X$ be a set of query variables, and let $Z=X\mathrm{~-~}Y$ . Then for any ordering ≺ over Z , Sum-Product $\textstyle\mathcal{\mathrm{NE}}(\Phi,Z,\prec)$ returns a factor $\phi^{*}(Y)$ such that 
+> 定理：
+> $\pmb X$ 为变量集合，$\Phi$ 为一组因子，满足对于所有 $\phi \in \Phi$，$Scope[\phi]\subseteq \pmb X$
+> $\pmb Y \subset \pmb X$ 为一组查询变量，$\pmb Z = \pmb X - \pmb Y$，则对于 $\pmb Z$ 上的任意排序 $\prec$，$\text{Sum-Product-VE}(\Phi, \pmb Z, \prec)$ 返回的因子 $\phi^*(\pmb Y)$ 满足：
 
 $$
-\phi^{*}(Y)=\sum_{Z}\prod_{\phi\in\Phi}\phi.
-$$ 
+\phi^{*}(\pmb Y)=\sum_{\pmb Z}\prod_{\phi\in\Phi}\phi.
+$$
 
 We can apply this algorithm to the task of computing the probability distribution $P_{\mathcal{B}}(Y)$ for a Bayesian network $\mathcal{B}$ . We simply instantiate $\Phi$ to consist of all of the CPDs: 
 
 $$
 \Phi=\{\phi_{X_{i}}\}_{i=1}^{n}
 $$ 
+where $\phi_{X_{i}}\;=\;P(X_{i}\;\mid\;\mathrm{Pa}_{X_{i}})$ . We then apply the variable elimination algorithm to the set $\left\{Z_{1},.\,.\,.\,,Z_{m}\right\}=\mathcal{X}-Y$ (that is, we eliminate all the nonquery variables). 
+> 我们可以应用该算法在贝叶斯网络 $\mathcal B$ 中计算概率分布 $P_{\mathcal B}(\pmb Y)$
+> 我们将所有的 CPD 构成的集合作为 $\Phi = \{\phi_{X_i}\}_{i=1}^n$ ($\phi_{X_i} = P (X_i \mid \text{Pa}_{X_i})$)，然后对变量集合 $\{Z_1, \dots, Z_m\} = \mathcal X - \pmb Y$ 执行变量消除算法，也就是消除所有的非查询变量
 
-$\phi_{X_{i}}\;=\;P(X_{i}\;\mid\;\mathrm{Pa}_{X_{i}})$ . We then apply the variable elimination algorithm to the set $\left\{Z_{1},.\,.\,.\,,Z_{m}\right\}=\mathcal{X}-Y$ (that is, we eliminate all the nonquery variables). 
+We can also apply precisely the same algorithm to the task of computing conditional prob- abilities in a Markov network. We simply initialize the factors to be the clique potentials and run the elimination algorithm. As for Bayesian networks, we then apply the variable elimination algorithm the set $Z=\mathcal{X}-Y$ . T procedure returns an unnormalized factor over the query variables Y . The distribution over $Y$ can be obtained by normalizing the factor; the partition function is simply the normalizing constant.
+> 在 Markov 网络中计算边际分布同样也可以应用该算法
+> 我们将所有的团势能函数作为最初的因子集合，然后为变量集合 $\pmb Z = \mathcal X - \pmb Y$ 执行变量消除算法，该过程最后返回查询变量 $\pmb Y$ 上一个未规范化的因子，将其规范化我们就得到了 $\pmb Y$ 上的边际分布
 
-We can also apply precisely the same algorithm to the task of computing conditional prob- abilities in a Markov network. We simply initialize the factors to be the clique potentials and 
-
-![](images/6792aca268a0c20d90c2d5d08c61c86cf022b9cdd03881750691da39b9a34698.jpg) 
-Figure 9.8 The Extended-Student Bayesian network 
-
-run the elimination algorithm. As for Bayesian networks, we then apply the variable elimination algorithm the set $Z=\mathcal{X}-Y$ . T procedure returns an unnormalized factor over the query variables Y . The distribution over $Y$ can be obtained by normalizing the factor; the partition function is simply the normalizing constant. 
-
+Example 9.1
 Let us demonstrate the procedure on a nontrivial example. Consider the network demonstrated in ﬁgure 9.8, which is an extension of our Student network. The chain rule for this network asserts that 
 
 $$
 \begin{array}{r c l}{{P(C,D,I,G,S,L,J,H)}}&{{=}}&{{P(C)P(D\mid C)P(I)P(G\mid I,D)P(S\mid I)}}\\ {{}}&{{}}&{{P(L\mid G)P(J\mid L,S)P(H\mid G,J)}}\\ {{}}&{{=}}&{{\phi_{C}(C)\phi_{D}(D,C)\phi_{I}(I)\phi_{G}(G,I,D)\phi_{S}(S,I)}}\\ {{}}&{{}}&{{\phi_{L}(L,G)\phi_{J}(J,L,S)\phi_{H}(H,G,J).}}\end{array}
 $$ 
-
 We will now apply the $V E$ algorithm to compute $P(J)$ . We will use the elimination ordering: $C,D,I,H,G,S,L$ : 
 
 1. Eliminating $C$ : We compute the factors 
@@ -6218,13 +6220,11 @@ We will now apply the $V E$ algorithm to compute $P(J)$ . We will use the elimin
 $$
 \begin{array}{r c l}{\psi_{1}(C,D)}&{=}&{\phi_{C}(C)\cdot\phi_{D}(D,C)}\\ {\tau_{1}(D)}&{=}&{\displaystyle\sum_{C}\psi_{1}.}\end{array}
 $$ 
-
 2. Eliminating $D$ : Note that we have already eliminated one of the original factors that involve $D$ — $\phi_{D}(D,C)=P(D\mid C)$ . On the other hand, we introduced the factor $\tau_{1}(D)$ that involves $D$ . Hence, we now compute: 
 
 $$
 \begin{array}{r c l}{{\psi_{2}(G,I,D)}}&{{=}}&{{\phi_{G}(G,I,D)\cdot\tau_{1}(D)}}\\ {{\tau_{2}(G,I)}}&{{=}}&{{\displaystyle\sum_{D}\psi_{2}(G,I,D).}}\end{array}
 $$ 
-
 3. Eliminating $I$ : We compute the factors 
 
 $$
@@ -6263,45 +6263,48 @@ We summarize these steps in table 9.1.
 
 Note that we can use any elimination ordering. For example, consider eliminating variables in the order $G,\,I,\,S,\,L,\,H,\,C,\,D$ . We would then get the behavior of table 9.2. The result, as before, is precisely $P(J)$ . However, note that this elimination ordering introduces factors with much larger scope. We return to this point later on. 
 
-Table 9.1 A run of variable elimination for the query $P(J)$ 
-![](images/2c1c21ab7dfc4373ffe9279eab5d5e65efd1f2db25ea799b991a723190af1dbf.jpg) 
+#### 9.3.1.3 Semantics of Factors 
+It is interesting to consider the semantics of the intermediate factors generated as part of this computation. In many of the examples we have given, they correspond to marginal or conditional probabilities in the network. However, although these factors often correspond to such probabilities, this is not always the case.
+> 在变量消除计算的步骤中生成的中间因子有时会直接对应于网络中的某个边际或者条件分布，但这不是一定的
 
-Table 9.2 A diferent run of variable elimination for the query $P(J)$ 
-![](images/508834ed8348cfb3fc2a217215d55ec8f80288833133b13d73c94e63c4902e90.jpg) 
-
-# 9.3.1.3 Semantics of Factors 
-
-It is interesting to consider the semantics of the intermediate factors generated as part of this computation. In many of the examples we have given, they correspond to marginal or conditional probabilities in the network. However, although these factors often correspond to such probabilities, this is not always the case. Consider, for example, the network of ﬁgure $9.9\mathrm{a}$ . The result of eliminating the variable $X$ is a factor 
+ Consider, for example, the network of ﬁgure $9.9\mathrm{a}$ . The result of eliminating the variable $X$ is a factor 
+>以图 9.9(a) 的网络为例。消除变量 $X$ 后的结果因子如下
 
 $$
 \tau(A,B,C)=\sum_{X}P(X)\cdot P(A\mid X)\cdot P(C\mid B,X).
 $$ 
+This factor does not correspond to any probability or conditional probability in this network. To understand why, consider the various options for the meaning of this factor. Clearly, it cannot be a conditional distribution where $B$ is on the left hand side of the conditioning bar (for example, $P(A,B,C))$ , as $P(B\mid A)$ has not yet been multiplied in. The mo candidate is $P(A,C\mid B)$ . However, this conjecture is also false. The obability $P(A\mid B)$ | relies he ily on the properties of the CPD $P(B\mid A)$ for example, if B is determi stically equal to A , $P(A\mid B)$ has a very diferent form than if B depends only very weakly on A . Since the CPD $P(B\mid A)$ was not taken into consideration when computing $\tau(A,B,C)$ , it cannot represent the conditional probability $P(A,C\mid B)$ . In general, we can verify that this factor does not correspond to any conditional probability expression in this network. 
+>这个因子并不对应于该网络中的任何概率或条件概率
+>为了理解为什么，考虑这个因子的各种可能含义：显然，它不能是 $B$ 在条件符号的左侧的条件分布，其中（例如，$P(A,B,C)$），因为还没有乘以 $P(B \mid A)$；剩下的候选者是 $P(A,C \mid B)$ ($B$ 在条件符号右侧)。然而，这个假设也是错误的。$P(A \mid B)$ 的概率严重依赖于条件概率分布 $P(B \mid A)$ 的属性。例如，如果 $B$ 确定等于 $A$，则 $P(A \mid B)$ 的形式与 $B$ 对 $A$ 只有非常微弱的依赖性时完全不同，由于在计算 $\tau(A,B,C)$ 时没有考虑到条件概率分布 $P(B \mid A)$，因此它不能代表条件概率 $P(A,C \mid B)$。
+>一般而言，我们可以验证这个因子并不对应于该网络中的任何条件概率表达式。
 
-This factor does not correspond to any probability or conditional probability in this network. To understand why, consider the various options for the meaning of this factor. Clearly, it cannot be a conditional distribution where $B$ is on the left hand side of the conditioning bar (for example, $P(A,B,C))$ , as $P(B\mid A)$ has not yet been multiplied in. The mo candidate is $P(A,C\mid B)$ . However, this conjecture is also false. The obability $P(A\mid B)$ | relies he ily on the properties of the CPD $P(B\mid A)$ for example, if B is determi stically equal to A , $P(A\mid B)$ has a very diferent form than if B depends only very weakly on A . Since the CPD $P(B\mid A)$ was not taken into consideration when computing $\tau(A,B,C)$ , it cannot represent the conditional probability $P(A,C\mid B)$ . In general, we can verify that this factor 
+It is interesting to note, however, that the resulting factor does, in fact, correspond to a conditional probability $P(A,C\mid B)$ , but in a *diferent network* : the one shown in ﬁgure 9.9b, where all CPDs except for B are the same. In fact, this phenomenon is a general one (see exercise 9.2). 
+>有趣的是，得到的结果因子确实对应于条件概率 $P(A,C\mid B)$，但是是在一个不同的网络中：如图 9.9b 所示的网络，在该网络中除了 $B$ 之外的所有 CPD 都是相同的。事实上，这种现象是一个普遍的现象（参见练习 9.2）。
 
-![](images/290124f499eb4a94cf1d8d6d480e2e6161cb54b9d17a29b72e9a6affa0a50999.jpg) 
-Figure 9.9 Understanding intermediate factors in variable elimination as conditional probabilities: (a) A Bayesian network where elimination does not lead to factors that have an interpretation as conditional probabilities. (b) A diferent Bayesian network where the resulting factor does correspond to a conditional probability. 
+### 9.3.2 Dealing with Evidence 
+It remains only to consider how we would introduce evidence. 
+>剩下要做的就是考虑如何引入证据
 
-does not correspond to any conditional probability expression in this network. 
-
-It is interesting to note, however, that the resulting factor does, in fact, correspond to a conditional probability $P(A,C\mid B)$ , but in a diferent network : the one shown in ﬁgure 9.9b, where all CPDs except for B are the same. In fact, this phenomenon is a general one (see exercise 9.2). 
-
-# 9.3.2 Dealing with Evidence 
-
-It remains only to consider how we would introduce evidence. For example, assume we observe the value $i^{1}$ (the student is intelligent) and $h^{0}$ (the student is unhappy). Our goal is to compute $P(J\mid i^{1},h^{0})$ . First, we reduce this problem to computing the unnormalized distribution $P(J,i^{1},h^{0})$ . From this intermediate result, we can compute the conditional probability as in equation (9.1), by renormalizing by the probability of the evidence $P(i^{1},h^{0})$ . 
-
-factor reduction 
+For example, assume we observe the value $i^{1}$ (the student is intelligent) and $h^{0}$ (the student is unhappy). Our goal is to compute $P(J\mid i^{1},h^{0})$ . First, we reduce this problem to computing the unnormalized distribution $P(J,i^{1},h^{0})$ . From this intermediate result, we can compute the conditional probability as in equation (9.1), by renormalizing by the probability of the evidence $P(i^{1},h^{0})$ . 
+>例如，假设我们观察到值 $i^{1}$和 $h^{0}$，我们的目标是计算 $P(J\mid i^{1},h^{0})$
+>首先，我们将这个问题简化为先计算未归一化的分布 $P(J,i^{1},h^{0})$，然后像方程（9.1）那样通过重新归一化证据的概率 $P(i^{1},h^{0})$ 来计算条件概率。
 
 How do we compute $P(J,i^{1},h^{0})$ ? The key observation is proposition 4.7, which shows us how to view, as a Gibbs distribution, an unnormalized measure derived from introducing evidence into a Bayesian network. Thus, we can view this computation as summing out all of the entries in the reduced factor : $P[i^{1}h^{0}]$ whose scope is $\{C,D,G,L,S,J\}$ . This factor is no longer normalized, but it is still a valid factor. 
+>那么如何计算 $P(J,i^{1},h^{0})$ 呢？
+>关键的观察在于命题 4.7，命题 4.7 表明了分布 $P (\pmb W,\pmb e)$ 可以视为由一组因子定义的 Gibbs 分布，这些因子通过贝叶斯网络中的 CPD 在 $\pmb E = \pmb e$ 上简化得到
 
-Based on this observation, we can now apply precisely the same sum-product variable elim- ination algorithm to the task of computing $P(\pmb{Y},\pmb{e})$ . We simply apply the algorithm to the set of factors in the network, reduced by $E=e$ , and eliminate the variables in $\mathcal{X}-Y-E$ . The returned factor $\phi^{*}(Y)$ is precisely $P(\pmb{Y},\pmb{e})$ . To obtain $P(Y\mid e)$ we simply renormalize $\phi^{*}(Y)$ by multiplying it by $\textstyle{\frac{1}{\alpha}}$ to obtain a legal distribution, where $\alpha$ is the sum over the entries in our unnormalized distribution, which represents the probability of the evidence. To summarize, the algorithm for computing conditional probabilities in a Bayesian or Markov network is shown in algorithm 9.2. 
+Based on this observation, we can now apply precisely the same sum-product variable elimination algorithm to the task of computing $P(\pmb{Y},\pmb{e})$ . We simply apply the algorithm to the set of factors in the network, reduced by $E=e$ , and eliminate the variables in $\mathcal{X}-Y-E$ . The returned factor $\phi^{*}(Y)$ is precisely $P(\pmb{Y},\pmb{e})$ . To obtain $P(Y\mid e)$ we simply renormalize $\phi^{*}(Y)$ by multiplying it by $\textstyle{\frac{1}{\alpha}}$ to obtain a legal distribution, where $\alpha$ is the sum over the entries in our unnormalized distribution, which represents the probability of the evidence. To summarize, the algorithm for computing conditional probabilities in a Bayesian or Markov network is shown in algorithm 9.2. 
+>基于这一观察，我们现在可以应用相同的和-积变量消去算法来计算 $P(\pmb{Y},\pmb{e})$
+>我们首先用 $\pmb E = \pmb e$ 将网络中的因子集合简化，然后对新的因子集合消除 $\mathcal{X}-\pmb Y-\pmb E$ 中的变量，返回的 $\phi^{*}(\pmb Y)$ 就是 $P(\pmb{Y},\pmb{e})$ 
+>为了获得 $P(\pmb Y\mid \pmb e)$，我们只需通过将其乘以 $\textstyle{\frac{1}{\alpha}}$ 来重新归一化 $\phi^{*}(Y)$，其中 $\alpha$ 是我们未归一化分布中条目的总和，表示证据的概率
+>总之，用于计算贝叶斯或马尔可夫网络中条件概率的算法如算法 9.2 所示。
 
-We demonstrate this process on the example of computing $P(J,i^{1},h^{0})$ . We use the same 
+![[PGM-Algorithm9.2.png]]
 
-![](images/92d14ca92532f8aa3e03f262653607230847c2cdddc7402a825367d5387c2108.jpg) 
+We demonstrate this process on the example of computing $P(J,i^{1},h^{0})$ . We use the same elimination ordering that we used in table 9.1. The results are shown in table 9.3; the step num- bers correspond to the steps in table 9.1. It is interesting to note the diferences between the two runs of the algorithm. First, we notice that steps (3) and (4) disappear in the computation with evidence, since $I$ and $H$ do not need to be eliminated. More interestingly, by not eliminating $I$ , we avoid the step that correlates $G$ and $S$ . In this execution, $G$ and $S$ never appear together in the same factor; they are both eliminated, and only their end results are combined. Intuitively, $G$ and $S$ are conditionally independent given $I$ ; hence, observing $I$ renders them independent, so that we do not have to consider their joint distribution explicitly. Finally, we notice that $\phi_{I}[I=i^{1}]\,=\,P(i^{1})$ is a factor over an empty scope, which is simply a number. It can be multiplied into any factor at any point in the computation. We chose arbitrarily to incorporate it into step $(2^{\prime})$ . Note that if our goal is to compute a conditional probability given the evidence, and not the probability of the evidence itself, we can avoid multiplying in this factor entirely, since its efect will disappear in the renormalization step at the end.
 
-elimination ordering that we used in table 9.1. The results are shown in table 9.3; the step num- bers correspond to the steps in table 9.1. It is interesting to note the diferences between the two runs of the algorithm. First, we notice that steps (3) and (4) disappear in the computation with evidence, since $I$ and $H$ do not need to be eliminated. More interestingly, by not eliminating $I$ , we avoid the step that correlates $G$ and $S$ . In this execution, $G$ and $S$ never appear together in the same factor; they are both eliminated, and only their end results are combined. Intuitively, $G$ and $S$ are conditionally independent given $I$ ; hence, observing $I$ renders them independent, so that we do not have to consider their joint distribution explicitly. Finally, we notice that $\phi_{I}[I=i^{1}]\,=\,P(i^{1})$ is a factor over an empty scope, which is simply a number. It can be multiplied into any factor at any point in the computation. We chose arbitrarily to incorporate it into step $(2^{\prime})$ . Note that if our goal is to compute a conditional probability given the evidence, and not the probability of the evidence itself, we can avoid multiplying in this factor entirely, since its efect will disappear in the renormalization step at the end. 
-
+Box 9.A — Concept: The Network Polynomial. 
+The network polynomial provides an interestpolynomial ing and useful alternative view of variable elimination. We begin with describing the concept for the case of a Gibbs distribution parameterized via a set of full table factors Φ. The polynomial fΦ
 is deﬁned over the following set of variables: 
 
 • For each factor $\phi_{c}\in\Phi$ with scope $X_{c},$ , we have a variable $\theta_{\pmb{x}_{c}}$ for every $\pmb{x}_{c}\in V a l(\pmb{X}_{c})$ . • For each variable $X_{i}$ and every value $x_{i}\in V a l(X_{i})$ , we have a binary-valued variable $\lambda_{x_{i}}$ 
@@ -6338,606 +6341,15 @@ this fact is proved in lemma 19.1. These derivatives can be used for various pur
 
 Of course, as deﬁned, the representation of the network polynomial is exponentially large in the number of variables in the network. However, we can use the algebraic operations performed in a run of variable elimination to deﬁne a network polynomial that has precisely the same complexity as the VE run. More interesting, we can also use the same structure to compute efciently all of the derivatives of the network polynomial, relative both to the $\lambda_{i}$ and the $\theta_{\pmb{x}_{c}}$ (see exercise 9.6). 
 
-# 9.4 Complexity and Graph Structure: Variable Elimination 
-
-From the examples we have seen, it is clear that the VE algorithm can be computationally much more efcient than a full enumeration of the joint. In this section, we analyze the complexity of the algorithm, and understand the source of the computational gains. 
-
-We also note that, aside from the asymptotic analysis, a careful implementation of this algorithm can have signiﬁcant ramiﬁcations on performance; see box 10.A. 
-
-# 9.4.1 Simple Analysis 
-
-Let us begin with a simple analysis of the basic computational operations taken by algorithm 9.1. Assume we have $n$ random variables, and $m$ initial factors; in a Bayesian network, we have $m=n$ ; in a Markov network, we may have more factors than variables. For simplicity, assume we run the algorithm until all variables are eliminated. 
-
-The algorithm consists of a set of elimination steps, where, in each step, the algorithm picks a variable $X_{i}$ , then multiplies all factors involving that variable. The result is a single large factor $\psi_{i}$ . The variable then gets summed out of $\psi_{i}$ , resulting in a new factor $\tau_{i}$ whose scope is the scope of $\psi_{i}$ minus $X_{i}$ . Thus, the work revolves around these factors that get created and processed. Let $N_{i}$ be the number of entries in the factor $\psi_{i}$ , and let $N_{\mathrm{max}}=\operatorname*{max}_{i}N_{i}$ . 
-
-We begin by counting the number of multiplication steps. Here, we note that the total number of factors ever entered into the set of factors $\Phi$ is $m+n$ : the $m$ initial factors, plus the $n$ factors $\tau_{i}$ . Each of these factors $\phi$ is multiplied exactly once: when it is multiplied in line 3 of Sum-Product-Eliminate-Var to produce a large factor $\psi_{i}$ , it is also extracted from $\Phi$ . The cost of multiplying $\phi$ to produce $\psi_{i}$ is at most $N_{i}$ , since each entry of $\phi$ is multiplied into $\psi_{i}$ the total number of multiplication steps is at most $(n+m)N_{i}\leq$ $(n+m)N_{\mathrm{max}}\,=\,O(m N_{\mathrm{max}})$ . To analyze the number of addition steps, we note that the marginalization operation in line 4 touches each entry in $\psi_{i}$ exactly once. Thus, the cost of this operation is exactly $N_{i}$ ; we execute this operation once for each factor $\psi_{i}$ , so that the total number of additions is at most $n N_{\mathrm{max}}$ . Overall, the total amount of work required is $O(m N_{\mathrm{max}})$ . 
-
-The source of the inevitable exponential blowup is the potentially exponential size of the factors $\psi_{i}$ . If each variable has no more than $v$ values, and a factor $\psi_{i}$ has a scope that contains $k_{i}$ variables, then $N_{i}\leq v^{k_{i}}$ . Thus, we see that the computational cost of the VE algorithm is dominated by the sizes of the intermediate factors generated, with an exponential growth in the number of variables in a factor. 
-
-# 9.4.2 Graph-Theoretic Analysis 
-
-Although the size of the factors created during the algorithm is clearly the dominant quantity in the complexity of the algorithm, it is not clear how it relates to the properties of our problem instance. In our case, the only aspect of the problem instance that afects the complexity of the algorithm is the structure of the underlying graph that induced the set of factors on which the algorithm was run. In this section, we reformulate our complexity analysis in terms of this graph structure. 
-
-# 9.4.2.1 Factors and Undirected Graphs 
-
-We begin with the observation that the algorithm does not care whether the graph that generated the factors is directed, undirected, or partly directed. The algorithm’s input is a set of factors $\Phi$ , and the only relevant aspect to the computation is the scope of the factors. Thus, it is easiest to view the algorithm as operating on an undirected graph $\mathcal{H}$ . 
-
-More precisely, we can deﬁne the notion of an undirected graph associated with a set of factors: 
-
-Let $\Phi$ be a set of factors. We deﬁne 
-
-$$
-S c o p e[\Phi]=\cup_{\phi\in\Phi}S c o p e[\phi]
-$$ 
-
-to be the set of all variables appearing in any of the factors in $\Phi$ . We deﬁne ${\mathcal{H}}_{\Phi}$ to be the undirected graph whose nodes correspond to the variables in Scope [Φ] and where we have an edge $X_{i}{-}X_{j}\in{\mathcal{H}}_{\Phi}$ if and only if there exists a factor $\phi\in\Phi$ such that $X_{i},X_{j}\in S c o p e[\phi]$ . 
-
-In words, t irected graph ${\mathcal{H}}_{\Phi}$ introduces a fully connected subgraph over t scope of each factor $\phi\in\Phi$ ∈ , and hence is the minimal I-map for the distribution induced by Φ . We can now show that: 
-
-Let $P$ be a distribution deﬁned by multiplying the factors in $\Phi$ and normalizing to deﬁne $^a$ distribution. Letting $X=S c o p e[\Phi]$ , 
-
-$$
-P(X)=\frac{1}{Z}\prod_{\phi\in\Phi}\phi,
-$$ 
-
-here $\begin{array}{r}{Z=\sum_{X}\prod_{\phi\in\Phi}\phi}\end{array}$ Q . Then ${\mathcal{H}}_{\Phi}$ is the minimal Markov network $I\cdot$ map for $P$ , and the factors ∈ $\Phi$ are a parameter iz ation of this network that deﬁnes the distribution P . 
-
-The proof is left as an exercise (exercise 9.7). 
-
-Note that, for a set of factors $\Phi$ deﬁned by a Bayesian netwo $\mathcal{G}$ , in the case without evidence, the undirected graph ${\mathcal{H}}_{\Phi}$ is precisely the moralized graph of G . In this case, the product of the factors is a normalized distribution, so the partition function of the resulting Markov network is simply 1 . Figure 4.6a shows the initial graph for our Student example. 
-
-More interesting is the Markov network induced by a set of factors $\Phi[e]$ deﬁned by the reduction of the factors in a Bayesian network to some context $E=e$ . In this case, recall that the variables in $E$ are removed from the factors, so $X=S c o p e[\Phi_{e}]=\mathcal{X}-E$ . Furthermore, as we discussed, the unnormalized product of the factors is $P(X,e)$ , and the partition function of the resulting Markov network is precisely $P(e)$ . Figure 4.6b shows the initial graph for our Student example with evidence $G\;=\;g$ , and ﬁgure 4.6c shows the case with evidence $G=g,S=s$ . 
-
-# 9.4.2.2 Elimination as Graph Transformation 
-
-Now, consider the efect of a variable elimination step on the set of factors maintained by the algorithm and on the associated Markov network. When a variable $X$ is eliminated, several operations take place. First, we create a single factor $\psi$ that contains $X$ and all of the variables $Y$ with which it appears in factors. Then, we eliminate $X$ from $\psi$ , replacing it with a new factor $\tau$ that contains all of the variables $Y$ but does not contain $X$ . Let $\Phi_{X}$ be the resulting set of factors. 
-
-ﬁll edge 
-
-How does the graph ${\mathcal{H}}_{\Phi_{X}}$ from $\mathcal{H}_{\Phi}\mathfrak{H}$ The step of constructing $\psi$ generates edges between all of the variables Y $Y\in Y$ ∈ . Some of them were present in ${\mathcal{H}}_{\Phi}$ , whereas others are introduced due to the elimination step; edges that are introduced by an elimination step are called ﬁll edges . The step of eliminating $X$ from $\psi$ to construct $\tau$ has the efect of removing $X$ and all of its incident edges from the graph. 
-
-![](images/31cdfc0084379ddb6de8422d0d10272e1cbef6d6f4f830d88863477cfed31aa5.jpg) 
-Figure 9.10 Variable elimination as graph transformation in the Student example, using the elimi- nation order of table 9.1: (a) after eliminating $C$ ; (b) after eliminating $D$ ; (c) after eliminating $I$ . 
-
-Consider again our Student network, in the case without evidence. As we said, ﬁgure 4.6a shows the original Markov network. Figure 9.10a shows the result of eliminating the variable $C$ . Note that there are no ﬁll edges introduced in this step. 
-
-After an elimination step, the subsequent elimination steps use the new set of factors. In other words, they can be seen as operations over the new graph. Figure 9.10b and c show the graphs resulting from eliminating ﬁrst $D$ and then $I$ . Note that the step of eliminating $I$ results in a (new) ﬁll edge $G{-}S$ , induced by the factor $G,I,S$ . 
-
-The computational steps of the algorithm are reﬂected in this series of graphs. Every factor that appears in one of the steps in the algorithm is reﬂected in the graph as a clique. In fact, we can summarize the computational cost using a single graph structure. 
-
-# 9.4.2.3 The Induced Graph 
-
-We deﬁne an undirected graph that is the union of all of the graphs resulting from the diferent steps of the variable elimination algorithm. 
-
-Deﬁnition 9.5 induced graph Let $\Phi$ of factors over ${\mathcal X}\,=\,\{X_{1},.\,.\,.\,,X_{n}\}.$ , and $\prec\,b e$ an elimin on order for so subset $X\subseteq\mathcal{X}$ ⊆X . The induced graph $\mathcal{T}_{\Phi,\prec}$ is an undirected graph over X , where $X_{i}$ and $X_{j}$ are connected by an edge if they both appear in some intermediate factor $\psi$ generated by the VE algorithm using $\prec$ as an elimination ordering. For a Bayesian network graph $\mathcal{G}$ , we use $\mathcal{T}_{\mathcal{G},\prec}$ to denote the in ced graph for the factors $\Phi$ corresponding to the CPDs in $\mathcal{G}$ ; similarly, for a Markov network H we use $\mathcal{T}_{\mathcal{H},\prec}$ to denote the induced graph for the factors Φ corresponding to the potentials in H . The indu aph $\mathcal{T}_{\mathcal{G},\prec}$ for our Student example is show in ﬁgure 9.11a. We can see that the ﬁll edge $G{-}S$ , introduced in step (3) when we eliminated I , is the only ﬁll edge introduced. As we discussed, each factor $\psi$ used in the computation corresponds to a complete subgraph of the graph $\mathcal{T}_{\mathcal{G},\prec}$ and is therefore a clique in the graph. The connection between cliques in $\mathcal{T}_{\mathcal{G},\prec}$ and factors $\psi$ is, in fact, much tighter: 
-
-![](images/d556a8c24eb9ce9fbc4270a465fb5393f5392fca8f908544832931ba7d517f40.jpg) 
-(c) 
-
-1. The scope of every factor generated during the variable elimination process is a clique in $\mathcal{T}_{\Phi,\prec}$ .
-
- 2. Every maximal clique in $\mathcal{L}_{\Phi,-}$ is the scope of some intermediate factor in the computation. 
-
-Proof We begin with the ﬁrst statement. Consider a factor $\psi(Y_{1},.\,.\,.\,,Y_{k})$ generated during the VE process. By the deﬁnition of the induced graph, there must be an edge between each $Y_{i}$ and $Y_{j}$ . Hence $Y_{1},\ldots,Y_{k}$ form a clique. 
-
-To prove the second stateme consider some maximal clique $Y=\{Y_{1},.\,.\,.\,,Y_{k}\}$ . Assume, without loss of generality, that $Y_{1}$ is the ﬁrst of the varia s in Y in the ordering $\prec_{!}$ , and is therefore the ﬁrst among this set to be eliminated. Since Y $Y$ is a clique, there is an edge from $Y_{1}$ to each other $Y_{i}$ . Note that, once $Y_{1}$ is eliminated, it can appear in no more factors, so there can be no new edges added to it. Hence, the edges involving $Y_{1}$ were added prior to this point in the computation. The existence of an edge between $Y_{1}$ and $Y_{i}$ therefore implies that, at this point, there is a factor containing both $Y_{1}$ and $Y_{i}$ . When $Y_{1}$ is eliminated, all these factors must be multiplied. Therefore, the product step results in a factor $\psi$ that contains all of $Y_{1},Y_{2},.\,.\,.\,,Y_{k}$ . Note that this factor can contain no other variables; if it did, these variables would also have an edge to all of $Y_{1},\ldots,Y_{k}$ , so that $Y_{1},\ldots,Y_{k}$ would not constitute a maximal connected subgraph. 
-
-Let us verify that the second property holds for our example. Figure 9.11b shows the maximal cliques in $\mathcal{T}_{\mathcal{G},\prec}$ : 
-
-$$
-\begin{array}{l c l}{{{\cal C}_{1}}}&{{=}}&{{\{{\cal C},{\cal D}\}}}\\ {{{\cal C}_{2}}}&{{=}}&{{\{{\cal D},{\cal I},{\cal G}\}}}\\ {{{\cal C}_{3}}}&{{=}}&{{\{{\cal I},{\cal G},{\cal S}\}}}\\ {{{\cal C}_{4}}}&{{=}}&{{\{{\cal G},{\cal J},{\cal L},{\cal S}\}}}\\ {{{\cal C}_{5}}}&{{=}}&{{\{{\cal G},{\cal H},{\cal J}\}.}}\end{array}
-$$ 
-
-Both these properties hold for this set of cliques. For example, $C_{3}$ corresponds to the factor $\psi$ generated in step (5). 
-
-Thus, there is a direct correspondence between the maximal factors generated by our algorithm and maximal cliques in the induced graph. Importantly, the induced graph and the size of the maximal cliques within it depend strongly on the elimination ordering. Consider, for example, our other elimination ordering for the Student network. In this case, we can verify that our induced graph has a maximal clique over $G,I,D,L,J,H$ , a second over $S,I,D,L,J,H_{z}$ , and a third over $C,D,J$ ; indeed, the graph is missing only the edge between $S$ and $G$ , and some edges involving $C$ . In this case, the largest clique contains six variables, as opposed to four in our original ordering. Therefore, the cost of computation here is substantially more expensive. 
-
-Deﬁnition 9.6 induced width 
-
-tree-width 
-
-We deﬁne the width of an induced graph to be the number of nodes in the largest clique in the graph minus 1. We deﬁne the induced width $w_{\mathcal{K},\prec}$ of an ordering $\prec$ tiv o a graph $\mathcal{K}$ (direct or undirected) to be the width of the ph $\mathcal{T}_{\mathcal{K},\prec}$ induced by applying VE to K using the ordering ≺ . We deﬁne the tree-width of a graph K to be its minimal induced width $\begin{array}{r}{w_{K}^{*}=\operatorname*{min}_{\prec}w(\mathcal{Z}_{K,\prec})}\end{array}$ I . ≺ K ≺ 
-
-The minimal induced width of the graph $\mathcal{K}$ provides us a bound on the est performance we can hope for by applying VE to a probabilistic model that factorizes over K . 
-
-# 9.4.3 Finding Elimination Orderings $\star$ 
-
-How can we compute the minimal induced width of the graph, and the elimination ordering achieving that width? Unfortunately, there is no easy way to answer this question. 
-
-Theorem 9.7 
-
-It follows directly that ﬁnding the optimal elimination ordering is also $\mathcal{N P}$ -hard. Thus, we cannot easily tell by looking at a graph how computationally expensive inference on it will be. Note that this $\mathcal{N P}$ -completeness result is distinct from the $\mathcal{N P}$ -hardness of inference itself. That is, even if some oracle gives us the best elimination ordering, the induced width might still be large, and the inference task using that ordering can still require exponential time. 
-
-However, as usual, $\mathcal{N P}$ -hardness is not the end of the story. There are several techniques that one can use to ﬁnd good elimination orderings. The ﬁrst uses an important graph-theoretic property of induced graphs, and the second uses heuristic ideas. 
-
-# 9.4.3.1 Chordal Graphs 
-
-chordal graph Recall from deﬁnition 2.24 that an undirected graph is chordal if it contains no cycle of length greater than three that has no “shortcut,” that is, every minimal loop in the graph is of length three. As we now show, somewhat surprisingly, the class of induced graphs is equivalent to the class of chordal graphs. We then show that this property can be used to provide one heuristic for constructing an elimination ordering. 
-
-Theorem 9.8 Every induced graph is chordal. 
-
-Proof Assume by contradiction that we have such a cycle $X_{1}{\mathrm{-}}X_{2}{\mathrm{-}}\ldots{\mathrm{-}}X_{k}{\mathrm{-}}X_{1}$ for $k>3$ , and assume without loss of generality that $X_{1}$ is the ﬁrst variable to be eliminated. As in the proof of theorem 9.6, no edge incident on $X_{1}$ is added after $X_{1}$ is eliminated; hence, both edges $X_{1}{-}X_{2}$ and $X_{1}{-}X_{k}$ must exist at this point. Therefore, the edge $X_{2}{-}X_{k}$ will be added at the same time, contradicting our assumption. 
-
-verify that the graph re 9.11a is chordal. For example, the loop $H\rightarrow$ $G\rightarrow L\rightarrow J\rightarrow H$ is cut by the chord $G\rightarrow J$ . 
-
-The converse of this theorem states that any chordal graph $\mathcal{H}$ is an induced graph for ome orderi One way of showing that is to show that there is an elimination ordering for H for which itself is the induced graph. 
-
-# Theorem 9.9 
-
-Any chordal graph $\mathcal{H}$ admits an elimination ordering that does not introduce any ﬁll edges into the graph. 
-
-Proof We p ove this result by induction on the number of nodes in the tr . Le $\mathcal{H}$ be ordal graph with n nodes. As we showed in theorem 4.12, there is a clique tree T $\mathcal{T}$ for H . Let $C_{k}$ be a clique in the tree that is a leaf, that is, it has only a single other clique as a neighbor. Let $X_{i}$ be me variabl at is in $C_{k}$ but not in its n bor. Let ${\mathcal{H}}^{\prime}$ be the graph obtained by eliminating $X_{i}$ . Because $X_{i}$ belon nly to the clique $C_{k}$ , its neighbors are precisely $C_{k}-\{X_{i}\}$ . Because all of them are also in $C_{k}$ , they are connected to each other. Hence, eliminating $X_{i}$ introduces no ﬁll edges. Because ${\mathcal{H}}^{\prime}$ is also chordal, we can now apply the inductive hypothesis, proving the result. 
-
-![](images/4735fc0cfa22bcaea45345a50f77cdc946bb8e6dd36596cd750aaac5fa42261c.jpg) 
-
-# Example 9.2 
-
-maximum cardinality 
-
-Example 9.3 We can illustrate this construction on the graph of ﬁgure 9.11a. The maximal cliques in the induced graph are shown in $b,$ , and a clique tree for this graph is shown in c. One can easily verify that each sepset separates the two sides of the tree; for example, the sepset $\{G,S\}$ separates $C,I,D$ (on the left) from $L,J,H$ (on the right). The elimination ordering $C,D,I,H,G,S,L,J$ , an extension of the elimination in table 9.1 that generated this induced graph, is one ordering that might arise from the construction of theorem 9.9. For example, it ﬁrst eliminates $C,D$ , which are both in $^a$ leaf clique; it then eliminates $I$ , which is in a clique that is now a leaf, following the elimination of $C,D$ . Indeed, it is not hard to see that this ordering introduces no ﬁll edges. By contrast, the ordering in table 9.2 is not consistent with this construction, since it begins by eliminating the variables $G,I,S$ , none of which are in a leaf clique. Indeed, this elimination ordering introduces additional ﬁll edges, for example, the edge $H\rightarrow D$ . 
-
-An alternative method for constructing an elimination ordering that introduces no ﬁll edges in a chordal graph is the Max-Cardinality algorithm, shown in algorithm 9.3. This method does not use the clique tree as its starting point, but rather operates directly on the graph. When applied to a chordal graph, it constructs an elimination ordering that eliminates cliques one at a time, starting from the leaves of the clique tree; and it does so without ever considering the clique tree structure explicitly. 
-
-Consider applying Max-Cardinality to the chordal graph of ﬁgure 9.11. Assume that the ﬁrst node selected is $S$ . The second node selected must be one of $S$ ’s neighbors, say $J$ . The node that has the largest number of marked neighbors are now $G$ and $L$ , which are chosen subsequently. Now, the unmarked nodes that have the largest number of marked neighbors (two) are $H$ and $I$ . Assume we select $I$ . Then the next nodes selected are $D$ and $H$ , in any order. The last node to be selected is $C$ . One possible resulting ordering in which nodes are marked is thus $S,J,G,L,I,H,D,C$ . Importantly, the actual elimination ordering proceeds in reverse. Thus, we ﬁrst eliminate $C,D,$ , then $H$ , and so on. We can now see that this ordering always eliminates a variable from a clique that is a leaf clique at the time. For example, we ﬁrst eliminate $C,D$ from a leaf clique, then $H$ , then $G$ from the clique $\{G,I,D\}$ , which is now (following the elimination of $C,D)$ a leaf. 
-
-As in this example, Max-Cardinality always produces an elimination ordering that is consistent with the construction of theorem 9.9. As a consequence, it follows that Max-Cardinality , when applied to a chordal graph, introduces no ﬁll edges. 
-
-Theorem 9.10 Let H be a chordal graph. Let π be the ranking obtained by running Max-C dinality on $\mathcal{H}$ . Then Sum-Product-VE (algorithm 9.1), eliminating variables in order of increasing π , does not introduce any ﬁll edges. 
-
-The proof is left as an exercise (exercise 9.8). 
-
-The maximum cardinality search algorithm can also be used to construct an elimination ordering for a nonchordal graph. However, it turns out that the orderings produced by this method are generally not as good as those produced by various other algorithms, such as those described in what follows. 
-
-triangulation 
-
-polytree 
-
-To summarize, we have shown that, if we construct a chordal graph that contains the graph ${\mathcal{H}}_{\Phi}$ corresponding to our s of factors $\Phi$ , we can use it as the basis for inference using $\Phi$ . The process of turning a graph H into a chordal graph is also called triangulation , since it ensures that the largest unbroken cycle in the graph is a triangle. Thus, we can reformulate our goal of ﬁnding an elimination ordering as that of triangulating a graph $\mathcal{H}$ so that the largest clique in the resulting graph is as small as possible. Of course, this insight only reformulates the problem: Inevitably, the problem of ﬁnding such a minimal triangulation is also $\mathcal{N P}$ -hard. Nevertheless, there are several graph-theoretic algorithms that address this precise problem and ofer diferent levels of performance guarantee; we discuss this task further in section 10.4.2. 
-
-Box 9.B — Concept: Polytrees. One particularly simple class of chordal graphs is the class of Bayesian networks whose graph $\mathcal{G}$ is $a$ polytree . Recall from deﬁnition 2.22 that a polytree is a graph where there is at most one trail between every pair of nodes. 
-
-Polytrees received a lot of attention in the early days of Bayesian networks, because the ﬁrst widely known inference algorithm for any type of Bayesian network was Pearl’s message passing algorithm for polytrees. This algorithm, a special case of the message passing algorithms described in subsequent chapters of this book, is particularly compelling in the case of polytree networks, since it consists of nodes passing messages directly to other nodes along edges in the graph. Moreover, the cost of this computation is linear in the size of the network (where the size of the network is measured as the total sizes of the CPDs in the network, not the number of nodes; see exercise 9.9). From the perspective of the results presented in this section, this simplicity is not surprising: In a polytree, any maximal clique is a family of some variable in the network, and the clique tree structure roughly follows the network topology. (We simply throw out families that do not correspond to a maximal clique, because they are subsumed by another clique.) 
-
-Somewhat ironically, the compelling nature of the polytree algorithm gave rise to a long-standing misconception that there was a sharp tractability boundary between polytrees and other networks, in that inference was tractable only in polytrees and NP-hard in other networks. As we discuss in this chapter, this is not the case; rather, there is a continuum of complexity deﬁned by the size of the largest clique in the induced graph. 
-
-# 9.4.3.2 Minimum Fill/Size/Weight Search 
-
-An alternative approach for ﬁnding elimination orderings is based on a very straightforward intuition. Our goal is to construct an ordering that induces a “small” graph. While we cannot 
-
-![](images/1f6e5c40cec9273d7551ce9744ddbb6d532cd17389d1373b9205426f560524a5.jpg) 
-
-ﬁnd an ordering that achieves the global minimum, we can eliminate variables one at a time in a greedy way, so that each step tends to lead to a small blowup in size. 
-
-The general algorithm is shown in algorithm 9.4. At each point, the algorithm evaluates each of the remaining variables in the network based on its heuristic cost function. Some common cost criteria that have been used for evaluating variables are: 
-
-• Min-neighbors: The cost of a vertex is the number of neighbors it has in the current graph.
-
- • Min-weight: The cost of a vertex is the product of weights — domain cardinality — of its neighbors.
-
- • Min-ﬁll: - The cost of a vertex is the number of edges that need to be added to the graph due to its elimination.
-
- • Weighted-min-ﬁll: The cost of a vertex is the sum of weights of the edges that need to be added to the graph due to its elimination, where a weight of an edge is the product of weights of its constituent vertices. 
-
-Intuitively, min-n ghbors and min-weight count the size or weight of the largest clique in $\mathcal{H}$ after eliminating X . Min-ﬁll and weighted-min-ﬁll count the number or weight of edges that would be introduced into $\mathcal{H}$ by eliminating $X$ . It can be shown (exercise 9.10) that none of these criteria is universally better than the others. 
-
-This type of greedy search can be done either deterministic ally (as shown in algorithm 9.4), or stochastically. In the stochastic variant, at each step we select some number of low-scoring vertices, and then choose among them using their score (where lower-scoring vertices are selected with higher probability). In the stochastic variants, we run multiple iterations of the algorithm, and then select the ordering that leads to the most efcient elimination — the one where the sum of the sizes of the factors produced is smallest. 
-
-Empirical results show that these heuristic algorithms perform surprisingly well in practice. Generally, Min-Fill and Weighted-Min-Fill tend to work better on more problems. Not surpris- ingly, Weighted-Min-Fill usually has the most signiﬁcant gains when there is some signiﬁcant variability in the sizes of the domains of the variables in the network. Box 9.C presents a case study comparing these algorithms on a suite of standard benchmark networks. 
-
-Box 9.C — Case Study: Variable Elimination Orderings. Fishelson and Geiger (2003) performed a comprehensive case study of diferent heuristics for computing an elimination ordering, testing them on eight standard Bayesian network benchmarks, ranging from 24 nodes to more than 1,000. For each network, they compared both to the best elimination ordering known previously, obtained by an expensive process of simulated annealing search, and to the network obtained by a state- of-the-art Bayesian network package. They compared to stochastic versions of the four heuristics described in the text, running each of them for 1 minute or 10 minutes, and selecting the best network obtained in the diferent random runs. Maximum cardinality search was not used, since it is known to perform quite poorly in practice. 
-
-The results, shown in ﬁgure 9.C.1, suggest several conclusions. First, we see that running the stochastic algorithms for longer improves the quality of the answer obtained, although usually not by a huge amount. We also see that diferent heuristics can result in orderings whose computational cost can vary in almost an order of magnitude. Overall, Min-Fill and Weighted-Min-Fill achieve the best performance, but they are not universally better. The best answer obtained by the greedy algorithms is generally very good; it is often signiﬁcantly better than the answer obtained by a deterministic state-of-the-art scheme, and it is usually quite close to the best-known ordering, even when the latter is obtained using much more expensive techniques. Because the computational cost of the heuristic ordering-selection algorithms is usually negligible relative to the running time of the inference itself, we conclude that for large networks it is worthwhile to run several heuristic algorithms in order to ﬁnd the best ordering obtained by any of them. 
-
-# 9.5 Conditioning $\star$ 
-
-# 
-
-An alternative approach to inference is based on the idea of conditioning . The conditioning algorithm is based on the fact (illustrated in section 9.3.2), that observing the value of certain variables can simplify the variable elimination process. When a variable is not observed, we can use a case analysis to enumerate its possible values, perform the simpliﬁed VE computation, and then aggregate the results for the diferent values. As we will discuss, in terms of number of operations, the conditioning algorithm ofers no beneﬁt over the variable elimination al- gorithm. However, it ofers a continuum of time-space trade-ofs, which can be extremely important in cases where the factors created by variable elimination are too big to ﬁt in main memory. 
-
-# 9.5.1 The Conditioning Algorithm 
-
-The conditioning algorithm is easiest to explain in the context of a Markov network. Let $\Phi$ be a set of factors over $X$ and $P_{\Phi}$ be the associated distribution. We assume that any observations were already assimilated into $\Phi$ , so that our goal is to compute $P_{\Phi}(\pmb{Y})$ for some set of query variables $Y$ . For example, if we want to do inference in the Student network given the evidence $G=g$ , we would reduce the factors reduced to this context, giving rise to the network structure shown in ﬁgure $4.6\mathrm{b}$ . 
-
-![](images/74a76c49f09b8e4965ade5a5c617045220d9a710e0e6ff76d697ba728455459e.jpg) 
-Figure 9.C.1 — Comparison of algorithms for selecting variable elimination ordering. 
-
-Computational cost of variable elimination inference in a range of benchmark networks, obtained by various algorithms for selecting an elimination ordering. The cost is measured as the size of the factors generated during the process of variable elimination. For each network, we see the cost of the best-known ordering, the ordering obtained by Hugin (a state-of-the-art Bayesian network package), and the ordering obtained by stochastic greedy search using four diferent search heuristics — Min-Neighbors, Min-Weight, Min-Fill, and Weighted-Min-Fill — run for 1 minute and for 10 minutes. 
-
-![](images/b77a7a5be7063f947b9056ce4539581a1c9feb0289bdbc5864425b2c9b9fc106.jpg) 
-
-The conditioning algorithm is based on the following simple derivation. Let $U\subseteq X$ be any set of variables. Then we have that: 
-
-$$
-\tilde{P}_{\Phi}(Y)=\sum_{\mathbf{\substack{u}\in\,}V a l(U)}\tilde{P}_{\Phi}(Y,\mathbf{\acute{u}}).
-$$ 
-
-The key observation is that each term $\tilde{P}_{\Phi}(Y,{\pmb u})$ can be computed by marginalizing out the variable in $X\mathrm{~-~}U\mathrm{~-~}Y$ in the unnormalized measure $\tilde{P}_{\Phi}[{\pmb u}]$ obtained by reducing $\mathbf{\bar{\mathit{P}}}_{\Phi}$ to the context u . As we have already discussed, the reduced measure is simply the measure deﬁned by reducing each of the factors to the context $\mathbfit{u}$ . The reduction process generally produces a simpler structure, with a reduced inference cost. 
-
-We can use this formula to compute $P_{\Phi}(\pmb{Y})$ as follows: We construct a network $\mathcal{H}_{\Phi}[\pmb{u}]$ for each assignment $\mathbfit{u}$ ; these networks have identical structures, but diferent parameters. We run sum-product inference in each of them, to obtain a factor over the desired query set $Y$ . We then simply add up these factors to obtain $\tilde{P}_{\Phi}(Y)$ . We can also derive $P_{\Phi}(\pmb{Y})$ by renormalizing this factor to obtain a distribution. As usual, the normalizing constant is the partition function for $P_{\Phi}$ . However, applying equation (9.11) to the case of $Y=\emptyset$ , we conclude that 
-
-$$
-Z_{\Phi}=\sum_{\pmb{u}}Z_{\Phi[\pmb{u}]}.
-$$ 
-
-Thus, we can derive the overall partition function from the partition functions for the diferent subnetworks $\mathcal{H}_{\Phi[\pmb{u}]}$ . The ﬁnal algorithm is shown in algorithm 9.5. (We note tha Cond-Prob-VE was called without evidence, since we assumed for simplicity that our factors Φ have already been reduced with the evidence.) 
-
-Assume that we want to compute $P(J)$ in the Student network with evidence $G=g^{1}$ , so that our initial graph would be the one shown in ﬁgure $4.6b$ . We can now perform inference by enumerating all of the assignments s to the variable $S$ . For each such assignment, we run inference on a graph structured as in ﬁgure 4.6c, with the factors reduced to the assignment $g^{1},s$ . In each such network we compute a factor over $J$ , and add them all up. Note that the reduced network contains two disconnected components, and so we might be tempted to run inference only on the component that contains $J$ . However, that procedure would not produce a correct answer: The value we get by summing out the variables in the second component multiplies our ﬁnal factor. Although this is $^a$ constant multiple for each value of $s$ , these values are generally diferent for the diferent values of $S$ . Because the factors are added before the ﬁnal renormalization, this constant inﬂuences the weight of one factor in the summation relative to the other. Thus, if we ignore this constant component, the answers we get from the $s^{1}$ computation and the $s^{0}$ computation would be weighted incorrectly. 
-
-cutset conditioning 
-
-Historically, owing to the initial popularity of the polytree algorithm, the conditioning ap- proach was mostly used in the case where the transformed network is a polytree. In this case, the algorithm is called cutset conditioning . 
-
-# 9.5.2 Conditioning and Variable Elimination 
-
-At ﬁrst glance, it might appear as if this process saves us considerable computational cost over the variable elimination algorithm. After all, we have reduced the computation to one that performs variable elimination in a much simpler network. The cost arises, of course, from the fact that, when we condition on $U$ , we need to perform variable elimination on the conditioned network multiple times, once for each assignment $u\in V a l(U)$ . e cost of this computation is $O(|V a l(\pmb{U})|)$ , which is exponential in the number of variables in U . Thus, we have not avoided the exponential blowup associated with the probabilistic inference process. In this section, we provide a formal complexity analysis of the conditioning algorithm, and compare it to the complexity of elimination. This analysis also reveals various interesting improvements to the basic conditioning algorithm, which can dramatically improve its performance in certain cases. 
-
-To understand the operation of the conditioning algorithm, we return to the basic description of the probabilistic inference task. Consider our query $J$ in the Extended Student network. We know that: 
-
-$$
-p(J)=\sum_{C}\sum_{D}\sum_{I}\sum_{S}\sum_{G}\sum_{L}\sum_{H}P(C,D,I,S,G,L,H,J).
-$$ 
-
-Reordering this expression slightly, we have that: 
-
-$$
-p(J)=\sum_{g}\left[\sum_{C}\sum_{D}\sum_{I}\sum_{S}\sum_{L}\sum_{H}P(C,D,I,S,g,L,H,J)\right].
-$$ 
-
-The expression inside the parentheses is precisely the result of computing the probability of $J$ in the network $\mathcal{H}_{\Phi_{G=g}}$ , where $\Phi$ is the set of CPD factors in $\mathcal{B}$ . 
-
-In other words, the conditioning algorithm is simply executing parts of the basic summation deﬁning the inference task by case analysis, enumerating the possible values of the conditioning 
-
-![](images/1f965b24e2c88bafa776e8efd8693a4ca915d4e4dd83a37f5e25fceb4f5ca10f.jpg) 
-
-variables. By contrast, variable elimination performs the same summation from the inside out, using dynamic programming to reuse computation. 
-
-Indeed, if we simply did conditioning on all of the variables, the result would be an explicit summation of the entire joint distribution. In conditioning, however, we perform the condi- tioning step only on some of the variables, and use standard variable elimination — dynamic programming — to perform the rest of the summation, avoiding exponential blowup (at least over that part). 
-
-In general, it follows that both algorithms are performing the same set of basic operations (sums and products). However, where the variable elimination algorithm uses the caching of dynamic programming to save redundant computation throughout the summation, conditioning uses a full enumeration of cases for some of the variables, and dynamic programming only at the end. 
-
-From this argument, it follows that conditioning always performs no fewer steps than variable elimination. To understand why, consider the network of example 9.4 and assume that we are trying to compute $P(J)$ . The conditioned network ${\mathcal{H}}_{\Phi_{G=g}}$ has a set of factors most of which are identical to those in the original network. The exceptions are the reduced factors: $\phi_{L}[G=g](L)$ and $\phi_{H}[G=g](H,J)$ . For each of the three values $g$ of $G$ , we are performing variable elimination over these factors, eliminating all variables except for $G$ and $J$ . 
-
-We can imagine “lumping” these three computations into one, by augmenting the scope of each factor with the variable $G$ . More precisely, we deﬁne a set of augmented factors $\phi^{+}$ as follows: The scope of the factor $\phi_{G}$ already contains $G$ , so $\phi_{G}^{+}(G,D,I)=\phi_{G}(G,D,I)$ . For the factor $\phi_{L}^{+}$ , we simply combine the three factors $\phi_{L,g}(L)$ , so that $\phi_{L}^{+}(L,g)=\phi_{L}[G=g](L)$ for all $g$ . Not surprisingly, the resulting factor $\phi_{L}^{+}(L,G)$ is simply our original CPD factor $\phi_{L}(L,G)$ . We deﬁne $\phi_{H}^{+}$ in the same way. The remaining factors are unrelated to $G$ . For each other variable $X$ over scope $Y$ , we simply deﬁne $\phi_{X}^{+}(Y,G)=\phi_{X}(Y)$ ; that is, the value of the factor does not depend on the value of $G$ . 
-
-We can easily verify that, if we run variable elimination over he se of factors $\mathcal{F}_{X}^{+}$ for $X\,\in\,\{C,D,I,G,S,L,J,H\}$ , eliminating all variables except for J and G , we are perform- ing precisely the same computation as the three iterations of variable elimination for the three diferent conditioned networks $\mathcal{H}_{\Phi_{G=g}}$ : Factor entries involving diferent values $g$ of $G$ never in- 
-
-![](images/accdf1e5efff758ee985d89c56f95ff4adca95ef4a0f4296d57d15b36c96605d.jpg) 
-
-teract, and the computation performed for the entries where $G=g$ is precisely the computation performed in the network $\mathcal{H}_{\Phi_{G=g}}$ . 
-
-Speciﬁcally, assume we are using the ordering $C,D,I,H,S,L$ to perform the elimination within each conditioned network $\mathcal{H}_{\Phi_{G=g}}$ . The steps of the computation are shown in table 9.4. Step (7) corresponds to the product of all of the remaining factors, which is the last step in variable elimination. The ﬁnal step in the conditioning algorithm, where we add together the results of the three computations, is precisely the same as eliminating $G$ from the resulting factor $\tau_{7}(G,J)$ . 
-
-It is instructive to compare this execution to the one obtained by running variable elimination on the original set of factors, with the elimination ordering $C,D,I,H,S,L,G$ ; that is, we follow the ordering used within the conditioned networks for the variables other than $G,J$ , and then eliminate $G$ at the very end. In this process, shown in table 9.5, some of the factors involve $G$ , but others do not. In particular, step (1) in the elimination algorithm involves only $C,D$ , whereas in the conditioning algorithm, we are performing precisely the same computation over $C,D$ three times: once for each value $g$ of $G$ . In general, we can show: 
-
-Let $\Phi$ be a set of factors, and $Y$ be a query. Let $U$ be a set of conditioning variables, and $Z=\mathcal{X}-Y-U$ . Let $\prec\,b e$ the elimination ordering over $Z$ used he variable elimination algorithm over e network $\mathcal{H}_{\Phi_{u}}$ in the onditioning algorithm. Let ≺ $\prec^{+}$ rdering that is with ≺ over the variables in Z , and where, for each variable $U\in U$ ∈ , we have that $Z\prec^{+}U$ ≺ . Then the number of operations performed by the conditi ng is no less than the number of operations performed by variable elimination with the ordering ≺ $\prec^{+}$ . 
-
-We omit the proof of this theorem, which follows precisely the lines of our example. 
-
-Thus, conditioning always requires no fewer computations than variable elimination with some particular ordering (which may or may not be a good one). In our example, the wasted computation from conditioning is negligible. In other cases, however, as we will discuss, we can end up with a large amount of redundant computation. In fact, in some cases, conditioning can be signiﬁcantly worse: 
-
-![](images/fe534ffbae8d7f5e5015b2156bf131461f0a77a282c24967e6af874a2e613657.jpg) 
-Figure 9.12 Networks where conditioning performs unnecessary computation 
-
-to cut the single loop in the network. In this case, we would perform the entire elimination of the chain $A_{1}\to.\,.\,.\to A_{k-1}$ multiple times — once for every value of $A_{k}$ . 
-
-Consider the network shown in ﬁgure 9.12b and assume that we wish to use cutset conditioning, where we cut every loop in the network. The most efcient way of doing so is to condition on every other $A_{i}$ variable, for example, $A_{2},A_{4},.\cdot\cdot,A_{k}$ (assuming for simplicity that $k$ is even). The cost of the conditioning algorithm in this case is exponential in $k$ , whereas the induced width of the network is 2 , and the cost of variable elimination is linear in $k$ . 
-
-Given this discussion, one might wonder why anyone bothers with the conditioning algorithm. There are two main reasons. First, variable elimination gains its computational savings from caching factors computed as intermediate results. In complex networks, these factors can grow very large. In cases where memory is scarce, it might not be possible to keep these factors in memory, and the variable elimination computation becomes infeasible (or very costly due to constant thrashing to disk). On the other hand, conditioning does not require signiﬁcant amounts of memory: We run inference separately for each assignment $\mathbfit{u}$ to $U$ and simply accumulate the results. Overall, the computation requires space that is linear only in the size of the network. Thus, we can view the trade-of of conditioning versus variable elimination as a time-space trade-of. Conditioning saves space by not storing intermediate results in memory, but then it may cost additional time by having to repeat the computation to generate them. 
-
-The second reason for using conditioning is that it forms the basis for a useful approximate inference algorithm. In particular, in certain cases, we can get a reasonable approximate solution by enumerating only some of the possible assignment $u\in V a l(U)$ . We return to this approach in section 12.5 
-
-# 9.5.3 Graph-Theoretic Analysis 
-
-As in the case of variable elimination, it helps to reformulate the complexity analysis of the conditioning algorithm in graph-theoretic terms. Assume that we choose to condition on a set $U$ , and perform variable elimination on the remaining variables. We can view each of these steps in terms of its efect on the graph structure. 
-
-Let us begin with the step of conditioning the network on some variable $U$ . Once again, it is easiest to view this process in terms of its efect on an undirected graph. As we discussed, this step efectively introduces $U$ into every factor parameterizing the current graph. In graph- theoretic terms, we have introduced $U$ into every clique in the graph, or, more simply, introduced an edge between $U$ and every other node currently in the graph. 
-
-When we ﬁnish the conditioning process, we perform elimination on the remaining variables. We have already analyzed the efect on the graph of eliminating a variable $X$ : When we eliminate $X$ , we add edges between all of the current neighbors of $X$ in the graph. We then remove $X$ from the graph. 
-
-We can now deﬁne an induced graph for the conditioning algorithm. Unlike the graph for variable elimination, this graph has two types of ﬁll edges: those induced by conditioning steps, and those induced by the elimination steps for the remaining variables. 
-
-Deﬁnition 9.7 conditioning induced graph 
-
-# Example 9.7 
-
-$\Phi$ be a set of factors over $\mathcal{X}=\{X_{1},\cdot\cdot\cdot,X_{n}\}$ $U\subset\mathcal X$ a set of conditioning variables, and $\prec\,b e$ ≺ be an elimination ering for some subset $X\subseteq\mathcal{X}-U$ ⊆X − . The induced graph $\mathcal{L}_{\Phi,-\langle,U|}$ is an undirected graph over X with the following edges: • $a$ conditioning edge between every variable $U\in U$ and every other variable $X\in{\mathcal{X}}$ ; • $a$ factor ed e between every pair of variables $X_{i},X_{j}\in X$ that both appear in some interme- diate factor ψ generated by the VE algorithm using ≺ as an elimination ordering. 
-
-Consider the Student example of ﬁgure 9.8, where our query is $P(J)$ . Assume that (for some reason) we condition on the variable $L$ and perform elimination on the remaining variables using the ordering $C,D,I,H,G,S$ . The graph induced by this conditioning set and this elimination ordering is shown in ﬁgure 9.13, with the conditioning edges shown as dashed lines and the factor edges shown, as usual, by complete lines. The step of conditioning on $L$ causes the introduction of the edges between $L$ and all the other variables. The set of factors we have after the conditioning step immediately leads to the introduction of all the factor edges except for the edge $G{-}S_{i}$ ; this latter edge results from the elimination of $I$ . 
-
-We can now use this graph to analyze the complexity of the conditioning algorithm. 
-
-# Theorem 9.12 
-
-![](images/fa7b2af60cfcabcf61bd5fd5e5bb2d44acccc45d95be4199c674e423ef6604a1.jpg) 
-
-Figure 9.13 Induced graph for the Student example using both conditioning and elimination: we condition on $L$ and eliminate the remaining variables using the ordering $C,D,I,H,G,S$ . 
-
-The proof is left as an exercise (exercise 9.12). 
-
-This theorem provides another perspective on the trade-of between conditioning and elimi- nation in terms of their time complexity. Consider, as we did earlier, an algorithm that simply defers the elimination of the conditioning variables $U$ until the end. Consider the efect on the graph of the earlier steps of the elimination algorithm (those preceding the elimination of $U$ ). As variables are eliminated, certain edges might be added between the variables in $U$ and other variables (in particular, we add an dge between $X$ and $U\in U$ whenever they are both neigh- bors of some eliminated variable Y $Y$ ). However, conditioning adds edges between the variables $U$ and all other variables $X$ . Thus, conditioning always results in a graph that contains at least as many edges as the induced graph from elimination using this ordering. 
-
-However, we can also use the same graph to precisely estimate the time-space trade-of provided by the conditioning algorithm. 
-
-Consider an application of the co tioning algorithm to a set of factors $\Phi$ , where $U\subset\mathcal{X}$ is the ning variables, and ≺ is the elimination ordering used for the liminated variables $X\subseteq\mathcal{X}-U$ ⊆X − . The space complexity of the algorithm is $O(n\cdot v^{m_{f}})$ , where v is a bound on the domain size of any variable, and $m_{f}$ is the size of the largest clique in the graph using only factor edges. 
-
-The proof is left as an exercise (exercise 9.13). 
-
-By comparison, the asymptotic space complexity of variable elimination is the same as its time complexity: exponential in the size of the largest clique containing both types of edges. Thus, we see precisely that conditioning allows us to perform the computation using less space, at the cost (usually) of additional running time. 
-
-# 9.5.4 Improved Conditioning 
-
-As we discussed, in terms of the total operations performed, conditioning cannot be better than variable elimination. As we now show, conditioning, naively applied, can be signiﬁcantly worse. 
-
-However, the insights gained from these examples can be used to improve the conditioning algorithm, reducing its cost signiﬁcantly in many cases. 
-
-# 9.5.4.1 Alternating Conditioning and Elimination 
-
-As we discussed, the main problem associated with conditioning is the fact that all computations are repeated for all values of the conditioning variables, even in cases where the diferent computations are, in fact, identical. This phenomenon arose in the network of example 9.5. 
-
-It seems clear, in this example, that we uld prefer to eliminate the chain $A_{1}\to.\,.\,.\to A_{k-1}$ once and for all, before conditioning on $A_{k}$ . Having eliminated the chain, we would then end up with a much simpler network, involving factors only over $A_{k}$ , $B$ , $C$ , and $D$ , to which we can then apply conditioning. 
-
-The perspective described in section 9.5.3 provides the foundation for implementing this idea. As we discussed, variable elimination works from the inside out, summing out variables in the innermost summation ﬁrst and caching the results. On the other hand, conditioning works from the outside in, performing the entire internal summation (using elimination) for each value of the conditioning variables, and only then summing the results. However, there is nothing that forces us to split our computation on the outermost summations before considering the inner ones. Speciﬁcally, we can eliminate one or more variables on the inside of the summation before conditioning on any variable on the outside. 
-
-# Example 9.8 
-
-Consider again the network of ﬁgure $9.l2a,$ , and assume that our goal is to compute $P(D)$ . We might formulate the expression as: 
-
-$$
-\sum_{A_{k}}\sum_{B}\sum_{C}\sum_{A_{1}}\cdot\cdot\cdot\sum_{A_{k-1}}P(A_{1},\cdot\cdot\cdot,A_{k},B,C,D).
-$$ 
-
-We can ﬁrst perform the internal summations on $A_{k-1},\ldots,A_{1}$ , resulting in a set of factors over the scope $A_{k},B,C,D$ . We can now condition this network (that is, the Markov network induced by the resulting set of factors) on $A_{k}$ , resulting in a set of simpliﬁed networks over $B,C,D$ (one for each value of $A_{k.}$ ). In each such network, we use variable elimination on $B$ and $C$ to compute $^a$ factor over $D$ , and aggregate the factors from the diferent networks, as in standard conditioning. 
-
-In this example, we ﬁrst perform some elimination, then condition, and then elimination on the remaining network. Clearly, we can generalize this idea to deﬁne an algorithm that alternates the operations of elimination and conditioning arbitrarily. (See exercise 9.14.) 
-
-# 9.5.4.2 Network Decomposition 
-
-A second class of examples where we can signiﬁcantly improve the performance of condition- ing arises in networks where conditioning on some subset of variables splits the graph into independent pieces. 
-
-# Example 9.9 
-
-Consider the network of example 9.6, and assume that $k=16$ , and that we begin by conditioning on $A_{2}$ . After this step, the network is decomposed into two independent pieces. The standard conditioning algorithm would continue by conditioning further, say on $A_{3}$ . However, there is really no need to condition the top part of the network — the one associated with the variables $A_{1},B_{1},C_{1}$ on the variable $A_{3}$ : none of the factors mention $A_{3}$ , and we would be repeating exactly the same computation for each of its values. 
-
-Clearly, having partitioned the network into two completely independent pieces, we can now perform the computation on each of them separately, and then combine the results. In particular, the conditioning variables used on one part would not be used at all to condition the other. More precisely, we can deﬁne an algorithm that checks, after each conditioning step, whether the resulting set of factors has been disconnected or not. If it has, it simply partitions them into two or more disjoint sets and calls the algorithm recursively on each subset. 
-
-# 9.6 Inference with Structured CPDs $\star$ 
-
-We have seen that BN inference exploits the network structure, in particular the conditional independence and the locality of inﬂuence. But when we discussed representation, we also allowed for the representation of ﬁner-grained structure within the CPDs. It turns out that a carefully designed inference algorithm can also exploit certain types of local CPD structure. We focus on two types of structure where this issue has been particularly well studied — independence of causal inﬂuence, and asymmetric dependencies — using each of them to illustrate a diferent type of method for exploiting local structure in variable elimination. We defer the discussion of inference in networks involving continuous variables to chapter 14. 
-
-# 9.6.1 Independence of Causal Inﬂuence 
-
-The earliest and simplest instance of exploiting local structure was for CPDs that exhibit inde- pendence of causal inﬂuence, such as noisy-or. 
-
-# 9.6.1.1 Noisy-Or Decompositions 
-
-Consider a simple network consisting of a binary variable $Y$ and its four binary parents $X_{1},X_{2},X_{3},X_{4}$ , where the CPD of $Y$ is a noisy-or. Our goal is to compute the probability of $Y$ . The operations required to execute this process, assuming we use an optimal ordering, is: 
-
-• 4 multiplications for $P(X_{1})\cdot P(X_{2})
-
-$ • 8 multiplications for $P(X_{1},X_{2})\cdot P(X_{3})
-
-$ • 16 multiplications for $P(X_{1},X_{2},X_{3})\cdot P(X_{4})
-
-$ • 32 multiplications for P $P(X_{1},X_{2},X_{3},X_{4})\cdot P(Y\mid X_{1},X_{2},X_{3},X_{4})$ 
-
-The total is 60 multiplications, plus another 30 additions to sum out $X_{1},\dots,X_{4}$ , in order to reduce the resulting factor $P(X_{1},X_{2},X_{3},X_{4},Y)$ , of size 32, into the factor $P(Y)$ of size 2. 
-
-However, we can exploit the structure of the CPD to substantially reduce the amount of computation. As we discussed in section 5.4.1, a noisy-or variable can be decomposed into a de- terministic OR of independent noise variables, resulting in the subnetwork shown in ﬁgure $9.14\mathrm{a}$ . This transformation, by itself, is not very helpful. The factor $P(Y\mid Z_{1},Z_{2},Z_{3},Z_{4})$ is still of size 32 if we represent it as a full factor, so we achieve no gains. 
-
-The key idea is that the deterministic OR variable can be decomposed into various cascades of deterministic OR variables, each with a very small indegree. Figure $9.14\mathrm{b}$ shows a simple 
-
-![](images/9803ea1ef758e8cb0e8659467d11eb294a68518011cc517ca2308a6ec2f2191f.jpg) 
-Figure 9.14 Diferent decompositions for a noisy-or CPD: (a) The standard decomposition of a noisy- or. (b) A tree decomposition of the deterministic-or. (c) A tree-based decomposition of the noisy-or. (d) A chain-based decomposition of the noisy-or. 
-
-decomposition of the deterministic OR as a tree. We can simplify this construction by eliminating the intermediate variables $Z_{i}$ , integrating the “noise” for each $X_{i}$ into the appropriate $O_{i}$ . In particular, $O_{1}$ would be the noisy-or of $X_{1}$ and $X_{2}$ , with the original noise parameters and a leak parameter of 0 . The resulting construction is shown in ﬁgure $9.14\mathrm{c}$ . 
-
-We can now revisit the inference task in this apparently more complex network. An optimal ordering for variable elimination is $X_{1},X_{2},X_{3},X_{4},O_{1},O_{2}$ . The cost of performing elimination of $X_{1},X_{2}$ is: 
-
-• 8 multiplications for $\psi_{1}(X_{1},X_{2},O_{1})=P(X_{1})\cdot P(O_{1}\mid X_{1},X_{2})
-
-$ • 4 additions to sum o $X_{1}$ $\begin{array}{r}{\tau_{1}(X_{2},O_{1})=\sum_{X_{1}}\psi_{1}(X_{1},X_{2},O_{1})}\end{array}
-
-$ • 4 multiplications for $\psi_{2}(X_{2},O_{1})=\tau_{1}(X_{2},O_{1})\cdot P(X_{2})$ ·
-
- • 2 additions for $\begin{array}{r}{\tau_{2}(O_{1})=\sum_{X_{2}}\psi_{2}(X_{2},O_{1})}\end{array}$ 
-
-The cost for eliminating $X_{3},X_{4}$ is identical, as is the cost for subsequently eliminating $O_{1},O_{2}$ . Thus, the total number of operations is $3\cdot(8+4)=36$ multiplications and $3\cdot(4+2)=18$ additions. 
-
-A diferent decomposition of the OR variable is as a simple cascade, where each $Z_{i}$ is consec- utively OR’ed with the previous intermediate result. This decomposition leads to the construction of ﬁgure $9.14\mathrm{d}$ . For this construction, an optimal elimination ordering is $X_{1},O_{1},X_{2},O_{2},X_{3},O_{3},X_{4}$ A simple analysis shows that it takes 4 multiplications and 2 additions to eliminate each of $X_{1},\dots,X_{4}$ , and 8 multiplications and 4 additions to eliminate each of $O_{1},O_{2},O_{3}$ . The total cost is $4\cdot4+3\cdot8=40$ multiplications and $4\cdot2+3\cdot4=20$ additions. 
-
-# 9.6.1.2 The General Decomposition 
-
-Clearly, the construction used in the preceding example is a general one that can be applied to more complex networks and other types of CPDs that have independence of causal inﬂuence. We take a variable whose CPD has independence of causal inﬂuence, and generate its decomposition into a set of independent noise models and a deterministic function, as in ﬁgure 5.13. 
-
-We then cascade the computation of the deterministic function into a set of smaller steps. Given our assumption about the symmetry and associativity of the deterministic function in the deﬁnition of symmetric ICI (deﬁnition 5.13), any decomposition of the deterministic function results in the same answer. Speciﬁcally, consider a variable $Y$ with parents $X_{1},\ldots,X_{k}$ , whose deﬁnition 5.13. We can decompose $Y$ by introducing $k-1$ intermediate variables $O_{1},.\ldots,O_{k-1}$ , such that: 
-
-• the variable $Z$ , and each of the $O_{i}$ ’s, has exactly two parents in $Z_{1},.\,.\,.\,,Z_{k},O_{1},.\,.\,.\,,O_{i-1}$ ;
-
- • the CPD of $Z$ and of $O_{i}$ is the deterministic $\diamondsuit$ of its two parents;
-
- • each $Z_{l}$ and each $O_{i}$ is a parent of at most one variable in $O_{1},.\,.\,.\,,O_{k-1},Z$ . 
-
-These conditions ensure that $Z=Z_{1}\!\diamond Z_{2}\!\diamond...\diamond Z_{k}$ , but that this function is computed gradually, where the node corresponding to each intermediate result has an indegree of 2. 
-
-We note that we can save some extraneous nodes, as in our example, by aggregating the noisy dependence of $Z_{i}$ on $X_{i}$ into the CPD where $Z_{i}$ is used. 
-
-After executing this decomposition for every ICI variable in the network, we can simply apply variable elimination to the decomposed network with the smaller factors. As we saw, the complexity of the inference can go down substantially if we have smaller CPDs and thereby smaller factors. 
-
-We note that the sizes of the intermediate factors depend not only on the number of variables in their scope, but also on the domains of these variables. For the case of noisy-or variables (as well as noisy-max, noisy-and, and so on), the domain size of these variables is ﬁxed and fairly small. However, in other cases, the domain might be quite large. In particular, in the case of generalized linear models, the domain of the intermediate variable $Z$ generally grows linearly with the number of parents. 
-
-Example 9.10 Consider a variable $Y$ with $\mathrm{Pa}_{Y}=\{X_{1},.\,.\,.\,,X_{k}\}$ , where each $X_{i}$ is binary. Assu at Y ’s CPD is a generalized linear model, whose parameters are $w_{0}=0$ and $w_{i}=w$ for all $i>1$ . Then the domain of the intermediate variable $Z$ is $\{0,1,\ldots,k\}$ . In this case, th decomposition provides $^a$ trade-of: The size of the original CPD for $P(Y\mid X_{1},.\,.\,,X_{k})$ grows as $2^{k}$ ; the size of the factors in the decomposed network grow roughly as k $k^{3}$ . In diferent situations, one approach might be better than the other. 
-
-Thus, the decomposition of symmetric ICI variables might not always be beneﬁcial. 
-
-# 9.6.1.3 Global Structure 
-
-Our decomposition of the function $f$ that deﬁnes the variable $Z$ can be done in many ways, all of which are equivalent in terms of their ﬁnal result. However, they are not equivalent from the perspective of computational cost. Even in our simple example, we saw that one decomposition can result in fewer operations than the other. The situation is signiﬁcantly more complicated when we take into consideration other dependencies in the network. 
-
-Example 9.11 Consider the network of ﬁgure $9.14c,$ and assume that $X_{1}$ and $X_{2}$ have a joint parent $A$ . In this case, we eliminate $A$ ﬁrst, and end up with a factor over $X_{1},X_{2}$ . Aside from the $4+8\,=$ 12 multiplications and 4 additions required to compute this factor $\tau_{0}(X_{1},X_{2})$ , it now takes 8 multiplications to com te $\psi_{1}(X_{1},X_{2},O_{1})\,=\,\tau_{0}(X_{1},X_{2})\,\cdot\,P(O_{1}\mid X_{1},X_{2})\nonumber$ , and $4+2\,=\,6$ additions to sum out $X_{1}$ and $X_{2}$ in $\psi_{1}$ . The rest of the computation remains unchanged. Thus, the total number of operations required to eliminate all of $X_{1},\dots,X_{4}$ (after the elimination of $A$ ) is $8+12=20$ multiplications and $6+6=12$ additions. 
-
-Conversely, assume that $X_{1}$ and $X_{3}$ have the joint parent $A$ . In this case, it still requires 12 multiplications and 4 additions to compute a factor $\tau_{0}(X_{1},X_{3})$ , but the remaining operations become signiﬁcantly more complex. In particular, it takes: 
-
-• 8 multiplications for $\psi_{1}(X_{1},X_{2},X_{3})=\tau_{0}(X_{1},X_{3})\cdot{\cal P}(X_{2})$ • 16 multiplications for $\cdot\,\psi_{2}(X_{1},X_{2},X_{3},O_{1})=\psi_{1}(X_{1},X_{2},X_{3})\cdot P(O_{1}\mid X_{1},X_{2})$ ) • 8 additions fo $\begin{array}{r}{\tau_{2}(X_{3},O_{1})=\sum_{X_{1},X_{2}}\psi_{2}(X_{1},X_{2},X_{3},O_{1})}\end{array}$ 
-
-The same number of operations is required to eliminate $X_{3}$ and $X_{4}$ . (Once these steps are completed, we can eliminate $O_{1},O_{2}$ as usual.) Thus, the total number of operations required to eliminate all of $X_{1},\dots,X_{4}$ (after the elimination of $A$ ) is $2\cdot(8+16)=48$ multiplications and $2\cdot8=16$ additions, considerably more than our previous case. 
-
-Clearly, in the second network structure, had we done the decomposition of the noisy-or variable so as to make $X_{1}$ and $X_{3}$ parents of $O_{1}$ (and $X_{2},X_{4}$ parents of $O_{2}.$ ), we would get the same cost as we did in the ﬁrst case. However, in order to do that, we need to take into consideration the global structure of the network, and even the order in which other variables are eliminated, at the same time that we are determining how to decompose a particular variable with symmetric ICI. In particular, we should determine the structure of the decomposition at the same time that we are considering the elimination ordering for the network as a whole. 
-
-# 9.6.1.4 Heterogeneous Factorization 
-
-An alternative approach that achieves this goal uses a diferent factorization for a network — one that factorizes the joint distribution for the network into CPDs, as well as the CPDs of symmetric ICI variables into smaller components. This factorization is heterogeneous , in that some factors must be combined by product, whereas others need to be combined using the type of operation that corresponds to the symmetric ICI function in the corresponding CPD. One can then deﬁne a heterogeneous variable elimination algorithm that combines factors, using whichever operation is appropriate, and that eliminates variables. Using this construction, we can determine a global ordering for the operations that determines the order in which both local 
-
-![](images/c2e513144c284e547fc260b8541b58ba035cec3923106790dc98c3f11d7fa58d.jpg) 
-Figure 9.15 A Bayesian network with rule-based structure: (a) the network structure; (b) the CPD for the variable $D$ . 
-
-factors and global factors are combined. Thus, in efect, the algorithm determines the order in which the components of an ICI CPD are “recombined” in a way that takes into consideration the structure of the factors created in a variable elimination algorithm. 
-
-# 9.6.2Context-Speciﬁc Independence 
-
-A second important type of local CPD structure is the context-speciﬁc independence, typically encoded in a CPD as trees or rules. As in the case of ICI, there are two main ways of exploiting this type of structure in the context of a variable elimination algorithm. One approach (exercise 9.15) uses a decomposition of the CPD, which is performed as a preprocessing step on the network structure; standard variable elimination can then be performed on the modiﬁed network. The second approach, which we now describe, modiﬁes the variable elimination algorithm itself to conduct its basic operations on structured factors. We can also exploit this structure within the context of a conditioning algorithm. 
-
-# 9.6.2.1 Rule-Based Variable Elimination 
-
-An alternative approach is to introduce the structure directly into the factors used in the variable elimination algorithm, allowing it to take advantage of the ﬁner-grained structure. It turns out that this approach is easier to understand and implement for CPDs and factors represented as rules, and hence we present the algorithm in this context. 
-
-As speciﬁed in section 5.3.1.2, a rule-based CPD is described as a set of mutually exclusive and exhaustive rules, where each rule $\rho$ has the form $\langle c;p\rangle$ . As we already discussed, a tree-CPD and a tabular CPD can each be converted into a set of rules in the obvious way. 
-
-# Example 9.12 
-
-set of rules: 
-
-$$
-\left\{\begin{array}{c c}{{\rho_{1}}}&{{\langle b^{0},d^{0};1-q_{1}\rangle}}\\ {{\rho_{2}}}&{{\langle b^{0},d^{1};q_{1}\rangle}}\\ {{}}&{{}}\\ {{\rho_{3}}}&{{\langle a^{0},b^{1},d^{0};1-q_{2}\rangle}}\\ {{\rho_{4}}}&{{\langle a^{0},b^{1},d^{1};q_{2}\rangle}}\\ {{\rho_{5}}}&{{\langle a^{1},b^{1},d^{0};1-q_{3}\rangle}}\\ {{\rho_{6}}}&{{\langle a^{1},b^{1},d^{0};q_{3}\rangle}}\end{array}\right\}
-$$ 
-
-Assume that the CPD $P(E\mid A,B,C,D)$ is also associated with a set of rules. Our discussion will focus on rules involving the variable D , so we show only that part of the rule set: 
-
-$$
-\left\{\begin{array}{c c}{\rho_{7}}&{\langle a^{0},d^{0},e^{0};1-p_{1}\rangle}\\ {\rho_{8}}&{\langle a^{0},d^{0},e^{1};p_{1}\rangle}\\ {\rho_{9}}&{\langle a^{0},d^{1},e^{0};1-p_{2}\rangle}\\ {\rho_{10}}&{\langle a^{0},d^{1},e^{1};p_{2}\rangle}\\ {\rho_{11}}&{\langle a^{1},b^{0},c^{1},d^{0},e^{0};1-p_{4}\rangle}\\ {\rho_{12}}&{\langle a^{1},b^{0},c^{1},d^{0},e^{1};p_{4}\rangle}\\ {\rho_{13}}&{\langle a^{1},b^{0},c^{1},d^{1},e^{0};1-p_{5}\rangle}\\ {\rho_{14}}&{\langle a^{1},b^{0},c^{1},d^{1},e^{1};p_{5}\rangle}\end{array}\right\}
-$$ 
-
-Using this type of process, the entire distribution can be factorized into a multiset of rules ${\mathcal{R}},$ which is the union of all of the rules associated with he CPDs of the diferent v ables in the network. Then, the probability of any instantiation ξ to the network variables X can be computed as 
-
-$$
-P(\xi)=\prod_{\langle c;p\rangle\in\mathcal{R},\xi\sim c}p,
-$$ 
-
-where we recall that $\xi\sim c$ holds if the assignments $\xi$ and $^c$ are compatible, in that they assign the same values to those variables that are assigned values in both. 
-
-Thus, as for the tabular CPDs, the distribution is deﬁned in terms of a product of smaller components. In this case, however, we have broken up the tables into their component rows. This deﬁnition immediately suggests that we can use similar ideas to those used in the table- based variable elimination algorithm. In particular, we can multiply rules with each other and sum out a variable by adding up rules that give diferent values to the variables but are the same otherwise. 
-
-In general, we deﬁne the following two key operations: 
-
-Deﬁnition 9.8 rule product 
-
-Deﬁnition 9.9 rule sum 
-
-This deﬁnition is signiﬁcantly more restricted than the product of tabular factors, since it requires that the two rules have precisely the same context. We return to this issue in a moment. 
-
-After this operation, $Y$ is summed out in the context $^c$ . 
-
-Both of these operations can only be applied in very restricted settings, that is, to sets of rules that satisfy certain stringent conditions. In order to make our set of rules amenable to the application of these operations, we might need to reﬁne some of our rules. We therefore deﬁne the following ﬁnal operation: 
-
-Deﬁnition 9.10 rule split 
-
-Let $\rho=\langle c;p\rangle$ be a rule, and let $Y$ be a variable. We deﬁne the rule split $S p l i t(\rho\angle Y)$ as follows: If $Y\in S c o p e[c].$ , then $S p l i t(\rho\angle Y)=\{\rho\}.$ ; otherwise, 
-
-$$
-S p l i t(\rho\angle Y)=\{\langle c,Y=y;p\rangle\ :\ y\in V a l(Y)\}.
-$$ 
-
-In general, the pu ose of rule splitti is to make the context of one rule $\rho=\langle c;p\rangle$ compatible with the context c $c^{\prime}$ of another rule $\rho^{\prime}$ . Naively, we might take all the variables in $S c o p e[c^{\prime}]\mathrm{~-~}$ Scope [ c ] and split $\rho$ recursively on each one of them. However, this process creates unnecessarily many rules. 
-
-Example 9.13 Consider $\rho_{2}$ and $\rho_{14}$ in example 9.12, and assume we want to multiply them together. To do so, we need to split $\rho_{2}$ in order to produce a rule with an identical context. If we naively split $\rho_{2}$ on all three variables $A,C,E$ that appear in $\rho_{14}$ and not in $\rho_{2}$ , the result would be eight rules of the form: $\langle a,b^{0},c,d^{1},e;q_{1}\rangle$ , one for each combination of values $a,c,e$ . However, the only rule we really need in order to perform the rule produ operation is $\langle a^{1},b^{0},c^{1},d^{1},e^{1};q_{1}\rangle$ . 
-
-Intuitively, having split $\rho_{2}$ on the variable A , it is wasteful to continue splitting the rule whose context is $a^{0}$ , since this rule (and any derived from it) will not participate in the desired rule product operation with $\rho_{14}$ . Thus, a more parsimonious split of $\rho_{14}$ that still generates this last rule is: 
-
-$$
-\left\{\begin{array}{l}{\langle a^{0},b^{0},d^{1};q_{1}\rangle}\\ {\langle a^{1},b^{0},c^{0},d^{1};q_{1}\rangle}\\ {\langle a^{1},b^{0},c^{1},d^{1},e^{0};q_{1}\rangle}\\ {\langle a^{1},b^{0},c^{1},d^{1},e^{1};q_{1}\rangle}\end{array}\right\}
-$$ 
-
-This new rule set is still a mutually exclusive and exhaustive partition of the space originally covered by $\rho_{2}$ , but contains only four rules rather than eight. 
-
-In general, we can construct these more parsimonious splits using the recursive procedure shown in algorithm 9.6. This procedure gives precisely the desired result shown in the example. Rule splitting gives us the tool to take a set of rules and reﬁne them, allowing us to apply either the rule-product operation or the rule-sum operation. The elimination algorithm is shown in algorithm 9.7. Note that the ﬁgure only shows the procedure for eliminating a single variable $Y$ . The outer loop, which iteratively eliminates nonquery variables one at a time, is precisely the same as the Sum-Product-VE procedure in algorithm 9.1, except that it takes as input a set of rule factors rather than table factors. 
-
-To understand the operation of the algorithm more concretely, consider the following example: 
-
-# Example 9.14 
-
-![](images/a37f7ee6a7bcd7687cdc05ac7e6cc56453d9c13f161dc249f38c374d1ef6bce4.jpg) 
-
-The rules $\rho_{3}$ on the one hand, and $\rho_{7},\rho_{8}$ on the other, have compatible contexts, so we can choose to combine them. We begin by splitting $\rho_{3}$ and $\rho_{7}$ on each other’s context, which results in: 
-
-$$
-\left\{\begin{array}{l l}{\rho_{15}}&{\left\langle a^{0},b^{1},d^{0},e^{0};1-q_{2}\right\rangle}\\ {\rho_{16}}&{\left\langle a^{0},b^{1},d^{0},e^{1};1-q_{2}\right\rangle}\\ {}&{}\\ {\rho_{17}}&{\left\langle a^{0},b^{0},d^{0},e^{0};1-p_{1}\right\rangle}\\ {\rho_{18}}&{\left\langle a^{0},b^{1},d^{0},e^{0};1-p_{1}\right\rangle}\end{array}\right\}
-$$ 
-
-The contexts of $\rho_{15}$ and $\rho18$ match, so we can now apply rule product, replacing the pair by: 
-
-$$
-\left\{\begin{array}{c c}{{\rho_{19}}}&{{\langle a^{0},b^{1},d^{0},e^{0};(1-q_{2})(1-p_{1})\rangle}}\end{array}\right\}
-$$ 
-
-We can now split $\rho_{8}$ using the context of $\rho_{16}$ and multiply the matching rules together, obtaining 
-
-$$
-\left\{\begin{array}{c c}{{\rho_{20}}}&{{\langle a^{0},b^{0},d^{0},e^{1};p_{1}\rangle}}\\ {{\rho_{21}}}&{{\langle a^{0},b^{1},d^{0},e^{1};(1-q_{2})p_{1}\rangle}}\end{array}\right\}.
-$$ 
-
-The resulting rule set contains $\rho_{17},\rho_{19},\rho_{20},\rho_{21}$ in place of $\rho_{3},\rho_{7},\rho_{8}$ . 
-
-We can apply a similar process to $\rho_{4}$ and $\rho_{9},\rho_{10}$ , which leads to their substitution by the rule set: 
-
-$$
-\left\{\begin{array}{c c}{\rho_{22}}&{\langle a^{0},b^{0},d^{1},e^{0};1-p_{2}\rangle}\\ {\rho_{23}}&{\langle a^{0},b^{1},d^{1},e^{0};q_{2}(1-p_{2})\rangle}\\ {\rho_{24}}&{\langle a^{0},b^{0},d^{1},e^{1};p_{2}\rangle}\\ {\rho_{25}}&{\langle a^{0},b^{1},d^{1},e^{1};q_{2}p_{2}\rangle}\end{array}\right\}.
-$$ 
-
-We can now eliminate $D$ in the context $a^{0},b^{1},e^{1}$ . only rules in $\mathcal{R}^{+}$ compatible with this context are $\rho_{21}$ and $\rho_{25}$ . We extract them fro $\mathcal{R}^{+}$ R and sum them; the resu ng rule $\langle a^{0},b^{1},e^{1};(1-q_{2})p_{1}+q_{2}p_{2}\rangle$ , is then inserted into R $\mathcal{R}^{-}$ . We can similarly eliminate D in the context $a^{0},b^{1},e^{0}$ . 
-
-The process continues, with rules being split and multiplied. When $D$ has been eliminated in a set of mutually exclusive and exhaustive contexts, then we have exhausted all rules involving $D$ ; at this point, $\mathcal{R}^{+}$ is empty, and the process of eliminating $D$ terminates. 
-
-![](images/4a2092097f97884ecb799b4eaa218ebaf41f0ebd052bdfe32c9bf039565165e2.jpg) 
-
-A diferent way of understanding the algorithm is to consider its application to rule sets that originate from standard table-CPDs. It is not difcult to verify that the algorithm performs exactly the same set of operations as standard variable elimination. For example, the standard operation of factor product is simply the application of rule splitting on all of the rules that constitute the two tables, followed by a sequence of rule product operations on the resulting rule pairs. (See exercise 9.16.) 
-
-To prove that the algorithm computes the correct result, we need to show that each operation performed in the context of the algorithm maintains a ce n correctness invariant. Let $\mathcal{R}$ be the current set of rules maintained by the algorithm, and W be the variables that have not yet been eliminated. Each operation must maintain the following condition: 
-
-![](images/7b9b0b9c031c41e81c5756fcb425611eb807f37aab18593150e9f5b3a18b4ebd.jpg) 
-Figure 9.16 Conditioning a Bayesian network whose CPDs have CSI: (a) conditioning on $a^{0}$ ; (b) conditioning on $a^{1}$ . 
-
-The probability of a context $^c$ such that $S c o p e[c]\subseteq W$ can be obtained by multiplying all rules $\langle c^{\prime};p\rangle\in{\mathcal{R}}$ whose context is compatible with $^c$ . 
-
-It is not difcult to show that the invariant holds initially, and that each step in the algorithm maintains it. Thus, the algorithm as a whole is correct. 
-
-# 9.6.2.2 Conditioning 
-
-We can also use other techniques for exploiting CSI in inference. In particular, we can generalize the notion of conditioning to this setting n an interesting way. Consider a network $\mathcal{B}$ , and assume that we condition it on a variable U . So far, we have assumed that the structure of the diferent conditioned networks, for the diferent values $u$ of $U$ , is the same. When the CPDs are tables, with no extra structure, this assumption generally holds. However, when the CPDs have CSI, we might be able to utilize the additional structure to simplify the conditioned networks considerably. 
-
-Consider the network shown in ﬁgure 9.15, as described in example 9.12. Assume we condition this network on the variable $A$ . If we condition on $a^{0}$ , we see that the reduced CPD for $E$ no longer depends on $C$ . Thus, the conditioned Markov network for this set of factors is the one shown in ﬁgure 9.16a. By contrast, when we condition on $a^{1}$ , the reduced factors do not “lose” any variables aside from $A$ , and we obtain the conditioned Markov network shown in ﬁgure 9.16b. Note that the network in ﬁgure 9.16a is so simple that there is no point performing any further conditioning on it. Thus, we can continue the conditioning process for only one of the two branches of the computation — the one corresponding to $a^{1}$ . 
-
-In general, we can extend the conditioning algorithm of section 9.5 to account for CSI in the CPDs or in the factors of a Markov network. Consider a single conditioning step on a variable $U$ . As we enumerate the diferent possible values $u$ of $U$ , we generate a possibly diferent conditioned network for each one. Depending on the structure of this network, we select which step to take next in the context of this particular network. In diferent networks, we might choose a diferent variable to use for the next conditioning step, or we might decide to stop the conditioning process for some networks altogether. 
-
-We have presented two approaches to variable elimination in the case of local structure in the CPDs: preprocessing followed by standard variable elimination, and specialized variable elimination algorithms that use a factorization of the structured CPD. These approaches ofer diferent trade-ofs. On the one hand, the specialized variable elimination approach reveals more of the structure of the CPDs to the inference algorithm, allowing the algorithm more ﬂexibility in exploiting this structure. Thus, this approach can achieve lower computational cost than any ﬁxed decomposition scheme (see box 9.D). By comparison, the preprocessing approach embeds some of the structure within deterministic CPDs, a structure that most variable elimination algorithms do not fully exploit. 
-
-On the other hand, specialized variable elimination schemes such as those for rules require the use of special-purpose variable elimination algorithms rather than of-the-shelf packages. Furthermore, the data structures for tables are signiﬁcantly more efcient than those for other types of factors such as rules. Although this diference seems to be an implementation issue, it turns out to be quite signiﬁcant in practice. One can somewhat address this limitation by the use of more sophisticated algorithms that exploit efcient table-based operations whenever possible (see exercise 9.18). 
-
-Although the trade-ofs between these two approaches is not always clear, it is generally the case that, in networks with signiﬁcant amounts of local structure, it is valuable to design an inference scheme that exploits this structure for increased computational efciency. 
-
-Box 9.D — Case Study: Inference with Local Structure. A natural question is the extent to which local structure can actually help speed up inference. 
-
-In one experimental comparison by Zhang and Poole (1996), four algorithms were applied to frag- ments of the CPCS network (see box 5.D): standard variable elimination (with table representation of factors), the two decompositions illustrated in ﬁgure 9.14 for the case of noisy-or, and a special- purpose elimination algorithm that uses a heterogeneous factorization. The results show that in a network such as CPCS, which uses predominantly noisy-or and noisy-max CPDs, signiﬁcant gains in performance can be obtained. They results also showed that the two decomposition schemes (tree-based and chain-based) are largely equivalent in their performance, and the heterogeneous factorization outperforms both of them, due to its greater ﬂexibility in dynamically determining the elimination ordering during the course of the algorithm. 
-
-For rule-based variable elimination, no large networks with extensive rule-based structure had been constructed. So, Poole and Zhang (2003) used a standard benchmark network, with 32 variables and 11,018 entries. Entries that were within 0 . 05 of each other were collaped, to construct a more compact rule-based representation, with a total of 5,834 distinct entries. As expected, there are a large number of cases where the use of rule-based inference provided signiﬁcant savings. However, there were also many cases where contextual independence does not provide signiﬁcant help, in which case the increased overhead of the rule-based inference dominates, and standard VE performs better. 
-
-At a high level, the main conclusion is that table-based approaches are amenable to numerous optimizations, such as those described in box 10.A, which can improve the performance by an order of magnitude or even more. Such optimizations are harder to deﬁne for more complex data structures. Thus, it is only useful to consider algorithms that exploit local structure either when it is extensively present in the model, or when it has speciﬁc structure that can, itself, be exploited using specialized algorithms. 
-
-# 9.7 Summary and Discussion 
-
+## 9.7 Summary and Discussion 
 In this chapter, we described the basic algorithms for exact inference in graphical models. As we saw, probability queries essentially require that we sum out an exponentially large joint distribution. The fundamental idea that allows us to avoid the exponential blowup in this task is the use of dynamic programming, where we perform the summation of the joint distribution from the inside out rather than from the outside in, and cache the intermediate results, thereby avoiding repeated computation. 
+> 本章描述了图模型中进行精确推理的基本算法
+> 使用动态规划的思想，我们避免了指数级别的计算复杂度
 
 We presented an algorithm based on this insight, called variable elimination. The algorithm works using two fundamental operations over factors — multiplying factors and summing out variables in factors. We analyzed the computational complexity of this algorithm using the structural properties of the graph, showing that the key computational metric was the induced width of the graph. 
+> 变量消除算法对因子进行两种基本的运算：因子间相乘和求和消去因子中的变量
 
-We also presented another algorithm, called conditioning, which performs some of the sum- mation operations from the outside in rather than from the inside out, and then uses variable elimination for the rest of the computation. Although the conditioning algorithm is never less expensive than variable elimination in terms of running time, it requires less storage space and hence provides a time-space trade-of for variable elimination. 
+We also presented another algorithm, called conditioning, which performs some of the sum-mation operations from the outside in rather than from the inside out, and then uses variable elimination for the rest of the computation. Although the conditioning algorithm is never less expensive than variable elimination in terms of running time, it requires less storage space and hence provides a time-space trade-of for variable elimination. 
 
 We showed that both variable elimination and conditioning can take advantage of local structure within the CPDs. Speciﬁcally, we presented methods for making use of CPDs with independence of causal inﬂuence, and of CPDs with context-speciﬁc independence. In both cases, techniques tend to fall into two categories: In one class of methods, we modify the network structure, adding auxiliary variables that reveal some of the structure inside the CPD and break up large factors. In the other, we modify the variable elimination algorithm directly to use structured factors rather than tables. 
 
@@ -6947,238 +6359,733 @@ One class of networks that poses great challenges to inference is the class of n
 
 Our focus in this chapter has been on inference in networks involving only discrete variables. The introduction of continuous variables into the network also adds a signiﬁcant challenge. Although the ideas that we described here are instrumental in constructing algorithms for this richer class of models, many additional ideas are required. We discuss the problems and the solutions in chapter 14. 
 
-# 9.8 Relevant Literature 
+# 10 Exact Inference: Clique Trees 
+In the previous chapter, we showed how we can exploit the structure of a graphical model to perform exact inference efectively. The fundamental insight in this process is that the factorization of the distribution allows us to perform local operations on the factors deﬁning the distribution, rather than simply generate the entire joint distribution. We implemented this insight in the context of the variable elimination algorithm, which sums out variables one at a time, multiplying the factors necessary for that operation. 
 
-The ﬁrst formal analysis of the computational complexity of probabilistic inference in Bayesian networks is due to Cooper (1990). 
+In this chapter, we present an alternative implementation of the same insight. As in the case of variable elimination, the algorithm uses manipulation of factors as its basic computational step. However, the algorithm uses a more global data structure for scheduling these operations, with surprising computational beneﬁts. 
 
-peeling forward-backward algorithm 
-
-nonserial dynamic programming 
-
-Variants of the variable elimination algorithm were invented independently in multiple com- munities. One early variant is the peeling algorithm of Cannings et al. (1976, 1978), formulated for the analysis of genetic pedigrees. Another early variant is the forward-backward algorithm , which performs inference in hidden Markov models (Rabiner and Juang 1986). An even earlier variant of this algorithm was proposed as early as 1880, in the context of continuous models (Thiele 1880). Interestingly, the ﬁrst variable elimination algorithm for fully general models was invented as early as 1972 by Bertelé and Brioschi (1972), under the name nonserial dynamic programming . However, they did not present the algorithm in the setting of probabilistic inference in graph- structured models, and therefore it was many years before the connection to their work was recognized. Other early work with similar ideas but a very diferent application was done in the database community (Beeri et al. 1983). 
-
-The general problem of probabilistic inference in graphical models was ﬁrst tackled by Kim and Pearl (1983), who proposed a local message passing algorithm in polytree-structured Bayesian networks. These ideas motivated the development of a wide variety of more general algorithms. One such trajectory includes the clique tree methods that we discuss at length in the next chapter (see also section 10.6). A second includes a specrum of other methods (for example, Shachter 1988; Shachter et al. 1990), culminating in the variable elimination algorithm, as presented here, ﬁrst described by Zhang and Poole (1994) and subsequently by Dechter (1999). Huang and Darwiche (1996) provide some useful tips on an efcient implementation of algorithms of this type. 
-
-Dechter (1999) presents interesting connections between these algorithms and constraint- satisfaction algorithms, connections that have led to fruitful work in both communities. Other generalizations of the algorithm to settings other than pure probabilistic inference were described by Shenoy and Shafer (1990); Shafer and Shenoy (1990) and by Dawid (1992). The construction of the network polynomial was proposed by Darwiche (2003). 
-
-The complexity analysis of the variable elimination algorithm is described by Bertelé and Brioschi (1972); Dechter (1999). The analysis is based on core concepts in graph theory that have been the subject of extensive theoretical analysis; see Golumbic (1980); Tarjan and Yannakakis (1984); Arnborg (1985) for an introduction to some of the key concepts and algorithms. 
-
-Much work has been done on the problem of ﬁnding low-tree-width triangulations or (equiv- alently) elimination orderings. One of the earliest algorithms is the maximum cardinality search of Tarjan and Yannakakis (1984). Arnborg, Corneil, and Proskurowski (1987) show that the prob- lem of ﬁnding the minimal tree-width elimination ordering is $\mathcal{N P}$ -hard. Shoikhet and Geiger (1997) describe a relatively efcient algorithm for ﬁnding this optimal elimination ordering — one whose cost is approximately the same as the cost of inference with the resulting ordering. Becker and Geiger (2001) present an algorithm that ﬁnds a close-to-optimal ordering. Neverthe- less, most implementations use one of the standard heuristics. A good survey of these heuristic methods is presented by Kjærulf (1990), who also provides an extensive empirical comparison. Fishelson and Geiger (2003) suggest the use of stochastic search as a heuristic and provide another set of comprehensive experimental comparisons, focusing on the problem of genetic linkage analysis. Bodlaender, Koster, van den Eijkhof, and van der Gaag (2001) provide a series of simple preprocessing steps that can greatly reduce the cost of triangulation. 
-
-The ﬁrst incarnation of the conditioning algorithm was presented by Pearl (1986a), in the context of cutset conditioning, where the conditioning variables cut all loops in the network, forming a polytree. Becker and Geiger (1994); Becker, Bar-Yehuda, and Geiger (1999) present a va- riety of algorithms for ﬁnding a small loop cutset. The general algorithm, under the name global conditioning , was presented by Shachter et al. (1994). They also demonstrated the equivalence of conditioning and variable elimination (or rather, the clique tree algorithm) in terms of the under- lying computations, and pointed out the time-space trade-ofs between these two approaches. These time-space trade-ofs were then placed in a comprehensive computational framework in the recursive conditioning method of Darwiche (2001b); Allen and Darwiche (2003a,b). Cutset algorithms have made a signiﬁcant impact on the application of genetic linkage analysis Schäfer (1996); Becker et al. (1998), which is particularly well suited to this type of method. 
-
-The two noisy-or decomposition methods were described by Olesen, Kjærulf, Jensen, Falck, Andreassen, and Andersen (1989) and Heckerman and Breese (1996). An alternative approach that utilizes a heterogeneous factorization was described by Zhang and Poole (1996); this approach is more ﬂexible, but requires the use of a special-purpose inference algorithm. For the case of CPDs with context-speciﬁc independence, the decomposition approach was proposed by Boutilier, Friedman, Goldszmidt, and Koller (1996). The rule-based variable elimination algorithm was proposed by Poole and Zhang (2003). The trade-ofs here are similar to the case of the noisy-or methods. 
-
-# 9.9 Exercises 
-
-Exercise $\mathbf{9.1}\star$ 
-
-Prove theorem 9.2. 
-
-Exercise ${\bf9.2\star}$ 
-
-Consider a factor produced as a product of some of the CPDs in a Bayesian network $\mathcal{B}$ : 
+Throughout this chapter, we will assume that we are dealing with a set of factors $\Phi$ over a set of variables $\mathcal{X}$ , where each factor $\phi_{i}$ has a scope $X_{i}$ . This set of factors deﬁnes a (usually) unnormalized measure 
 
 $$
-\tau(W)=\prod_{i=1}^{k}P(Y_{i}\mid\mathrm{Pa}_{Y_{i}})
+\tilde{P}_{\Phi}(\mathcal{X})=\prod_{\phi_{i}\in\Phi}\phi_{i}(X_{i}).
 $$ 
+For a Bayesian network without evidence, the factors are simply the CPDs, and the measure $\tilde{P}_{\Phi}$ is a normalized distrib ion. rk $\mathcal{B}$ with evidence $E=e$ , the factors are the CPDs restricted to e , and $\tilde{P}_{\Phi}(\mathcal{X})\overset{\cdot}{=}P_{\mathcal{B}}(\mathcal{X},e)$ X X . Fo Gibbs distribution (with or without B evidence), the factors are the (restricted) potentials, and $\tilde{P}_{\Phi}$ is the unnormalized Gibbs measure. 
 
-where $W=\cup_{i=1}^{k}\big(\{Y_{i}\}\cup\mathrm{Pa}_{Y_{i}}\big)$ { } ∪ . 
+It is important to note that all of the operations that one can perform on a normalized distri- bution can also be performed on an unnormalized measure. In particular, we can marginalize $\tilde{P}_{\Phi}$ on a subset of the variables by summing out the others. We can also consider a conditional measure, ${\tilde{P}}_{\Phi}(X\mid Y)={\tilde{P}}_{\Phi}(X,{\dot{Y}})/{\tilde{P}}_{\Phi}(Y)$ | (which, in fact, is the same as $P_{\Phi}(X\mid Y))$ ). 
 
-a. Show that $\tau$ is a conditional probability in some network. More precisely, construct another Bayesian network $\mathcal{B}^{\prime}$ and a disjoint partition $W=Y\cup Z$ such that $\tau(\pmb{W})=\dot{P_{\mathcal{B}^{\prime}}}(Y\mid Z)$ . 
+## 10.1 Variable Elimination and Clique Trees 
+Recall that the basic operation of the variable elimination algorithm is the manipulation of factors. Each step in the computation creates a factor $\psi_{i}$ by multiplying existing factors. A variable is then eliminated in $\psi_{i}$ to generate a new factor $\tau_{i}$ , which is then used to create another factor. In this section, we present another view of this computation. We consider a factor $\psi_{i}$ to be a computational data structure, which takes “messages” $\tau_{j}$ generated by other factors $\psi_{j}$ , and generates a message $\tau_{i}$ that is used by another factor $\psi_{l}$ . 
 
-b. Conclude that all of the intermediate factors produced by the variable elimination algorithm are also conditional probabilities in some network. 
+![](images/4b991a122494f6b8563e766af53c9629c730c3921434241fb8c764c75572646d.jpg) 
+Figure 10.1 Cluster tree for the VE execution in table 9.1 
 
-# Exercise 9.3 
+# 10.1.1 Cluster Graphs 
 
-Consider a modiﬁed variable elimination algorithm that is allowed to multiply all of the entries in a single factor by some arbitrary constant. (For example, it may choose to renormalize a factor to sum to 1.) If we run this algorithm on the factors resulting from a Bayesian network with evidence, which types of queries can we still obtain the right answer to, and which not? 
+We begin by deﬁning a cluster graph — a data structure that provides a graphical ﬂowchart of the factor-manipulation process. Each node in the cluster graph is a cluster , which is associated with a subset of variables; the graph contains undirected edges that connect clusters whose scopes have some non-empty intersection. We note that this deﬁnition is more general than the data structures we use in this chapter, but this generality will be important in the next chapter, where we signiﬁcantly extend the algorithms of this chapter. 
 
-# Exercise $9.4\star$ 
+Deﬁnition 10.1 cluster graph family preservation sepset 
 
-This exercise shows basic properties of the network polynomial and its derivatives: 
+# Example 10.1 
 
-a. Prove equation (9.8). b. Prove equation (9.9). 
+A cluster graph $\mathcal{U}$ for a ctors $\Phi$ over $\mathcal{X}$ is an undirected graph, each of whose no $i$ associated with a subset $C_{i}\subseteq\mathcal X$ ⊆X cluster gra ust be fam — each factor $\phi\in\Phi$ ∈ must be associate ith a cluster $C_{i:}$ , denoted $\alpha(\phi)$ , such that Scope $S c o p e[\phi]\subseteq C_{i}$ ⊆ . Each edge between a pair of clusters $C_{i}$ and $C_{j}$ is associated with $a$ sepset $S_{i,j}\subseteq C_{i}\cap C_{j}$ . 
 
-evidence retraction c. Let $\pmb{Y}\,=\,\pmb{y}$ e assignment. For $Y_{i}\,\in\,Y$ , we now consider hat happens if we retract e observation $Y_{i}\,=\,y_{i}$ . More precisely, let ${\pmb{y}}_{-i}$ be the assignment in y to all variables other than Y $Y_{i}$ . − Show that 
+An execution of variable elimination deﬁnes a cluster graph: We have a cluster for each factor $\psi_{i}$ used in the computation, which is associated with the set of variables $C_{i}=S c o p e[\psi_{i}]$ . We draw an edge between two clusters $C_{i}$ and $C_{j}$ if the message $\tau_{i}$ , produced by eliminating a variable in $\psi_{i}$ , is used in the computation of $\tau_{j}$ . 
+
+Consider the elimination process of table 9.1. In this case, we have seven factors $\psi_{1},.\,.\,.\,,\psi_{7}$ , whose scope is shown in the table. The message $\tau_{1}(D)$ , generated from $\psi_{1}(C,D)$ , participates in the computation of $\psi_{2}$ . Thus, we would have an edge from $C_{1}$ to $C_{2}$ . Similarly, the message $\tau_{3}(G,S)$ is generated from $\psi_{3}$ and used in the computation of $\psi_{5}$ . Hence, we introduce an edge between $C_{3}$ and $C_{5}$ . The entire graph is shown in ﬁgure 10.1. The edges in the graph are annotated with directions, indicating the ﬂow of messages between clusters in the execution of the variable elimination algorithm. Each of the factors in the initial set of factors $\Phi$ is also associated with $^a$ clust $C_{i}$ . For example, the cluster $\phi_{D}(D,C)$ (corresponding to the CPD $P(D\mid C),$ ) is associated with $C_{1}$ , and the cluster $\phi_{H}(H,G,J)$ (corresponding to the CPD $P(H\mid G,J))$ is associated with $C_{4}$ . 
+
+# 10.1.2 Clique Trees 
+
+The cluster graph associated with an execution of variable elimination is guaranteed to have certain properties that turn out to be very important. 
+
+First, recall that the variable elimination algorithm uses each intermediate factor $\tau_{i}$ at most once: when $\phi_{i}$ is used in Sum-Product-Eliminate-Var to create $\psi_{j}$ , it is removed from the set of factors $\Phi$ , and thus cannot be used again. Hence, the cluster graph induced by an execution of variable elimination is necessarily a tree. 
+
+upstream clique downstream clique 
+
+Deﬁnition 10.2 running intersection property 
+
+We note that although a cluster graph is deﬁned to be an undirected graph, an execution of variable elimination does deﬁne a direction for the edges, as induced by the ﬂow of messages between the clusters. The directed graph induced by the messages is a directed tree, with all the messages ﬂowing toward a single cluster where the ﬁnal result is computed. This cluster is called the root of the directed tree. Using standard conventions in computer science, we assume that the root of the tree is “up,” so that messages sent toward the root are sent upward. If $C_{i}$ is on the path from $C_{j}$ to the root we say that $C_{i}$ is upstream from $C_{j}$ , and $C_{j}$ is downstream from $C_{i}$ . We note that, for reasons that will become clear later on, the directions of the edges and the root are not part of the deﬁnition of a cluster graph. The cluster tree deﬁned by variable elimination satisﬁes an important structural constraint: 
+
+Let $\mathcal{T}$ be a cluster ee over a set of factors $\Phi$ . We denote by $\nu_{\tau}$ the vertices of $\mathcal{T}$ and b $\mathcal{E}_{\mathcal{T}}$ its edge that T $\mathcal{T}$ has the runn g intersection property $i f,$ whenever there is a v iable X s that $X\in C_{i}$ ∈ and $X\in C_{j}$ , then X is also in every cluster in the (unique) path in T $\mathcal{T}$ between $C_{i}$ and $C_{j}$ . 
+
+Note that the running intersection property implies that $S_{i,j}=C_{i}\cap C_{j}$ . 
+
+# Example 10.2 
+
+We can easily check that the running intersection property holds for the cluster tree of ﬁgure 10.1. For example, $G$ is present in $C_{2}$ and in $C_{4}$ , so it is also present in the cliques on the path between them: $C_{3}$ and $C_{5}$ . 
+
+Intuitively, the running intersection property must hold for cluster trees induced by variable elimination because a variable appears in every factor from the moment it is introduced (by multiplying in a factor that mentions it) until it is summed out. We now prove that this property holds in general. 
+
+# Theorem 10.1 
+
+t $\mathcal{T}$ be a cluster tree induced by a variable elimination algorithm over some set of factors $\Phi$ . Then $\mathcal{T}$ T satisﬁes the running intersection property. Proof Let $C$ and $C^{\prime}$ be two clusters that contain $X$ . Let $C_{X}$ be the cluster where $X$ is eliminated. (If $X$ is a query variable, we assume that it is eliminated in the last cluster.) We will prove that $X$ must be present in every cluster on the path between $C$ and $C_{X}$ , and analogously for $C^{\prime}$ , thereby proving the result. First, we observe that the computation at $C_{X}$ must take place later in the algorithm’s execu- tion than the computation at $C$ : When $X$ is eliminated in $C_{X}$ , all of the factors involving $X$ are multiplied into $C_{X}$ ; the result of the summation does not have $X$ in its domain. Hence, after this elimination, $\Phi$ no longer has any factors containing $X$ , so no factor generated afterward will contain $X$ in its domain. By assumption, $X$ is in the domain of the factor in $C$ . We also know that $X$ is not eliminated in $C$ . Therefore, the message computed in $C$ must have $X$ in its domain. By deﬁnition, the from $C$ . Hence, it will also have $X$ in its scope. The same argument applies to show that all cliques upstream from $C$ will have $X$ in their scope, until $X$ is eliminated, which happens only in $C_{X}$ . Thus, $X$ must appear in all cliques between $C$ and $C_{X}$ , as required. 
+
+A very similar proof can be used to show the following result: 
+
+Proposition 10.1 
+
+$\mathcal{T}$ be a cluster tree induced by $^a$ variable elimination algorithm over some set of factors $\Phi$ . Let $C_{i}$ and $C_{j}$ be two neighboring clusters, such that $C_{i}$ passes the message $\tau_{i}$ to $C_{j}$ . Then the scope of the message $\tau_{i}$ is precisely $C_{i}\cap C_{j}$ . 
+
+The proof is left as an exercise (exercise 10.1). 
+
+It turns out that a cluster tree that satisﬁes the running intersection property is an extremely useful data structure for exact inference in graphical models. We therefore deﬁne: 
+
+Deﬁnition 10.3 clique tree clique 
+
+Let $\Phi$ be a set of factors over $\mathcal{X}$ . A cluster tree ver $\Phi$ that satisﬁ the running intersection property is called a clique tree (sometimes also called a junction tree or a join tree ). In the case of a clique tree, the clusters are also called cliques . 
+
+Note that we have already deﬁned one notion of a clique tree in deﬁnition 4.17. This double deﬁnition is not an overload of terminology, because the two deﬁnitions are actually equivalent: It follows from the results of this chapter that $\mathcal{T}$ is a clique tree for $\Phi$ (in sense of deﬁni- tion 10.3) if and only if it is a clique tree for a chordal graph containing H ${\mathcal{H}}_{\Phi}$ (in the sense of deﬁnition 4.17), and these properties are true if and only if the clique-tree data structure admits variable elimination by passing messages over the tree. 
+
+We ﬁrst show that the running intersection property implies the independence statement, which i the heart of our ﬁrst deﬁnition of clique trees. Let $\mathcal{T}$ be a cluster tree over $\Phi$ , and let H ${\mathcal{H}}_{\Phi}$ be the undirected graph associated with this set of factors. For any sepset $\boldsymbol{S}_{i,j}$ , let $W_{<(i,j)}$ be the set of all variables in the scope of clusters in the $C_{i}$ side of the tree, and $W_{<(j,i)}$ be the set of all variables in the scope of clusters in the $C_{j}$ side of the tree. 
+
+# Theorem 10.2 
+
+$\mathcal{T}$ satisﬁes the running intersection property if and only if, for every sepset $\boldsymbol{S}_{i,j}$ , we have that $W_{<(i,j)}$ and $W_{<(j,i)}$ are separated in ${\mathcal{H}}_{\Phi}$ given $\boldsymbol{S}_{i,j}$ . 
+
+The proof is left as an exercise (exercise 10.2). 
+
+To conclude the proof of the equivalence of the two deﬁnitions, it remains only to show that the running intersection operty for a ee $\mathcal{T}$ implies that each node in $\mathcal{T}$ corresponds to a ique in a chordal graph H containing H , and that each maximal clique in H is represented in $\mathcal{T}$ T . This result follows from our ability to use any clique tree satisfying the running intersection property to perform inference, as shown in this chapter. 
+
+# 10.2 Message Passing: Sum Product 
+
+In the previous section, we started out with an execution of the variable elimination algorithm, and showed that it induces a clique tree. In this section, we go in the opposite direction. We assume that we are given a clique tree as a starting point, and we will show how this data structure can be used to perform variable elimination. As we will see, the clique tree is a very 
+
+![](images/b274097050017a684068fd52e3686b84c51a9a6df59ec71179948cc5d309ac73.jpg) 
+Figure 10.2 Simpliﬁed clique tree $\mathcal{T}$ for the Extended Student network 
+
+useful and versatile data structure. For one, the same clique tree can be used as the basis for many diferent executions of variable elimination. More importantly, the clique tree provides a data structure for caching computations, allowing multiple executions of variable elimination to be performed much more efciently than simply performing each one separately. 
+
+Consider some set of factors $\Phi$ over $\mathcal{X}$ , nd assume that we are given a clique tree $\mathcal{T}$ over $\Phi$ , as deﬁned in deﬁnition 4.17. In particular, T is guaranteed to satisfy the family preservation and running intersection properties. As we now show, we can use the clique tree in several diferent ways to perform exact inference in graphical models. 
+
+# 10.2.1 Variable Elimination in a Clique Tree 
+
+One way of using a clique tree is simply as guidance for the operations of variable elimination. The factors $\psi$ are computed in the cliques, and messages are sent along the edges. Each clique takes the incoming messages (factors), multiplies them, sums out one or more variables, and sends an outgoing message to another clique. As we will see, the clique-tree data structure dictates the operations that are performed on factors in the clique tree and a partial order over these operations. In particular, if clique $C^{\prime}$ requires a message from $C$ , then $C^{\prime}$ must wait with its computation until $C$ performs its computation and sends the appropriate message to $C^{\prime}$ . We begin with an example and then describe the general algorithm. 
+
+# 10.2.1.1 An Example 
+
+Figure 10.2 shows one possible clique tree $\mathcal{T}$ for the Student ne rk. N that it is diferent from the clique tree of ﬁgure 10.1, in that nonmaximal cliques ( $(C_{6}$ and $C_{7}$ ) are absent. Nev- ertheless, it is straightforward to verify that $\mathcal{T}$ satisﬁes both the family preservation and the running intersection property. The ﬁgure also speciﬁes the assignment $\alpha$ of the initial factors (CPDs) to cliques. Note that, in some cases (for example, the CPD $P(I))$ ), we have more than one possible clique into which the factor can legally be assigned; as we will see, the algorithm applies for any legal choice. 
+
+Our ﬁrst step is to generate a set of initial potentials associated with the diferent cliques. The initial potential $\psi_{i}(C_{i})$ is computed by multiplying the initial factors assigned to the clique $C_{i}$ . For example, $\psi_{5}(J,L,G,S)=\phi_{L}(L,G)\cdot\phi_{J}(J,L,S)$ . 
+
+Now, assume that our task is to compute the probability $P(J)$ . We want to do the variable elimination process so that $J$ is not eliminated. Thus, we select as our root clique some clique that contains $J$ , for example, $C_{5}$ . We then execute the following steps: 
+
+![](images/4ec5d977d3c3b62509abf3d27085e34ffa165b4943575f0242c7432aa7bdd29e.jpg) 
+
+Figure 10.3 Two diﬀerent message propagations with diﬀerent root cliques in the Student clique tree: (a) $C_{5}$ is the root; (b) $C_{3}$ is the root. 
+
+1. In $C_{1}$ : We eliminate $C$ for g $\textstyle\sum_{C}\psi_{1}(C,D)$  . The resulting factor has scope $D$ . We send it as a message $\delta_{1\rightarrow2}(D)$ to $C_{2}$ . →
+
+ 2. In $C_{2}$ : W ne $\beta_{2}(G,I,D)=\,\delta_{1\rightarrow2}(D)\cdot\psi_{2}(G,I,D)$ . We the liminate $D$ to get a factor over $G,I$ . The resulting factor is $\delta_{2\to3}(G,I)$ , which is sent to $C_{3}$ .
+
+ 3. In $C_{3}$ : We deﬁne $\beta_{3}(G,S,I)=\delta_{2\rightarrow3}(G,I)\cdot\psi_{3}(G,S,I)$ and eliminate $I$ to get a factor over $G,S_{i}$ , which is $\delta_{3\rightarrow5}(G,S)$ .
+
+ 4. In $C_{4}$ min $H$ by performing $\textstyle\sum_{H}\psi_{4}(H,G,J)$  and send out the resulting factor as $\delta_{4\to5}(G,J)$ to $C_{5}$ . →
+
+ 5. In $C_{5}$ : We deﬁne $\beta_{5}(G,J,S,L)=\delta_{3\rightarrow5}(G,S)\cdot\delta_{4\rightarrow5}(G,J)\cdot\psi_{5}(G,J,S,L).$ 
+
+The factor $\beta_{5}$ is a factor over $G,J,S,L$ that encodes the joint distribution $P(G,J,L,S)$ : all the CPDs have been multiplied in, and all the other variables have been eliminated. If we now want to obtain $P(J)$ , we simply sum out $G,\,L,$ , and $S$ . 
+
+We note that the operations in the elimination process could also have been done in another order. The only constraint is that a clique get all of its incoming messages from its downstream neighbors before it sends its outgoing message toward its upstream neighbor. We say that a clique is ready when it has received all of its incoming messages. Thus, for example, $C_{4}$ is ready at the very start of the algorithm, and the computation associated with it can be performed at any point in the execution. However, $C_{2}$ is ready only after it receives its message from $C_{1}$ . Thus, $C_{1},C_{4},C_{2},C_{3},C_{5}$ is a legal execution ordering for a tree rooted at $C_{5}$ , whereas $C_{2},C_{1},C_{4},C_{3},C_{5}$ is not. Overall, the set of messages transmitted throughout the execution of the algorithm is shown in ﬁgure $10.3\mathrm{a}$ . 
+
+As we mentioned, the choice of root clique is not fully determined. To derive $P(J)$ , we could have chosen $C_{4}$ as the root. Let us see how the algorithm would have changed in that case: 
+
+1. In $C_{1}$ : The computation and message are unchanged.
+
+ 2. In $C_{2}$ : The computation and message are unchanged.
+
+ 3. In $C_{3}$ : The computation and message are unchanged.
+
+ 4. In $C_{5}$ : We deﬁne $\beta_{5}(G,J,S,L)=\delta_{3\rightarrow5}(G,S)\cdot\psi_{5}(G,J,S,L)$ and eliminate $S$ and $L$ . We send out the resulting factor as $\delta_{5\to4}(G,J)$ to $C_{4}$ .
+
+ 5. In $C_{4}$ : We deﬁne β $\beta_{4}(H,G,J)=\delta_{5\rightarrow4}(G,S)\cdot\psi_{4}(H,G,J).$ 
+
+We can now extract $P(J)$ by eliminating $H$ and $G$ from $\beta_{4}(H,G,J)$ . 
+
+In a similar way, we can apply exactly the same process to computing the distribution over any other variable. For example, if we want to compute the probability $P(G)$ , we could choose any of the cliques where it appears. If we use $C_{3}$ , for example, the computation in $C_{1}$ and $C_{2}$ is identical. The computation in $C_{4}$ is the same as in the ﬁrst of our two executions: a message is computed and s nt to $C_{5}$ . In $C_{5}$ , we compute $\beta_{5}(G,J,S,L)=\delta_{4\rightarrow5}(G,J)\cdot\psi_{5}(G,J,S,L)$ , and we eliminate J and L to produce a message $\delta_{5\to3}(G,S)$ , which can then be sent to $C_{3}$ and used in the operation: 
 
 $$
-\begin{array}{r c l}{{P(\pmb{y}_{-i},Y_{i}=y_{i}^{\prime}\mid\theta)}}&{{=}}&{{\displaystyle\frac{\partial f_{\Phi}(\pmb{\theta},\pmb{\lambda}^{y})}{\lambda_{y_{i}^{\prime}}}}}\\ {{P(\pmb{y}_{-i}\mid\theta)}}&{{=}}&{{\displaystyle\sum_{y_{i}^{\prime}}\frac{\partial f_{\Phi}(\pmb{\theta},\pmb{\lambda}^{y})}{\lambda_{y_{i}^{\prime}}}.}}\end{array}
+\beta_{3}(G,S,I)=\delta_{2\rightarrow3}(G,I)\cdot\delta_{5\rightarrow3}(G,S)\cdot\psi_{3}(G,S,I).
 $$ 
 
-# Exercise $9.5\star$ 
+Overall, the set of messages transmitted throughout this execution of the algorithm is shown in ﬁgure 10.3b. 
 
-sensitivity analysis 
+# 10.2.1.2 Clique-Tree Message Passing 
 
-In this exercise, you will show how you can use the gradient of the probability of a Bayesian network to perform sensitivity analysis , that is, to compute the efect on a probability query of changing the parameters in a sing PD $P(X\mid U)$ . More precisely, let $\theta$ be one set of parameters for a $\mathcal{G}$ , wh we have that $\theta_{x\mid u}$ | is the parameter associated with the conditional probability entry $P(X\mid U)$ | . Let $\theta^{\prime}$ be another parameter assignment that is the same except that we replace the parameters $\theta_{x\mid u}$ with $\theta_{x\mid u}^{\prime}=\theta_{x\mid u}+\Delta_{x\mid u}$ . 
+message passing 
 
-For an assignment $e$ (which may or may not involve variables in $X,U$ , compute the change $P(e:$ $\pmb{\theta})-P(e:\mathbf{\check{\theta}}^{\prime})$ in terms of $\Delta_{x\mid u}$ , and the network derivatives. 
+initial potential 
 
-# Exercise ${\bf9.6\star}$ 
+We can now specify a general variable elimination algorithm that can be implemented via message passing in a clique tree. Let $\mathcal{T}$ be a clique tree with the cliques $C_{1},\ldots,C_{k}$ . We begin by multiplying the factors assigned to each clique, resulting in our initial potentials. We then use the clique-tree data structure to pass messages between neighboring cliques, sending all messages toward the root clique. We describe the algorithm in abstract terms; box 10.A provides some important tips for efcient implementation. 
 
-Consider some run of variable elimination over the factors $\Phi$ , where all variables are eliminated. This run generates some set of intermediate factors $\tau_{i}(W_{i})$ . We can deﬁne a set of intermediate (arithmetic, not random) variables $v_{i k}$ corresponding to the diferent entries $\tau_{i}(w_{i}^{k})$ . 
-
-a. Show how, for each variable $v_{i j}$ , we can write down an algebraic expression that deﬁnes $v_{i j}$ in terms of: the parameters $\lambda_{x_{i}}$ ; the parameters $\theta_{x_{c}}$ ; and variables $v_{j l}$ for $j<i$ . b. Use your answer to the previous part to deﬁne an alternative representation whose complexity is linear in the total size of the intermediate factors in the VE run. c. Show how the same representation can be used to compute all of the derivatives of the network polynomial; the complexity of your algorithm should be linear in the compact representation of the network polynomial that you derived in the previous part. (Hint: Consider the partial derivatives of the network polynomial relative to each $v_{i j}$ , and use the chain rule for derivatives.) 
-
-# Exercise 9.7 
-
-Prove proposition 9.1. 
-
-# Exercise ${\bf9.8\star}$ 
-
-Prove theorem 9.10, by showing that any ordering produced by the maximum cardinality search algorithm eliminates cliques one by one, starting from the leaves of the clique tree. 
-
-# Exercise 9.9 
-
-a. Show that variable elimination on polytrees can be performed in linear time, assuming that the local probability models are represented as full tables. Speciﬁcally, for any polytree, describe an elimination ordering, and show that the complexity of variable elimination with your ordering is linear in the size of the network. Note that the linear time bound here is in terms of the size of the CPTs in the network, so that the cost of the algorithm grows exponentially with the number of parents of a node. b. Extend your result from (1) to apply to cases where the CPDs satisfy independence of causal inﬂuence. Note that, in this case, the network representation is linear in the number of variables in the network, and the algorithm should be linear in that number. c. Now extend your result from (1) to apply to cases where the CPDs are tree-structured. In this case, the network representation is the sum of the sizes of the trees in the individual CPDs, and the algorithm should be linear in that number. 
-
-# Exercise ${\bf9.10\star}$ 
-
-Consider the four criteria described in connection with Greedy-Ordering of algorithm 9.4: Min-Neighbors, Min-Weight, Min-Fill, and Weighted-Min-Fill. Show that none of these criteria dominate the others; that is, for any pair, there is always a graph where the ordering produced by one of them is better than that produced by the other. As our measure of performance, use the computational cost of full variable elimination (that is, for computing the partition function). For each counterexample, deﬁne the structure of the graph and the cardinality of the variables, and show the ordering produced by each member of the pair. 
-
-# Exercise $\mathbf{9.11}\star$ 
-
-Let $\mathcal{H}$ be an undirected graph, and $\prec$ an Pro that $X{-}Y$ ll edg for all induce i $i\stackrel{.}{=}1,\ldots,k$ nd only if there is a path . $X{\mathrm{-}}Z_{1}{\mathrm{-}}\ldots Z_{k}{\mathrm{-}}Y$ in H such that $Z_{i}\prec X$ ≺ and $Z_{i}\prec Y$ ≺ 
-
-# Exercise $\mathbf{9.12\star}$ 
-
-Prove theorem 9.12. 
-
-# Exercise ${\bf9.13\star}$ 
-
-Prove theorem 9.13. 
-
-# Exercise $9.14\star$ 
-
-The standard conditioning algorithm ﬁrst conditions the network on the conditioning variables $U$ , splitting the computation into a set of computations, one for every instantiation $\mathbfit{u}$ to $U$ ; it then performs variable elimination on the remaining network. As we discussed in section 9.5.4.1, we can generalize conditioning so that it alternates conditioning steps and elimination in an arbitrary way. In this question, you will formulate such an algorithm and provide a graph-theoretic analysis of its complexity. 
-
-et $\Phi$ be a set of factors over $\mathcal{X}$ , and let $_{X}$ be a set of non riab e a summ cedure $\sigma$ that each to be a X $X\,^{-}\!\in\,X$ ∈ e of operations, each of w appears in the sequence σ precisely once. The semantics of this procedure is that, h is either $\bar{e l i m}(X)$ or $c o n d(X)$ for some $X\in X$ ∈ , such going from left to right, we perform the operation described on the variables in sequence. For example, the summation procedure of example 9.5 would be written as: 
+Recall that each factor $\phi\in\Phi$ is assigned to some clique $\alpha(\phi)$ . We deﬁne the initial potential of $C_{j}$ to be: 
 
 $$
-e l i m(A_{k-1}),e l i m(A_{k-2}),.\,.\,.\,.\,e l i m(A_{1}),c o n d(A_{k}),e l i m(C),e l i m(B).
+\psi_{j}(C_{j})=\prod_{\phi\;\;:\;\alpha(\phi)=j}\phi.
 $$ 
 
-a. Deﬁne an algorithm that takes a summation sequence as input and performs the operations in the order stated. Provide precise pseudo-code for the algorithm. b. Deﬁne the notion of an induced graph for this algorithm, and deﬁne the time and space complexity of the algorithm in terms of the induced graph. 
-
-# Exercise $\mathbf{9.15\star}$ 
-
-In section 9.6.1.1, we described an approach to decomposing noisy-or CPDs, aimed at reducing the cost of variable elimination. In this exercise, we derive a construction for CPD-trees in a similar spirit. 
-
-a. Consider a variable $Y$ that has a binary-valued parent $A$ and four additional parents $X_{1},\dots,X_{4}$ . Assume that the CPD of $Y$ is structured as a tree whose ﬁrst split is $A$ , and where $Y$ depends only on $X_{1},X_{2}$ in the $A=a^{1}$ branch, and only on $X_{3},X_{4}$ in the $\ensuremath{\boldsymbol{A}}^{\textup{\scriptsize{\bar{\ }}}}=\ensuremath{\boldsymbol{a}}^{0}$ branch. Deﬁne two new variables, $Y_{a^{1}}$ and $Y_{a^{0}}$ , which represent the value that $Y$ would take if $A$ were to have the value $a^{1}$ , and the value that $Y$ would take if $A$ were to have the value $a^{0}$ . Deﬁne a new model for $Y$ that is deﬁned in terms of these new variables. Your model should precisely specify the CPDs for $Y_{a^{1}}$ , $Y_{a^{0}}$ , and $Y$ in terms of $Y\mathbf{\dot{s}}$ original CPD. 
-
-b. Deﬁne a general procedure that recursively decomposes a tree-CPD using the same principles. 
-
-# Exercise 9.16 
-
-In this exercise, we show that rule-based variable elimination performs exactly the same operations as table-based variable elimination, when applied to rules generated from table-CPDs. Consider two table fac $\phi(X),\phi^{\prime}(Y)$ . Let $\mathcal{R}$ be the set of constituent rules for $\phi(X)$ and $\mathcal{R}^{\prime}$ the set of constituent rules for $\phi(Y)$ . 
-
-a. Show that the operation of multiplying $\boldsymbol{\phi}\cdot\boldsymbol{\phi}^{\prime}$ can be implemented as a series of rule splits on $\mathcal{R}\cup\mathcal{R}^{\prime}$ , followed by a series of rule products. b. ow that the operation of summing out $Y\in X$ in $\phi$ can be implemented as a series of rule sums in . 
-
-# Exercise $9.17\star$ 
-
-Prove that each step in the algorithm of algorithm 9.7 maintains the program-correctness invariant de- scribed in the text: Let $\mathcal{R}$ be the current set of rules maintained by the algorithm, and $W$ be the variables that have not yet been eliminated. The invariant is that: 
-
-ility of a context $^c$ such that $S c o p e[c]\subseteq W$ can be obtained by multiplying all rules $\langle\pmb{c}^{\prime};\hat{p}\rangle\in\mathcal{R}$ whose context is compatible with c . 
-
-# Exercise ${\bf9.18\star\star}$ 
-
-Consider an alternative factorization of a Bayesian network where each factor is a hybrid between a rule and a table, called a confactor . Like a rule, a confactor associated with a context $^{c;}$ however, rather than a single number, each confactor contains not a single number, but a standard table-based factor. For example, the CPD of ﬁgure 5.4a would have a confactor, associated with the middle branch, whose context is $a^{1},{\bar{s}}^{0}$ , and whose associated table is 
+Because each factor is assigned to exactly one clique, we have that 
 
 $$
-\begin{array}{l l}{{l^{0},j^{0}}}&{{0.9}}\\ {{l^{0},j^{1}}}&{{0.1}}\\ {{l^{1},j^{0}}}&{{0.4}}\\ {{l^{1},j^{1}}}&{{0.6}}\end{array}
+\prod_{\phi}\phi=\prod_{j}\psi_{j}.
 $$ 
 
-Extend the rule splitting algorithm of algorithm 9.6 and the rule-based variable elimination algorithm of algorithm 9.7 to operate on confactors rather than rules. Your algorithm should use the efcient table-based data structures and operations when possible, resorting to the explicit partition of tables into rules only when absolutely necessary. 
+![](images/fde9fa86557954bcb0ebefbe68336d4b2526124a3ef589f553c4c11b259245e2.jpg) 
+Figure 10.4 An abstract clique tree that is not chain-structured 
 
-# Exercise ${\bf9.19\star\star}$ 
+Let $C_{r}$ be the selected root clique. We now perform sum-product variable elimination over the cliques, starting from the leaves of the clique tree and moving inward. More precisely, for each clique $C_{i}$ , we deﬁne $\mathrm{Nb}_{i}$ to be the set of indexes of cliques that are neighbors of $C_{i}$ . Let $p_{r}(i)$ be the upstream neighbor of $i$ (the one on the path to the root clique $r$ ). Each clique $C_{i}$ , except for the root, performs a message passing computation and sends a message to its upstream neighbor $C_{p_{r}(i)}$ . 
 
-We have shown that the sum-product variable elimination algorithm is sound, in that it returns the same answer as ﬁrst multiplying all the factors, and then summing out the nonquery variables. Exercise 13.3 asks for a similar argument for max-product. One can prove similar results for other pairs of operations, such as max-sum. Rather than prove the same result for each pair of operations we encounter, we now provide a generalized variable elimination algorithm from which these special cases, as well as others, follow directly. This general algorithm is based on the following result, which is stated in terms of a pair of abstract operators: generalized combination of two factors, denoted $\phi_{1}\otimes\phi_{2}$ N φ ; and generalized marginaliz on of a factor $\phi$ over a subset $W$ , denoted $\Lambda_{W}(\phi)$ . We deﬁne our generalized variable elimination algorithm in direct analogy to the sum-product a rithm of algorithm 9.1, replacing factor product with N and summation for variable elimination with Λ . 
+sum-product message passing 
 
-We now show that if these two operators satisfy certain conditions, the variable elimination algorithm for these two operations is sound: 
-
-Commutativity of combination: For any factors $\phi_{1},\phi_{2}$ : 
+The message from $C_{i}$ to another clique $C_{j}$ is computed using the following sum-product message passing computation: 
 
 $$
-\phi_{1}\bigotimes\phi_{2}=\phi_{2}\bigotimes\phi_{1}.
+\delta_{i\rightarrow j}=\sum_{C_{i}-S_{i,j}}\psi_{i}\cdot\prod_{k\in(\mathrm{Nb}_{i}-\{j\})}\delta_{k\rightarrow i}.
 $$ 
 
-Associativity of combination: For any factors $\phi_{1},\phi_{2},\phi_{3}$ : 
+In words, the clique $C_{i}$ multiplies all incoming messages from its other neighbors with its initial clique potential, resulting in a factor $\psi$ whose scope is the clique. It then sums out all variables except those in the sepset between $C_{i}$ and $C_{j}$ , and sends the resulting factor as a message to $C_{j}$ . 
+
+beliefs 
+
+This message passing process proceeds up the tree, culminating at the root clique. When the root clique has received all messages, it multiplies them with its own initial potential. The result is a factor called the beliefs , denoted $\beta_{r}(C_{r})$ . It represents, as we show, 
 
 $$
-\phi_{1}\bigotimes(\phi_{2}\bigotimes\phi_{3})=(\phi_{1}\bigotimes\phi_{2})\bigotimes\phi_{3}.
+\tilde{P}_{\Phi}(C_{r})=\sum_{\chi-C_{r}}\prod_{\phi}\phi.
 $$ 
 
-Consonance of marginalization: If $\phi$ is a factor of scope $W$ , and $Y,Z$ are disjoint subsets of $W$ , then: 
+The complete algorithm is shown in algorithm 10.1. 
+
+Example 10.3 Consider the abstract clique tree of ﬁgure 10.4, and assume that we have selected $C_{6}$ as our root clique. The numbering of the cliques denotes one possible ordering of the operations, with $C_{1}$ being the ﬁrst to compute its message. However, multiple other orderings are legitimate, for example, $2,5,1,3,4,6$ ; in general, any ordering that respects the ordering constraints $\{(2~\prec~3),(3~\prec$ $4),(1\prec4),(4\prec6),(5\prec6)\}$ is a legal ordering for the message passing process. 
+
+We can use this algorithm to compute the marginal probability of any set of query nodes $Y$ which is fully contained in some clique. We select one such clique $C_{r}$ to be the root, and perform the clique-tree message passing toward that root. We then extract $\tilde{P}_{\Phi}(Y)$ from the ﬁnal potential at $C_{r}$ by summing out the other variables $C_{r}-Y$ . 
+
+![](images/b12b8615437b813fc88af990b2460ab128f7d4027b6df818b6be9de956293af6.jpg) 
+
+# 10.2.1.3 Correctness 
+
+We now prove that this algorithm, when applied to a clique tree that satisﬁes the family preser- vation and running intersection property, computes the desired expressions over the messages and the cliques. 
+
+In our algorithm, a variable $X$ is eliminated only when a message is sent from $C_{i}$ to a neighboring $C_{j}$ such that $X\in C_{i}$ and $X\notin C_{j}$ . We ﬁrst prove the following result: 
+
+# Proposition 10.2 
+
+Assume that $X$ is eliminated when a message is sent from $C_{i}$ to $C_{j}$ . Then $X$ does not appear anywhere in the tree on the $C_{j}$ side of the edge $(i{-}j)$ . 
+
+Proof The proof is a simple consequence of the running intersection property. Assume by contradiction that $X$ appears in some other clique $C_{k}$ that is on the $C_{j}$ side of the tree. Then $C_{j}$ is on the path from $C_{i}$ to $C_{k}$ . But we know that $X$ appears in both $C_{i}$ and $C_{k}$ but not in $C_{j}$ , violating the running intersection property. 
+
+Based on this result, we can provide a semantic interpretation for the messages used in the clique tree. Let $(i{-}j)$ be some edge in the clique tree. We use $\mathcal{F}_{\prec(i\rightarrow j)}$ to denote the set of factors in the cliques on the $C_{i}$ -side of the edge and $\mathcal{V}_{\prec(i\rightarrow j)}$ to denote the set of variables that appear on the $C_{i}$ -side but are not in the sepset. For example, in the clique tree of ﬁgure 10.2, we have that $\mathcal{F}_{\prec(3\rightarrow5)}\,=\,\{P(C),P(D\mid C),P(G\mid I,D),P(I),P(S\mid I)\}$ and $\mathcal{V}_{\prec(3\rightarrow5)}=\{C,D,I\}$ . Intuitively, the message passed between the cliques $C_{i}$ and $C_{j}$ is the product of all the factors in $\mathcal{F}_{\prec(i\rightarrow j)}$ , marginalized over the variables in the sepset (that is, summing out all the others). 
+
+Theorem 10.3 Let $\delta_{i\to j}$ be a message from $C_{i}$ to $C_{j}$ . Then: 
 
 $$
-\Lambda_{Y}(\Lambda_{Z}(\phi))=\Lambda_{(Y\cup Z)}(\phi).
+\delta_{i\rightarrow j}\big(\pmb{S}_{i,j}\big)=\sum_{\mathcal{V}_{\prec(i\rightarrow j)}}\prod_{\phi\in\mathcal{F}_{\prec(i\rightarrow j)}}\phi.
 $$ 
 
-Marginalization over combination: If $\phi_{1}$ is a factor of scope $W$ and $Y\cap W=\emptyset$ , then: 
+Proof The proof proceeds by induction on the length of the path from the leaves. For the base case, the clique $C_{i}$ is a leaf in the tree. In this case, the result follows from a simple examination of the operations executed at the clique. 
+
+Now, consider a clique $C_{i}$ that is not a leaf, and consider the expression 
 
 $$
-\Lambda_{Y}(\phi_{1}\bigotimes\phi_{2})=\phi_{1}\bigotimes\Lambda_{Y}(\phi_{2}).
+\sum_{\mathcal{V}_{\prec(i\rightarrow j)}}\prod_{\phi\in\mathcal{F}_{\prec(i\rightarrow j)}}\phi.
 $$ 
 
-Show that if $\otimes$ and $\Lambda$ satisfy the preceding axioms, t n we obtain a theorem analogous to th rem 9.5. That is, the algorithm, when applied to a set of factors Φ and a set of variables to be eliminated Z , returns a factor 
+Let $\displaystyle i_{1},.\cdot\cdot\cdot,i_{m}$ be the neighboring cliques of $C_{i}$ other than $C_{j}$ . It follows immediately from proposition 10.2 that $\mathcal{V}_{\prec(i\rightarrow j)}$ is the disjoint union of $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ for $k\,=\,1,\hdots,m$ and the variables $Y_{i}$ el nated at $C_{i}$ itself. Similarly, $\mathcal{F}_{\prec(i\rightarrow j)}$ is the disjoint union of the $\mathscr{F}_{\prec(i_{k}\rightarrow i)}$ and the factors F from which $\psi_{i}$ was computed. Thus equation (10.3) is equal to 
 
 $$
-\phi^{*}(Y)=\Lambda z(\bigotimes_{\phi\in\Phi}\phi).
+\sum_{Y_{i}}\sum_{\mathcal{V}_{\prec(i_{1}\rightarrow i)}}\cdots\sum_{\mathcal{V}_{\prec(i_{m}\rightarrow i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{1}\rightarrow i)}}\phi\right)\cdot\cdot\cdot\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{m}\rightarrow i)}}\phi\right)\cdot\left(\prod_{\phi\in\mathcal{F}_{i}}\phi\right).
 $$ 
 
-# Exercise ${\bf9.20\star\star}$ 
-
-You are taking the ﬁnal exam for a course on computational complexity theory. Being somewhat too theoretical, your professor has insidiously sneaked in some unsolvable problems and has told you that exactly $K$ of the $N$ problems have a solution. Out of generosity, the professor has also given you a probability distribution over the solvability of the $N$ problems. 
-
-To f malize the scenario, let $\mathcal{X}=\{X_{1},.\,.\,.\,,X_{N}\}$ variables correspo ing to the N questions in the exam where $V a l(X_{i})\,=\,\bar{\mathrm{\left\{0(unsolveeable),1(solveeable)\right\}}}$ { } . Fur ermore, let B be a Bayesian network parameterizing a probability d strib ion over X (that is, problem i may be easily used to solve problem $j$ so that the probabilities that i and $j$ are solvable are not independent in general). 
-
-a. We begin by describing a method for computing the probability of a question being solvable. That is we want to compute $\breve{P}(X_{i}=1,\mathrm{PSbubble}(\hat{\mathcal{X}})=\breve{K})$ ) where 
+As we just showed, for each $k$ , none of the variables in $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ appear in any of the other factors. Thus, we can use equation (9.6) and push in the summation over $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ in equa- tion (10.4), and obtain: 
 
 $$
-\operatorname{PSIM}({\mathcal{X}})=\sum_{i}\mathbf{1}\{X_{i}=1\}
+\sum_{Y_{i}}\left(\prod_{\phi\in\mathcal{F}_{i}}\phi\right)\cdot\sum_{\mathcal{V}_{\prec(i_{1}\to i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{1}\to i)}}\phi\right)\cdot\cdot\cdot\sum_{\mathcal{V}_{\prec(i_{m}\to i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{m}\to i)}}\phi\right).
 $$ 
 
-is the number of solvable problems assigned by the professor. 
-
-To this end, we deﬁne an extended factor $\phi$ as a “regular” factor $\psi$ and an index so that it deﬁnes a ction $\phi(X,L):V a l(X)\times\{0,\dot{.}\,.\,,N\}\mapsto I\!\!R$ where $X=S c o p e[\phi]$ . A projection of such a factor $[\phi]_{l}$ l is a regular factor $\psi:V a l(X)\mapsto I\!\!R,$ 7→ , such that $\psi(X)=\phi(X,{\bar{l}})$ . 
-
-Provide a deﬁnition of factor combination and factor marginalization for these extended factors such that 
+Using the inductive hypothesis and the deﬁnition of $\psi_{i}$ , this expression is equal to 
 
 $$
-P(X_{i},\mathrm{PSimize}(\mathcal{X})=K)=\left[\sum_{\mathcal{X}-\{X_{i}\}}\prod_{\phi\in\Phi}\phi\right]_{K},
+\sum_{Y_{i}}\psi_{i}\cdot\delta_{i_{1}\rightarrow i}\cdot\cdot\cdot\cdot\delta_{i_{m}\rightarrow i},
 $$ 
 
-where each $\phi\in\Phi$ is an extended factor corresponding to some CPD of the Bayesian network, deﬁned as follows: 
+which is precisely the operation used to compute the message $\delta_{i\to j}$ . 
+
+This theorem is closely related to theorem 10.2, which tells us that a sepset divides the graph into conditionally independent pieces. It is this conditional independence property that allows the message over the sepset to summarize completely the information in one side of the clique tree that is necessary for the computation in the other. 
+
+Based on this analysis, we can show that: 
+
+Let $C_{r}$ be the root clique in a clique tree, and assume that $\beta_{r}$ is computed as in the algorithm of algorithm 10.1. Then 
 
 $$
-\begin{array}{r}{\phi_{X_{i}}\big(\{X_{i}\}\cup\mathbf{Pa}_{X_{i}},k\big)=\left\{\begin{array}{l l}{P(X_{i}\mid\mathrm{Pa}_{X_{i}})}&{\mathrm{if~}X_{i}=k}\\ {0}&{\mathrm{otherwise}}\end{array}\right.}\end{array}
+\beta_{r}(C_{r})=\sum_{\mathcal{X}-C_{r}}\tilde{P}_{\Phi}(\mathcal{X}).
 $$ 
 
-b. Show that your operations satisfy the condition of exercise 9.19 so that you can compute equation (9.16) use the generalized variable elimination algorithm. 
+As we discussed earlier, this algorithm applies both to Bayesian network and Markov network inference. For a Bayesian network $\mathcal{B}$ , if $\Phi$ consists of the C Ds in $\mathcal{B}$ , reduced with some evidence $e$ , then $\beta_{r}(\boldsymbol{C}_{r})\,=\,P_{\mathcal{B}}(\boldsymbol{C}_{r},e)$ . For a $\mathcal{H}$ , if Φ consists of the compatibility functions deﬁning the network, then $\beta_{r}(C_{r})\,=\,\tilde{P}_{\Phi}(C_{r})$ . In both cases, we can obtain the probability over the variables in $C_{r}$ as usual, by normalizing the resulting factor to sum to 1. In the Markov network, we can also obtain the value of the partition function simply by summing up all of the entries in the potential of the root clique $\beta_{r}(C_{r})$ . 
 
-c. Realistically, you will have time to work on exactly $M$ problems $1\leq M\leq N)$ . Obviously, your goal is to maximize the expected number of solvable problems that you attempt. (Luckily for you, every solvable problem that you attempt you will solve correctly, and you neither gain nor lose credit for working on an unsolvable problem.) Let $\mathbf{Y}$ be a subset of $\mathcal{X}$ indicating exactly $M$ problems you choose to work on, and let 
+# 10.2.2 Clique Tree Calibration 
+
+We have shown that we can use the same clique tree to compute the probability of any variable in $\mathcal{X}$ . In many applications, we often wish to estimate the probability of a large number of variables. For example, in a medical-diagnosis setting, we generally want the probability of several possible diseases. Furthermore, as we will see, when learning Bayesian networks from partially observed data, we always want the probability distributions over each of the unobserved variables in the domain (and their parents). 
+
+Therefore, let us consider the task of computing the posterior distribution over every random variable in the network. The most naive approach is to do inference separately for each variable. Letting $c$ be the cost of a single execution of clique tree inference, the total cost of this algorithm is nc . An approach that is slightly less naive is to run the algorithm once for every clique, making it the root. The total cost of this variant is $K c,$ where $K$ is the number of cliques. However, it turns out that we can do substantially better than either of these approaches. 
+
+Let us revisit our clique tree of ﬁgure 10.2 and consider the three diferent executions of the clique tree algorithm that we described: one where $C_{5}$ is the root, one where $C_{4}$ is the root, and one where $C_{3}$ is the root. As we pointed out, the messages sent from $C_{1}$ to $C_{2}$ and from $C_{2}$ to $C_{3}$ are the same in all three executions. The message sent from $C_{4}$ to $C_{5}$ is the same in both of the executions where it appears. In the second of the three executions, there simply is no message from $C_{4}$ to $C_{5}$ — the message goes the other way, from $C_{5}$ to $C_{4}$ . 
+
+More generally, consider two neighboring cliques $C_{i}$ and $C_{j}$ in some clique tree. It follows from theorem 10.3 that the value of the message sent from $C_{i}$ to $C_{j}$ does not depend on speciﬁc choice of root clique: As long as the root clique is on the $C_{j}$ -side, exactly the same message is sent from $C_{i}$ to $C_{j}$ . The same argument applies if the root is on the $C_{i}$ -side. Thus, in all executions of the clique tree algorithm, whenever a message is sent between two cliques in the same direction, it is necessarily the same. Thus, for any given clique tree, each edge has two messages associated with it: one for each direction of the edge. If we have a total of $c$ cliques, there are $c-1$ edges in the tree; therefore, we have $2(c-1)$ messages to compute. 
+
+![](images/d5b2bf3867ba2ed23f96a5932eee9bfb114f4d73ab4ef004e6bc4f5704f20aea.jpg) 
+Figure 10.5 Two steps in a downward pass in the Student network 
+
+We can compute both messages for each edge by the following simple asynchronous algorithm. Recall that a clique can transmit a message upstream toward the root when it has all of the messages from its downstream neighbors. We can generalize this concept as follows: 
+
+Deﬁnition 10.4 ready clique 
+
+dynamic programming sum-product belief propagation 
+
+upward pass downward pass Let $\tau$ be a clique tree. We say that $C_{i}$ is ready to transmit to a neighbor $C_{j}$ when $C_{i}$ has messages from all of its neighbors except from $C_{j}$ . 
+
+When $C_{i}$ is ready to transmit to $C_{j}$ , it can compute the message $\delta_{i\to j}(S_{i,j})$ by multiplying its initial potential with all of its incoming messages except the one from $C_{j}$ , and then eliminate the variables in $C_{i}-S_{i,j}$ . In eﬀect, this algorithm uses yet another layer of dynamic programming to avoid recomputing the same message multiple times. 
+
+Algorithm 10.2 shows the full procedure, often called sum-product belief propagation . As written, the algorithm is deﬁned asynchronously , with each clique sending a message as soon as it is ready. One might wonder why this process is guaranteed to terminate, that is, why there is always a clique that is ready to transmit to some other clique. In fact, the message passing process performed by the algorithm is equivalent to a much more systematic process that consists of an upward pass and a downward pass . In the upward pass, we ﬁrst pick a root and send all messages toward the root. When this process is complete, the root has all messages. Therefore, it can now send the appropriate message to all of its children. This 
+
+![](images/0be5eda88199a2c3282c4ce196d0bc6daab2cc9df3cfb764f3ae05ebf36f6597.jpg) 
+
+message scheduling 
+
+# Example 10.4 
+
+beliefs 
+
+Corollary 10.2 algorithm continues until the leaves of the tree are reached, at which point no more messages need to be sent. This second phase is called the downward pass. The asynchronous algorithm is equivalent to this systematic algorithm, except that the root is simply the ﬁrst clique that happens to obtain messages from all of its neighbors. In an actual implementation, we might want to schedule this process more explicitly. (At the very least, the algorithm would check in line 2 that a message is not computed more than once.) 
+
+Figure 10.3a shows the upward pass of the clique tree algorithm when $C_{5}$ is the root. Figure $\it{10.5a}$ shows a possible ﬁrst step in a downward pass, where $C_{5}$ sends a message to its child $C_{3}$ , based on the message from $C_{4}$ and its initial potential. As soon as a child of the root receives a message, it has all of the information it needs to send a message to its own children. Figure $l0.5b$ shows $C_{3}$ sending the downward message to $C_{2}$ . 
+
+At the end of this process, we compute the beliefs for all cliques in the tree by multiplying the initial potential with each of the incoming messages. The key is to note that the messages used in the computation of $\beta_{i}$ are precisely the same messages that would have been used in a standard upward pass of the algorithm with $C_{i}$ as the root. Thus, we conclude: 
+
+Assume that, for each clique $i$ , $\beta_{i}$ is computed as in the algorithm of algorithm 10.2. Then 
 
 $$
-\operatorname{Correct}(X,Y)=\sum_{X_{i}\in Y}X_{i}
+\beta_{i}(C_{i})=\sum_{\mathcal{X}-C_{i}}\tilde{P}_{\Phi}(\mathcal{X}).
 $$ 
 
-be the number of solvable problems that you attempt. The expected number of problems you solve is 
+Note that it is important that $C_{i}$ compute the message to a neighboring clique $C_{j}$ based on its initial potential $\psi_{i}$ and not its modiﬁed potential $\beta_{i}$ . The latter already integrates information from $j$ . If the message were computed based on this latter potential, we would be double-counting the factors assigned to $C_{j}$ (multiplying them twice into the joint). 
+
+When this process concludes, each clique contains the marginal (unnormalized) probability over the variables in its scope. As we discussed, we can compute the marginal probability over a particular variable $X$ by selecting a clique whose scope contains $X$ , and eliminating the redundant variables in the clique. A key point is that the result of this process does not depend on the clique we selected. That is, if $X$ appears in two cliques, they must agree on its marginal. 
+
+Deﬁnition 10.5 calibrated 
+
+beliefs 
+
+Two adjacent cliques $C_{i}$ and $C_{j}$ are said to be calibrated if 
 
 $$
-\pmb{\mathscr{E}}_{P_{\mathcal{B}}}[\mathrm{Correct}(\mathcal{X},Y)\mid\mathrm{PSbubble}(\mathcal{X})=K].
+\sum_{C_{i}-S_{i,j}}\beta_{i}(C_{i})=\sum_{C_{j}-S_{i,j}}\beta_{j}(C_{j}).
 $$ 
 
-Using your generalized variable elimination algorithm, provide an efcient algorithm for computing this expectation. 
-
-d. Your goal is to ﬁnd $\mathbf{Y}$ that optimizes equation (9.17). Provide a simple example showing that: 
+A clique tree $\mathcal{T}$ is calibrated if all pairs of adjacent cliques are calibrated. For a calibrated clique tree, we use the term clique beliefs for $\beta_{i}(C_{i})$ and sepset beliefs for 
 
 $$
-\arg\operatorname*{max}_{Y:\vert Y\vert=M}E_{P_{B}}[\mathrm{Correct}(\mathcal{X},Y)]\neq\arg\operatorname*{max}_{Y:\vert Y\vert=M}E_{P_{B}}[\mathrm{Correct}(\mathcal{X},Y)\ \vert\ \mathrm{possible}(\mathcal{X})=K
+\mu_{i,j}(S_{i,j})=\sum_{C_{i}-S_{i,j}}\beta_{i}(C_{i})=\sum_{C_{j}-S_{i,j}}\beta_{j}(C_{j}).
 $$ 
 
-e. Give an efcient algorithm for ﬁnding 
+The main advantage of the clique tree algorithm is that it computes the posterior probability of all variables in a graphical model using only twice the computation of the upward pass in the same tree. Letting $c$ once again be the execution cost of message passing in a clique tree to one root, the cost of this algorithm is $2c$ . By comparison, recall that the cost of doing a separate computation for each variable is $n c$ and a separate computation for each root clique is $K c,$ where $K$ is the number of cliques. In most cases, the savings are considerable, making the clique tree algorithm the algorithm of choice in situations where we want to compute the posterior of multiple query variables. 
+
+stride 
+
+Box 10.A — Skill: Efcient Implementation of Factor Manipulation Algorithms. While sim- ple conceptually, the implementation of algorithms involving manipulation of factors can be sur- prisingly subtle. In particular, diferent design decisions can lead to orders-of-magnitude diferences in performance, as well as diferences in the accuracy of the results. We now discuss some of the key design decisions in these algorithms. We note that the methods we describe here are equally applicable to the algorithms in many of the other chapters in the book, including the variable elimination algorithm of chapter 9, the exact and approximate sum-product message passing algorithms of chapters 10 and 11, and many of the MAP algorithms of chapter 13. 
+
+The ﬁrst key decision is the representation of our basic data structure: a factor, or a multidimen- sional table, with an entry for each possible assignment to the variables. One standard technique for storing multidimensional tables is to ﬂatten them into a single array in computer memory. For each variable, we also store its cardinality, and its stride , or step size in the factor. For example, given a factor $\phi(A,B,C)$ over variables $A$ , $B$ , and $C$ , with cardinalities 2, 2, and 3, respectively, we can represent the factor in memory by the array 
 
 $$
-\arg\operatorname*{max}_{Y:\lvert Y\rvert=M}E_{P_{\mathcal{B}}}\bigl[\mathrm{Correct}(\mathcal{X},Y)\ \vert\ \mathrm{PSbubble}(\mathcal{X})=K\bigr].
+p h i[0.\ldots11]=\left\{\phi(a^{1},b^{1},c^{1}),\phi(a^{2},b^{1},c^{1}),\phi(a^{1},b^{2},c^{1}),.\ldots,\phi(a^{2},b^{2},c^{3})\right\}.
 $$ 
 
-(Hint: Use linearity of expectations.) 
+Here the stride for variable $A$ is $l,$ for $B$ is 2 and for $C$ is 4. If we add a fourth variable, $D$ , its stride would be $l2,$ , since we would need to step over twelve entries before reaching the next assignment to $D$ . Notice how, using each variable’s stride, we can easily go from a variable assignment to $^a$ corresponding index into the factor array 
+
+$$
+i n d e x=\sum_{i}a s s i g n m e n t[i]\cdot p h i\,.s t r i d e[i]
+$$ 
+
+![](images/f0df1ecdbfdb01b9d923c4211973de73f59df91ff73948446bae7520eeafb5ed.jpg) 
+
+and vice versa 
+
+$$
+a s s i g n m e n t[i]=\lfloor i n d e x/p h i\,.s t r i d e[i]\rfloor\mod{c a r d[i]}
+$$ 
+
+With this factor representation, we can now design a library of operations: product , marginal- ization , maximization , reduction , and so forth. Since many inference algorithms involve multiple iterations over a series of factor operations, it is important that these be high-performance. One of the key design decisions is indexing the appropriate entries in each factor for the operations that we wish to perform. (In fact, when one uses a naive implementation of index computations, one often discovers that 90 percent of the running time is spent on that task.) 
+
+factor product 
+
+Algorithm 10.A.1 provides an example for the product between two arbitrary factors. Here we deﬁne phi.stride $\mathbf{\nabla}![X]\ =\ 0$ if $X\ \notin\ S c o p e[\phi]$ . The inner loop (over l ) advances to the next assignment to the variables in $\psi$ and calculates indexes into each other factor array on the ﬂy. It can be understood by considering the equation for computing index shown earlier. Similar on- the-ﬂy index calculations can be applied for other factor operations. We leave these as an exercise (exercise 10.3). 
+
+For iterative algorithms or multiple queries, where the same operation (on diferent data) is performed a large number of times, it may be beneﬁcial to cache these index mappings for later use. Note, however, that the index mappings require the same amount of storage as the factors themselves, that is, are exponential in the number of variables. Thus, this design choice ofers a direct trade-of between memory usage and speed, especially in view of the fact that the index computations require approximately the same amount of work as the factor operation itself. Since performance of main memory is orders of magnitudes faster than secondary storage (disk), when memory limitations are an issue, it is better not to cache index mappings for large problems. One exception is template models, where savings can be made by reusing the same indexes for diferent instantiations of the factor templates. 
+
+An additional trick in reducing the computational burden is to preallocate and reuse memory for factor storage. Allocating memory is a relatively expensive procedure, and one does not want to waste time on this task inside a tight loop. To illustrate this point, we consider the example of variable elimination for computing $\psi(A,D)$ as 
+
+$$
+\psi(A,D)=\sum_{B,C}\phi_{1}(A,B)\phi_{2}(B,C)\phi_{3}(C,D)=\sum_{B}\phi_{1}(A,B)\sum_{C}\phi_{2}(B,C)\phi_{3}(C,D).
+$$ 
+
+Here we need to compute three intermediate factors: $\tau_{1}(B,C,D)=\phi_{2}(B,C)\phi_{3}(C,D);\tau_{2}(B,D)=$ $\textstyle\sum_{C}\tau_{1}(B,C,D)$ ; and $\tau_{3}(A,B,D)=\phi_{1}(A,B)\tau_{2}(B,D)$ . Notice that, once $\tau_{2}(B,D)$ has been calculated, we no longer need the values in $\tau_{1}(B,C,D)$ . By initially allocating memory large enough to hold the larger of $\tau_{1}(B,C,D)$ and $\tau_{3}(A,B,D)$ , we can use the same memory for both. Because every operation in a variable elimination or message passing algorithm requires the computation of one or more intermediate factors, some of which are much larger than the desired end product, the savings in both time (preallocation) and memory (reusage) can be signiﬁcant. 
+
+log-space factor marginalization 
+
+We now turn our attention to numerical considerations. Operations such as factor product involve multiplying many small numbers together, which can lead to underﬂow problems due to ﬁnite precision arithmetic. The problem can be alleviated somewhat by renormalizing the factor after each operation (so that the maximum entry in the factor is one); this operation leaves the results to most queries unchanged (see exercise 9.3). However, if each entry in the factor is computed as the product of many terms, underﬂow can still occur. An alternative solution is to perform the computation in log-space , replacing multiplications with additions; this transformation allows for greater machine precision to be utilized. Note that marginalization , which requires that we sum entries, cannot be performed in log-space; it requires exponentiating each entry in the factor, performing the marginalization, and taking the log of the result. Since moving from log-space to probability-space incurs a signiﬁcant decrease in dynamic range, factors should be normalized before applying this transform. One standard trick is to shift every entry by the maximum entry 
+
+$$
+\begin{array}{r}{p h i[i]\leftarrow\exp\left\{\mathit{l o g P h i}[i]-c\right\},}\end{array}
+$$ 
+
+where $c=\operatorname*{max}_{i}\mathcal{I}o g P h i[i]$ ; this transformation ensures that the resulting factor has a maximum entry of one and prevents overﬂow. 
+
+We note that there are some caveats to operating in log-space. First, one may incur a performance hit: Floating point multiplication is no slower than ﬂoating point addition, but the transformation to and from log-space, as required for marginalization, can take a signiﬁcant proportion of the total processing time. This caveat does not apply to algorithms such as max-product, where maximization can be performed in log-space; indeed, these algorithms are almost always implemented as max- sum. Moreover, log-space operations require care in handling nonpositive factors (that is, factors with some zero entries). 
+
+Finally, at a higher level, as with any software implementation, there is always a trade-of between speed, memory consumption, and reusability of the code. For example, software specialized for the case of pairwise potentials over a grid will almost certainly outperform code written for general graphs with arbitrary potentials. However, the small performance hit in using well designed general purpose code often outweighs the development efort required to reimplement algorithms for each specialized application. However, as always, it is also important not to try to optimize code too early. It is more beneﬁcial to write and proﬁle the code, on real examples, to determine what operations are causing bottlenecks. This allows the development efort to be targeted to areas that can yield the most gain. 
+
+# 10.2.3 A Calibrated Clique Tree as a Distribution 
+
+A calibrated clique tree is more than simply a data structure that stores the results of probabilistic inference for all of the cliques in the tree. As we now show, it can also be viewed as an alternative representation of the measure $\tilde{P}_{\Phi}$ . 
+
+At calibration, we have that: 
+
+$$
+\beta_{i}=\psi_{i}\cdot\prod_{k\in\mathrm{Nb}_{i}}\delta_{k\rightarrow i}.
+$$ 
+
+We also have that: 
+
+$$
+\begin{array}{r c l}{\mu_{i,j}(S_{i,j})}&{=}&{\displaystyle\sum_{C_{i}\sim S_{i,j}}\beta_{i}(C_{i})}\\ &{=}&{\displaystyle\sum_{C_{i}\sim S_{i,j}}\psi_{i}\cdot\prod_{k\in\mathbb{N}_{b_{i}}}\delta_{k\to i}}\\ &{=}&{\displaystyle\sum_{C_{i}\sim S_{i,j}}\psi_{i}\cdot\delta_{j\to i}\prod_{k\in(\mathbb{N}_{b_{i}}-\{j\})}\delta_{k\to i}}\\ &{=}&{\displaystyle\delta_{j\to i}\sum_{C_{i}\sim S_{i,j}}\psi_{i}\cdot\prod_{k\in(\mathbb{N}_{b_{i}}-\{j\})}\delta_{k\to i}}\\ &{=}&{\displaystyle\delta_{j\to i}\delta_{i\to j},}\end{array}
+$$ 
+
+where the fourth equality holds because no variable in the scope of $\delta_{j\rightarrow i}$ is involved in the summation. 
+
+We can now show the following important result: 
+
+# Proposition 10.3 
+
+At convergence of the clique tree calibration algorithm, we have that: 
+
+$$
+\tilde{P}_{\Phi}(\mathcal{X})=\frac{\prod_{i\in\mathcal{V}_{\mathcal{T}}}\beta_{i}(C_{i})}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{T}}}\mu_{i,j}(S_{i,j})}.
+$$ 
+
+Proof Using equation (10.8), the numerator in the right-hand side of equation (10.10) can be rewritten as: 
+
+$$
+\prod_{i\in\mathcal{V}_{T}}\psi_{i}(C_{i})\prod_{k\in\mathrm{Nb}_{i}}\delta_{k\rightarrow i}.
+$$ 
+
+![](images/6528c8dab49338e85d387fb280df5ece0d279abfc3c451aeee100a63761eb0e0.jpg) 
+
+Figure 10.6 The clique and sepset beliefs for the Misconception example. Using equation (10.9), the denominator can be rewritten as: 
+
+$$
+\prod_{(i-j)\in\mathcal{E}\tau}\delta_{i\to j}\delta_{j\to i}.
+$$ 
+
+Each message $\delta_{i\to j}$ appears exactly once in the numerator and exactly once in the denominator, so that all messages cancel. The remaining expression is simply: 
+
+$$
+\prod_{i\in\mathcal{V}_{T}}\psi_{i}(C_{i})=\tilde{P}_{\Phi}.
+$$ 
+
+reparameteriza- tion clique tree invariant 
+
+Example 10.5 
+
+Thus, via equation (10.10), the clique and sepsets beliefs provide a re parameter iz ation of the unnormalized measure. This property is called the clique tree invariant , for reasons which will become clear later on in this chapter. 
+
+Another intuition for this result can be obtained from the following example: 
+
+Consider a clique tree obtained from Markov network $\scriptstyle A-B-C-D,$ , with an appropriate set of factors $\Phi$ . Our clique tree in this case would have three cliques $C_{1}\,=\,\{A,B\}$ , $C_{2}\,=\,\{B,C\}$ , and $C_{3}=\{C,D\}$ . When the clique tree is calibrated, we have that $\beta_{1}(A,B)=\tilde{P}_{\Phi}(A,B)$ and $\beta_{2}(B,C)\,=\,\tilde{P}_{\Phi}(B,C)$ . From the conditional independence properties of this distribution, we have that 
+
+$$
+{\tilde{P}}_{\Phi}(A,B,C)={\tilde{P}}_{\Phi}(A,B){\tilde{P}}_{\Phi}(C\mid B),
+$$ 
+
+and 
+
+$$
+\tilde{P}_{\Phi}(C\mid B)=\frac{\beta_{2}(B,C)}{\tilde{P}_{\Phi}(B)}.
+$$ 
+
+As $\beta_{2}(B,C)=\tilde{P}_{\Phi}(B,C)$ , we can obtain $\tilde{P}_{\Phi}(B)$ by marginalizing $\beta_{2}(B,C)$ . Thus, we can write: 
+
+$$
+\begin{array}{r c l}{{\tilde{P}_{\Phi}(A,B,C)}}&{{=}}&{{\beta_{1}(A,B)\displaystyle\frac{\beta_{2}(B,C)}{\sum_{C}\beta_{2}(B,C)}}}\\ {{}}&{{=}}&{{\displaystyle\frac{\beta_{1}(A,B)\beta_{2}(B,C)}{\sum_{C}\beta_{2}(B,C)}.}}\end{array}
+$$ 
+
+In fact, when the two cliques are calibrated, they must agree on the marginal of $B$ . Thus, the expression in the denominator can equivalently be replaced by $\textstyle\sum_{A}\beta_{1}(A,B)$ . 
+
+Based on this analysis, we now formally deﬁne the distribution represented by a clique tree: 
+
+Deﬁnition 10.6 clique tree measure 
+
+We deﬁne the measure induced by a calibrated tree $\mathcal{T}$ to be: 
+
+$$
+Q_{\mathcal{T}}=\frac{\prod_{i\in\nu_{\mathcal{T}}}\beta_{i}(C_{i})}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{T}}}\mu_{i,j}(S_{i,j})},
+$$ 
+
+where 
+
+$$
+\mu_{i,j}=\sum_{\boldsymbol{C}_{i}-\boldsymbol{S}_{i,j}}\beta_{i}(\boldsymbol{C}_{i})=\sum_{\boldsymbol{C}_{j}-\boldsymbol{S}_{i,j}}\beta_{j}(\boldsymbol{C}_{j}).
+$$ 
+
+# Example 10.6 
+
+Consider, for example, the Markov network of example 3.8, whose joint distribution is shown in ﬁgure 4.2. One clique tree for this network consists of the two cliques $\{A,B,D\}$ and $\{B,C,D\}$ , with the sepset $\{B,D\}$ . The ﬁnal potentials and sepset for this example are shown in ﬁgure 10.6. It is straightforward to conﬁrm that the clique tree is indeed calibrated. One can also verify that this clique tree provides a re parameter iz ation of the original distribution. For example, consider the entry $\tilde{P}_{\Phi}(a^{1},b^{0},c^{1},d^{0})=100$ . According to equation (10.10), the clique tree measure is: 
+
+$$
+\frac{\beta_{1}(a^{1},b^{0},d^{0})\beta_{2}(b^{0},c^{1},d^{0})}{\mu_{1,2}(b^{0},d^{0})}=\frac{200\cdot300,100}{600,200}=100,
+$$ 
+
+as required. 
+
+Our analysis so far shows that for a set of calibrated potentials derived from clique tree inference, we have two properties: the clique tree measure is $\tilde{P}_{\Phi}$ and the ﬁnal beliefs are the marginals of $\tilde{P}_{\Phi}$ . As we now show, these two properties coincide for any calibrated clique tree. 
+
+# Theorem 10.4 
+
+$\mathcal{T}$ ique tree over $\Phi$ , and $\beta_{i}(C_{i})$ be a set tials for $\mathcal{T}$ . Then, $\tilde{P}_{\Phi}(\mathcal{X})\propto Q_{\mathcal{T}}$ X ∝ if and only if, for each i $i\in\mathcal{V}_{T}$ ∈V , we have that $\dot{\beta}_{i}(\mathbf{\cal{C}}_{i})\propto\tilde{P_{\Phi}}(\mathbf{\cal{C}}_{i})$ ∝ . T T 
+
+Proof Let $r$ e any clique in $\mathcal{T}$ , which we choose to be th oot. Deﬁne e descendant cliques of a clique $C_{i}$ to be the cliques that are downstream from $C_{i}$ relative to $C_{r}$ ; the nondescendant cliques are then the remaining cliques (other than $C_{i.}$ ). Let $X$ be the variables in the scope of the nondescendant cliques. It follows immediately from theorem 10.2 that 
+
+$$
+{\tilde{P}}_{\Phi}\models(C_{i}\ \bot\ X\ |\ S_{i,p_{r}(i)}).
+$$ 
+
+From this, we obtain, using the standard chain-rule argument, that: 
+
+$$
+\tilde{P}_{\Phi}(\mathcal{X})=\tilde{P}_{\Phi}(C_{r})\cdot\prod_{i\neq r}\tilde{P}_{\Phi}(C_{i}\mid S_{i,p_{r}(i)}).
+$$ 
+
+We can rewrite equation (10.11) as a similar product, using the same root: 
+
+$$
+Q_{\mathcal{T}}(\mathcal{X})=\beta_{r}(C_{r})\cdot\prod_{i\neq r}\beta_{i}(C_{i}\mid S_{i,p_{r}(i)}).
+$$ 
+
+The “if” direction now follows from direct substitution of $\beta_{i}$ for each $\tilde{P}_{\Phi}(C_{i})$ . 
+
+To prove the “only if” direction, we note that each of the terms $\beta_{i}(C_{i}\ \mid\ S_{i,p_{r}(i)})$ is a conditional distribution; hence, if we marginalize out the variables not in $C_{r}$ in the distribution $Q_{\mathcal{T}}$ , each of these conditional distributions marginalizes to 1 , and so we are left with $Q_{\mathcal{T}}(C_{r})=$ $\beta_{r}(C_{r})$ . It now follows that if $\tilde{P}_{\Phi}\propto Q_{\mathcal{T}}$ ∝ T , then $\tilde{P}_{\Phi}(C_{r})\propto Q_{\mathcal{T}}(C_{r})=\beta_{r}(C_{r})$ ∝ T . Because this argument applies to any choice of root clique, we have proved that this equality holds for every clique. 
+
+ Thus, we can view the clique tree as an alternative representation of the joint measure, one that directly reveals the clique marginals. As we will see, this view turns out to be very useful, both in the next section and in chapter 11. 
+
+# 10.3 Message Passing: Belief Update 
+
+The previous section showed one approach to message passing in clique trees, based on the same ideas of variable elimination that we discussed in chapter 9. In this section, we present a related approach, but one that is based on very diferent intuitions. We begin by describing an alternative message passing scheme that is diferent from but mathematically equivalent to that of the previous section. We then show how this new approach can be viewed as operations on the re parameter iz ation of the distribution in terms of the clique and sepset beliefs $\{\beta_{i}(C_{i})\}_{i\in\mathcal{V}_{\mathcal{T}}}$ and $\{\mu_{i,j}(S_{i,j})\}_{(i-j)\in\mathcal{E}_{T}}$ . Each message passing step will change this representation while leaving it a re parameter iz ation of $\tilde{P}_{\Phi}$ . 
+
+# 10.3.1 Message Passing with Division 
+
+Consider again the message passing process used in CTree-SP-Calibrate (algorithm 10.2). There, two messages are passed along each link $(i{-}j)$ . Assume, without loss of generality, that the ﬁrst message is passed from $C_{j}$ to $C_{i}$ . A return message from $C_{i}$ to $C_{j}$ is passed when $C_{i}$ has received messages from all of its other neighbors. 
+
+At this point, $C_{i}$ has all of the necessary information to compute its ﬁnal potential. It multiplies the initial potential with the incoming messages from all of its neighbors: 
+
+$$
+\beta_{i}=\psi_{i}\cdot\prod_{k\in\mathrm{Nb}_{i}}\delta_{k\rightarrow i}.
+$$ 
+
+As we discussed, this ﬁnal potential is not used in computing the message to $C_{j}$ : this potential already incorporates the information (message) passed from $C_{j}$ ; if we used it when computing the message to $C_{j}$ , this information would be double-counted. Thus, the message from $C_{i}$ to $C_{j}$ is computed in a way that omits the information obtained from $C_{j}$ : we multiply the initial potential with all of the messages except for the message from $C_{i}$ , and then marginalize over the sepset (equation (10.2)). 
+
+A diferent approach to computing the same expression is to multiply in all of the messages, and then divide the resulting factor by $\delta_{j\rightarrow i}$ . To make this notion precise, we must deﬁne a factor-division operation: 
+
+![](images/cf8d0452733c4c14c7234afdb6ea9658d362b670e024bf13b43576f345696de6.jpg) 
+Figure 10.7 An example of factor division 
+
+Deﬁnition 10.7 factor division 
+
+Let $X$ and $Y$ be disjoint sets of variables, and let $\phi_{1}(X,Y)$ and $\phi_{2}(Y)$ be two factors. We deﬁne the division $\frac{\phi_{1}}{\phi_{2}}$ to be a factor $\psi$ of scope $X,Y$ deﬁned as follows: 
+
+$$
+\psi(X,Y)=\frac{\phi_{1}(X,Y)}{\phi_{2}(Y)},
+$$ 
+
+where we deﬁne $0/0=0$ . 
+
+Note that, as in the case of other factor operations, factor division is done component by component. Figure 10.7 shows an example. Also note that the operation is not well deﬁned if the denominator is zero and the numerator is not. 
+
+We now see that we can compute the expression of equation (10.2) by computing the beliefs as in equation (10.12), and then dividing by the remaining message: 
+
+$$
+\delta_{i\rightarrow j}=\frac{\sum_{C_{i}-S_{i,j}}\beta_{i}}{\delta_{j\rightarrow i}}.
+$$ 
+
+Example 10.7 Let us return to the simple clique tree in example 10.5, and assume that $C_{2}$ serves as the (de facto) root, so that we ﬁrst pass messages from $C_{1}$ to $C_{2}$ and from $C_{3}$ to $C_{2}$ . The message $\delta_{1\rightarrow2}$ $\textstyle\sum_{A}\psi_{1}(A,B)$ . Using the variable elimination message ( CTree-SP-Calibrate ), we pass a return message $\begin{array}{r}{\delta_{2\to1}(B)\,=\,\sum_{C}\psi_{2}(B,C)\delta_{3\to2}(C)}\end{array}$ . Alternatively, we can compute → $\beta_{2}(B,C)=\delta_{1\rightarrow2}(B)\cdot\delta_{3\rightarrow2}(C)\cdot\psi_{2}(B,C)$ → · → · , and then send a message 
+
+$$
+{\frac{\sum_{C}\beta_{2}(B,C)}{\delta_{1\rightarrow2}(B)}}=\sum_{C}{\frac{\beta_{2}(B,C)}{\delta_{1\rightarrow2}(B)}}=\sum_{C}\psi_{2}(B,C)\cdot\delta_{3\rightarrow2}(C).
+$$ 
+
+Thus, the two approaches are equivalent. 
+
+sum-product- divide 
+
+Based on this insight, we can deﬁne the sum-product-divide message passing scheme, where each clique $C_{i}$ maintains its fully updated current beliefs $\beta_{i}$ , which are deﬁned as in equa- tion (10.8). Each sepset also maintains its beliefs $\mu_{i,j}$ deﬁned as the product of the messages in both directions, as in equation (10.9). We now show that the entire message passing process can be executed in an equivalent way in terms of the clique and sepset beliefs, without having to remember the initial potentials $\psi_{i}$ or to compute explicitly the messages $\delta_{i\to j}$ . 
+
+The message passing process follows the lines of example 10.7. Each clique $C_{i}$ initializes $\beta_{i}$ as $\psi_{i}$ and then updates it by multiplying with message updates received from its neighbors. Each sepset $\boldsymbol{S}_{i,j}$ maintains $\mu_{i,j}$ as the previous message passed along the edge $(i{-}j)$ , regardless of the direction. This message is used to ensure that we do not double-count: Whenever a new message is passed along the edge, it is divided by the old message, eliminating the previous message from the update to the clique. Somewhat surprisingly, as we will show, the message passing operation is correct regardless of the clique that sent the last message on the edge. Intuitively, once the message is passed, its information is incorporated into both cliques; thus, each needs to divide by it when passing a message to the other. We can view this algorithm as maintaining a set of belief over the cliques in the tree. The message passing operation takes the beliefs of one clique and uses them to update the beliefs of a neighbor. Thus, we call this algorithm belief-update message passing; it is also known as the Lauritzen-Spiegelhalter algorithm . 
+
+Continuing with example 10.7, assume that $C_{2}$ initially passes an uninformed message to $C_{3}$ : $\begin{array}{r}{\sigma_{2\rightarrow3}=\sum_{B}\psi_{2}(B,C)}\end{array}$ . This message multiplies the beliefs about $C_{3}$ , so that, at this point: 
+
+$$
+\beta_{3}(C,D)=\psi_{3}(C,D)\sum_{B}\psi_{2}(B,C).
+$$ 
+
+This message is also stored in the sepset as $\mu_{2,3}$ . Now, assume that $C_{3}$ sends a message to $C_{2}$ : $\begin{array}{r}{\sigma_{3\rightarrow2}(C)=\sum_{D}\beta_{3}(C,D)}\end{array}$ . This message is divided by $\mu_{2,3}$ , so the actual update for $C_{2}$ is: 
+
+$$
+\begin{array}{c c l}{\displaystyle\frac{\sigma_{3\to2}(C)}{\mu_{2,3}(C)}}&{=}&{\displaystyle\frac{\sum_{D}\beta_{3}(C,D)}{\mu_{2,3}(C)}}\\ &{=}&{\displaystyle\frac{\sum_{D}\psi_{3}(C,D)\mu_{2,3}(C)}{\mu_{2,3}(C)}}\\ &{=}&{\displaystyle\sum_{D}\psi_{3}(C,D).}\end{array}
+$$ 
+
+This expression is precisely the update that $C_{2}$ would have received from $C_{3}$ in the case where $C_{2}$ does not ﬁrst send an uninformed message. At this point, the message stored in the sepset is 
+
+$$
+\sum_{D}\beta_{3}(C,D)=\sum_{D}\left(\psi_{3}(C,D)\cdot\sum_{B}\psi_{2}(B,C)\right).
+$$ 
+
+Assu t at the next step $C_{2}$ receives a message from $C_{1}$ , containing $\textstyle\sum_{A}\psi_{1}(A,B)$ . The sepset $S_{\mathrm{1,2}}$ contains a message that is identically 1 , so that this message is transmitted as is. $A t$ this point, $C_{2}$ has received informed messages from both sides and is therefore informed. Indeed, we have shown that: 
+
+$$
+\beta_{2}(B,C)=\psi_{2}(B,C)\cdot\sum_{A}\psi_{1}(A,B)\cdot\sum_{D}\psi_{3}(C,D).
+$$ 
+
+as required. 
+
+![](images/0081832ae1f43d277197bf858637e5b838ad5c1afac458b355a385c7d321d875.jpg) 
+
+The precise algorithm is shown in algorithm 10.3. Note that, as written, the message passing algorithm is underspeciﬁed: in line 3, we can select any pair of cliques $C_{i}$ and $C_{j}$ between which we will pass a message. Interestingly, we can make this choice arbitrarily, without damaging the correctness of the algorithm. For example, if $C_{i}$ (for some reason) passes the same message to $C_{j}$ a second time, the process of dividing out by the stored message reduces the message actually passed to 1 , so that it has no inﬂuence. Furthermore, if $C_{i}$ passes a message to $C_{j}$ based on partial information (that is, without taking into consideration all of its incoming messages), and then resends a more updated message later on, the efect is identical to simply sending the updated message once. Moreover, at convergence, regardless of the message passing steps used, we necessarily have a calibrated clique tree. This property follows from the fact that, in order for all message updates to have no efect, we need to have 
+
+$$
+\sum_{C_{i}-S_{i,j}}\beta_{i}=\mu_{i,j}=\sum_{C_{j}-S_{i,j}}\beta_{j}.
+$$ 
+
+Thus, at convergence, each pair of neighboring cliques $i,j$ must agree on the variables in sepset, and the message $\mu_{i,j}$ is precisely the sepset marginal. These properties also follow from the equivalence between belief-update message passing and sum-product message passing, which we show next. 
+
+# 10.3.2 Equivalence of Sum-Product and Belief Update Messages 
+
+So far, although we used sum-product message propagation to motivate the deﬁnition of the belief update steps, we have not shown a direct connection between them. We now show a simple and elegant equivalence between the two types of message passing operations. From this result, it immediately follows that belief-update message passing is guaranteed to converge to the correct marginals. 
+
+Our proof is based on equation (10.8) and equation (10.9), which provide a mapping between the sum-product and belief-update representations. We consider corresponding runs of the two algorithms in which an identical sequence of message passing steps is executed. We show that these two properties hold as an invariant between the data structures maintained by the two algorithms. The invariant holds initially, and it is maintained throughout the corresponding runs. 
+
+Theorem 10.5 Consider a set of sum-product initial potentials $\{\psi_{i}\ \ :\ \ i\,\in\,\mathcal{V}_{\mathcal{T}}\}$ V T } and me $\{\delta_{i\to j},\delta_{j\to i}\ \ :$ $(i\!-\!j)\in\mathcal{E}_{\mathcal{T}}\}$ , and a set of belief-update beliefs { $\{\beta_{i}\,:\,i\in\mathcal{V}_{\mathcal{T}}\}$ ∈V T } and messages { $\{\mu_{i,j}\,:\,(i{-}j)\in\mathcal{E}_{T}\}$ , for which equation (10.8) and equation (10.9) hold. For any pair of neighboring cliques $C_{i},C_{j}$ , let $\{\delta_{i\to j}^{\prime},\delta_{j\to i}^{\prime}\ :\ (i\!-\!j)\in\mathcal{E}_{T}\}$ → ssages following an application of SP-Message $(i,j)$ , and { $\{\beta_{i}^{\prime}\ :\ C_{i}\in\mathcal{T}\}$ ∈T } $\{\mu_{i,j}^{\prime}\ :\ (i{-}j)\in\mathcal{E}_{T}\}$ ∈E T } , be the set of belief-update beliefs following an application of BU-Message $(i,j)$ . Then equation (10.8) and equation (10.9) also hold for the new beliefs $\delta_{i\to j}^{\prime},\,\beta_{i}^{\prime},\,\mu_{i,j}^{\prime}$ . 
+
+The proof uses simple algebraic manipulation, and it is left as an exercise (exercise 10.4). This equivalence implies another result that will prove important in subsequent developments: 
+
+# Corollary 10.3 
+
+Proof The proof of proposition 10.3 relied only on equation (10.8) and equation (10.9). Because these two equalities hold in every step of the belief-update message passing algorithm, we have that the clique tree invariant also holds continuously. 
+
+This equivalence also allows us to deﬁne a message schedule that guarantees convergence to the correct clique marginals in two passes: We simply follow the same upward-downward-pass schedule used in CTree-SP-Calibrate , using any (arbitrarily chosen) root clique $C_{r}$ . 
+
+# 10.3.3 Answering Queries 
+
+As we have seen, a calibrated clique tree contains the answer to multiple queries at once: the posterior probability of any set of variables that are present together in a single clique. A particular type of query that turns out to be important in this setting is the computation of the posterior for families of variables in a probabilistic network: a node and its parents in the context of Bayesian networks, or a clique in a Markov network. The family preservation property for cluster graphs (and hence for clique trees) implies that a family must be a subset of some cluster in the cluster graph. 
+
+In addition to these queries, which we get immediately as a by-product of calibration, we can also use a clique tree for other queries. We describe the algorithm for these queries in terms of a calibrated clique tree that satisﬁes the clique tree invariant. Due to the equivalence of sum-product and belief-update message passing, we can obtain such a clique tree using either method. 
+
+# 10.3.3.1 Incremental Updates 
+
+incremental update 
+
+Consider a situation where, at some point in time, we have a certain set of observations, which we use to condition our distribution and reach conclusions. At some later time, we obtain additional evidence, and want to update our conclusions accordingly. This type of situation, where we want to perform incremental update is very common in a wide variety of settings. For example, in a medical setting, we often perform diagnosis on the basis of limited evidence; the initial diagnosis helps us decide which tests to perform, and the results need to be incorporated into our diagnosis. 
+
+The most naive approach to dealing with this task is simply to condition the initial factors (for example, the CPDs) on all of the evidence, and then redo the calibration process from the beginning, starting from these factors. A somewhat more efcient approach is based on the view of the clique tree as representing the distribution $\tilde{P}_{\Phi}$ . 
+
+Assume that our initial distribution $\tilde{P}_{\Phi}$ (prior to the new information) is represented via a set of factors $\Phi$ , as in equation (10.1). Given some evidence $Z=z$ , we can obtain $\tilde{P}_{\Phi}(\mathcal{X},Z=z)$ X by zeroing out the entries in the unnormalized distribution that are inconsistent with the evidence $Z=z$ . We can accomplish this efect by multiplying $\tilde{P}_{\Phi}$ with an additional factor which is the indicator function $I\{Z=z\}$ { } . More precisely, assume that our current distribution over $\mathcal{X}$ is deﬁned by a set of factors Φ , so that 
+
+$$
+{\tilde{P}}_{\Phi}({\mathcal{X}})=\prod_{\phi\in\Phi}\phi.
+$$ 
+
+Then, 
+
+$$
+\tilde{P}_{\Phi}(\mathcal{X},Z=z)=\mathbf{I}\{Z=z\}\cdot\prod_{\phi\in\Phi}\phi.
+$$ 
+
+Let $\tilde{P}_{\Phi}^{\prime}(\mathcal{X})=\tilde{P}_{\Phi}(\mathcal{X},Z=z)$ . 
+
+Now, assume that we have a clique tree (calibrated or not) that represents this distribution using the clique tree invariant. That is: 
+
+$$
+\tilde{P}_{\Phi}(\mathcal{X})=Q_{\mathcal{T}}=\frac{\prod_{i\in\nu_{\mathcal{T}}}\beta_{i}(C_{i})}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{T}}}\mu_{i,j}(S_{i,j})}.
+$$ 
+
+We can represent the distribution $\tilde{P}_{\Phi}^{\prime}(\mathcal{X})$ X as 
+
+$$
+\tilde{P}_{\Phi}^{\prime}(\mathcal{X})=\mathbfcal{I}\{Z=z\}\cdot\frac{\prod_{i\in\mathcal{V}_{T}}\beta_{i}(C_{i})}{\prod_{(i-j)\in\mathcal{E}_{T}}\mu_{i,j}(S_{i,j})}.
+$$ 
+
+Thus, we obtain a representation of $\tilde{P}_{\Phi}^{\prime}$ in the clique tree simply by multiplying in the new factor $I\{Z=z\}$ into some clique $C_{i}$ containing the variable $Z$ . 
+
+If the clique tree is calibrated before this new factor is introduced, then the clique $C_{i}$ has already assimilated all of the other information in the graph. Thus, the clique $C_{i}$ itself is now fully informed, and no additional message passing is required in order to obtain $\tilde{P}_{\Phi}^{\prime}(C_{i})$ . Other cliques, however, still need to be updated with the new information. To obtain $\check{P}_{\Phi}^{\prime}(C_{j})$ for another clique $C_{j}$ , we need only transmit messages from $C_{i}$ to $C_{j}$ , via the intervening cliques on the path between them. (See exercise 10.10.) As a consequence, the entire tree can be recalibrated to account for the new evidence using a single pass. Note that retracting evidence is not as simple: Once we multiply parts of the distribution by zero, these parts are lost, and they cannot be recovered. Thus, if we want to reserve the ability to retract evidence, we must store the beliefs prior to the conditioning step (see exercise 10.12). 
+
+Interestingly, the same incremental-update approach applies to other forms of updating the distribution. In particular, we can multiply the distribution with a factor that is not an indicator function for some variable, an operation that is useful in various applications. The same analysis holds unchanged. 
+
+# 10.3.3.2 Queries Outside a Clique 
+
+Consider a query $P(Y\mid e)$ where the variables $Y$ are not present together in a single cliq One naive approach is to construct a clique tree where we force one of the cliques to contain $Y$ (see exercise 10.13). However, this approach forces us to tailor our clique tree to diferent queries, negating many of its advantages. An alternative approach is to perform variable elimination over a calibrated clique tree. 
+
+Consider the simple clique tree of example 10.7, and assume that we have calibrated the clique tree, so that the beliefs represent the joint distribution as in equation (10.10). Assume that we now want to compute the probability $\tilde{P}_{\Phi}(B,D)$ . If the entire clique tree is calibrated, so is any (connected) subtree $\mathcal{T}^{\prime}$ . Letting $\mathcal{T}^{\prime}$ consist of the two cliques $C_{2}$ and $C_{3}$ , it follows from theorem 10.4 that: 
+
+$$
+\tilde{P}_{\Phi}(B,C,D)=Q_{\cal T}{}^{\prime}.
+$$ 
+
+By the clique tree invariant (equation (10.10)), we have that: 
+
+$$
+\begin{array}{c c l}{{\tilde{P}_{\Phi}(B,D)}}&{{=}}&{{\displaystyle\sum_{C}\tilde{P}_{\Phi}(B,C,D)}}\\ {{}}&{{=}}&{{\displaystyle\sum_{C}\frac{\beta_{2}(B,C)\beta_{3}(C,D)}{\mu_{2,3}(C)}}}\\ {{}}&{{=}}&{{\displaystyle\sum_{C}\tilde{P}_{\Phi}(B\mid C)\tilde{P}_{\Phi}(C,D),}}\end{array}
+$$ 
+
+where the last equality follows from calibration. Each of these probability expressions corresponds to a set of clique beliefs divided by a message. We can now perform variable elimination, using these factors in the usual way. 
+
+![](images/b576e9372df91d3c243bb80825b3ff5c22154069a7357f49b64d3a7ac55c48c9.jpg) 
+
+More generally, we can compute the joint probability $\tilde{P}_{\Phi}(Y)$ for an arbitrary subset $Y$ by using the beliefs in a calibrated clique tree to deﬁne factors corresponding to conditional probabilities in $\tilde{P}_{\Phi}$ , and then performing variable elimination over the resulting set of factors. The precise algorithm is shown in algorithm 10.4. The savings over simple variable elimination arise because we do not have to perform inference over the entire clique tree, but only over a portion of the tree that contains the variables $Y$ that constitute our query. In cases where we have a very large clique tree, the savings can be signiﬁcant. 
+
+# 10.3.3.3 Multiple Queries 
+
+Now, assume that we want to compute the probabilities of an entire set of queries where the variables are not together in a clique. For example, we might wish to compute $\tilde{P}_{\Phi}(X,Y)$ for every pair of variables $X,Y\,\in\,{\mathcal{X}}\,-\,E$ . Clearly, the approach of constructing a clique tree to ensure that our query variables are present in a single clique breaks down in this case: If every pair of variables is present in some clique, there must be some clique that contains all of the variables (see exercise 10.14). 
+
+A somewhat less naive approach is simply to run the variable elimination algorithm of algo- rithm 10.4 $\textstyle{\binom{n}{2}}$  times, once for each pair of variables $X,Y$ . However, because pairs of variables, on average, are fairly far from each other in the clique tree, this approach requires fairly sub- stantial running time (see exercise 10.15). An even better approach can be obtained by using dynamic programming . 
+
+r a calibrated clique tree $\mathcal{T}$ over $\Phi$ , and assume we want to compute the probability $\tilde{P}_{\Phi}(X,Y)$ for every pair of variables $X,Y$ . We execute this process by gradually constructing a table for each $C_{i},C_{j}$ that contains $\tilde{P}_{\Phi}(C_{i},C_{j})$ . We construct the table for $i,j$ in order of the distance between $C_{i}$ and $C_{j}$ in the tree. 
+
+The base case is when $i,j$ are neighboring cliques. In this case, we simply extract $\tilde{P}_{\Phi}(C_{i})$ from its clique beliefs, and compute 
+
+$$
+\tilde{P}_{\Phi}(C_{j}\mid C_{i})=\frac{\beta_{j}(C_{j})}{\mu_{i,j}(C_{i}\cap C_{j})}.
+$$ 
+
+From these, we can compute $\tilde{P}_{\Phi}(C_{i},C_{j})$ . 
+
+Now, consider a pair of cliques $C_{i},C_{j}$ that are not neighbors, and let $C_{l}$ be the neighbor of $C_{j}$ that is one step closer in the clique tree to $C_{i}$ . By construction, we have already computed $\tilde{P}_{\Phi}(C_{i},C_{l})$ and $\tilde{P}_{\Phi}(C_{l},C_{j})$ . The key now, is to observe that 
+
+$$
+{\tilde{P}}_{\Phi}\models(C_{i}\ \bot\ C_{j}\ |\ C_{l}).
+$$ 
+
+Thus, we can compute 
+
+$$
+\tilde{P}_{\Phi}(C_{i},C_{j})=\sum_{C_{l}-C_{j}}\tilde{P}_{\Phi}(C_{i},C_{l})\tilde{P}_{\Phi}(C_{j}\mid C_{l}),
+$$ 
+
+where $\tilde{P}_{\Phi}(C_{j}\mid C_{l})$ can be easily computed from the marginal $\tilde{P}_{\Phi}(C_{j},C_{l})$ . 
+
+The cost of this computation is signiﬁcantly lower than that of running variable elimination in the clique tree $\textstyle{\binom{n}{2}}$ times (see exercise 10.15). 
+
+# 10.5 Summary 
+
+In this chapter, we have described a somewhat diferent perspective on the basic task of exact inference. This approach uses a preconstructed clique tree as a data structure for exact inference. Messages are passed between the cliques in the clique tree, with the end result that the cliques are calibrated — all cliques agree on the same marginal beliefs of any variable they share. We showed two diferent approaches to message passing in clique trees. The ﬁrst uses the same operations as variable elimination, using dynamic programming to cache messages in order to avoid repeated computation. The second uses belief propagation messages, which propagate marginal beliefs between cliques in an attempt to make them agree with each other. Both approaches allow calibration of the entire clique tree within two passes over the tree. 
+
+It is instructive to compare the standard variable elimination algorithm of chapter 9 and the algorithm obtained by variable elimination in a clique tree. In principle, they are equivalent, in that they both use the same basic operations of multiplying factors and summing out variables. Furthermore, the cliques in the clique tree are basically the factors in variable elimination. Thus, we can use any variable elimination algorithm to ﬁnd a clique tree, and any clique tree to deﬁne an elimination ordering. It follows that the two approaches have basically the same computational complexity. 
+
+In practice, however, the two algorithms ofer diferent trade-ofs. On one hand, clique trees have several advantages. Most importantly, through the use of dynamic programming, the  clique tree provides answers to multiple cliques using a single computation. Additional layers of dynamic programming allow the same data structure to answer an even broader range of queries, and to dynamically introduce and retract evidence. Moreover, the clique tree approach executes a nontrivial number of the required operations in advance, including the construction of the basic data structures, the choice of elimination ordering (which is almost determined), and the product of the CPDs assigned to a single clique. 
+
+On the other hand, clique trees, as typically implemented, also have disadvantages. First, clique trees are more expensive in terms of space. In a clique tree, we keep all intermediate factors, whereas in variable elimination we can throw them out. If there are $c$ cliques, the cost of the clique tree algorithm can be as much as $2c$ times as expensive. More importantly, in a clique tree, the structure of the computation is ﬁxed and predetermined. We therefore have less ﬂexibility to take advantage of computational efciencies that arise because of speciﬁc features of the evidence and query. For example, in the Student network with evidence $i^{1}$ , the variable elimination algorithm could avoid introducing a dependence between $G$ and $S$ , resulting in substantially smaller factors. In the clique tree algorithm, the clique structure is usually predetermined, precluding these online optimizations. The diference in cost can be quite dramatic in situations where there is a lot of evidence. This type of situation-speciﬁc simpliﬁcation occurs even more often in networks that exhibit context-speciﬁc independence. Finally, in standard implementaitons, the cliques in a clique tree are typically the maximal cliques in a triangulated graph. Furthermore, the operations performed in the clique tree computation are typically implemented in a fairly standard way, where the incoming messages are multiplied with the clique beliefs, and the outgoing message is generated. This approach is not always optimal (see exercise 10.7). 
+
+We can modify each of these algorithms to have some of the advantages of the other. For example, we can choose to deﬁne a clique tree online, after the evidence is obtained. In this case, the clique tree structure can take advantage of simpliﬁcations resulting from the evidence. However, we lose the advantage of precomputing the clique tree ofine. As another example, we can store intermediate results in a variable elimination execution, and then do a downward pass to obtain the marginal posteriors of all variables. Here, we gain the advantage of reusing computation, at the cost of additional space. In general, we can view these two algorithms as two examples in a space of variable elimination algorithms. There are many other variants that make somewhat diferent trade-ofs, but, fundamentally, they are performing essentially equivalent computations. 
+
