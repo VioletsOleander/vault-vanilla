@@ -245,6 +245,13 @@
         Zero in $J$ implies conditional independence
     CH7.2-Gaussian Bayesian Networks:
         All CPDs being linear Gaussian model implies the joint density is Gaussian
+    CH7.3-Gaussian Markov Random Fields:
+        Any Gaussian's information representetaion can be related to a pairwise Markov network with quadratic node and edge potentials
+        The converse is not necessarily true, the positive definiteness of $J$ should be guaranteed.
+        There exists two sufficient condition to make the converse true: diagonally dominate, pairwise normalizable
+    CH7.4-Summary:
+        A multivariate Gaussian can be represented both by Gaussian Bayesian network and Gaussian Markov network
+        Gaussians are representationally compact and computationally tractable. Even in complicated problem, we can assume the prior to be Gaussian or approximate the inference to make the intermediate be Gaussian to ensure the computational tractability
 - [[A Tour of C++]] : CH7-CH8
 
 
