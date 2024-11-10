@@ -237,7 +237,7 @@
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]
 
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH7.1-CH7.2
+- [[Probabilistic Graphical Models-Principles and Techniques]]: CH7, CH9.2-CH9.3
     CH7.1-Multivariate Gaussians: 
         Two parameterization: Standard, Information Matrix
         Marginal and Conditional density of Joint Gaussian is Gaussian, and the Conditional density is also linear Gaussian model
@@ -252,6 +252,11 @@
     CH7.4-Summary:
         A multivariate Gaussian can be represented both by Gaussian Bayesian network and Gaussian Markov network
         Gaussians are representationally compact and computationally tractable. Even in complicated problem, we can assume the prior to be Gaussian or approximate the inference to make the intermediate be Gaussian to ensure the computational tractability
+    CH9.2-'Variable Elimination: The Basic Ideas':
+        The basic idea of variable elimination is dynamic programming. To calculate the margianal $P(X)$ from CPD $P (X \mid Y)$, we first calculate the marginal of $Y$ and store it, thus calculate the marginal $P (X)$ by $P (X) = \sum_y P (y) P (X\mid y)$, avoiding recalculate $P (Y)$ for every $x \in Val (X)$
+    CH9.3-Variable Elimination:
+        We viewing the joint density as a product of factors. To calculate the marginalization over a subset of variables, we sum out of the other variables. This process is generalized as the sum-product variable elimication algorithm. The calculation of this algorithm can be simplified by using the property of factor's limited scope to isolated only the related factors to summation (distributive law of multiplication)
+        To deal with evidence, we first use the evidence to reduce the factors (leaving the factors compatible with the evidence), and do the same algorithm to the reduced set of factors.
 - [[A Tour of C++]] : CH7-CH8
 
 
