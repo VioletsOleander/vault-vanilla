@@ -3408,8 +3408,8 @@ We say that a tree $\mathcal{T}$ is $^a$ clique tree for $\mathcal{H}$ if:
 - each sepset $\boldsymbol{S}_{i,j}$ separates $W_{<(i,j)}$ and $W_{<(j,i)}$ in $\mathcal{H}$ . 
 
 > 定义：
-> 如果 $\mathcal T$ 满足：
-> 每个节点对应于 $\mathcal H$ 中的团，且 $\mathcal H$ 中的每个极大团都对应于 $\mathcal T$ 中的一个节点
+> 如果树 $\mathcal T$ 满足：
+> 每个节点对应于 $\mathcal H$ 中的一个团，且 $\mathcal H$ 中的每个极大团都对应于 $\mathcal T$ 中的一个节点
 > 每个分离集 $\pmb S_{ij}$ 在 $\mathcal H$ 中分离 $\pmb W_{<(i, j)}, \pmb W_{<(j, i)}$
 > 称 $\mathcal T$ 是 $\mathcal H$ 的团树
 
@@ -6399,7 +6399,7 @@ We begin by deﬁning a cluster graph — a data structure that provides a graph
 > 如果簇之间的作用域存在非空的交集，则簇由一条无向边相连
 
 **Deﬁnition 10.1** cluster graph
-A cluster graph $\mathcal{U}$ for a ctors $\Phi$ over $\mathcal{X}$ is an undirected graph, each of whose no $i$ associated with a subset $C_{i}\subseteq\mathcal X$ ⊆X cluster gra ust be fam — each factor $\phi\in\Phi$ ∈ must be associate ith a cluster $C_{i:}$ , denoted $\alpha(\phi)$ , such that Scope $S c o p e[\phi]\subseteq C_{i}$ ⊆ . Each edge between a pair of clusters $C_{i}$ and $C_{j}$ is associated with $a$ sepset $S_{i,j}\subseteq C_{i}\cap C_{j}$ . 
+A cluster graph $\mathcal{U}$ for a ctors $\Phi$ over $\mathcal{X}$ is an undirected graph, each of whose no $i$ associated with a subset $C_{i}\subseteq\mathcal X$ cluster gra ust be family-preserving — each factor $\phi\in\Phi$ must be associate ith a cluster $C_{i:}$ , denoted $\alpha(\phi)$ , such that Scope $S c o p e[\phi]\subseteq C_{i}$ . Each edge between a pair of clusters $C_{i}$ and $C_{j}$ is associated with $a$ sepset $S_{i,j}\subseteq C_{i}\cap C_{j}$ . 
 > 定义：
 > $\mathcal X$ 上的一组因子 $\Phi$ 定义的簇图 $\mathcal U$ 是一个无向图，其每个节点 $i$ 都和一个变量子集 $\pmb C_i \subseteq \mathcal X$ 相关联
 > 簇图必须是族保持的——每个因子 $\phi \in \Phi$ 必须和一个簇 $\pmb C_i$ 相关联，满足 $Scope[\phi]\subseteq \pmb C_i$ (因子的作用域是簇关联的变量集合的子集)，该簇记作 $\alpha (\phi)$
@@ -6434,7 +6434,7 @@ The cluster tree deﬁned by variable elimination satisﬁes an important struct
 Let $\mathcal{T}$ be a cluster ee over a set of factors $\Phi$ . We denote by $\nu_{\tau}$ the vertices of $\mathcal{T}$ and $\mathcal{E}_{\mathcal{T}}$ its edge that $\mathcal{T}$ has the running intersection property $i f,$ whenever there is a v iable X s that $X\in C_{i}$ and $X\in C_{j}$ , then X is also in every cluster in the (unique) path in $\mathcal{T}$ between $C_{i}$ and $C_{j}$ . 
 > 定义：
 > $\mathcal T$ 为一组因子 $\Phi$ 上的簇树，记 $\mathcal V_{\mathcal T}$ 为 $\mathcal T$ 的节点，$\mathcal E_{\mathcal T}$ 为边
-> 如果存在变量 $X \in \pmb C_i$ 且 $X\in \pmb C_j$，我们就称 $\mathcal T$ 具有运行相交性质，并且 $X$ 也会存在于 $\mathcal T$ 中 $\pmb C_i$ 到 $\pmb C_j$ 中的 (唯一) 路径上的每个簇中
+> 对于任意变量 $X$，只要 $X$ 满足 $X \in \pmb C_i$ 且 $X\in \pmb C_j$ ，$X$ 就会存在于 $\mathcal T$ 中 $\pmb C_i$ 到 $\pmb C_j$ 中的 (唯一) 路径上的每个簇中，我们就称 $\mathcal T$ 具有运行相交性质，
 
 Note that the running intersection property implies that $S_{i,j}=C_{i}\cap C_{j}$ . 
 > 运行相交性质暗示了 $\pmb S_{i, j} = \pmb C_i \cap \pmb C_j$
@@ -6443,14 +6443,31 @@ Example 10.2
 We can easily check that the running intersection property holds for the cluster tree of ﬁgure 10.1. For example, $G$ is present in $C_{2}$ and in $C_{4}$ , so it is also present in the cliques on the path between them: $C_{3}$ and $C_{5}$ . 
 
 Intuitively, the running intersection property must hold for cluster trees induced by variable elimination because a variable appears in every factor from the moment it is introduced (by multiplying in a factor that mentions it) until it is summed out. We now prove that this property holds in general. 
+> 直观上，运行相交性质在由变量消除算法导出的簇树中一定成立，因为一个变量从被引入 (通过将所有提及该变量的因子相乘) 直到它被求和消除，它都会出现在所有的路径上的因子中
 
 **Theorem 10.1** 
-$\mathcal{T}$ be a cluster tree induced by a variable elimination algorithm over some set of factors $\Phi$ . Then $\mathcal{T}$ T satisﬁes the running intersection property. Proof Let $C$ and $C^{\prime}$ be two clusters that contain $X$ . Let $C_{X}$ be the cluster where $X$ is eliminated. (If $X$ is a query variable, we assume that it is eliminated in the last cluster.) We will prove that $X$ must be present in every cluster on the path between $C$ and $C_{X}$ , and analogously for $C^{\prime}$ , thereby proving the result. First, we observe that the computation at $C_{X}$ must take place later in the algorithm’s execu- tion than the computation at $C$ : When $X$ is eliminated in $C_{X}$ , all of the factors involving $X$ are multiplied into $C_{X}$ ; the result of the summation does not have $X$ in its domain. Hence, after this elimination, $\Phi$ no longer has any factors containing $X$ , so no factor generated afterward will contain $X$ in its domain. By assumption, $X$ is in the domain of the factor in $C$ . We also know that $X$ is not eliminated in $C$ . Therefore, the message computed in $C$ must have $X$ in its domain. By deﬁnition, the from $C$ . Hence, it will also have $X$ in its scope. The same argument applies to show that all cliques upstream from $C$ will have $X$ in their scope, until $X$ is eliminated, which happens only in $C_{X}$ . Thus, $X$ must appear in all cliques between $C$ and $C_{X}$ , as required. 
+Let $\mathcal{T}$ be a cluster tree induced by a variable elimination algorithm over some set of factors $\Phi$ . Then $\mathcal{T}$ T satisﬁes the running intersection property. 
+> 定理：
+> $\mathcal T$ 为变量消除算法在一组因子 $\Phi$ 上导出的簇树，则 $\mathcal T$ 满足运行相交性质
+
+Proof Let $C$ and $C^{\prime}$ be two clusters that contain $X$ . Let $C_{X}$ be the cluster where $X$ is eliminated. (If $X$ is a query variable, we assume that it is eliminated in the last cluster.) We will prove that $X$ must be present in every cluster on the path between $C$ and $C_{X}$ , and analogously for $C^{\prime}$ , thereby proving the result. 
+> 证明：
+> 令 $\pmb C, \pmb C'$ 为两个包含 $X$ 的簇，$\pmb C_X$ 为 $X$ 被消除的簇 (如果 $X$ 为 query 变量，则假定它在最后一个簇被消除)
+> 我们需要证明 $X$ 必须出现在 $\pmb C$ 和 $\pmb C_X$ 之间的路径上的所有簇中，以及证明 $X$ 必须出现在 $\pmb C'$ 和 $\pmb C_X$ 之间的路径上的所有簇中，则就证明了 $\pmb C, \pmb C'$ 之间的路径中都包含 $X$，因此就证明了运行相交性质
+
+First, we observe that the computation at $C_{X}$ must take place later in the algorithm’s execution than the computation at $C$ : When $X$ is eliminated in $C_{X}$ , all of the factors involving $X$ are multiplied into $C_{X}$ ; the result of the summation does not have $X$ in its domain. Hence, after this elimination, $\Phi$ no longer has any factors containing $X$ , so no factor generated afterward will contain $X$ in its domain. 
+> 首先观察到 $\pmb C_X$ 的计算在算法中的执行顺序一定在 $\pmb C$ 的计算之后，因为 $X$ 被消除时，所有和 $X$ 有关的因子都会乘入 $\pmb C_X$，求和之后的结构就是 $X$ 不会再存在于定义域中，即 $\Phi$ 不再有任何包含 $X$ 的因子
+
+By assumption, $X$ is in the domain of the factor in $C$ . We also know that $X$ is not eliminated in $C$ . Therefore, the message computed in $C$ must have $X$ in its domain. By deﬁnition, the recipient of X’s message, which is C’s upstream neighbor in the tree, multiplies in the message the from $C$ . Hence, it will also have $X$ in its scope. The same argument applies to show that all cliques upstream from $C$ will have $X$ in their scope, until $X$ is eliminated, which happens only in $C_{X}$ . Thus, $X$ must appear in all cliques between $C$ and $C_{X}$ , as required. 
+> $X$ 处在 $\pmb C$ 的作用域中，因此在 $\pmb C$ 中，$X$ 还未被消除，因此由 $\pmb C$ 计算得到的消息的作用域中一定也有 $X$，而 $\pmb C$ 在树上的上游父节点，也就是消息的接收者会乘上该消息，因此其作用域中也会包含 $X$
+> 这样的推理适用于 $\pmb C$ 的所有上游祖先节点，因此它们的作用域都会包括 $X$，直到 $\pmb C_X$ 将 $X$ 消除，因此 $X$ 会出现在 $\pmb C, \pmb C_X$ 之间的所有簇中
 
 A very similar proof can be used to show the following result: 
 
 **Proposition 10.1** 
-$\mathcal{T}$ be a cluster tree induced by $^a$ variable elimination algorithm over some set of factors $\Phi$ . Let $C_{i}$ and $C_{j}$ be two neighboring clusters, such that $C_{i}$ passes the message $\tau_{i}$ to $C_{j}$ . Then the scope of the message $\tau_{i}$ is precisely $C_{i}\cap C_{j}$ . 
+$\mathcal{T}$ be a cluster tree induced by $a$ variable elimination algorithm over some set of factors $\Phi$ . Let $C_{i}$ and $C_{j}$ be two neighboring clusters, such that $C_{i}$ passes the message $\tau_{i}$ to $C_{j}$ . Then the scope of the message $\tau_{i}$ is precisely $C_{i}\cap C_{j}$ . 
+> 命题：
+> $\mathcal T$ 为变量消除算法在一组因子 $\Phi$ 上导出的簇树，$\pmb C_i, \pmb C_j$ 为两个相邻簇，$\pmb C_i$ 向 $\pmb C_j$ 传递消息 $\tau_i$，则消息 $\tau_i$ 的作用域就是 $\pmb C_i \cap \pmb C_j$
 
 The proof is left as an exercise (exercise 10.1). 
 
@@ -6458,69 +6475,84 @@ It turns out that a cluster tree that satisﬁes the running intersection proper
 
 **Deﬁnition 10.3** clique tree
 Let $\Phi$ be a set of factors over $\mathcal{X}$ . A cluster tree ver $\Phi$ that satisﬁ the running intersection property is called a clique tree (sometimes also called a junction tree or a join tree ). In the case of a clique tree, the clusters are also called cliques . 
+> 定义：
+> $\Phi$ 为 $\mathcal X$ 上的一组因子，$\Phi$ 上的满足运行相交性质的簇树称为团树，在团树中，簇也被称为团
 
-Note that we have already deﬁned one notion of a clique tree in deﬁnition 4.17. This double deﬁnition is not an overload of terminology, because the two deﬁnitions are actually equivalent: It follows from the results of this chapter that $\mathcal{T}$ is a clique tree for $\Phi$ (in sense of deﬁni- tion 10.3) if and only if it is a clique tree for a chordal graph containing H ${\mathcal{H}}_{\Phi}$ (in the sense of deﬁnition 4.17), and these properties are true if and only if the clique-tree data structure admits variable elimination by passing messages over the tree. 
+Note that we have already deﬁned one notion of a clique tree in deﬁnition 4.17. This double deﬁnition is not an overload of terminology, because the two deﬁnitions are actually equivalent: It follows from the results of this chapter that $\mathcal{T}$ is a clique tree for $\Phi$ (in sense of deﬁnition 10.3) if and only if it is a clique tree for a chordal graph containing ${\mathcal{H}}_{\Phi}$ (in the sense of deﬁnition 4.17), and these properties are true if and only if the clique-tree data structure admits variable elimination by passing messages over the tree. 
+> 该定义和 definition 4.17 中对于团树的定义是等价的：$\mathcal T$ 是 $\Phi$ 的团树当且仅当 $\mathcal T$ 是包含 $\mathcal H_{\Phi}$ 的弦图的团树，并且这些性质成立当且仅当团树数据结构通过在树上传递消息来支持变量消去
 
 We ﬁrst show that the running intersection property implies the independence statement, which i the heart of our ﬁrst deﬁnition of clique trees. Let $\mathcal{T}$ be a cluster tree over $\Phi$ , and let H ${\mathcal{H}}_{\Phi}$ be the undirected graph associated with this set of factors. For any sepset $\boldsymbol{S}_{i,j}$ , let $W_{<(i,j)}$ be the set of all variables in the scope of clusters in the $C_{i}$ side of the tree, and $W_{<(j,i)}$ be the set of all variables in the scope of clusters in the $C_{j}$ side of the tree. 
+> 运行相交性质意味着独立性陈述
+> $\mathcal T$ 为 $\Phi$ 上的团树，$\mathcal H_\Phi$ 为和因子集合 $\Phi$ 相关的无向图，对于任意分离集 $\pmb S_{i, j}$，令 $\pmb W_{<(i, j)}$ 为树的 $\pmb C_i$ 边的所有簇的作用域包含的变量，$\pmb W_{<(j, i)}$ 为数的 $\pmb C_j$ 边的所有簇的作用域包含的变量
 
 **Theorem 10.2** 
 $\mathcal{T}$ satisﬁes the running intersection property if and only if, for every sepset $\boldsymbol{S}_{i,j}$ , we have that $W_{<(i,j)}$ and $W_{<(j,i)}$ are separated in ${\mathcal{H}}_{\Phi}$ given $\boldsymbol{S}_{i,j}$ . 
+> 定理：
+> $\mathcal T$ 满足运行相交性质当且仅当 $\mathcal T$ 中的任意分离集 $\pmb S_{i, j}$ 在 $\mathcal H_\Phi$ 中分离 $\pmb W_{<(i, j)}$ 和 $\pmb W_{<(j, i)}$
 
 The proof is left as an exercise (exercise 10.2). 
 
-To conclude the proof of the equivalence of the two deﬁnitions, it remains only to show that the running intersection operty for a ee $\mathcal{T}$ implies that each node in $\mathcal{T}$ corresponds to a ique in a chordal graph H containing H , and that each maximal clique in H is represented in $\mathcal{T}$ T . This result follows from our ability to use any clique tree satisfying the running intersection property to perform inference, as shown in this chapter. 
+To conclude the proof of the equivalence of the two deﬁnitions, it remains only to show that the running intersection operty for a ee $\mathcal{T}$ implies that each node in $\mathcal{T}$ corresponds to a ique in a chordal graph H containing H , and that each maximal clique in H is represented in $\mathcal{T}$ . This result follows from our ability to use any clique tree satisfying the running intersection property to perform inference, as shown in this chapter. 
+> 此时，要证明两个定义的等价性，我们需要证明树 $\mathcal T$ 的运行相交性质意味着 $\mathcal T$ 中的每个节点都对应于包含 $\mathcal H_\Phi$ 的弦图 $\mathcal H'$ 中的一个团，并且 $\mathcal H'$ 中的每个极大团都对应于 $\mathcal T$ 中的一个节点
 
 ## 10.2 Message Passing: Sum Product 
-In the previous section, we started out with an execution of the variable elimination algorithm, and showed that it induces a clique tree. In this section, we go in the opposite direction. We assume that we are given a clique tree as a starting point, and we will show how this data structure can be used to perform variable elimination. As we will see, the clique tree is a very 
+In the previous section, we started out with an execution of the variable elimination algorithm, and showed that it induces a clique tree. In this section, we go in the opposite direction. We assume that we are given a clique tree as a starting point, and we will show how this data structure can be used to perform variable elimination. As we will see, the clique tree is a very useful and versatile data structure. For one, the same clique tree can be used as the basis for many diferent executions of variable elimination. More importantly, the clique tree provides a data structure for caching computations, allowing multiple executions of variable elimination to be performed much more efciently than simply performing each one separately. 
+> 上一节中，我们知道了变量消除算法的执行可以导出满足运行相交性质的簇树，也就是团树
+> 本节将展示给定一颗团树，我们可以使用该数据结构执行变量消除，一颗团树可以用于多次变量消除的执行，并且团树可以缓存计算结构，使得在同一颗团树上的多次变量消除的执行更高效
 
-![](images/b274097050017a684068fd52e3686b84c51a9a6df59ec71179948cc5d309ac73.jpg) 
-Figure 10.2 Simpliﬁed clique tree $\mathcal{T}$ for the Extended Student network 
+Consider some set of factors $\Phi$ over $\mathcal{X}$ , and assume that we are given a clique tree $\mathcal{T}$ over $\Phi$ , as deﬁned in deﬁnition 4.17. In particular, T is guaranteed to satisfy the family preservation and running intersection properties. As we now show, we can use the clique tree in several diferent ways to perform exact inference in graphical models. 
+> 考虑 $\mathcal X$ 上的一组因子 $\Phi$，假设给定 $\Phi$ 上的如 definition 4.17 的一颗团树 $\mathcal T$，这颗团树一定会满足族保持和运行相交性质
 
-useful and versatile data structure. For one, the same clique tree can be used as the basis for many diferent executions of variable elimination. More importantly, the clique tree provides a data structure for caching computations, allowing multiple executions of variable elimination to be performed much more efciently than simply performing each one separately. 
-
-Consider some set of factors $\Phi$ over $\mathcal{X}$ , nd assume that we are given a clique tree $\mathcal{T}$ over $\Phi$ , as deﬁned in deﬁnition 4.17. In particular, T is guaranteed to satisfy the family preservation and running intersection properties. As we now show, we can use the clique tree in several diferent ways to perform exact inference in graphical models. 
-
-# 10.2.1 Variable Elimination in a Clique Tree 
-
+### 10.2.1 Variable Elimination in a Clique Tree 
 One way of using a clique tree is simply as guidance for the operations of variable elimination. The factors $\psi$ are computed in the cliques, and messages are sent along the edges. Each clique takes the incoming messages (factors), multiplies them, sums out one or more variables, and sends an outgoing message to another clique. As we will see, the clique-tree data structure dictates the operations that are performed on factors in the clique tree and a partial order over these operations. In particular, if clique $C^{\prime}$ requires a message from $C$ , then $C^{\prime}$ must wait with its computation until $C$ performs its computation and sends the appropriate message to $C^{\prime}$ . We begin with an example and then describe the general algorithm. 
+> 使用团树的一种方式就是引导变量消除的操作
+> 因子 $\psi$ 在团中计算，然后通过边传递消息，每个团接受输入的消息/因子，乘上它，然后求和消去一个或者多个变量，然后传递消息给另一个团
+> 正如我们将看到的，团树数据结构决定了在团树中的因子上执行的操作以及这些操作上的偏序关系，特别地，如果团 $\pmb C'$ 需要从团 $\pmb C$ 获取消息，则 $\pmb C'$ 必须在 $\pmb C$ 完成其计算并将适当的消息发送给 $\pmb C'$ 之后才能进行它的计算
+> 我们将先举一个例子，然后描述一般算法
 
-# 10.2.1.1 An Example 
-
+#### 10.2.1.1 An Example 
 Figure 10.2 shows one possible clique tree $\mathcal{T}$ for the Student ne rk. N that it is diferent from the clique tree of ﬁgure 10.1, in that nonmaximal cliques ( $(C_{6}$ and $C_{7}$ ) are absent. Nev- ertheless, it is straightforward to verify that $\mathcal{T}$ satisﬁes both the family preservation and the running intersection property. The ﬁgure also speciﬁes the assignment $\alpha$ of the initial factors (CPDs) to cliques. Note that, in some cases (for example, the CPD $P(I))$ ), we have more than one possible clique into which the factor can legally be assigned; as we will see, the algorithm applies for any legal choice. 
+>图10.2展示了一个可能的 Student 网络的团树 $\mathcal{T}$。请注意，它与图10.1中的团树不同，因为在该团树中非极大团 $(C_{6}$ 和 $C_{7})$ 被省略了。尽管如此，很容易验证 $\mathcal{T}$ 满足族保持和运行相交性质
+>图中还指定了将因子 (CPDs)  到团的初始分配 $\alpha$ ，请注意，在某些情况下（例如，CPD $P(I)$），我们有多个合法的团可以将因子分配进去；正如我们将看到的，算法适用于任何合法的选择。
 
 Our ﬁrst step is to generate a set of initial potentials associated with the diferent cliques. The initial potential $\psi_{i}(C_{i})$ is computed by multiplying the initial factors assigned to the clique $C_{i}$ . For example, $\psi_{5}(J,L,G,S)=\phi_{L}(L,G)\cdot\phi_{J}(J,L,S)$ . 
+> 第一步是为不同的团生成和它相关的初始势能函数
+> 初始势能函数 $\psi_i(\pmb C_i)$ 的计算就是将所有分配给团 $\pmb C_i$ 的因子相乘，例如 $\psi_5 (J, L, G, S) = \phi_L (L, G)\cdot \phi_J (J, L, S)$
 
 Now, assume that our task is to compute the probability $P(J)$ . We want to do the variable elimination process so that $J$ is not eliminated. Thus, we select as our root clique some clique that contains $J$ , for example, $C_{5}$ . We then execute the following steps: 
+> 假设任务是计算边际概率 $P (J)$，因此需要执行变量消除算法，最后留下 $J$，故我们将团树的根团选定为某个包含 $J$ 的团，例如 $\pmb C_5$，然后执行：
 
-![](images/4ec5d977d3c3b62509abf3d27085e34ffa165b4943575f0242c7432aa7bdd29e.jpg) 
-
-Figure 10.3 Two diﬀerent message propagations with diﬀerent root cliques in the Student clique tree: (a) $C_{5}$ is the root; (b) $C_{3}$ is the root. 
-
-1. In $C_{1}$ : We eliminate $C$ for g $\textstyle\sum_{C}\psi_{1}(C,D)$  . The resulting factor has scope $D$ . We send it as a message $\delta_{1\rightarrow2}(D)$ to $C_{2}$ . →
-
+1. In $C_{1}$ : We eliminate $C$ for $\textstyle\sum_{C}\psi_{1}(C,D)$ . The resulting factor has scope $D$ . We send it as a message $\delta_{1\rightarrow2}(D)$ to $C_{2}$ . →
  2. In $C_{2}$ : W ne $\beta_{2}(G,I,D)=\,\delta_{1\rightarrow2}(D)\cdot\psi_{2}(G,I,D)$ . We the liminate $D$ to get a factor over $G,I$ . The resulting factor is $\delta_{2\to3}(G,I)$ , which is sent to $C_{3}$ .
-
  3. In $C_{3}$ : We deﬁne $\beta_{3}(G,S,I)=\delta_{2\rightarrow3}(G,I)\cdot\psi_{3}(G,S,I)$ and eliminate $I$ to get a factor over $G,S_{i}$ , which is $\delta_{3\rightarrow5}(G,S)$ .
-
- 4. In $C_{4}$ min $H$ by performing $\textstyle\sum_{H}\psi_{4}(H,G,J)$  and send out the resulting factor as $\delta_{4\to5}(G,J)$ to $C_{5}$ . →
-
+ 4. In $C_{4}$ min $H$ by performing $\textstyle\sum_{H}\psi_{4}(H,G,J)$ and send out the resulting factor as $\delta_{4\to5}(G,J)$ to $C_{5}$ . →
  5. In $C_{5}$ : We deﬁne $\beta_{5}(G,J,S,L)=\delta_{3\rightarrow5}(G,S)\cdot\delta_{4\rightarrow5}(G,J)\cdot\psi_{5}(G,J,S,L).$ 
 
-The factor $\beta_{5}$ is a factor over $G,J,S,L$ that encodes the joint distribution $P(G,J,L,S)$ : all the CPDs have been multiplied in, and all the other variables have been eliminated. If we now want to obtain $P(J)$ , we simply sum out $G,\,L,$ , and $S$ . 
+> 在 $\pmb C_1$ 中，执行 $\sum_C \psi_1 (C, D)$ 消去 $C$，得到的因子作用域为 $D$，将它作为消息 $\delta_{1\rightarrow 2}(D)$ 传递给 $\pmb C_2$
+> 在 $\pmb C_2$ 中，先计算 $\beta_2 (G, I, D) = \delta_{1\rightarrow 2}(D)\cdot \psi_2 (G, I, D)$，然后求和消去 $D$，将消息 $\delta_{2 \rightarrow 3}(G, I)$ 传递给 $\pmb C_3$
+> 在 $\pmb C_3$ 中，先计算 $\beta_3 (G, S, I) = \delta_{2\rightarrow 3} (G, I) \cdot \psi_3 (G, S, I)$，消去 $I$，将消息 $\delta_{3 \rightarrow 5}(G, S)$ 传递给 $\pmb C_5$
+> 在 $\pmb C_4$ 中，指定 $\sum_H \psi_4 (H, G J)$，将消息 $\delta_{4 \rightarrow 5}(G, J)$ 传递给 $\pmb C_5$
+> 在 $\pmb C_5$ 中，计算 $\beta_5 (G, J, S, L) = \delta_{3\rightarrow 5}(G, S) \cdot \delta_{4 \rightarrow 5}(G, J)\cdot \psi (G, J, S, L)$
 
-We note that the operations in the elimination process could also have been done in another order. The only constraint is that a clique get all of its incoming messages from its downstream neighbors before it sends its outgoing message toward its upstream neighbor. We say that a clique is ready when it has received all of its incoming messages. Thus, for example, $C_{4}$ is ready at the very start of the algorithm, and the computation associated with it can be performed at any point in the execution. However, $C_{2}$ is ready only after it receives its message from $C_{1}$ . Thus, $C_{1},C_{4},C_{2},C_{3},C_{5}$ is a legal execution ordering for a tree rooted at $C_{5}$ , whereas $C_{2},C_{1},C_{4},C_{3},C_{5}$ is not. Overall, the set of messages transmitted throughout the execution of the algorithm is shown in ﬁgure $10.3\mathrm{a}$ . 
+The factor $\beta_{5}$ is a factor over $G,J,S,L$ that encodes the joint distribution $P(G,J,L,S)$ : all the CPDs have been multiplied in, and all the other variables have been eliminated. If we now want to obtain $P(J)$ , we simply sum out $G,\,L,$ , and $S$ . 
+> 因子 $\beta_5$ 定义了边际分布 $P (G, J, L, S)$ (网络中所有的 CPDs 都被乘入，然后通过加法消去了其余的变量，故得到的就是 $G, J, L, S$ 上的边际分布)
+> 此时通过求和消去 $G, L, S$ 就得到 $P (J)$，
+
+We note that the operations in the elimination process could also have been done in another order. The only constraint is that a clique get all of its incoming messages from its downstream neighbors before it sends its outgoing message toward its upstream neighbor. We say that a clique is ready when it has received all of its incoming messages. 
+> 上述消除算法的过程也可以按另一种顺序执行，唯一的约束是一个团在向它的上游邻居发送消息之前必须从它的所有下游邻居收到消息
+> 一个团收到所有的消息后，我们称它是准备好的
+
+Thus, for example, $C_{4}$ is ready at the very start of the algorithm, and the computation associated with it can be performed at any point in the execution. However, $C_{2}$ is ready only after it receives its message from $C_{1}$ . Thus, $C_{1},C_{4},C_{2},C_{3},C_{5}$ is a legal execution ordering for a tree rooted at $C_{5}$ , whereas $C_{2},C_{1},C_{4},C_{3},C_{5}$ is not. Overall, the set of messages transmitted throughout the execution of the algorithm is shown in ﬁgure $10.3\mathrm{a}$ . 
+> 例如，$\pmb C_4$ 在算法开始就是准备好的，$\pmb C_2$ 则需要再接收到 $\pmb C_1$ 的消息才准备好
 
 As we mentioned, the choice of root clique is not fully determined. To derive $P(J)$ , we could have chosen $C_{4}$ as the root. Let us see how the algorithm would have changed in that case: 
+> 根团的选择也不是唯一的，我们可以选择 $\pmb C_4$ 为根团，则算法流程对应如下：
 
 1. In $C_{1}$ : The computation and message are unchanged.
-
- 2. In $C_{2}$ : The computation and message are unchanged.
-
- 3. In $C_{3}$ : The computation and message are unchanged.
-
- 4. In $C_{5}$ : We deﬁne $\beta_{5}(G,J,S,L)=\delta_{3\rightarrow5}(G,S)\cdot\psi_{5}(G,J,S,L)$ and eliminate $S$ and $L$ . We send out the resulting factor as $\delta_{5\to4}(G,J)$ to $C_{4}$ .
-
- 5. In $C_{4}$ : We deﬁne β $\beta_{4}(H,G,J)=\delta_{5\rightarrow4}(G,S)\cdot\psi_{4}(H,G,J).$ 
+2. In $C_{2}$ : The computation and message are unchanged.
+3. In $C_{3}$ : The computation and message are unchanged.
+4. In $C_{5}$ : We deﬁne $\beta_{5}(G,J,S,L)=\delta_{3\rightarrow5}(G,S)\cdot\psi_{5}(G,J,S,L)$ and eliminate $S$ and $L$ . We send out the resulting factor as $\delta_{5\to4}(G,J)$ to $C_{4}$ .
+5. In $C_{4}$ : We deﬁne β $\beta_{4}(H,G,J)=\delta_{5\rightarrow4}(G,S)\cdot\psi_{4}(H,G,J).$ 
 
 We can now extract $P(J)$ by eliminating $H$ and $G$ from $\beta_{4}(H,G,J)$ . 
 
@@ -6531,120 +6563,151 @@ $$
 $$ 
 
 Overall, the set of messages transmitted throughout this execution of the algorithm is shown in ﬁgure 10.3b. 
+> 计算其他变量的边际分布也是类似的，我们选择一个包含该变量的团作为根，然后定义一个合法的顺序，然后按照顺序逐个求和消去变量 -> 传递消息，最后再对得到的结果因子求和消去多余的变量即可
 
-# 10.2.1.2 Clique-Tree Message Passing 
+#### 10.2.1.2 Clique-Tree Message Passing 
+We can now specify a general variable elimination algorithm that can be implemented via message passing in a clique tree. 
+> 我们在本节说明通过团树种的消息传递实现的通用变量消除算法
 
-message passing 
-
-initial potential 
-
-We can now specify a general variable elimination algorithm that can be implemented via message passing in a clique tree. Let $\mathcal{T}$ be a clique tree with the cliques $C_{1},\ldots,C_{k}$ . We begin by multiplying the factors assigned to each clique, resulting in our initial potentials. We then use the clique-tree data structure to pass messages between neighboring cliques, sending all messages toward the root clique. We describe the algorithm in abstract terms; box 10.A provides some important tips for efcient implementation. 
+Let $\mathcal{T}$ be a clique tree with the cliques $C_{1},\ldots,C_{k}$ . We begin by multiplying the factors assigned to each clique, resulting in our initial potentials. We then use the clique-tree data structure to pass messages between neighboring cliques, sending all messages toward the root clique. We describe the algorithm in abstract terms; box 10.A provides some important tips for efcient implementation. 
+> $\mathcal T$ 是团 $\pmb C_1, \dots, \pmb C_k$ 构成的团树，我们首先为每个团将分配给它的因子相乘，得到它们的初始势能函数，然后根据团树结构在邻居团之间传递消息，最终将所有消息传递到根团
 
 Recall that each factor $\phi\in\Phi$ is assigned to some clique $\alpha(\phi)$ . We deﬁne the initial potential of $C_{j}$ to be: 
+> 根据团树的定义，每个因子 $\phi \in \Phi$ 都会分配给/关联某个团，记作 $\alpha (\phi)$
+> 定义团 $\pmb C_j$ 的初始势能为所有关联的因子的乘积
 
 $$
-\psi_{j}(C_{j})=\prod_{\phi\;\;:\;\alpha(\phi)=j}\phi.
+\psi_{j}(\pmb C_{j})=\prod_{\phi\;\;:\;\alpha(\phi)=j}\phi.
 $$ 
-
 Because each factor is assigned to exactly one clique, we have that 
+> 因为每个因子仅和一个团关联/仅分配给一个团，故所有因子的乘积就是所有团的初始势能的乘积
 
 $$
 \prod_{\phi}\phi=\prod_{j}\psi_{j}.
-$$ 
-
-![](images/fde9fa86557954bcb0ebefbe68336d4b2526124a3ef589f553c4c11b259245e2.jpg) 
-Figure 10.4 An abstract clique tree that is not chain-structured 
+$$
 
 Let $C_{r}$ be the selected root clique. We now perform sum-product variable elimination over the cliques, starting from the leaves of the clique tree and moving inward. More precisely, for each clique $C_{i}$ , we deﬁne $\mathrm{Nb}_{i}$ to be the set of indexes of cliques that are neighbors of $C_{i}$ . Let $p_{r}(i)$ be the upstream neighbor of $i$ (the one on the path to the root clique $r$ ). Each clique $C_{i}$ , except for the root, performs a message passing computation and sends a message to its upstream neighbor $C_{p_{r}(i)}$ . 
-
-sum-product message passing 
+> 令 $\pmb C_r$ 为选择的根团，我们在团上执行和-积变量消除，从团树的叶子开始，逐渐向根移动
+> 具体地说，对于每个团 $\pmb C_i$，定义 $\text{Nb}_i$ 为其临近团的下标，定义 $p_r (i)$ 为团 $i$ 的上游邻居 (处在前往根团 $r$ 的路径上的团)，则除了根团的所有团执行消息传递计算，然后将消息传递给 $\pmb C_{p_r (i)}$
 
 The message from $C_{i}$ to another clique $C_{j}$ is computed using the following sum-product message passing computation: 
 
 $$
-\delta_{i\rightarrow j}=\sum_{C_{i}-S_{i,j}}\psi_{i}\cdot\prod_{k\in(\mathrm{Nb}_{i}-\{j\})}\delta_{k\rightarrow i}.
-$$ 
+\delta_{i\rightarrow j}=\sum_{\pmb C_{i}-\pmb S_{i,j}}\psi_{i}\cdot\prod_{k\in(\mathrm{Nb}_{i}-\{j\})}\delta_{k\rightarrow i}.\tag{10.2}
+$$
 
 In words, the clique $C_{i}$ multiplies all incoming messages from its other neighbors with its initial clique potential, resulting in a factor $\psi$ whose scope is the clique. It then sums out all variables except those in the sepset between $C_{i}$ and $C_{j}$ , and sends the resulting factor as a message to $C_{j}$ . 
-
-beliefs 
+> 从 $\pmb C_i$ 到 $\pmb C_j$ 传递的消息的计算公式如上，其含义是先将团势能乘上所有传入的消息，然后求和消去所有 $\pmb C_i - \pmb S_{i, j}$ 中的变量，就得到了需要传递的消息 (消息就是一个仅和 $\pmb S_{i, j}$ 相关的因子)
 
 This message passing process proceeds up the tree, culminating at the root clique. When the root clique has received all messages, it multiplies them with its own initial potential. The result is a factor called the beliefs , denoted $\beta_{r}(C_{r})$ . It represents, as we show, 
 
 $$
-\tilde{P}_{\Phi}(C_{r})=\sum_{\chi-C_{r}}\prod_{\phi}\phi.
-$$ 
+\tilde{P}_{\Phi}(C_{r})=\sum_{\mathcal X-\pmb C_{r}}\prod_{\phi}\phi.
+$$
+
+> 该消息传递的过程不断沿着树向上，最后都累积到根团
+> 根团将所有传入的消息乘上它的初始势能，得到的因子称为信念，记作 $\beta_r (\pmb C_r)$，它实际上表示将所有因子相乘然后求和消去 $\mathcal X - \pmb C_r$ 中所有变量得到的因子
 
 The complete algorithm is shown in algorithm 10.1. 
 
-Example 10.3 Consider the abstract clique tree of ﬁgure 10.4, and assume that we have selected $C_{6}$ as our root clique. The numbering of the cliques denotes one possible ordering of the operations, with $C_{1}$ being the ﬁrst to compute its message. However, multiple other orderings are legitimate, for example, $2,5,1,3,4,6$ ; in general, any ordering that respects the ordering constraints $\{(2~\prec~3),(3~\prec$ $4),(1\prec4),(4\prec6),(5\prec6)\}$ is a legal ordering for the message passing process. 
+![[PGM-Algorithm10.1.png]]
+
+Example 10.3 
+Consider the abstract clique tree of ﬁgure 10.4, and assume that we have selected $C_{6}$ as our root clique. The numbering of the cliques denotes one possible ordering of the operations, with $C_{1}$ being the ﬁrst to compute its message. However, multiple other orderings are legitimate, for example, $2,5,1,3,4,6$ ; in general, any ordering that respects the ordering constraints $\{(2~\prec~3),(3~\prec$ $4),(1\prec4),(4\prec6),(5\prec6)\}$ is a legal ordering for the message passing process. 
 
 We can use this algorithm to compute the marginal probability of any set of query nodes $Y$ which is fully contained in some clique. We select one such clique $C_{r}$ to be the root, and perform the clique-tree message passing toward that root. We then extract $\tilde{P}_{\Phi}(Y)$ from the ﬁnal potential at $C_{r}$ by summing out the other variables $C_{r}-Y$ . 
+> 该算法可以用于计算任意一组 query 节点 $\pmb Y$ 的边际分布，只要它们完全包含在某个团中
+> 我们选择某个包含 $\pmb Y$ 中所有节点的团作为根，然后朝着根执行团树消息传递，最后在 $\pmb C_r$ 上的信念求和消去 $\pmb C_r - \pmb Y$ 中的变量，就得到了 $\tilde P_\Phi (\pmb Y)$
 
-![](images/b12b8615437b813fc88af990b2460ab128f7d4027b6df818b6be9de956293af6.jpg) 
-
-# 10.2.1.3 Correctness 
-
-We now prove that this algorithm, when applied to a clique tree that satisﬁes the family preser- vation and running intersection property, computes the desired expressions over the messages and the cliques. 
+#### 10.2.1.3 Correctness 
+We now prove that this algorithm, when applied to a clique tree that satisﬁes the family preservation and running intersection property, computes the desired expressions over the messages and the cliques. 
+> 上一节介绍了团树消息传递算法
+> 本节证明该算法应用在具有族保持和运行交集性质的团树中，将在团和消息上计算出我们所想要的表达式
 
 In our algorithm, a variable $X$ is eliminated only when a message is sent from $C_{i}$ to a neighboring $C_{j}$ such that $X\in C_{i}$ and $X\notin C_{j}$ . We ﬁrst prove the following result: 
+>在我们的算法中，变量 $X$ 只有在从 $\pmb C_{i}$ 向相邻的 $\pmb C_{j}$ 发送消息时才会被消除，且此时需要满足 $X\in \pmb C_{i}$ 和 $X\notin \pmb C_{j}$
+>我们首先证明以下结果：
 
-# Proposition 10.2 
-
+**Proposition 10.2** 
 Assume that $X$ is eliminated when a message is sent from $C_{i}$ to $C_{j}$ . Then $X$ does not appear anywhere in the tree on the $C_{j}$ side of the edge $(i{-}j)$ . 
+> 命题：
+> 假设 $X$ 在 $\pmb C_i$ 向 $\pmb C_j$ 传递消息时被消除，则在团树中， $X$ 将不会再出现在边 $(i-j)$ 的靠 $\pmb C_j$ 的一边
 
 Proof The proof is a simple consequence of the running intersection property. Assume by contradiction that $X$ appears in some other clique $C_{k}$ that is on the $C_{j}$ side of the tree. Then $C_{j}$ is on the path from $C_{i}$ to $C_{k}$ . But we know that $X$ appears in both $C_{i}$ and $C_{k}$ but not in $C_{j}$ , violating the running intersection property. 
+> 证明：
+> 假设 $X$ 出现在了某个团 $\pmb C_k$ 中，$\pmb C_k$ 处于 $\pmb C_j$ 的那一边，则 $\pmb C_j$ 就处于 $\pmb C_i$ 到 $\pmb C_k$ 的路径中，那么根据运行相交性质，$X$ 就应该在 $\pmb C_i, \pmb C_k, \pmb C_j$ 中都出现，但 $X$ 在 $\pmb C_i$ 向 $\pmb C_j$ 传递消息时已经被消除，因此不可能再出现在 $\pmb C_j$ 中，故推出了矛盾
 
 Based on this result, we can provide a semantic interpretation for the messages used in the clique tree. Let $(i{-}j)$ be some edge in the clique tree. We use $\mathcal{F}_{\prec(i\rightarrow j)}$ to denote the set of factors in the cliques on the $C_{i}$ -side of the edge and $\mathcal{V}_{\prec(i\rightarrow j)}$ to denote the set of variables that appear on the $C_{i}$ -side but are not in the sepset. For example, in the clique tree of ﬁgure 10.2, we have that $\mathcal{F}_{\prec(3\rightarrow5)}\,=\,\{P(C),P(D\mid C),P(G\mid I,D),P(I),P(S\mid I)\}$ and $\mathcal{V}_{\prec(3\rightarrow5)}=\{C,D,I\}$ . Intuitively, the message passed between the cliques $C_{i}$ and $C_{j}$ is the product of all the factors in $\mathcal{F}_{\prec(i\rightarrow j)}$ , marginalized over the variables in the sepset (that is, summing out all the others). 
+> 基于该命题，我们可以为团树中使用的消息提供一个语义上的解释
+> 设 $(i{-}j)$ 是团树中的某条边，我们用 $\mathcal{F}_{\prec(i\rightarrow j)}$ 表示边的 $\pmb C_{i}$ 一侧团中的因子集合，用 $\mathcal{V}_{\prec(i\rightarrow j)}$ 表示出现在 $\pmb C_{i}$ 一侧但不在分离集中的变量集合。例如，在图10.2的团树中，我们有 $\mathcal{F}_{\prec(3\rightarrow5)}=\{P(C),P(D\mid C),P(G\mid I,D),P(I),P(S\mid I)\}$ 和 $\mathcal{V}_{\prec(3\rightarrow5)}=\{C,D,I\}$
+> 直观地说，团 $\pmb C_{i}$ 和 $\pmb C_{j}$ 之间传递的消息是 $\mathcal{F}_{\prec(i\rightarrow j)}$ 中所有因子的乘积在分离集上变量进行边际化 (即求和消去所有其他所有变量) 得到的结果 
 
-Theorem 10.3 Let $\delta_{i\to j}$ be a message from $C_{i}$ to $C_{j}$ . Then: 
+**Theorem 10.3**
+Let $\delta_{i\to j}$ be a message from $\pmb C_{i}$ to $\pmb C_{j}$ . Then: 
+> 定理： 
+> 令 $\delta_{i\rightarrow j}$ 为从 $\pmb C_i$ 到 $\pmb C_j$ 的消息，则该消息满足：
 
 $$
 \delta_{i\rightarrow j}\big(\pmb{S}_{i,j}\big)=\sum_{\mathcal{V}_{\prec(i\rightarrow j)}}\prod_{\phi\in\mathcal{F}_{\prec(i\rightarrow j)}}\phi.
 $$ 
-
 Proof The proof proceeds by induction on the length of the path from the leaves. For the base case, the clique $C_{i}$ is a leaf in the tree. In this case, the result follows from a simple examination of the operations executed at the clique. 
+>证明
+>证明过程通过对路径长度进行归纳来完成
+>归纳的基本情况是团 $\pmb C_{i}$ 是树的叶子节点，此时 $\mathcal{F}_{\prec (i\rightarrow j)}$ 为空，$\mathcal{V}_{\prec (i\rightarrow j)}$ 就是 $\pmb C_i - \pmb S_{i, j}$，故 $\delta_{i\rightarrow j} = \sum_{\pmb C_i - \pmb S_{i, j}}\phi_{i}$ ，这符合消息的定义
 
-Now, consider a clique $C_{i}$ that is not a leaf, and consider the expression 
-
-$$
-\sum_{\mathcal{V}_{\prec(i\rightarrow j)}}\prod_{\phi\in\mathcal{F}_{\prec(i\rightarrow j)}}\phi.
-$$ 
-
-Let $\displaystyle i_{1},.\cdot\cdot\cdot,i_{m}$ be the neighboring cliques of $C_{i}$ other than $C_{j}$ . It follows immediately from proposition 10.2 that $\mathcal{V}_{\prec(i\rightarrow j)}$ is the disjoint union of $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ for $k\,=\,1,\hdots,m$ and the variables $Y_{i}$ el nated at $C_{i}$ itself. Similarly, $\mathcal{F}_{\prec(i\rightarrow j)}$ is the disjoint union of the $\mathscr{F}_{\prec(i_{k}\rightarrow i)}$ and the factors F from which $\psi_{i}$ was computed. Thus equation (10.3) is equal to 
+Now, consider a clique $\pmb C_{i}$ that is not a leaf, and consider the expression 
 
 $$
-\sum_{Y_{i}}\sum_{\mathcal{V}_{\prec(i_{1}\rightarrow i)}}\cdots\sum_{\mathcal{V}_{\prec(i_{m}\rightarrow i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{1}\rightarrow i)}}\phi\right)\cdot\cdot\cdot\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{m}\rightarrow i)}}\phi\right)\cdot\left(\prod_{\phi\in\mathcal{F}_{i}}\phi\right).
+\sum_{\mathcal{V}_{\prec(i\rightarrow j)}}\prod_{\phi\in\mathcal{F}_{\prec(i\rightarrow j)}}\phi.\tag{10.3}
 $$ 
+Let $\displaystyle i_{1},.\cdot\cdot\cdot,i_{m}$ be the neighboring cliques of $C_{i}$ other than $C_{j}$ . It follows immediately from proposition 10.2 that $\mathcal{V}_{\prec(i\rightarrow j)}$ is the disjoint union of $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ for $k\,=\,1,\cdots,m$ and the variables $Y_{i}$ eliminated at $C_{i}$ itself. Similarly, $\mathcal{F}_{\prec(i\rightarrow j)}$ is the disjoint union of the $\mathcal{F}_{\prec(i_{k}\rightarrow i)}$ and the factors $\mathcal F_i$ from which $\psi_{i}$ was computed. 
+> 当 $\pmb C_i$ 不是叶子节点，令 $i_1, \dots, i_m$ 为 $\pmb C_i$ 除了 $\pmb C_j$ 以外的邻居团
+> 根据命题 10.2， $\mathcal V_{\prec (i \rightarrow j)}$ 就是集合 $\mathcal V_{\prec (i_k \rightarrow i)}$ ($k = 1, \dots, m$) 和 $\pmb C_i$ 自身中消除的变量 $\pmb Y_i$ 的不交并集；类似地，$\mathcal F_{\prec (i\rightarrow j)}$ 是 $\mathcal{F}_{\prec(i_{k}\rightarrow i)}$ ($k=1,\dots, m$) 和计算 $\psi_i$ 本身的因子的集合 $\mathcal F_i$ 的不交并集
 
-As we just showed, for each $k$ , none of the variables in $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ appear in any of the other factors. Thus, we can use equation (9.6) and push in the summation over $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ in equa- tion (10.4), and obtain: 
+Thus equation (10.3) is equal to 
+> 因此，我们将式 10.3 中的 $\mathcal V_{\prec (i \rightarrow j)}$ 和 $\mathcal F_{\prec (i\rightarrow j)}$ 拆开，写为式 10.4 的形式
 
 $$
-\sum_{Y_{i}}\left(\prod_{\phi\in\mathcal{F}_{i}}\phi\right)\cdot\sum_{\mathcal{V}_{\prec(i_{1}\to i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{1}\to i)}}\phi\right)\cdot\cdot\cdot\sum_{\mathcal{V}_{\prec(i_{m}\to i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{m}\to i)}}\phi\right).
-$$ 
+\sum_{\pmb Y_{i}}\sum_{\mathcal{V}_{\prec(i_{1}\rightarrow i)}}\cdots\sum_{\mathcal{V}_{\prec(i_{m}\rightarrow i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{1}\rightarrow i)}}\phi\right)\cdot\cdot\cdot\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{m}\rightarrow i)}}\phi\right)\cdot\left(\prod_{\phi\in\mathcal{F}_{i}}\phi\right).\tag{10.4}
+$$
 
+As we just showed, for each $k$ , none of the variables in $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ appear in any of the other factors. Thus, we can use equation (9.6) and push in the summation over $\mathcal{V}_{\prec(i_{k}\rightarrow i)}$ in equation (10.4), and obtain:
+> 对于每个 $k$，$\mathcal{V}_{\prec (i_{k}\rightarrow i)}$ 是各不相交的 ( $\mathcal{F}_{\prec (i_{k}\rightarrow i)}$ 中的因子各自的作用域的交集是 $\pmb Y_i$，因此作用域中去除 $\pmb Y_i$ 得到的变量集合 $\mathcal{V}_{\prec (i_{k}\rightarrow i)}$ 就是互不相交的)，因此每个关于 $\mathcal{V}_{\prec (i_{k}\rightarrow i)}$ 的求和就仅和 $\mathcal{F}_{\prec (i_{k}\rightarrow i)}$ 中的因子有关，故我们可以将这些求和符号 “推入”，得到式 10.5
+
+$$
+\sum_{\pmb Y_{i}}\left(\prod_{\phi\in\mathcal{F}_{i}}\phi\right)\cdot\sum_{\mathcal{V}_{\prec(i_{1}\to i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{1}\to i)}}\phi\right)\cdot\cdot\cdot\sum_{\mathcal{V}_{\prec(i_{m}\to i)}}\left(\prod_{\phi\in\mathcal{F}_{\prec(i_{m}\to i)}}\phi\right).\tag{10.5}
+$$ 
 Using the inductive hypothesis and the deﬁnition of $\psi_{i}$ , this expression is equal to 
+> 使用归纳假设，以及 $\psi_i$ 的定义，我们得到式 10.6
 
 $$
-\sum_{Y_{i}}\psi_{i}\cdot\delta_{i_{1}\rightarrow i}\cdot\cdot\cdot\cdot\delta_{i_{m}\rightarrow i},
-$$ 
+\sum_{\pmb Y_{i}}\psi_{i}\cdot\delta_{i_{1}\rightarrow i}\cdot\cdot\cdot\cdot\delta_{i_{m}\rightarrow i},\tag{10.6}
+$$
 
 which is precisely the operation used to compute the message $\delta_{i\to j}$ . 
+> 显然式 10.6 就是对消息 $\delta_{i\rightarrow j}$ 进行计算，证毕
 
 This theorem is closely related to theorem 10.2, which tells us that a sepset divides the graph into conditionally independent pieces. It is this conditional independence property that allows the message over the sepset to summarize completely the information in one side of the clique tree that is necessary for the computation in the other. 
+> 该定理和定理 10.2 密切相关
+> 定理 10.2 告诉我们分离集将图分为了条件独立的两个部分，而正是这种条件独立性 (对于团树的一侧，给定分离集，团树的另一侧和这一侧条件独立) 使得我们传递的仅仅定义于分离集上的信息就能够完全总结团树一侧的信息，这些信息是在另一侧进行计算所需的
 
 Based on this analysis, we can show that: 
 
-Let $C_{r}$ be the root clique in a clique tree, and assume that $\beta_{r}$ is computed as in the algorithm of algorithm 10.1. Then 
+**Corollary 10.1**
+Let $\pmb C_{r}$ be the root clique in a clique tree, and assume that $\beta_{r}$ is computed as in the algorithm of algorithm 10.1. Then 
+> 引理：
+> $\pmb C_r$ 为团树的根，假设 $\beta_r$ 是 algorithm 10.1 计算得到的结果，则 $\beta_r$ 实际上就是 $\mathcal X$ 上的未规范化的度量求和消去 $\mathcal X - \pmb C_r$ 中的所有变量得到的因子
 
 $$
-\beta_{r}(C_{r})=\sum_{\mathcal{X}-C_{r}}\tilde{P}_{\Phi}(\mathcal{X}).
+\beta_{r}(\pmb C_{r})=\sum_{\mathcal{X}-\pmb C_{r}}\tilde{P}_{\Phi}(\mathcal{X}).
 $$ 
-
 As we discussed earlier, this algorithm applies both to Bayesian network and Markov network inference. For a Bayesian network $\mathcal{B}$ , if $\Phi$ consists of the C Ds in $\mathcal{B}$ , reduced with some evidence $e$ , then $\beta_{r}(\boldsymbol{C}_{r})\,=\,P_{\mathcal{B}}(\boldsymbol{C}_{r},e)$ . For a $\mathcal{H}$ , if Φ consists of the compatibility functions deﬁning the network, then $\beta_{r}(C_{r})\,=\,\tilde{P}_{\Phi}(C_{r})$ . In both cases, we can obtain the probability over the variables in $C_{r}$ as usual, by normalizing the resulting factor to sum to 1. In the Markov network, we can also obtain the value of the partition function simply by summing up all of the entries in the potential of the root clique $\beta_{r}(C_{r})$ . 
+>如我们之前讨论的，该算法既适用于贝叶斯网络也适用于马尔可夫网络中的推断
+>对于贝叶斯网络 $\mathcal{B}$ ，如果 $\Phi$ 由 $\mathcal{B}$ 中的 CPDs 构成，并在某些证据 $\pmb e$ 下进行了简化，那么 $\beta_{r}(\boldsymbol{C}_{r}) = P_{\mathcal{B}}(\boldsymbol{C}_{r}, \pmb e)$ 
+>对于马尔可夫网络 $\mathcal{H}$ ，如果 $\Phi$ 由网络中的相容性函数构成，则 $\beta_{r}(\pmb C_{r}) = \tilde{P}_{\Phi}(\pmb C_{r})$
+>在这两种情况下，我们都可以像通常一样通过归一化最后得到的因子来得到 $\pmb C_{r}$ 中变量的概率分布；在马尔可夫网络中，我们也可以通过将根团 $\beta_{r}(\pmb C_{r})$ 的势函数中的所有条目相加来直接得到划分函数的值
 
-# 10.2.2 Clique Tree Calibration 
-
+### 10.2.2 Clique Tree Calibration 
 We have shown that we can use the same clique tree to compute the probability of any variable in $\mathcal{X}$ . In many applications, we often wish to estimate the probability of a large number of variables. For example, in a medical-diagnosis setting, we generally want the probability of several possible diseases. Furthermore, as we will see, when learning Bayesian networks from partially observed data, we always want the probability distributions over each of the unobserved variables in the domain (and their parents). 
 
 Therefore, let us consider the task of computing the posterior distribution over every random variable in the network. The most naive approach is to do inference separately for each variable. Letting $c$ be the cost of a single execution of clique tree inference, the total cost of this algorithm is nc . An approach that is slightly less naive is to run the algorithm once for every clique, making it the root. The total cost of this variant is $K c,$ where $K$ is the number of cliques. However, it turns out that we can do substantially better than either of these approaches. 
@@ -6652,9 +6715,6 @@ Therefore, let us consider the task of computing the posterior distribution over
 Let us revisit our clique tree of ﬁgure 10.2 and consider the three diferent executions of the clique tree algorithm that we described: one where $C_{5}$ is the root, one where $C_{4}$ is the root, and one where $C_{3}$ is the root. As we pointed out, the messages sent from $C_{1}$ to $C_{2}$ and from $C_{2}$ to $C_{3}$ are the same in all three executions. The message sent from $C_{4}$ to $C_{5}$ is the same in both of the executions where it appears. In the second of the three executions, there simply is no message from $C_{4}$ to $C_{5}$ — the message goes the other way, from $C_{5}$ to $C_{4}$ . 
 
 More generally, consider two neighboring cliques $C_{i}$ and $C_{j}$ in some clique tree. It follows from theorem 10.3 that the value of the message sent from $C_{i}$ to $C_{j}$ does not depend on speciﬁc choice of root clique: As long as the root clique is on the $C_{j}$ -side, exactly the same message is sent from $C_{i}$ to $C_{j}$ . The same argument applies if the root is on the $C_{i}$ -side. Thus, in all executions of the clique tree algorithm, whenever a message is sent between two cliques in the same direction, it is necessarily the same. Thus, for any given clique tree, each edge has two messages associated with it: one for each direction of the edge. If we have a total of $c$ cliques, there are $c-1$ edges in the tree; therefore, we have $2(c-1)$ messages to compute. 
-
-![](images/d5b2bf3867ba2ed23f96a5932eee9bfb114f4d73ab4ef004e6bc4f5704f20aea.jpg) 
-Figure 10.5 Two steps in a downward pass in the Student network 
 
 We can compute both messages for each edge by the following simple asynchronous algorithm. Recall that a clique can transmit a message upstream toward the root when it has all of the messages from its downstream neighbors. We can generalize this concept as follows: 
 
@@ -6668,11 +6728,7 @@ When $C_{i}$ is ready to transmit to $C_{j}$ , it can compute the message $\delt
 
 Algorithm 10.2 shows the full procedure, often called sum-product belief propagation . As written, the algorithm is deﬁned asynchronously , with each clique sending a message as soon as it is ready. One might wonder why this process is guaranteed to terminate, that is, why there is always a clique that is ready to transmit to some other clique. In fact, the message passing process performed by the algorithm is equivalent to a much more systematic process that consists of an upward pass and a downward pass . In the upward pass, we ﬁrst pick a root and send all messages toward the root. When this process is complete, the root has all messages. Therefore, it can now send the appropriate message to all of its children. This 
 
-![](images/0be5eda88199a2c3282c4ce196d0bc6daab2cc9df3cfb764f3ae05ebf36f6597.jpg) 
-
-message scheduling 
-
-# Example 10.4 
+Example 10.4 
 
 beliefs 
 
