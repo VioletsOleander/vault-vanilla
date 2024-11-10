@@ -264,4 +264,3 @@
 - [[Annotations Best Practices]]
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
 - [[Repositories|huggingface-hub:Repositories]]: Sec4-Sec10
-- [[CUDA C++ Programming Guide v12.6]]: CH1
