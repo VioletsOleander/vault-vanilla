@@ -215,7 +215,7 @@
     FlashAttention-2: 
     (1) tweak the algorithm, reducing the non-mamul op: remove the rescale of softmax weights in each inner loop, only do it in the end of inner loop
     (2) parallize in thread blocks to improve occupancy: exchange the inner loop and outerloop,  which makes each iteration in outerloop independent of each other, therefore parallelize them by assigning $\mathbf {O}$ blocks to thread blocks
-    (3) distribute the work between warps to reduce shared memory communication: divide $\mathbf Q$ block to warps and keep $\mathbf {K, V}$ blocks intact, the idea is similar to exchanging outer loop and inner loop, whichi makes the $\mathbf O$ blocks the warp responsible for be independent of each other, thus primarily reducing the shared memory reads/writes for the final accumlation
+    (3) distribute the work between warps to reduce shared memory communication: divide $\mathbf Q$ block to warps and keep $\mathbf {K, V}$ blocks intact, the idea is similar to exchanging outer loop and inner loop, which makes the $\mathbf O$ blocks the warp responsible for be independent of each other, thus primarily reducing the shared memory reads/writes for the final accumlation
     FlashAttention-2 also uses thread blocks to load KV cache in parallel for iterative decoding
 
 \[Book\]
@@ -234,7 +234,18 @@
 
 ## Week2
 \[Paper\]
-- [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]
+- [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec0-Sec4.5
+    Sec0-Abstract
+    Sec1-Introduction: 
+        Existing systems preallocated a continous chunk of memory space whose size is the max length of the request. This method causes internal and external fragmentation in GPU DRAM, and do not support KV cache sharing between requests. 
+        PagedAttention Manage KV cache blockwisely, allocating physical memory in block granularity, thus reducing internal fragmentation and eliminate external fragmentation, and also enable KV cache sharing between requests in block granularity.
+        By increasing GPU DRAM utilization rate significantly, PagedAttention significantly improve the batch size of requests, thus in turn improve the throughtput.
+    Sec2-Background:
+        Prompt phase: Process user input, generating KV cache. Use Matrix-Matrix multiplication(use masked self-attention to implement causal attention).
+        Auto regressive generation phase: Iteratively generate new tokens. Use Vector-Matrix multiplication.
+    Sec3-Memory Challenges in LLM Serving:
+        LLM service is bounded by memory, especially by the space reserved for KV cache.
+        The memory utilization for KV cache storage space is inefficient, due to the inefficient continous memory allocation startegy.
 
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH7, CH9.2-CH9.3
