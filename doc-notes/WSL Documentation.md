@@ -1,6 +1,5 @@
 # Overview
-## What is the WSL?
-### What is the Windows Subsystem for Linux?
+## What is the Windows Subsystem for Linux?
 Windows Subsystem for Linux (WSL) is a feature of Windows that allows you to run a Linux environment on your Windows machine, without the need for a separate virtual machine or dual booting. WSL is designed to provide a seamless and productive experience for developers who want to use both Windows and Linux at the same time.
 
 - Use WSL to install and run various Linux distributions, such as Ubuntu, Debian, Kali, and more. [Install Linux distributions](https://learn.microsoft.com/en-us/windows/wsl/install) and receive automatic updates from the [Microsoft Store](https://learn.microsoft.com/en-us/windows/wsl/compare-versions#wsl-in-the-microsoft-store), [import Linux distributions not available in the Microsoft Store](https://learn.microsoft.com/en-us/windows/wsl/use-custom-distro), or [build your own custom Linux distribution](https://learn.microsoft.com/en-us/windows/wsl/build-custom-distro).
@@ -369,3 +368,254 @@ lxrun /[Argument]
 ```
 
 These commands were the original wsl syntax for configuring Linux distributions installed with WSL, but have been replaced with the `wsl` or `wsl.exe` command syntax.
+
+# Install
+## How to install Linux on Windows with WSL
+Developers can access the power of both Windows and Linux at the same time on a Windows machine. The Windows Subsystem for Linux (WSL) lets developers install a Linux distribution (such as Ubuntu, OpenSUSE, Kali, Debian, Arch Linux, etc) and use Linux applications, utilities, and Bash command-line tools directly on Windows, unmodified, without the overhead of a traditional virtual machine or dualboot setup.
+
+### Prerequisites
+You must be running Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 to use the commands below. If you are on earlier versions please see [the manual install page](https://learn.microsoft.com/en-us/windows/wsl/install-manual).
+
+### Install WSL command
+You can now install everything you need to run WSL with a single command. Open PowerShell or Windows Command Prompt in **administrator** mode by right-clicking and selecting "Run as administrator", enter the wsl --install command, then restart your machine.
+
+```
+wsl --install
+```
+
+This command will enable the features necessary to run WSL and install the Ubuntu distribution of Linux. ([This default distribution can be changed](https://learn.microsoft.com/en-us/windows/wsl/basic-commands#install)).
+
+If you're running an older build, or just prefer not to use the install command and would like step-by-step directions, see **[WSL manual installation steps for older versions](https://learn.microsoft.com/en-us/windows/wsl/install-manual)**.
+
+The first time you launch a newly installed Linux distribution, a console window will open and you'll be asked to wait for files to de-compress and be stored on your machine. All future launches should take less than a second.
+
+Note
+The above command only works if WSL is not installed at all. If you run `wsl --install` and see the WSL help text, please try running `wsl --list --online` to see a list of available distros and run `wsl --install -d <DistroName>` to install a distro. To uninstall WSL, see [Uninstall legacy version of WSL](https://learn.microsoft.com/en-us/windows/wsl/troubleshooting#uninstall-legacy-version-of-wsl) or [unregister or uninstall a Linux distribution](https://learn.microsoft.com/en-us/windows/wsl/basic-commands#unregister-or-uninstall-a-linux-distribution).
+
+### Change the default Linux distribution installed
+By default, the installed Linux distribution will be Ubuntu. This can be changed using the `-d` flag.
+
+- To change the distribution installed, enter: `wsl --install -d <Distribution Name>`. Replace `<Distribution Name>` with the name of the distribution you would like to install.
+- To see a list of available Linux distributions available for download through the online store, enter: `wsl --list --online` or `wsl -l -o`.
+- To install additional Linux distributions after the initial install, you may also use the command: `wsl --install -d <Distribution Name>`.
+
+Tip
+If you want to install additional distributions from inside a Linux/Bash command line (rather than from PowerShell or Command Prompt), you must use .exe in the command: `wsl.exe --install -d <Distribution Name>` or to list available distributions: `wsl.exe -l -o`.
+>如果要从 Linux/Bash 命令行安装额外的发行版 (而不是从 PowerShell 或命令提示符)，需要在命令中使用 `wsl.exe`：`wsl.exe --install -d <发行版名称>` 或者列出可用的发行版：`wsl.exe -l -o`
+
+If you run into an issue during the install process, check the [installation section of the troubleshooting guide](https://learn.microsoft.com/en-us/windows/wsl/troubleshooting#installation-issues).
+
+To install a Linux distribution that is not listed as available, you can [import any Linux distribution](https://learn.microsoft.com/en-us/windows/wsl/use-custom-distro) using a TAR file. Or in some cases, [as with Arch Linux](https://wsldl-pg.github.io/ArchW-docs/How-to-Setup/), you can install using an `.appx` file. You can also create your own [custom Linux distribution](https://learn.microsoft.com/en-us/windows/wsl/build-custom-distro) to use with WSL.
+
+### Set up your Linux user info
+Once you have installed WSL, you will need to create a user account and password for your newly installed Linux distribution. See the [Best practices for setting up a WSL development environment](https://learn.microsoft.com/en-us/windows/wsl/setup/environment#set-up-your-linux-username-and-password) guide to learn more.
+
+### Set up and best practices
+We recommend following our [Best practices for setting up a WSL development environment](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) guide for a step-by-step walk-through of how to set up a user name and password for your installed Linux distribution(s), using basic WSL commands, installing and customizing Windows Terminal, set up for Git version control, code editing and debugging using the VS Code remote server, good practices for file storage, setting up a database, mounting an external drive, setting up GPU acceleration, and more.
+
+### Check which version of WSL you are running
+You can list your installed Linux distributions and check the version of WSL each is set to by entering the command: `wsl -l -v` in PowerShell or Windows Command Prompt.
+
+To set the default version to WSL 1 or WSL 2 when a new Linux distribution is installed, use the command: `wsl --set-default-version <Version#>`, replacing `<Version#>` with either 1 or 2.
+
+To set the default Linux distribution used with the `wsl` command, enter: `wsl -s <DistributionName>` or `wsl --set-default <DistributionName>`, replacing `<DistributionName>` with the name of the Linux distribution you would like to use. For example, from PowerShell/CMD, enter: `wsl -s Debian` to set the default distribution to Debian. Now running `wsl npm init` from Powershell will run the `npm init` command in Debian.
+
+To run a specific wsl distribution from within PowerShell or Windows Command Prompt without changing your default distribution, use the command: `wsl -d <DistributionName>`, replacing `<DistributionName>` with the name of the distribution you want to use.
+
+Learn more in the guide to [Basic commands for WSL](https://learn.microsoft.com/en-us/windows/wsl/basic-commands).
+
+### Upgrade version from WSL 1 to WSL 2
+
+New Linux installations, installed using the `wsl --install` command, will be set to WSL 2 by default.
+
+The `wsl --set-version` command can be used to downgrade from WSL 2 to WSL 1 or to update previously installed Linux distributions from WSL 1 to WSL 2.
+
+To see whether your Linux distribution is set to WSL 1 or WSL 2, use the command: `wsl -l -v`.
+
+To change versions, use the command: `wsl --set-version <distro name> 2` replacing `<distro name>` with the name of the Linux distribution that you want to update. For example, `wsl --set-version Ubuntu-20.04 2` will set your Ubuntu 20.04 distribution to use WSL 2.
+
+If you manually installed WSL prior to the `wsl --install` command being available, you may also need to [enable the virtual machine optional component](https://learn.microsoft.com/en-us/windows/wsl/install-manual#step-3---enable-virtual-machine-feature) used by WSL 2 and [install the kernel package](https://learn.microsoft.com/en-us/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package) if you haven't already done so.
+
+To learn more, see the [Command reference for WSL](https://learn.microsoft.com/en-us/windows/wsl/basic-commands) for a list of WSL commands, [Comparing WSL 1 and WSL 2](https://learn.microsoft.com/en-us/windows/wsl/compare-versions) for guidance on which to use for your work scenario, or [Best practices for setting up a WSL development environment](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) for general guidance on setting up a good development workflow with WSL.
+
+### Ways to run multiple Linux distributions with WSL
+WSL supports running as many different Linux distributions as you would like to install. This can include choosing distributions from the [Microsoft Store](https://aka.ms/wslstore), [importing a custom distribution](https://learn.microsoft.com/en-us/windows/wsl/use-custom-distro), or [building your own custom distribution](https://learn.microsoft.com/en-us/windows/wsl/build-custom-distro).
+
+There are several ways to run your Linux distributions once installed:
+
+- [Install Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/get-started) _**(Recommended)**_ Using Windows Terminal supports as many command lines as you would like to install and enables you to open them in multiple tabs or window panes and quickly switch between multiple Linux distributions or other command lines (PowerShell, Command Prompt, Azure CLI, etc). You can fully customize your terminal with unique color schemes, font styles, sizes, background images, and custom keyboard shortcuts. [Learn more.](https://learn.microsoft.com/en-us/windows/terminal)
+- You can directly open your Linux distribution by visiting the Windows Start menu and typing the name of your installed distributions. For example: "Ubuntu". This will open Ubuntu in its own console window.
+- From Windows Command Prompt or PowerShell, you can enter the name of your installed distribution. For example: `ubuntu`
+- From Windows Command Prompt or PowerShell, you can open your default Linux distribution inside your current command line, by entering: `wsl.exe`.
+- From Windows Command Prompt or PowerShell, you can use your default Linux distribution inside your current command line, without entering a new one, by entering:`wsl [command]`. Replacing `[command]` with a WSL command, such as: `wsl -l -v` to list installed distributions or `wsl pwd` to see where the current directory path is mounted in wsl. From PowerShell, the command `get-date` will provide the date from the Windows file system and `wsl date` will provide the date from the Linux file system.
+
+The method you select should depend on what you're doing. If you've opened a WSL command line within a Windows Prompt or PowerShell window and want to exit, enter the command: `exit`.
+
+### Want to try the latest WSL preview features?
+Try the most recent features or updates to WSL by joining the [Windows Insiders Program](https://insider.windows.com/getting-started). Once you have joined Windows Insiders, you can choose the channel you would like to receive preview builds from inside the Windows settings menu to automatically receive any WSL updates or preview features associated with that build. You can choose from:
+
+- Dev channel: Most recent updates, but low stability.
+- Beta channel: Ideal for early adopters, more reliable builds than the Dev channel.
+- Release Preview channel: Preview fixes and key features on the next version of Windows just before its available to the general public.
+
+# Tutorials
+## Set up a WSL development environment
+A step-by-step guide to the best practices for setting up a WSL development environment. Learn how to run the command to install the default Bash shell that uses Ubuntu or can be set to install other Linux distributions, use basic WSL commands, set up Visual Studio Code or Visual Studio, Git, Windows Credential Manager, databases like MongoDB, Postgres, or MySQL, set up GPU acceleration, run GUI apps, and more.
+
+### Get started
+Windows Subsystem for Linux comes with the Windows operating system, but you must enable it and install a Linux distribution before you can begin using it.
+
+To use the simplified --install command, you must be running a recent build of Windows (Build 20262+). To check your version and build number, select **Windows logo key + R**, type **winver**, select **OK**. You can update using the [Settings menu](ms-settings:windowsupdate) or [Windows Update Assistant](https://www.microsoft.com/software-download/).
+
+If you prefer to install a Linux distribution other than Ubuntu, or would prefer to complete these steps manually, see the [WSL installation page](https://learn.microsoft.com/en-us/windows/wsl/install) for more details.
+
+Open PowerShell (or Windows Command Prompt) and enter:
+
+```
+wsl --install
+```
+
+The --install command performs the following actions:
+
+- Enables the optional WSL and Virtual Machine Platform components
+- Downloads and installs the latest Linux kernel
+- Sets WSL 2 as the default
+- Downloads and installs the Ubuntu Linux distribution (reboot may be required)
+
+You will need to restart your machine during this installation process.
+
+![PowerShell command line running wsl --install](https://learn.microsoft.com/en-us/windows/wsl/media/wsl-install.png)
+
+Check the [troubleshooting installation](https://learn.microsoft.com/en-us/windows/wsl/troubleshooting) article if you run into any issues.
+
+### Set up your Linux username and password
+Once the process of installing your Linux distribution with WSL is complete, open the distribution (Ubuntu by default) using the Start menu. You will be asked to create a **User Name** and **Password** for your Linux distribution.
+
+- This **User Name** and **Password** is specific to each separate Linux distribution that you install and has no bearing on your Windows user name.
+- Please note that whilst entering the **Password**, nothing will appear on screen. This is called blind typing. You won't see what you are typing, this is completely normal.
+- Once you create a **User Name** and **Password**, the account will be your default user for the distribution and automatically sign-in on launch.
+- This account will be considered the Linux administrator, with the ability to run `sudo` (Super User Do) administrative commands.
+- Each Linux distribution running on WSL has its own Linux user accounts and passwords. You will have to configure a Linux user account every time you add a distribution, reinstall, or reset.
+
+Note
+Linux distributions installed with WSL are a per-user installation and can't be shared with other Windows user accounts. Encountering a username error? [StackExchange: What characters should I use or not use in usernames on Linux?](https://serverfault.com/questions/73084/what-characters-should-i-use-or-not-use-in-usernames-on-linux)
+
+![Ubuntu command line enter UNIX username](https://learn.microsoft.com/en-us/windows/wsl/media/ubuntuinstall.png)
+
+To change or reset your password, open the Linux distribution and enter the command: `passwd`. You will be asked to enter your current password, then asked to enter your new password, and then to confirm your new password.
+
+If you forgot the password for your Linux distribution:
+
+1. Open PowerShell and enter the root of your default WSL distribution using the command: `wsl -u root`
+    > If you need to update the forgotten password on a distribution that is not your default, use the command: `wsl -d Debian -u root`, replacing `Debian` with the name of your targeted distribution.
+2. Once your WSL distribution has been opened at the root level inside PowerShell, you can use this command to update your password: `passwd <username>` where `<username>` is the username of the account in the distribution whose password you've forgotten.
+3. You will be prompted to enter a new UNIX password and then confirm that password. Once you're told that the password has updated successfully, close WSL inside of PowerShell using the command: `exit`.
+
+> 最初创建的和平时直接登录 WSL 的都是管理员账户
+> ` wsl -u root ` 用于登录根用户
+> 登录根用户后可以用 `passwd <username>` 重置任意用户的密码
+
+### Update and upgrade packages
+We recommend that you regularly update and upgrade your packages using the preferred package manager for the distribution. For Ubuntu or Debian, use the command:
+
+```
+sudo apt update && sudo apt upgrade
+```
+
+Windows does not automatically update or upgrade your Linux distribution(s). This is a task that most Linux users prefer to control themselves.
+> 建议规律性使用 Linux 发布的包管理程序更新并且升级包
+> 对于 Ubuntu 或 Debian，就是使用 `sudo apt update && sudo apt upgrade`
+
+### Add additional distributions
+To add additional Linux distributions, you can install via the [Microsoft Store](https://aka.ms/wslstore), via the [--import command](https://learn.microsoft.com/en-us/windows/wsl/use-custom-distro), or by [sideloading your own custom distribution](https://learn.microsoft.com/en-us/windows/wsl/build-custom-distro). You may also want to [set up custom WSL images for distribution across your enterprise company](https://learn.microsoft.com/en-us/windows/wsl/enterprise).
+
+### Set up Windows Terminal
+Windows Terminal can run any application with a command line interface. Its main features include multiple tabs, panes, Unicode and UTF-8 character support, a GPU accelerated text rendering engine, and the ability to create your own themes and customize text, colors, backgrounds, and shortcuts.
+
+Whenever a new WSL Linux distribution is installed, a new instance will be created for it inside the Windows Terminal that can be customized to your preferences.
+
+We recommend using WSL with Windows Terminal, especially if you plan to work with multiple command lines. See the Windows Terminal docs for help with setting it up and customizing your preferences, including:
+
+- [Install Windows Terminal or Windows Terminal (Preview)](https://learn.microsoft.com/en-us/windows/terminal/get-started) from the Microsoft Store
+- [Use the Command Palette](https://learn.microsoft.com/en-us/windows/terminal/get-started#invoke-the-command-palette)
+- Set up [custom actions](https://learn.microsoft.com/en-us/windows/terminal/#custom-actions) like keyboard shortcuts to make the terminal feel natural to your preferences
+- Set up the [default startup profile](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/startup)
+- Customize the appearance: [theme](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/appearance#theme), [color schemes](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/color-schemes), [name and starting directory](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/profile-general), [background image](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/profile-appearance#background-image), etc.
+- Learn how to use [command line arguments](https://learn.microsoft.com/en-us/windows/terminal/command-line-arguments?tabs=windows) like opening a terminal with multiple command lines split into window panes or tabs
+- Learn about the [search feature](https://learn.microsoft.com/en-us/windows/terminal/search)
+- Find [tips and tricks](https://learn.microsoft.com/en-us/windows/terminal/tips-and-tricks), like how to rename or color a tab, use mouse interactions, or enable "Quake mode"
+- Find tutorials on how to set up [a customized command prompt](https://learn.microsoft.com/en-us/windows/terminal/tutorials/custom-prompt-setup), [SSH profiles](https://learn.microsoft.com/en-us/windows/terminal/tutorials/ssh), or [tab titles](https://learn.microsoft.com/en-us/windows/terminal/tutorials/tab-title)
+- Find a [custom terminal gallery](https://learn.microsoft.com/en-us/windows/terminal/custom-terminal-gallery/custom-schemes) and a [troubleshooting guide](https://learn.microsoft.com/en-us/windows/terminal/troubleshooting)
+
+![Windows Terminal screenshot](https://learn.microsoft.com/en-us/windows/wsl/media/terminal.png)
+
+### File storage
+- To open your WSL project in Windows File Explorer, enter: `explorer.exe .` 
+    _Be sure to add the period at the end of the command to open the current directory._
+    
+- [Store your project files on the same operating system as the tools you plan to use](https://learn.microsoft.com/en-us/windows/wsl/filesystems#file-storage-and-performance-across-file-systems).  
+    For the fastest performance speed, store your files in the WSL file system if you are working on them with Linux tools in a Linux command line (Ubuntu, OpenSUSE, etc). If you're working in a Windows command line (PowerShell, Command Prompt) with Windows tools, store your files in the Windows file system. Files can be accessed across the operating systems, but it may significantly slow down performance.
+
+For example, when storing your WSL project files:
+
+- Use the Linux file system root directory: `\\wsl$\<DistroName>\home\<UserName>\Project`
+- Not the Windows file system root directory: `C:\Users\<UserName>\Project` or `/mnt/c/Users/<UserName>/Project$`
+
+![Windows File Explorer displaying Linux storage](https://learn.microsoft.com/en-us/windows/wsl/media/windows-file-explorer.png)
+
+
+### Set up your favorite code editor
+We recommend using Visual Studio Code or Visual Studio, as they directly support remote development and debugging with WSL. Visual Studio Code allows you to use WSL as a full-featured development environment. Visual Studio offers native WSL support for C++ cross-platform development.
+
+#### Use Visual Studio Code
+Follow this step-by-step guide to [Get started using Visual Studio Code with WSL](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode), which includes installing the [Remote Development extension pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack). This extension enables you to run WSL, SSH, or a development container for editing and debugging with the full set of Visual Studio Code features. Quickly swap between different, separate development environments and make updates without worrying about impacting your local machine.
+
+Once VS Code is installed and set up, you can open your WSL project with a VS Code remote server by entering: `code .`
+
+_Be sure to add the period at the end of the command to open the current directory._
+
+![VS Code with WSL extensions displayed](https://learn.microsoft.com/en-us/windows/wsl/media/vscode-remote-wsl-extensions.png)
+
+#### Use Visual Studio
+Follow this step-by-step guide to [Get started using Visual Studio with WSL for C++ cross-platform development](https://learn.microsoft.com/en-us/cpp/build/walkthrough-build-debug-wsl2). Visual Studio 2022 enables you to build and debug CMake projects on Windows, WSL distributions, and SSH connections from the same instance of Visual Studio.
+
+![Select a target system in Visual Studio 2022](https://learn.microsoft.com/en-us/windows/wsl/media/vs-target-system.png)
+
+### Set up version management with Git
+Follow this step-by-step guide to [Get started using Git on WSL](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-git) and connect your project to the Git version control system, along with using the credential manager for authentication, using Git Ignore files, understanding Git line endings, and using the Git commands built-in to VS Code.
+
+![Displaying git version in the command line](https://learn.microsoft.com/en-us/windows/wsl/media/git-versions.gif)
+
+### Set up remote development containers with Docker
+Follow this step-by-step guide to [Get started with Docker remote containers on WSL 2](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers) and connect your project to a remote development container with Docker Desktop for Windows.
+
+![Docker Desktop screenshot](https://learn.microsoft.com/en-us/windows/wsl/media/docker-running.png)
+
+### Set up a database
+Follow this step-by-step guide to [Get started with databases on WSL](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-database) and connect your project to a database in the WSL environment. Get started with MySQL, PostgreSQL, MongoDB, Redis, Microsoft SQL Server, or SQLite.
+
+![Running MongoDB in Ubuntu via WSL](https://learn.microsoft.com/en-us/windows/wsl/media/mongodb.png)
+
+### Set up GPU acceleration for faster performance
+Follow this step-by-step guide to set up [GPU accelerated machine learning training in WSL](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gpu-compute) and leverage your computer's GPU (graphics processing unit) to accelerate performance heavy workloads.
+
+![Running GPU acceleration with WSL](https://learn.microsoft.com/en-us/windows/wsl/media/gpu-acceleration.gif)
+
+### Basic WSL commands
+The Linux distributions that you install via WSL are best managed using PowerShell or Windows Command Prompt (CMD). See the [WSL command reference guide](https://learn.microsoft.com/en-us/windows/wsl/basic-commands) for a list of basic commands to be familiar with when using WSL.
+
+In addition, many commands are interoperable between Windows and Linux. Here are a couple of examples:
+
+- [Run Linux tools from a Windows command line](https://learn.microsoft.com/en-us/windows/wsl/filesystems#run-linux-tools-from-a-windows-command-line): Open PowerShell and display the directory contents of `C:\temp>` using the Linux `ls -la` command by entering: `wsl ls -la`
+- [Mix Linux and Windows commands](https://learn.microsoft.com/en-us/windows/wsl/filesystems#mixing-linux-and-windows-commands): In this example, the Linux command `ls -la` is used to list files in the directory, then the PowerShell command `findstr` is used to filter the results for words containing "git": `wsl ls -la | findstr "git"`. This could also be done mixing the Windows `dir` command with the Linux `grep` command: `dir | wsl grep git`.
+- [Run a Windows tool directly from the WSL command line](https://learn.microsoft.com/en-us/windows/wsl/filesystems#run-windows-tools-from-linux): `<tool-name>.exe` For example, to open your .bashrc file (the shell script that runs whenever your Linux command line is started), enter: `notepad.exe .bashrc`
+- [Run the Windows ipconfig.exe tool with the Linux Grep tool](https://learn.microsoft.com/en-us/windows/wsl/filesystems#run-windows-tools-from-linux): From Bash enter the command `ipconfig.exe | grep IPv4 | cut -d: -f2` or from PowerShell enter `ipconfig.exe | wsl grep IPv4 | wsl cut -d: -f2` This example demonstrates the ipconfig tool on the Windows file system being used to display the current TCP/IP network configuration values and then being filtered to only the IPv4 result with grep, a Linux tool.
+
+### Mount an external drive or USB
+Follow this step-by-step guide to [Get started mounting a Linux disk in WSL 2](https://learn.microsoft.com/en-us/windows/wsl/wsl2-mount-disk).
+
+![wsl mount command screenshot](https://learn.microsoft.com/en-us/windows/wsl/media/wslmountsimple.png)
+
+### Run Linux GUI apps
+Follow this tutorial to learn how to set up and [run Linux GUI apps on WSL](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps).
+
