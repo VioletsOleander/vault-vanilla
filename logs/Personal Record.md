@@ -232,7 +232,7 @@
 - [[Argparse Tutorial|argparse tutorial]]
 - [[CUDA C++ Programming Guide v12.6]]: CH1
 
-## Week2
+### Week2
 \[Paper\]
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec0-Sec4.5
     Sec0-Abstract
@@ -275,3 +275,5 @@
 - [[Annotations Best Practices]]
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
 - [[Repositories|huggingface-hub:Repositories]]: Sec4-Sec10
+
+### Week3
