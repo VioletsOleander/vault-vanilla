@@ -1,4 +1,4 @@
-# # [Introduction](https://peps.python.org/pep-0008/#introduction)
+# Introduction
 This document gives coding conventions for the Python code comprising the standard library in the main Python distribution. Please see the companion informational PEP describing [style guidelines for the C code in the C implementation of Python](https://peps.python.org/pep-0007/ "PEP 7 – Style Guide for C Code").
 
 This document and [PEP 257](https://peps.python.org/pep-0257/ "PEP 257 – Docstring Conventions") (Docstring Conventions) were adapted from Guido’s original Python Style Guide essay, with some additions from Barry’s style guide [[2]](https://peps.python.org/pep-0008/#id6).
@@ -7,7 +7,7 @@ This style guide evolves over time as additional conventions are identified and 
 
 Many projects have their own coding style guidelines. In the event of any conflicts, such project-specific guides take precedence for that project.
 
-## [A Foolish Consistency is the Hobgoblin of Little Minds](https://peps.python.org/pep-0008/#a-foolish-consistency-is-the-hobgoblin-of-little-minds)
+## A Foolish Consistency is the Hobgoblin of Little Minds
 One of Guido’s key insights is that code is read much more often than it is written. The guidelines provided here are intended to improve the readability of code and make it consistent across the wide spectrum of Python code. As [PEP 20](https://peps.python.org/pep-0020/ "PEP 20 – The Zen of Python") says, “Readability counts”.
 > PEP8 旨在提高 Python 代码的可读性
 
@@ -25,12 +25,15 @@ Some other good reasons to ignore a particular guideline:
 3. Because the code in question predates the introduction of the guideline and there is no other reason to be modifying that code.
 4. When the code needs to remain compatible with older versions of Python that don’t support the feature recommended by the style guide.
 
-## [Code Lay-out](https://peps.python.org/pep-0008/#code-lay-out)
-### [Indentation](https://peps.python.org/pep-0008/#indentation)
+## Code Lay-out
+### Indentation
 Use 4 spaces per indentation level.
 > 4空格缩进
 
-Continuation lines should align wrapped elements either vertically using Python’s implicit line joining inside parentheses, brackets and braces, or using a _hanging indent_ [[1]](https://peps.python.org/pep-0008/#fn-hi). When using a hanging indent the following should be considered; there should be no arguments on the first line and further indentation should be used to clearly distinguish itself as a continuation line:
+Continuation lines should align wrapped elements either vertically using Python’s implicit line joining inside parentheses, brackets and braces, or using a _hanging indent_ [[1]] (https://peps.python.org/pep-0008/#fn-hi). When using a hanging indent the following should be considered; there should be no arguments on the first line and further indentation should be used to clearly distinguish itself as a continuation line:
+>续行应该通过以下方式对齐换行元素：
+>要么使用Python的括号、方括号和花括号内的隐式行连接，使它们垂直对齐；要么使用“悬挂缩进”
+>当使用悬挂缩进时，应考虑：第一行不应有任何参数，进一步的缩进应被用来明确区分续行
 
 ```python
 # Correct:
@@ -66,6 +69,7 @@ def long_function_name(
 ```
 
 The 4-space rule is optional for continuation lines.
+> 续行的悬挂缩进不一定要 4 空格缩进
 
 Optional:
 
@@ -76,7 +80,10 @@ foo = long_function_name(
   var_three, var_four)
 ```
 
-When the conditional part of an `if`-statement is long enough to require that it be written across multiple lines, it’s worth noting that the combination of a two character keyword (i.e. `if`), plus a single space, plus an opening parenthesis creates a natural 4-space indent for the subsequent lines of the multiline conditional. This can produce a visual conflict with the indented suite of code nested inside the `if`-statement, which would also naturally be indented to 4 spaces. This PEP takes no explicit position on how (or whether) to further visually distinguish such conditional lines from the nested suite inside the `if`-statement. Acceptable options in this situation include, but are not limited to:
+When the conditional part of an `if` -statement is long enough to require that it be written across multiple lines, it’s worth noting that the combination of a two character keyword (i.e. `if`), plus a single space, plus an opening parenthesis creates a natural 4-space indent for the subsequent lines of the multiline conditional. This can produce a visual conflict with the indented suite of code nested inside the `if` -statement, which would also naturally be indented to 4 spaces. This PEP takes no explicit position on how (or whether) to further visually distinguish such conditional lines from the nested suite inside the `if` -statement. Acceptable options in this situation include, but are not limited to:
+>当 `if` 语句的条件部分足够长，需要多行书写时，值得注意的是，两个字符的关键字（即 `if`），加上一个空格，再加上一个左括号，自然形成了后续多行条件的4个空格缩进，这可能会与嵌套在 `if` 语句内部的代码块的缩进产生视觉冲突，因为后者也会自然缩进4个空格
+>本PEP并未明确说明如何（或是否）进一步在视觉上区分这些条件行和 `if` 语句内部嵌套的代码块
+>在这种情况下，可接受的选项包括但不限于：
 
 ```python
 # No extra indentation.
@@ -100,6 +107,7 @@ if (this_is_one_thing
 (Also see the discussion of whether to break before or after binary operators below.)
 
 The closing brace/bracket/parenthesis on multiline constructs may either line up under the first non-whitespace character of the last line of list, as in:
+>多行结构的闭合大括号/方括号/圆括号可以选择与列表的最后一行的第一个非空白字符对齐，如下所示：
 
 ```python
 my_list = [
@@ -113,6 +121,7 @@ result = some_function_that_takes_arguments(
 ```
 
 or it may be lined up under the first character of the line that starts the multiline construct, as in:
+>或者它可以与多行结构开始行的第一个字符对齐，如下所示：
 
 ```python
 my_list = [
@@ -125,25 +134,30 @@ result = some_function_that_takes_arguments(
 )
 ```
 
-### [Tabs or Spaces?](https://peps.python.org/pep-0008/#tabs-or-spaces)
+### Tabs or Spaces?
 Spaces are the preferred indentation method.
 
 Tabs should be used solely to remain consistent with code that is already indented with tabs.
 
 Python disallows mixing tabs and spaces for indentation.
+> Space > Tab，禁止混合使用
 
-### [Maximum Line Length](https://peps.python.org/pep-0008/#maximum-line-length)
+### Maximum Line Length
 Limit all lines to a maximum of 79 characters.
+>将所有行的长度限制为最多79个字符
 
 For flowing long blocks of text with fewer structural restrictions (docstrings or comments), the line length should be limited to 72 characters.
+>对于具有较少结构限制的长文本块（如文档字符串或注释），行长度应限制为72个字符
 
 Limiting the required editor window width makes it possible to have several files open side by side, and works well when using code review tools that present the two versions in adjacent columns.
 
 The default wrapping in most tools disrupts the visual structure of the code, making it more difficult to understand. The limits are chosen to avoid wrapping in editors with the window width set to 80, even if the tool places a marker glyph in the final column when wrapping lines. Some web based tools may not offer dynamic line wrapping at all.
 
 Some teams strongly prefer a longer line length. For code maintained exclusively or primarily by a team that can reach agreement on this issue, it is okay to increase the line length limit up to 99 characters, provided that comments and docstrings are still wrapped at 72 characters.
+>有些团队强烈偏好较长的行长度。对于仅由能够在这个问题上达成一致的团队维护的代码，可以将行长度限制增加到99个字符，前提是注释和文档字符串仍然限制在72个字符内
 
 The Python standard library is conservative and requires limiting lines to 79 characters (and docstrings/comments to 72).
+>Python标准库则较为保守，要求限制行长度为79个字符（文档字符串/注释为72个字符）
 
 The preferred way of wrapping long lines is by using Python’s implied line continuation inside parentheses, brackets and braces. Long lines can be broken over multiple lines by wrapping expressions in parentheses. These should be used in preference to using a backslash for line continuation.
 > 偏好使用括号进行隐式行连接而不是使用反斜杠进行行连接
@@ -162,7 +176,7 @@ Another such case is with `assert` statements.
 
 Make sure to indent the continued line appropriately.
 
-### [Should a Line Break Before or After a Binary Operator?](https://peps.python.org/pep-0008/#should-a-line-break-before-or-after-a-binary-operator)
+### Should a Line Break Before or After a Binary Operator?
 For decades the recommended style was to break after binary operators. But this can hurt readability in two ways: the operators tend to get scattered across different columns on the screen, and each operator is moved away from its operand and onto the previous line. Here, the eye has to do extra work to tell which items are added and which are subtracted:
 
 ```python
@@ -190,8 +204,9 @@ income = (gross_wages
 ```
 
 In Python code, it is permissible to break before or after a binary operator, as long as the convention is consistent locally. For new code Knuth’s style is suggested.
+> 推荐在运算符之前换行
 
-### [Blank Lines](https://peps.python.org/pep-0008/#blank-lines)
+### Blank Lines
 Surround top-level function and class definitions with two blank lines.
 > 顶级函数和类定义由两个空行包围
 
@@ -199,12 +214,14 @@ Method definitions inside a class are surrounded by a single blank line.
 > 类内方法定义由一个空行包围
 
 Extra blank lines may be used (sparingly) to separate groups of related functions. Blank lines may be omitted between a bunch of related one-liners (e.g. a set of dummy implementations).
+>可以在适当的情况下使用额外的空行来分隔相关的函数组。在一组相关的单行代码（例如一组 dummy 实现）之间可以省略空行
 
 Use blank lines in functions, sparingly, to indicate logical sections.
+>在函数内部，适当地使用空行来表示逻辑上的段落
 
 Python accepts the control-L (i.e. ^L) form feed character as whitespace; many tools treat these characters as page separators, so you may use them to separate pages of related sections of your file. Note, some editors and web-based code viewers may not recognize control-L as a form feed and will show another glyph in its place.
 
-### [Source File Encoding](https://peps.python.org/pep-0008/#source-file-encoding)
+### Source File Encoding
 Code in the core Python distribution should always use UTF-8, and should not have an encoding declaration.
 
 In the standard library, non-UTF-8 encodings should be used only for test purposes. Use non-ASCII characters sparingly, preferably only to denote places and human names. If using non-ASCII characters as data, avoid noisy Unicode characters like z̯̯͡a̧͎̺l̡͓̫g̹̲o̡̼̘ and byte order marks.
@@ -213,7 +230,7 @@ All identifiers in the Python standard library MUST use ASCII-only identifiers, 
 
 Open source projects with a global audience are encouraged to adopt a similar policy.
 
-### [Imports](https://peps.python.org/pep-0008/#imports)
+### Imports
 - Imports should usually be on separate lines:
 
     ```python
@@ -236,15 +253,17 @@ Open source projects with a global audience are encouraged to adopt a similar po
     import 在模块 docstring 和注释后面，在模块全局变量和常量前面
     
     Imports should be grouped in the following order:
+    Import 顺序按照组来组织：
     
     1. Standard library imports. 标准库
     2. Related third party imports. 相关第三方库
     3. Local application/library specific imports. 本地应用、库
     
     You should put a blank line between each group of imports.
-    中间空行隔开
+    组间用空行隔开
     
 - Absolute imports are recommended, as they are usually more readable and tend to be better behaved (or at least give better error messages) if the import system is incorrectly configured (such as when a directory inside a package ends up on `sys.path`):
+    推荐绝对 import
     
     ```python
     import mypkg.sibling
@@ -253,6 +272,7 @@ Open source projects with a global audience are encouraged to adopt a similar po
     ```
     
     However, explicit relative imports are an acceptable alternative to absolute imports, especially when dealing with complex package layouts where using absolute imports would be unnecessarily verbose:
+    包组织较复杂时可以接受相对 import
     
     ```python
     from . import sibling
@@ -260,6 +280,7 @@ Open source projects with a global audience are encouraged to adopt a similar po
     ```
     
     Standard library code should avoid complex package layouts and always use absolute imports.
+    标准库应避免复杂组织，使用绝对 import
     
 - When importing a class from a class-containing module, it’s usually okay to spell this:
     
@@ -282,10 +303,9 @@ Open source projects with a global audience are encouraged to adopt a similar po
     When republishing names this way, the guidelines below regarding public and internal interfaces still apply.
     
 
-### [Module Level Dunder Names](https://peps.python.org/pep-0008/#module-level-dunder-names)
+### Module Level Dunder Names
 Module level “dunders” (i.e. names with two leading and two trailing underscores) such as `__all__`, `__author__`, `__version__`, etc. should be placed after the module docstring but before any import statements _except_ `from __future__` imports. Python mandates that future-imports must appear in the module before any other code except docstrings:
-> 模块级别的 dunder 应该在模块 docstring 之后，在 import 语句之前，除了 `from __future__` 的 import
-> `from __future__` 的 import 必须出现在 docstring 之后的第一个位置
+> 模块级别的 dunder 应该在模块 docstring 之后，在 import 语句之前，除了 `from __future__` 的 import，`from __future__` 的 import 必须出现在 docstring 之后的第一个位置
 
 ```python
 """This is the example module.
@@ -303,15 +323,16 @@ import os
 import sys
 ```
 
-## [String Quotes](https://peps.python.org/pep-0008/#string-quotes)
+## String Quotes
 In Python, single-quoted strings and double-quoted strings are the same. This PEP does not make a recommendation for this. Pick a rule and stick to it. When a string contains single or double quote characters, however, use the other one to avoid backslashes in the string. It improves readability.
 
 For triple-quoted strings, always use double quote characters to be consistent with the docstring convention in [PEP 257](https://peps.python.org/pep-0257/ "PEP 257 – Docstring Conventions").
-> 三引号时使用 `"`
+> 三引号时使用 `"` ，保持和 PEP 257 docstring 规范一致
 
-## [Whitespace in Expressions and Statements](https://peps.python.org/pep-0008/#whitespace-in-expressions-and-statements)
-### [Pet Peeves](https://peps.python.org/pep-0008/#pet-peeves)
+## Whitespace in Expressions and Statements
+### Pet Peeves
 Avoid extraneous whitespace in the following situations:
+> 以下情况下避免额外的空格：
 
 - Immediately inside parentheses, brackets or braces:
     
@@ -334,7 +355,7 @@ Avoid extraneous whitespace in the following situations:
     ```
     
 - Immediately before a comma, semicolon, or colon:
-    
+    冒号、分号、逗号之前不要有空格
     ```python
     # Correct:
     if x == 4: print(x, y); x, y = y, x
@@ -344,6 +365,9 @@ Avoid extraneous whitespace in the following situations:
     ```
     
 - However, in a slice the colon acts like a binary operator, and should have equal amounts on either side (treating it as the operator with the lowest priority). In an extended slice, both colons must have the same amount of spacing applied. Exception: when a slice parameter is omitted, the space is omitted:
+    然而，在切片中，冒号的作用像一个二元运算符，应该在两边有相等的数量的空格（将其视为优先级最低的运算符）
+    在扩展切片中，两个冒号必须应用相同数量的间距
+    例外情况：当省略切片参数时，空格也会被省略
     
     ```python
     # Correct:
@@ -394,11 +418,13 @@ Avoid extraneous whitespace in the following situations:
     long_variable = 3
     ```
 
-### [Other Recommendations](https://peps.python.org/pep-0008/#other-recommendations)
+### Other Recommendations
 - Avoid trailing whitespace anywhere. Because it’s usually invisible, it can be confusing: e.g. a backslash followed by a space and a newline does not count as a line continuation marker. Some editors don’t preserve it and many projects (like CPython itself) have pre-commit hooks that reject it.
+>避免在任何地方使用尾随空白字符。因为这些字符通常是看不见的，所以可能会引起混淆：例如，反斜杠后面跟着空格和换行符并不被视为行续行标记。一些编辑器不会保留这些字符，而且许多项目（如CPython本身）都有预提交钩子来拒绝这些字符
 - Always surround these binary operators with a single space on either side: assignment (`=`), augmented assignment (`+=`, `-=` etc.), comparisons (`==`, `<`, `>`, `!=`, `<>`, `<=`, `>=`, `in`, `not in`, `is`, `is not`), Booleans (`and`, `or`, `not`).
+>总是在这些二元运算符的两侧各添加一个空格：赋值运算符（`=`）、增强赋值运算符（`+=`、`-=` 等）、比较运算符（`==`、`<`、`>`、`!=`、`<>`、`<=`、`>=`、`in`、`not in`、`is`、`is not`）、布尔运算符（`and`、`or`、`not`）
 - If operators with different priorities are used, consider adding whitespace around the operators with the lowest priority(ies). Use your own judgment; however, never use more than one space, and always have the same amount of whitespace on both sides of a binary operator:
-    为最低优先级的运算符两边添加空格
+    为最低优先级的运算符两边各添加一个空格
     
     ```python
     # Correct:
@@ -417,7 +443,7 @@ Avoid extraneous whitespace in the following situations:
     ```
     
 - Function annotations should use the normal rules for colons and always have spaces around the `->` arrow if present. (See [Function Annotations](https://peps.python.org/pep-0008/#function-annotations) below for more about function annotations.):
-    
+    函数注释中，`->` 两边各一个空格
     ```python
     # Correct:
     def munge(input: AnyStr): ...
@@ -498,8 +524,10 @@ Avoid extraneous whitespace in the following situations:
     if foo == 'blah': one(); two(); three()
     ```
 
-## [When to Use Trailing Commas](https://peps.python.org/pep-0008/#when-to-use-trailing-commas)
+## When to Use Trailing Commas
 Trailing commas are usually optional, except they are mandatory when making a tuple of one element. For clarity, it is recommended to surround the latter in (technically redundant) parentheses:
+>尾随逗号通常是可选的，除了在创建只有一个元素的元组时，这时它们是强制性的
+>为了清晰起见，建议用括号（从技术上讲是多余的）将这种情况括起来：
 
 ```python
 # Correct:
@@ -510,6 +538,9 @@ FILES = 'setup.cfg',
 ```
 
 When trailing commas are redundant, they are often helpful when a version control system is used, when a list of values, arguments or imported items is expected to be extended over time. The pattern is to put each value (etc.) on a line by itself, always adding a trailing comma, and add the close parenthesis/bracket/brace on the next line. However it does not make sense to have a trailing comma on the same line as the closing delimiter (except in the above case of singleton tuples):
+>当尾随逗号是冗余的时候，如果使用了版本控制系统，并且预计一个值列表、参数列表或导入的项目在未来会被扩展，那么它们通常会有帮助
+>这种做法是将每个值（等）单独放在一行，并始终添加尾随逗号，然后在下一行添加关闭括号/方括号/花括号
+>然而，在关闭定界符的同一行上添加尾随逗号是没有意义的（除非在单例元组的上述情况下）
 
 ```python
 # Correct:
@@ -526,28 +557,33 @@ FILES = ['setup.cfg', 'tox.ini',]
 initialize(FILES, error=True,)
 ```
 
-## [Comments](https://peps.python.org/pep-0008/#comments)
+## Comments
 Comments that contradict the code are worse than no comments. Always make a priority of keeping the comments up-to-date when the code changes!
+>与代码相矛盾的注释比没有注释还要糟糕
+>当代码更改时，始终优先保持注释是最新的
 
 Comments should be complete sentences. The first word should be capitalized, unless it is an identifier that begins with a lower case letter (never alter the case of identifiers!).
-> 注释需要是完整的句子，第一个字母大写
+> 注释需要是完整的句子，第一个字母大写，除非是用以小写字母开头的 identifier 作为句子第一个单词
 
 Block comments generally consist of one or more paragraphs built out of complete sentences, with each sentence ending in a period.
 > block comment  一般是成段的
 
 You should use one or two spaces after a sentence-ending period in multi-sentence comments, except after the final sentence.
+>在多句注释中，句末的句点后应使用一到两个空格，但最终句子之后不应使用
 
 Ensure that your comments are clear and easily understandable to other speakers of the language you are writing in.
 
 Python coders from non-English speaking countries: please write your comments in English, unless you are 120% sure that the code will never be read by people who don’t speak your language.
 
-### [Block Comments](https://peps.python.org/pep-0008/#block-comments)
+### Block Comments
 Block comments generally apply to some (or all) code that follows them, and are indented to the same level as that code. Each line of a block comment starts with a `#` and a single space (unless it is indented text inside the comment).
+>块注释通常适用于其后的某些（或全部）代码，并且缩进到与该代码相同的级别
+>块注释的每一行以 `#` 和一个空格开始（除非注释中的文本已缩进）
 
 Paragraphs inside a block comment are separated by a line containing a single `#`.
 > block comment 以一个 `# ` 的空行分离段落
 
-### [Inline Comments](https://peps.python.org/pep-0008/#inline-comments)
+### Inline Comments
 Use inline comments sparingly.
 > 不要密集使用 inline comment
 
@@ -566,7 +602,7 @@ But sometimes, this is useful:
 x = x + 1                 # Compensate for border
 ```
 
-### [Documentation Strings](https://peps.python.org/pep-0008/#documentation-strings)
+### Documentation Strings
 Conventions for writing good documentation strings (a.k.a. “docstrings”) are immortalized in [PEP 257](https://peps.python.org/pep-0257/ "PEP 257 – Docstring Conventions").
 
 - Write docstrings for all public modules, functions, classes, and methods. Docstrings are not necessary for non-public methods, but you should have a comment that describes what the method does. This comment should appear after the `def` line.
@@ -574,6 +610,7 @@ Conventions for writing good documentation strings (a.k.a. “docstrings”) are
 > 非公有方法则不是必须，但需要有注释描述其目的，注释在 `def` 下一行
 
 - [PEP 257](https://peps.python.org/pep-0257/ "PEP 257 – Docstring Conventions") describes good docstring conventions. Note that most importantly, the `"""` that ends a multiline docstring should be on a line by itself:
+    结束 docstring 的 `"""` 应该自成一行
     
     ```python
     """Return a foobang
@@ -583,22 +620,23 @@ Conventions for writing good documentation strings (a.k.a. “docstrings”) are
     ```
     
 - For one liner docstrings, please keep the closing `"""` on the same line:
-    
+    单行的 docstring 则保持 `"""` 在同一行
     ```python
     """Return an ex-parrot."""
     ```
 
-## [Naming Conventions](https://peps.python.org/pep-0008/#naming-conventions)
+## Naming Conventions
 The naming conventions of Python’s library are a bit of a mess, so we’ll never get this completely consistent – nevertheless, here are the currently recommended naming standards. New modules and packages (including third party frameworks) should be written to these standards, but where an existing library has a different style, internal consistency is preferred.
 
-### [Overriding Principle](https://peps.python.org/pep-0008/#overriding-principle)
+### Overriding Principle
 Names that are visible to the user as public parts of the API should follow conventions that reflect usage rather than implementation.
 > 作为 API 的公有部分展现给用户的名字应该遵循反映其用法的命名，而不是反映其实现
 
-### [Descriptive: Naming Styles](https://peps.python.org/pep-0008/#descriptive-naming-styles)
+### Descriptive: Naming Styles
 There are a lot of different naming styles. It helps to be able to recognize what naming style is being used, independently from what they are used for.
 
 The following naming styles are commonly distinguished:
+>以下是一些常见的命名风格区分：
 
 - `b` (single lowercase letter)
 - `B` (single uppercase letter)
@@ -609,88 +647,111 @@ The following naming styles are commonly distinguished:
 - `CapitalizedWords` (or CapWords, or CamelCase – so named because of the bumpy look of its letters [4](https://peps.python.org/pep-0008/#id8)). This is also sometimes known as StudlyCaps.
     
     Note: When using acronyms in CapWords, capitalize all the letters of the acronym. Thus HTTPServerError is better than HttpServerError.
-    CamelCase 中的缩略词需要全大写，例如 `HTTPServerError`
+    CamelCase 中的缩略词需要全大写，例如 `HTTPServerError` 而不是 `HttpServerError`
     
 - `mixedCase` (differs from CapitalizedWords by initial lowercase character!)
 - `Capitalized_Words_With_Underscores` (ugly!)
 
 There’s also the style of using a short unique prefix to group related names together. This is not used much in Python, but it is mentioned for completeness. For example, the `os.stat()` function returns a tuple whose items traditionally have names like `st_mode`, `st_size`, `st_mtime` and so on. (This is done to emphasize the correspondence with the fields of the POSIX system call struct, which helps programmers familiar with that.)
+>还有一种命名风格是使用短且唯一的前缀来将相关名称分组，这在 Python 中不常用，但为了完整性而提到它
+>例如，`os.stat()` 函数返回一个元组，该元组的项传统上命名为 `st_mode`、`st_size`、`st_mtime` 等（这样做是为了强调与 POSIX 系统调用结构字段的对应关系，这有助于熟悉该结构的程序员）
 
 The X11 library uses a leading X for all its public functions. In Python, this style is generally deemed unnecessary because attribute and method names are prefixed with an object, and function names are prefixed with a module name.
+>X11 库在其所有公共函数名前都使用 `X` 前缀
+>在 Python 中，由于属性和方法名已由对象前缀，函数名由模块名前缀，因此认为这种风格通常是不必要的
 
 In addition, the following special forms using leading or trailing underscores are recognized (these can generally be combined with any case convention):
+>此外，以下几种使用前导或后置下划线的特殊形式也被认可（这些通常可以与任何命名约定结合使用）
 
 - `_single_leading_underscore`: weak “internal use” indicator. E.g. `from M import *` does not import objects whose names start with an underscore.
+> `_single_leading_underscore` : 弱的“内部使用”指示符
+> 例如，` from M import *` 不会导入名称以下划线开头的对象
+
 - `single_trailing_underscore_`: used by convention to avoid conflicts with Python keyword, e.g. :
-    
-    tkinter.Toplevel(master, class_='ClassName')
-    
+> `single_trailing_underscore_` 通常用来避免与 Python 关键字冲突，例如：
+
+```python
+tkinter.Toplevel(master, class_='ClassName')
+```
+
 - `__double_leading_underscore`: when naming a class attribute, invokes name mangling (inside class FooBar, `__boo` becomes `_FooBar__boo`; see below).
+> `__double_leading_underscore` : 以这种方式命名类属性时，会触发名称改写 (例如在类 `FooBar` 中，`__boo` 变为 `_FooBar__boo`；参见下方说明)
+
 - `__double_leading_and_trailing_underscore__`: “magic” objects or attributes that live in user-controlled namespaces. E.g. `__init__`, `__import__` or `__file__`. Never invent such names; only use them as documented.
+> `__double_leading_and_trailing_underscore__`: 用于命名存在于用户控制的命名空间中的“魔法”对象或属性
+> 例如，`__init__`、`__import__` 或 `__file__`
+> 不要发明这样的名字，只按文档要求使用它们
 
-### [Prescriptive: Naming Conventions](https://peps.python.org/pep-0008/#prescriptive-naming-conventions)
-
-#### [Names to Avoid](https://peps.python.org/pep-0008/#names-to-avoid)
-
+### Prescriptive: Naming Conventions
+#### Names to Avoid
 Never use the characters ‘l’ (lowercase letter el), ‘O’ (uppercase letter oh), or ‘I’ (uppercase letter eye) as single character variable names.
 
 In some fonts, these characters are indistinguishable from the numerals one and zero. When tempted to use ‘l’, use ‘L’ instead.
+> 永远不要使用 `l` ，`O` ，`I` 作为单字符变量名，因为在一些字体中 `l/I` 和 `O/0` 会难以区分
 
-#### [ASCII Compatibility](https://peps.python.org/pep-0008/#ascii-compatibility)
-
+#### ASCII Compatibility
 Identifiers used in the standard library must be ASCII compatible as described in the [policy section](https://peps.python.org/pep-3131/#policy-specification "PEP 3131 – Supporting Non-ASCII Identifiers § Policy Specification") of [PEP 3131](https://peps.python.org/pep-3131/ "PEP 3131 – Supporting Non-ASCII Identifiers").
+> 标准库 identifier 必须使用 ASCII 字符
 
-#### [Package and Module Names](https://peps.python.org/pep-0008/#package-and-module-names)
-
+#### Package and Module Names
 Modules should have short, all-lowercase names. Underscores can be used in the module name if it improves readability. Python packages should also have short, all-lowercase names, although the use of underscores is discouraged.
+>模块名应该有简短且全小写，如果下划线能提高可读性，可以在模块名中使用下划线
+>尽管不鼓励使用下划线，但 Python 包也应该有简短且全小写的名字
 
 When an extension module written in C or C++ has an accompanying Python module that provides a higher level (e.g. more object oriented) interface, the C/C++ module has a leading underscore (e.g. `_socket`).
+>当用 C 或 C++ 编写的扩展模块有一个对应的 Python 模块提供更高级别接口 (例如，更面向对象的接口)，C/C++ 模块的名称前应带一个下划线 (例如，`_socket` )
 
-#### [Class Names](https://peps.python.org/pep-0008/#class-names)
-
+#### Class Names
 Class names should normally use the CapWords convention.
+> 类名使用 `CapsWords` 规范
 
 The naming convention for functions may be used instead in cases where the interface is documented and used primarily as a callable.
+>当该类主要作为可调用对象被使用，并且已经在文档中记录了该接口时，类名可以使用函数的命名约定
 
 Note that there is a separate convention for builtin names: most builtin names are single words (or two words run together), with the CapWords convention used only for exception names and builtin constants.
+>需要注意的是，内建名称遵循一套单独的约定：大多数内建名称是单个单词 (或者两个单词连在一起)
+>只有异常名称和内建常量使用 CapWords 命名约定
 
-#### [Type Variable Names](https://peps.python.org/pep-0008/#type-variable-names)
-
+#### Type Variable Names
 Names of type variables introduced in [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") should normally use CapWords preferring short names: `T`, `AnyStr`, `Num`. It is recommended to add suffixes `_co` or `_contra` to the variables used to declare covariant or contravariant behavior correspondingly:
+> PEP 484 引入的类型变量的名称应该使用 CapWords，并且偏好短的名称，例如 `T/AnyStr/Num`
+> 建议在用于声明协变或逆变行为的变量后添加后缀 `_co` 或 `_contra`
 
+```python
 from typing import TypeVar
 
 VT_co = TypeVar('VT_co', covariant=True)
 KT_contra = TypeVar('KT_contra', contravariant=True)
+```
 
-#### [Exception Names](https://peps.python.org/pep-0008/#exception-names)
-
+#### Exception Names
 Because exceptions should be classes, the class naming convention applies here. However, you should use the suffix “Error” on your exception names (if the exception actually is an error).
+> 异常应该是类，故异常命名遵循类名规范
+> 以及异常名应该有 `Error` 后缀
 
-#### [Global Variable Names](https://peps.python.org/pep-0008/#global-variable-names)
-
+#### Global Variable Names
 (Let’s hope that these variables are meant for use inside one module only.) The conventions are about the same as those for functions.
+> 全局变量应该仅在单个模块内使用
+> 全局变量的命名规则和函数命名规则相同
 
 Modules that are designed for use via `from M import *` should use the `__all__` mechanism to prevent exporting globals, or use the older convention of prefixing such globals with an underscore (which you might want to do to indicate these globals are “module non-public”).
+> 设计为会被通过 `from M import *` 使用的模块应该使用 `__all__` 来避免导出全局变量，或者使用更老的规范，即为不希望被导出的全局变量名称添加前缀下划线
 
-#### [Function and Variable Names](https://peps.python.org/pep-0008/#function-and-variable-names)
-
+#### Function and Variable Names
 Function names should be lowercase, with words separated by underscores as necessary to improve readability.
 
 Variable names follow the same convention as function names.
 
 mixedCase is allowed only in contexts where that’s already the prevailing style (e.g. threading.py), to retain backwards compatibility.
 
-#### [Function and Method Arguments](https://peps.python.org/pep-0008/#function-and-method-arguments)
-
+#### Function and Method Arguments
 Always use `self` for the first argument to instance methods.
 
 Always use `cls` for the first argument to class methods.
 
 If a function argument’s name clashes with a reserved keyword, it is generally better to append a single trailing underscore rather than use an abbreviation or spelling corruption. Thus `class_` is better than `clss`. (Perhaps better is to avoid such clashes by using a synonym.)
 
-#### [Method Names and Instance Variables](https://peps.python.org/pep-0008/#method-names-and-instance-variables)
-
+#### Method Names and Instance Variables
 Use the function naming rules: lowercase with words separated by underscores as necessary to improve readability.
 
 Use one leading underscore only for non-public methods and instance variables.
