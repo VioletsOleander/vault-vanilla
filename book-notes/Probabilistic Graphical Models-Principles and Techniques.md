@@ -6743,7 +6743,6 @@ Assume that, for each clique $i$ , $\beta_{i}$ is computed as in the algorithm o
 $$
 \beta_{i}(C_{i})=\sum_{\mathcal{X}-C_{i}}\tilde{P}_{\Phi}(\mathcal{X}).
 $$ 
-
 Note that it is important that $C_{i}$ compute the message to a neighboring clique $C_{j}$ based on its initial potential $\psi_{i}$ and not its modiﬁed potential $\beta_{i}$ . The latter already integrates information from $j$ . If the message were computed based on this latter potential, we would be double-counting the factors assigned to $C_{j}$ (multiplying them twice into the joint). 
 
 When this process concludes, each clique contains the marginal (unnormalized) probability over the variables in its scope. As we discussed, we can compute the marginal probability over a particular variable $X$ by selecting a clique whose scope contains $X$ , and eliminating the redundant variables in the clique. A key point is that the result of this process does not depend on the clique we selected. That is, if $X$ appears in two cliques, they must agree on its marginal. 
@@ -6757,7 +6756,6 @@ Two adjacent cliques $C_{i}$ and $C_{j}$ are said to be calibrated if
 $$
 \sum_{C_{i}-S_{i,j}}\beta_{i}(C_{i})=\sum_{C_{j}-S_{i,j}}\beta_{j}(C_{j}).
 $$ 
-
 A clique tree $\mathcal{T}$ is calibrated if all pairs of adjacent cliques are calibrated. For a calibrated clique tree, we use the term clique beliefs for $\beta_{i}(C_{i})$ and sepset beliefs for 
 
 $$
