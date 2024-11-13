@@ -84,6 +84,8 @@ This document is organized into the following sections:
 - [CUDA Environment Variables](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars) lists all the CUDA environment variables.
 - [Unified Memory Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-unified-memory-programming-hd) introduces the Unified Memory programming model.
 
+---
+
 [1](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#id2) The _graphics_ qualifier comes from the fact that when the GPU was originally created, two decades ago, it was designed as a specialized processor to accelerate graphics rendering. Driven by the insatiable market demand for real-time, high-definition, 3D graphics, it has evolved into a general processor used for many more workloads than just graphics rendering.
 # 2. Programming Model
 This chapter introduces the main concepts behind the CUDA programming model by outlining how they are exposed in C++.
@@ -131,8 +133,8 @@ For convenience, `threadIdx` is a 3-component vector, so that threads can be i
 The index of a thread and its thread ID relate to each other in a straightforward way: For a one-dimensional block, they are the same; for a two-dimensional block of size _(Dx, Dy)_, the thread ID of a thread of index _(x, y)_ is _(x + y Dx)_; for a three-dimensional block of size _(Dx, Dy, Dz)_, the thread ID of a thread of index _(x, y, z)_ is _(x + y Dx + z Dx Dy)_.
 > thread ID 和 thread 索引的关系：
 > 对于一维 thread block，二者相等
-> 对于二维 thread block of size (Dx, Dy)，索引为 (x, y) 的 thread 的 ID 为 (x + y Dx)
-> 对于三维 thread block of size (Dx, Dy, Dz)，索引为 (x, y, z) 的 thread 的 ID 为 (x + y Dx + z Dx Dy)
+> 对于二维 thread block of size (Dx, Dy)，索引为 (x, y) 的 thread 的 ID 为 (x + y Dx)，即 x 为列索引 (横向)，y 为行索引 (纵向)
+> 对于三维 thread block of size (Dx, Dy, Dz)，索引为 (x, y, z) 的 thread 的 ID 为 (x + y Dx + z Dx Dy)，即 x 为二维块中的列索引，y 为二维块中的行索引，z 为二维块的索引
 
 As an example, the following code adds two matrices _A_ and _B_ of size _NxN_ and stores the result into matrix _C_:
 
@@ -158,21 +160,30 @@ int main()
 ```
 
 There is a limit to the number of threads per block, since all threads of a block are expected to reside on the same streaming multiprocessor core and must share the limited memory resources of that core. On current GPUs, a thread block may contain up to 1024 threads.
+> SM 以 thread block 为单位进行调度，因此一个 thread block 内的所有线程都会驻留在相同的 SM 核心上，共享该核心的内存资源
+> 因此每个 thread block 的 thread 数量存在上限，目前被设定为 1024 threads
 
 However, a kernel can be executed by multiple equally-shaped thread blocks, so that the total number of threads is equal to the number of threads per block times the number of blocks.
+> kernel 可以被多个相同形状的 thread block 同时执行
+> 因此同时执行 kernel 的 thread 数量等于每个 thread block 内 thread 的数量乘以 thread block 的数量
 
 Blocks are organized into a one-dimensional, two-dimensional, or three-dimensional _grid_ of thread blocks as illustrated by [Figure 4](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#thread-hierarchy-grid-of-thread-blocks). The number of thread blocks in a grid is usually dictated by the size of the data being processed, which typically exceeds the number of processors in the system.
+> thread block 可以是一维、二维、三维的 thread 组合
+> grid 则可以是一维、二维、三维的 thread block 组合
+> 一般 grid 的形状、大小具体根据需要处理的数据决定，整个 grid 包含的 thread block 数量一般也会超过 GPU 总的 SM 数量
 
 [![Grid of Thread Blocks](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/grid-of-thread-blocks.png)](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/grid-of-thread-blocks.png)
-
 Figure 4 Grid of Thread Blocks
 
 The number of threads per block and the number of blocks per grid specified in the `<<<...>>>` syntax can be of type `int` or `dim3`. Two-dimensional blocks or grids can be specified as in the example above.
+> `<<<...>>>` 语法中指定的 grid 形状和 thread block 形状的类型可以是 `int` 或 `dim3`
 
 Each block within the grid can be identified by a one-dimensional, two-dimensional, or three-dimensional unique index accessible within the kernel through the built-in `blockIdx` variable. The dimension of the thread block is accessible within the kernel through the built-in `blockDim` variable.
+> 在 kernel 中，grid 内的 block 索引通过内建变量 `blockIdx` 访问，block 自身的维度通过内建变量 `blockDim` 访问
 
 Extending the previous `MatAdd()` example to handle multiple blocks, the code becomes as follows.
 
+```cpp
 // Kernel definition
 __global__ void MatAdd(float A[N][N], float B[N][N],
 float C[N][N])
@@ -192,31 +203,52 @@ int main()
     MatAdd<<<numBlocks, threadsPerBlock>>>(A, B, C);
     ...
 }
+```
 
 A thread block size of 16x16 (256 threads), although arbitrary in this case, is a common choice. The grid is created with enough blocks to have one thread per matrix element as before. For simplicity, this example assumes that the number of threads per grid in each dimension is evenly divisible by the number of threads per block in that dimension, although that need not be the case.
+> 本例中，每个 thread 处理一个矩阵元素，将矩阵划分为 grid of thread blocks
 
 Thread blocks are required to execute independently: It must be possible to execute them in any order, in parallel or in series. This independence requirement allows thread blocks to be scheduled in any order across any number of cores as illustrated by [Figure 3](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#scalable-programming-model-automatic-scalability), enabling programmers to write code that scales with the number of cores.
+> thread blocks 需要能够独立执行，也就是可以按照任意顺序执行
+> 因此 thread blocks 可以在任意数量的核心上被按照任意顺序被调度，故程序可以随着核心的数量而扩展
 
 Threads within a block can cooperate by sharing data through some _shared memory_ and by synchronizing their execution to coordinate memory accesses. More precisely, one can specify synchronization points in the kernel by calling the `__syncthreads()` intrinsic function; `__syncthreads()` acts as a barrier at which all threads in the block must wait before any is allowed to proceed. [Shared Memory](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory) gives an example of using shared memory. In addition to `__syncthreads()`, the [Cooperative Groups API](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cooperative-groups) provides a rich set of thread-synchronization primitives.
+> thread block 内的 threads 可以通过 shared memory 共享数据，而 thread 之间的内存访问需要进行同步和协调
+> kernel 中，内置函数 `__syncthreads()` 的功能就是同步 thread block 内的所有线程
 
 For efficient cooperation, the shared memory is expected to be a low-latency memory near each processor core (much like an L1 cache) and `__syncthreads()` is expected to be lightweight.
 
 ### 2.2.1. Thread Block Clusters
-
 With the introduction of NVIDIA [Compute Capability 9.0](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capability-9-0), the CUDA programming model introduces an optional level of hierarchy called Thread Block Clusters that are made up of thread blocks. Similar to how threads in a thread block are guaranteed to be co-scheduled on a streaming multiprocessor, thread blocks in a cluster are also guaranteed to be co-scheduled on a GPU Processing Cluster (GPC) in the GPU.
+> Compute Capability 9.0 之后，CUDA 开始支持一层新的结构层次，即 thread block cluster
+> thread block 内的 threads 一定会被一起调度到同一个流式多处理器上
+> thread block cluster 内的 thread blocks 一定会被一起调度到同一个 GPU Processing Cluster 上
 
 Similar to thread blocks, clusters are also organized into a one-dimension, two-dimension, or three-dimension as illustrated by [Grid of Thread Block Clusters](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#thread-block-clusters-grid-of-clusters). The number of thread blocks in a cluster can be user-defined, and a maximum of 8 thread blocks in a cluster is supported as a portable cluster size in CUDA. Note that on GPU hardware or MIG configurations which are too small to support 8 multiprocessors the maximum cluster size will be reduced accordingly. Identification of these smaller configurations, as well as of larger configurations supporting a thread block cluster size beyond 8, is architecture-specific and can be queried using the `cudaOccupancyMaxPotentialClusterSize` API.
+> thread block cluster 的形状也可以是一维、二维、三维的
+> cluster 内的 thread block 数量由用户定义，在可移植的 CUDA 程序中最大为 8
+> 如果 GPU 对 cluster 支持的最多 SM 数量小于 8，则会相应减少
 
 [![Grid of Thread Block Clusters](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/grid-of-clusters.png)](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/grid-of-clusters.png)
 
 Figure 5 Grid of Thread Block Clusters
 
 Note
-
 In a kernel launched using cluster support, the gridDim variable still denotes the size in terms of number of thread blocks, for compatibility purposes. The rank of a block in a cluster can be found using the [Cluster Group](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cluster-group-cg) API.
+> 注意
+> 使用了 thread block cluster 不会改变变量 gridDim 的语义，也就是仍然表示 grid 中各维度 thread blocks 的数量
+> thread block 在 cluster 内的 rank 则通过 Cluster Group API 获取
 
-A thread block cluster can be enabled in a kernel either using a compiler time kernel attribute using `__cluster_dims__(X,Y,Z)` or using the CUDA kernel launch API `cudaLaunchKernelEx`. The example below shows how to launch a cluster using compiler time kernel attribute. The cluster size using kernel attribute is fixed at compile time and then the kernel can be launched using the classical `<<< , >>>`. If a kernel uses compile-time cluster size, the cluster size cannot be modified when launching the kernel.
+A thread block cluster can be enabled in a kernel either using a compiler time kernel attribute using `__cluster_dims__(X,Y,Z)` or using the CUDA kernel launch API `cudaLaunchKernelEx`. 
+> thread block cluster 可以通过以下两种方式启用：
+> 编译时 kernel 属性 `__cluster__dims__(X,Y,Z)`
+> CUDA kernel launch API `cudaLaunchKernelEx`
 
+The example below shows how to launch a cluster using compiler time kernel attribute. The cluster size using kernel attribute is fixed at compile time and then the kernel can be launched using the classical `<<< , >>>`. If a kernel uses compile-time cluster size, the cluster size cannot be modified when launching the kernel.
+> 使用 kernel attribute `__cluster__dims__(X,Y,Z)` 时，cluster 形状需要在编译时确定，在运行时发起 kernel 时，无法修改编译时确定的 cluster 形状
+> 被 `__cluster__dims__(X,Y,Z)` 修饰的 kernel 仍然可以通过经典的 `<<<,>>>` 语法发起，一个额外的要求是 gridDim 需要时 cluster size 的整数倍
+
+```cpp
 // Kernel definition
 // Compile time cluster size 2 in X-dimension and 1 in Y and Z dimension
 __global__ void __cluster_dims__(2, 1, 1) cluster_kernel(float *input, float* output)
@@ -236,9 +268,12 @@ int main()
     // The grid dimension must be a multiple of cluster size.
     cluster_kernel<<<numBlocks, threadsPerBlock>>>(input, output);
 }
+```
 
 A thread block cluster size can also be set at runtime and the kernel can be launched using the CUDA kernel launch API `cudaLaunchKernelEx`. The code example below shows how to launch a cluster kernel using the extensible API.
+> 未使用 `__cluster_dims__(X,Y,Z)` 属性修饰的 kernel 可以通过 CUDA kernel launch API 在运行时设定 cluster size
 
+```cpp
 // Kernel definition
 // No compile time attribute attached to the kernel
 __global__ void cluster_kernel(float *input, float* output)
@@ -272,84 +307,128 @@ int main()
         cudaLaunchKernelEx(&config, cluster_kernel, input, output);
     }
 }
+```
 
 In GPUs with compute capability 9.0, all the thread blocks in the cluster are guaranteed to be co-scheduled on a single GPU Processing Cluster (GPC) and allow thread blocks in the cluster to perform hardware-supported synchronization using the [Cluster Group](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cluster-group-cg) API `cluster.sync()`. Cluster group also provides member functions to query cluster group size in terms of number of threads or number of blocks using `num_threads()` and `num_blocks()` API respectively. The rank of a thread or block in the cluster group can be queried using `dim_threads()` and `dim_blocks()` API respectively.
+> cluster 内的所有 thread blocks 一定会被共同调度到同一个 GPU 处理簇上，并且 cluster 内的所有 thread blocks 可以通过 `cluster.sync()` 同步
+> `num_threads()` 和 `num_blocks()` 分别用于查询 cluster 内的 thread 数量和 thread block 数量
+> `dim_thread()` 和 `dim_blocks()` 分别用于查询当前 thread 和 thread block 在 cluster 内的 rank
 
 Thread blocks that belong to a cluster have access to the Distributed Shared Memory. Thread blocks in a cluster have the ability to read, write, and perform atomics to any address in the distributed shared memory. [Distributed Shared Memory](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#distributed-shared-memory) gives an example of performing histograms in distributed shared memory.
+> 属于同一个 cluster 的 thread blocks 可以访问分布式 shared memory，即各个 thread block 的 shared memory
 
 ## 2.3. Memory Hierarchy
-
 CUDA threads may access data from multiple memory spaces during their execution as illustrated by [Figure 6](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#memory-hierarchy-memory-hierarchy-figure). Each thread has private local memory. Each thread block has shared memory visible to all threads of the block and with the same lifetime as the block. Thread blocks in a thread block cluster can perform read, write, and atomics operations on each other’s shared memory. All threads have access to the same global memory.
+> CUDA thread 在执行时可以访问多层次的存储空间，见 Figure 6
+> 每个 thread 可以访问：
+> thread 级别的 local memory
+> thread block 级别的 shared memory
+> thread block cluster 级别的 distributed shared memory
+> grid 级别的 global memory
 
 There are also two additional read-only memory spaces accessible by all threads: the constant and texture memory spaces. The global, constant, and texture memory spaces are optimized for different memory usages (see [Device Memory Accesses](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-memory-accesses)). Texture memory also offers different addressing modes, as well as data filtering, for some specific data formats (see [Texture and Surface Memory](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#texture-and-surface-memory)).
+> 所有的 thread 还可以访问只读的 constant memory 和 texture memory 空间
+> global、constant、texture memory 空间各自为不同的访存模式做出了优化
+> texture memory 还提供了不同的寻址模式，以及针对特定数据格式的数据过滤
 
 The global, constant, and texture memory spaces are persistent across kernel launches by the same application.
+> global, constant, texture memory 空间的声明周期和 kernel launch 相同
 
 ![Memory Hierarchy](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/memory-hierarchy.png)
 
 Figure 6 Memory Hierarchy
 
 ## 2.4. Heterogeneous Programming
-
 As illustrated by [Figure 7](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#heterogeneous-programming-heterogeneous-programming), the CUDA programming model assumes that the CUDA threads execute on a physically separate _device_ that operates as a coprocessor to the _host_ running the C++ program. This is the case, for example, when the kernels execute on a GPU and the rest of the C++ program executes on a CPU.
+> Figure 7 展示了 CUDA 编程模型假设了 CUDA threads 在执行时所处于的物理设备是和执行 C++ 程序的主机分离的
+> 例如，kernel 在 GPU 上执行，剩余的 C++ 程序在 CPU 上执行
 
 The CUDA programming model also assumes that both the host and the device maintain their own separate memory spaces in DRAM, referred to as _host memory_ and _device memory_, respectively. Therefore, a program manages the global, constant, and texture memory spaces visible to kernels through calls to the CUDA runtime (described in [Programming Interface](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-interface)). This includes device memory allocation and deallocation as well as data transfer between host and device memory.
+> CUDA 编程模型同时假设主机和设备各自维护分离的 DRAM 存储空间
+> 因此，程序需要通过对 CUDA runtime 的调用来管理对于 kernel 可见的 global, constant, texture memory 空间，包括设备内存的分配与释放以及主机和设备内存之间的传输
 
 Unified Memory provides _managed memory_ to bridge the host and device memory spaces. Managed memory is accessible from all CPUs and GPUs in the system as a single, coherent memory image with a common address space. This capability enables oversubscription of device memory and can greatly simplify the task of porting applications by eliminating the need to explicitly mirror data on host and device. See [Unified Memory Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-unified-memory-programming-hd) for an introduction to Unified Memory.
+>统一内存提供了“托管内存”以连接主机和设备内存空间
+>托管内存提供了一个具有公共地址空间的单一、一致的内存映像，可以被系统中的所有CPU和GPU访问，该功能允许设备内存的超额订阅，并且通过消除了显式地在主机和设备上镜像数据的需求来显著简化了将应用程序移植的任务
 
 ![Heterogeneous Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/_images/heterogeneous-programming.png)
 
 Figure 7 Heterogeneous Programming
 
 Note
-
 Serial code executes on the host while parallel code executes on the device.
 
 ## 2.5. Asynchronous SIMT Programming Model
-
 In the CUDA programming model a thread is the lowest level of abstraction for doing a computation or a memory operation. Starting with devices based on the NVIDIA Ampere GPU architecture, the CUDA programming model provides acceleration to memory operations via the asynchronous programming model. The asynchronous programming model defines the behavior of asynchronous operations with respect to CUDA threads.
+> CUDA 编程模型中，thread 是执行计算或内存操作的最低抽象层次
+> Ampere 架构开始，CUDA 编程模型通过异步编程模型提供了对内存操作的加速
+> 异步编程模型定义了 CUDA thread 的异步操作行为
 
 The asynchronous programming model defines the behavior of [Asynchronous Barrier](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#aw-barrier) for synchronization between CUDA threads. The model also explains and defines how [cuda::memcpy_async](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#asynchronous-data-copies) can be used to move data asynchronously from global memory while computing in the GPU.
+> 异步编程模型还定义了用于同步 CUDA threads 的异步屏障
+> 异步编程模型还定义了可以如何使用 `cuda::memcpy_async` 来在 GPU 执行计算的同时异步从 global memory 中移动数据
 
 ### 2.5.1. Asynchronous Operations
-
 An asynchronous operation is defined as an operation that is initiated by a CUDA thread and is executed asynchronously as-if by another thread. In a well formed program one or more CUDA threads synchronize with the asynchronous operation. The CUDA thread that initiated the asynchronous operation is not required to be among the synchronizing threads.
+> 异步操作的定义为由一个 CUDA thread 发起的操作，该操作可以被视为似乎是由另一个 thread 异步执行的
+> 在结构良好的程序中，一个或者多个 CUDA threads 需要和异步操作同步，发起异步操作的 CUDA thread 并不要求一定要参与同步
 
 Such an asynchronous thread (an as-if thread) is always associated with the CUDA thread that initiated the asynchronous operation. An asynchronous operation uses a synchronization object to synchronize the completion of the operation. Such a synchronization object can be explicitly managed by a user (e.g., `cuda::memcpy_async`) or implicitly managed within a library (e.g., `cooperative_groups::memcpy_async`).
+> 发起异步操作的 CUDA thread 总是和一个异步 thread (似乎在执行操作的 thread) 关联
+> 异步操作使用同步对象来同步操作的完成，这类同步对象可以被用户显式管理 (例如 `cuda::memcpy_async` ) 或者在库中被隐式管理 (例如 `cooperative_groups::memcpy_async`)
 
 A synchronization object could be a `cuda::barrier` or a `cuda::pipeline`. These objects are explained in detail in [Asynchronous Barrier](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#aw-barrier) and [Asynchronous Data Copies using cuda::pipeline](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#asynchronous-data-copies). These synchronization objects can be used at different thread scopes. A scope defines the set of threads that may use the synchronization object to synchronize with the asynchronous operation. The following table defines the thread scopes available in CUDA C++ and the threads that can be synchronized with each.
+> 同步对象可以是 `cuda::barrier` 或 `cuda::pipeline`
+> 这些同步对象可以在不同的 thread 范围内使用，thread 范围定义了可以使用同步对象和异步操作进行同步的一组 threads
+> CUDA 目前提供的可以同步的 thread 范围如下表所示
 
-|Thread Scope|Description|
-|---|---|
-|`cuda::thread_scope::thread_scope_thread`|Only the CUDA thread which initiated asynchronous operations synchronizes.|
-|`cuda::thread_scope::thread_scope_block`|All or any CUDA threads within the same thread block as the initiating thread synchronizes.|
-|`cuda::thread_scope::thread_scope_device`|All or any CUDA threads in the same GPU device as the initiating thread synchronizes.|
-|`cuda::thread_scope::thread_scope_system`|All or any CUDA or CPU threads in the same system as the initiating thread synchronizes.|
+| Thread Scope                              | Description                                                                                 |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `cuda::thread_scope::thread_scope_thread` | Only the CUDA thread which initiated asynchronous operations synchronizes.                  |
+| `cuda::thread_scope::thread_scope_block`  | All or any CUDA threads within the same thread block as the initiating thread synchronizes. |
+| `cuda::thread_scope::thread_scope_device` | All or any CUDA threads in the same GPU device as the initiating thread synchronizes.       |
+| `cuda::thread_scope::thread_scope_system` | All or any CUDA or CPU threads in the same system as the initiating thread synchronizes.    |
 
 These thread scopes are implemented as extensions to standard C++ in the [CUDA Standard C++](https://nvidia.github.io/libcudacxx/extended_api/memory_model.html#thread-scopes) library.
+> 这些 thread 范围在 CUDA 标准 C++ 库中被实现，作为标准 C++ 的拓展
 
 ## 2.6. Compute Capability
-
 The _compute capability_ of a device is represented by a version number, also sometimes called its “SM version”. This version number identifies the features supported by the GPU hardware and is used by applications at runtime to determine which hardware features and/or instructions are available on the present GPU.
+> 设备的 compute capability 由版本号表示，或者称为 SM 版本
+> 该版本号标识了 GPU 硬件支持的特性，应用在运行时使用版本号来确定当前的 GPU 硬件特征和支持的指令
 
 The compute capability comprises a major revision number _X_ and a minor revision number _Y_ and is denoted by _X.Y_.
+> compute capability 包括主版本号和子版本号，记作 X.Y
 
 Devices with the same major revision number are of the same core architecture. The major revision number is 9 for devices based on the _NVIDIA Hopper GPU_ architecture, 8 for devices based on the _NVIDIA Ampere GPU_ architecture, 7 for devices based on the _Volta_ architecture, 6 for devices based on the _Pascal_ architecture, 5 for devices based on the _Maxwell_ architecture, and 3 for devices based on the _Kepler_ architecture.
+> 相同主版本号的设备有相同的核心架构
+> 各架构的主版本号如下：
+> Hopper - 9
+> Ampere - 8
+> Volta - 7
+> Pascal - 6
+> Maxwell - 5
+> Kepler - 3
 
 The minor revision number corresponds to an incremental improvement to the core architecture, possibly including new features.
+> 子版本号对应于对核心架构的增量式提升，可能会带有新特性
 
 _Turing_ is the architecture for devices of compute capability 7.5, and is an incremental update based on the _Volta_ architecture.
+> 版本号为 7.5 的架构为 Turing 架构，该架构是 Volta 架构的增量更新
 
 [CUDA-Enabled GPUs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-enabled-gpus) lists of all CUDA-enabled devices along with their compute capability. [Compute Capabilities](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities) gives the technical specifications of each compute capability.
 
 Note
-
 The compute capability version of a particular GPU should not be confused with the CUDA version (for example, CUDA 7.5, CUDA 8, CUDA 9), which is the version of the CUDA _software platform_. The CUDA platform is used by application developers to create applications that run on many generations of GPU architectures, including future GPU architectures yet to be invented. While new versions of the CUDA platform often add native support for a new GPU architecture by supporting the compute capability version of that architecture, new versions of the CUDA platform typically also include software features that are independent of hardware generation.
+> 注意
+> 设备的 compute capability 不应该和 CUDA 版本混淆
+> CUDA 版本是指 CUDA 软件平台的版本，开发者使用 CUDA 平台开发可以运行于多个版本的设备上的程序，包括了未来版本的设备
+> 新版本的 CUDA 一般会为新的 GPU 架构添加支持，但一般也会添加独立于硬件代数的软件特性
 
 The _Tesla_ and _Fermi_ architectures are no longer supported starting with CUDA 7.0 and CUDA 9.0, respectively.
+> CUDA 7.0, CUDA 9.0 开始分别不再支持 Tesla 和 Fermi 架构
 
 # 3. Programming Interface
-
 CUDA C++ provides a simple path for users familiar with the C++ programming language to easily write programs for execution by the device.
 
 It consists of a minimal set of extensions to the C++ language and a runtime library.
