@@ -277,3 +277,17 @@
 - [[Repositories|huggingface-hub:Repositories]]: Sec4-Sec10
 
 ### Week3
+
+\[Doc\]
+- [[CUDA C++ Programming Guide v12.6]]: CH2
+    CH2-Programming Model:
+        Kernel is executed by each CUDA thread
+        Thread hierarchy: thread -> thread block -> thread block cluster -> grid
+        Memory hierarhy: local memory -> shared memory -> distributed shared memory -> global/constant/texture memory
+        Host program manage global/constant/texture memory space for kernels via calls to CUDA runtime
+        Unified memory provides coherent memory space for all devices in system
+        In CUDA, thread is the lowest level of abstraction doing memory and computation operation
+        Asynchronous programming model (started from Ampere) provides `cuda::memcpy_async/cooperative_groups::memcpy_async` operation, and the asynchronous operation use synchornization objects (`cuda::barrier` , `cuda::pipeline`) to synchronize threads in thread scope
+        The thread scope in CUDA includes `cuda::thread_scope::thread_scope_thread/block/device/system`
+        Compute Capability is the version of SM architecture, denoted by a major version number and a minor version number
+        CUDA version is the version of CUDA software platform
