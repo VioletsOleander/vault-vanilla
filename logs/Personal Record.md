@@ -278,6 +278,16 @@
 
 ### Week3
 
+\[Book\]
+- [[A Tour of C++]] : CH9-CH9.2
+    CH9.1-Introduction:
+    CH9.2-Strings:
+        `string` is a `Regular` type.
+        `string` support cacatenation, comparison, subscripting, substring operations, lexicographical ordering etc.
+        `s` suffix's corresponding operator is defined in `std::literals::string_literals`.
+        `string` 's implementation is shor-string optimized.
+        `string` is actually an alias of `basic_string<char>`.
+
 \[Doc\]
 - [[CUDA C++ Programming Guide v12.6]]: CH2
     CH2-Programming Model:
@@ -291,3 +301,16 @@
         The thread scope in CUDA includes `cuda::thread_scope::thread_scope_thread/block/device/system`
         Compute Capability is the version of SM architecture, denoted by a major version number and a minor version number
         CUDA version is the version of CUDA software platform
+- docker/get-started: [[What is Docker]], [[Docker Concepts]]
+    What is Docker:
+        Containers include everything needed for running an application
+        Use containers to be the unit of distributing and deploying applications
+        Docker client ( `docker` ) use Docker API to communicate with Docker daemon ( `dockerd` ), which is responsible for managing containers
+        Docker registry stores images. `docker pull` pulls image from registry, and `docker push` pushes image to registry
+        Image is an read-only template of instructions for creating container. Image is defined by Dockerfile, and is consists of layers. Each instruction in Dockerfile defines a layer in image. Once created, the image can not be modified. Container is a runnable instance of an image.
+    Docker Concepts:
+        Container is essentially an isolated process. Multiple containers share the same kernel.
+        Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which representes a set of filesystem changes.
+        Repository is a collection of related images in the registry.
+        Keep each container doing only one thing.
+        Docker Compose uses yaml file to define the configurations and interactoins for all related containers. Docker Compose is an declarative tool.
