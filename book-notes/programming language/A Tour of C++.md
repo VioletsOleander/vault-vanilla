@@ -2853,7 +2853,7 @@ Vector operator+(const Vector& a, const Vector& b)
 ```
 
 Returning from a $+$ involves copying the result out of the local variable res and into some place where the caller can access it. We might use this $^+$ like this:
-> 上例定义的 `+` 中会在返回时将 `res` 拷贝到调用者可以访问的位置，也就是返回时会调用拷贝构造（默认的或者用户定义的）将返回对象拷贝到调用者栈帧中的接受返回值的对象
+> 上例定义的 `operator+()` 中会在返回时将 `res` 拷贝到调用者可以访问的位置，也就是返回时会调用拷贝构造（默认的或者用户定义的）将返回对象拷贝到调用者栈帧中的接受返回值的对象
 
 ```cpp
 void f(const Vector& x, const Vector& y, const Vector& z)
@@ -2867,7 +2867,7 @@ That would be copying a Vector at least twice (one for each use of the $^+$ oper
 > 上例中，两个 `+` 就会导致至少两次的 Vector 拷贝
 
 The most embarrassing part is that res in operator+ $\cdot ()$ is never used again after the copy. We didn’t really want a copy; we just wanted to get the result out of a function: we wanted to move a Vector rather than copy it. Fortunately, we can state that intent:
-> 关键问题在于 `operator+()` 中的 `res` 在拷贝之后是不会再被使用的
+> 关键问题在于 `operator+()` 中的 `res` 在被拷贝之后是不会再被使用的
 > 我们实际的目的不在于拷贝，而是想要将结果返回到函数外，也就是移动它
 
 ```cpp
@@ -2879,8 +2879,9 @@ class Vector {
 };
 ```
 
-Given that definition, the compiler will choose the move constructor to implement the transfer of the return value out of the function. This means that $\scriptstyle{\mathsf{r}}=\!\mathbf{x}+\mathbf{y}+\mathbf{z}$ will involve no copying of Vector s. Instead, Vector s are just moved.
+Given that definition, the compiler will choose the move constructor to implement the transfer of the return value out of the function. This means that `r = x + y + z` will involve no copying of Vector s. Instead, Vector s are just moved.
 > 定义好了移动构造函数之后，编译器就会使用移动构造函数来实现函数返回值的转移，也就是用移动构造函数构建调用者栈帧中的接受返回值的对象
+> 此时，在 `r = x + y + z` 的示例中，就不会有任何拷贝，只会有移动
 
 As is typical, Vector ’s move constructor is trivial to define:
 
@@ -2897,7 +2898,7 @@ Vector::Vector(Vector&& a)
 The && means ‘‘rvalue reference’’ and is a reference to which we can bind an rvalue. The word ‘‘rvalue’’ is intended to complement ‘‘lvalue,’’ which roughly means ‘‘something that can appear on the left-hand side of an assignment.’’ So an rvalue is – to a first approximation – a value that you can’t assign to, such as an integer returned by a function call. Thus, an rvalue reference is a refer- ence to something that nobody else can assign to, so we can safely ‘‘steal’’ its value. The res local variable in operator+() for Vector s is an example.
 > `&&` 意思是右值引用，即可以绑定到右值的引用
 > 右值的概念和左值的概念相对，右值不能出现在赋值语句左边，也就是不可赋值
-> 本列中，我们的移动构造函数没有对数据进行拷贝，甚至移动，移动构造函数的语义就是将参数指向的右值对象的数据的所有权转移到自己身上
+> 本例中，我们的移动构造函数没有对数据进行拷贝，甚至移动，移动构造函数的语义就是将参数指向的右值对象的数据的所有权转移到自己身上
 
 > [! 左值和右值]
 > 左值 lvalue：指可以出现在赋值语句左边的值，左值通常代表一个标识符，它可以指向一个已命名的存储位置，这个位置在程序运行期间一直存在，其特点有：
@@ -2921,7 +2922,7 @@ A move constructor does not take a const argument: after all, a move constructor
 A move operation is applied when an rvalue reference is used as an initializer or as the right- hand side of an assignment.
 > 当一个右值引用被作为初始化值时，或者作为赋值语句的右边时，移动操作就会被调用（移动构造和移动赋值）
 
-After a move, a moved-from object should be in a state that allows a destructor to be run. Typi- cally, we also allow assignment to a moved-from object. The standard-library algorithms (Chapter 12) assumes that. Our Vector does that.
+After a move, a moved-from object should be in a state that allows a destructor to be run. Typically, we also allow assignment to a moved-from object. The standard-library algorithms (Chapter 12) assumes that. Our Vector does that.
 > 当一个对象被移动之后，被移动的对象应该处于一种可以安全析构的状态（当然它的数据被“清空”了）
 > 此外，通常我们也允许对被移动后的对象进行赋值，标准库算法就假定被移动的对象仍然可以被使用，至少在该对象析构之前是如此（注意右值可不一定都是临时对象）
 
@@ -2952,6 +2953,14 @@ When we return from $\mathfrak{f}()$ , z is destroyed after its elements has bee
 The compiler is obliged (by the $\mathrm{C++}$ standard) to eliminate most copies associated with initial- ization, so move constructors are not invoked as often as you might imagine. This copy elision eliminates even the very minor overhead of a move. On the other hand, it is typically not possible to implicitly eliminate copy or move operations from assignments, so move assignments can be critical for performance.
 > C++的编译器被要求消除大多数和初始化相关的拷贝，因此移动构造函数并不是被频繁调用的（有时候编译器会直接优化拷贝构造，即拷贝省略），编译器的拷贝省略甚至开销比移动构造还小
 > 但让编译器隐式从赋值操作中消除拷贝或移动是不可能的，因此显式使用移动赋值有助于提升性能
+
+> [!C++ 的返回优化]
+> 当一个对象从一个函数返回时，如果这个对象是局部对象，那么
+> 编译器首先尝试优化返回过程，即“返回值优化”(Return Value Optimization/RVO)或“命名返回值优化”(Named Return Value Optimization/NRVO)，其中 RVO 用于匿名对象，NRVO 用于具名对象
+> RVO 和 NRVO 的原理是由编译器分析函数的返回路径，如果函数返回的是局部对象，编译器直接对代码进行优化，在调用者的作用域构造返回对象 (而不是在被调用函数的作用域)，这完全避免了任何的拷贝或移动操作
+> 如果显式使用了 `std::move` ，或者因为某种原因编译器没有进行 RVO 和 NRVO，则编译器会应用移动语义来提高效率，也就是调用移动构造函数移交局部对象的资源所有权，函数返回值“空”的局部对象会被正常析构
+> 在以上二者都没有进行的情况下，才进行拷贝构造，将局部对象的资源拷贝至接受对象
+
 
 ## 5.3 Resource Management
 By defining constructors, copy operations, move operations, and a destructor, a programmer can provide complete control of the lifetime of a contained resource (such as the elements of a con- tainer). 
@@ -4661,7 +4670,7 @@ The main criteria for including a class in the library were that:
 >- 其简单的使用应该容易学习（相对于其执行的任务的固有复杂性而言）。
 
 Essentially, the $\mathrm{C++}$ standard library provides the most common fundamental data structures together with the fundamental algorithms used on them.
->本质上，C++ 标准库提供了最常用的底层数据结构即对这些数据结构进行操作的算法
+>本质上，C++ 标准库提供了最常用的底层数据结构以及对这些数据结构进行操作的算法
 
 ## 8.3 Standard-Library Headers and Namespace
 Every standard-library facility is provided through some standard header. For example:
@@ -4726,74 +4735,141 @@ Text manipulation is a major part of most programs. The $\mathrm{C++}$ standard 
 > `string` 和 `regex` 类型都可以使用多种字符类型 (例如 Unicode)
 
 ## 9.2 Strings
-The standard library provides a string type to complement the string literals (§1.2.1); string is a Reg- ular type $(\S7.2,\S12.7)$ for owning and manipulating a sequence of characters of various character types. The string type provides a variety of useful string operations, such as concatenation. For example:
+The standard library provides a `string` type to complement the string literals (§1.2.1); `string` is a `Regular` type $(\S7.2,\S12.7)$ for owning and manipulating a sequence of characters of various character types. The `string` type provides a variety of useful string operations, such as concatenation. For example:
+> C++ 标准库提供了 `string` 类型作为字符串字面值的补充
+> `string` 是一类 `Regular` 类型，用于处理字符序列
+> `string` 类型提供了一系列字符串操作函数，例如拼接：
 
-string compose (const string& name, const string& domain) { return name $+\ ^{\intercal}@^{\intercal}+$ domain; }
+```cpp
+string compose(const string& name, const string& domain)
+{
+    return name + '@' + domain;
+}
+auto addr = compose("dmr", "bell-labs.com");
+```
 
-auto addr $=$ compose ("dmr","bell−labs. com");
+Here, `addr` is initialized to the character sequence `dmr@bell−labs.com` . ‘‘Addition’’ of `string` s means concatenation. You can concatenate a `string` , a string literal, a C-style string, or a character to a `string` . The standard `string` has a move constructor, so returning even long `string` s by value is efficient (§5.2.2).
+> `string` 类型之间的加法操作就是拼接
+> 我们可以将 `string` 、字符串字面值、C 风格字符串、单个字符拼接到 `string`
+> `string` 类型定义了移动构造函数，因此按照值返回 `string` 也是高效的
 
-Here, addr is initialized to the character sequence dmr@bell−labs. com . ‘‘Addition’’ of string s means concatenation. You can concatenate a string , a string literal, a C-style string, or a character to a string . The standard string has a move constructor, so returning even long string s by value is effi- cient (§5.2.2).
+In many applications, the most common form of concatenation is adding something to the end of a `string` . This is directly supported by the `+=` operation. For example:
+> 将内容拼接到 `string` 的尾部时，可以使用 `+=`
 
-In many applications, the most common form of concatenation is adding something to the end of a string . This is directly supported by the $\mathrel{+{=}}$ operation. For example:
+```cpp
+void m2(string& s1, string& s2)
+{
+    s1 = s1 + '\n'; // append newline
+    s2 += '\n'; // append newline
+}
+```
 
-void m2 (string& s1, string& s2) { ${\mathfrak{s}}1={\mathfrak{s}}1+\mathbb{N}\mathfrak{n}^{\prime}$ ; // append newline ${\mathfrak{s}}{\mathfrak{z}}+={\mathfrak{w}}{\mathfrak{n}}^{\mathfrak{r}}$ ; // append newline }
+The two ways of adding to the end of a `string` are semantically equivalent, but I prefer the latter because it is more explicit about what it does, more concise, and possibly more efficient.
 
-The two ways of adding to the end of a string are semantically equivalent, but I prefer the latter because it is more explicit about what it does, more concise, and possibly more efficient.
+A `string` is mutable. In addition to `=` and `+=` , subscripting (using `[ ]` ) and substring operations are supported. For example:
+> `string` 是可变的，除了 `=/+=` 之外，还支持下标索引 `[]` 以及子串操作，例如：
 
-A string is mutable. In addition to $=$ and $+=$ , subscripting (using [ ] ) and substring operations are supported. For example:
+```cpp
+string name = "Niels Stroustrup";
 
-string name $=$ "Niels Stroustrup";
+void m3()
+{
+    string s = name.substr(6, 10); // s = "stroustrup"
+    name.replace(0, 5, "nicholas"); // name becomes "nicholas Stroustrup"
+    name[0] = toupper(name[0]); // name becomes "Nicholas Stroustrup"
+}
+```
 
-{ string $\mathbf{s}=$ name.substr (6,10); // $s=$ "Stroustr up" name .replace (0,5,"nicholas"); // name becomes "nicholas Stroustrup" name[0] $=$ toupper (name[0]); // name becomes "Nicholas Stroustrup" }
+The `substr()` operation returns a `string` that is a copy of the substring indicated by its arguments. The first argument is an index into the `string` (a position), and the second is the length of the desired substring. Since indexing starts from `0` , `s` gets the value `Stroustrup` .
+> `string` 的 `substr()` 方法返回的是其子串的一个拷贝，`substr()` 的第一个参数是起始索引，第二个参数是长度
 
-The substr () operation returns a string that is a copy of the substring indicated by its arguments. The first argument is an index into the string (a position), and the second is the length of the desired substring. Since indexing starts from 0 , s gets the value Stroustrup .
-
-The replace () operation replaces a substring with a value. In this case, the substring starting at 0 with length 5 is Niels ; it is replaced by nicholas . Finally, I replace the initial character with its uppercase equivalent. Thus, the final value of name is Nicholas Stroustrup . Note that the replace- ment string need not be the same size as the substring that it is replacing.
+The `replace()` operation replaces a substring with a value. In this case, the substring starting at `0` with length `5` is `Niels` ; it is replaced by `nicholas` . Finally, I replace the initial character with its uppercase equivalent. Thus, the final value of `name` is `Nicholas Stroustrup` . Note that the replacement string need not be the same size as the substring that it is replacing.
+> `replace()` 方法用给定的值替换子串，二者长度要求相同
 
 Among the many useful string operations are assignment (using $\fallingdotseq$ ), subscripting (using [ ] or at () as for vector ; $\S11.2.2)$ , comparison $(\mathrm{using}=\mathrm{and}\mathrel{\mathop{}\!:}=)$ , and lexicographical ordering (using $<,\,<=,\,>$ , and $>=$ ), iteration (using iterators as for vector ; $\S12.2)$ ), input (§10.3), and streaming (§10.8).
+> `string` 常用的操作有：赋值 (`=`)，索引 (`[]` 或 `at()` )，比较 (`==/!=`), 字典序排序 (`</<=/>/>=`)，迭代 (使用迭代器)，输入、流式处理
 
 Naturally, string s can be compared against each other, against $\mathrm{C}.$ -style strings $\S1.7.1)$ , and against string literals. For example:
+> `string` 可以和 `string` , C-风格字符串, 字符串字面值进行比较
 
-string incantation; void respond (const string& answer) { if (answer $==$ incantation) { // perfor m magic } else if (answer $==$ "yes") { // ... } // ... }
+```cpp
+string incatation;
+void respond(const string& answer) 
+{
+    if (answer == incatation) {
+        // perform magic
+    }
+    else if (answer == "yes") {
+        // ...
+    }
+    // ...
+}
+```
 
 If you need a C-style string (a zero-terminated array of char ), string offers read-only access to its contained characters. For example:
+> `string` 的 `c_str()` 方法返回 `const char*` 指针，指向 `string` 的第一个字符
 
-void print (const string& s) { printf ("For people who like printf: %s\n",s.c_str ()); // s.c_str () returns a pointer to s’ characters cout $<<$ "For people who like streams: " $<<\mathsf{s}<<\mathsf{v n}^{\prime}$ ; }
+```cpp
+void print(const string& s)
+{
+    printf("For pepole who like printf:%s\n", s.c_str()); // s.c_str() returns a poiner to s' chracters
+    cout << "For people who like streams:" << s << '\n';
+}
+```
 
-A string literal is by definition a const char ∗ . To get a literal of type std:: string use a s suffix. For example:
+A string literal is by definition a `const char ∗` . To get a literal of type std:: string use a s suffix. For example:
+> 字符串字面值的类型默认为 `const char*`
+> 使用 `s` 后缀可以得到类型为 `std::string` 的字符串字面值
 
-auto s $=$ "Cat"s; // a std:: str ing auto $\mathsf{p}="\mathsf{D o g}"$ ; // a C-style string: a const char\*
+```cpp
+auto s = "Cat"s; // a std::string
+auto p = "Dog"; // a C-style string: a const char*
+```
 
 To use the s suffix, you need to use the namespace std::literals:: string_literals (§5.4.4).
+> 要使用 `s` 后缀，需要使用 `std::literals::string_literals` 命名空间
 
-# 9.2.1 string Implementation
-
+### 9.2.1 string Implementation
 Implementing a string class is a popular and useful exercise. However, for general-purpose use, our carefully crafted first attempts rarely match the standard string in convenience or performance. These days, string is usually implemented using the short-string optimization . That is, short string values are kept in the string object itself and only longer strings are placed on free store. Consider:
+> 目前 `string` 通常使用短字符串优化来实现，即较短的字符串值被保存在字符串对象本身中 (栈)，而只有较长的字符串才会被放置在自由存储区中 (堆)，例如：
 
-string s1 {"Annemarie"}; // shor t str ing string s2 {"Annemarie Stroustrup"}; // long string
+```cpp
+string s1 {"Annemarie"}; // short string
+string s2 {"Annemarie Stroustrup"}; // long string
+```
 
 The memory layout will be something like this:
 
-![](images/707a9393b17e35c04c14dddadbb909433385bd415491cc15f7a492333c923efa.jpg)
-
 When a string ’s value changes from a short to a long string (and vice versa) its representation adjusts appropriately. How many characters can a ‘‘short’’ string have? That’s implementation defined, but ‘‘about 14 characters’’ isn’t a bad guess.
+> 当 `string` 的值从短变到长 (或者相反)，其存储表示也会相应调整
+> 具体的长度界限取决于实现，可以认为在 14 个字符左右
 
-The actual performance of string s can depend critically on the run-time environment. In partic- ular, in multi-threaded implementations, memory allocation can be relatively costly. Also, when lots of strings of differing lengths are used, memory fragmentation can result. These are the main reasons that the short-string optimization has become ubiquitous.
+The actual performance of string s can depend critically on the run-time environment. In particular, in multi-threaded implementations, memory allocation can be relatively costly. Also, when lots of strings of differing lengths are used, memory fragmentation can result. These are the main reasons that the short-string optimization has become ubiquitous.
+> `string` 的实际性能很大程度上依赖于运行时环境，特别地，在多线程实现中，内存分配会相对昂贵，此外，当使用许多不同长度的 `string` 时容易出现内存碎片
+> 这两点就是短字符串优化目前十分常用的原因
 
 To handle multiple character sets, string is really an alias for a general template basic_string with the character type char :
+> 为了处理多个字符集，`string` 实际上被定义为了通用模板 `basic_string` 的字符类型为 `char` 时的实例的一个别名
 
-template<typename Char> class basic_string { // ... string of Char ... };
+```cpp
+template<typename Char>
+class basic_string {
+    // ... string of Char
+};
 
-using string $=$ basic_string<char>;
+using string = basic_string<char>;
+```
 
 A user can define strings of arbitrary character types. For example, assuming we have a Japanese character type Jchar , we can write:
+> 因此用户实际上为任意字符类型定义字符串，例如：
 
-using Jstring $=$ basic_string<Jchar>;
+```cpp
+using Jstring = basic_string<Jchar>;
+```
 
-Now we can do all the usual string operations on Jstring , a string of Japanese characters.
+Now we can do all the usual string operations on `Jstring` , a `string` of Japanese characters.
 
-# 9.3 String Views
-
+## 9.3 String Views
 The most common use of a sequence of characters is to pass it to some function to read. This can be achieved by passing a string by value, a reference to a string, or a C-style string. In many sys- tems there are further alternatives, such as string types not offered by the standard. In all of these cases, there are extra complexities when we want to pass a substring. To address this, the standard library offers string_view ; a string_view is basically a (pointer, length) pair denoting a sequence of characters:
 
 string_view: { begin () , siz e () } characters: P i e t H e i n
