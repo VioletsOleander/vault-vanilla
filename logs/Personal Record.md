@@ -277,6 +277,9 @@
 - [[Repositories|huggingface-hub:Repositories]]: Sec4-Sec10
 
 ### Week3
+\[Paper\]
+- [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec4.6-Sec10
+    
 
 \[Book\]
 - [[A Tour of C++]] : CH9-CH9.2
@@ -309,8 +312,26 @@
         Docker registry stores images. `docker pull` pulls image from registry, and `docker push` pushes image to registry
         Image is an read-only template of instructions for creating container. Image is defined by Dockerfile, and is consists of layers. Each instruction in Dockerfile defines a layer in image. Once created, the image can not be modified. Container is a runnable instance of an image.
     Docker Concepts:
+        The Basics: 
         Container is essentially an isolated process. Multiple containers share the same kernel.
         Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which representes a set of filesystem changes.
         Repository is a collection of related images in the registry.
         Keep each container doing only one thing.
         Docker Compose uses yaml file to define the configurations and interactoins for all related containers. Docker Compose is an declarative tool.
+        Building Images:
+        The image is consists of multiple layers. We reuse other images' base layers to define custom layer.
+        After each layer is downloaded, it is extracted into the own directory in the host filesystem.
+        When running a container from an image, a union filesystem is created, where layers are stacked on top of each other. The container's root directory will be changed to the location of the unified directory by `chroot`.
+        In the union filesystem, in addition to the image layers, Docker will create a new directory for the container, which allows the container make filesystems changes while keeping original layers untouched.
+        Dockerfile provides instructions to the image builder. Common instructions include `FROM/WORKDIR/COPY/RUN/ENV/EXPOSE/USER/CMD` etc.
+        A Dockerfile typically 1. determine base image 2. insatll dependencies 3. copy in sources/binaries 4. configure the final image.
+        Use `docker build` to build image from Dockerfile. 
+        Image's name pattern is `[HOST[:PORT_NUMBER]/]PATH[:TAG]` 
+        Use `docker build -t` to specify a tag for the image when building. Use `docker image tag` to specify another tag for an image.
+        Use `docker push` to push built image.
+        Modify `RUN` 's command will invaildate the build cache for this layer.
+        Modify files be `COPY` ed or `ADD` ed will invalidate the build cache for this layer.
+        All the following layer of an invalidated layer will be invalidated.
+        When writing Dockerfile, considering the invalidation rule to ensure the Dockerfile can build as efficent as possible.
+        Multi-stage build introduces multiple stages in Dockerfile. It is recommended to use one stage to build and minfy code for interpreted languages or use one stage to compile code for compiled languages. Then use another stage, copying in the artifects in the previous stage, only bundle the runtime environment, thus reducing the image size.
+        Use `FROM <image-name> AS <stage-name>` to define stage. Use `--from=<stage-name>` in `COPY` to copy previous stages artifects.
