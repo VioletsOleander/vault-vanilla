@@ -1840,7 +1840,8 @@ The statement `t = 12345, 54321, 'hello!'` is an example of _tuple packin
 ```
 
 This is called, appropriately enough, _sequence unpacking_ and works for any sequence on the right-hand side. Sequence unpacking requires that there are as many variables on the left side of the equals sign as there are elements in the sequence. Note that multiple assignment is really just a combination of tuple packing and sequence unpacking.
-> multiple assignment 实质上就是一次 tuple packing 以及一次 sequence unpacking
+> sequence unpacking 对于任意序列都可以使用
+> multiple assignment 实质上就是 tuple packing 以及 sequence unpacking
 ## 5.4. Sets
 Python also includes a data type for _sets_. A set is an unordered collection with no duplicate elements. Basic uses include membership testing and eliminating duplicate entries. Set objects also support mathematical operations like union, intersection, difference, and symmetric difference.
 > set: 无序、无重复
