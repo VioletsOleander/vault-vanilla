@@ -279,6 +279,7 @@
 ### Week3
 \[Paper\]
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec4.6-Sec10
+    4-Method: 
     
 
 \[Book\]
