@@ -340,139 +340,240 @@ LLM services face a unique challenge: the input prompts for an LLM can vary sign
 > 抢占请求完成后，它的 KV 块就从内存中被释放，被它抢占的序列的块会被交换回来，vLLM 继续处理该序列
 > 在该设计下，交换到 CPU RAM 的 KV 块的数量将永远不会超过 GPU RAM 中的总物理块数量，因此 CPU RAM 的交换空间的使用上限就是 GPU 内存为 KV cache 分配大小的上限 (最坏情况下，被交换出的序列占据了 GPU RAM 的全部物理块，故此时 CPU RAM 中交换区的大小就等于 GPU 内存中为 KV cache 块分配的总空间大小)
 
-**Recomputation.** In this case, we simply recompute the KV cache when the preempted sequences are rescheduled. Note that re computation latency can be significantly lower than the original latency, as the tokens generated at decoding can be concatenated with the original user prompt as a new prompt—their KV cache at all positions can be generated in one prompt phase iteration. 
+**Recomputation.** In this case, we simply recompute the KV cache when the preempted sequences are rescheduled. Note that re-computation latency can be significantly lower than the original latency, as the tokens generated at decoding can be concatenated with the original user prompt as a new prompt—their KV cache at all positions can be generated in one prompt phase iteration. 
 > 重计算
-> 
+> 另一种选择是当被抢占的序列被重新调度时，直接重新计算它的 KV cache
+> 注意重新计算 KV cache 的延迟会显著低于原来的延迟，因为在解码阶段生成的 tokens 可以和用户 prompt 拼接起来，作为新的 prompt，因此在单个 prompt 阶段就生成了之前所有 tokens 的 KV cache
 
-The performances of swapping and re computation depend on the bandwidth between CPU RAM and GPU memory and the computation power of the GPU. We examine the speeds of swapping and re computation in $\S7.3$ . 
+The performances of swapping and re-computation depend on the bandwidth between CPU RAM and GPU memory and the computation power of the GPU. We examine the speeds of swapping and re-computation in $\S7.3$ . 
+> 交换策略和重计算策略的性能取决于 CPU RAM 和 GPU DRAM 之间的带宽和 GPU 的计算能力
 
 ## 4.6 Distributed Execution 
 Many LLMs have parameter sizes exceeding the capacity of a single GPU [5 , 9]. Therefore, it is necessary to partition them across distributed GPUs and execute them in a model parallel fashion [28 , 63]. This calls for a memory manager capable of handling distributed memory. vLLM is effective in distributed settings by supporting the widely used Megatron-LM style tensor model parallelism strategy on Transformers [47]. This strategy adheres to an SPMD (Single Program Multiple Data) execution schedule, wherein the linear layers are partitioned to perform block-wise matrix multiplication, and the the GPUs constantly synchronize intermediate results via an allreduce operation. Specifically, the attention operator is split on the attention head dimension, each SPMD process takes care of a subset of attention heads in multi-head attention. 
-
-![[vLLM-Table 1.png]]
+> 许多 LLM 的参数大小超过了单个 GPU 的 DRAM 大小，因此需要将这些参数划分到多个 GPU 上，并采用模型并行的方式进行训练和推理
+> vLLM 支持 Megatron-LM 风格的 tensor 模型并行策略，因此在分布式执行的情况下同样高效
+> 该策略遵循单程序多数据的执行调度，其中线性层被划分以执行分块的矩阵乘法，并且 GPUs 持续地通过 allreduce 操作进行同步
+> 特别地，attention 算子在 attention head 维度上被划分，每个 SPMD 进程处理多头注意力计算中的一部分头
 
 We observe that even with model parallel execution, each model shard still processes the same set of input tokens, thus requiring the KV Cache for the same positions. Therefore, vLLM features a single KV cache manager within the centralized scheduler, as in Fig. 4. Different GPU workers share the manager, as well as the mapping from logical blocks to physical blocks. This common mapping allows GPU workers to execute the model with the physical blocks provided by the scheduler for each input request. Although each GPU worker has the same physical block IDs, a worker only stores a portion of the KV cache for its corresponding attention heads. 
+> 在模型并行执行下，每个模型碎片仍然要处理相同的一组输入 tokens，因此需要相同位置的 KV cache
+> 因此，vLLM 在中心化的调度器中仅需要一个 KV cache 管理器，如 Figure4 所示，不同的 GPU worker 共享该管理器，以及共享逻辑块到物理块的映射
+> 处理一个输入 request 的 KV cache 时，虽然每个 GPU worker 都具有相同的物理块 IDs，但一个 GPU worker (的物理块) 仅存储对应的 attention heads 的一部分 KV cache
 
 In each step, the scheduler first prepares the message with input token IDs for each request in the batch, as well as the block table for each request. Next, the scheduler broadcasts this control message to the GPU workers. Then, the GPU workers start to execute the model with the input token IDs. In the attention layers, the GPU workers read the KV cache according to the block table in the control message. During execution, the GPU workers synchronize the intermediate results with the all-reduce communication primitive without the coordination of the scheduler, as in [47]. In the end, the GPU workers send the sampled tokens of this iteration back to the scheduler. In summary, GPU workers do not need to synchronize on memory management as they only need to receive all the memory management information at the beginning of each decoding iteration along with the step inputs. 
+> 在执行的每一步，调度器首先根据 batch 中每个 request 的输入 tokens 确定 token IDs，并且为每个 request 准备 block table；然后将带有 token IDs 和 table 信息的控制消息广播到 GPU workers
+> 之后，GPU workers 根据收到的 token IDs 开始执行模型
+> 在 attention 层，GPU worker 根据控制消息中的 block table 读取 KV cache
+> 在执行时，GPU workers 之间通过 all-reduce 通讯原语同步中间结果，不需要调度器的协助
+> 最后，GPU workers 将该次迭代采样得到的 tokens 返回给调度器
+> 总之，GPU workers 不需要在 memory 管理上同步，因为它们仅需要在每次解码迭代的开始接受所有的 memory 管理信息 (以及该步的输入)
 
-# 5 Implementation 
-vLLM is an end-to-end serving system with a FastAPI [15] frontend and a GPU-based inference engine. The frontend extends the OpenAI API [34] interface, allowing users to customize sampling parameters for each request, such as the maximum sequence length and the beam width $k$ . The vLLM engine is written in 8.5K lines of Python and 2K lines of $\mathsf{C++/C U D A}$ code. We develop control-related components including the scheduler and the block manager in Python while developing custom CUDA kernels for key operations such as Paged Attention. For the model executor, we implement popular LLMs such as GPT [5], OPT [62], and LLaMA [52] using 
-
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/1cc5db82835fb611fd1fad8f060a5ed147c8938b33aa68e9963184553ccb8e71.jpg) 
-Figure 11. Input and output length distributions of the (a) ShareGPT and (b) Alpaca datasets. 
-
-PyTorch [39] and Transformers [58]. We use NCCL [32] for tensor communication across the distributed GPU workers. 
+# 5 Implementation
+vLLM is an end-to-end serving system with a FastAPI [15] frontend and a GPU-based inference engine. The frontend extends the OpenAI API [34] interface, allowing users to customize sampling parameters for each request, such as the maximum sequence length and the beam width $k$ . The vLLM engine is written in 8.5K lines of Python and 2K lines of C++/CUDA code. We develop control-related components including the scheduler and the block manager in Python while developing custom CUDA kernels for key operations such as Paged Attention. For the model executor, we implement popular LLMs such as GPT [5], OPT [62], and LLaMA [52] using PyTorch [39] and Transformers [58]. We use NCCL [32] for tensor communication across the distributed GPU workers. 
+> vLLM 是端到端的服务系统，具有 FastAPI 前端和基于 GPU 的推理引擎
+> 前端拓展了 OpenAI API 接口，允许用户为每个 request 自定义采样参数，例如最大序列长度和束宽度 $k$
+> vLLM 引擎为 Python + C++/CUDA，和控制相关的组件，包括调度器和块管理器都用 Python 开发，对于关键运算例如 PagedAttention 则实现为 CUDA
+>  kernel
+>  常见的 LLM 例如 GPT、OPT、LLaMA 等使用 PyTorch 和 Transformers 实现
+>  GPU workers 之间的 tensor 通讯使用 NCCL 实现
 
 ## 5.1 Kernel-level Optimization 
-Since Paged Attention introduces memory access patterns that are not efficiently supported by existing systems, we develop several GPU kernels for optimizing it. (1) Fused reshape and block write. In every Transformer layer, the new KV cache are split into blocks, reshaped to a memory layout optimized for block read, then saved at positions specified by the block table. To minimize kernel launch overheads, we fuse them into a single kernel. (2) Fusing block read and attention. We adapt the attention kernel in Faster Transformer [31] to read KV cache according to the block table and perform attention operations on the fly. To ensure coalesced memory access, we assign a GPU warp to read each block. Moreover, we add support for variable sequence lengths within a request batch. (3) Fused block copy. Block copy operations, issued by the copy-on-write mechanism, may operate on discontinuous blocks. This can lead to numerous invocations of small data movements if we use the cuda Mem cp yA sync API. To mitigate the overhead, we implement a kernel that batches the copy operations for different blocks into a single kernel launch. 
+Since Paged Attention introduces memory access patterns that are not efficiently supported by existing systems, we develop several GPU kernels for optimizing it. (1) *Fused reshape and block write.* In every Transformer layer, the new KV cache are split into blocks, reshaped to a memory layout optimized for block read, then saved at positions specified by the block table. To minimize kernel launch overheads, we fuse them into a single kernel. (2) *Fusing block read and attention.* We adapt the attention kernel in Faster Transformer [31] to read KV cache according to the block table and perform attention operations on the fly. To ensure coalesced memory access, we assign a GPU warp to read each block. Moreover, we add support for variable sequence lengths within a request batch. (3) *Fused block copy.* Block copy operations, issued by the copy-on-write mechanism, may operate on discontinuous blocks. This can lead to numerous invocations of small data movements if we use the `cudaMemcpyAsync` API. To mitigate the overhead, we implement a kernel that batches the copy operations for different blocks into a single kernel launch. 
+> PagedAttention 的内存访问模式由多个 GPU kernel 优化，包括
+> (1) 融合的 reshape 和 block write kernel
+> 在每个 Transformer 层中，新的 KV cache 会被划分为块，并 reshape 到适合 blockwise 读取的内存布局，然后存储/写到 block table 指定的位置
+> 这两个操作被融合为一个 kernel 以减少 kernel launch 开销
+> (2) 融合的 block read 和 attention kernel
+> 我们采用 Faster Transformer 中的 attention kernel 来根据 block table 读取 KV cache，并同时执行 attention 操作
+> 为了保证合并的内存访问，我们为每个 block 的读取分配单个 GPU warp，另外，我们还为序列长度不一的 request batch 添加了支持
+> (3) 融合的 block copy kernel
+> block copy 操作由写时拷贝机制发起，该操作可能对非连续的 block 执行，如果我们使用 `cudaMemcpyAsync` API，这会导致调用许多次小数据移动
+> 为了缓解该开销，我们实现将不同的 block 的拷贝操作进行批处理的 kernel
 
 ## 5.2 Supporting Various Decoding Algorithms 
-vLLM implements various decoding algorithms using three key methods: fork , append , and free . The fork method creates a new sequence from an existing one. The append method appends a new token to the sequence. Finally, the free method deletes the sequence. For instance, in parallel sampling, vLLM creates multiple output sequences from the single input sequence using the fork method. It then adds new tokens to these sequences in every iteration with append , and deletes sequences that meet a stopping condition using free . The same strategy is also applied in beam search and prefix sharing by vLLM. We believe future decoding algorithms can also be supported by combining these methods. 
+vLLM implements various decoding algorithms using three key methods: `fork` , `append` , and `free` . The `fork` method creates a new sequence from an existing one. The `append` method appends a new token to the sequence. Finally, the `free` method deletes the sequence. For instance, in parallel sampling, vLLM creates multiple output sequences from the single input sequence using the `fork` method. It then adds new tokens to these sequences in every iteration with `append` , and deletes sequences that meet a stopping condition using `free` . The same strategy is also applied in beam search and prefix sharing by vLLM. We believe future decoding algorithms can also be supported by combining these methods. 
+> vLLM 使用三个关键方法：`fork/append/free` 实现多种解码算法
+> `fork` 方法从现有序列创建新序列
+> `append` 方法将新 token 添加到序列上
+> `free` 方法删除序列
+> 例如，在并行采样时，vLLM 首先用 `fork` 从单个输入序列创建多个输出序列，然后在每个迭代使用 `append` 将新的 tokens 各自添加到这些输出序列上，最后使用 `free` 删除满足停止条件的序列
+> beam search 和 prefix sharing 也采用同样策略
 
 # 6 Evaluation 
 In this section, we evaluate the performance of vLLM under a variety of workloads. 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/dcd575301f6153ab61f2786ec751d6a832d264a53bdba63ae0175764ca5c3504.jpg) 
-Figure 12. Single sequence generation with OPT models on the ShareGPT and Alpaca dataset 
 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/0a7a18292c1d7f0fb5305cd330e33015c181e740980fd79909efec794605e261.jpg) 
-Figure 13. Average number of batched requests when serving OPT-13B for the ShareGPT (2 reqs/s) and Alpaca (30 reqs/s) traces. 
+## 6.1 Experimental Setup 
+**Model and server configurations.** We use OPT [62] models with 13B, 66B, and 175B parameters and LLaMA [52] with 13B parameters for our evaluation. 13B and 66B are popular sizes for LLMs as shown in an LLM leader board [38], while 175B is the size of the famous GPT-3 [5] model. For all of our experiments, we use A2 instances with NVIDIA A100 GPUs on Google Cloud Platform. The detailed model sizes and server configurations are shown in Table 1. 
+> Model and server configurations
+> 模型使用 OPT 13/66/175B 和 LLaMA 13B
 
-# 6.1 Experimental Setup 
+![[vLLM-Table 1.png]]
 
-Model and server configurations. We use OPT [62] models with 13B, 66B, and 175B parameters and LLaMA [52] with 13B parameters for our evaluation. 13B and 66B are popular sizes for LLMs as shown in an LLM leader board [38], while 175B is the size of the famous GPT-3 [5] model. For all of our experiments, we use A2 instances with NVIDIA A100 GPUs on Google Cloud Platform. The detailed model sizes and server configurations are shown in Table 1. 
+**Workloads.** We synthesize workloads based on ShareGPT [51] and Alpaca [50] datasets, which contain input and output texts of real LLM services. The ShareGPT dataset is a collection of user-shared conversations with ChatGPT [35]. The Alpaca dataset is an instruction dataset generated by GPT3.5 with self-instruct [57]. We tokenize the datasets and use their input and output lengths to synthesize client requests. As shown in Fig. 11, the ShareGPT dataset has $8.4\times$ longer input prompts and $5.8\times$ longer outputs on average than the Alpaca dataset, with higher variance. Since these datasets do not include timestamps, we generate request arrival times using Poisson distribution with different request rates. 
+> Workloads
+> workload 基于 ShareGPT 和 Alpaca 数据集进行合成，这些数据集包含了真实 LLM 服务的输入和输出文本，其中ShareGPT 数据集是一组用户和 ChatGPT 的对话，Alpaca 数据集是由 GPT3.5 在 self-instruct 下生成的指令数据集
+> 我们将这些数据集 tokenize，然后使用它们的输入和输出长度来合成 requests
+> 如 Figure 11，可以看到 ShareGPT 的输入和输出长度都长于 Alpaca，同时方差更大
+> 因为数据集不包含时间戳，我们使用不同请求率的 Possion 分布生成 request 到达时间
 
-Workloads. We synthesize workloads based on ShareGPT [51] and Alpaca [50] datasets, which contain input and output texts of real LLM services. The ShareGPT dataset is a collection of user-shared conversations with ChatGPT [35]. The Alpaca dataset is an instruction dataset generated by GPT3.5 with self-instruct [57]. We tokenize the datasets and use their input and output lengths to synthesize client requests. As shown in Fig. 11, the ShareGPT dataset has $8.4\times$ longer input prompts and $5.8\times$ longer outputs on average than the Alpaca dataset, with higher variance. Since these datasets do not include timestamps, we generate request arrival times using Poisson distribution with different request rates. 
+![[vLLM-Figure11.png]]
 
-Baseline 1: Faster Transformer. Faster Transformer [31] is a distributed inference engine highly optimized for latency. 
+**Baseline 1: Faster Transformer.** Faster Transformer [31] is a distributed inference engine highly optimized for latency. 
 
 As Faster Transformer does not have its own scheduler, we implement a custom scheduler with a dynamic batching mechanism similar to the existing serving systems such as Triton [30]. Specifically, we set a maximum batch size $B$ as large as possible for each experiment, according to the GPU memory capacity. The scheduler takes up to $B$ number of earliest arrived requests and sends the batch to Faster Transformer for processing. 
 
-Baseline 2: Orca. Orca [60] is a state-of-the-art LLM serving system optimized for throughput. Since Orca is not publicly available for use, we implement our own version of Orca. We assume Orca uses the buddy allocation algorithm to determine the memory address to store KV cache. We implement three versions of Orca based on how much it over-reserves the space for request outputs: 
+> Baseline 1: Faster Transformer
+> Faster Transformer 是分布式的推理引擎
+> Faster Transformer 没有自己的调度器，我们为其实现了带有动态 batching 机制的自定义调度器，类似于现存的服务系统，例如 Triton
+> 每次试验的最大 batch size $B$ 都设定为越大越好，调度器最多接受 $B$ 个最早到达的 requests，然后将其作为 batch 发送给 Faster Transformer
 
-• Orca (Oracle). We assume the system has the knowledge of the lengths of the outputs that will be actually generated for the requests. This shows the upper-bound performance of Orca, which is infeasible to achieve in practice.
+**Baseline 2: Orca.** Orca [60] is a state-of-the-art LLM serving system optimized for throughput. Since Orca is not publicly available for use, we implement our own version of Orca. We assume Orca uses the buddy allocation algorithm to determine the memory address to store KV cache. We implement three versions of Orca based on how much it over-reserves the space for request outputs: 
 
- • Orca (Pow2). We assume th ystem over-reserves the space for outputs by at most 2 $2\times$ × . For example, if the true output length is 25, it reserves 32 positions for outputs.
+- **Orca (Oracle).** We assume the system has the knowledge of the lengths of the outputs that will be actually generated for the requests. This shows the upper-bound performance of Orca, which is infeasible to achieve in practice.
+- **Orca (Pow2).** We assume the system over-reserves the space for outputs by at most $2\times$  . For example, if the true output length is 25, it reserves 32 positions for outputs.
+- **Orca (Max).** We assume the system always reserves the space up to the maximum sequence length of the model, i.e., 2048 tokens. 
 
- • Orca (Max). We assume the system always reserves the space up to the maximum sequence length of the model, i.e., 2048 tokens. 
+> Baseline 2: Orca
+> Orca 为 SOTA 的 LLM 服务系统
+> 我们实现了自己的 Orca，其中假定了 Orca 使用 buddy 分配算法来决定存储 KV cache 的内存地址
+> 基于 Orca 是如何为 request 的输出预留内存空间的，我们实现了三个版本的 Orca，包括：
+> - Orca (Orcale)，假设系统知道输出序列的长度，该版本是 Orca 的性能上限，在实际中不会达到
+> - Orca (Pow2)，假设系统为输出序列预留的空间为大于输出序列长度的最小的2的幂次，例如为长度为 25 的输出序列预留 32 个位置
+> - Orca (Max)，假设系统预留的空间总是保持模型的最大序列长度，例如 2048
 
-Key metrics. We focus on serving throughput. Specifically, using the workloads with different request rates, we measure normalized latency of the systems, the mean of every request’s end-to-end latency divided by its output length, as in Orca [60]. A high-throughput serving system should retain low normalized latency against high request rates. For most experiments, we evaluate the systems with 1-hour traces. As an exception, we use 15-minute traces for the OPT-175B model due to the cost limit. 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/268cd8463c639841dccf21d35b13e9598485c1306cd0602ab1c30ba007eb079d.jpg) 
-Figure 14. Parallel generation and beam search with OPT-13B on the Alpaca dataset. 
+**Key metrics.** We focus on serving throughput. Specifically, using the workloads with different request rates, we measure normalized latency of the systems, the mean of every request’s end-to-end latency divided by its output length, as in Orca [60]. A high-throughput serving system should retain low normalized latency against high request rates. For most experiments, we evaluate the systems with 1-hour traces. As an exception, we use 15-minute traces for the OPT-175B model due to the cost limit. 
+> Key metrics
+> 我们聚焦于吞吐量
+> 具体地说，我们使用不同请求率下的工作负载度量系统的规范化延迟，即每个请求的端到端延迟除以它的输出长度的平均值
+> 高吞吐量的服务系统应该在高的请求率下保持低的规范化延迟
+> 大多数试验使用一小时的跟踪数据评估，OPT-175B 使用15分钟的跟踪数据
 
-# 6.2 Basic Sampling 
-
+## 6.2 Basic Sampling
 We evaluate the performance of vLLM with basic sampling (one sample per request) on three models and two datasets. The first row of Fig. 12 shows the results on the ShareGPT dataset. The curves illustrate that as the request rate increases, the latency initially increases at a gradual pace but then suddenly explodes. This can be attributed to the fact that when the request rate surpasses the capacity of the serving system, the queue length continues to grow infinitely and so does the latency of the requests. 
+> 我们在三个模型和两个数据集上评估了 vLLM 的基础采样 (每个 request 仅采样一个样本)，如 Figure 12 所示
+> 随着请求率逐渐增大，延迟一开始逐渐提升，然后突然猛增，其原因在于当请求率超过了服务系统的能力，排队等待处理的请求数量将无限制增大，故延迟也将无限制增大
 
-On the ShareGPT dataset, vLLM can sustain $1.7\times-2.7\times$ higher request rates compared to Orca (Oracle) and 2 $2.7\times-8\times$ × × compared to Orca (Max), while maintaining similar latencies. This is because vLLM’s Paged Attention can efficiently manage the memory usage and thus enable batching more requests than Orca. For example, as shown in Fig. 13a, for OPT-13B vLLM processes $2.2\times$ more requests at the same time than Orca (Oracle) and $4.3\times$ more requests than Orca (Max). Compared to Faster Transformer, vLLM can sustain upto $22\times$ higher request rates, as Faster Transformer does not utilize a fine-grained scheduling mechanism and inefficiently manages the memory like Orca (Max). 
+![[vLLM-Figure12.png]]
+
+On the ShareGPT dataset, vLLM can sustain $1.7\times-2.7\times$ higher request rates compared to Orca (Oracle) and $2.7\times-8\times$ compared to Orca (Max), while maintaining similar latencies. This is because vLLM’s Paged Attention can efficiently manage the memory usage and thus enable batching more requests than Orca. For example, as shown in Fig. 13a, for OPT-13B vLLM processes $2.2\times$ more requests at the same time than Orca (Oracle) and $4.3\times$ more requests than Orca (Max). Compared to Faster Transformer, vLLM can sustain upto $22\times$ higher request rates, as Faster Transformer does not utilize a fine-grained scheduling mechanism and inefficiently manages the memory like Orca (Max). 
+> 在 ShareGPT 数据集上，vLLM 相较于 Orca (Orcale) 可以维持 1.7x-2.7x 倍更高的请求率，相较于 Orca (Max) 可以维持 2.7x-8x 倍更高的请求率，同时延迟接近
+> 原因是 vLLM 的 PagedAttention 可以高效管理内存使用，故可以批处理更多的请求
 
 The second row of Fig. 12 and Fig. 13b shows the results on the Alpaca dataset, which follows a similar trend to the ShareGPT dataset. One exception is Fig. 12 (f), where vLLM’s advantage over Orca (Oracle) and Orca (Pow2) is less pronounced. This is because the model and server configuration for OPT-175B (Table 1) allows for large GPU memory space available to store KV cache, while the Alpaca dataset has short sequences. In this setup, Orca (Oracle) and Orca (Pow2) can also batch a large number of requests despite the inefficiencies in their memory management. As a result, the performance of the systems becomes compute-bound rather than memory-bound. 
+> Alpaca 上的结果和 ShareGPT 上的结果类似
+> 在 OPT-175B 时 vLLM 的优势相对不高，原因在于 OPT-175B 的模型和服务配置 (Table 1) 允许使用更大的 GPU 显存空间存储 KV cache，同时 Alpaca 的序列主要是短序列，因此 Orca (Oracle), Orca (Pow2) 即便内存管理低效，也可以批处理大量请求，因此系统的性能更倾向于 compute-bound 而不是 memory-bound
 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/fc05050fdc3ed50ec30e43a0048218135b6d71c35710dbf6d01451bcb23c291d.jpg) 
-Figure 15. Average amount of memory saving from sharing KV blocks, when serving OPT-13B for the Alpaca trace. 
+![[vLLM-Figure13.png]]
 
-# 6.3 Parallel Sampling and Beam Search 
+## 6.3 Parallel Sampling and Beam Search 
+We evaluate the effectiveness of memory sharing in PagedAttention with two popular sampling methods: parallel sampling and beam search. In parallel sampling, all parallel sequences in a request can share the KV cache for the prompt. As shown in the first row of Fig. 14, with a larger number of sequences to sample, vLLM brings more improvement over the Orca baselines. Similarly, the second row of Fig. 14 shows the results for beam search with different beam widths. Since beam search allows for more sharing, vLLM demonstrates even greater performance benefits. The improvement of vLLM over Orca (Oracle) on OPT-13B and the Alpaca dataset goes from $1.3\times$ in basic sampling to $2.3\times$ in beam search with a width of 6. 
+> 我们使用并行采样和束搜索评估 PagedAttention 的内存共享的有效性
+> 并行采样中，request 的所有并行序列共享 prompt 的 KV cache，如 Figure 14所示，当并行采样的数量越多，vLLM 相较于 Orca 的优势就越大
+> 束搜索的结果也类似，当 beam 宽度越大，vLLM 优势越大，并且由于 beam search 可以有更多的共享机会，vLLM 的优势也更加显著
 
-We evaluate the effectiveness of memory sharing in PagedAttention with two popular sampling methods: parallel sampling and beam search. In parallel sampling, all parallel sequences in a request can share the KV cache for the prompt. As shown in the first row of Fig. 14, with a larger number of sequences to sample, vLLM brings more improve-ment over the Orca baselines. Similarly, the second row of Fig. 14 shows the results for beam search with different beam widths. Since beam search allows for more sharing, vLLM demonstrates even greater performance benefits. The improvement of vLLM over Orca (Oracle) on OPT-13B and the Alpaca dataset goes from $1.3\times$ in basic sampling to $2.3\times$ in beam search with a width of 6. 
+![[vLLM-Figure14.png]]
 
 Fig. 15 plots the amount of memory saving, computed by the number of blocks we saved by sharing divided by the number of total blocks without sharing. We show $6.1\%-9.8\%$ memory saving on parallel sampling and $37.6\%\textrm{-}55.2\%$ on beam search. In the same experiments with the ShareGPT dataset, we saw $16.2\%\textrm{-}30.5\%$ memory saving on parallel sampling and $44.3\%\textrm{-}66.3\%$ on beam search. 
+> vLLM 对内存节约的比例如 Figure 15 所示，比例通过将共享的块的数量除以没有共享的块的数量得到
+> Alpaca 数据集上，在并行采样时，内存的节约程度达到 6.1%-9.8%，beam search 时，内存的节约程度达到 37.6%-55.2%
 
-# 6.4 Shared prefix 
+![[vLLM-Figure15.png]]
 
-We explore the effectiveness of vLLM for the case a prefix is shared among different input prompts, as illustrated in 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/3bd361f3426674089b4e07911ac87d9efcd834cdc3892d06e59246b4a662b301.jpg) 
-(a) 1-shot prefix prompt (b) 5-shot prefix prompt 
+## 6.4 Shared prefix 
+We explore the effectiveness of vLLM for the case a prefix is shared among different input prompts, as illustrated in Fig. 10. For the model, we use LLaMA-13B [52], which is multilingual. For the workload, we use the WMT16 [4] Englishto-German translation dataset and synthesize two prefixes that include an instruction and a few translation examples. The first prefix includes a single example (i.e., one-shot) while the other prefix includes 5 examples (i.e., few-shot). As shown in Fig. 16 (a), vLLM achieves $1.67\times$ higher throughput than Orca (Oracle) when the one-shot prefix is shared. Furthermore, when more examples are shared (Fig. 16 (b)), vLLM achieves $3.58\times$ higher throughput than Orca (Oracle). 
+> 我们使用 LLaMA-13B 探究 vLLM 对于不同输入 prompt 共享前缀的效率，我们使用 WMT16 English-German 翻译数据集，为数据合成了两个前缀，每个前缀包括一个指令和一部分翻译示例样本，作为 workload
+> 第一个前缀是 one-shot，仅包含单个示例样本，第二个前缀为 few-shot，包含5个示例样本
+> 结果见 Figure 16，可以看到前缀越长，效果越明显
 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/d330cc6d64ac87fed639c9a9352e7b2890d9ade9d2c05887c3042f5a91524e3e.jpg) 
-Figure 17. Performance on chatbot workload. 
+![[vLLM-Figure16.png]]
 
-Fig. 10. For the model, we use LLaMA-13B [52], which is multilingual. For the workload, we use the WMT16 [4] Englishto-German translation dataset and synthesize two prefixes that include an instruction and a few translation examples. The first prefix includes a single example (i.e., one-shot) while the other prefix includes 5 examples (i.e., few-shot). As shown in Fig. 16 (a), vLLM achieves $1.67\times$ higher throughput than Orca (Oracle) when the one-shot prefix is shared. Furthermore, when more examples are shared (Fig. 16 (b)), vLLM achieves $3.58\times$ higher throughput than Orca (Oracle). 
-
-# 6.5 Chatbot 
-
+## 6.5 Chatbot 
 A chatbot [8 , 19 , 35] is one of the most important applications of LLMs. To implement a chatbot, we let the model generate a response by concatenating the chatting history and the last user query into a prompt. We synthesize the chatting history and user query using the ShareGPT dataset. Due to the limited context length of the OPT-13B model, we cut the prompt to the last 1024 tokens and let the model generate at most 1024 tokens. We do not store the KV cache between different conversation rounds as doing this would occupy the space for other requests between the conversation rounds. 
+> 要实现 chatbot，我们要让模型将聊天历史和用户查询拼接为 prompt
+> 我们使用 ShareGPT 数据集合成聊天历史和用户查询
+> OPT-13B 的上下文窗口长度有限，故我们将 prompt 长度设定为最后的 1024 tokens，并且让模型最多生成 1024 tokens
+> 我们不保存对话轮次之间的 KV cache，防止在对话轮次之间占用其他请求的空间
 
-Fig. 17 shows that vLLM can sustain $2\times$ higher request rates compared to the three Orca baselines. Since the ShareGPT dataset contains many long conversations, the input prompts for most requests have 1024 tokens. Due to the buddy allocation algorithm, the Orca baselines reserve the space for 1024 tokens for the request outputs, regardless of how they predict the output lengths. For this reason, the three Orca baselines behave similarly. In contrast, vLLM can effectively 
+Fig. 17 shows that vLLM can sustain $2\times$ higher request rates compared to the three Orca baselines. Since the ShareGPT dataset contains many long conversations, the input prompts for most requests have 1024 tokens. Due to the buddy allocation algorithm, the Orca baselines reserve the space for 1024 tokens for the request outputs, regardless of how they predict the output lengths. For this reason, the three Orca baselines behave similarly. In contrast, vLLM can effectively handle the long prompts, as Paged Attention resolves the problem of memory fragmentation and reservation. 
+> vLLM 相较于 Orca 可以维持 2x 以上的请求率
+> ShareGPT 包含许多长对话，因此许多请求 prompt 都达到 1024 tokens
+> Orca 的 buddy 分配算法总是为请求输出预留 1024 tokens 的空间，无论实际输出多长，因此三种 Orca 实现的表现都类似
+> 而 vLLM 解决了内存碎片和预留的问题，故可以高效处理长的 prompt
 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/b27b296e41d5900dd9eba28f8b2dd0065f6d4c90b5820d60ffdbe9522a21c8b9.jpg) 
-(a) Latency of attention kernels. (b) End-to-end latency with different block sizes. Figure 18. Ablation experiments. 
-
-handle the long prompts, as Paged Attention resolves the problem of memory fragmentation and reservation. 
+![[vLLM-Figure17.png]]
 
 # 7 Ablation Studies 
-
 In this section, we study various aspects of vLLM and evaluate the design choices we make with ablation experiments. 
 
-# 7.1 Kernel Micro benchmark 
-
+## 7.1 Kernel Microbenchmark 
 The dynamic block mapping in Paged Attention affects the performance of the GPU operations involving the stored KV cache, i.e., block read/writes and attention. Compared to the existing systems, our GPU kernels (§5) involve extra overheads of accessing the block table, executing extra branches, and handling variable sequence lengths. As shown in Fig. 18a, this leads to $20{-}26\%$ higher attention kernel latency, compared to the highly-optimized Faster Transformer implementation. We believe the overhead is small as it only affects the attention operator but not the other operators in the model, such as Linear. Despite the overhead, Paged Attention makes vLLM significantly outperform Faster Transformer in end-to-end performance (§6). 
+> PagedAttention 的动态 block 映射会影响涉及到 KV cache 的 GPU 操作的表现，即 block 读写和 attention 计算
+> 相较于现有系统，我们的 GPU kernel 包含了访问 block table、执行额外分支、处理可变序列长度的额外开销，如 Figure 18a 所示，这将导致 attention kernel 比 Faster Transformer 实现多出 20-26% 的延迟
+> 但 vLLM 的端到端表现仍然显著高于 Faster Transformer
 
-# 7.2 Impact of Block Size 
+![[vLLM-Figure18.png]]
 
-The choice of block size can have a substantial impact on the performance of vLLM. If the block size is too small, vLLMmay not fully utilize the GPU’s parallelism for reading and processing KV cache. If the block size is too large, internal fragmentation increases and the probability of sharing decreases. 
+## 7.2 Impact of Block Size 
+The choice of block size can have a substantial impact on the performance of vLLM. If the block size is too small, vLLM may not fully utilize the GPU’s parallelism for reading and processing KV cache. If the block size is too large, internal fragmentation increases and the probability of sharing decreases. 
+> KV block 太小时，vLLM 可能无法完全利用 GPU 的并行性质优化 KV cache 的读取和处理，KV block 太大时，则会导致更大的内部碎片，且能共享的概率降低
 
-In Fig. 18b, we evaluate the performance of vLLM with dif-ferent block sizes, using the ShareGPT and Alpaca traces with basic sampling under fixed request rates. In the ShareGPT trace, block sizes from 16 to 128 lead to the best performance. In the Alpaca trace, while the block size 16 and 32 work well, larger block sizes significantly degrade the performance since the sequences become shorter than the block sizes. In practice, we find that the block size 16 is large enough to efficiently utilize the GPU and small enough to avoid significant internal fragmentation in most workloads. Accordingly, vLLM sets its default block size as 16. 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/faab2f327a9bb710f4e814057401abe32472d4633d1d426af644c3148b818cf5.jpg) 
-Figure 19. (a) Overhead of re computation and swapping for different block sizes. (b) Performance when serving OPT-13B with the ShareGPT traces at the same request rate. 
+In Fig. 18b, we evaluate the performance of vLLM with different block sizes, using the ShareGPT and Alpaca traces with basic sampling under fixed request rates. In the ShareGPT trace, block sizes from 16 to 128 lead to the best performance. In the Alpaca trace, while the block size 16 and 32 work well, larger block sizes significantly degrade the performance since the sequences become shorter than the block sizes. In practice, we find that the block size 16 is large enough to efficiently utilize the GPU and small enough to avoid significant internal fragmentation in most workloads. Accordingly, vLLM sets its default block size as 16. 
+> Figure 18b 评估了 vLLM 在不同 block size 下的表现 (basic sampling, fixed request rate)
+> ShareGPT 的 block size 最好在 16-128，Alpaca 的 block size 过大时表现显著降低，因为 block size 超过了序列长度
+> 实践中，block size = 16 的效果最优，可以在利用 GPU 并行性的同时避免大多数 workload 中的过大内部碎片
 
-# 7.3 Comparing Re computation and Swapping 
+## 7.3 Comparing Recomputation and Swapping 
+vLLM supports both recomputation and swapping as its recovery mechanisms. To understand the tradeoffs between the two methods, we evaluate their end-to-end performance and micro benchmark their overheads, as presented in Fig. 19. Our results reveal that swapping incurs excessive overhead with small block sizes. This is because small block sizes often result in numerous small data transfers between CPU and GPU, which limits the effective PCIe bandwidth. In contrast, the overhead of re computation remains constant across different block sizes, as re computation does not utilize the KV blocks. Thus, recomputation is more efficient when the block size is small, while swapping is more efficient when the block size is large, though recomputation overhead is never higher than $20\%$ of swapping’s latency. For medium block sizes from 16 to 64, the two methods exhibit comparable end-to-end performance. 
+> vLLM 支持的抢占恢复机制有重计算和交换
+> 我们评估了这两种方法的端到端表现，并且测试了它们的开销，如 Figure 19 所示
+> 交换方法在 block size 较小时会显著开销，因为小的 block size 容易导致 CPU 和 GPU 之间有过多的小数据传输，限制了有效 PCIe 带宽
+> 重计算的开销随 block size 变化基本不变，因为重计算不涉及数据传输，不会使用 KV blocks
+> 因此 block size 较小时重计算较高效，block size 较大时交换方法较高效，block size 为中等大小时，二者的端到端表现可比
 
-vLLM supports both re computation and swapping as its recovery mechanisms. To understand the tradeoffs between the two methods, we evaluate their end-to-end performance and micro benchmark their overheads, as presented in Fig. 19. Our results reveal that swapping incurs excessive overhead with small block sizes. This is because small block sizes often result in numerous small data transfers between CPU and GPU, which limits the effective PCIe bandwidth. In contrast, the overhead of re computation remains constant across different block sizes, as re computation does not utilize the KV blocks. Thus, re computation is more efficient when the block size is small, while swapping is more efficient when the block size is large, though re computation overhead is never higher than $20\%$ of swapping’s latency. For medium block sizes from 16 to 64, the two methods exhibit comparable end-to-end performance. 
+![[vLLM-Figure19.png]]
 
 # 8 Discussion 
+**Applying the virtual memory and paging technique to other GPU workloads.** The idea of virtual memory and paging is effective for managing the KV cache in LLM serving because the workload requires dynamic memory allocation (since the output length is not known a priori) and its performance is bound by the GPU memory capacity. However, this does not generally hold for every GPU workload. For example, in DNN training, the tensor shapes are typically static, and thus memory allocation can be optimized ahead of time. For another example, in serving DNNs that are not LLMs, an increase in memory efficiency may not result in any performance improvement since the performance is primarily compute-bound. In such scenarios, introducing the vLLM’s techniques may rather degrade the performance due to the extra overhead of memory indirection and non-contiguous block memory. However, we would be excited to see vLLM’s techniques being applied to other workloads with similar properties to LLM serving. 
+> Applying the virtual memory and paging techinque to other GPU workloads
+> 虚拟内存和分页机制在管理 KV cache 时高效的原因在于 LLM 的 workload 需要动态内存分配 (因为输出长度不能提前预知)，故性能受 GPU 显存容量限制
+> 对于其他的 GPU workload 这一点不一定成立
+> 例如训练 DNN 时，张量的形状一般是静态的，因此可以提前优化内存分配；同时对于不是 LLM 的 DNN 来说，内存效率的提升不一定会让性能提升，因为性能也可能是 compute-bound
+> 对于这样的场景，vLLM 技术可能反而会降低性能，因为间接内存和不连续的块式内存会引入额外开销
 
-Applying the virtual memory and paging technique to other GPU workloads. The idea of virtual memory and paging is effective for managing the KV cache in LLM serving because the workload requires dynamic memory allocation (since the output length is not known a priori) and its performance is bound by the GPU memory capacity. However, this does not generally hold for every GPU workload. For example, in DNN training, the tensor shapes are typically static, and thus memory allocation can be optimized ahead of time. For another example, in serving DNNs that are not LLMs, an increase in memory efficiency may not result in any performance improvement since the performance is primarily compute-bound. In such scenarios, introducing the vLLM’s techniques may rather degrade the performance due to the extra overhead of memory in direction and non-contiguous block memory. However, we would be excited to see vLLM’s techniques being applied to other workloads with similar properties to LLM serving. 
-
-LLM-specific optimization s in applying virtual memory and paging. vLLM re-interprets and augments the idea of virtual memory and paging by leveraging the applicationspecific semantics. One example is vLLM’s all-or-nothing swap-out policy, which exploits the fact that processing a request requires all of its corresponding token states to be stored in GPU memory. Another example is the recomputation method to recover the evicted blocks, which is not feasible in OS. Besides, vLLM mitigates the overhead of memory in direction in paging by fusing the GPU kernels for memory access operations with those for other operations such as attention. 
+**LLM-specific optimizations in applying virtual memory and paging.** vLLM re-interprets and augments the idea of virtual memory and paging by leveraging the application specific semantics. One example is vLLM’s all-or-nothing swap-out policy, which exploits the fact that processing a request requires all of its corresponding token states to be stored in GPU memory. Another example is the recomputation method to recover the evicted blocks, which is not feasible in OS. Besides, vLLM mitigates the overhead of memory in direction in paging by fusing the GPU kernels for memory access operations with those for other operations such as attention.
+> LLM-specific optimizations in applying virtual memory and paging
+> vLLM 在针对应用程序的语义上重新解释并强化了虚拟内存和分页的思想
+> 一个例子就是 vLLM 的全有或全无的换出策略，这基于的事实是处理一个请求需要它所有对应的 tokens 的状态都被存储在 GPU 显存中
+> 另一个例子是可以用重计算恢复被驱逐的数据块，这在 OS 中是不可行的
+> 此外，vLLM 通过融合了执行内存访问操作的 kernel 和执行其他操作例如 attention 的 kernel 来缓解了内存间接访问的开销
 
 # 9 Related Work 
+**General model serving systems.** Model serving has been an active area of research in recent years, with numerous systems proposed to tackle diverse aspects of deep learning model deployment. Clipper [11], TensorFlow Serving [33], Nexus [45], InferLine [10], and Clockwork [20] are some earlier general model serving systems. They study batching, caching, placement, and scheduling for serving single or multiple models. More recently, DVABatch [12] introduces multi-entry multi-exit batching. REEF [21] and Shepherd [61] propose preemption for serving. AlpaServe [28] utilizes model parallelism for statistical multiplexing. However, these general systems fail to take into account the autoregressive property and token state of LLM inference, resulting in missed opportunities for optimization. 
+> 通用模型服务系统
+> 模型服务近年来一直是研究的热点领域，许多系统被提出以解决深度学习模型部署的各种方面问题
+> Clipper [11]、TensorFlow Serving [33]、Nexus [45]、InferLine [10] 和Clockwork [20] 是一些较早的通用模型服务系统。它们研究了批量处理、缓存、部署位置和调度等问题，用于服务单个或多个模型
+> 最近，DVABatch [12] 引入了多入口多出口批量处理。REEF [21] 和Shepherd [61] 提出了预调度服务的方法。AlpaServe [28] 利用了模型并行性来进行统计复用
+> 然而，这些通用系统未能考虑到LLM推理中的自回归特性和token状态，导致错失了优化的机会。
 
-General model serving systems. Model serving has been an active area of research in recent years, with numerous systems proposed to tackle diverse aspects of deep learning model deployment. Clipper [11], TensorFlow Serving [33], Nexus [45], InferLine [10], and Clockwork [20] are some earlier general model serving systems. They study batching, caching, placement, and scheduling for serving single or multiple models. More recently, DVABatch [12] introduces multi-entry multi-exit batching. REEF [21] and Shepherd [61] propose preemption for serving. AlpaServe [28] utilizes model parallelism for statistical multiplexing. However, these general systems fail to take into account the autoregressive property and token state of LLM inference, resulting in missed opportunities for optimization. 
+**Specialized serving systems for transformers.** Due to the significance of the transformer architecture, numerous specialized serving systems for it have been developed. These systems utilize GPU kernel optimization s [1, 29, 31, 56], advanced batching mechanisms [14 , 60], model parallelism [1 , 41 , 60], and parameter sharing [64] for efficient serving. Among them, Orca [60] is most relevant to our approach. 
+>  针对 transformers 的服务系统
+>  有许多专门的针对 transformer 架构的服务系统，这些系统利用了 GPU 内核优化[1, 29, 31, 56]、高级批量处理机制[14, 60]、模型并行性[1, 41, 60]以及参数共享[64]，以实现高效的服务。其中，Orca [60] 最接近我们的方法。
 
-Specialized serving systems for transformers. Due to the significance of the transformer architecture, numerous specialized serving systems for it have been developed. These systems utilize GPU kernel optimization s [1, 29, 31, 56], advanced batching mechanisms [14 , 60], model parallelism [1 , 41 , 60], and parameter sharing [64] for efficient serving. Among them, Orca [60] is most relevant to our approach. 
+**Comparison to Orca.** The iteration-level scheduling in Orca [60] and Paged Attention in vLLM are complementary techniques: While both systems aim to increase the GPU utilization and hence the throughput of LLM serving, Orca achieves it by scheduling and interleaving the requests so that more requests can be processed in parallel, while vLLM is doing so by increasing memory utilization so that the working sets of more requests fit into memory. By reducing memory fragmentation and enabling sharing, vLLM runs more requests in a batch in parallel and achieves a $2–4\times$ speedup compared to Orca. Indeed, the fine-grained scheduling and interleaving of the requests like in Orca makes memory management more challenging, making the techniques proposed in vLLM even more crucial. 
+> 与 Orca 的对比
+> Orca [60]中的迭代级别调度和 vLLM 中的分页注意力机制是互补的技术：虽然两个系统都旨在提高 GPU 利用率和 LLM 服务的吞吐量，但 Orca 通过调度和交错请求使得更多请求可以并行处理，而 vLLM 则是通过增加内存利用率使更多请求的工作集可以容纳在显存中
+> 通过减少内存碎片并启用共享，vLLM 能够并行运行更多的请求，并相较于 Orca 实现了2-4倍的速度提升
+> 实际上，像 Orca 那样对请求进行细粒度调度和交错处理会使内存管理更加复杂，这也使得 vLLM 中提出的技术更为关键
 
-Comparison to Orca. The iteration-level scheduling in Orca [60] and Paged Attention in vLLM are complementary techniques: While both systems aim to increase the GPU utilization and hence the throughput of LLM serving, Orca achieves it by scheduling and interleaving the requests so that more requests can be processed in parallel, while vLLM is doing so by increasing memory utilization so that the working sets of more requests fit into memory. By reducing memory fragmentation and enabling sharing, vLLM runs more requests in a batch in parallel and achieves a $2–4\times$ speedup compared to Orca. Indeed, the fine-grained scheduling and interleaving of the requests like in Orca makes memory management more challenging, making the techniques proposed in vLLM even more crucial. 
-
-Memory optimization s. The widening gap between the compute capability and memory capacity of accelerators has caused memory to become a bottleneck for both training and inference. Swapping [23 , 42 , 55], re computation [7 , 24] and their combination [40] have been utilized to reduce the peak memory of training. Notably, FlexGen [46] studies how to swap weights and token states for LLM inference with limited GPU memory, but it does not target the online serving settings. OLLA [48] optimizes the lifetime and location of tensors to reduce fragmentation, but it does not do finegrained block-level management or online serving. FlashAttention [13] applies tiling and kernel optimization s to reduce the peak memory of attention computation and reduce I/O costs. This paper introduces a new idea of block-level memory management in the context of online serving. 
+**Memory optimizations.** The widening gap between the compute capability and memory capacity of accelerators has caused memory to become a bottleneck for both training and inference. Swapping [23 , 42 , 55], re computation [7 , 24] and their combination [40] have been utilized to reduce the peak memory of training. Notably, FlexGen [46] studies how to swap weights and token states for LLM inference with limited GPU memory, but it does not target the online serving settings. OLLA [48] optimizes the lifetime and location of tensors to reduce fragmentation, but it does not do finegrained block-level management or online serving. FlashAttention [13] applies tiling and kernel optimization s to reduce the peak memory of attention computation and reduce I/O costs. This paper introduces a new idea of block-level memory management in the context of online serving. 
+> 内存优化
+> 加速设备的计算能力和内存容量之间的差距越来越大，导致内存成为了训练和推理的瓶颈，交换[23, 42, 55]、重计算[7, 24]及二者的组合[40]已被用来减少训练的峰值内存需求。
+> 值得注意的是，FlexGen [46]研究了如何在有限的 GPU 内存下通过交换权重和 token 状态来进行 LLM 推理，但它并不针对在线服务场景。OLLA [48]优化了张量的生命周期和位置，以减少碎片化，但并没有进行细粒度的块级管理和在线服务。FlashAttention [13]通过分块和内核优化来减少注意力计算的峰值内存和 I/O 成本
+> 本文介绍了一种新的基于块级别的内存管理思想，适用于在线服务场景。
 
 # 10 Conclusion 
 This paper proposes Paged Attention, a new attention algorithm that allows attention keys and values to be stored in non-contiguous paged memory, and presents vLLM, a high-throughput LLM serving system with efficient memory management enabled by Paged Attention. Inspired by operating systems, we demonstrate how established techniques, such as virtual memory and copy-on-write, can be adapted to efficiently manage KV cache and handle various decoding algorithms in LLM serving. Our experiments show that vLLM achieves $2–4\times$ throughput improvements over the state-of-the-art systems. 
+> 本文提出了 PagedAttention，该算法允许 attention keys 和 values 被存储在不连续的分页内存
+> 本文展示了 vLLM，一个高吞吐的 LLM 服务系统，使用 PagedAttention 进行高效内存管理
+> 我们展示了如何应用成熟的技术，例如虚拟内存和写时拷贝，来高效管理 KV cache 并处理 LLM 服务中的多种解码算法
+> 试验标识了 vLLM 相较于 SOTA 系统实现了 2-4x 的吞吐提升
