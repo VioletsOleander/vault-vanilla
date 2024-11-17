@@ -279,8 +279,62 @@
 ### Week3
 \[Paper\]
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec4.6-Sec10
-    4-Method: 
-    
+    Sec4-Method: 
+        Sec4.1-PagedAttention:
+            PagedAttention partitions each sequences KV cache into blocks, each block contains a certain number of tokens' KV cache.
+            The blocks are not necessarily contiguous in physical memory. In decoding computation, PagedAttention fetches all the relevant block (not necessarily contiguous in physical memory) to do the computation.
+            The blockwise management of KV cache allows us to use flexible paged memory management in vLLM.
+        Sec4.2-KV Cache Manager:
+            In vLLM, a request's KV cache will be partitioned into contiguous logical blocks, which are mapped to non-contiguous physical blocks. Blocks are filled from left to right.
+            On GPU worker, the block engine allocates contiguous DRAM and divide it into blocks.
+            The mapping from logical blocks physical blocks for each request are maintained in the block table by block manager.
+            vLLM thus can dynamically grow the KV cache memory in block granularity instead of reserving all positions.
+        Sec4.3-Decoding with PagedAttention and vLLM
+            In prefill, vLLM first allocates physical blocks for prompt, and use conventional self-attention algorithm to compute the KV cache for prompt, and generate the first token. In autoregressive decoding, vLLM uses PagedAttention to compute query token's KV cache and generate new tokens one by one. The new computed KV cache will be filled into empty slots from left to right. If the block is filled, vLLM creates new logical block and allocates physical block.
+            Globally, in each decoding iteration, vLLM selects a set of candidate sequences for baching.
+            Larger block size allows vLLM to process more position's KV cache in parallel, but will in turn increase internal fragmentation.
+        Sec4.4-Application to Other Decoding Scenarios
+            In addition to the basic greedy decoding algorithm, vLLM can handle more complex decoding algorithm.
+            Parallel sampling: 
+            LLM generates multiple outputs sequences for one request, thus the prompt's KV cache can be shared. Sharing means the logical block for each sequence's prompt are mapped into the same physical block. The number of sharers is rercorded by the physical block's reference count. When new token is to be written into a logical block whose corresponding physical block's reference count is larger then 1, vLLM adopts write-on-copy mechanism to copy the physical block' content to a new physical block and write to it. The original physical block's reference count is decresed by 1. Thus most KV cache of the prompt will be shared between a request's multiple outputs in parallel sampling.
+            Beam search:
+            In each iteration, beam search retains the top-k sequence in $k\cdot |V|$ candidates.
+            The beam candidates initial prompt KV blocks and possibly more KV blocks if they come from the same predix. The sharing pattern will change dynamically, possibly diverge at some point and converge later.
+            In previous LLM service system, the convergence of diverged beam candidate will require copying a large amount of KV cache. In vLLM, they are simply shaing the same physical blocks. The copywill only happen in the copy-on-write of a diverging block, and the overhead is limited to the size of one block.
+            Shared prefix:
+            The system prompt's KV cache blocks are shared. Their physical blocks can also be cached in advance.
+            Mixed decoding methods:
+            vLLM supports processing request with different decoding methods simultaneously, because vLLM conceals the memory sharing pattern with the mapping layer which translates logical blocks to physical blocks, thus the execution kernel only need to handle the list of physical block IDs for a sequence instead of managing the sharing pattern for the sequence explicitly.
+        Sec4.5-Scheduling and preemption:
+            vLLM adopts FCFS schduling policy for requests. vLLM implements all-or-nothing eviction policy for preempted sequences. The recovery methods include swapping and recomputation. Note that the recomputaton latency will significantly lower then the original latency, because all the needed tokens are konwn.
+        Sec4.6-Distributed Execution:
+            vLLM uses Megatron-LM tensor model parallelism strategy. The attention operator is split on the attention head dimension.
+            Each model shard still processes the same set of tokens for a request, thus requiring KV cache for the same potisions. Although the physical block IDs are shared between GPU workers, a worker only store a portion of KV cache for its responsible attention head.
+            In each step of execution, the scheduler brodcast the token IDs and block tables for each reqeust to GPU workers. The GPU workers do not need to synchronize on memory management, because they receive all the memory management information at the beginning of each decoding iteration.
+    Sec5-Implementation:
+        PagedAttention uses three kernels to optimize memory access pattern, including
+        fused reshape and block write kernel to split the new KV cache in every transformer layers into blocks and reshape and store to the specified position according to the block table; 
+        fused block read and attention kernel to read KV cache according to block table and compute attention. Each block's read is assigned to a warp to ensure coalesced memory access.
+        fused  block copy kernel to batchwise process multiple blocks' copy-on-write operation.
+        PagedAttention use `fork/append/free` to implement multiple decoding algorithms. `fork` creates new sequence from the existing one. `append` appends a new token to the existing sequence. `free` deletes a finished sequence.
+    Sec6-Evaluation:
+        The request arrival times are generated by Possion distribution with different request rates.
+        The key metrics is throughput. The normalized latency of the system is measured under the workloads with different request rate.
+        The normalized latency is equal to the mean of every requests' end-to-end latency divided by its token number.
+        With the request rate increasing, the normalized latency increase gradually until the request rate surpassinig the capacity. vLLM can significant improve the capacity by saving lots of KV cache memory, thus can sustain higher request rate, thus enabe batching more requests.
+        In compute-bound scenario (shorter sequences, larger memory spaces), vLLM's advantage is less profound.
+        The block sharing in advanced decoding scenarios is also efficient, and bring more improvements as the number of parallel samples or the beam width or the length of prefix increases.
+    Sec7-Abalation Study:
+        PagedAttention kernel involves more overheads of accessing block table, executing extra branches and handling variable sequence lengths, leading to more kernel latency. But the end-to-end performance is bettern due to memory saving.
+        Small block size may lead to inefficiency in reading and processing KV cache in parallel. Large block size may lead to more internal fragmentation and lower probibility of sharing. Block size = 16 is a nice tradeoff.
+        As for the recovery strategy, the overhead of recomputation is invariant to block size, because it does not involve data transmisson. Swapping is more efficient when block size is large.
+    Sec8-Discussion:
+        Blockwise memory management mechanism is effective for managing KV cache because the workload for LLM serving can not know the output length in priori, thus requiring dynamic memory allocation. The blockwise management can minimize the framentation of memory allocation in such scenario.
+    Sec9-Related Work:
+        The iteration-level scheduling in Orca and PagedAttention in vLLM are complementary techniques. Orca schedules and interleaves requests to process more requests in parallel. vLLM increases the memory utilization to fit a larger working set of requests into memory.
+        By reducing memory fragmentation and enabling sharing, vLLM can run more requests in parallel.
+    Sec10-Conclusion:
+        PagedAttention manage KV cache in block granularity, reducing memory fragmentation and enabling sharing. vLLM is built upon PagedAttention, it shows how established techniques like virtual memory and copy-on-write can be used to efficiently manage KV cache and handle various decoding algorithm in LLM serving.
 
 \[Book\]
 - [[A Tour of C++]] : CH9-CH9.2
@@ -291,6 +345,9 @@
         `s` suffix's corresponding operator is defined in `std::literals::string_literals`.
         `string` 's implementation is shor-string optimized.
         `string` is actually an alias of `basic_string<char>`.
+- [[面向计算机科学的组合数学]]: CH4.4.1-CH4.5.1
+    Write characteristic polynominal directly from the recurrence relation, and slove the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
+    
 
 \[Doc\]
 - [[CUDA C++ Programming Guide v12.6]]: CH2
