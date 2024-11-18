@@ -270,7 +270,6 @@
         To deal with evidence, we first use the evidence to reduce the factors (leaving the factors compatible with the evidence), and do the same algorithm to the reduced set of factors.
 - [[A Tour of C++]] : CH7-CH8
 
-
 \[Doc\]
 - [[Annotations Best Practices]]
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
@@ -299,8 +298,8 @@
             LLM generates multiple outputs sequences for one request, thus the prompt's KV cache can be shared. Sharing means the logical block for each sequence's prompt are mapped into the same physical block. The number of sharers is rercorded by the physical block's reference count. When new token is to be written into a logical block whose corresponding physical block's reference count is larger then 1, vLLM adopts write-on-copy mechanism to copy the physical block' content to a new physical block and write to it. The original physical block's reference count is decresed by 1. Thus most KV cache of the prompt will be shared between a request's multiple outputs in parallel sampling.
             Beam search:
             In each iteration, beam search retains the top-k sequence in $k\cdot |V|$ candidates.
-            The beam candidates initial prompt KV blocks and possibly more KV blocks if they come from the same predix. The sharing pattern will change dynamically, possibly diverge at some point and converge later.
-            In previous LLM service system, the convergence of diverged beam candidate will require copying a large amount of KV cache. In vLLM, they are simply shaing the same physical blocks. The copywill only happen in the copy-on-write of a diverging block, and the overhead is limited to the size of one block.
+            The beam candidates share initial prompt KV blocks and possibly more KV blocks if they come from the same prefix. The sharing pattern will change dynamically, possibly diverge at some point and converge later.
+            In previous LLM service system, the convergence of diverged beam candidate will require copying a large amount of KV cache. In vLLM, they are simply shaing the same physical blocks. The copy will only happen in the copy-on-write of a diverging block, and the overhead is limited to the size of one block.
             Shared prefix:
             The system prompt's KV cache blocks are shared. Their physical blocks can also be cached in advance.
             Mixed decoding methods:
