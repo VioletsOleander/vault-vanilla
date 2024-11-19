@@ -3173,7 +3173,7 @@ y = eggs
 ```
 
 The exception’s [`__str__()`](https://docs.python.org/3/reference/datamodel.html#object.__str__ "object.__str__") output is printed as the last part (‘detail’) of the message for unhandled exceptions.
-> 异常的 `__str__*()` 输出会作为未处理异常的 detail 信息被打印出
+> 异常的 `__str__()` 输出会作为未处理异常的 detail 信息被打印出
 
 [`BaseException`](https://docs.python.org/3/library/exceptions.html#BaseException "BaseException") is the common base class of all exceptions. One of its subclasses, [`Exception`](https://docs.python.org/3/library/exceptions.html#Exception "Exception"), is the base class of all the non-fatal exceptions. Exceptions which are not subclasses of [`Exception`](https://docs.python.org/3/library/exceptions.html#Exception "Exception") are not typically handled, because they are used to indicate that the program should terminate. They include [`SystemExit`](https://docs.python.org/3/library/exceptions.html#SystemExit "SystemExit") which is raised by [`sys.exit()`](https://docs.python.org/3/library/sys.html#sys.exit "sys.exit") and [`KeyboardInterrupt`](https://docs.python.org/3/library/exceptions.html#KeyboardInterrupt "KeyboardInterrupt") which is raised when a user wishes to interrupt the program.
 > `BaseException` 是所有异常类的共同基类，它的一个子类 `Exception` 是所有 non-fatal 异常的共同基类
@@ -4123,7 +4123,7 @@ See also
 The [private name mangling specifications](https://docs.python.org/3/reference/expressions.html#private-name-mangling) for details and special cases.
 
 Name mangling is helpful for letting subclasses override methods without breaking intraclass method calls. For example:
-> 名称改变有助于让子类在不破坏类内方法调用的情况下重写方法
+> 名称改编有助于让子类在不破坏类内方法调用的情况下重写方法
 
 ```python
 class Mapping:
