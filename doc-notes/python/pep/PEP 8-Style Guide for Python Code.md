@@ -7,7 +7,7 @@ This style guide evolves over time as additional conventions are identified and 
 
 Many projects have their own coding style guidelines. In the event of any conflicts, such project-specific guides take precedence for that project.
 
-## A Foolish Consistency is the Hobgoblin of Little Minds
+# A Foolish Consistency is the Hobgoblin of Little Minds
 One of Guido’s key insights is that code is read much more often than it is written. The guidelines provided here are intended to improve the readability of code and make it consistent across the wide spectrum of Python code. As [PEP 20](https://peps.python.org/pep-0020/ "PEP 20 – The Zen of Python") says, “Readability counts”.
 > PEP8 旨在提高 Python 代码的可读性
 
@@ -25,8 +25,8 @@ Some other good reasons to ignore a particular guideline:
 3. Because the code in question predates the introduction of the guideline and there is no other reason to be modifying that code.
 4. When the code needs to remain compatible with older versions of Python that don’t support the feature recommended by the style guide.
 
-## Code Lay-out
-### Indentation
+# Code Lay-out
+## Indentation
 Use 4 spaces per indentation level.
 > 4空格缩进
 
@@ -134,7 +134,7 @@ result = some_function_that_takes_arguments(
 )
 ```
 
-### Tabs or Spaces?
+## Tabs or Spaces?
 Spaces are the preferred indentation method.
 
 Tabs should be used solely to remain consistent with code that is already indented with tabs.
@@ -142,7 +142,7 @@ Tabs should be used solely to remain consistent with code that is already indent
 Python disallows mixing tabs and spaces for indentation.
 > Space > Tab，禁止混合使用
 
-### Maximum Line Length
+## Maximum Line Length
 Limit all lines to a maximum of 79 characters.
 >将所有行的长度限制为最多79个字符
 
@@ -176,7 +176,7 @@ Another such case is with `assert` statements.
 
 Make sure to indent the continued line appropriately.
 
-### Should a Line Break Before or After a Binary Operator?
+## Should a Line Break Before or After a Binary Operator?
 For decades the recommended style was to break after binary operators. But this can hurt readability in two ways: the operators tend to get scattered across different columns on the screen, and each operator is moved away from its operand and onto the previous line. Here, the eye has to do extra work to tell which items are added and which are subtracted:
 
 ```python
@@ -206,7 +206,7 @@ income = (gross_wages
 In Python code, it is permissible to break before or after a binary operator, as long as the convention is consistent locally. For new code Knuth’s style is suggested.
 > 推荐在运算符之前换行
 
-### Blank Lines
+## Blank Lines
 Surround top-level function and class definitions with two blank lines.
 > 顶级函数和类定义由两个空行包围
 
@@ -221,7 +221,7 @@ Use blank lines in functions, sparingly, to indicate logical sections.
 
 Python accepts the control-L (i.e. ^L) form feed character as whitespace; many tools treat these characters as page separators, so you may use them to separate pages of related sections of your file. Note, some editors and web-based code viewers may not recognize control-L as a form feed and will show another glyph in its place.
 
-### Source File Encoding
+## Source File Encoding
 Code in the core Python distribution should always use UTF-8, and should not have an encoding declaration.
 
 In the standard library, non-UTF-8 encodings should be used only for test purposes. Use non-ASCII characters sparingly, preferably only to denote places and human names. If using non-ASCII characters as data, avoid noisy Unicode characters like z̯̯͡a̧͎̺l̡͓̫g̹̲o̡̼̘ and byte order marks.
@@ -230,7 +230,7 @@ All identifiers in the Python standard library MUST use ASCII-only identifiers, 
 
 Open source projects with a global audience are encouraged to adopt a similar policy.
 
-### Imports
+## Imports
 - Imports should usually be on separate lines:
 
     ```python
@@ -303,7 +303,7 @@ Open source projects with a global audience are encouraged to adopt a similar po
     When republishing names this way, the guidelines below regarding public and internal interfaces still apply.
     
 
-### Module Level Dunder Names
+## Module Level Dunder Names
 Module level “dunders” (i.e. names with two leading and two trailing underscores) such as `__all__`, `__author__`, `__version__`, etc. should be placed after the module docstring but before any import statements _except_ `from __future__` imports. Python mandates that future-imports must appear in the module before any other code except docstrings:
 > 模块级别的 dunder 应该在模块 docstring 之后，在 import 语句之前，除了 `from __future__` 的 import，`from __future__` 的 import 必须出现在 docstring 之后的第一个位置
 
@@ -323,14 +323,14 @@ import os
 import sys
 ```
 
-## String Quotes
+# String Quotes
 In Python, single-quoted strings and double-quoted strings are the same. This PEP does not make a recommendation for this. Pick a rule and stick to it. When a string contains single or double quote characters, however, use the other one to avoid backslashes in the string. It improves readability.
 
 For triple-quoted strings, always use double quote characters to be consistent with the docstring convention in [PEP 257](https://peps.python.org/pep-0257/ "PEP 257 – Docstring Conventions").
 > 三引号时使用 `"` ，保持和 PEP 257 docstring 规范一致
 
-## Whitespace in Expressions and Statements
-### Pet Peeves
+# Whitespace in Expressions and Statements
+## Pet Peeves
 Avoid extraneous whitespace in the following situations:
 > 以下情况下避免额外的空格：
 
@@ -418,7 +418,7 @@ Avoid extraneous whitespace in the following situations:
     long_variable = 3
     ```
 
-### Other Recommendations
+## Other Recommendations
 - Avoid trailing whitespace anywhere. Because it’s usually invisible, it can be confusing: e.g. a backslash followed by a space and a newline does not count as a line continuation marker. Some editors don’t preserve it and many projects (like CPython itself) have pre-commit hooks that reject it.
 >避免在任何地方使用尾随空白字符。因为这些字符通常是看不见的，所以可能会引起混淆：例如，反斜杠后面跟着空格和换行符并不被视为行续行标记。一些编辑器不会保留这些字符，而且许多项目（如CPython本身）都有预提交钩子来拒绝这些字符
 - Always surround these binary operators with a single space on either side: assignment (`=`), augmented assignment (`+=`, `-=` etc.), comparisons (`==`, `<`, `>`, `!=`, `<>`, `<=`, `>=`, `in`, `not in`, `is`, `is not`), Booleans (`and`, `or`, `not`).
@@ -524,7 +524,7 @@ Avoid extraneous whitespace in the following situations:
     if foo == 'blah': one(); two(); three()
     ```
 
-## When to Use Trailing Commas
+# When to Use Trailing Commas
 Trailing commas are usually optional, except they are mandatory when making a tuple of one element. For clarity, it is recommended to surround the latter in (technically redundant) parentheses:
 >尾随逗号通常是可选的，除了在创建只有一个元素的元组时，这时它们是强制性的
 >为了清晰起见，建议用括号（从技术上讲是多余的）将这种情况括起来：
@@ -557,7 +557,7 @@ FILES = ['setup.cfg', 'tox.ini',]
 initialize(FILES, error=True,)
 ```
 
-## Comments
+# Comments
 Comments that contradict the code are worse than no comments. Always make a priority of keeping the comments up-to-date when the code changes!
 >与代码相矛盾的注释比没有注释还要糟糕
 >当代码更改时，始终优先保持注释是最新的
@@ -575,7 +575,7 @@ Ensure that your comments are clear and easily understandable to other speakers 
 
 Python coders from non-English speaking countries: please write your comments in English, unless you are 120% sure that the code will never be read by people who don’t speak your language.
 
-### Block Comments
+## Block Comments
 Block comments generally apply to some (or all) code that follows them, and are indented to the same level as that code. Each line of a block comment starts with a `#` and a single space (unless it is indented text inside the comment).
 >块注释通常适用于其后的某些（或全部）代码，并且缩进到与该代码相同的级别
 >块注释的每一行以 `#` 和一个空格开始（除非注释中的文本已缩进）
@@ -583,7 +583,7 @@ Block comments generally apply to some (or all) code that follows them, and are 
 Paragraphs inside a block comment are separated by a line containing a single `#`.
 > block comment 以一个 `# ` 的空行分离段落
 
-### Inline Comments
+## Inline Comments
 Use inline comments sparingly.
 > 不要密集使用 inline comment
 
@@ -602,7 +602,7 @@ But sometimes, this is useful:
 x = x + 1                 # Compensate for border
 ```
 
-### Documentation Strings
+## Documentation Strings
 Conventions for writing good documentation strings (a.k.a. “docstrings”) are immortalized in [PEP 257](https://peps.python.org/pep-0257/ "PEP 257 – Docstring Conventions").
 
 - Write docstrings for all public modules, functions, classes, and methods. Docstrings are not necessary for non-public methods, but you should have a comment that describes what the method does. This comment should appear after the `def` line.
@@ -625,14 +625,14 @@ Conventions for writing good documentation strings (a.k.a. “docstrings”) are
     """Return an ex-parrot."""
     ```
 
-## Naming Conventions
+# Naming Conventions
 The naming conventions of Python’s library are a bit of a mess, so we’ll never get this completely consistent – nevertheless, here are the currently recommended naming standards. New modules and packages (including third party frameworks) should be written to these standards, but where an existing library has a different style, internal consistency is preferred.
 
-### Overriding Principle
+## Overriding Principle
 Names that are visible to the user as public parts of the API should follow conventions that reflect usage rather than implementation.
 > 作为 API 的公有部分展现给用户的名字应该遵循反映其用法的命名，而不是反映其实现
 
-### Descriptive: Naming Styles
+## Descriptive: Naming Styles
 There are a lot of different naming styles. It helps to be able to recognize what naming style is being used, independently from what they are used for.
 
 The following naming styles are commonly distinguished:
@@ -682,18 +682,18 @@ tkinter.Toplevel(master, class_='ClassName')
 > 例如，`__init__`、`__import__` 或 `__file__`
 > 不要发明这样的名字，只按文档要求使用它们
 
-### Prescriptive: Naming Conventions
-#### Names to Avoid
+## Prescriptive: Naming Conventions
+### Names to Avoid
 Never use the characters ‘l’ (lowercase letter el), ‘O’ (uppercase letter oh), or ‘I’ (uppercase letter eye) as single character variable names.
 
 In some fonts, these characters are indistinguishable from the numerals one and zero. When tempted to use ‘l’, use ‘L’ instead.
 > 永远不要使用 `l` ，`O` ，`I` 作为单字符变量名，因为在一些字体中 `l/I` 和 `O/0` 会难以区分
 
-#### ASCII Compatibility
+### ASCII Compatibility
 Identifiers used in the standard library must be ASCII compatible as described in the [policy section](https://peps.python.org/pep-3131/#policy-specification "PEP 3131 – Supporting Non-ASCII Identifiers § Policy Specification") of [PEP 3131](https://peps.python.org/pep-3131/ "PEP 3131 – Supporting Non-ASCII Identifiers").
 > 标准库 identifier 必须使用 ASCII 字符
 
-#### Package and Module Names
+### Package and Module Names
 Modules should have short, all-lowercase names. Underscores can be used in the module name if it improves readability. Python packages should also have short, all-lowercase names, although the use of underscores is discouraged.
 >模块名应该有简短且全小写，如果下划线能提高可读性，可以在模块名中使用下划线
 >尽管不鼓励使用下划线，但 Python 包也应该有简短且全小写的名字
@@ -701,7 +701,7 @@ Modules should have short, all-lowercase names. Underscores can be used in the m
 When an extension module written in C or C++ has an accompanying Python module that provides a higher level (e.g. more object oriented) interface, the C/C++ module has a leading underscore (e.g. `_socket`).
 >当用 C 或 C++ 编写的扩展模块有一个对应的 Python 模块提供更高级别接口 (例如，更面向对象的接口)，C/C++ 模块的名称前应带一个下划线 (例如，`_socket` )
 
-#### Class Names
+### Class Names
 Class names should normally use the CapWords convention.
 > 类名使用 `CapsWords` 规范
 
@@ -712,7 +712,7 @@ Note that there is a separate convention for builtin names: most builtin names a
 >需要注意的是，内建名称遵循一套单独的约定：大多数内建名称是单个单词 (或者两个单词连在一起)
 >只有异常名称和内建常量使用 CapWords 命名约定
 
-#### Type Variable Names
+### Type Variable Names
 Names of type variables introduced in [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") should normally use CapWords preferring short names: `T`, `AnyStr`, `Num`. It is recommended to add suffixes `_co` or `_contra` to the variables used to declare covariant or contravariant behavior correspondingly:
 > PEP 484 引入的类型变量的名称应该使用 CapWords，并且偏好短的名称，例如 `T/AnyStr/Num`
 > 建议在用于声明协变或逆变行为的变量后添加后缀 `_co` 或 `_contra`
@@ -724,12 +724,12 @@ VT_co = TypeVar('VT_co', covariant=True)
 KT_contra = TypeVar('KT_contra', contravariant=True)
 ```
 
-#### Exception Names
+### Exception Names
 Because exceptions should be classes, the class naming convention applies here. However, you should use the suffix “Error” on your exception names (if the exception actually is an error).
 > 异常应该是类，故异常命名遵循类名规范
 > 以及异常名应该有 `Error` 后缀
 
-#### Global Variable Names
+### Global Variable Names
 (Let’s hope that these variables are meant for use inside one module only.) The conventions are about the same as those for functions.
 > 全局变量应该仅在单个模块内使用
 > 全局变量的命名规则和函数命名规则相同
@@ -737,58 +737,83 @@ Because exceptions should be classes, the class naming convention applies here. 
 Modules that are designed for use via `from M import *` should use the `__all__` mechanism to prevent exporting globals, or use the older convention of prefixing such globals with an underscore (which you might want to do to indicate these globals are “module non-public”).
 > 设计为会被通过 `from M import *` 使用的模块应该使用 `__all__` 来避免导出全局变量，或者使用更老的规范，即为不希望被导出的全局变量名称添加前缀下划线
 
-#### Function and Variable Names
+### Function and Variable Names
 Function names should be lowercase, with words separated by underscores as necessary to improve readability.
+> 函数名全小写，必要时用下划线分离单词以提高可读性
 
 Variable names follow the same convention as function names.
+> 变量名规范的函数名一致
 
 mixedCase is allowed only in contexts where that’s already the prevailing style (e.g. threading.py), to retain backwards compatibility.
 
-#### Function and Method Arguments
+### Function and Method Arguments
 Always use `self` for the first argument to instance methods.
+> 实例方法的第一个参数一定是 `self`
 
 Always use `cls` for the first argument to class methods.
+> 类方法的第一个参数一定是 `cls`
 
 If a function argument’s name clashes with a reserved keyword, it is generally better to append a single trailing underscore rather than use an abbreviation or spelling corruption. Thus `class_` is better than `clss`. (Perhaps better is to avoid such clashes by using a synonym.)
+> 如果函数参数的名称和某个保留的关键字相同，最好在后面添加 `_` 
+> 例如 `class_` ，这好于随意的缩写例如 `clss` ，更好的方式是用另一个近义词
 
-#### Method Names and Instance Variables
+### Method Names and Instance Variables
 Use the function naming rules: lowercase with words separated by underscores as necessary to improve readability.
+> 方法名和函数名规范一致
 
 Use one leading underscore only for non-public methods and instance variables.
+> 私有的方法和实例变量要有前导下划线
 
 To avoid name clashes with subclasses, use two leading underscores to invoke Python’s name mangling rules.
 
 Python mangles these names with the class name: if class Foo has an attribute named `__a`, it cannot be accessed by `Foo.__a`. (An insistent user could still gain access by calling `Foo._Foo__a`.) Generally, double leading underscores should be used only to avoid name conflicts with attributes in classes designed to be subclassed.
 
-Note: there is some controversy about the use of __names (see below).
+Note: there is some controversy about the use of `__names` (see below).
 
-#### [Constants](https://peps.python.org/pep-0008/#constants)
+> 要避免和子类的命名冲突时，在名称前添加两个前导下划线以触发 Python 的名称改编机制
+> 名称改编机制会将类 `Foo` 中名为 `__a` 的属性改编为 `_Foo__a` ，注意 `__a` 不能通过 `Foo.__a` 访问，但可以被 `Foo._Foo__a` 访问
+> 双前导下划线应该仅在避免与子类命名冲突时使用
+> 对于 `__names` 的用法也存在一些争议
 
+### Constants
 Constants are usually defined on a module level and written in all capital letters with underscores separating words. Examples include `MAX_OVERFLOW` and `TOTAL`.
+> 常量定义于模块级别，名称全大写，使用下划线分隔单词
 
-#### [Designing for Inheritance](https://peps.python.org/pep-0008/#designing-for-inheritance)
-
+### Designing for Inheritance
 Always decide whether a class’s methods and instance variables (collectively: “attributes”) should be public or non-public. If in doubt, choose non-public; it’s easier to make it public later than to make a public attribute non-public.
+> 在设计时，确保决定好一个类的方法和实例变量 (统称为属性) 应该是公有还是私有
+> 如果不确定，就定性为私有，将私有属性变为公有比将公有属性变为私有容易
 
 Public attributes are those that you expect unrelated clients of your class to use, with your commitment to avoid backwards incompatible changes. Non-public attributes are those that are not intended to be used by third parties; you make no guarantees that non-public attributes won’t change or even be removed.
+> 公有属性在设计上应该期待被第三方使用，公有属性的设计应该避免向后不兼容的更改
+> 私有属性则相反，我们不需要保证私有属性不会被改变或被移除
 
 We don’t use the term “private” here, since no attribute is really private in Python (without a generally unnecessary amount of work).
 
 Another category of attributes are those that are part of the “subclass API” (often called “protected” in other languages). Some classes are designed to be inherited from, either to extend or modify aspects of the class’s behavior. When designing such a class, take care to make explicit decisions about which attributes are public, which are part of the subclass API, and which are truly only to be used by your base class.
+> 另一类属性即属于“子类 API”的属性 (保护的)，这针对于设计上就是需要被继承和拓展的类
+> 设计这些类时，注意明确决定好哪些属性为公有，哪些是子类 API 的一部分，哪些仅用于基类
 
 With this in mind, here are the Pythonic guidelines:
 
 - Public attributes should have no leading underscores.
+> 公有属性没有前导下划线
+
 - If your public attribute name collides with a reserved keyword, append a single trailing underscore to your attribute name. This is preferable to an abbreviation or corrupted spelling. (However, notwithstanding this rule, ‘cls’ is the preferred spelling for any variable or argument which is known to be a class, especially the first argument to a class method.)
     
     Note 1: See the argument name recommendation above for class methods.
-    
+
+> 如果公有属性名和保留关键字冲突，添加后缀下划线 (然而，尽管有这条规则，“cls” 是任何已知为类的变量或参数的首选拼写，尤其是作为类方法的第一个参数)
+
 - For simple public data attributes, it is best to expose just the attribute name, without complicated accessor/mutator methods. Keep in mind that Python provides an easy path to future enhancement, should you find that a simple data attribute needs to grow functional behavior. In that case, use properties to hide functional implementation behind simple data attribute access syntax.
     
     Note 1: Try to keep the functional behavior side-effect free, although side-effects such as caching are generally fine.
     
     Note 2: Avoid using properties for computationally expensive operations; the attribute notation makes the caller believe that access is (relatively) cheap.
-    
+
+> 对于简单的公有数据属性，最好只暴露属性名称，而不使用复杂的访问器/修改器方法
+> 请记住，Python 提供了一条通往未来增强功能的简单路径，以防你需要将一个简单的数据属性扩展为具有功能行为，在这种情况下，使用属性可以在简单的数据属性访问语法背后隐藏功能实现 (但注意避免为计算昂贵的操作使用属性，因为属性标识会让调用者相信访问它是相对经济的)
+
 - If your class is intended to be subclassed, and you have attributes that you do not want subclasses to use, consider naming them with double leading underscores and no trailing underscores. This invokes Python’s name mangling algorithm, where the name of the class is mangled into the attribute name. This helps avoid attribute name collisions should subclasses inadvertently contain attributes with the same name.
     
     Note 1: Note that only the simple class name is used in the mangled name, so if a subclass chooses both the same class name and attribute name, you can still get name collisions.
@@ -796,56 +821,84 @@ With this in mind, here are the Pythonic guidelines:
     Note 2: Name mangling can make certain uses, such as debugging and `__getattr__()`, less convenient. However the name mangling algorithm is well documented and easy to perform manually.
     
     Note 3: Not everyone likes name mangling. Try to balance the need to avoid accidental name clashes with potential use by advanced callers.
-    
 
-### [Public and Internal Interfaces](https://peps.python.org/pep-0008/#public-and-internal-interfaces)
+> 如果类设计上需要被继承，并且有不想子类使用的属性，则使用两个前导下划线，且不添加后缀下划线，以调用 Python 的名称改编机制，避免和子类的名称冲突
 
+## Public and Internal Interfaces
 Any backwards compatibility guarantees apply only to public interfaces. Accordingly, it is important that users be able to clearly distinguish between public and internal interfaces.
+> 所有的向后兼容性仅对于公共接口做出保证
+> 用户也需要区分公共和内部接口
 
 Documented interfaces are considered public, unless the documentation explicitly declares them to be provisional or internal interfaces exempt from the usual backwards compatibility guarantees. All undocumented interfaces should be assumed to be internal.
+> 记录在文档中的接口都认为是公共的，除非文档明确声明它们是临时的或不受通常向后兼容性保证约束的内部接口
+> 没有记录在文档中的接口都认为是内部的
 
 To better support introspection, modules should explicitly declare the names in their public API using the `__all__` attribute. Setting `__all__` to an empty list indicates that the module has no public API.
 
 Even with `__all__` set appropriately, internal interfaces (packages, modules, classes, functions, attributes or other names) should still be prefixed with a single leading underscore.
 
+> 模块应该使用 `__all__` 属性显式声明它的公共 API 名字，将 `__all__` 设定为空列表意味着模块没有公共 API
+> 即便 `__all__` 设定好了，内部接口 (包、模块、类、函数、属性以及其他名字) 仍应该有前导下划线
+
 An interface is also considered internal if any containing namespace (package, module or class) is considered internal.
+> 如果任意包含它的命名空间 (包、模块、类) 是内部的，则接口就认为是内部的
 
 Imported names should always be considered an implementation detail. Other modules must not rely on indirect access to such imported names unless they are an explicitly documented part of the containing module’s API, such as `os.path` or a package’s `__init__` module that exposes functionality from submodules.
+> 导入的名称始终应被视为实现细节
+> 除非这些导入的名称是包含它的模块的 API 中明确记录的部分，例如 `os.path` 或包的 `__init__` 模块 (用于从子模块中暴露功能)，否则其他模块不应该依赖于间接访问这些导入的名称 (意思是没有在文档中记录的 API 不应该用 `<module-name>.<attribute-name>` 访问)
 
-## [Programming Recommendations](https://peps.python.org/pep-0008/#programming-recommendations)
+# Programming Recommendations
 
 - Code should be written in a way that does not disadvantage other implementations of Python (PyPy, Jython, IronPython, Cython, Psyco, and such).
     
     For example, do not rely on CPython’s efficient implementation of in-place string concatenation for statements in the form `a += b` or `a = a + b`. This optimization is fragile even in CPython (it only works for some types) and isn’t present at all in implementations that don’t use refcounting. In performance sensitive parts of the library, the `''.join()` form should be used instead. This will ensure that concatenation occurs in linear time across various implementations.
-    
+> 代码应以不会对 Python 其他实现 (如 PyPy、Jython、IronPython、Cython、Psyco 等) 造成不利影响的方式编写
+> 例如，不要依赖 CPython 对形式为 `a += b` 或 `a = a + b` 的语句中 in-place 字符串连接的高效实现。即使在 CPython 中，这种优化也很脆弱 (仅适用于某些类型)，并且在不使用引用计数的实现中根本不存在
+> 在库的性能敏感部分，应使用 `''.join()` 形式代替，这将确保在各种实现中连接操作都以线性时间完成。
+
 - Comparisons to singletons like None should always be done with `is` or `is not`, never the equality operators.
     
     Also, beware of writing `if x` when you really mean `if x is not None` – e.g. when testing whether a variable or argument that defaults to None was set to some other value. The other value might have a type (such as a container) that could be false in a boolean context!
-    
+
+> 与单例 (如 `None`)的比较应始终使用 `is` 或 `is not`，而不要使用等于运算符
+> 另外，要注意 `if x` 和 `if x is not None` 之间的区别
+> 例如，在测试一个默认值为 `None` 的变量或参数 `x` 是否被设置为其他值时，不要使用前者，`x` 被设定为的值可能一种类型 (如容器)，在这种布尔上下文中可能是假的！( `x` 即便被设定为了 `[]` ，`if x` 也会返回 false )
+
 - Use `is not` operator rather than `not ... is`. While both expressions are functionally identical, the former is more readable and preferred:
-    
-    # Correct:
-    if foo is not None:
-    
-    # Wrong:
-    if not foo is None:
-    
+
+```python
+# Correct:
+if foo is not None:
+
+# Wrong:
+if not foo is None:
+```
+
+> 使用 `is not` 而不是 `not ... is`
+> 二者的功能相同，但是前者可读性更高
+
 - When implementing ordering operations with rich comparisons, it is best to implement all six operations (`__eq__`, `__ne__`, `__lt__`, `__le__`, `__gt__`, `__ge__`) rather than relying on other code to only exercise a particular comparison.
     
     To minimize the effort involved, the `functools.total_ordering()` decorator provides a tool to generate missing comparison methods.
     
     [PEP 207](https://peps.python.org/pep-0207/ "PEP 207 – Rich Comparisons") indicates that reflexivity rules _are_ assumed by Python. Thus, the interpreter may swap `y > x` with `x < y`, `y >= x` with `x <= y`, and may swap the arguments of `x == y` and `x != y`. The `sort()` and `min()` operations are guaranteed to use the `<` operator and the `max()` function uses the `>` operator. However, it is best to implement all six operations so that confusion doesn’t arise in other contexts.
-    
+
+> 在使用丰富的比较操作实现排序操作时，最好实现所有六种操作（`__eq__`、`__ne__`、`__lt__`、`__le__`、`__gt__`、`__ge__`），而不是写一些只执行特定的比较的代码
+> 为了尽量减少工作量，`functools.total_ordering()` 装饰器提供了一个工具来生成缺失的比较方法
+> [PEP 207](https://peps.python.org/pep-0207/ "PEP 207 – Rich Comparisons") 指出，Python 假设了反射规则，因此，解释器可能会交换 `y > x` 和 `x < y`，`y >= x` 和 `x <= y`，以及 `x == y` 和 `x != y` 的参数，`sort()` 和 `min()` 操作保证会使用 `<` 运算符，而 `max()` 函数则使用 `>` 运算符，但最好还是实现所有六种操作，以免在其他上下文中引起混淆
+
 - Always use a def statement instead of an assignment statement that binds a lambda expression directly to an identifier:
+
+```python
+# Correct:
+def f(x): return 2*x
+
+# Wrong:
+f = lambda x: 2*x
+```
     
-    # Correct:
-    def f(x): return 2*x
-    
-    # Wrong:
-    f = lambda x: 2*x
-    
-    The first form means that the name of the resulting function object is specifically ‘f’ instead of the generic ‘<lambda>’. This is more useful for tracebacks and string representations in general. The use of the assignment statement eliminates the sole benefit a lambda expression can offer over an explicit def statement (i.e. that it can be embedded inside a larger expression)
-    
+The first form means that the name of the resulting function object is specifically ‘f’ instead of the generic ‘ `<lambda>` ’. This is more useful for tracebacks and string representations in general. The use of the assignment statement eliminates the sole benefit a lambda expression can offer over an explicit def statement (i.e. that it can be embedded inside a larger expression)
+
 - Derive exceptions from `Exception` rather than `BaseException`. Direct inheritance from `BaseException` is reserved for exceptions where catching them is almost always the wrong thing to do.
     
     Design exception hierarchies based on the distinctions that code _catching_ the exceptions is likely to need, rather than the locations where the exceptions are raised. Aim to answer the question “What went wrong?” programmatically, rather than only stating that “A problem occurred” (see [PEP 3151](https://peps.python.org/pep-3151/ "PEP 3151 – Reworking the OS and IO exception hierarchy") for an example of this lesson being learned for the builtin exception hierarchy)
@@ -979,8 +1032,7 @@ Imported names should always be considered an implementation detail. Other modul
             return 42
     
 
-### [Function Annotations](https://peps.python.org/pep-0008/#function-annotations)
-
+## Function Annotations
 With the acceptance of [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints"), the style rules for function annotations have changed.
 
 - Function annotations should use [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") syntax (there are some formatting recommendations for annotations in the previous section).
@@ -996,7 +1048,7 @@ With the acceptance of [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 –
 - Like linters, type checkers are optional, separate tools. Python interpreters by default should not issue any messages due to type checking and should not alter their behavior based on annotations.
 - Users who don’t want to use type checkers are free to ignore them. However, it is expected that users of third party library packages may want to run type checkers over those packages. For this purpose [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") recommends the use of stub files: .pyi files that are read by the type checker in preference of the corresponding .py files. Stub files can be distributed with a library, or separately (with the library author’s permission) through the typeshed repo [[5]](https://peps.python.org/pep-0008/#id9).
 
-### [Variable Annotations](https://peps.python.org/pep-0008/#variable-annotations)
+## [Variable Annotations](https://peps.python.org/pep-0008/#variable-annotations)
 
 [PEP 526](https://peps.python.org/pep-0526/ "PEP 526 – Syntax for Variable Annotations") introduced variable annotations. The style recommendations for them are similar to those on function annotations described above:
 
@@ -1028,7 +1080,7 @@ Footnotes
 
 _Hanging indentation_ is a type-setting style where all the lines in a paragraph are indented except the first line. In the context of Python, the term is used to describe a style where the opening parenthesis of a parenthesized statement is the last non-whitespace character of the line, with subsequent lines being indented until the closing parenthesis.
 
-## [References](https://peps.python.org/pep-0008/#references)
+# [References](https://peps.python.org/pep-0008/#references)
 
 [[2](https://peps.python.org/pep-0008/#id1)]
 
@@ -1046,7 +1098,7 @@ Donald Knuth’s _The TeXBook_, pages 195 and 196.
 
 Typeshed repo [https://github.com/python/typeshed](https://github.com/python/typeshed)
 
-## [Copyright](https://peps.python.org/pep-0008/#copyright)
+# [Copyright](https://peps.python.org/pep-0008/#copyright)
 
 This document has been placed in the public domain.
 
