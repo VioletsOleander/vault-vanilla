@@ -9,6 +9,7 @@ For a description of standard objects and modules, see [The Python Standard Lib
 This tutorial does not attempt to be comprehensive and cover every single feature, or even every commonly used feature. Instead, it introduces many of Python’s most noteworthy features, and will give you a good idea of the language’s flavor and style. After reading it, you will be able to read and write Python modules and programs, and you will be ready to learn more about the various Python library modules described in [The Python Standard Library](https://docs.python.org/3/library/index.html#library-index).
 
 The [Glossary](https://docs.python.org/3/glossary.html#glossary) is also worth going through.
+
 # 1. Whetting Your Appetite
 If you do much work on computers, eventually you find that there’s some task you’d like to automate. For example, you may wish to perform a search-and-replace over a large number of text files, or rename and rearrange a bunch of photo files in a complicated way. Perhaps you’d like to write a small custom database, or a specialized GUI application, or a simple game.
 
@@ -47,6 +48,7 @@ Now that you are all excited about Python, you’ll want to examine it in some m
 In the next chapter, the mechanics of using the interpreter are explained. This is rather mundane information, but essential for trying out the examples shown later.
 
 The rest of the tutorial introduces various features of the Python language and system through examples, beginning with simple expressions, statements and data types, through functions and modules, and finally touching upon advanced concepts like exceptions and user-defined classes.
+
 # 2. Using the Python Interpreter
 ## 2.1. Invoking the Interpreter
 The Python interpreter is usually installed as `/usr/local/bin/python3.12` on those machines where it is available; putting `/usr/local/bin` in your Unix shell’s search path makes it possible to start it by typing the command:
@@ -80,6 +82,7 @@ When a script file is used, it is sometimes useful to be able to run the script 
 > 执行脚本时，传入 `-i` 可以进行交互式执行
 
 All command line options are described in [Command line and environment](https://docs.python.org/3/using/cmdline.html#using-on-general).
+
 ### 2.1.1. Argument Passing
 When known to the interpreter, the script name and additional arguments thereafter are turned into a list of strings and assigned to the `argv` variable in the `sys` module. You can access this list by executing `import sys`. The length of the list is at least one; when no script and no arguments are given, `sys.argv[0]` is an empty string. When the script name is given as `'-'` (meaning standard input), `sys.argv[0]` is set to `'-'`. When [`-c`](https://docs.python.org/3/using/cmdline.html#cmdoption-c) _command_ is used, `sys.argv[0]` is set to `'-c'`. When [`-m`](https://docs.python.org/3/using/cmdline.html#cmdoption-m) _module_ is used, `sys.argv[0]` is set to the full name of the located module. Options found after [`-c`](https://docs.python.org/3/using/cmdline.html#cmdoption-c) _command_ or [`-m`](https://docs.python.org/3/using/cmdline.html#cmdoption-m) _module_ are not consumed by the Python interpreter’s option processing but left in `sys.argv` for the command or module to handle.
 > 解释器将脚本名称和参数 (都转化为字符串) 放入 `sys` 模块的列表变量 `argv` 中
@@ -88,6 +91,7 @@ When known to the interpreter, the script name and additional arguments thereaft
 > 当使用 `-c` ，`sys.argv[0] == -c`
 > 当使用 `-m` ，`sys.argv[0]` 为定位到的模块的全名
 > `-c/-m` 之后的选项不会被 Python 解释器处理，但是会留在 `sys.argv` 中
+
 ### 2.1.2. Interactive Mode
 When commands are read from a tty, the interpreter is said to be in _interactive mode_. In this mode it prompts for the next command with the _primary prompt_, usually three greater-than signs (`>>>`); for continuation lines it prompts with the _secondary prompt_, by default three dots (`...`). The interpreter prints a welcome message stating its version number and a copyright notice before printing the first prompt:
 > 若命令从 tty 读取，则解释器处于交互模式
@@ -111,6 +115,7 @@ Be careful not to fall off!
 ```
 
 For more on interactive mode, see [Interactive Mode](https://docs.python.org/3/tutorial/appendix.html#tut-interac).
+
 ## 2.2. The Interpreter and Its Environment
 ### 2.2.1. Source Code Encoding
 By default, Python source files are treated as encoded in UTF-8. In that encoding, characters of most languages in the world can be used simultaneously in string literals, identifiers and comments — although the standard library only uses ASCII characters for identifiers, a convention that any portable code should follow. To display all these characters properly, your editor must recognize that the file is UTF-8, and it must use a font that supports all the characters in the file.
@@ -142,6 +147,7 @@ One exception to the _first line_ rule is when the source code starts with a 
 
 Footnotes
 [1] On Unix, the Python 3.x interpreter is by default not installed with the executable named `python`, so that it does not conflict with a simultaneously installed Python 2.x executable.
+
 # 3. An Informal Introduction to Python
 Many of the examples in this manual, even those entered at the interactive prompt, include comments. Comments in Python start with the hash character, `#`, and extend to the end of the physical line. A comment may appear at the start of a line or following whitespace or code, but not within a string literal. A hash character within a string literal is just a hash character. Since comments are to clarify code and are not interpreted by Python, they may be omitted when typing in examples.
 
@@ -152,8 +158,10 @@ spam = 1  # and this is the second comment
           # ... and now a third!
 text = "# This is not a comment because it's inside quotes."
 ```
+
 ## 3.1. Using Python as a Calculator
 Let’s try some simple Python commands. Start the interpreter and wait for the primary prompt, `>>>`. (It shouldn’t take long.)
+
 ### 3.1.1. Numbers
 The interpreter acts as a simple calculator: you can type an expression at it and it will write the value. Expression syntax is straightforward: the operators `+`, `-`, `*` and `/` can be used to perform arithmetic; parentheses (`()`) can be used for grouping. For example:
 
@@ -236,6 +244,7 @@ This variable should be treated as read-only by the user. Don’t explicitly ass
 > 用户应该视该变量为只读
 
 In addition to [`int`](https://docs.python.org/3/library/functions.html#int "int") and [`float`](https://docs.python.org/3/library/functions.html#float "float"), Python supports other types of numbers, such as [`Decimal`](https://docs.python.org/3/library/decimal.html#decimal.Decimal "decimal.Decimal") and [`Fraction`](https://docs.python.org/3/library/fractions.html#fractions.Fraction "fractions.Fraction"). Python also has built-in support for [complex numbers](https://docs.python.org/3/library/stdtypes.html#typesnumeric), and uses the `j` or `J` suffix to indicate the imaginary part (e.g. `3+5j`).
+
 ### 3.1.2. Text
 Python can manipulate text (represented by type [`str`](https://docs.python.org/3/library/stdtypes.html#str "str"), so-called “strings”) as well as numbers. This includes characters “`!`”, words “`rabbit`”, names “`Paris`”, sentences “`Got your back.`”, etc. “`Yay! :)`”. They can be enclosed in single quotes (`'...'`) or double quotes (`"..."`) with the same result [2](https://docs.python.org/3/tutorial/introduction.html#id4).
 
@@ -486,6 +495,7 @@ See also
     Information about string formatting with [`str.format()`](https://docs.python.org/3/library/stdtypes.html#str.format "str.format").
 [printf-style String Formatting](https://docs.python.org/3/library/stdtypes.html#old-string-formatting)
     The old formatting operations invoked when strings are the left operand of the `%` operator are described in more detail here.
+
 ### 3.1.3. Lists
 Python knows a number of _compound_ data types, used to group together other values. The most versatile is the _list_, which can be written as a list of comma-separated values (items) between square brackets. Lists might contain items of different types, but usually the items all have the same type.
 
@@ -601,6 +611,7 @@ It is possible to nest lists (create lists containing other lists), for example:
 >>> x[0][1]
 'b'
 ```
+
 ## 3.2. First Steps Towards Programming
 Of course, we can use Python for more complicated tasks than adding two and two together. For instance, we can write an initial sub-sequence of the [Fibonacci series](https://en.wikipedia.org/wiki/Fibonacci_sequence) as follows:
 
@@ -650,8 +661,10 @@ Footnotes
 [1] Since `**` has higher precedence than `-`, `-3**2` will be interpreted as `-(3**2)` and thus result in `-9`. To avoid this and get `9`, you can use `(-3)**2`.
 
 [2] Unlike other languages, special characters such as `\n` have the same meaning with both single (`'...'`) and double (`"..."`) quotes. The only difference between the two is that within single quotes you don’t need to escape `"` (but you have to escape `\'`) and vice versa.
+
 # 4. More Control Flow Tools
 As well as the [`while`](https://docs.python.org/3/reference/compound_stmts.html#while) statement just introduced, Python uses a few more that we will encounter in this chapter.
+
 ## 4.1. `if` Statements
 Perhaps the most well-known statement type is the [`if`](https://docs.python.org/3/reference/compound_stmts.html#if) statement. For example:
 
@@ -674,6 +687,7 @@ More
 There can be zero or more [`elif`](https://docs.python.org/3/reference/compound_stmts.html#elif) parts, and the [`else`](https://docs.python.org/3/reference/compound_stmts.html#else) part is optional. The keyword ‘`elif`’ is short for ‘else if’, and is useful to avoid excessive indentation. An `if` … `elif` … `elif` … sequence is a substitute for the `switch` or `case` statements found in other languages.
 
 If you’re comparing the same value to several constants, or checking for specific types or attributes, you may also find the `match` statement useful. For more details see [match Statements](https://docs.python.org/3/tutorial/controlflow.html#tut-match).
+
 ## 4.2. `for` Statements
 The [`for`](https://docs.python.org/3/reference/compound_stmts.html#for) statement in Python differs a bit from what you may be used to in C or Pascal. Rather than always iterating over an arithmetic progression of numbers (like in Pascal), or giving the user the ability to define both the iteration step and halting condition (as C), Python’s `for` statement iterates over the items of any sequence (a list or a string), in the order that they appear in the sequence. For example (no pun intended):
 > Python `for` 迭代任意给定序列中的 item
@@ -692,7 +706,7 @@ defenestrate 12
 Code that modifies a collection while iterating over that same collection can be tricky to get right. Instead, it is usually more straight-forward to loop over a copy of the collection or to create a new collection:
 > 技巧：创建一个序列的 copy 用于迭代，在迭代中修改原序列
 
-```
+```python
 # Create a sample collection
 users = {'Hans': 'active', 'Éléonore': 'inactive', '景太郎': 'active'}
 
@@ -707,6 +721,7 @@ for user, status in users.items():
     if status == 'active':
         active_users[user] = status
 ```
+
 ## 4.3. The [`range()`](https://docs.python.org/3/library/stdtypes.html#range "range") Function
 If you do need to iterate over a sequence of numbers, the built-in function [`range()`](https://docs.python.org/3/library/stdtypes.html#range "range") comes in handy. It generates arithmetic progressions:
 
@@ -769,6 +784,7 @@ We say such an object is [iterable](https://docs.python.org/3/glossary.html#ter
 ```
 
 Later we will see more functions that return iterables and take iterables as arguments. In chapter [Data Structures](https://docs.python.org/3/tutorial/datastructures.html#tut-structures), we will discuss in more detail about [`list()`](https://docs.python.org/3/library/stdtypes.html#list "list").
+
 ## 4.4. `break` and `continue` Statements, and `else` Clauses on Loops
 The [`break`](https://docs.python.org/3/reference/simple_stmts.html#break) statement breaks out of the innermost enclosing [`for`](https://docs.python.org/3/reference/compound_stmts.html#for) or [`while`](https://docs.python.org/3/reference/compound_stmts.html#while) loop.
 
@@ -851,13 +867,14 @@ Another place [`pass`](https://docs.python.org/3/reference/simple_stmts.html#pa
 ...     pass   # Remember to implement this!
 ...
 ```
+
 ## 4.6. `match` Statements
 A [`match`](https://docs.python.org/3/reference/compound_stmts.html#match) statement takes an expression and compares its value to successive patterns given as one or more case blocks. This is superficially similar to a switch statement in C, Java or JavaScript (and many other languages), but it’s more similar to pattern matching in languages like Rust or Haskell. Only the first pattern that matches gets executed and it can also extract components (sequence elements or object attributes) from the value into variables.
 > `match` 的结构和 `switch` 相似，但做的是模式匹配
 
 The simplest form compares a subject value against one or more literals:
 
-```
+```python
 def http_error(status):
     match status:
         case 400:
@@ -875,7 +892,7 @@ Note the last block: the “variable name” `_` acts as a _wildcard_ and ne
 
 You can combine several literals in a single pattern using `|` (“or”):
 
-```
+```python
 case 401 | 403 | 404:
     return "Not allowed"
 ```
@@ -883,7 +900,7 @@ case 401 | 403 | 404:
 Patterns can look like unpacking assignments, and can be used to bind variables:
 > match 的模式还可以是解包表达式，且还可以用于绑定变量 (模式中的变量会被赋值)
 
-```
+```python
 # point is an (x, y) tuple
 match point:
     case (0, 0):
@@ -903,7 +920,7 @@ Study that one carefully! The first pattern has two literals, and can be thought
 If you are using classes to structure your data you can use the class name followed by an argument list resembling a constructor, but with the ability to capture attributes into variables:
 > 若参数是类，则模式可以使用构造函数的形式
 
-```
+```python
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -929,7 +946,7 @@ You can use positional parameters with some builtin classes that provide an orde
 
 If it’s set to (“x”, “y”), the following patterns are all equivalent (and all bind the `y` attribute to the `var` variable):
 
-```
+```python
 Point(1, var)
 Point(1, y=var)
 Point(x=1, y=var)
@@ -940,7 +957,7 @@ A recommended way to read patterns is to look at them as an extended form of wha
 
 Patterns can be arbitrarily nested. For example, if we have a short list of Points, with `__match_args__` added, we could match it like this:
 
-```
+```python
 class Point:
     __match_args__ = ('x', 'y')
     def __init__(self, x, y):
@@ -962,7 +979,7 @@ match points:
 
 We can add an `if` clause to a pattern, known as a “guard”. If the guard is false, `match` goes on to try the next case block. Note that value capture happens before the guard is evaluated:
 
-```
+```python
 match point:
     case Point(x, y) if x == y:
         print(f"Y=X at {x}")
@@ -981,7 +998,7 @@ Several other key features of this statement:
 - Most literals are compared by equality, however the singletons `True`, `False` and `None` are compared by identity.
 - Patterns may use named constants. These must be dotted names to prevent them from being interpreted as capture variable:
 
-```
+```python
 from enum import Enum
 class Color(Enum):
     RED = 'red'
@@ -1000,6 +1017,7 @@ match color:
 ```    
 
 For a more detailed explanation and additional examples, you can look into [**PEP 636**](https://peps.python.org/pep-0636/) which is written in a tutorial format.
+
 ## 4.7. Defining Functions
 We can create a function that writes the Fibonacci series to an arbitrary boundary:
 
@@ -1071,9 +1089,11 @@ It is simple to write a function that returns a list of the numbers of the Fibon
 This example, as usual, demonstrates some new Python features:
 - The [`return`](https://docs.python.org/3/reference/simple_stmts.html#return) statement returns with a value from a function. `return` without an expression argument returns `None`. Falling off the end of a function also returns `None`.
 - The statement `result.append(a)` calls a _method_ of the list object `result`. A method is a function that ‘belongs’ to an object and is named `obj.methodname`, where `obj` is some object (this may be an expression), and `methodname` is the name of a method that is defined by the object’s type. Different types define different methods. Methods of different types may have the same name without causing ambiguity. (It is possible to define your own object types and methods, using _classes_, see [Classes](https://docs.python.org/3/tutorial/classes.html#tut-classes)) The method `append()` shown in the example is defined for list objects; it adds a new element at the end of the list. In this example it is equivalent to `result = result + [a]`, but more efficient.
+
 ## 4.8. More on Defining Functions
 It is also possible to define functions with a variable number of arguments. There are three forms, which can be combined.
 > 函数支持变长参数列表
+
 ### 4.8.1. Default Argument Values
 The most useful form is to specify a default value for one or more arguments. This creates a function that can be called with fewer arguments than it is defined to allow. For example:
 
@@ -1102,7 +1122,7 @@ This example also introduces the [`in`](https://docs.python.org/3/reference/exp
 The default values are evaluated at the point of function definition in the _defining_ scope, so that
 > 默认值在函数的定义作用域内中的定义时刻被评估
 
-```
+```python
 i = 5
 
 def f(arg=i):
@@ -1117,7 +1137,7 @@ will print `5`.
 **Important warning:** The default value is evaluated only once. This makes a difference when the default is a mutable object such as a list, dictionary, or instances of most classes. For example, the following function accumulates the arguments passed to it on subsequent calls:
 > 默认值仅评估一次
 
-```
+```python
 def f(a, L=[]):
     L.append(a)
     return L
@@ -1137,17 +1157,18 @@ This will print
 
 If you don’t want the default to be shared between subsequent calls, you can write the function like this instead:
 
-```
+```python
 def f(a, L=None):
     if L is None:
         L = []
     L.append(a)
     return L
 ```
+
 ### 4.8.2. Keyword Argument
 Functions can also be called using [keyword arguments](https://docs.python.org/3/glossary.html#term-keyword-argument) of the form `kwarg=value`. For instance, the following function:
 
-```
+```python
 def parrot(voltage, state='a stiff', action='voom', type='Norwegian Blue'):
     print("-- This parrot wouldn't", action, end=' ')
     print("if you put", voltage, "volts through it.")
@@ -1157,7 +1178,7 @@ def parrot(voltage, state='a stiff', action='voom', type='Norwegian Blue'):
 
 accepts one required argument (`voltage`) and three optional arguments (`state`, `action`, and `type`). This function can be called in any of the following ways:
 
-```
+```python
 parrot(1000)                                          # 1 positional argument
 parrot(voltage=1000)                                  # 1 keyword argument
 parrot(voltage=1000000, action='VOOOOOM')             # 2 keyword arguments
@@ -1168,7 +1189,7 @@ parrot('a thousand', state='pushing up the daisies')  # 1 positional, 1 keyword
 
 but all the following calls would be invalid:
 
-```
+```python
 parrot()                     # required argument missing
 parrot(voltage=5.0, 'dead')  # non-keyword argument after a keyword argument
 parrot(110, voltage=220)     # duplicate value for the same argument
@@ -1192,7 +1213,7 @@ When a final formal parameter of the form `**name` is present, it receives a d
 > 形式为 `**name` 的参数接受一个字典，包含了除了形式参数的所有的关键字参数
 > 形式为 `*name` 的参数接受一个元组，包含了形式参数列表以外的所有位置参数
 
-```
+```python
 def cheeseshop(kind, *arguments, **keywords):
     print("-- Do you have any", kind, "?")
     print("-- I'm sorry, we're all out of", kind)
@@ -1205,7 +1226,7 @@ def cheeseshop(kind, *arguments, **keywords):
 
 It could be called like this:
 
-```
+```python
 cheeseshop("Limburger", "It's very runny, sir.",
            "It's really very, VERY runny, sir.",
            shopkeeper="Michael Palin",
@@ -1227,6 +1248,7 @@ sketch : Cheese Shop Sketch
 ```
 
 Note that the order in which the keyword arguments are printed is guaranteed to match the order in which they were provided in the function call.
+
 ### 4.8.3. Special parameters
 By default, arguments may be passed to a Python function either by position or explicitly by keyword. For readability and performance, it makes sense to restrict the way arguments can be passed so that a developer need only look at the function definition to determine if items are passed by position, by position or keyword, or by keyword.
 
@@ -1243,17 +1265,21 @@ def f(pos1, pos2, /, pos_or_kwd, *, kwd1, kwd2):
 
 where `/` and `*` are optional. If used, these symbols indicate the kind of parameter by how the arguments may be passed to the function: positional-only, positional-or-keyword, and keyword-only. Keyword parameters are also referred to as named parameters.
 > 在函数定义的参数列表中，可以使用符号 `/` `*` 显式划分参数类型，规定了参数应该如何传入
+
 #### 4.8.3.1. Positional-or-Keyword Arguments
 If `/` and `*` are not present in the function definition, arguments may be passed to a function by position or by keyword.
 > 若没有，则所有参数既可以通过位置传入，也可以通过关键字传入
+
 #### 4.8.3.2. Positional-Only Parameters
 Looking at this in a bit more detail, it is possible to mark certain parameters as _positional-only_. If _positional-only_, the parameters’ order matters, and the parameters cannot be passed by keyword. Positional-only parameters are placed before a `/` (forward-slash). The `/` is used to logically separate the positional-only parameters from the rest of the parameters. If there is no `/` in the function definition, there are no positional-only parameters.
 
 Parameters following the `/` may be _positional-or-keyword_ or _keyword-only_.
 > `/` 之前的参数仅能通过位置传入，之后的参数可以通过位置也可以通过关键字传入
+
 #### 4.8.3.3. Keyword-Only Arguments
 To mark parameters as _keyword-only_, indicating the parameters must be passed by keyword argument, place an `*` in the arguments list just before the first _keyword-only_ parameter.
 > `*` 之后的参数只能通过位置传入
+
 #### 4.8.3.4. Function Examples
 Consider the following example function definitions paying close attention to the markers `/` and `*`:
 
@@ -1354,10 +1380,11 @@ True
 
 In other words, the names of positional-only parameters can be used in `**kwds` without ambiguity.
 > 划分界限后，positional-only 的参数的名称可以用在 `**kwds` 中且不引起歧义
+
 #### 4.8.3.5. Recap
 The use case will determine which parameters to use in the function definition:
 
-```
+```python
 def f(pos1, pos2, /, pos_or_kwd, *, kwd1, kwd2):
 ```
 
@@ -1366,11 +1393,12 @@ As guidance:
 - Use keyword-only when names have meaning and the function definition is more understandable by being explicit with names or you want to prevent users relying on the position of the argument being passed.
 - For an API, use positional-only to prevent breaking API changes if the parameter’s name is modified in the future.
 > 对于 API，可以用 positional-only 防止之后参数名称改变导致 API 改变
+
 ### 4.8.4. Arbitrary Argument Lists
 Finally, the least frequently used option is to specify that a function can be called with an arbitrary number of arguments. These arguments will be wrapped up in a tuple (see [Tuples and Sequences](https://docs.python.org/3/tutorial/datastructures.html#tut-tuples)). Before the variable number of arguments, zero or more normal arguments may occur.
 > 通过 `*args` 让函数可以接受任意数量的参数
 
-```
+```python
 def write_multiple_items(file, separator, *args):
     file.write(separator.join(args))
 ```
@@ -1387,6 +1415,7 @@ Normally, these _variadic_ arguments will be last in the list of formal parame
 >>> concat("earth", "mars", "venus", sep=".")
 'earth.mars.venus'
 ```
+
 ### 4.8.5. Unpacking Argument Lists
 The reverse situation occurs when the arguments are already in a list or tuple but need to be unpacked for a function call requiring separate positional arguments. For instance, the built-in [`range()`](https://docs.python.org/3/library/stdtypes.html#range "range") function expects separate _start_ and _stop_ arguments. If they are not available separately, write the function call with the `*` -operator to unpack the arguments out of a list or tuple:
 > 对于向函数传入参数，如果要通过解包一个元组/列表传参，可以指定 `*` 运算符
@@ -1412,6 +1441,7 @@ In the same fashion, dictionaries can deliver keyword arguments with the `**` -
 >>> parrot(**d)
 -- This parrot wouldn't VOOM if you put four million volts through it. E's bleedin' demised !
 ```
+
 ### 4.8.6. Lambda Expressions
 Small anonymous functions can be created with the [`lambda`](https://docs.python.org/3/reference/expressions.html#lambda) keyword. This function returns the sum of its two arguments: `lambda a, b: a+b`. Lambda functions can be used wherever function objects are required. They are syntactically restricted to a single expression. Semantically, they are just syntactic sugar for a normal function definition. Like nested function definitions, lambda functions can reference variables from the containing scope:
 > `lambda` 创建匿名函数，`lambda` 只是正常函数定义的语法糖
@@ -1437,6 +1467,7 @@ The above example uses a lambda expression to return a function. Another use is 
 >>> pairs
 [(4, 'four'), (1, 'one'), (3, 'three'), (2, 'two')]
 ```
+
 ### 4.8.7. Documentation Strings
 Here are some conventions about the content and formatting of documentation strings.
 
@@ -1465,6 +1496,7 @@ Do nothing, but document it.
 
     No, really, it doesn't do anything.
 ```
+
 ### 4.8.8. Function Annotations
 [Function annotations](https://docs.python.org/3/reference/compound_stmts.html#function) are completely optional metadata information about the types used by user-defined functions (see [**PEP 3107**](https://peps.python.org/pep-3107/) and [**PEP 484**](https://peps.python.org/pep-0484/) for more information).
 > Function annotations 是用户定义的函数的 optional 的 metadata information
@@ -1485,6 +1517,7 @@ Annotations: {'ham': <class 'str'>, 'return': <class 'str'>, 'eggs': <class 'str
 Arguments: spam eggs
 'spam and eggs'
 ```
+
 ## 4.9. Intermezzo: Coding Style
 Now that you are about to write longer, more complex pieces of Python, it is a good time to talk about _coding style_. Most languages can be written (or more concise, _formatted_) in different styles; some are more readable than others. Making it easy for others to read your code is always a good idea, and adopting a nice coding style helps tremendously for that.
 
@@ -1504,8 +1537,10 @@ For Python, [**PEP 8**](https://peps.python.org/pep-0008/) has emerged as the 
 
 Footnotes
 [1] Actually, _call by object reference_ would be a better description, since if a mutable object is passed, the caller will see any changes the callee makes to it (items inserted into a list).
+
 # 5. Data Structures
 This chapter describes some things you’ve learned about already in more detail, and adds some new things as well.
+
 ## 5.1. More on Lists
 The list data type has some more methods. Here are all of the methods of list objects:
 
@@ -1573,6 +1608,7 @@ You might have noticed that methods like `insert`, `remove` or `sort` that 
 > 这个设计原则对于 Python 所有的可变数据结构都适用
 
 Another thing you might notice is that not all data can be sorted or compared. For instance, `[None, 'hello', 10]` doesn’t sort because integers can’t be compared to strings and `None` can’t be compared to other types. Also, there are some types that don’t have a defined ordering relation. For example, `3+4j < 5+7j` isn’t a valid comparison.
+
 ### 5.1.1. Using Lists as Stacks
 The list methods make it very easy to use a list as a stack, where the last element added is the first element retrieved (“last-in, first-out”). To add an item to the top of the stack, use `append()`. To retrieve an item from the top of the stack, use `pop()` without an explicit index. For example:
 
@@ -1593,6 +1629,7 @@ The list methods make it very easy to use a list as a stack, where the last elem
 >>> stack
 [3, 4]
 ```
+
 ### 5.1.2. Using Lists as Queues
 It is also possible to use a list as a queue, where the first element added is the first element retrieved (“first-in, first-out”); however, lists are not efficient for this purpose. While appends and pops from the end of list are fast, doing inserts or pops from the beginning of a list is slow (because all of the other elements have to be shifted by one).
 
@@ -1612,6 +1649,7 @@ To implement a queue, use [`collections.deque`](https://docs.python.org/3/libra
 >>> queue                           # Remaining queue in order of arrival
 deque(['Michael', 'Terry', 'Graham'])
 ```
+
 ### 5.1.3. List Comprehensions
 List comprehensions provide a concise way to create lists. Common applications are to make new lists where each element is the result of some operations applied to each member of another sequence or iterable, or to create a subsequence of those elements that satisfy a certain condition.
 
@@ -1702,6 +1740,7 @@ List comprehensions can contain complex expressions and nested functions:
 >>> [str(round(pi, i)) for i in range(1, 6)]
 ['3.1', '3.14', '3.142', '3.1416', '3.14159']
 ```
+
 ### 5.1.4. Nested List Comprehensions
 The initial expression in a list comprehension can be any arbitrary expression, including another list comprehension.
 > 列表推导式内的 initial expression 可以是任意表达式，包括另一个列表推导式
@@ -1757,6 +1796,7 @@ In the real world, you should prefer built-in functions to complex flow statemen
 ```
 
 See [Unpacking Argument Lists](https://docs.python.org/3/tutorial/controlflow.html#tut-unpacking-arguments) for details on the asterisk in this line.
+
 ## 5.2. The `del` statement
 There is a way to remove an item from a list given its index instead of its value: the [`del`](https://docs.python.org/3/reference/simple_stmts.html#del) statement. This differs from the `pop()` method which returns a value. The `del` statement can also be used to remove slices from a list or clear the entire list (which we did earlier by assignment of an empty list to the slice). For example:
 > 给定 item 的索引，可以用 `del` 将其移除
@@ -1784,6 +1824,7 @@ There is a way to remove an item from a list given its index instead of its valu
 
 Referencing the name `a` hereafter is an error (at least until another value is assigned to it). We’ll find other uses for [`del`](https://docs.python.org/3/reference/simple_stmts.html#del) later.
 > `del a` 之后，就不能再引用 `a` 这个名字，直到对 `a` 这个名字有新的赋值
+
 ## 5.3. Tuples and Sequences
 We saw that lists and strings have many common properties, such as indexing and slicing operations. They are two examples of _sequence_ data types (see [Sequence Types — list, tuple, range](https://docs.python.org/3/library/stdtypes.html#typesseq)). Since Python is an evolving language, other sequence data types may be added. There is also another standard sequence data type: the _tuple_.
 > list, string, tuple 都是序列数据类型
@@ -1842,6 +1883,7 @@ The statement `t = 12345, 54321, 'hello!'` is an example of _tuple packin
 This is called, appropriately enough, _sequence unpacking_ and works for any sequence on the right-hand side. Sequence unpacking requires that there are as many variables on the left side of the equals sign as there are elements in the sequence. Note that multiple assignment is really just a combination of tuple packing and sequence unpacking.
 > sequence unpacking 对于任意序列都可以使用
 > multiple assignment 实质上就是 tuple packing 以及 sequence unpacking
+
 ## 5.4. Sets
 Python also includes a data type for _sets_. A set is an unordered collection with no duplicate elements. Basic uses include membership testing and eliminating duplicate entries. Set objects also support mathematical operations like union, intersection, difference, and symmetric difference.
 > set: 无序、无重复
@@ -1884,6 +1926,7 @@ Similarly to [list comprehensions](https://docs.python.org/3/tutorial/datastruc
 >>> a
 {'r', 'd'}
 ```
+
 ## 5.5. Dictionaries
 Another useful data type built into Python is the _dictionary_ (see [Mapping Types — dict](https://docs.python.org/3/library/stdtypes.html#typesmapping)). Dictionaries are sometimes found in other languages as “associative memories” or “associative arrays”. Unlike sequences, which are indexed by a range of numbers, dictionaries are indexed by _keys_, which can be any immutable type; strings and numbers can always be keys. Tuples can be used as keys if they contain only strings, numbers, or tuples; if a tuple contains any mutable object either directly or indirectly, it cannot be used as a key. You can’t use lists as keys, since lists can be modified in place using index assignments, slice assignments, or methods like `append()` and `extend()`.
 > 字典用 key 索引，key 可以是任意不可变类型，例如 string 或 number
@@ -1946,6 +1989,7 @@ When the keys are simple strings, it is sometimes easier to specify pairs using 
 >>> dict(sape=4139, guido=4127, jack=4098)
 {'sape': 4139, 'guido': 4127, 'jack': 4098}
 ```
+
 ## 5.6. Looping Techniques
 When looping through dictionaries, the key and corresponding value can be retrieved at the same time using the [`items()`](https://docs.python.org/3/library/stdtypes.html#dict.items "dict.items") method.
 
@@ -2038,6 +2082,7 @@ It is sometimes tempting to change a list while you are looping over it; however
 >>> filtered_data
 [56.2, 51.7, 55.3, 52.5, 47.8]
 ```
+
 ## 5.7. More on Conditions
 The conditions used in `while` and `if` statements can contain any operators, not just comparisons.
 
@@ -2066,6 +2111,7 @@ It is possible to assign the result of a comparison or other Boolean expression 
 
 Note that in Python, unlike C, assignment inside expressions must be done explicitly with the [walrus operator](https://docs.python.org/3/faq/design.html#why-can-t-i-use-an-assignment-in-an-expression) `:=`. This avoids a common class of problems encountered in C programs: typing `=` in an expression when `==` was intended.
 > Python 中，表达式内的赋值必须显式地写为 `:=`
+
 ## 5.8. Comparing Sequences and Other Types
 Sequence objects typically may be compared to other objects with the same sequence type. The comparison uses _lexicographical_ ordering: first the first two items are compared, and if they differ this determines the outcome of the comparison; if they are equal, the next two items are compared, and so on, until either sequence is exhausted. If two items to be compared are themselves sequences of the same type, the lexicographical comparison is carried out recursively. If all items of two sequences compare equal, the sequences are considered equal. If one sequence is an initial sub-sequence of the other, the shorter sequence is the smaller (lesser) one. Lexicographical ordering for strings uses the Unicode code point number to order individual characters. Some examples of comparisons between sequences of the same type:
 > 序列对象可以和其他同类地序列对象比较，比较使用字典序，按照 item 顺序比较，如果 item 本身也是序列，则会递归比较
@@ -2086,6 +2132,7 @@ Note that comparing objects of different types with `<` or `>` is legal prov
 
 Footnotes
 [1] Other languages may return the mutated object, which allows method chaining, such as `d->insert("a")->remove("b")->sort();`.
+
 # 6. Modules
 If you quit from the Python interpreter and enter it again, the definitions you have made (functions and variables) are lost. Therefore, if you want to write a somewhat longer program, you are better off using a text editor to prepare the input for the interpreter and running it with that file as input instead. This is known as creating a _script_. As your program gets longer, you may want to split it into several files for easier maintenance. You may also want to use a handy function that you’ve written in several programs without copying its definition into each program.
 
@@ -2124,7 +2171,7 @@ Now enter the Python interpreter and import this module with the following comma
 ```
 
 This does not add the names of the functions defined in `fibo` directly to the current [namespace](https://docs.python.org/3/glossary.html#term-namespace) (see [Python Scopes and Namespaces](https://docs.python.org/3/tutorial/classes.html#tut-scopes) for more details); it only adds the module name `fibo` there. Using the module name you can access the functions:
-> `import fibo` 不会将 `fibo` 中定义的函数名直接加入到当前命名空间，而是只讲模块名加入到当前命名空间
+> `import fibo` 不会将 `fibo` 中定义的函数名直接加入到当前命名空间，而是只将模块名加入到当前命名空间
 > 可以通过模块名访问其函数
 
 ```
@@ -2144,6 +2191,7 @@ If you intend to use a function often you can assign it to a local name:
 >>> fib(500)
 0 1 1 2 3 5 8 13 21 34 55 89 144 233 377
 ```
+
 ## 6.1. More on Modules
 A module can contain executable statements as well as function definitions. These statements are intended to initialize the module. They are executed only the _first_ time the module name is encountered in an import statement. [1](https://docs.python.org/3/tutorial/modules.html#id3) (They are also run if the file is executed as a script.)
 > 模块也可以包含可执行语句，这些语句用于初始化模块，它们仅在模块名称被 `import` 的第一次被执行
@@ -2200,6 +2248,7 @@ It can also be used when utilising [`from`](https://docs.python.org/3/reference
 Note
 For efficiency reasons, each module is only imported once per interpreter session. Therefore, if you change your modules, you must restart the interpreter – or, if it’s just one module you want to test interactively, use [`importlib.reload()`](https://docs.python.org/3/library/importlib.html#importlib.reload "importlib.reload"), e.g. `import importlib; importlib.reload(modulename)`.
 > 每个解释器 session 仅会导入各个模块一次，如果需要重新导入，使用 `importlib.reload()`
+
 ### 6.1.1. Executing modules as scripts
 When you run a Python module with
 
@@ -2235,6 +2284,7 @@ If the module is imported, the code is not run:
 ```
 
 This is often used either to provide a convenient user interface to a module, or for testing purposes (running the module as a script executes a test suite).
+
 ### 6.1.2. The Module Search Path
 When a module named `spam` is imported, the interpreter first searches for a built-in module with that name. These module names are listed in [`sys.builtin_module_names`](https://docs.python.org/3/library/sys.html#sys.builtin_module_names "sys.builtin_module_names"). If not found, it then searches for a file named `spam.py` in a list of directories given by the variable [`sys.path`](https://docs.python.org/3/library/sys.html#sys.path "sys.path"). [`sys.path`](https://docs.python.org/3/library/sys.html#sys.path "sys.path") is initialized from these locations:
 > Python 在 import 中优先搜索内建模块名，然后在变量 `sys.path` 指定的路径中搜索模块名，`sys.path` 初始包括
@@ -2254,10 +2304,11 @@ On file systems which support symlinks, the directory containing the input scrip
 
 After initialization, Python programs can modify [`sys.path`](https://docs.python.org/3/library/sys.html#sys.path "sys.path"). The directory containing the script being run is placed at the beginning of the search path, ahead of the standard library path. This means that scripts in that directory will be loaded instead of modules of the same name in the library directory. This is an error unless the replacement is intended. See section [Standard Modules](https://docs.python.org/3/tutorial/modules.html#tut-standardmodules) for more information.
 > Python 可以在初始化后修改 `sys.path` ，当前运行脚本所在的目录会在 search path 的开始，其后是标准库路径，因此当前目录的模块优先级更高
+
 ### 6.1.3. “Compiled” Python files
 To speed up loading modules, Python caches the compiled version of each module in the `__pycache__` directory under the name `module._version_.pyc`, where the version encodes the format of the compiled file; it generally contains the Python version number. For example, in CPython release 3.3 the compiled version of spam.py would be cached as `__pycache__/spam.cpython-33.pyc`. This naming convention allows compiled modules from different releases and different versions of Python to coexist.
 > 为了加速模块加载，Python 会将各个模块编译的版本缓存在 `__pychache__` 文件夹下，文件名称为 `module._version_.pyc` ，其中的版本实际上决定了 compiled file 的格式，一般版本就是 Python 的版本号
-> 这允许，来自不同的 Python 版本的 compiled modules 共存
+> 这允许来自不同的 Python 版本的 compiled modules 共存
 
 Python checks the modification date of the source against the compiled version to see if it’s out of date and needs to be recompiled. This is a completely automatic process. Also, the compiled modules are platform-independent, so the same library can be shared among systems with different architectures.
 > Python 会检查 compiled 模块和源文件的修改日期，以决定是否需要重新编译
@@ -2266,7 +2317,7 @@ Python checks the modification date of the source against the compiled version t
 Python does not check the cache in two circumstances. First, it always recompiles and does not store the result for the module that’s loaded directly from the command line. Second, it does not check the cache if there is no source module. To support a non-source (compiled only) distribution, the compiled module must be in the source directory, and there must not be a source module.
 > 在两种情况下，Python 不会 check cache:
 > 其一，对于从命令行直接装载的模块，Python 总是会重新编译，并且不会储存结果
-> 其二，如果没有源模块，Pythhon 不会 check cache
+> 其二，如果没有源模块，Python 不会 check cache
 > 如果需要一个 non-source (compiled only) 的分发，compiled 模块必须存储在源目录中，并且源目录没有源模块
 
 Some tips for experts:
@@ -2276,6 +2327,7 @@ Some tips for experts:
 > `.pyc` 文件仅在加载时比 `.py` 文件快
 - The module [`compileall`](https://docs.python.org/3/library/compileall.html#module-compileall "compileall: Tools for byte-compiling all Python source files in a directory tree.") can create `.pyc` files for all modules in a directory.
 - There is more detail on this process, including a flow chart of the decisions, in [**PEP 3147**](https://peps.python.org/pep-3147/).
+
 ## 6.2. Standard Modules
 Python comes with a library of standard modules, described in a separate document, the Python Library Reference (“Library Reference” hereafter). Some modules are built into the interpreter; these provide access to operations that are not part of the core of the language but are nevertheless built in, either for efficiency or to provide access to operating system primitives such as system calls. The set of such modules is a configuration option which also depends on the underlying platform. For example, the [`winreg`](https://docs.python.org/3/library/winreg.html#module-winreg "winreg: Routines and objects for manipulating the Windows registry. (Windows)") module is only provided on Windows systems. One particular module deserves some attention: [`sys`](https://docs.python.org/3/library/sys.html#module-sys "sys: Access system-specific parameters and functions."), which is built into every Python interpreter. The variables `sys.ps1` and `sys.ps2` define the strings used as primary and secondary prompts:
 > Python 提供了一个标准模块的库
@@ -2296,7 +2348,7 @@ C>
 ```
 
 These two variables are only defined if the interpreter is in interactive mode.
-> 这两个变量之后在解释器处于 interactive 模式下被定义
+> 这两个变量仅在解释器处于 interactive 模式下被定义
 
 The variable `sys.path` is a list of strings that determines the interpreter’s search path for modules. It is initialized to a default path taken from the environment variable [`PYTHONPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH), or from a built-in default if [`PYTHONPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH) is not set. You can modify it using standard list operations:
 > 变量 `sys.path` 是一个字符串列表，定义了解释器对于模块的搜索路径
@@ -2307,6 +2359,7 @@ The variable `sys.path` is a list of strings that determines the interpreter�
 >>> import sys
 >>> sys.path.append('/ufs/guido/lib/python')
 ```
+
 ## 6.3. The [`dir()`](https://docs.python.org/3/library/functions.html#dir "dir") Function
 The built-in function [`dir()`](https://docs.python.org/3/library/functions.html#dir "dir") is used to find out which names a module defines. It returns a sorted list of strings:
 > 内建函数 `dir()` 用于找到模块定义了哪些名称，它返回一个有序的字符串列表，注意不是 `dict()`
@@ -2390,6 +2443,7 @@ Note that it lists all types of names: variables, modules, functions, etc.
  'sorted', 'staticmethod', 'str', 'sum', 'super', 'tuple', 'type', 'vars',
  'zip']
 ```
+
 ## 6.4. Packages
 Packages are a way of structuring Python’s module namespace by using “dotted module names”. For example, the module name `A.B` designates a submodule named `B` in a package named `A`. Just like the use of modules saves the authors of different modules from having to worry about each other’s global variable names, the use of dotted module names saves the authors of multi-module packages like NumPy or Pillow from having to worry about each other’s module names.
 > Python 通过包来组织 Python 的模块命名空间，包就是一组模块的集合，包内可以包含多个模块和子包
@@ -2481,6 +2535,7 @@ Note that when using `from package import item`, the item can be either a su
 
 Contrarily, when using syntax like `import item.subitem.subsubitem`, each item except for the last must be a package; the last item can be a module or a package but can’t be a class or function or variable defined in the previous item.
 > 语法 `import xx.xx.xx` 要求除了最后一个名称，其他名称都是包，最后一个名称可以是模块或包，但不能是前一个 item 内定义的函数或类或变量
+
 ### 6.4.1. Importing * From a Package
 Now what happens when the user writes `from sound.effects import *`? Ideally, one would hope that this somehow goes out to the filesystem, finds which submodules are present in the package, and imports them all. This could take a long time and importing sub-modules might have unwanted side-effects that should only happen when the sub-module is explicitly imported.
 > `from xxx.xxx import *` 默认会导入包中的所有子模块
@@ -2524,6 +2579,7 @@ Although certain modules are designed to export only names that follow certain p
 
 Remember, there is nothing wrong with using `from package import specific_submodule`! In fact, this is the recommended notation unless the importing module needs to use submodules with the same name from different packages.
 > 推荐使用 `from package import submodule`
+
 ### 6.4.2. Intra-package References
 When packages are structured into subpackages (as with the `sound` package in the example), you can use absolute imports to refer to submodules of siblings packages. For example, if the module `sound.filters.vocoder` needs to use the `echo` module in the `sound.effects` package, it can use `from sound.effects import echo`.
 
@@ -2538,6 +2594,7 @@ from ..filters import equalizer
 
 Note that relative imports are based on the name of the current module. Since the name of the main module is always `"__main__"`, modules intended for use as the main module of a Python application must always use absolute imports.
 > 注意作为主模块执行的模块的名称会被改为 `__main__` ，而相对 import 则是基于当前模块的名称来寻路的，因此如果需要使用相对 import 的模块不能作为主模块，主模块只能使用绝对 import
+
 ### 6.4.3. Packages in Multiple Directories
 Packages support one more special attribute, [`__path__`](https://docs.python.org/3/reference/import.html#path__ "__path__"). This is initialized to be a list containing the name of the directory holding the package’s `__init__.py` before the code in that file is executed. This variable can be modified; doing so affects future searches for modules and subpackages contained in the package.
 > 包还支持一个特殊属性：`__path__` ，该变量被初始化为包含了包的 `__init__.py` 的目录的名称，初始化在 `__init__.py` 被执行之前发生
@@ -2546,8 +2603,10 @@ While this feature is not often needed, it can be used to extend the set of modu
 
 Footnotes
 \[1\] In fact function definitions are also ‘statements’ that are ‘executed’; the execution of a module-level function definition adds the function name to the module’s global namespace.
+
 # 7. Input and Output
 There are several ways to present the output of a program; data can be printed in a human-readable form, or written to a file for future use. This chapter will discuss some of the possibilities.
+
 ## 7.1. Fancier Output Formatting
 So far we’ve encountered two ways of writing values: _expression statements_ and the [`print()`](https://docs.python.org/3/library/functions.html#print "print") function. (A third way is using the [`write()`](https://docs.python.org/3/library/io.html#io.TextIOBase.write "io.TextIOBase.write") method of file objects; the standard output file can be referenced as `sys.stdout`. See the Library Reference for more information on this.)
 
@@ -2611,6 +2670,7 @@ The value of x is 32.5, and y is 40000...
 
 The [`string`](https://docs.python.org/3/library/string.html#module-string "string: Common string operations.") module contains a [`Template`](https://docs.python.org/3/library/string.html#string.Template "string.Template") class that offers yet another way to substitute values into strings, using placeholders like `$x` and replacing them with values from a dictionary, but offers much less control of the formatting.
 > `string` 模块包含了 `Template` 类，也提供了一种格式化字符串的方式，它使用像 `$x` 这样的占位符，然后用字典中的值替换它们
+
 ### 7.1.1. Formatted String Literals
 [Formatted string literals](https://docs.python.org/3/reference/lexical_analysis.html#f-strings) (also called f-strings for short) let you include the value of Python expressions inside a string by prefixing the string with `f` or `F` and writing expressions as `{expression}`.
 
@@ -2659,6 +2719,7 @@ Debugging bugs='roaches' count=13 area='living room'
 ```
 
 See [self-documenting expressions](https://docs.python.org/3/whatsnew/3.8.html#bpo-36817-whatsnew) for more information on the `=` specifier. For a reference on these format specifications, see the reference guide for the [Format Specification Mini-Language](https://docs.python.org/3/library/string.html#formatspec).
+
 ### 7.1.2. The String format() Method
 Basic usage of the [`str.format()`](https://docs.python.org/3/library/stdtypes.html#str.format "str.format") method looks like this:
 
@@ -2741,6 +2802,7 @@ As an example, the following lines produce a tidily aligned set of columns givin
 ```
 
 For a complete overview of string formatting with [`str.format()`](https://docs.python.org/3/library/stdtypes.html#str.format "str.format"), see [Format String Syntax](https://docs.python.org/3/library/string.html#formatstrings).
+
 ### 7.1.3. Manual String Formatting
 Here’s the same table of squares and cubes, formatted manually:
 
@@ -2777,6 +2839,7 @@ There is another method, [`str.zfill()`](https://docs.python.org/3/library/stdt
 >>> '3.14159265359'.zfill(5)
 '3.14159265359'
 ```
+
 ### 7.1.4. Old string formatting
 The % operator (modulo) can also be used for string formatting. Given `format % values` (where _format_ is a string), `%` conversion specifications in _format_ are replaced with zero or more elements of _values_. This operation is commonly known as string interpolation. For example:
 
@@ -2787,6 +2850,7 @@ The value of pi is approximately 3.142.
 ```
 
 More information can be found in the [printf-style String Formatting](https://docs.python.org/3/library/stdtypes.html#old-string-formatting) section.
+
 ## 7.2. Reading and Writing Files
 [`open()`](https://docs.python.org/3/library/functions.html#open "open") returns a [file object](https://docs.python.org/3/glossary.html#term-file-object), and is most commonly used with two positional arguments and one keyword argument: `open(filename, mode, encoding=None)`
 > `open()` 返回一个文件对象，一般会传入两个位置参数和一个关键字参数
@@ -2835,6 +2899,7 @@ Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 ValueError: I/O operation on closed file.
 ```
+
 ### 7.2.1. Methods of File Objects
 The rest of the examples in this section will assume that a file object called `f` has already been created.
 
@@ -2922,6 +2987,7 @@ In text files (those opened without a `b` in the mode string), only seeks rela
 > 同时仅允许用 `f.tell()` 的返回值或者 0 作为 offset，否则行为未定义
 
 File objects have some additional methods, such as [`isatty()`](https://docs.python.org/3/library/io.html#io.IOBase.isatty "io.IOBase.isatty") and [`truncate()`](https://docs.python.org/3/library/io.html#io.IOBase.truncate "io.IOBase.truncate") which are less frequently used; consult the Library Reference for a complete guide to file objects.
+j
 ### 7.2.2. Saving structured data with `json`
 Strings can easily be written to and read from a file. Numbers take a bit more effort, since the [`read()`](https://docs.python.org/3/library/io.html#io.TextIOBase.read "io.TextIOBase.read") method only returns strings, which will have to be passed to a function like [`int()`](https://docs.python.org/3/library/functions.html#int "int"), which takes a string like `'123'` and returns its numeric value 123. When you want to save more complex data types like nested lists and dictionaries, parsing and serializing by hand becomes complicated.
 > `read()` 方法仅返回 string
@@ -2969,9 +3035,11 @@ See also
 Contrary to [JSON](https://docs.python.org/3/tutorial/inputoutput.html#tut-json), _pickle_ is a protocol which allows the serialization of arbitrarily complex Python objects. As such, it is specific to Python and cannot be used to communicate with applications written in other languages. It is also insecure by default: deserializing pickle data coming from an untrusted source can execute arbitrary code, if the data was crafted by a skilled attacker.
 > pickle 允许序列化任意复杂的 Python 对象，但仅能由 Python 读取
 > pickle 默认不安全，逆序列化 pickle 数据可能会导致机器执行任意的代码
+
 # 8. Errors and Exceptions
 Until now error messages haven’t been more than mentioned, but if you have tried out the examples you have probably seen some. There are (at least) two distinguishable kinds of errors: _syntax errors_ and _exceptions_.
 > 主要有两类错误：语法错误和异常
+
 ## 8.1. Syntax Errors
 Syntax errors, also known as parsing errors, are perhaps the most common kind of complaint you get while you are still learning Python:
 > 语法错误也就是解析错误
@@ -2985,6 +3053,7 @@ SyntaxError: invalid syntax
 ```
 
 The parser repeats the offending line and displays little ‘arrow’s pointing at the token in the line where the error was detected. The error may be caused by the absence of a token _before_ the indicated token. In the example, the error is detected at the function [`print()`](https://docs.python.org/3/library/functions.html#print "print"), since a colon (`':'`) is missing before it. File name and line number are printed so you know where to look in case the input came from a script.
+
 ## 8.2. Exceptions
 Even if a statement or expression is syntactically correct, it may cause an error when an attempt is made to execute it. Errors detected during execution are called _exceptions_ and are not unconditionally fatal: you will soon learn how to handle them in Python programs. Most exceptions are not handled by programs, however, and result in error messages as shown here:
 > 在执行时检查到的错误称为异常
@@ -3013,6 +3082,7 @@ The rest of the line provides detail based on the type of exception and what cau
 The preceding part of the error message shows the context where the exception occurred, in the form of a stack traceback. In general it contains a stack traceback listing source lines; however, it will not display lines read from standard input.
 
 [Built-in Exceptions](https://docs.python.org/3/library/exceptions.html#bltin-exceptions) lists the built-in exceptions and their meanings.
+
 ## 8.3. Handling Exceptions
 It is possible to write programs that handle selected exceptions. Look at the following example, which asks the user for input until a valid integer has been entered, but allows the user to interrupt the program (using Control-C or whatever the operating system supports); note that a user-generated interruption is signalled by raising the [`KeyboardInterrupt`](https://docs.python.org/3/library/exceptions.html#KeyboardInterrupt "KeyboardInterrupt") exception.
 > Python 允许编写处理特定异常的程序
@@ -3162,6 +3232,7 @@ Exception handlers do not handle only exceptions that occur immediately in the 
 ...
 Handling run-time error: division by zero
 ```
+
 ## 8.4. Raising Exceptions
 The [`raise`](https://docs.python.org/3/reference/simple_stmts.html#raise) statement allows the programmer to force a specified exception to occur. For example:
 > `raise` 语句用于提出异常
@@ -3195,6 +3266,7 @@ Traceback (most recent call last):
   File "<stdin>", line 2, in <module>
 NameError: HiThere
 ```
+
 ## 8.5. Exception Chaining
 If an unhandled exception occurs inside an [`except`](https://docs.python.org/3/reference/compound_stmts.html#except) section, it will have the exception being handled attached to it and included in the error message:
 > 若在 except 子句中出现了其他异常，则 except 捕获的未被处理的异常和新的异常会被一起抛出
@@ -3262,6 +3334,7 @@ RuntimeError
 ```
 
 For more information about chaining mechanics, see [Built-in Exceptions](https://docs.python.org/3/library/exceptions.html#bltin-exceptions).
+
 ## 8.6. User-defined Exceptions
 Programs may name their own exceptions by creating a new exception class (see [Classes](https://docs.python.org/3/tutorial/classes.html#tut-classes) for more about Python classes). Exceptions should typically be derived from the [`Exception`](https://docs.python.org/3/library/exceptions.html#Exception "Exception") class, either directly or indirectly.
 > 用户可以通过直接从 `Exception` 类直接或间接地继承来定义自己的异常类
@@ -3274,6 +3347,7 @@ Most exceptions are defined with names that end in “Error”, similar to the n
 
 Many standard modules define their own exceptions to report errors that may occur in functions they define.
 > 许多标准模块定义了它们自己的异常，用于报告它们自己定义的函数中会发生的异常
+
 ## 8.7. Defining Clean-up Actions
 The [`try`](https://docs.python.org/3/reference/compound_stmts.html#try) statement has another optional clause which is intended to define clean-up actions that must be executed under all circumstances. For example:
 > try 语句的另一个可选子句是 finally，它用于定义必须在任意情况下都需要执行的清洁动作
@@ -3348,6 +3422,7 @@ As you can see, the [`finally`](https://docs.python.org/3/reference/compound_st
 
 In real world applications, the [`finally`](https://docs.python.org/3/reference/compound_stmts.html#finally) clause is useful for releasing external resources (such as files or network connections), regardless of whether the use of the resource was successful.
 > 实际应用中，finally 非常适合用于在无论资源的使用是否成功的情况下释放外部资源，例如文件和网络链接
+
 ## 8.8. Predefined Clean-up Actions
 Some objects define standard clean-up actions to be undertaken when the object is no longer needed, regardless of whether or not the operation using the object succeeded or failed. Look at the following example, which tries to open a file and print its contents to the screen.
 > 一些对象定义了在对象再不被需要的时候的标准的 clean-up 动作，这些 clean-up 与使用该对象的操作是否成功或失败无关
@@ -3368,6 +3443,7 @@ with open("myfile.txt") as f:
 
 After the statement is executed, the file _f_ is always closed, even if a problem was encountered while processing the lines. Objects which, like files, provide predefined clean-up actions will indicate this in their documentation.
 > `f` 总是会被预定义的 clean-up 动作关闭，即便在处理时出现了问题
+
 ## 8.9. Raising and Handling Multiple Unrelated Exceptions
 There are situations where it is necessary to report several exceptions that have occurred. This is often the case in concurrency frameworks, when several tasks may have failed in parallel, but there are also other use cases where it is desirable to continue execution and collect multiple errors rather than raise the first exception.
 > 有时我们需要报告多个出现的异常，例如在并发性框架内，我们希望继续执行，并且收集更多的错误信息，而不是直接抛出第一个异常
@@ -3455,6 +3531,7 @@ Note that the exceptions nested in an exception group must be instances, not typ
 ...    raise ExceptionGroup("Test Failures", excs)
 ...
 ```
+
 ## 8.10. Enriching Exceptions with Notes
 When an exception is created in order to be raised, it is usually initialized with information that describes the error that has occurred. There are cases where it is useful to add information after the exception was caught. For this purpose, exceptions have a method `add_note(note)` that accepts a string and adds it to the exception’s notes list. The standard traceback rendering includes all notes, in the order they were added, after the exception.
 > 异常在要被抛出时被创建时，它一般会使用描述了发生了错误的信息初始化
@@ -3518,6 +3595,7 @@ For example, when collecting exceptions into an exception group, we may want to 
     +------------------------------------
 >>>
 ```
+
 # 9. Classes
 Classes provide a means of bundling data and functionality together. Creating a new class creates a new _type_ of object, allowing new _instances_ of that type to be made. Each class instance can have attributes attached to it for maintaining its state. Class instances can also have methods (defined by its class) for modifying its state.
 > 类将数据和函数捆绑在一起，创造一个新类就是创造一个新的对象类型，并且允许该对象实例化
@@ -3535,10 +3613,12 @@ In C++ terminology, normally class members (including the data members) are _pu
 > 大多数有特殊语法的内建运算符可以为类成员重定义
 
 (Lacking universally accepted terminology to talk about classes, I will make occasional use of Smalltalk and C++ terms. I would use Modula-3 terms, since its object-oriented semantics are closer to those of Python than C++, but I expect that few readers have heard of it.)
+
 ## 9.1. A Word About Names and Objects
 Objects have individuality, and multiple names (in multiple scopes) can be bound to the same object. This is known as aliasing in other languages. This is usually not appreciated on a first glance at Python, and can be safely ignored when dealing with immutable basic types (numbers, strings, tuples). However, aliasing has a possibly surprising effect on the semantics of Python code involving mutable objects such as lists, dictionaries, and most other types. This is usually used to the benefit of the program, since aliases behave like pointers in some respects. For example, passing an object is cheap since only a pointer is passed by the implementation; and if a function modifies an object passed as an argument, the caller will see the change — this eliminates the need for two different argument passing mechanisms as in Pascal.
 > 对象可以有多个名字 (在不同的作用域 )绑定到同一个对象，在其他语言中，这被称为别名
 > 别名在某种程度上起到指针的作用，因此，传递一个对象实际上是开销不大的，因为实际上只会传递一个指针，并且如果函数修改了作为参数传递给它的对象，函数的调用者也会发现对象的改变
+
 ## 9.2. Python Scopes and Namespaces
 Before introducing classes, I first have to tell you something about Python’s scope rules. Class definitions play some neat tricks with namespaces, and you need to know how scopes and namespaces work to fully understand what’s going on. Incidentally, knowledge about this subject is useful for any advanced Python programmer.
 > 我们首要介绍 Python 的作用域规则
@@ -3608,6 +3688,7 @@ A special quirk of Python is that – if no [`global`](https://docs.python.org/
 
 The [`global`](https://docs.python.org/3/reference/simple_stmts.html#global) statement can be used to indicate that particular variables live in the global scope and should be rebound there; the [`nonlocal`](https://docs.python.org/3/reference/simple_stmts.html#nonlocal) statement indicates that particular variables live in an enclosing scope and should be rebound there.
 > `global` 语句用于表示特定的变量属于全局作用域，`nonlocal` 语句用于表明特定的变量属于包围的作用域
+
 ### 9.2.1. Scopes and Namespaces Example
 This is an example demonstrating how to reference the different scopes and namespaces, and how [`global`](https://docs.python.org/3/reference/simple_stmts.html#global) and [`nonlocal`](https://docs.python.org/3/reference/simple_stmts.html#nonlocal) affect variable binding:
 
@@ -3649,8 +3730,10 @@ Note how the _local_ assignment (which is default) didn’t change _scope_tes
 > 默认赋值就是局部赋值，它不会改变函数 `scope_test` 对于名字 `spam` 的绑定 (即该名字的指向对象不变)，而 `nonlocal` 赋值改变了函数 `scpoe_test` 对于名字 `spam` 的绑定，`global` 赋值改变了模块级别对于名字 `spam` 的绑定
 
 You can also see that there was no previous binding for _spam_ before the [`global`](https://docs.python.org/3/reference/simple_stmts.html#global) assignment.
+
 ## 9.3. A First Look at Classes
 Classes introduce a little bit of new syntax, three new object types, and some new semantics.
+
 ### 9.3.1. Class Definition Syntax
 The simplest form of class definition looks like this:
 
@@ -3675,6 +3758,7 @@ When a class definition is entered, a new namespace is created, and used as the 
 When a class definition is left normally (via the end), a _class object_ is created. This is basically a wrapper around the contents of the namespace created by the class definition; we’ll learn more about class objects in the next section. The original local scope (the one in effect just before the class definition was entered) is reinstated, and the class object is bound here to the class name given in the class definition header (`ClassName` in the example).
 > 当类定义正常退出后，一个类对象就会被创建，类对象基本就是类定义创建的命名空间内的内容的 warpper
 > 此时，原来的局部作用域被恢复，并且该类对象会被绑定到类定义声明的类名称
+
 ### 9.3.2. Class Objects
 Class objects support two kinds of operations: attribute references and instantiation.
 > 类对象支持两类操作：属性引用、实例化
@@ -3728,6 +3812,7 @@ Of course, the [`__init__()`](https://docs.python.org/3/reference/datamodel.htm
 >>> x.r, x.i
 (3.0, -4.5)
 ```
+
 ### 9.3.3. Instance Objects
 Now what can we do with instance objects? The only operations understood by instance objects are attribute references. There are two kinds of valid attribute names: data attributes and methods.
 > 实例对象唯一理解的操作就是属性引用
@@ -3752,6 +3837,7 @@ Valid method names of an instance object depend on its class. By definition, all
 > 定义上，一个类的所有属于函数对象的属性都定义了它的实例的方法
 > 因此 `x.f` 是一个有效的方法引用，因为 `MyClass.f` 是一个函数
 > 但注意 `MyClass.f` 和 `x.f` 不同，`MyClass.f` 是一个函数对象，而不是方法对象
+
 ### 9.3.4. Method Objects
 Usually, a method is called right after it is bound:
 
@@ -3780,6 +3866,7 @@ Actually, you may have guessed the answer: the special thing about methods is th
 In general, methods work as follows. When a non-data attribute of an instance is referenced, the instance’s class is searched. If the name denotes a valid class attribute that is a function object, references to both the instance object and the function object are packed into a method object. When the method object is called with an argument list, a new argument list is constructed from the instance object and the argument list, and the function object is called with this new argument list.
 > 方法的工作流程：当一个实例的非数据属性被引用，实例的类会被搜索，如果该名称是一个有效的类别属性 (函数对象)，则对于实例对象的引用和对于该函数对象的引用会被打包到一个方法对象 (`xf = x.f`)
 > 当方法对象被调用时，Python 会根据调用参数列表和实例对象构造一个新的参数列表，然后使用新的参数列表调用该函数对象
+
 ### 9.3.5. Class and Instance Variables
 Generally speaking, instance variables are for data unique to each instance and class variables are for attributes and methods shared by all instances of the class:
 > 总的来说，实例变量是每个实例独立的数据，类别变量是由所有实例共享的属性和方法
@@ -3847,6 +3934,7 @@ class Dog:
 >>> e.tricks
 ['play dead']
 ```
+
 ## 9.4. Random Remarks
 If the same attribute name occurs in both an instance and in a class, then attribute lookup prioritizes the instance:
 > 如果实例和类别具有相同名字的属性，则实例的属性被优先引用
@@ -3922,6 +4010,7 @@ Methods may reference global names in the same way as ordinary functions. The gl
 
 Each value is an object, and therefore has a _class_ (also called its _type_). It is stored as `object.__class__`.
 > 事实上在 Python 中每个值都是对象，因此都有对应的类 (也称为它的类型)，可以通过 `object.__class__` 引用
+
 ## 9.5. Inheritance
 Of course, a language feature would not be worthy of the name “class” without supporting inheritance. The syntax for a derived class definition looks like this:
 
@@ -3964,6 +4053,7 @@ Python has two built-in functions that work with inheritance:
 > Python 和继承相关的内建函数
 > `isinstance()` 用于检查对象是否是特定类 (或者其衍生类) 的实例
 > `issubclass()` 用于检查类是否是特定类的衍生类
+
 ### 9.5.1. Multiple Inheritance
 Python supports a form of multiple inheritance as well. A class definition with multiple base classes looks like this:
 
@@ -4018,6 +4108,7 @@ Dynamic ordering is necessary because all cases of multiple inheritance exhibit 
 > 动态排序是必要的，因为所有的多继承情况都会有一个或多个的钻石关系 (一个基类被底层的衍生类通过多条路径访问)
 > 例如，所有的类都继承自 `object` ，因此任意情况的多继承都会为衍生类提供访问 `object` 的多条路径
 > 而动态算法线性化了搜索顺序，保持了在每个类中指定的从左到右的顺序，对于每个基类的调用只会有一次，并且是单调的
+
 ## 9.6. Private Variables
 “Private” instance variables that cannot be accessed except from inside an object don’t exist in Python. However, there is a convention that is followed by most Python code: a name prefixed with an underscore (e.g. `_spam`) should be treated as a non-public part of the API (whether it is a function, a method or a data member). It should be considered an implementation detail and subject to change without notice.
 > Python 中并不存在只允许在对象内部访问的实例变量
@@ -4062,6 +4153,7 @@ Note that the mangling rules are designed mostly to avoid accidents; it still is
 
 Notice that code passed to `exec()` or `eval()` does not consider the classname of the invoking class to be the current class; this is similar to the effect of the `global` statement, the effect of which is likewise restricted to code that is byte-compiled together. The same restriction applies to `getattr()`, `setattr()` and `delattr()`, as well as when referencing `__dict__` directly.
 > 注意传递给 `exec()/eval()` 执行的代码不会考虑到调用类的类名 (和 `global` 语句的效果类似，且效果也限制于一起字节编译的代码)，以对名称进行改编，这些限制对于 ` getattr()/setattr()/delattr() ` 也成立，以及对于访问 ` __dict__ ` 也成立，因此它们访问 ` __spam ` 时会直接访问 ` __spam ` ，而不是访问改编的名字 ` _classname__spam ` ，故常常会抛出错误
+
 ## 9.7. Odds and Ends
 Sometimes it is useful to have a data type similar to the Pascal “record” or C “struct”, bundling together a few named data items. The idiomatic approach is to use [`dataclasses`](https://docs.python.org/3/library/dataclasses.html#module-dataclasses "dataclasses: Generate special methods on user-defined classes.") for this purpose:
 > 有时要创建类似于 C 的结构体的数据结构时 (将几个数据项的名字绑定到一起)，一个惯用的方法是使用 `dataclasses` 
@@ -4090,6 +4182,7 @@ A piece of Python code that expects a particular abstract data type can often be
 
 [Instance method objects](https://docs.python.org/3/reference/datamodel.html#instance-methods) have attributes, too: [`m.__self__`](https://docs.python.org/3/reference/datamodel.html#method.__self__ "method.__self__") is the instance object with the method `m()`, and [`m.__func__`](https://docs.python.org/3/reference/datamodel.html#method.__func__ "method.__func__") is the [function object](https://docs.python.org/3/reference/datamodel.html#user-defined-funcs) corresponding to the method.
 > 实例方法也是对象，实例方法对象也同样有属性，例如 `m.__self__` 是具有方法 `m()` 的实例对象，`m.__func__` 是该方法对应的函数对象
+
 ## 9.8. Iterators
 By now you have probably noticed that most container objects can be looped over using a [`for`](https://docs.python.org/3/reference/compound_stmts.html#for) statement:
 > Python 为容器对象提供了统一的迭代语法：使用 `for` 语句
@@ -4164,6 +4257,7 @@ a
 p
 s
 ```
+
 ## 9.9. Generators
 [Generators](https://docs.python.org/3/glossary.html#term-generator) are a simple and powerful tool for creating iterators. They are written like regular functions but use the [`yield`](https://docs.python.org/3/reference/simple_stmts.html#yield) statement whenever they want to return data. Each time [`next()`](https://docs.python.org/3/library/functions.html#next "next") is called on it, the generator resumes where it left off (it remembers all the data values and which statement was last executed). An example shows that generators can be trivially easy to create:
 > 生成器是用于创建迭代器的工具
@@ -4197,6 +4291,7 @@ Another key feature is that the local variables and execution state are automati
 In addition to automatic method creation and saving program state, when generators terminate, they automatically raise [`StopIteration`](https://docs.python.org/3/library/exceptions.html#StopIteration "StopIteration"). In combination, these features make it easy to create iterators with no more effort than writing a regular function.
 > 除了自动创建 `__next__()` 和 `__iter__()` 方法、自动保存程序状态以外，当生成器结束，它们会自动抛出 `StopIteration` 异常
 > 因此生成器非常便于创建迭代器
+
 ## 9.10. Generator Expressions
 Some simple generators can be coded succinctly as expressions using a syntax similar to list comprehensions but with parentheses instead of square brackets. These expressions are designed for situations where the generator is used right away by an enclosing function. Generator expressions are more compact but less versatile than full generator definitions and tend to be more memory friendly than equivalent list comprehensions.
 > 生成器表达式使用类似列表推导式的语法（使用圆括号而不是方括号）调用简单的生成器
@@ -4227,6 +4322,7 @@ Footnotes
 [1](https://docs.python.org/3/tutorial/classes.html#id1) Except for one thing. Module objects have a secret read-only attribute called [`__dict__`](https://docs.python.org/3/library/stdtypes.html#object.__dict__ "object.__dict__") which returns the dictionary used to implement the module’s namespace; the name [`__dict__`](https://docs.python.org/3/library/stdtypes.html#object.__dict__ "object.__dict__") is an attribute but not a global name. Obviously, using this violates the abstraction of namespace implementation, and should be restricted to things like post-mortem debuggers.
 > 模块对象有一个只读的属性 `__dict__` ，该属性返回用于实现该模块命名空间的字典
 > 名字 `__dict__` 是模块的一个属性，但它不是全局名字，也就是说在模块内无法直接访问名字 `__dict__` ，这样的实现是为了保持命名空间的抽象性
+
 # 10. Brief Tour of the Standard Library
 ## 10.1. Operating System Interface
 The [`os`](https://docs.python.org/3/library/os.html#module-os "os: Miscellaneous operating system interfaces.") module provides dozens of functions for interacting with the operating system:
@@ -4307,6 +4403,7 @@ print(args)
 ```
 
 When run at the command line with `python top.py --lines=5 alpha.txt beta.txt`, the script sets `args.lines` to `5` and `args.filenames` to `['alpha.txt', 'beta.txt']`.
+
 ## 10.4. Error Output Redirection and Program Termination
 The [`sys`](https://docs.python.org/3/library/sys.html#module-sys "sys: Access system-specific parameters and functions.") module also has attributes for _stdin_, _stdout_, and _stderr_. The latter is useful for emitting warnings and error messages to make them visible even when _stdout_ has been redirected:
 > `sys` 模块除了 `argv` 外，还有属性 `stdin/stdout/stderr` 
@@ -4319,6 +4416,7 @@ Warning, log file not found starting a new one
 
 The most direct way to terminate a script is to use `sys.exit()`.
 > 结束脚本执行可以用 `sys.exit()`
+
 ## 10.5. String Pattern Matching
 The [`re`](https://docs.python.org/3/library/re.html#module-re "re: Regular expression operations.") module provides regular expression tools for advanced string processing. For complex matching and manipulation, regular expressions offer succinct, optimized solutions:
 > `re` 模块提供了用于字符串处理的正则表达式工具
@@ -4382,6 +4480,7 @@ The [`statistics`](https://docs.python.org/3/library/statistics.html#module-sta
 
 The SciPy project < [https://scipy.org](https://scipy.org/) > has many other modules for numerical computations.
 > 更多的数学计算模块见 SciPy 项目
+
 ## 10.7. Internet Access
 There are a number of modules for accessing the internet and processing internet protocols. Two of the simplest are [`urllib.request`](https://docs.python.org/3/library/urllib.request.html#module-urllib.request "urllib.request: Extensible library for opening URLs.") for retrieving data from URLs and [`smtplib`](https://docs.python.org/3/library/smtplib.html#module-smtplib "smtplib: SMTP protocol client (requires sockets).") for sending mail:
 > 关于处理网络协议和访问的最简单的两个模块是 `urllib.request` 和 `smtplib` ，其中 `urllib.request` 用于从 URL 中获取数据，`smptlib` 用于发送邮件
@@ -4410,6 +4509,7 @@ datetime: 2022-01-01T01:36:47.689215+00:00
 ```
 
 (Note that the second example needs a mailserver running on localhost.)
+
 ## 10.8. Dates and Times
 The [`datetime`](https://docs.python.org/3/library/datetime.html#module-datetime "datetime: Basic date and time types.") module supplies classes for manipulating dates and times in both simple and complex ways. While date and time arithmetic is supported, the focus of the implementation is on efficient member extraction for output formatting and manipulation. The module also supports objects that are timezone aware.
 > `datetime` 模块提供处理时间和日期的函数，主要聚焦于提取日期和时间成员用于输出格式化，该模块提供针对时区的函数
@@ -4465,6 +4565,7 @@ For example, it may be tempting to use the tuple packing and unpacking feature i
 
 In contrast to [`timeit`](https://docs.python.org/3/library/timeit.html#module-timeit "timeit: Measure the execution time of small code snippets.")’s fine level of granularity, the [`profile`](https://docs.python.org/3/library/profile.html#module-profile "profile: Python source profiler.") and [`pstats`](https://docs.python.org/3/library/profile.html#module-pstats "pstats: Statistics object for use with the profiler.") modules provide tools for identifying time critical sections in larger blocks of code.
 > `profile/pstats` 模块提供对于关键代码区域的计时工具
+
 ## 10.11. Quality Control
 One approach for developing high quality software is to write tests for each function as it is developed and to run those tests frequently during the development process.
 
@@ -4519,8 +4620,10 @@ Python has a “batteries included” philosophy. This is best seen through the 
 > `json` 提供解析 json 文件的支持，`csv` 提供直接读写 csv 文件的支持，`xml.etree.ElementTree/xml.dom/xlm.sax` 提供了 XML 处理支持
 > `sqlite3` 是 SQLite 数据库库的包装器，它提供了一个持续的数据库，可以被更新和使用 SQL 语法访问
 > `gettext/local/codecs` 包支持了中间交互
+
 # 11. Brief Tour of the Standard Library — Part II
 This second tour covers more advanced modules that support professional programming needs. These modules rarely occur in small scripts.
+
 ## 11.1. Output Formatting
 The [`reprlib`](https://docs.python.org/3/library/reprlib.html#module-reprlib "reprlib: Alternate repr() implementation with size limits.") module provides a version of [`repr()`](https://docs.python.org/3/library/functions.html#repr "repr") customized for abbreviated displays of large or deeply nested containers:
 > `reprlib` 模块提供了一个可以展现大型或深度嵌入的容器的简要表述的 `repr()` 版本
@@ -4635,6 +4738,7 @@ img_1077.jpg --> Ashley_2.jpg
 ```
 
 Another application for templating is separating program logic from the details of multiple output formats. This makes it possible to substitute custom templates for XML files, plain text reports, and HTML web reports.
+
 ## 11.3. Working with Binary Data Record Layouts
 The [`struct`](https://docs.python.org/3/library/struct.html#module-struct "struct: Interpret bytes as packed binary data.") module provides [`pack()`](https://docs.python.org/3/library/struct.html#struct.pack "struct.pack") and [`unpack()`](https://docs.python.org/3/library/struct.html#struct.unpack "struct.unpack") functions for working with variable length binary record formats. The following example shows how to loop through header information in a ZIP file without using the [`zipfile`](https://docs.python.org/3/library/zipfile.html#module-zipfile "zipfile: Read and write ZIP-format archive files.") module. Pack codes `"H"` and `"I"` represent two and four byte unsigned numbers respectively. The `"<"` indicates that they are standard size and in little-endian byte order:
 > `struct` 模块提供 `pack()/unpack()` 函数用于处理变长的二进制记录格式
@@ -4696,6 +4800,7 @@ The principal challenge of multi-threaded applications is coordinating threads t
 While those tools are powerful, minor design errors can result in problems that are difficult to reproduce. So, the preferred approach to task coordination is to concentrate all access to a resource in a single thread and then use the [`queue`](https://docs.python.org/3/library/queue.html#module-queue "queue: A synchronized queue class.") module to feed that thread with requests from other threads. Applications using [`Queue`](https://docs.python.org/3/library/queue.html#queue.Queue "queue.Queue") objects for inter-thread communication and coordination are easier to design, more readable, and more reliable.
 > 对于任务协同更偏好的方式是将所有对资源的访问集中在单个线程，然后用 `queue` 模块来将来自其他线程的请求 feed 该线程
 > 使用 `Queue` 对象来管理线程间通讯和协调的应用往往更加易于设计和可靠
+
 ## 11.5. Logging
 The [`logging`](https://docs.python.org/3/library/logging.html#module-logging "logging: Flexible event logging system for applications.") module offers a full featured and flexible logging system. At its simplest, log messages are sent to a file or to `sys.stderr`:
 > `logging` 模块提供了日志系统
@@ -4724,6 +4829,7 @@ By default, informational and debugging messages are suppressed and the output i
 > 可以基于信息优先级：debug、info、warning、error、critiral 来筛选 routing 信息
 
 The logging system can be configured directly from Python or can be loaded from a user editable configuration file for customized logging without altering the application.
+
 ## 11.6. Weak References
 Python does automatic memory management (reference counting for most objects and [garbage collection](https://docs.python.org/3/glossary.html#term-garbage-collection) to eliminate cycles). The memory is freed shortly after the last reference to it has been eliminated.
 > Python 进行的是自动的内存管理（对于多数对象，进行引用计数，使用垃圾收集来消除循环引用）
@@ -4882,6 +4988,7 @@ The solution for this problem is to create a [virtual environment](https://docs
 > 虚拟环境是一个自洽的目录树，它包含了一个特定版本的 Python 安装，以及一些额外的包
 
 Different applications can then use different virtual environments. To resolve the earlier example of conflicting requirements, application A can have its own virtual environment with version 1.0 installed while application B has another virtual environment with version 2.0. If application B requires a library be upgraded to version 3.0, this will not affect application A’s environment.
+
 ## 12.2. Creating Virtual Environments
 The module used to create and manage virtual environments is called [`venv`](https://docs.python.org/3/library/venv.html#module-venv "venv: Creation of virtual environments."). [`venv`](https://docs.python.org/3/library/venv.html#module-venv "venv: Creation of virtual environments.") will install the Python version from which the command was run (as reported by the [`--version`](https://docs.python.org/3/using/cmdline.html#cmdoption-version) option). For instance, executing the command with `python3.12` will install version 3.12.
 > 用于创建虚拟环境的模块称为 `venv` 
@@ -5047,6 +5154,7 @@ Successfully installed novas-3.1.1.3 numpy-1.9.2 requests-2.7.0
 ```
 
 `pip` has many more options. Consult the [Installing Python Modules](https://docs.python.org/3/installing/index.html#installing-index) guide for complete documentation for `pip`. When you’ve written a package and want to make it available on the Python Package Index, consult the [Python packaging user guide](https://packaging.python.org/en/latest/tutorials/packaging-projects/).
+
 # 13. What Now?
 Reading this tutorial has probably reinforced your interest in using Python — you should be eager to apply Python to solving your real-world problems. Where should you go to learn more?
 
@@ -5071,19 +5179,23 @@ Before posting, be sure to check the list of [Frequently Asked Questions](https
 
 Footnotes
 [1](https://docs.python.org/3/tutorial/whatnow.html#id1) “Cheese Shop” is a Monty Python’s sketch: a customer enters a cheese shop, but whatever cheese he asks for, the clerk says it’s missing.
+
 # 14. Interactive Input Editing and History Substitution
 Some versions of the Python interpreter support editing of the current input line and history substitution, similar to facilities found in the Korn shell and the GNU Bash shell. This is implemented using the [GNU Readline](https://tiswww.case.edu/php/chet/readline/rltop.html) library, which supports various styles of editing. This library has its own documentation which we won’t duplicate here.
 > 一些 Python 解释器版本基于 GNU Readling 库实现了编辑辅助和历史替换功能
+
 ## 14.1. Tab Completion and History Editing
 Completion of variable and module names is [automatically enabled](https://docs.python.org/3/library/site.html#rlcompleter-config) at interpreter startup so that the Tab key invokes the completion function; it looks at Python statement names, the current local variables, and the available module names. For dotted expressions such as `string.a`, it will evaluate the expression up to the final `'.'` and then suggest completions from the attributes of the resulting object. Note that this may execute application-defined code if an object with a [`__getattr__()`](https://docs.python.org/3/reference/datamodel.html#object.__getattr__ "object.__getattr__") method is part of the expression. The default configuration also saves your history into a file named `.python_history` in your user directory. The history will be available again during the next interactive interpreter session.
 > Tab 会自动调用补全函数，它观察 Python 语句名称、当前的局部变量、可用的模块名称、模块的属性以进行补全
 > 如果定义了 `__getattr__` 方法的对象是表达式的一部分，则Tab 补全可能会执行一部分应用定义的代码
 > 补全的默认配置会将命令历史存储在用户目录中的 `.python_history` ，这使得我们在下一次的解释器会话中也可以使用之前的历史
+
 ## 14.2. Alternatives to the Interactive Interpreter
 This facility is an enormous step forward compared to earlier versions of the interpreter; however, some wishes are left: It would be nice if the proper indentation were suggested on continuation lines (the parser knows if an indent token is required next). The completion mechanism might use the interpreter’s symbol table. A command to check (or even suggest) matching parentheses, quotes, etc., would also be useful.
 
 One alternative enhanced interactive interpreter that has been around for quite some time is [IPython](https://ipython.org/), which features tab completion, object exploration and advanced history management. It can also be thoroughly customized and embedded into other applications. Another similar enhanced interactive environment is [bpython](https://bpython-interpreter.org/).
 > Python 原生解释器的替代有 IPython，它包含了 tab 补全，对象探索和历史管理等，以及 `bpython`
+
 # 15. Floating-Point Arithmetic: Issues and Limitations
 Floating-point numbers are represented in computer hardware as base 2 (binary) fractions. For example, the **decimal** fraction `0.625` has value 6/10 + 2/100 + 5/1000, and in the same way the **binary** fraction `0.101` has value 1/2 + 0/4 + 1/8. These two fractions have identical values, the only real difference being that the first is written in base 10 fractional notation, and the second in base 2.
 
@@ -5362,6 +5474,7 @@ When an error occurs, the interpreter prints an error message and a stack trace.
 
 Typing the interrupt character (usually Control-C or Delete) to the primary or secondary prompt cancels the input and returns to the primary prompt. [1](https://docs.python.org/3/tutorial/appendix.html#id2) Typing an interrupt while a command is executing raises the [`KeyboardInterrupt`](https://docs.python.org/3/library/exceptions.html#KeyboardInterrupt "KeyboardInterrupt") exception, which may be handled by a [`try`](https://docs.python.org/3/reference/compound_stmts.html#try) statement.
 > 命令行中断会抛出一个 `KeyboardInterrupt` 异常，该异常其实可以用 `try` 语句处理
+
 ### 16.1.2. Executable Python Scripts
 On BSD’ish Unix systems, Python scripts can be made directly executable, like shell scripts, by putting the line
 > 在 BSD 的 Unix 系统中，可以让 Python 脚本之间像 shell 脚本一样可执行
@@ -5383,6 +5496,7 @@ $ chmod +x myscript.py
 On Windows systems, there is no notion of an “executable mode”. The Python installer automatically associates `.py` files with `python.exe` so that a double-click on a Python file will run it as a script. The extension can also be `.pyw`, in that case, the console window that normally appears is suppressed.
 > Windows 中，Python 安装程序会自动将 `.py` 文件和 `python.exe` 关联，使得双击可以直接运行该脚本
 > 文件拓展也可以是 `.pyw` ，此时双击运行不会出现控制台窗口
+
 ### 16.1.3. The Interactive Startup File
 When you use Python interactively, it is frequently handy to have some standard commands executed every time the interpreter is started. You can do this by setting an environment variable named [`PYTHONSTARTUP`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONSTARTUP) to the name of a file containing your start-up commands. This is similar to the `.profile` feature of the Unix shells.
 > 可以设置 `PYTHONSTARTUP` 指向一个脚本，指定解释器每次启动需要执行的命令
