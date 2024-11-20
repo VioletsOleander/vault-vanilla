@@ -225,12 +225,12 @@
     Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
 \[Doc\]
-- [[Learn the Basics|pytorch-tutorials-beginner: Learn the Basics]]
-- [[pillow v11.0.0]]: Overview, Tutorial, Concepts
-- [[Repositories|huggingface-hub:Repositories]]: Sec1-Sec4
-- [[Getting Started|Triton: Tutorials]]: Matrix Multiply
-- [[Argparse Tutorial|argparse tutorial]]
-- [[CUDA C++ Programming Guide v12.6]]: CH1
+- [[Learn the Basics|pytorch/tutorial/beginner/Learn the Basics]] 
+- [[python/packages/pillow v11.0.0]] : Overview, Tutorial, Concepts
+- [[Repositories|huggingface/hub/Repositories]]: Sec1-Sec4
+- [[Getting Started|triton/Getting Started]]:  Tutorials/Matrix Multiply
+- [[Argparse Tutorial|python/how/general/Argparse Tutorial]] 
+- [[nvidia/CUDA C++ Programming Guide v12.6]]: CH1
 
 ### Week2
 \[Paper\]
@@ -271,9 +271,9 @@
 - [[A Tour of C++]] : CH7-CH8
 
 \[Doc\]
-- [[Annotations Best Practices]]
+- [[python/howto/general/Annotations Best Practices]]
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
-- [[Repositories|huggingface-hub:Repositories]]: Sec4-Sec10
+- [[huggingface/hub/Repositories]]: Sec4-Sec10
 
 ### Week3
 \[Paper\]
@@ -346,10 +346,10 @@
         `string` is actually an alias of `basic_string<char>`.
 - [[面向计算机科学的组合数学]]: CH4.4.1-CH4.5.1
     Write characteristic polynominal directly from the recurrence relation, and slove the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
-    
+
 
 \[Doc\]
-- [[CUDA C++ Programming Guide v12.6]]: CH2
+- [[nvidia/CUDA C++ Programming Guide v12.6]]: CH2
     CH2-Programming Model:
         Kernel is executed by each CUDA thread
         Thread hierarchy: thread -> thread block -> thread block cluster -> grid
@@ -361,14 +361,13 @@
         The thread scope in CUDA includes `cuda::thread_scope::thread_scope_thread/block/device/system`
         Compute Capability is the version of SM architecture, denoted by a major version number and a minor version number
         CUDA version is the version of CUDA software platform
-- docker/get-started: [[What is Docker]], [[Docker Concepts]]
-    What is Docker:
+- [[docker/get-started/What is Docker]] 
         Containers include everything needed for running an application
         Use containers to be the unit of distributing and deploying applications
         Docker client ( `docker` ) use Docker API to communicate with Docker daemon ( `dockerd` ), which is responsible for managing containers
         Docker registry stores images. `docker pull` pulls image from registry, and `docker push` pushes image to registry
         Image is an read-only template of instructions for creating container. Image is defined by Dockerfile, and is consists of layers. Each instruction in Dockerfile defines a layer in image. Once created, the image can not be modified. Container is a runnable instance of an image.
-    Docker Concepts:
+- [[docker/get-started/Docker Concepts]]
         The Basics: 
         Container is essentially an isolated process. Multiple containers share the same kernel.
         Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which representes a set of filesystem changes.
@@ -392,3 +391,7 @@
         When writing Dockerfile, considering the invalidation rule to ensure the Dockerfile can build as efficent as possible.
         Multi-stage build introduces multiple stages in Dockerfile. It is recommended to use one stage to build and minfy code for interpreted languages or use one stage to compile code for compiled languages. Then use another stage, copying in the artifects in the previous stage, only bundle the runtime environment, thus reducing the image size.
         Use `FROM <image-name> AS <stage-name>` to define stage. Use `--from=<stage-name>` in `COPY` to copy previous stages artifects.
+
+### Week 4
+\[Doc\]
+- [[Models|huggingface/hub/Models]]: Sec0-Sec1
