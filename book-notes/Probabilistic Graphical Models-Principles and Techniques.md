@@ -3402,7 +3402,7 @@ We begin by introducing some notation. Le $\mathcal{H}$ be connected undirected 
 > 引入一些记号：$\mathcal H$ 表示连通无向图；$\pmb C_1, \dots, \pmb C_k$ 为 $\mathcal H$ 中的一系列极大团；$\mathcal T$ 为任意树，其节点对应于极大团；$\pmb C_i, \pmb C_j$ 为树中直接相连的两个团；定义 $\pmb S_{i, j} =  \pmb C_i \cap \pmb C_j$ 为 $\pmb C_i, \pmb C_j$ 之间的分离集 sepset； $\pmb W_{<(i,j)}\ (\pmb W_{<(j,i)})$  表示出现在 $\pmb C_i(\pmb C_j)$ 那一边的团中的任意节点，因此，一条边将 $\mathcal X$ 分为三个不相交集合 $\pmb W_{<(i, j)} - \pmb S_{ij} , \pmb W_{<(j, i)} - \pmb S_{ij}, \pmb S_{ij}$
 
 **Deﬁnition 4.17** clique tree 
-We say that a tree $\mathcal{T}$ is $^a$ clique tree for $\mathcal{H}$ if: 
+We say that a tree $\mathcal{T}$ s a clique tree for $\mathcal{H}$ if: 
 
 -  each node corresponds to a clique in $\mathcal{H}$ , and each maximal clique in $\mathcal{H}$ is a node in $\mathcal{T}$ ; 
 - each sepset $\boldsymbol{S}_{i,j}$ separates $W_{<(i,j)}$ and $W_{<(j,i)}$ in $\mathcal{H}$ . 
@@ -3415,7 +3415,6 @@ We say that a tree $\mathcal{T}$ is $^a$ clique tree for $\mathcal{H}$ if:
 
 Note that this deﬁnition implies that each separator $\boldsymbol{S}_{i,j}$ renders its two sides conditionally independent in $\mathcal{H}$ . 
 >该定义要求每个分离集 $\pmb S_{ij}$ 在 $\mathcal H$ 中分离 $\pmb W_{<(i, j)}, \pmb W_{<(j, i)}$，也就是二者要在 $\mathcal H$ 中条件独立
-
 
 Example 4.18 
 Consider the Bayesian network graph $\mathcal{G}_{\ell}$ in ﬁgure 4.13b. Since it contains no immoralities, its mo ized graph $\mathcal{H}_{\ell}^{\prime}$ is simply the same graph, but where all edges have been made undirected. As $\mathcal{G}_{\ell}$ is chordal, so is $\mathcal{H}_{\ell}^{\prime}$ . The clique tree for $\mathcal{H}_{\ell}^{\prime}$ is simply a chain $\{A,B,C\}\rightarrow\{B,C,D\}\rightarrow$ $\{C,D,E\}\,\rightarrow\,\{D,E,F\}$ , which clearly satisﬁes the separation requirements of the clique tree deﬁnition. 
@@ -6481,7 +6480,7 @@ Let $\Phi$ be a set of factors over $\mathcal{X}$ . A cluster tree ver $\Phi$ th
 Note that we have already deﬁned one notion of a clique tree in deﬁnition 4.17. This double deﬁnition is not an overload of terminology, because the two deﬁnitions are actually equivalent: It follows from the results of this chapter that $\mathcal{T}$ is a clique tree for $\Phi$ (in sense of deﬁnition 10.3) if and only if it is a clique tree for a chordal graph containing ${\mathcal{H}}_{\Phi}$ (in the sense of deﬁnition 4.17), and these properties are true if and only if the clique-tree data structure admits variable elimination by passing messages over the tree. 
 > 该定义和 definition 4.17 中对于团树的定义是等价的：$\mathcal T$ 是 $\Phi$ 的团树当且仅当 $\mathcal T$ 是包含 $\mathcal H_{\Phi}$ 的弦图的团树，并且这些性质成立当且仅当团树数据结构通过在树上传递消息来支持变量消去
 
-We ﬁrst show that the running intersection property implies the independence statement, which i the heart of our ﬁrst deﬁnition of clique trees. Let $\mathcal{T}$ be a cluster tree over $\Phi$ , and let H ${\mathcal{H}}_{\Phi}$ be the undirected graph associated with this set of factors. For any sepset $\boldsymbol{S}_{i,j}$ , let $W_{<(i,j)}$ be the set of all variables in the scope of clusters in the $C_{i}$ side of the tree, and $W_{<(j,i)}$ be the set of all variables in the scope of clusters in the $C_{j}$ side of the tree. 
+We ﬁrst show that the running intersection property implies the independence statement, which is the heart of our ﬁrst deﬁnition of clique trees. Let $\mathcal{T}$ be a cluster tree over $\Phi$ , and let H ${\mathcal{H}}_{\Phi}$ be the undirected graph associated with this set of factors. For any sepset $\boldsymbol{S}_{i,j}$ , let $W_{<(i,j)}$ be the set of all variables in the scope of clusters in the $C_{i}$ side of the tree, and $W_{<(j,i)}$ be the set of all variables in the scope of clusters in the $C_{j}$ side of the tree. 
 > 运行相交性质意味着独立性陈述
 > $\mathcal T$ 为 $\Phi$ 上的团树，$\mathcal H_\Phi$ 为和因子集合 $\Phi$ 相关的无向图，对于任意分离集 $\pmb S_{i, j}$，令 $\pmb W_{<(i, j)}$ 为树的 $\pmb C_i$ 边的所有簇的作用域包含的变量，$\pmb W_{<(j, i)}$ 为数的 $\pmb C_j$ 边的所有簇的作用域包含的变量
 
@@ -6511,7 +6510,7 @@ One way of using a clique tree is simply as guidance for the operations of varia
 > 我们将先举一个例子，然后描述一般算法
 
 #### 10.2.1.1 An Example 
-Figure 10.2 shows one possible clique tree $\mathcal{T}$ for the Student ne rk. N that it is diferent from the clique tree of ﬁgure 10.1, in that nonmaximal cliques ( $(C_{6}$ and $C_{7}$ ) are absent. Nev- ertheless, it is straightforward to verify that $\mathcal{T}$ satisﬁes both the family preservation and the running intersection property. The ﬁgure also speciﬁes the assignment $\alpha$ of the initial factors (CPDs) to cliques. Note that, in some cases (for example, the CPD $P(I))$ ), we have more than one possible clique into which the factor can legally be assigned; as we will see, the algorithm applies for any legal choice. 
+Figure 10.2 shows one possible clique tree $\mathcal{T}$ for the Student ne rk. N that it is diferent from the clique tree of ﬁgure 10.1, in that nonmaximal cliques ( $(C_{6}$ and $C_{7}$ ) are absent. Nevertheless, it is straightforward to verify that $\mathcal{T}$ satisﬁes both the family preservation and the running intersection property. The ﬁgure also speciﬁes the assignment $\alpha$ of the initial factors (CPDs) to cliques. Note that, in some cases (for example, the CPD $P(I))$ ), we have more than one possible clique into which the factor can legally be assigned; as we will see, the algorithm applies for any legal choice. 
 >图10.2展示了一个可能的 Student 网络的团树 $\mathcal{T}$。请注意，它与图10.1中的团树不同，因为在该团树中非极大团 $(C_{6}$ 和 $C_{7})$ 被省略了。尽管如此，很容易验证 $\mathcal{T}$ 满足族保持和运行相交性质
 >图中还指定了将因子 (CPDs)  到团的初始分配 $\alpha$ ，请注意，在某些情况下（例如，CPD $P(I)$），我们有多个合法的团可以将因子分配进去；正如我们将看到的，算法适用于任何合法的选择。
 
@@ -6988,7 +6987,7 @@ $$
 The “if” direction now follows from direct substitution of $\beta_{i}$ for each $\tilde{P}_{\Phi}(C_{i})$ . 
 > “if”的方向现在可以通过把每个 $\beta_{i}$ 替换为 $\tilde{P}_{\Phi}(\pmb C_{i})$ 直接得到。
 
-To prove the “only if” direction, we note that each of the terms $\beta_{i}(C_{i}\ \mid\ S_{i,p_{r}(i)})$ is a conditional distribution; hence, if we marginalize out the variables not in $C_{r}$ in the distribution $Q_{\mathcal{T}}$ , each of these conditional distributions marginalizes to 1 , and so we are left with $Q_{\mathcal{T}}(C_{r})=$ $\beta_{r}(C_{r})$ . It now follows that if $\tilde{P}_{\Phi}\propto Q_{\mathcal{T}}$ ∝ T , then $\tilde{P}_{\Phi}(C_{r})\propto Q_{\mathcal{T}}(C_{r})=\beta_{r}(C_{r})$  . Because this argument applies to any choice of root clique, we have proved that this equality holds for every clique. 
+To prove the “only if” direction, we note that each of the terms $\beta_{i}(C_{i}\ \mid\ S_{i,p_{r}(i)})$ is a conditional distribution; hence, if we marginalize out the variables not in $C_{r}$ in the distribution $Q_{\mathcal{T}}$ , each of these conditional distributions marginalizes to 1 , and so we are left with $Q_{\mathcal{T}}(C_{r})=$ $\beta_{r}(C_{r})$ . It now follows that if $\tilde{P}_{\Phi}\propto Q_{\mathcal{T}}$ , then $\tilde{P}_{\Phi}(C_{r})\propto Q_{\mathcal{T}}(C_{r})=\beta_{r}(C_{r})$  . Because this argument applies to any choice of root clique, we have proved that this equality holds for every clique. 
 > 为了证明“only if”的方向，我们注意到 $\beta_{i}(\pmb C_{i} \ | \ \pmb S_{i, p_{r}(i)})$ 中的每一项都是一个条件分布；因此，如果我们从分布 $Q_{\mathcal{T}}$ 中边际化掉不在 $\pmb C_{r}$ 中的变量，则这些条件分布会边际化为 1，所以我们只剩下 $Q_{\mathcal{T}}(\pmb C_{r}) = \beta_{r}(\pmb C_{r})$
 > 于是，如果 $\tilde{P}_{\Phi} \propto Q_{\mathcal{T}}$，则 $\tilde{P}_{\Phi}(\pmb C_{r}) \propto Q_{\mathcal{T}}(C_{r}) = \beta_{r}(\pmb C_{r})$ 
 > 由于此论证适用于任何根团的选择，我们已经证明了该等式对每个团都成立
@@ -7010,7 +7009,7 @@ Consider again the message passing process used in CTree-SP-Calibrate (algorithm
 At this point, $C_{i}$ has all of the necessary information to compute its ﬁnal potential. It multiplies the initial potential with the incoming messages from all of its neighbors: 
 
 $$
-\beta_{i}=\psi_{i}\cdot\prod_{k\in\mathrm{Nb}_{i}}\delta_{k\rightarrow i}.
+\beta_{i}=\psi_{i}\cdot\prod_{k\in\mathrm{Nb}_{i}}\delta_{k\rightarrow i}.\tag{10-12}
 $$ 
 > 向回传递消息时，$\pmb C_i$ 有了用于计算其最终势能所有必要的消息，它将自己的初始势能和其所有邻居的消息相乘得到它的信念
 
@@ -7019,23 +7018,34 @@ As we discussed, this ﬁnal potential is not used in computing the message to $
 > 从 $\pmb C_i$ 发往 $\pmb C_j$ 的消息的计算需要忽略来自 $\pmb C_j$ 的信息，也就是将 $\pmb C_i$ 的初始势函数与除了来自 $\pmb C_j$ 的消息之外的所有消息相乘，然后对分离集进行边际化 (求和消去所有分离集之外的变量)
 
 A diferent approach to computing the same expression is to multiply in all of the messages, and then divide the resulting factor by $\delta_{j\rightarrow i}$ . To make this notion precise, we must deﬁne a factor-division operation: 
+> 另一种方法是将所有的传入消息都乘进来，然后将得到的因子除去 $\delta_{j\rightarrow i}$
 
 **Deﬁnition 10.7** factor division 
 Let $X$ and $Y$ be disjoint sets of variables, and let $\phi_{1}(X,Y)$ and $\phi_{2}(Y)$ be two factors. We deﬁne the division $\frac{\phi_{1}}{\phi_{2}}$ to be a factor $\psi$ of scope $X,Y$ deﬁned as follows: 
 
 $$
-\psi(X,Y)=\frac{\phi_{1}(X,Y)}{\phi_{2}(Y)},
-$$ 
+\psi(\pmb X,\pmb Y)=\frac{\phi_{1}(\pmb X,\pmb Y)}{\phi_{2}(\pmb Y)},
+$$
 
 where we deﬁne $0/0=0$ . 
 
+> 定义
+> $\pmb X, \pmb Y$ 是不相交的变量集合，$\phi_1 (\pmb X, \pmb Y)$ 和 $\phi_2 (\pmb Y)$ 为两个因子
+> 将除法 $\frac {\phi_1}{\phi_2}$ 的结果定义为作用域为 $\pmb X, \pmb Y$ 的因子 $\psi(\pmb X, \pmb Y)$，同时在该除法计算中，将 $0/0$ 定义为 $0$
+
 Note that, as in the case of other factor operations, factor division is done component by component. Figure 10.7 shows an example. Also note that the operation is not well deﬁned if the denominator is zero and the numerator is not. 
+> 和其他的因子运算相同，因子除法是逐个分量进行的 (详见 Figure 10.7)
+> 注意当分母为零且分子不为零时，该运算是未明确定义的
 
 We now see that we can compute the expression of equation (10.2) by computing the beliefs as in equation (10.12), and then dividing by the remaining message: 
+> 定义好因子除法后，我们可以用信念先除去来自 $\pmb C_j$ 的消息，再用得到的因子求和消去其他变量得到发往 $\pmb C_i$ 的消息，如下所示
 
 $$
-\delta_{i\rightarrow j}=\frac{\sum_{C_{i}-S_{i,j}}\beta_{i}}{\delta_{j\rightarrow i}}.
-$$ 
+\begin{align}
+\delta_{i\rightarrow j}&=\sum_{\pmb C_i - \pmb S_{i,j}}\frac {\beta _i}{\delta_{j\rightarrow i}}\\
+&=\frac{\sum_{\pmb C_{i}-\pmb S_{i,j}}\beta_{i}}{\delta_{j\rightarrow i}}.\tag{10.13}\\
+\end{align}
+$$
 
 Example 10.7 Let us return to the simple clique tree in example 10.5, and assume that $C_{2}$ serves as the (de facto) root, so that we ﬁrst pass messages from $C_{1}$ to $C_{2}$ and from $C_{3}$ to $C_{2}$ . The message $\delta_{1\rightarrow2}$ $\textstyle\sum_{A}\psi_{1}(A,B)$ . Using the variable elimination message ( CTree-SP-Calibrate ), we pass a return message $\begin{array}{r}{\delta_{2\to1}(B)\,=\,\sum_{C}\psi_{2}(B,C)\delta_{3\to2}(C)}\end{array}$ . Alternatively, we can compute → $\beta_{2}(B,C)=\delta_{1\rightarrow2}(B)\cdot\delta_{3\rightarrow2}(C)\cdot\psi_{2}(B,C)$ → · → · , and then send a message 
 
@@ -7045,173 +7055,252 @@ $$
 
 Thus, the two approaches are equivalent. 
 
-sum-product- divide 
-
 Based on this insight, we can deﬁne the sum-product-divide message passing scheme, where each clique $C_{i}$ maintains its fully updated current beliefs $\beta_{i}$ , which are deﬁned as in equa- tion (10.8). Each sepset also maintains its beliefs $\mu_{i,j}$ deﬁned as the product of the messages in both directions, as in equation (10.9). We now show that the entire message passing process can be executed in an equivalent way in terms of the clique and sepset beliefs, without having to remember the initial potentials $\psi_{i}$ or to compute explicitly the messages $\delta_{i\to j}$ . 
+> 基于这一见解，我们可以定义一个和-积-商的消息传递方法
+> 该方法中，每个团 $\pmb C_{i}$ 维护其完全更新的当前信念 $\beta_{i}$ ，这些信念如公式 (10.8)所定义；每个分离集也维护其信念 $\mu_{i,j}$，这些信念被定义为两个方向消息的乘积，如公式 (10.9) 所示
+> 我们现在表明，整个消息传递过程可以通过团和分离集的信念执行，而不需要记住初始势 $\psi_{i}$ 或显式计算消息 $\delta_{i\to j}$ 以等价的方式进行
 
-The message passing process follows the lines of example 10.7. Each clique $C_{i}$ initializes $\beta_{i}$ as $\psi_{i}$ and then updates it by multiplying with message updates received from its neighbors. Each sepset $\boldsymbol{S}_{i,j}$ maintains $\mu_{i,j}$ as the previous message passed along the edge $(i{-}j)$ , regardless of the direction. This message is used to ensure that we do not double-count: Whenever a new message is passed along the edge, it is divided by the old message, eliminating the previous message from the update to the clique. Somewhat surprisingly, as we will show, the message passing operation is correct regardless of the clique that sent the last message on the edge. Intuitively, once the message is passed, its information is incorporated into both cliques; thus, each needs to divide by it when passing a message to the other. We can view this algorithm as maintaining a set of belief over the cliques in the tree. The message passing operation takes the beliefs of one clique and uses them to update the beliefs of a neighbor. Thus, we call this algorithm belief-update message passing; it is also known as the Lauritzen-Spiegelhalter algorithm . 
+The message passing process follows the lines of example 10.7. Each clique $C_{i}$ initializes $\beta_{i}$ as $\psi_{i}$ and then updates it by multiplying with message updates received from its neighbors. Each sepset $\boldsymbol{S}_{i,j}$ maintains $\mu_{i,j}$ as the previous message passed along the edge $(i{-}j)$ , regardless of the direction. This message is used to ensure that we do not double-count: Whenever a new message is passed along the edge, it is divided by the old message, eliminating the previous message from the update to the clique. Somewhat surprisingly, as we will show, the message passing operation is correct regardless of the clique that sent the last message on the edge. Intuitively, once the message is passed, its information is incorporated into both cliques; thus, each needs to divide by it when passing a message to the other. We can view this algorithm as maintaining a set of belief over the cliques in the tree. The message passing operation takes the beliefs of one clique and uses them to update the beliefs of a neighbor. Thus, we call this algorithm *belief-update message passing*; it is also known as the Lauritzen-Spiegelhalter algorithm . 
+> 消息传递过程遵循示例10.7的思路
+> 每个团 $\pmb C_{i}$ 将其信念 $\beta_{i}$ 的初始值设定为其初始势能 $\psi_{i}$，然后通过将其与从邻居接收到的消息更新相乘来更新它；每个分离集 $\boldsymbol{S}_{i,j}$ 将 $\mu_{i,j}$ 维护为沿着边 $(i{-}j)$ 传递的上一条消息，不考虑其方向
+> 边上维护的这条消息用于确保我们不会重复计算：每当新消息沿该边传递时，它会除去上一条消息，从而消除了上一条消息对团更新的影响
+> 无论是哪个团在边上发送了最后一条消息，消息传递操作都是正确的，直观地讲，当一条消息被传递，其信息将被包含到两个团中；因此，当一个团向另一个团传递消息时，都需要除以该消息
+> 我们可以将此算法视为维护树中团的一组信念，消息传递操作利用一个团的信念来更新其邻居团的信念，我们称之为信念更新消息传递算法，它也被称为 Lauritzen-Spiegelhalter 算法
 
+Example 10.8
 Continuing with example 10.7, assume that $C_{2}$ initially passes an uninformed message to $C_{3}$ : $\begin{array}{r}{\sigma_{2\rightarrow3}=\sum_{B}\psi_{2}(B,C)}\end{array}$ . This message multiplies the beliefs about $C_{3}$ , so that, at this point: 
 
 $$
 \beta_{3}(C,D)=\psi_{3}(C,D)\sum_{B}\psi_{2}(B,C).
-$$ 
+$$
 
 This message is also stored in the sepset as $\mu_{2,3}$ . Now, assume that $C_{3}$ sends a message to $C_{2}$ : $\begin{array}{r}{\sigma_{3\rightarrow2}(C)=\sum_{D}\beta_{3}(C,D)}\end{array}$ . This message is divided by $\mu_{2,3}$ , so the actual update for $C_{2}$ is: 
 
 $$
 \begin{array}{c c l}{\displaystyle\frac{\sigma_{3\to2}(C)}{\mu_{2,3}(C)}}&{=}&{\displaystyle\frac{\sum_{D}\beta_{3}(C,D)}{\mu_{2,3}(C)}}\\ &{=}&{\displaystyle\frac{\sum_{D}\psi_{3}(C,D)\mu_{2,3}(C)}{\mu_{2,3}(C)}}\\ &{=}&{\displaystyle\sum_{D}\psi_{3}(C,D).}\end{array}
-$$ 
+$$
 
 This expression is precisely the update that $C_{2}$ would have received from $C_{3}$ in the case where $C_{2}$ does not ﬁrst send an uninformed message. At this point, the message stored in the sepset is 
 
 $$
 \sum_{D}\beta_{3}(C,D)=\sum_{D}\left(\psi_{3}(C,D)\cdot\sum_{B}\psi_{2}(B,C)\right).
-$$ 
+$$
 
 Assu t at the next step $C_{2}$ receives a message from $C_{1}$ , containing $\textstyle\sum_{A}\psi_{1}(A,B)$ . The sepset $S_{\mathrm{1,2}}$ contains a message that is identically 1 , so that this message is transmitted as is. $A t$ this point, $C_{2}$ has received informed messages from both sides and is therefore informed. Indeed, we have shown that: 
 
 $$
 \beta_{2}(B,C)=\psi_{2}(B,C)\cdot\sum_{A}\psi_{1}(A,B)\cdot\sum_{D}\psi_{3}(C,D).
-$$ 
+$$
 
 as required. 
 
-![](images/0081832ae1f43d277197bf858637e5b838ad5c1afac458b355a385c7d321d875.jpg) 
+![[PGM-Algorithm10.3.png]]
 
-The precise algorithm is shown in algorithm 10.3. Note that, as written, the message passing algorithm is underspeciﬁed: in line 3, we can select any pair of cliques $C_{i}$ and $C_{j}$ between which we will pass a message. Interestingly, we can make this choice arbitrarily, without damaging the correctness of the algorithm. For example, if $C_{i}$ (for some reason) passes the same message to $C_{j}$ a second time, the process of dividing out by the stored message reduces the message actually passed to 1 , so that it has no inﬂuence. Furthermore, if $C_{i}$ passes a message to $C_{j}$ based on partial information (that is, without taking into consideration all of its incoming messages), and then resends a more updated message later on, the efect is identical to simply sending the updated message once. Moreover, at convergence, regardless of the message passing steps used, we necessarily have a calibrated clique tree. This property follows from the fact that, in order for all message updates to have no efect, we need to have 
+The precise algorithm is shown in algorithm 10.3. Note that, as written, the message passing algorithm is underspeciﬁed: in line 3, we can select any pair of cliques $C_{i}$ and $C_{j}$ between which we will pass a message. Interestingly, we can make this choice arbitrarily, without damaging the correctness of the algorithm. For example, if $C_{i}$ (for some reason) passes the same message to $C_{j}$ a second time, the process of dividing out by the stored message reduces the message actually passed to 1 , so that it has no inﬂuence. Furthermore, if $C_{i}$ passes a message to $C_{j}$ based on partial information (that is, without taking into consideration all of its incoming messages), and then resends a more updated message later on, the efect is identical to simply sending the updated message once. 
+> 精确的算法如算法10.3所示。请注意，按照描述，消息传递算法是未充分规定的：在第3行，我们可以选择任何一对团 $\pmb C_{i}$ 和 $\pmb C_{j}$ 之间传递消息
+> 有趣的是，我们可以随意做出这种选择，而不损害算法的正确性，例如，如果 $C_{i}$ （出于某种原因）再次向 $C_{j}$ 发送相同的 messages，通过从存储的消息中除以该消息，实际传递的消息将减少到 1，从而使其无影响；此外，如果 $C_{i}$ 根据部分信息（即，不考虑所有传入消息）向 $C_{j}$ 发送消息，然后再发送更更新的消息，其效果等同于仅发送一次更新后的消息
+
+Moreover, at convergence, regardless of the message passing steps used, we necessarily have a calibrated clique tree. This property follows from the fact that, in order for all message updates to have no effect, we need to have $\sigma_{i\rightarrow j} = \mu_{i, j} = \sigma_{j\rightarrow i}$ for all $i, j$, and so:
+> 此外，在收敛时，无论使用何种消息传递步骤，我们必然有一个校准良好的团树，这一性质来源于以下事实：在算法收敛时，为了使所有消息更新都再没有影响，我们需要满足对所有的 $i, j$ 都有 $\sigma_{i\rightarrow j} = \mu_{i, j} = \sigma_{j\rightarrow i}$，因此：
 
 $$
-\sum_{C_{i}-S_{i,j}}\beta_{i}=\mu_{i,j}=\sum_{C_{j}-S_{i,j}}\beta_{j}.
-$$ 
+\sum_{\pmb C_{i}-\pmb S_{i,j}}\beta_{i}=\mu_{i,j}=\sum_{\pmb C_{j}-\pmb S_{i,j}}\beta_{j}.
+$$
 
 Thus, at convergence, each pair of neighboring cliques $i,j$ must agree on the variables in sepset, and the message $\mu_{i,j}$ is precisely the sepset marginal. These properties also follow from the equivalence between belief-update message passing and sum-product message passing, which we show next. 
+> 因此，在收敛时，每对相邻的团 $i,j$ 必须在分离集中的变量上达成一致，并且消息 $\mu_{i,j}$ 恰好是分离集的边缘分布
+> 这些性质也来自于信念更新消息传递算法和和积消息传递算法之间的等价性，我们将在接下来展示这一点
 
-# 10.3.2 Equivalence of Sum-Product and Belief Update Messages 
-
+### 10.3.2 Equivalence of Sum-Product and Belief Update Messages 
 So far, although we used sum-product message propagation to motivate the deﬁnition of the belief update steps, we have not shown a direct connection between them. We now show a simple and elegant equivalence between the two types of message passing operations. From this result, it immediately follows that belief-update message passing is guaranteed to converge to the correct marginals. 
+> 本节将展示 sum-product 消息传递和 belief-update 消息传递的等价性，从该等价性可以知道 belief-update 消息传递保证会收敛到正确的边际分布
 
 Our proof is based on equation (10.8) and equation (10.9), which provide a mapping between the sum-product and belief-update representations. We consider corresponding runs of the two algorithms in which an identical sequence of message passing steps is executed. We show that these two properties hold as an invariant between the data structures maintained by the two algorithms. The invariant holds initially, and it is maintained throughout the corresponding runs. 
+> 证明基于 eq (10.8), eq (10. 9)，它们提供了 sum-product 和 belief-update 表示之间的映射
+> 我们考虑两种算法的相应运行，在这些运行中执行相同的一系列消息传递步骤，我们证明这两个性质 (eq 10.8 和 eq 10.9) 将作为两个算法维持的数据结构之间的不变量成立，这一不变量最初成立，并在整个相应的运行过程中得以保持
 
-Theorem 10.5 Consider a set of sum-product initial potentials $\{\psi_{i}\ \ :\ \ i\,\in\,\mathcal{V}_{\mathcal{T}}\}$ V T } and me $\{\delta_{i\to j},\delta_{j\to i}\ \ :$ $(i\!-\!j)\in\mathcal{E}_{\mathcal{T}}\}$ , and a set of belief-update beliefs { $\{\beta_{i}\,:\,i\in\mathcal{V}_{\mathcal{T}}\}$ ∈V T } and messages { $\{\mu_{i,j}\,:\,(i{-}j)\in\mathcal{E}_{T}\}$ , for which equation (10.8) and equation (10.9) hold. For any pair of neighboring cliques $C_{i},C_{j}$ , let $\{\delta_{i\to j}^{\prime},\delta_{j\to i}^{\prime}\ :\ (i\!-\!j)\in\mathcal{E}_{T}\}$ → ssages following an application of SP-Message $(i,j)$ , and { $\{\beta_{i}^{\prime}\ :\ C_{i}\in\mathcal{T}\}$ ∈T } $\{\mu_{i,j}^{\prime}\ :\ (i{-}j)\in\mathcal{E}_{T}\}$ ∈E T } , be the set of belief-update beliefs following an application of BU-Message $(i,j)$ . Then equation (10.8) and equation (10.9) also hold for the new beliefs $\delta_{i\to j}^{\prime},\,\beta_{i}^{\prime},\,\mu_{i,j}^{\prime}$ . 
+**Theorem 10.5** 
+Consider a set of sum-product initial potentials $\{\psi_{i}\ \ :\ \ i\,\in\,\mathcal{V}_{\mathcal{T}}\}$ and me $\{\delta_{i\to j},\delta_{j\to i}\ \ :$ $(i\!-\!j)\in\mathcal{E}_{\mathcal{T}}\}$ , and a set of belief-update beliefs $\{\beta_{i}\,:\,i\in\mathcal{V}_{\mathcal{T}}\}$ and messages { $\{\mu_{i,j}\,:\,(i{-}j)\in\mathcal{E}_{T}\}$ , for which equation (10.8) and equation (10.9) hold. For any pair of neighboring cliques $C_{i},C_{j}$ , let $\{\delta_{i\to j}^{\prime},\delta_{j\to i}^{\prime}\ :\ (i\!-\!j)\in\mathcal{E}_{T}\}$ → ssages following an application of SP-Message $(i,j)$ , and { $\{\beta_{i}^{\prime}\ :\ C_{i}\in\mathcal{T}\}$ $\{\mu_{i,j}^{\prime}\ :\ (i{-}j)\in\mathcal{E}_{T}\}$ , be the set of belief-update beliefs following an application of BU-Message $(i,j)$ . Then equation (10.8) and equation (10.9) also hold for the new beliefs $\delta_{i\to j}^{\prime},\,\beta_{i}^{\prime},\,\mu_{i,j}^{\prime}$ . 
 
-The proof uses simple algebraic manipulation, and it is left as an exercise (exercise 10.4). This equivalence implies another result that will prove important in subsequent developments: 
+> 定理：
+> 考虑一组 sum-product 算法的初始势能 $\{\psi_i: i\in \mathcal V_{\mathcal T}\}$ 和消息 $\{\delta_{i\rightarrow j}, \delta_{j\rightarrow i}: (i-j)\in \mathcal E_{\mathcal T}\}$，以及一组 belief-update 算法的信念 $\{\beta_i : i \in \mathcal V_{\mathcal T}\}$ 和消息 $\{\mu_{i, j}: (i-j) \in \mathcal E_{\mathcal T}\}$ 它们满足 eq (10.8), eq (10.9)
+> 对于任意一对邻居团 $\pmb C_i, \pmb C_j$，令 $\{\delta'_{i\rightarrow j}, \delta'_{j\rightarrow i}: (i-j)\in\mathcal E_{\mathcal T}\}$ 为应用 $\text{SP-Message} (i, j)$ 得到的 sum-product 算法中的一组消息，$\{\beta_i': \pmb C_i \in \mathcal T\}$ 和 $\{\mu'_{i, j}: (i-j)\in \mathcal E_{\mathcal T}\}$ 为应用 $\text{BU-Message}(i, j)$ 得到的 belief-update 算法中的一组信念，则 eq 10.8, eq 10.9 对于 $\delta_{i\to j}^{\prime},\,\beta_{i}^{\prime},\,\mu_{i,j}^{\prime}$ 仍然成立
 
-# Corollary 10.3 
+The proof uses simple algebraic manipulation, and it is left as an exercise (exercise 10.4). 
+
+This equivalence implies another result that will prove important in subsequent developments: 
+
+**Corollary 10.3** 
+In an execution of belief-update message passing, the clique tree invariant equation (10.10) holds initially and after every message passing step.
+> 引理
+> 在 belief-update 消息传递算法的执行过程中，团树不变式 (10.10) 在每一步消息传递之后都保持成立
 
 Proof The proof of proposition 10.3 relied only on equation (10.8) and equation (10.9). Because these two equalities hold in every step of the belief-update message passing algorithm, we have that the clique tree invariant also holds continuously. 
+> 证明：
+> 命题 10.3 的证明仅依赖于 eq (10.8) 和 eq (10.9)，而这两个等式在 belief-update 消息传递算法中的每一步都成立，因此团树不变式也一直保持成立
 
-This equivalence also allows us to deﬁne a message schedule that guarantees convergence to the correct clique marginals in two passes: We simply follow the same upward-downward-pass schedule used in CTree-SP-Calibrate , using any (arbitrarily chosen) root clique $C_{r}$ . 
+This equivalence also allows us to deﬁne a message schedule that guarantees convergence to the correct clique marginals in two passes: We simply follow the same upward-downward-pass schedule used in CTree-SP-Calibrate , using any (arbitrarily chosen) root clique $\pmb C_{r}$ . 
+> 这一等价性还允许我们定义一个消息调度方案，保证在两次传递中收敛到正确的团边际：我们只需遵循与 CTree-SP-Calibrate 中使用的相同向上向下传递调度方案，使用任意（随意选择的）根团 $\pmb C_{r}$
 
-# 10.3.3 Answering Queries 
-
+### 10.3.3 Answering Queries 
 As we have seen, a calibrated clique tree contains the answer to multiple queries at once: the posterior probability of any set of variables that are present together in a single clique. A particular type of query that turns out to be important in this setting is the computation of the posterior for families of variables in a probabilistic network: a node and its parents in the context of Bayesian networks, or a clique in a Markov network. The family preservation property for cluster graphs (and hence for clique trees) implies that a family must be a subset of some cluster in the cluster graph. 
+> 正如我们所见，一个校准后的团树同时包含了多个查询的答案：单个团中存在的任何一组变量的后验概率
+> 在这种设置下，一种特别重要的查询类型是在概率网络中计算变量族的后验概率：贝叶斯网络中的节点及其父节点，或者马尔可夫网络中的团
+> 簇图（以及因此团树）的族保留性质意味着一个变量族必须是簇图中某个簇的子集
 
 In addition to these queries, which we get immediately as a by-product of calibration, we can also use a clique tree for other queries. We describe the algorithm for these queries in terms of a calibrated clique tree that satisﬁes the clique tree invariant. Due to the equivalence of sum-product and belief-update message passing, we can obtain such a clique tree using either method. 
+> 除了这些可以直接通过校准获得结果的查询之外，我们还可以使用团树来进行其他查询
+> 我们用满足团树不变式的校准团树来描述这些查询的算法，由于和积消息传递与信念更新消息传递是等价的，我们可以使用任一方法来获得这样的团树
 
-# 10.3.3.1 Incremental Updates 
-
-incremental update 
-
+#### 10.3.3.1 Incremental Updates 
 Consider a situation where, at some point in time, we have a certain set of observations, which we use to condition our distribution and reach conclusions. At some later time, we obtain additional evidence, and want to update our conclusions accordingly. This type of situation, where we want to perform incremental update is very common in a wide variety of settings. For example, in a medical setting, we often perform diagnosis on the basis of limited evidence; the initial diagnosis helps us decide which tests to perform, and the results need to be incorporated into our diagnosis. 
+> 考虑一个情况：开始有一组观察，我们用于 condition 我们的分布，获得结论，之后又获得了新的观察，需要对应更新我们的结论
+> 这类情况下需要执行增量更新
 
 The most naive approach to dealing with this task is simply to condition the initial factors (for example, the CPDs) on all of the evidence, and then redo the calibration process from the beginning, starting from these factors. A somewhat more efcient approach is based on the view of the clique tree as representing the distribution $\tilde{P}_{\Phi}$ . 
+> 朴素方法是将所有初始因子 (例如 CPDs) 在 condition 于所有观察，然后重新执行校准过程
+> 存在更高效的办法，这基于我们将团树视为分布 $\tilde P_\Phi$ 的表示
 
-Assume that our initial distribution $\tilde{P}_{\Phi}$ (prior to the new information) is represented via a set of factors $\Phi$ , as in equation (10.1). Given some evidence $Z=z$ , we can obtain $\tilde{P}_{\Phi}(\mathcal{X},Z=z)$ X by zeroing out the entries in the unnormalized distribution that are inconsistent with the evidence $Z=z$ . We can accomplish this efect by multiplying $\tilde{P}_{\Phi}$ with an additional factor which is the indicator function $I\{Z=z\}$ { } . More precisely, assume that our current distribution over $\mathcal{X}$ is deﬁned by a set of factors Φ , so that 
+Assume that our initial distribution $\tilde{P}_{\Phi}$ (prior to the new information) is represented via a set of factors $\Phi$ , as in equation (10.1). Given some evidence $Z=z$ , we can obtain $\tilde{P}_{\Phi}(\mathcal{X},Z=z)$ X by zeroing out the entries in the unnormalized distribution that are inconsistent with the evidence $Z=z$ . We can accomplish this efect by multiplying $\tilde{P}_{\Phi}$ with an additional factor which is the indicator function $I\{Z=z\}$ . 
+> 假设我们有分布 $\tilde P_\Phi$，给定观察 $Z = z$，我们可以通过将所有和 $Z = z$ 不一致的项归零得到 $\tilde P_\Phi(\mathcal X, Z = z)$
+> 通过将 $\tilde P_\Phi$ 乘上指示函数 $\mathbf 1\{ Z = z\}$ (将它视为一个额外的因子)，可以达到相同的效果
+
+More precisely, assume that our current distribution over $\mathcal{X}$ is deﬁned by a set of factors $\Phi$ , so that 
 
 $$
 {\tilde{P}}_{\Phi}({\mathcal{X}})=\prod_{\phi\in\Phi}\phi.
 $$ 
-
 Then, 
 
 $$
-\tilde{P}_{\Phi}(\mathcal{X},Z=z)=\mathbf{I}\{Z=z\}\cdot\prod_{\phi\in\Phi}\phi.
+\tilde{P}_{\Phi}(\mathcal{X},Z=z)=\mathbf{1}\{Z=z\}\cdot\prod_{\phi\in\Phi}\phi.
 $$ 
-
 Let $\tilde{P}_{\Phi}^{\prime}(\mathcal{X})=\tilde{P}_{\Phi}(\mathcal{X},Z=z)$ . 
+> 用公式描述即如上所示
+> 我们令 $\tilde P'_\Phi = \tilde P_\Phi(\mathcal X, Z = z)$
 
 Now, assume that we have a clique tree (calibrated or not) that represents this distribution using the clique tree invariant. That is: 
 
 $$
-\tilde{P}_{\Phi}(\mathcal{X})=Q_{\mathcal{T}}=\frac{\prod_{i\in\nu_{\mathcal{T}}}\beta_{i}(C_{i})}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{T}}}\mu_{i,j}(S_{i,j})}.
+\tilde{P}_{\Phi}(\mathcal{X})=Q_{\mathcal{T}}=\frac{\prod_{i\in\nu_{\mathcal{T}}}\beta_{i}(\pmb C_{i})}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{T}}}\mu_{i,j}(\pmb S_{i,j})}.
 $$ 
-
-We can represent the distribution $\tilde{P}_{\Phi}^{\prime}(\mathcal{X})$ X as 
+We can represent the distribution $\tilde{P}_{\Phi}^{\prime}(\mathcal{X})$ as 
 
 $$
-\tilde{P}_{\Phi}^{\prime}(\mathcal{X})=\mathbfcal{I}\{Z=z\}\cdot\frac{\prod_{i\in\mathcal{V}_{T}}\beta_{i}(C_{i})}{\prod_{(i-j)\in\mathcal{E}_{T}}\mu_{i,j}(S_{i,j})}.
+\tilde{P}_{\Phi}^{\prime}(\mathcal{X})=\mathbfcal{1}\{Z=z\}\cdot\frac{\prod_{i\in\mathcal{V}_{T}}\beta_{i}(\pmb C_{i})}{\prod_{(i-j)\in\mathcal{E}_{T}}\mu_{i,j}(\pmb S_{i,j})}.
 $$ 
+Thus, we obtain a representation of $\tilde{P}_{\Phi}^{\prime}$ in the clique tree simply by multiplying in the new factor $\mathbf 1\{Z=z\}$ into some clique $\pmb C_{i}$ containing the variable $Z$ . 
+> 我们将 $\tilde P_\Phi(\mathcal X)$ 用团树不变式表示，就得到了上述的式子，也就是通过将新因子 $\mathbf 1\{Z = z\}$ 乘入某个包含变量 $Z$ 的团 $\pmb C_i$ 中就得到了 $\tilde P'_\Phi$
 
-Thus, we obtain a representation of $\tilde{P}_{\Phi}^{\prime}$ in the clique tree simply by multiplying in the new factor $I\{Z=z\}$ into some clique $C_{i}$ containing the variable $Z$ . 
+If the clique tree is calibrated before this new factor is introduced, then the clique $\pmb C_{i}$ has already assimilated all of the other information in the graph. Thus, the clique $\pmb C_{i}$ itself is now fully informed, and no additional message passing is required in order to obtain $\tilde{P}_{\Phi}^{\prime}(\pmb C_{i})$ . Other cliques, however, still need to be updated with the new information. To obtain $\check{P}_{\Phi}^{\prime}(\pmb C_{j})$ for another clique $\pmb C_{j}$ , we need only transmit messages from $\pmb C_{i}$ to $\pmb C_{j}$ , via the intervening cliques on the path between them. (See exercise 10.10.) As a consequence, the entire tree can be recalibrated to account for the new evidence using a single pass. 
+> 如果在引入新因子之前团树已经校准，对于 $\pmb C_i$ 来说，它乘上了新因子，不需要额外的信息再更新自己，其信念已经等于 $\tilde P'_\Phi(\pmb C_i)$
+> 对于其他团则需要额外的更新，我们需要从 $\pmb C_i$ 到 $\pmb C_j$ 再传递一次信息，因此整个团树需要额外一次 pass 以针对新的 evidence 进行重校准
 
-If the clique tree is calibrated before this new factor is introduced, then the clique $C_{i}$ has already assimilated all of the other information in the graph. Thus, the clique $C_{i}$ itself is now fully informed, and no additional message passing is required in order to obtain $\tilde{P}_{\Phi}^{\prime}(C_{i})$ . Other cliques, however, still need to be updated with the new information. To obtain $\check{P}_{\Phi}^{\prime}(C_{j})$ for another clique $C_{j}$ , we need only transmit messages from $C_{i}$ to $C_{j}$ , via the intervening cliques on the path between them. (See exercise 10.10.) As a consequence, the entire tree can be recalibrated to account for the new evidence using a single pass. Note that retracting evidence is not as simple: Once we multiply parts of the distribution by zero, these parts are lost, and they cannot be recovered. Thus, if we want to reserve the ability to retract evidence, we must store the beliefs prior to the conditioning step (see exercise 10.12). 
+Note that retracting evidence is not as simple: Once we multiply parts of the distribution by zero, these parts are lost, and they cannot be recovered. Thus, if we want to reserve the ability to retract evidence, we must store the beliefs prior to the conditioning step (see exercise 10.12). 
+> 注意从重校准后的团树中重新提取 evidence 的信息则不容易，因为我们将分布中和 evidence 相关的部分变为了 0，其信息丢失了
+> 如果想要保持重新提取 evidence 的能力，需要在 conditioning 先存储当前的 beliefs
 
 Interestingly, the same incremental-update approach applies to other forms of updating the distribution. In particular, we can multiply the distribution with a factor that is not an indicator function for some variable, an operation that is useful in various applications. The same analysis holds unchanged. 
+> 对于其他形式的分布更新，这一增量更新方法同样适用
+> 具体地说，即便新因子不是指示函数的形式，我们仍然仅仅将它和整个分布相乘即可，分析的步骤是一致的
 
-# 10.3.3.2 Queries Outside a Clique 
-
+#### 10.3.3.2 Queries Outside a Clique 
 Consider a query $P(Y\mid e)$ where the variables $Y$ are not present together in a single cliq One naive approach is to construct a clique tree where we force one of the cliques to contain $Y$ (see exercise 10.13). However, this approach forces us to tailor our clique tree to diferent queries, negating many of its advantages. An alternative approach is to perform variable elimination over a calibrated clique tree. 
+> 考虑一个查询 $P(\pmb Y \mid e)$，其中 $\pmb Y$ 不完全出现在单个团中
+> 朴素方法是构造一个团树，我们强制让某个团包含 $\pmb Y$，这让我们不得不根据查询调整团树
+> 另一种方法是在校准的团树上执行变量消除
 
+Example 10.9
 Consider the simple clique tree of example 10.7, and assume that we have calibrated the clique tree, so that the beliefs represent the joint distribution as in equation (10.10). Assume that we now want to compute the probability $\tilde{P}_{\Phi}(B,D)$ . If the entire clique tree is calibrated, so is any (connected) subtree $\mathcal{T}^{\prime}$ . Letting $\mathcal{T}^{\prime}$ consist of the two cliques $C_{2}$ and $C_{3}$ , it follows from theorem 10.4 that: 
 
 $$
 \tilde{P}_{\Phi}(B,C,D)=Q_{\cal T}{}^{\prime}.
 $$ 
-
 By the clique tree invariant (equation (10.10)), we have that: 
 
 $$
 \begin{array}{c c l}{{\tilde{P}_{\Phi}(B,D)}}&{{=}}&{{\displaystyle\sum_{C}\tilde{P}_{\Phi}(B,C,D)}}\\ {{}}&{{=}}&{{\displaystyle\sum_{C}\frac{\beta_{2}(B,C)\beta_{3}(C,D)}{\mu_{2,3}(C)}}}\\ {{}}&{{=}}&{{\displaystyle\sum_{C}\tilde{P}_{\Phi}(B\mid C)\tilde{P}_{\Phi}(C,D),}}\end{array}
 $$ 
-
 where the last equality follows from calibration. Each of these probability expressions corresponds to a set of clique beliefs divided by a message. We can now perform variable elimination, using these factors in the usual way. 
 
-![](images/b576e9372df91d3c243bb80825b3ff5c22154069a7357f49b64d3a7ac55c48c9.jpg) 
+More generally, we can compute the joint probability $\tilde{P}_{\Phi}(\pmb Y)$ for an arbitrary subset $\pmb Y$ by using the beliefs in a calibrated clique tree to deﬁne factors corresponding to conditional probabilities in $\tilde{P}_{\Phi}$ , and then performing variable elimination over the resulting set of factors. The precise algorithm is shown in algorithm 10.4. The savings over simple variable elimination arise because we do not have to perform inference over the entire clique tree, but only over a portion of the tree that contains the variables $Y$ that constitute our query. In cases where we have a very large clique tree, the savings can be signiﬁcant. 
+> 我们可以使用在校准的团树中的信念计算任意变量集合 $\pmb Y$ 的联合概率 $\tilde P_\Phi(\pmb Y)$，算法描述于 Algorithm 10.4
+> 在 Algorithm 10.4 中，我们根据一个包含 $\pmb Y$ 的子树进行变量消除，不需要在整个团树中执行推理
 
-More generally, we can compute the joint probability $\tilde{P}_{\Phi}(Y)$ for an arbitrary subset $Y$ by using the beliefs in a calibrated clique tree to deﬁne factors corresponding to conditional probabilities in $\tilde{P}_{\Phi}$ , and then performing variable elimination over the resulting set of factors. The precise algorithm is shown in algorithm 10.4. The savings over simple variable elimination arise because we do not have to perform inference over the entire clique tree, but only over a portion of the tree that contains the variables $Y$ that constitute our query. In cases where we have a very large clique tree, the savings can be signiﬁcant. 
+![[PGM-Algorithm10.4.png]]
 
-# 10.3.3.3 Multiple Queries 
+#### 10.3.3.3 Multiple Queries 
+Now, assume that we want to compute the probabilities of an entire set of queries where the variables are not together in a clique. For example, we might wish to compute $\tilde{P}_{\Phi}(X,Y)$ for every pair of variables $X,Y\,\in\,{\mathcal{X}}\,-\,\pmb E$ . Clearly, the approach of constructing a clique tree to ensure that our query variables are present in a single clique breaks down in this case: If every pair of variables is present in some clique, there must be some clique that contains all of the variables (see exercise 10.14). 
+> 现在，假设我们要计算一组查询的概率，其中变量并不都在同一个团中
+> 例如，我们可能希望对每一个变量对 $X,Y \in \mathcal{X} - \pmb E$ 计算 $\tilde{P}_{\Phi}(X,Y)$ 
+> 显然，在这种情况下，构建一个团树以确保查询变量存在于单个团中的方法就失效了：如果每对变量都存在于某个团中，那么必须存在一个包含所有这些变量的团（参见练习10.14）
 
-Now, assume that we want to compute the probabilities of an entire set of queries where the variables are not together in a clique. For example, we might wish to compute $\tilde{P}_{\Phi}(X,Y)$ for every pair of variables $X,Y\,\in\,{\mathcal{X}}\,-\,E$ . Clearly, the approach of constructing a clique tree to ensure that our query variables are present in a single clique breaks down in this case: If every pair of variables is present in some clique, there must be some clique that contains all of the variables (see exercise 10.14). 
+A somewhat less naive approach is simply to run the variable elimination algorithm of algorithm 10.4 $\textstyle{\binom{n}{2}}$ times, once for each pair of variables $X,Y$ . However, because pairs of variables, on average, are fairly far from each other in the clique tree, this approach requires fairly substantial running time (see exercise 10.15). An even better approach can be obtained by using dynamic programming . 
+> 一个较不朴素的方法是执行 algorithm 10.4 $\binom{n}{2}$ 次，每次执行针对一对变量 $X, Y$
+> 但因为在团树中，变量对之间的平均距离一般是较远的，因此该方法也需要较多的运行时间
+> 使用动态规划可以得到更好的方法
 
-A somewhat less naive approach is simply to run the variable elimination algorithm of algo- rithm 10.4 $\textstyle{\binom{n}{2}}$  times, once for each pair of variables $X,Y$ . However, because pairs of variables, on average, are fairly far from each other in the clique tree, this approach requires fairly sub- stantial running time (see exercise 10.15). An even better approach can be obtained by using dynamic programming . 
+Consider a calibrated clique tree $\mathcal{T}$ over $\Phi$ , and assume we want to compute the probability $\tilde{P}_{\Phi}(X,Y)$ for every pair of variables $X,Y$ . We execute this process by gradually constructing a table for each $\pmb C_{i},\pmb C_{j}$ that contains $\tilde{P}_{\Phi}(\pmb C_{i},\pmb C_{j})$ . We construct the table for $i,j$ in order of the distance between $\pmb C_{i}$ and $\pmb C_{j}$ in the tree. 
+> 考虑 $\Phi$ 上的校准的树 $\mathcal T$，我们想要为每个变量对 $X, Y$ 计算 $\tilde P_\Phi(X, Y)$
+> 我们逐渐为每个 $\pmb C_i, \pmb C_j$ 对计算 $\tilde P_\Phi(\pmb C_i, \pmb C_j)$ ( 按照 $\pmb C_i,\pmb C_j$ 在树种的距离排序按照 $\pmb C_i,\pmb C_j$ 在树种的距离 )，记录在表格中，
 
-r a calibrated clique tree $\mathcal{T}$ over $\Phi$ , and assume we want to compute the probability $\tilde{P}_{\Phi}(X,Y)$ for every pair of variables $X,Y$ . We execute this process by gradually constructing a table for each $C_{i},C_{j}$ that contains $\tilde{P}_{\Phi}(C_{i},C_{j})$ . We construct the table for $i,j$ in order of the distance between $C_{i}$ and $C_{j}$ in the tree. 
-
-The base case is when $i,j$ are neighboring cliques. In this case, we simply extract $\tilde{P}_{\Phi}(C_{i})$ from its clique beliefs, and compute 
+The base case is when $i,j$ are neighboring cliques. In this case, we simply extract $\tilde{P}_{\Phi}(\pmb C_{i})$ from its clique beliefs, and compute 
 
 $$
-\tilde{P}_{\Phi}(C_{j}\mid C_{i})=\frac{\beta_{j}(C_{j})}{\mu_{i,j}(C_{i}\cap C_{j})}.
-$$ 
+\tilde{P}_{\Phi}(\pmb C_{j}\mid \pmb C_{i})=\frac{\beta_{j}(\pmb C_{j})}{\mu_{i,j}(\pmb C_{i}\cap \pmb C_{j})}.
+$$
 
-From these, we can compute $\tilde{P}_{\Phi}(C_{i},C_{j})$ . 
+From these, we can compute $\tilde{P}_{\Phi}(\pmb C_{i},\pmb C_{j})$ . 
+> 基例是 $i, j$ 相邻，我们根据上式计算 $\tilde P_\Phi(\pmb C_j \mid \pmb C_i)$ ，进而计算 $\tilde P_\Phi(\pmb C_i, \pmb C_j)$
 
 Now, consider a pair of cliques $C_{i},C_{j}$ that are not neighbors, and let $C_{l}$ be the neighbor of $C_{j}$ that is one step closer in the clique tree to $C_{i}$ . By construction, we have already computed $\tilde{P}_{\Phi}(C_{i},C_{l})$ and $\tilde{P}_{\Phi}(C_{l},C_{j})$ . The key now, is to observe that 
+> 考虑 $\pmb C_i, \pmb C_j$ 不是邻居，令 $\pmb C_l$ 为 $\pmb C_j$ 向着 $\pmb C_i$ 方向的邻居
+> 根据归纳假设，我们已知 $\tilde P_\Phi(\pmb C_i, \pmb C_l)$ ，并且容易计算出 $\tilde P_\Phi(\pmb C_l, \pmb C_j)$，此时观察到
 
 $$
-{\tilde{P}}_{\Phi}\models(C_{i}\ \bot\ C_{j}\ |\ C_{l}).
+{\tilde{P}}_{\Phi}\models(\pmb C_{i}\ \bot\ \pmb C_{j}\ |\ \pmb C_{l}).
 $$ 
-
 Thus, we can compute 
 
 $$
-\tilde{P}_{\Phi}(C_{i},C_{j})=\sum_{C_{l}-C_{j}}\tilde{P}_{\Phi}(C_{i},C_{l})\tilde{P}_{\Phi}(C_{j}\mid C_{l}),
+\begin{align}
+\tilde{P}_{\Phi}(\pmb C_{i},\pmb C_{j})
+&=\sum_{\pmb C_l - \pmb C_j}\tilde P_\Phi(\pmb C_i, \pmb C_l, \pmb C_j),\\
+&=\sum_{\pmb C_{l}-\pmb C_{j}}\tilde{P}_{\Phi}(\pmb C_{i},\pmb C_{l})\tilde{P}_{\Phi}(\pmb C_{j}\mid \pmb C_{l}, \pmb C_i),\\
+&=\sum_{\pmb C_{l}-\pmb C_{j}}\tilde{P}_{\Phi}(\pmb C_{i},\pmb C_{l})\tilde{P}_{\Phi}(\pmb C_{j}\mid \pmb C_{l}),\\
+\end{align}
 $$ 
-
-where $\tilde{P}_{\Phi}(C_{j}\mid C_{l})$ can be easily computed from the marginal $\tilde{P}_{\Phi}(C_{j},C_{l})$ . 
+where $\tilde{P}_{\Phi}(\pmb C_{j}\mid \pmb C_{l})$ can be easily computed from the marginal $\tilde{P}_{\Phi}(\pmb C_{j},\pmb C_{l})$ . 
+> 因此可以直接从 $\tilde P_\Phi(\pmb C_i, \pmb C_l)$ 和 $\tilde P_\Phi(\pmb C_j, \pmb C_l)$ 中计算出 $\tilde P_\Phi(\pmb C_i, \pmb C_j)$
 
 The cost of this computation is signiﬁcantly lower than that of running variable elimination in the clique tree $\textstyle{\binom{n}{2}}$ times (see exercise 10.15). 
+> 该算法的开销经低于执行 $\binom{n}{2}$ 次 algorithm 10.4
 
-# 10.5 Summary 
-
+## 10.5 Summary 
 In this chapter, we have described a somewhat diferent perspective on the basic task of exact inference. This approach uses a preconstructed clique tree as a data structure for exact inference. Messages are passed between the cliques in the clique tree, with the end result that the cliques are calibrated — all cliques agree on the same marginal beliefs of any variable they share. We showed two diferent approaches to message passing in clique trees. The ﬁrst uses the same operations as variable elimination, using dynamic programming to cache messages in order to avoid repeated computation. The second uses belief propagation messages, which propagate marginal beliefs between cliques in an attempt to make them agree with each other. Both approaches allow calibration of the entire clique tree within two passes over the tree. 
+> 本章从另一个角度描述了精确推理任务
+> 本章的方法基于用预购建的团树作为推理的数据结构，消息在团树中的团之间传递，最后得到校准的团——所有的团在它们共享的变量上的边际概率分布上一致
+> 本章讨论了团树中的两个消息传递方法，第一个方法使用变量消除的操作，同时利用动态规划缓存消息以避免重复计算；第二个方法使用信念传播，即在团之间传递信念，使得它们最后达成一致
+> 两种方法都可以在对团树的两次 pass 之后校准整个树
 
 It is instructive to compare the standard variable elimination algorithm of chapter 9 and the algorithm obtained by variable elimination in a clique tree. In principle, they are equivalent, in that they both use the same basic operations of multiplying factors and summing out variables. Furthermore, the cliques in the clique tree are basically the factors in variable elimination. Thus, we can use any variable elimination algorithm to ﬁnd a clique tree, and any clique tree to deﬁne an elimination ordering. It follows that the two approaches have basically the same computational complexity. 
+> 比较第九章的标准变量消除算法和本章的团树中的变量消除算法，原则上二者是等价的，因为它们都仅使用了基本的运算：将因子相乘、求和消去变量
+> 另外，团树中的团本质上就是执行了变量消除中使用的因子
+> 因此我们可以使用任意变量消除算法找到团树，以及使用任意团树定义变量消除顺序，这两种方法有相同的计算复杂度
 
-In practice, however, the two algorithms ofer diferent trade-ofs. On one hand, clique trees have several advantages. Most importantly, through the use of dynamic programming, the  clique tree provides answers to multiple cliques using a single computation. Additional layers of dynamic programming allow the same data structure to answer an even broader range of queries, and to dynamically introduce and retract evidence. Moreover, the clique tree approach executes a nontrivial number of the required operations in advance, including the construction of the basic data structures, the choice of elimination ordering (which is almost determined), and the product of the CPDs assigned to a single clique. 
+In practice, however, the two algorithms ofer diferent trade-ofs. On one hand, clique trees have several advantages. Most importantly, through the use of dynamic programming, the clique tree provides answers to multiple cliques using a single computation. Additional layers of dynamic programming allow the same data structure to answer an even broader range of queries, and to dynamically introduce and retract evidence. Moreover, the clique tree approach executes a nontrivial number of the required operations in advance, including the construction of the basic data structures, the choice of elimination ordering (which is almost determined), and the product of the CPDs assigned to a single clique. 
+> 实践中，两种算法则有不同的 trade-off
+> 团树有较多的优势，借助动态规划，团树可以用单次计算回答对多个团的查询，甚至回答更广范围的查询，并且可以动态引入和提取 evidence
+> 团树方法会预先执行大量必要操作，包括构建基本数据结构、选择变量消除顺序、将 CPDs 的乘积分配给团
 
 On the other hand, clique trees, as typically implemented, also have disadvantages. First, clique trees are more expensive in terms of space. In a clique tree, we keep all intermediate factors, whereas in variable elimination we can throw them out. If there are $c$ cliques, the cost of the clique tree algorithm can be as much as $2c$ times as expensive. More importantly, in a clique tree, the structure of the computation is ﬁxed and predetermined. We therefore have less ﬂexibility to take advantage of computational efciencies that arise because of speciﬁc features of the evidence and query. For example, in the Student network with evidence $i^{1}$ , the variable elimination algorithm could avoid introducing a dependence between $G$ and $S$ , resulting in substantially smaller factors. In the clique tree algorithm, the clique structure is usually predetermined, precluding these online optimizations. The diference in cost can be quite dramatic in situations where there is a lot of evidence. This type of situation-speciﬁc simpliﬁcation occurs even more often in networks that exhibit context-speciﬁc independence. Finally, in standard implementaitons, the cliques in a clique tree are typically the maximal cliques in a triangulated graph. Furthermore, the operations performed in the clique tree computation are typically implemented in a fairly standard way, where the incoming messages are multiplied with the clique beliefs, and the outgoing message is generated. This approach is not always optimal (see exercise 10.7). 
+> 团树也存在劣势，首先在空间上更昂贵，我们在团树中会保存所有中间因子
+> 如果有 c 个团，空间开销就要达到 2c
+> 另外，团树中计算的结构是固定的且预定义的，因此不容易利用来自于 evidence 或 query 的特定特征灵活提高计算效率 (不能 online optimization)，这种特定情况下的简化在表现出上下文特定独立性的网络中更为常见
+> 最后，在标准实现中，团树中的团通常是三角化图的最大团，此外，团树计算中执行的操作通常是采用相对标准的方式，即将传入的消息与团的信念相乘，然后生成传出的消息。这种方法并不总是最优的（参见练习10.7）
 
 We can modify each of these algorithms to have some of the advantages of the other. For example, we can choose to deﬁne a clique tree online, after the evidence is obtained. In this case, the clique tree structure can take advantage of simpliﬁcations resulting from the evidence. However, we lose the advantage of precomputing the clique tree ofine. As another example, we can store intermediate results in a variable elimination execution, and then do a downward pass to obtain the marginal posteriors of all variables. Here, we gain the advantage of reusing computation, at the cost of additional space. In general, we can view these two algorithms as two examples in a space of variable elimination algorithms. There are many other variants that make somewhat diferent trade-ofs, but, fundamentally, they are performing essentially equivalent computations. 
-
+> 我们可以分别修改这些算法，使其具备对方的一些优点
+> 例如，我们可以在获得证据之后在线定义团树。在这种情况下，团树结构可以利用因证据而产生的简化。然而，我们会失去预先计算团树的优势
+> 再举一个例子，我们可以在变量消去执行过程中存储中间结果，然后进行下推传递以获得所有变量的边缘后验概率。在这里，我们获得了重用计算的优势，但要付出额外的空间成本
+> 总的来说，我们可以将这两种算法视为变量消去算法空间中的两个示例。还有许多其他变体，它们做出稍微不同的权衡，但从根本上说，它们执行的是本质上等效的计算
