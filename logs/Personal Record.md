@@ -191,7 +191,7 @@
 \[**Doc**\]
 - [[Pytorch 2.x]]: CH0
     CH0-General Introduction: `torch.compile` : TorchDynamo --> FX Graph in Torch IR --> AOTAutograd --> FX graph in Aten/Prims IR --> TorchInductor --> Triton code/OpenMP code...
-- [[Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
+- [[doc-notes/triton/Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
     Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapasulates all the compilcated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
 
 ### Week4
@@ -228,7 +228,7 @@
 - [[Learn the Basics|pytorch/tutorial/beginner/Learn the Basics]] 
 - [[python/packages/pillow v11.0.0]] : Overview, Tutorial, Concepts
 - [[Repositories|huggingface/hub/Repositories]]: Sec1-Sec4
-- [[Getting Started|triton/Getting Started]]:  Tutorials/Matrix Multiply
+- [[doc-notes/triton/Getting Started|triton/Getting Started]]:  Tutorials/Matrix Multiply
 - [[Argparse Tutorial|python/how/general/Argparse Tutorial]] 
 - [[nvidia/CUDA C++ Programming Guide v12.6]]: CH1
 
@@ -413,5 +413,15 @@
             This algorithm will also calibrate all the neighboring cliques in the Tree. Thus the clique tree is calibrated.
             The belief over the sepset associated with the edge is preciesly the product of its two associated messages. Further, the unnomralized Gibbs measure over the clique tree equals to the product of all cliques' beliefs divided by the product of all sepset's beliefs. (Proposition 10.3)
             Thus the clique and sepset beliefs provides a reparameterization of the unnormalized measure. This property is called the clique tree invariant.
+        CH10.3-Message Passing: Belief Update
+            In sum-product-division algorithm, the entire message passing process is executed in terms of the belief of cliques and sepsets instead of initial potential and messages. The message maintained by the edge is used to avoid double-counting: Whenever a new message is passed along the edge, it is divided by the old message, therefore eliminating the previous/old message from updating the clique (who sent the previous/old message).
+            At convergence, we will have a calibrated tree, because in order to make the message update have no effect, we need to have $\sigma_{i\rightarrow j} = \mu_{i, j} = \sigma_{j\rightarrow i}$ for all $i, j$, which means the neighboring cliques argee on the variables in the sepset.
+            sum-product message propogation is equivalent to belief-update.
+            In the execution of belief-update message passing, the clique tree invariant equation (10.10) holds initially and after every message passing step (Corollary 10.3)
+            Incremental update: multiply the distribution with a new factor. In clique tree, we multiply the new factor into a relevant clique, and do another pass to update other relevant cliques in the tree.
+            Queries outside a clique: construct the marginal over the query in containing subtree, instead of the entire tree.
+            Multiple queries: compute the marginal over each clique pair using DP.
+            
+            
 \[Doc\]
 - [[Models|huggingface/hub/Models]]: Sec0-Sec1
