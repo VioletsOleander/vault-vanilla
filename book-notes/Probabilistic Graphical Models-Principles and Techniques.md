@@ -850,7 +850,7 @@ A final useful notion is that of an ordering of the nodes in a directed graph th
 > 有向图中，节点之间的顺序和边的指向是一致的
 
 ***Definition 2.19*** 
-Let G = (X; E) be a graph. An ordering of the nodes X1; : : : ; Xn is a topological ordering relative to K if, whenever we have Xi ! Xj 2 E, then i < j.
+Let G = (X; E) be a graph. An ordering of the nodes $X_1,\dots, X_n$ is a topological ordering relative to K if, whenever we have Xi ! Xj 2 E, then i < j.
 > 一个节点序列，只要满足任意出现在序列中的两个节点的先后顺序不违反图中边指向的顺序，这个序列就是一个拓扑序列
 
 Appendix A.3.1 presents an algorithm for finding such a topological ordering.
@@ -891,7 +891,7 @@ Note that when the PDAG is an undirected graph, the entire graph forms a single 
 > 完全有向时，各个节点成为 chain component
 
 ***Definition 2.22*** loop
-A loop in $\mathcal{K}$ is a trail $X_{1},\ldots, X_{k}$ where $X_{1}=X_{k}$ . A graph is singly connected if it contains no loops. A node in a singly connected graph is called $^a$ leaf if it has exactly one adjacent node. A singly connected directed graph is also called $^a$ polytree . A singly connected undirected graph is called $^a$ forest ; if it is also connected, it is called $^a$ tree . 
+A loop in $\mathcal{K}$ is a trail $X_{1},\ldots, X_{k}$ where $X_{1}=X_{k}$ . A graph is singly connected if it contains no loops. A node in a singly connected graph is called $^a$ leaf if it has exactly one adjacent node. A singly connected directed graph is also called $^a$ polytree . A singly connected undirected graph is called $^a$ forest ; if it is also connected, it is called a tree . 
 > loop：一个两端都是相同节点的迹称为回路
 > 没有回路的图称为单连通图
 > 单连通图内的一个节点只有一个邻接节点时，称为叶子
@@ -6397,7 +6397,7 @@ We begin by deﬁning a cluster graph — a data structure that provides a graph
 > 簇图中的每个节点都是一个簇，簇和一组变量关联
 > 如果簇之间的作用域存在非空的交集，则簇由一条无向边相连
 
-**Deﬁnition 10.1** cluster graph
+**Definition 10.1** cluster graph
 A cluster graph $\mathcal{U}$ for a ctors $\Phi$ over $\mathcal{X}$ is an undirected graph, each of whose no $i$ associated with a subset $C_{i}\subseteq\mathcal X$ cluster gra ust be family-preserving — each factor $\phi\in\Phi$ must be associate ith a cluster $C_{i:}$ , denoted $\alpha(\phi)$ , such that Scope $S c o p e[\phi]\subseteq C_{i}$ . Each edge between a pair of clusters $C_{i}$ and $C_{j}$ is associated with $a$ sepset $S_{i,j}\subseteq C_{i}\cap C_{j}$ . 
 > 定义：
 > $\mathcal X$ 上的一组因子 $\Phi$ 定义的簇图 $\mathcal U$ 是一个无向图，其每个节点 $i$ 都和一个变量子集 $\pmb C_i \subseteq \mathcal X$ 相关联
@@ -7435,7 +7435,12 @@ In solving this optimization problem, we conceptually examine diferent configura
 > 在解决这个优化问题时，我们在概念上检查满足边际一致性约束的不同信念配置，并选择其中使目标函数最大化的配置
 > 当然，这种穷尽的检查在实践中是不可能实现的，然而，有一些有效的方法可以找到最大点
 > 我们已经知道，如果 $\mathcal{T}$ 是原始势函数集合 $\Phi$ 的适当簇树，则存在一个集合 $\pmb Q$，通过公式 (11.2)，它诱导出 $Q = P_{\Phi}$ ，由于这个解实现了相对熵为0，这是可能达到的最高值，因此它是该优化问题的唯一全局最优解
- 
+
+**Theorem 11.1**
+If $\mathcal T$ is an I-map of $P_\Phi$, then there is a unique solution to CTree-Optimize-KL
+> 定理
+> 如果 $\mathcal T$ 是 $P_\Phi$ 的 I-map，则 CTree-Optimize-KL 存在唯一解
+
 This optimum can be found using the exact inference algorithms we developed in chapter 10.
 > 该最优解可以使用第十章的精确推理算法找到
  
@@ -7445,16 +7450,22 @@ The preceding discussion suggests a strategy for constructing approximations of 
 > 但与其在整个校准簇树的空间内搜索，我们可以搜索“更简单”的分布空间，在这个搜索过程中，我们不会找到与 $P_{\Phi}$ 等价的分布，但我们可能会找到一个与 $P_{\Phi}$ 相对接近的分布
 > 此外，在设计目标分布集合时，我们可以确保这些分布是我们能够高效进行推理的分布
  
-One problem that we will face is that the target of the optimization $D(Q\|P_{\Phi})$ | | is unwieldy for direct optimization. The relative entropy term contains an explicit summation over all possible instantiations of $\mathcal{X}$ , an operation that is infeasible in practice. However, since we know the form of $\ln{P_{\Phi}}(\xi)$ from equation (11.1), we can exploit its structure to rewrite the relative entropy in a simpler form, as shown in the following theorem.
+One problem that we will face is that the target of the optimization $D(Q\|P_{\Phi})$ is unwieldy for direct optimization. The relative entropy term contains an explicit summation over all possible instantiations of $\mathcal{X}$ , an operation that is infeasible in practice. However, since we know the form of $\ln{P_{\Phi}}(\xi)$ from equation (11.1), we can exploit its structure to rewrite the relative entropy in a simpler form, as shown in the following theorem.
+> 我们将面临的一个问题是，优化目标 $D(Q\|P_{\Phi})$ 在直接优化时难以处理，相对熵项包含对 $\mathcal{X}$ 所有可能实例的显式求和，而在实际操作中这是不可行的
+> 然而，由于我们从公式 (11.1) 中知道了 $\ln{P_{\Phi}}(\xi)$ 的形式，我们可以利用其结构将其重写为一个更简单的形式，如下定理所示
+
+**Theorem 11.2**
+$D(Q||P_\Phi) = \ln Z  - F[\tilde P_\Phi, Q]$
+where $F[\tilde P_\Phi, Q]$ is the energy functional
  
 $$
-F[\tilde{P}_{\Phi},Q]=E_{Q}\Big[\ln\tilde{P}(\mathcal{X})\Big]+H_{Q}(\mathcal{X})=\sum_{\phi\in\Phi}E_{Q}[\ln\phi]+H_{Q}(\mathcal{X}).
+F[\tilde{P}_{\Phi},Q]=E_{Q}\Big[\ln\tilde{P}(\mathcal{X})\Big]+H_{Q}(\mathcal{X})=\sum_{\phi\in\Phi}E_{Q}[\ln\phi]+H_{Q}(\mathcal{X}).\tag{11.3}
 $$
  
 Proof
  
 $$
-D(Q\|P_{\Phi})=E_{Q}[\ln Q(\mathcal{X})]-E_{Q}[\ln P_{\Phi}(\mathcal{X})].
+D(Q\|P_{\Phi})=E_{Q}[\ln Q(\mathcal{X})]-E_{Q}[\ln P_{\Phi}(\mathcal{X})].\tag{11.4}
 $$
  
 Using the product form of $P_{\Phi}$ , we have that
@@ -7463,170 +7474,325 @@ $$
 \ln P_{\Phi}(\mathcal{X})=\sum_{\phi\in\Phi}\ln\phi(\pmb{U}_{\phi})-\ln Z.
 $$
  
-Moreover, recall that $H_{Q}(\mathcal{X})=-E_{Q}[\ln Q(\mathcal{X})]$ X − X . Plugging these into equation (11.4), we get
+Moreover, recall that $H_{Q}(\mathcal{X})=-E_{Q}[\ln Q(\mathcal{X})]$ . Plugging these into equation (11.4), we get
  
 $$
 \begin{array}{r c l}{{\displaystyle D(Q\|P_{\Phi})}}&{{=}}&{{\displaystyle-H_{Q}({\mathcal X})-E_{Q}\left[\sum_{\phi\in\Phi}\ln\phi({\pmb U}_{\phi})\right]+E_{Q}[\ln Z]}}\\ {{}}&{{=}}&{{\displaystyle-F[\tilde{P}_{\Phi},Q]+\ln Z.}}\end{array}
 $$
  
-Importantly, the term $\ln{\cal Z}$ does not depend on $Q$ . Hence, minimizing the relative entropy $D(Q\|P_{\Phi})$ | | is equivalent to maximizing the energy functional $F[\tilde{P}_{\Phi},Q]$ .
- 
-free energy
- 
-energy term
- 
-entropy term
+Importantly, the term $\ln{Z}$ does not depend on $Q$ . Hence, minimizing the relative entropy $D(Q\|P_{\Phi})$ is equivalent to maximizing the energy functional $F[\tilde{P}_{\Phi},Q]$ .
+> 根据该定理，最小化相对熵 $D(Q||P_\Phi)$ 等价于最大化能量泛函 $F[\tilde P_\Phi, Q]$
  
 This latter term relates to concepts from statistical physics, and it is the negative of what is referred to in that field as the (Helmholtz) free energy . While explaining the physics-based motivation for this term is out of the scope of this book, we continue to use the standard terminology of energy functional.
+> $F[\tilde P_\Phi, Q]$ 与统计物理中的概念有关，它是该领域所说的 (Helmholtz) 自由能的负值
+> 虽然解释这一项基于物理学的动机超出了本书的范围，但我们会继续使用"能量泛函"这一标准术语
  
-The energy functional contains two terms. The first, called the energy term , involves expecta- tions of the logarithms of factors in $\Phi$ . Here, each factor in $\Phi$ appears as a separate term. Thus, if the factors that comprise $\Phi$ are small, each expectation deals with relatively few variables. The difculties in dealing with these expectations depends on the properties of the distribution $Q$ . Assuming that inference is “easy” in $Q$ , we should be able to evaluate such expectations relatively easily. The second term, called the entropy term , is the entropy of $Q$ . Again, the choice of $Q$ determines whether we can evaluate this term. However, we will see that, for the choices we make, this term will also be tractable.
- 
+The energy functional contains two terms. The first, called the energy term , involves expectations of the logarithms of factors in $\Phi$ . Here, each factor in $\Phi$ appears as a separate term. Thus, if the factors that comprise $\Phi$ are small, each expectation deals with relatively few variables. The difculties in dealing with these expectations depends on the properties of the distribution $Q$ . Assuming that inference is “easy” in $Q$ , we should be able to evaluate such expectations relatively easily. The second term, called the entropy term , is the entropy of $Q$ . Again, the choice of $Q$ determines whether we can evaluate this term. However, we will see that, for the choices we make, this term will also be tractable.
+> 能量泛函包含两项。第一项称为能量项，涉及 $\Phi$ 中各因子的对数的期望
+> 在这里，$\Phi$ 中的每个因子都作为一个单独的项出现，因此，如果组成 $\Phi$ 的因子较小，则每个期望处理的变量相对较少。处理这些期望的难度取决于分布 $Q$ 的属性。假设在 $Q$ 中推断是“容易”的，我们应该能够相对容易地评估这些期望
+> 第二项称为熵项，是 $Q$ 的熵。同样，$Q$ 的选择决定了我们是否能够评估这一项
+> 我们会看到，我们将做出的选择会使得这一项也将是可处理的
+
 ### 11.1.3 Optimizing the Energy Functional
-In the remainder of this chapter, we pose the problem of finding a good approximation $Q$ as one of maximizing the energy functional, or, equivalently, minimizing the relative entropy. Importantly, the energy functional involves expectations in $Q$ . As we show, by choosing approximations $Q$ that allow for efcient inference, we can both evaluate the energy functional and optimize it efectively.
+In the remainder of this chapter, **we pose the problem of finding a good approximation $Q$ as one of maximizing the energy functional, or, equivalently, minimizing the relative entropy.** Importantly, the energy functional involves expectations in $Q$ . As we show, by choosing approximations $Q$ that allow for efcient inference, we can both evaluate the energy functional and optimize it efectively.
+> 在本章的剩余部分，我们将找到好的近似 $Q$ 的问题转化为最大化能量泛函，或者等价地，最小化相对熵的问题
  
-Moreover, since $D(Q\|P_{\Phi})\ge0$ | | ≥ , we have that
+Moreover, since $D(Q\|P_{\Phi})\ge0$ , we have that
  
 $$
-\ln Z\geq F[\tilde{P}_{\Phi},Q].
+\ln Z\geq F[\tilde{P}_{\Phi},Q].\tag{11.5}
 $$
  
-lower bound
- 
-variational method
- 
-That is, the energy functional is a lower bound on the logarithm of the partition function $Z$ , for any choice of $Q$ . Why is this fact significant? Recall that, in directed models, the partition function $Z$ is the probability of the evidence. Computing the partition function is often the hardest part of inference. And so, this theorem shows that if we have a good approximation (that is, $D(Q\|P_{\Phi})$ | | is small), then we can get a good lower-bound approximation to $Z$ . The fact that this approximation is a lower bound will play an important role in later chapters on learning.
+That is, the energy functional is a lower bound on the logarithm of the partition function $Z$ , for any choice of $Q$ . Why is this fact significant? Recall that, in directed models, the partition function $Z$ is the probability of the evidence. Computing the partition function is often the hardest part of inference. And so, this theorem shows that if we have a good approximation (that is, $D(Q\|P_{\Phi})$ is small), then we can get a good lower-bound approximation to $Z$ . The fact that this approximation is a lower bound will play an important role in later chapters on learning.
+> 对于任何 $Q$ 的选择，能量泛函都是划分函数 $Z$ 的对数的一个下界
+> ( $\ln Z = F[\tilde P_\Phi, Q] + D(Q||P_\Phi)$)
+> 这个事实为什么很重要？回想一下，在有向模型中，划分函数 $Z$ 是证据的概率，计算划分函数通常是推断中最难的部分
+> 因此，这个定理表明，如果我们有一个良好的近似 (即 $D(Q\|P_{\Phi})$ 很小)，那么我们可以得到 $Z$ 的一个好的下界近似
+> 这个近似的下界性质将在后面关于学习的章节中发挥重要作用。
  
 In this chapter, we explore inference methods that can be viewed as strategies for optimizing the energy functional. These kinds of methods are often referred to as variational methods . The name refers to a general strategy in which we want to solve a problem by introducing new variational parameters that increase the degrees of freedom over which we optimize. Each choice of these parameters gives an approximate answer. We then attempt to optimize the variational parameters to get the best approximation. In our case, the task is to answer queries about $P_{\Phi}$ , and the variational parameters describe the distribution $Q$ . In the methods we consider, we vary these parameters to try to find a good approximation to the target query.
+> 在本章中，我们将探索可以被视为优化能量泛函的策略的推断方法
+> 这类方法通常被称为变分方法，这个名字指的是一个通用策略，在这种方法中，我们希望通过引入新的变分参数来增加优化的自由度，这些参数的每一个选择都会给出一个近似答案，然后，我们尝试优化这些变分参数以获得最佳近似
+> 在我们的案例中，任务是回答关于 $P_{\Phi}$ 的查询，而变分参数描述了分布 $Q$，我们调整这些参数以试图找到对目标查询的良好近似
+
 ## 11.2 Exact Inference as Optimization 
 Before considering approximate inference methods, we illustrate the the use of a variational approach to rederive an exact inference procedure. The concepts we introduce here will serve in discussion of the following approximate inference methods. 
+> 在讨论近似推理方法之前，我们阐述使用变分方法重新推导精确推理过程
+
 As we have already seen, the optimization problem CTree-Optimize-KL has a unique solution. We start by reformulating the optimization problem in terms of the energy functional. As we have seen, maximizing the energy functional is equivalent to minimizing the relative entropy between $Q$ and $P_{\Phi}$ . 
+> 我们知道优化问题 CTree-Optimize-KL 有唯一解
+> 我们首先用能量泛函来重新表述该问题
+> 我们已经知道，最大化能量泛函等价于最小化 $Q$ 和 $P_\Phi$ 之间的相对熵
+
 Once we restrict attention to calibrated cluster trees, we can further simplify the objective function. More precisely, we can rewrite the energy functional in a factored form as a sum of terms each of which depends directly only on one of the beliefs in $Q$ . This form reveals the structure in the distribution, and it is therefore a much better starting point for further analysis. As we will see, this form is also the basis for our approximations in subsequent sections. 
+> 一旦我们将注意力限制在校准簇树上，我们可以进一步简化目标函数
+> 更确切地说，我们可以将能量泛函重写为一个各项之和的形式，每一项仅直接依赖于 $Q$ 中的一个信念
+> 这种形式揭示了分布中的结构，因此是进一步分析的一个更好的起点
+> 正如我们将看到的，这种形式也是我们在后续部分中进行近似的基础
+
+**Definition 11.1**
+Given a cluster tree $\mathcal T$ with a set of beliefs $\pmb Q$ and an assignment $\alpha$ that maps factors in $P_\Phi$ to clusters in $\mathcal T$, we define the factored energy functional:
+
 $$
-\tilde{F}[\tilde{P}_{\Phi},Q]=\sum_{i\in\mathcal{V}_{T}}E_{C_{i}\sim\beta_{i}}[\ln\psi_{i}]+\sum_{i\in\mathcal{V}_{T}}H_{\beta_{i}}(C_{i})-\sum_{(i-j)\in\mathcal{E}_{T}}H_{\mu_{i,j}}(S_{i,j}),
+\tilde{F}[\tilde{P}_{\Phi},\pmb Q]=\sum_{i\in\mathcal{V}_{T}}E_{\pmb C_{i}\sim\beta_{i}}[\ln\psi_{i}]+\sum_{i\in\mathcal{V}_{T}}H_{\beta_{i}}(\pmb C_{i})-\sum_{(i-j)\in\mathcal{E}_{T}}H_{\mu_{i,j}}(\pmb S_{i,j}),\tag{11.6}
 $$ 
-where $\psi_{i}$ is the initial potential assigned to $C_{i}$ : 
+where $\psi_{i}$ is the initial potential assigned to $\pmb C_{i}$ : 
+
 $$
 \psi_{i}=\prod_{\phi,\alpha(\phi)=i}\phi,
 $$ 
-and $E_{C_{i}\sim\beta_{i}}[\cdot]$ · denotes expectation on the value $C_{i}$ given the beliefs $\beta_{i}$ 
-Before we prove that the energy functional is equivalent to its factored variant, let us first study its components. The first term is a sum of terms of the form ${\cal E}_{C_{i}\sim\beta_{i}}[\ln\psi_{i}]$ . Recall that $\psi_{i}$ ∼ is a factor (not necessarily a distribution) over the scope $C_{i}$ , that is, a function from $V a l(C_{i})$ to $I\!R^{+}$ . Its logarithm is therefore a function from $V a l(C_{i})$ to $I\!\!R$ . The beliefs $\beta_{i}$ are a distribution over $V a l(C_{i})$ . We can therefore compute the expectation $\textstyle\sum_{\pmb{c}_{i}}\beta_{i}(\pmb{c}_{i})\ln\psi_{i}$ . The last two terms are entropies of the beliefs associated with the clusters and sepsets in the tree. The important benefit of this reformulation is that all the terms are local , in the sense that they refer to a specific belief factor. As we will see, this will make our tasks much simpler. 
-If $Q$ is a set of calibrated beliefs for $\mathcal{T}$ , and $Q$ is defined by equation (11.2), then 
+and $E_{\pmb C_{i}\sim\beta_{i}}[\cdot]$ · denotes expectation on the value $\pmb C_{i}$ given the beliefs $\beta_{i}$ 
+> 定义：
+> 给定簇树 $\mathcal T$ 和它相关的一组因子 $\pmb Q$，以及一个赋值 $\alpha$ 将 $P_\Phi$ 中的因子映射到 $\mathcal T$ 中的因子，我们定义分解的能量泛函如上
+> 其中 $\psi_i$ 是赋值给 $\pmb C_i$ 的初始势能，$E_{\pmb C_i \sim \beta_i}[\cdot]$ 表示给定信念 $\beta_i$ 时，$\pmb C_i$ 上的值的期望
+
+Before we prove that the energy functional is equivalent to its factored variant, let us first study its components. The first term is a sum of terms of the form ${\cal E}_{C_{i}\sim\beta_{i}}[\ln\psi_{i}]$ . Recall that $\psi_{i}$ is a factor (not necessarily a distribution) over the scope $C_{i}$ , that is, a function from $V a l(C_{i})$ to $I\!R^{+}$ . Its logarithm is therefore a function from $V a l(C_{i})$ to $I\!\!R$ . The beliefs $\beta_{i}$ are a distribution over $V a l(C_{i})$ . We can therefore compute the expectation $\textstyle\sum_{\pmb{c}_{i}}\beta_{i}(\pmb{c}_{i})\ln\psi_{i}$ . The last two terms are entropies of the beliefs associated with the clusters and sepsets in the tree. The important benefit of this reformulation is that all the terms are *local* , in the sense that they refer to a specific belief factor. As we will see, this will make our tasks much simpler. 
+> 在我们证明能量泛函与其因式分解变体等价之前，让我们先研究其组成部分
+> 第一项是由形式为 ${E}_{\pmb C_{i}\sim\beta_{i}}[\ln\psi_{i}]$ 的项组成的和式，回顾一下，$\psi_{i}$ 是 $\pmb C_{i}$ 作用域上的一个因子 (不一定必要是分布)，即从 $V a l(C_{i})$ 到 $R^{+}$ 的一个函数，因此，它的对数是从 $V a l(\pmb C_{i})$ 到 $R$ 的一个函数。而信念 $\beta_{i}$ 是在 $V a l(\pmb C_{i})$ 上的一个**分布**，因此，我们可以计算期望 $\textstyle\sum_{\pmb{c}_{i}}\beta_{i}(\pmb{c}_{i})\ln\psi_{i}$
+> 后两项是与树中簇和分离集相关的信念的熵
+> 这种重新表述的重要好处是所有项都是局部的，这意味着它们只涉及到特定的信念因子，正如我们将看到的，这将使我们的任务变得更加简单
+
+**Proposition 11.1**
+If $\pmb Q$ is a set of calibrated beliefs for $\mathcal{T}$ , and $Q$ is defined by equation (11.2), then 
 $$
-\tilde{F}[\tilde{P}_{\Phi},Q]=F[\tilde{P}_{\Phi},Q].
+\tilde{F}[\tilde{P}_{\Phi},\pmb Q]=F[\tilde{P}_{\Phi},Q].
 $$ 
-Proof Note that $\begin{array}{r}{\ln\psi_{i}=\sum_{\phi,\alpha(\phi)=i}\ln\phi}\end{array}$ . Moreover, since $\beta_{i}(c_{i})=Q(c_{i})$ , we conclude that 
+> 命题
+> 若 $\pmb Q$ 为 $\mathcal T$ 的一组校准的信念，$Q$ 是 $\pmb Q$ 由 (11.2) 定义的分布，则 $\tilde P_{\Phi} , \pmb Q$ 定义的分解的能量泛函等于 $\tilde P_\Phi, Q$ 定义的能量泛函
+
+Proof Note that $\begin{array}{r}{\ln\psi_{i}=\sum_{\phi,\alpha(\phi)=i}\ln\phi}\end{array}$ . Moreover, since $\beta_{i}(\pmb c_{i})=Q(\pmb c_{i})$ , we conclude that 
+
 $$
-\sum_{i}E_{C_{i}\sim\beta_{i}}[\ln\psi_{i}]=\sum_{\phi}E_{C_{i}\sim Q}[\ln\phi].
+\sum_{i}E_{\pmb C_{i}\sim\beta_{i}}[\ln\psi_{i}]=\sum_{\phi}E_{\pmb C_{i}\sim Q}[\ln\phi].
 $$ 
 It remains to show that 
+
 $$
-H_{Q}(\mathcal{X})=\sum_{i\in\mathcal{V}_{T}}H_{\beta_{i}}(C_{i})-\sum_{(i-j)\in\mathcal{E}_{T}}H_{\mu_{i,j}}(S_{i,j}).
+H_{Q}(\mathcal{X})=\sum_{i\in\mathcal{V}_{T}}H_{\beta_{i}}(\pmb C_{i})-\sum_{(i-j)\in\mathcal{E}_{T}}H_{\mu_{i,j}}(\pmb S_{i,j}).
 $$ 
 This equality follows directly from equation (11.2) and theorem 10.4. 
+> 证明
+> $\ln \psi_i$ 中 $\psi_i$ 可以写为多个 $\phi$ 的乘积，因此 $\ln\psi_i$ 可以写为多个 $\ln\phi$ 的求和
+> 根据之前的讨论，因子表示的边际分布 $\beta_i$ 等于我们构造的 $Q$ 在 $Val(\pmb C_i)$ 上的边际，即 $\beta_i(\pmb c_i) = Q(\pmb c_i)$
+> 因此，我们将关于信念 $\beta_i$ 和团势能 $\psi_i$ 的和式 $\sum_{i}E_{\pmb C_{i}\sim\beta_{i}}[\ln\psi_{i}]$ 拆分并重写为关于分布 $Q$ 和因子的和式 $\sum_{\phi}E_{\pmb C_{i}\sim Q}[\ln\phi]$
+> 现在，我们仅需要证明 $Q$ 的熵可以拆分为关于团和分离集各自信念的形式，我们直接根据 (11.2) 将 $Q(\mathcal X)$ 拆分，并根据定理 10.4 将 $Q(\mathcal X)$ 的边际替换为信念即可
+
 Using this form of the energy, we can now define the optimization problem. We first need to define the space over which we are optimizing. If $Q$ is factorized according to $\mathcal{T}$ , we can represent it by a set of calibrated beliefs. Marginal consistency is a constraint on the beliefs that requires neighboring beliefs to agree on the marginal distribution on their joint subset. It is equivalent to requiring that the beliefs be calibrated. Thus, we pose the following constrained optimization procedure: 
+> 利用这种分解形式的能量泛函，我们现在可以定义优化问题
+> 首先，我们需要定义优化的空间，如果 $Q$ 按照 $\mathcal{T}$ 进行分解，我们可以通过一组校准的信念来表示它
+> 边缘一致性是对信念的一种约束，要求相邻的信念在它们的联合子集上具有相同的边缘分布，这等价于要求信念是校准的
+> 因此，我们提出了以下约束优化过程：
+
+CTree-Optimize:
+**Find**    $\pmb Q = \{\beta_i : i \in \mathcal V_{\mathcal T}\}\cup \{\mu_{I, j}: (i-j) \in \mathcal E_{\mathcal T}\}$
+**maximizing**    $\tilde F[\tilde P_\Phi, \pmb Q]$
+**subject to**
+
 $$
-\begin{array}{l l}{{}}&{{Q=\{\beta_{i}:i\in\mathcal{V}_{\mathcal{T}}\}\cup\{\mu_{i,j}:(i\mathrm{-}j)\in\mathcal{E}_{\mathcal{T}}\}}}\\ {{}}&{{\tilde{F}[\tilde{P}_{\Phi},Q]}}\end{array}
-$$ 
+\begin{align}
+\mu_{i,j}[\pmb s_{i,j}] &= \sum_{\pmb C_i - \pmb S_{i,j}} \beta_i(\pmb c_i)\quad \forall(i-j)\in \mathcal E_{\mathcal T}, \forall \pmb s_{i,j} \in Val(\pmb S_{i,j})\tag{11.7}\\
+\sum_{\pmb c_i}\beta_i(\pmb c_i) & = 1\quad \forall i \in \mathcal V_{\mathcal T}\tag{11.8}\\
+\beta_i(\pmb c_i) & \ge 0\quad \forall i \in \mathcal V_{\mathcal T}, \pmb c_i \in Val(\pmb C_i)\tag{11.9}
+\end{align}
 $$
-\begin{array}{r c l}{\mu_{i,j}[\pmb{s}_{i,j}]}&{=}&{\displaystyle\sum_{\pmb{c}_{i}-\pmb{S}_{i,j}}\beta_{i}(\pmb{c}_{i})}\\ &&{\quad\quad\quad\quad\quad\forall(i\!-\!j)\in\mathcal{E}_{\mathcal{T}},\forall\pmb{s}_{i,j}\in V a l(\pmb{S}_{i,j})}\\ {\displaystyle\sum_{\pmb{c}_{i}}\beta_{i}(\pmb{c}_{i})}&{=}&{1\qquad\quad\forall i\in\mathcal{V}_{\mathcal{T}}}\\ {\beta_{i}(\pmb{c}_{i})}&{\geq}&{0\qquad\quad\forall i\in\mathcal{V}_{\mathcal{T}},\pmb{c}_{i}\in V a l(\pmb{C}_{i}).}\end{array}
-$$ 
+
 The constraints equation (11.7), equation (11.8), and equation (11.9) ensure that the beliefs in $Q$ are calibrated and represent legal distributions (exercise 11.2). 
-# 11.2.1 Fixed-Point Characterization 
-We can now prove that the stationary points of this constrained optimization function — the points at which the gradient is orthogonal to all the constraints — can be characterized by a set of fixed-point equations . As we show, these equations turn out to be the update equations in the sum-product belief-propagation procedure ( CTree-SP-calibrate in algorithm 10.2). Thus, if we turn these equations into an iterative algorithm, as we will describe, we obtain precisely the belief propagation algorithm in clique trees. We note that for this derivation and other similar ones later in the chapter, we restrict attention to models where all of the potentials are strictly positive (contain no zero entries). Although the results generally hold also for the case of deterministic potentials (zero entries), the proofs are considerably more complex and are outside the scope of this book. 
+> 约束方程 (11.7-11.9) 保证了 $\pmb Q$ 中的信念是校准的，并且表示合法的分布
+
+### 11.2.1 Fixed-Point Characterization 
+We can now prove that the *stationary points* of this constrained optimization function — the points at which the gradient is orthogonal to all the constraints — can be characterized by a set of fixed-point equations . As we show, these equations turn out to be the update equations in the sum-product belief-propagation procedure ( CTree-SP-calibrate in algorithm 10.2). Thus, if we turn these equations into an iterative algorithm, as we will describe, we obtain precisely the belief propagation algorithm in clique trees. We note that for this derivation and other similar ones later in the chapter, we restrict attention to models where all of the potentials are strictly positive (contain no zero entries). Although the results generally hold also for the case of deterministic potentials (zero entries), the proofs are considerably more complex and are outside the scope of this book. 
+> 现在我们证明，这个约束优化函数的驻点——即梯度与所有约束正交的点——可以用一组固定点方程来刻画
+> 我们将展示这些方程实际上是和积信念传播过程中的更新方程 (算法10.2中的CTree-SP-calibrate)，因此，如果我们把这些方程转化为迭代算法，我们得到的就是在团树中的信念传播算法
+> 注意对于本推导和本章稍后部分其他类似推导，我们仅关注所有势能严格为正 (没有零条目) 的模型上，尽管结果通常也适用于确定性势能 (包含零条目) 的情况，但这些情况的证明会复杂得多，并超出了本书的范围
+
 Recall that a stationary point of a function is either a local maximum, a local minimum, or a saddle point. In the optimization problem CTree-Optimize , there is a single global maximum (see theorem 11.1). Although we do not show it here, one can show that it is also the only stationary point (see exercise 11.3), and thus once we find a stationary point, we know that we have found the maximum. 
+> 回想一下，函数的驻点要么是局部最大值，要么是局部最小值，要么是鞍点
+> 在优化问题 CTree-Optimize 中，存在一个全局最大值 (参见定理11.1)，可以证明它也是唯一的驻点 (参见练习11.3)
+> 因此，一旦找到一个驻点，我们就找到了最大值
+
 We want to characterize this stationary point by a set of equations that must hold when the choice of beliefs in $Q$ is at the stationary point. Recall that our aim is to maximize the function $\tilde{F}[\tilde{P}_{\Phi},Q]$ under the consistency constraints. The method of Lagrange multipliers , reviewed in appendix A.5.3, provides us with tools for dealing with constrained optimization. Because the characterization of the stationary point is of central importance to later developments, we examine how to construct such a characterization using the method of Lagrange multipliers. 
-When using the method of Lagrange multipliers, we start by defining a Lagrangian with a Lagrange multiplier for each of the constraints on the function we want to optimize. In our case, we have the constraints in equation (11.7) and equation (11.8). We note that, in principle, we also need to introduce a Lagrange multiplier for the inequality constraint that ensures that all beliefs are nonnegative. However, as we will see, the assumption that factors are strictly positive implies that the beliefs we construct in the solution to the optimization problem will be nonnegative, and thus we do not need to enforce these constraints actively. We therefore obtain the following Lagrangian: 
+> 因此，我们希望通过一组方程来刻画在 $\pmb Q$ 的信念处于驻点时必须满足的条件，以及我们的目的是在一致性的约束下最大化函数 $\tilde{F}[\tilde{P}_{\Phi},\pmb Q]$
+> 而拉格朗日乘数法为我们提供了解决约束优化问题的工具
+> 由于刻画驻点对于后续的发展至关重要，我们将考察如何使用拉格朗日乘数法构建这样的刻画
+
+When using the method of Lagrange multipliers, we start by defining a Lagrangian with a Lagrange multiplier for each of the constraints on the function we want to optimize. In our case, we have the constraints in equation (11.7) and equation (11.8). We note that, in principle, we also need to introduce a Lagrange multiplier for the inequality constraint that ensures that all beliefs are nonnegative. However, as we will see, the assumption that factors are strictly positive implies that the beliefs we construct in the solution to the optimization problem will be nonnegative, and thus we do not need to enforce these constraints actively. 
+> 使用拉格朗日乘数法时，我们为每个约束定义一个拉格朗日乘子，然后定义拉格朗日函数
+> 我们因此为 (11.7), (11.8) 引入拉格朗日乘子，注意在原则上也需要为 (11.9) 的不等式引入拉格朗日乘子，但我们事先假设了所有的因子都是严格正的，这其实暗示了我们在优化问题的解中构建的信念也都是非负的，因此就不需要显式施加这一约束
+
+We therefore obtain the following Lagrangian: 
+> 我们得到以下拉格朗日函数
+
 $$
-\begin{array}{r c l}{\mathcal{I}}&{=}&{\tilde{F}[\tilde{{P}}_{\Phi},Q]}\\ &&{-\displaystyle\sum_{i\in\mathcal{V}_{T}}\lambda_{i}\left(\displaystyle\sum_{c_{i}}\beta_{i}(c_{i})-1\right)}\\ &&{-\displaystyle\sum_{i}\displaystyle\sum_{j\in\mathrm{Nb}_{i}}\displaystyle\sum_{s_{i,j}}\lambda_{j\to i}[s_{i,j}]\left(\displaystyle\sum_{c_{i}\sim s_{i,j}}\beta_{i}(c_{i})-\mu_{i,j}[s_{i,j}]\right),}\end{array}
+\begin{array}{r c l}{\mathcal{J}}&{=}&{\tilde{F}[\tilde{{P}}_{\Phi},\pmb Q]}\\ &&{-\displaystyle\sum_{i\in\mathcal{V}_{T}}\lambda_{i}\left(\displaystyle\sum_{\pmb c_{i}}\beta_{i}(\pmb c_{i})-1\right)}\\ &&{-\displaystyle\sum_{i}\displaystyle\sum_{j\in\mathrm{Nb}_{i}}\displaystyle\sum_{\pmb s_{i,j}}\lambda_{j\to i}[\pmb s_{i,j}]\left(\displaystyle\sum_{\pmb c_{i}\sim \pmb s_{i,j}}\beta_{i}(\pmb c_{i})-\mu_{i,j}[\pmb s_{i,j}]\right),}\end{array}
 $$ 
-where $\mathrm{Nb}_{i}$ is the neighbors of $C_{i}$ in the clique tree. We introduce Lagrange multipliers $\lambda_{i}$ for each beliefs factor $\beta_{i}$ to ensure that it sums to 1 . We also introduce, for each pair of neighboring cliques $i$ and $j$ and assignment to their sepset $\pmb{s}_{i,j}$ , a Lagrange multiplier $\lambda_{j\rightarrow i}[\pmb{s}_{i,j}]$ to ensure that the marginal distribution of $\pmb{s}_{i,j}$ in $\beta_{j}$ is consistent with its value in the sepset beliefs $\mu_{i,j}$ . (Note that we also introduce another Lagrange multiplier for the direction $i\rightarrow j$ .) 
-Remember that $\mathcal{I}$ is a function of the clique beliefs $\{\beta_{i}\}$ , the sepset beliefs $\left\{\mu_{i,j}\right\}$ , and the Lagrange multipliers. To find the maximum of the Lagrangian, we take its partial derivatives with respect to $\beta_{i}(\mathbf{\alpha}_{i}),\,\mu_{i,j}[\mathbf{\boldsymbol{s}}_{i,j}]$ , and the Lagrange multipliers. These last derivatives reconstruct the original constraints. The first two types of derivatives require some work. Diferentiating the Lagrangian (see exercise 11.1), we get that 
+where $\mathrm{Nb}_{i}$ is the neighbors of $C_{i}$ in the clique tree. 
+> 其中 $\text{Nb}_i$ 是 $\pmb C_i$ 在团树中的邻居集合
+
+We introduce Lagrange multipliers $\lambda_{i}$ for each beliefs factor $\beta_{i}$ to ensure that it sums to 1 . We also introduce, for each pair of neighboring cliques $i$ and $j$ and assignment to their sepset $\pmb{s}_{i,j}$ , a Lagrange multiplier $\lambda_{j\rightarrow i}[\pmb{s}_{i,j}]$ to ensure that the marginal distribution of $\pmb{s}_{i,j}$ in $\beta_{j}$ is consistent with its value in the sepset beliefs $\mu_{i,j}$ . (Note that we also introduce another Lagrange multiplier for the direction $i\rightarrow j$ .) 
+> 我们为每个信念因子 $\beta_i$ 引入了拉格朗日乘子 $\lambda_i$ 确保其在作用域上求和得到 1
+> 我们也为每对邻居团 $i, j$ 和对它们的分离集 $\pmb s_{i, j}$ 的赋值引入拉格朗日乘子 $\lambda_{j\rightarrow i}[\pmb s_{i, j}]$，确保 $\beta_j$ 中 $\pmb s_{i, j}$ 的边际分布和分离集信念 $\mu_{i, j}$ 一致
+
+Remember that $\mathcal{J}$ is a function of the clique beliefs $\{\beta_{i}\}$ , the sepset beliefs $\left\{\mu_{i,j}\right\}$ , and the Lagrange multipliers. To find the maximum of the Lagrangian, we take its partial derivatives with respect to $\beta_{i}(\pmb {c}_{i}),\,\mu_{i,j}[\mathbf{\boldsymbol{s}}_{i,j}]$ , and the Lagrange multipliers. These last derivatives reconstruct the original constraints. The first two types of derivatives require some work. Diferentiating the Lagrangian (see exercise 11.1), we get that 
+> 拉格朗日函数 $\mathcal J$ 是关于团信念 $\{\beta_i\}$、分离集信念 $\{\mu_{i, j}\}$ 和拉格朗日乘子的函数
+> 要找到拉格朗日函数的极大值，我们取 $\mathcal J$ 相对于 $\beta_i(\pmb c_i), \mu_{i, j}[\pmb s_{i, j}]$ 和拉格朗日乘子的偏导数
+   因此得到 (拉格朗日乘子的偏导数会重构约束，因此略去)：
+
+
 $$
-\begin{array}{r c l}{\displaystyle\frac{\partial}{\partial\beta_{i}(\pmb{c}_{i})}\mathcal{I}}&{=}&{\ln\psi_{i}[\pmb{c}_{i}]-\ln\beta_{i}(\pmb{c}_{i})-1-\lambda_{i}-\displaystyle\sum_{j\in\mathrm{Nb}_{i}}\lambda_{j\rightarrow i}[\pmb{s}_{i,j}]}\\ {\displaystyle\frac{\partial}{\partial\mu_{i,j}[\pmb{s}_{i,j}]}\mathcal{I}}&{=}&{\ln\mu_{i,j}[\pmb{s}_{i,j}]+1+\lambda_{i\rightarrow j}[\pmb{s}_{i,j}]+\lambda_{j\rightarrow i}[\pmb{s}_{i,j}].}\end{array}
+\begin{array}{r c l}{\displaystyle\frac{\partial}{\partial\beta_{i}(\pmb{c}_{i})}\mathcal{J}}&{=}&{\ln\psi_{i}[\pmb{c}_{i}]-\ln\beta_{i}(\pmb{c}_{i})-1-\lambda_{i}-\displaystyle\sum_{j\in\mathrm{Nb}_{i}}\lambda_{j\rightarrow i}[\pmb{s}_{i,j}]}\\ {\displaystyle\frac{\partial}{\partial\mu_{i,j}[\pmb{s}_{i,j}]}\mathcal{J}}&{=}&{\ln\mu_{i,j}[\pmb{s}_{i,j}]+1+\lambda_{i\rightarrow j}[\pmb{s}_{i,j}]+\lambda_{j\rightarrow i}[\pmb{s}_{i,j}].}\end{array}
 $$ 
 At the stationary point, these derivatives are zero. Equating each derivative to 0 , rearranging terms, and exponentiating, we get 
+> 在驻点上，这些导数都为零，因此令偏导数为零，整理得到：
+
 $$
-\begin{array}{r c l}{{\beta_{i}(c_{i})}}&{{=}}&{{\displaystyle\exp\left\{-1-\lambda_{i}\right\}\psi_{i}[c_{i}]\prod_{j\in\ensuremath{\mathrm{Nb}}_{i}}\exp\left\{-\lambda_{j\to i}[\pmb{s}_{i,j}]\right\}}}\\ {{\ }}&{{\ }}&{{\ }}\\ {{\mu_{i,j}[\pmb{s}_{i,j}]}}&{{=}}&{{\displaystyle\exp\left\{-1\right\}\exp\left\{-\lambda_{i\to j}[\pmb{s}_{i,j}]\right\}\exp\left\{-\lambda_{j\to i}[\pmb{s}_{i,j}]\right\}.}}\end{array}
+\begin{array}{r c l}{{\beta_{i}(\pmb c_{i})}}&{{=}}&{{\displaystyle\exp\left\{-1-\lambda_{i}\right\}\psi_{i}[\pmb c_{i}]\prod_{j\in{\mathrm{Nb}}_{i}}\exp\left\{-\lambda_{j\to i}[\pmb{s}_{i,j}]\right\}}}\\ {{\ }}&{{\ }}&{{\ }}\\ {{\mu_{i,j}[\pmb{s}_{i,j}]}}&{{=}}&{{\displaystyle\exp\left\{-1\right\}\exp\left\{-\lambda_{i\to j}[\pmb{s}_{i,j}]\right\}\exp\left\{-\lambda_{j\to i}[\pmb{s}_{i,j}]\right\}.}}\end{array}
 $$ 
-These equations describe beliefs as functions of terms of the form $\exp\left\{-\lambda_{i\rightarrow j}[\pmb{s}_{i,j}]\right\}$ . In fact, $\mu_{i,j}$ is a product of two such terms (and a constant). This suggests that these terms play the role of a message $\delta_{i\to j}$ . To make this more explicit, we define 
+These equations describe beliefs as functions of terms of the form $\exp\left\{-\lambda_{i\rightarrow j}[\pmb{s}_{i,j}]\right\}$ . In fact, $\mu_{i,j}$ is a product of two such terms (and a constant). This suggests that these terms play the role of a message $\delta_{i\to j}$ . 
+> 我们将信念写为了关于形如 $\exp\{-\lambda_{i\rightarrow j}[\pmb s_{i, j}]\}$ 的形式，可以看到 $\mu_{i, j}$ 是两个这样的项的乘积，这暗示了这些项实际上扮演的角色就是信息 $\delta_{i\rightarrow j}$
+
+To make this more explicit, we define 
+> 定义 $\delta_{i\rightarrow j}[\pmb s_{i, j}]$ 如下
+
 $$
-\delta_{i\rightarrow j}[\mathscr{s}_{i,j}]=\exp\left\{-\lambda_{i\rightarrow j}[\mathscr{s}_{i,j}]-\frac{1}{2}\right\}.
+\delta_{i\rightarrow j}[\pmb {s}_{i,j}]=\exp\left\{-\lambda_{i\rightarrow j}[\pmb {s}_{i,j}]-\frac{1}{2}\right\}.
 $$ 
 (We add the term $-\frac{1}{2}$ to deal with the additional $\exp\left\{-1\right\}$ term, but since this is a multiplicative constant, it is not that crucial.) We can now rewrite the resulting system of equations as 
+> 进而将方程组写为
+
 $$
-\begin{array}{r c l}{{\beta_{i}(c_{i})}}&{{=}}&{{\displaystyle\exp\left\{-\lambda_{i}-1+\frac{1}{2}|\mathrm{Nb}_{i}|\right\}\psi_{i}(c_{i})\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\to i}[{\pmb s}_{i,j}]}}\\ {{}}&{{}}&{{}}\\ {{\mu_{i,j}[{\pmb s}_{i,j}]}}&{{=}}&{{\delta_{i\to j}[{\pmb s}_{i,j}]\delta_{j\to i}[{\pmb s}_{i,j}].}}\end{array}
+\begin{array}{r c l}{{\beta_{i}(\pmb c_{i})}}&{{=}}&{{\displaystyle\exp\left\{-\lambda_{i}-1+\frac{1}{2}|\mathrm{Nb}_{i}|\right\}\psi_{i}(\pmb c_{i})\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\to i}[{\pmb s}_{i,j}]}}\\ {{}}&{{}}&{{}}\\ {{\mu_{i,j}[{\pmb s}_{i,j}]}}&{{=}}&{{\delta_{i\to j}[{\pmb s}_{i,j}]\delta_{j\to i}[{\pmb s}_{i,j}].}}\end{array}
 $$ 
 Combining these equations with equation (11.7), we now rewrite the message $\delta_{i\to j}$ as a function of other messages: 
+> 根据 (11.7)，我们可以将 $\delta_{i\rightarrow j}$ 表示为其他信息的函数
+
 $$
-\begin{array}{c c l}{\delta_{i\to j}[\pmb{s}_{i,j}]}&{=}&{\displaystyle\frac{\mu_{i,j}[\pmb{s}_{i,j}]}{\delta_{j\to i}[\pmb{s}_{i,j}]}}\\ &{=}&{\displaystyle\frac{\sum_{\pmb{c}_{i}\sim\pmb{s}_{i,j}}\beta_{i}(\pmb{c}_{i})}{\delta_{j\to i}[\pmb{s}_{i,j}]}}\\ &{=}&{\displaystyle\exp\left\{-\lambda_{i}-1+\frac{1}{2}|\mathrm{Nb}_{i}|\right\}\sum_{\pmb{c}_{i}\sim\pmb{s}_{i,j}}\psi_{i}(\pmb{c}_{i})\prod_{\pmb{k}\in\mathrm{Nb}_{i}-\{j\}}\delta_{k\to i}[\pmb{s}_{i,k}].}\end{array}
-$$ 
-Note that the term $\begin{array}{r l}{\exp\left\{-\lambda_{i}-1+\frac{1}{2}|\mathrm{Nb}_{i}|\right\}}\end{array}$  − 	 is a constant (since it does not depend on $c_{i}$ ), and when we combine these equations with equation (11.8), we can solve for $\lambda_{i}$ to ensure that this constant normalizes the clique beliefs $\beta_{i}$ . We note that if the original factors define a distribution that sums to 1 , then the solution for $\lambda_{i}$ that satisfies equation (11.8) will be one where $\begin{array}{r}{\lambda_{i}=\frac{1}{2}(|\mathrm{Nb}_{i}|-1)}\end{array}$ | | − , that is, the normalizing constant is 1 . 
-A set of beliefs $Q$ is a stationary point of CTree-Optimize if and only if there exists a set of factors $\{\delta_{i\rightarrow j}[S_{i,j}]:(i\!-\!j)\in\mathcal{E}_{\mathcal{T}}\}$ such that 
+\begin{array}{c c l}{\delta_{i\to j}[\pmb{s}_{i,j}]}&{=}&{\displaystyle\frac{\mu_{i,j}[\pmb{s}_{i,j}]}{\delta_{j\to i}[\pmb{s}_{i,j}]}}\\ &{=}&{\displaystyle\frac{\sum_{\pmb{c}_{i}\sim\pmb{s}_{i,j}}\beta_{i}(\pmb{c}_{i})}{\delta_{j\to i}[\pmb{s}_{i,j}]}}\\ &{=}&{\displaystyle\exp\left\{-\lambda_{i}-1+\frac{1}{2}|\mathrm{Nb}_{i}|\right\}\sum_{\pmb{c}_{i}\sim\pmb{s}_{i,j}}\psi_{i}(\pmb{c}_{i})\prod_{{k}\in\mathrm{Nb}_{i}-\{j\}}\delta_{k\to i}[\pmb{s}_{i,k}].}\end{array}
 $$
-\delta_{i\rightarrow j}\propto\sum_{C_{i}-S_{i,j}}\psi_{i}\left(\prod_{k\in\mathrm{Nb}_{i}-\{j\}}\delta_{k\rightarrow i}\right)
-$$ 
-and moreover, we have that 
+
+Note that the term $\begin{array}{r l}{\exp\left\{-\lambda_{i}-1+\frac{1}{2}|\mathrm{Nb}_{i}|\right\}}\end{array}$ is a constant (since it does not depend on $\pmb c_{i}$ ), and when we combine these equations with equation (11.8), we can solve for $\lambda_{i}$ to ensure that this constant normalizes the clique beliefs $\beta_{i}$ . We note that if the original factors define a distribution that sums to 1 , then the solution for $\lambda_{i}$ that satisfies equation (11.8) will be one where $\begin{array}{r}{\lambda_{i}=\frac{1}{2}(|\mathrm{Nb}_{i}|-1)}\end{array}$  , that is, the normalizing constant is 1 . 
+> 注意，项 $\exp\left\{-\lambda_{i}-1+\frac{1}{2}|\mathrm{Nb}_{i}|\right\}$ 是一个用于规范化 $\beta_i$ 的常数 (因为它不依赖于 $\pmb c_{i}$)
+> 结合这些方程和 (11.8) ，我们可以求解出 $\lambda_{i}$ ，以确保这个常数规范化团信念 $\beta_{i}$
+> 注意如果原始因子定义了一个总和为1的分布，则满足 (11.8) 的 $\lambda_{i}$ 的解将是 $\lambda_{i}=\frac{1}{2}(|\mathrm{Nb}_{i}|-1)$，也就是说，归一化常数为1
+
+This derivation proves the following result:
+> 该推导过程证明了以下结果
+
+**Theorem 11.3**
+A set of beliefs $\pmb Q$ is a stationary point of CTree-Optimize if and only if there exists a set of factors $\{\delta_{i\rightarrow j}[\pmb S_{i,j}]:(i\!-\!j)\in\mathcal{E}_{\mathcal{T}}\}$ such that 
+
 $$
-\begin{array}{r c l}{\beta_{i}}&{\propto}&{\psi_{i}\left(\displaystyle\prod_{j\in\ensuremath{\mathrm{Nb}}_{i}}\delta_{j\to i}\right)}\\ {\mu_{i,j}}&{=}&{\delta_{j\to i}\cdot\delta_{i\to j}.}\end{array}
+\delta_{i\rightarrow j}\propto\sum_{\pmb C_{i}-\pmb S_{i,j}}\psi_{i}\left(\prod_{k\in\mathrm{Nb}_{i}-\{j\}}\delta_{k\rightarrow i}\right)\tag{11.10}
+$$
+
+and moreover, we have that
+
+$$
+\begin{array}{r c l}{\beta_{i}}&{\propto}&{\psi_{i}\left(\displaystyle\prod_{j\in{\mathrm{Nb}}_{i}}\delta_{j\to i}\right)}\\ {\mu_{i,j}}&{=}&{\delta_{j\to i}\cdot\delta_{i\to j}.}\end{array}
 $$ 
-fixed-point equations 
-This theorem characterizes the solution of the optimization problem in terms of fixed- point equations that must hold when we find a maximal $Q$ . These fixed-point equations define the relationships that must hold between the diferent parameters involved in the optimization problem. Most importantly, equation (11.10) defines each message in terms of other messages, allowing an easy iterative approach to solving the fixed point equations. These same themes appear in all the approaches we will discuss later in this chapter. 
-# 11.2.2 Inference as Optimization 
-The fixed-point characterization of theorem 11.3 focuses on the relationships that hold at the maximum point (or points). However, they also hint at a way of achieving these relationships. Intuitively, a change in $Q$ that reduces the diferences between the left-hand and right-hand side of these equations will get us closer to a maximum point. The most direct way of reducing such discrepancies is to apply the equations as assignments and iteratively apply equations to the current values of the right-hand side to define a new value for the left-hand side. 
-More precisely, we initialize all of the $\delta_{i\to j}$ ’s to 1 and then iteratively apply equation (11.10), computing the left-hand side $\delta_{i\to j}$ of each equality in terms of the right-hand side (essentially converting each equality sign to an assignment). Clearly, a single iteration of this process does not usually sufce to make the equalities hold; however, under certain conditions (which hold in a clique tree), we can guarantee that this process converges to a solution satisfying all of the equations in equation (11.10); the other equations are now easy to satisfy. 
+> 定理
+> 一组信念 $\pmb Q$ 是 CTree-Optimize 的驻点当且仅当存在一组作用域在各个分离集上的因子 $\{\delta_{i\rightarrow j}[\pmb S_{i, j}]: (i-j) \in \mathcal E_{\mathcal T}\}$，这些因子满足 (11.10)，即 $\delta_{i\rightarrow j}$ 正比于 $\psi_i$ 和除去来自 $j$ 的所有消息的乘积在 $\pmb S_{i, j}$ 上的边际，并且还要满足信念 $\beta_i$ 正比于 $\psi_i$ 乘上所有的消息，以及信念 $\mu_{i, j}$ 等于 $\delta_{i\rightarrow j}$ 和 $\delta_{j\rightarrow i}$ 的乘积
+
+**This theorem characterizes the solution of the optimization problem in terms of fixed-point equations that must hold when we find a maximal $Q$ . These fixed-point equations define the relationships that must hold between the diferent parameters involved in the optimization problem. Most importantly, equation (11.10) defines each message in terms of other messages, allowing an easy iterative approach to solving the fixed point equations. These same themes appear in all the approaches we will discuss later in this chapter.** 
+> 这个定理通过固定点方程刻画了优化问题的解，这些固定点方程在找到最大化的 $Q$ 时必须成立
+> 这些固定点方程定义了优化问题中涉及的不同参数之间必须满足的关系，最重要的是，方程 (11.10) 通过其他消息定义了每个消息，这允许我们采用简单的迭代方法来解决固定点方程
+> 这些相同的主题将在本章后续讨论的所有方法中出现
+
+### 11.2.2 Inference as Optimization 
+The fixed-point characterization of theorem 11.3 focuses on the relationships that hold at the maximum point (or points). However, they also hint at a way of achieving these relationships. Intuitively, a change in $\pmb Q$ that reduces the diferences between the left-hand and right-hand side of these equations will get us closer to a maximum point. The most direct way of reducing such discrepancies is to apply the equations as assignments and iteratively apply equations to the current values of the right-hand side to define a new value for the left-hand side. 
+> 定理 11.3 的固定点表示聚焦于在最大点处的所保持的关系
+> 然而，它们还暗示了一种实现这些关系的方法，直观地说，$\pmb Q$ 的变化如果能减少这些方程左右两边的差异，就会使我们更接近最大点
+> 减少此类差异的最直接方法是将方程作为赋值，并迭代地将方程应用于右侧的当前值，以定义左侧的新值
+
+More precisely, we initialize all of the $\delta_{i\to j}$ ’s to 1 and then iteratively apply equation (11.10), computing the left-hand side $\delta_{i\to j}$ of each equality in terms of the right-hand side (essentially converting each equality sign to an assignment). Clearly, a single iteration of this process does not usually suffice to make the equalities hold; however, under certain conditions (which hold in a clique tree), we can guarantee that this process converges to a solution satisfying all of the equations in equation (11.10); the other equations are now easy to satisfy. 
+> 更具体地说，我们将全部的 $\delta_{i\rightarrow j}$ 初始化为 1，然后迭代式应用方程 (11.10)，用方程的右边计算方程的左边 (也就是将等于号转化为赋值号)
+> 该过程仅进行单次迭代显然不足以让等式成立，而在特定条件下 (团树满足这些条件)，我们可以保证该过程收敛到一个满足 (11.10) 中的所有方程的解
+
 Each assignment step defined by a fixed-point equation corresponds to a message passing step, where an outgoing message $\delta_{i\to j}$ is defined in terms of incoming messages $\delta_{k\to i}$ . The fact that the process requires multiple assignments to converge corresponds to the fact that inference requires multiple message passing steps. In this specific example, a particular order of applying the fixed-point equation reconstructs the sum-product message passing algorithm in cluster trees shown in algorithm 10.2. As we will see, however, when we consider other variants of the optimization problem, the associated fixed-point equations result in new algorithms. 
-![](images/fc354cd0d0674bec5465f41f60e4d1e568974a9b94750e127a89a514e3f95067.jpg) 
-Figure 11.1 An example of a cluster graph. (a) A simple network. (b) A clique tree for the network in (a). (c) A cluster graph for the same network. 
-# 11.3 Propagation-Based Approximation 
-In this section, we consider approximation methods that use exactly the same message propa- gation as in exact inference. However, these propagation schemes use a general-purpose cluster graph, as in definition 10.1, rather than a clique tree. Since the constraints defining a clique tree were crucial in ensuring exact inference, the message-propagation schemes that use cluster graphs will generally not provide the correct answers. 
+> 每一次赋值步骤都由对应于一次消息传递步骤的固定点方程定义，其中发出的 $\delta_{i\rightarrow j}$ 由传入的信息 $\delta_{k\rightarrow i}$ 定义
+> 而该过程需要多次赋值才可以收敛的事实实际上对应于推理需要多次的信息传递步骤
+> 在该特定的例子中，应用固定点方程的一个特定顺序就会重构 sum-product 消息传递算法 (algorithm 10.22)
+> 而当我们考虑优化问题的变体时，这些固定点方程将生成新的算法
+
+## 11.3 Propagation-Based Approximation 
+In this section, we consider approximation methods that use exactly the same message propagation as in exact inference. However, these propagation schemes use a general-purpose cluster graph, as in definition 10.1, rather than a clique tree. Since the constraints defining a clique tree were crucial in ensuring exact inference, the message-propagation schemes that use cluster graphs will generally not provide the correct answers. 
+> 本节讨论使用和精确推理完全相同的消息传递的近似方法
+> 这些传递方法使用通用目的的簇图 (definition 10.1) 而不是团树，而因为定义了团树的约束 (是一颗树，且满足运行相交性质) 对于确保准确推理是不可缺少的，因此使用通用目的的簇图的消息传递方法一般不会提供正确的答案
+
 We begin by defining the general message passing algorithm in a cluster graph. We then show that it can be derived, using the same process as in the previous section, from a set of fixed-point equations induced by the stationary points of an approximate energy functional. 
-# 11.3.1 A Simple Example 
+> 我们首先在簇图上定义广义的消息传递算法，然后，我们将展示它可以使用与前一节相同的过程，从由近似能量泛函的驻点导出的的固定点方程中推导出来
+
+### 11.3.1 A Simple Example 
 Consider the simple Markov network of figure 11.1a. Recall that, to perform exact inference within this network, we must first reduce it to a tree, such as the tree of figure 11.1b. Inference in this simple tree involves passing messages over the sepset, which consists of the variables $\{B,D\}$ . 
+> 考虑 figure 11.1a 的 Markov 网络，回忆以下，要在该网络上执行精确推理，我们首先需要将它化简为一颗树，例如 figure 11.1b 的树，在该树上的推理包括了在由变量 $\{B, C\}$ 构成的分离集上传递消息
+
 Now suppose that, instead, we perform inference as follows. We set up four clusters, which correspond to the four initial potentials: $C_{1}=\{A,B\}$ , $C_{2}=\{B,C\}$ , $C_{3}=\{C,D\}$ , $C_{4}=$ $\{A,D\}$ . We connect these clusters to each other as shown in the cluster graph of figure 11.1c. Note that this cluster graph contains loops (undirected cycles), and is therefore not a tree; such graphs are often called loopy . Nevertheless, we can apply the belief-update propagation algorithm CTree-BU-calibrate (algorithm 10.3). Although in our discussion of that algorithm we assumed that the input is a tree, there is nothing in the algorithm itself that relies on that fact. In each step of the algorithm we propagate a message between neighboring clusters. Thus, it is perfectly applicable to a general cluster graph that may not necessarily be a tree. 
-The clusters in this cluster graph are smaller than those in the clique tree of figure 11.1b; therefore, the message passing steps are less expensive. But what is the result of this procedure? Suppose we propagate messages in the following order $\mu_{1,2},\,\mu_{2,3},\,\mu_{3,4}$ , and then $\mu_{4,1}$ . In the first message, t $\{A,B\}$ cluster passes information to the $\{B,C\}$ cluster through a marginal distribution on B . This information is then propagated to next cluster, and so on. However, in the final message $\mu_{4,1}$ , this information reaches the original cluster, but this time as observation 
-![](images/1c0f0cea6084c17af89803a0e75977d20da56e3eb7778df0cdb36309255024a7.jpg) 
-Figure 11.2 An example run of loopy belief propagation in the simple network of figure 11.1a. In this run, all potentials prefer consensus assignments over nonconsensus ones. In each iteration, we perform message passing for all the edges in the cluster graph of figure 11.1b. 
-about the values of $A$ . As an example, suppose all clusters favor consensus joint assignments; that is, $\beta_{1}(a^{0},b^{0})$ and $\beta_{1}(a^{1},b^{1})$ are much larger than $\beta_{1}(a^{1},b^{0})$ and $\beta_{1}(a^{0},b^{1})$ , and similarly for the other beliefs. Thus, if the message $\mu_{1,2}$ strengthens the belief that $B\,=\,b^{1}$ , then the message $\mu_{2,3}$ will increase the belief in $C=c^{1}$ and so on. Once we get around the loop, the message $\mu_{4,1}$ will strengthen the support in $A=a^{1}$ . This message will be incorporated into the cluster as though it were independent evidence that did not depend on the initial propagation. Now, if we continue to apply the same sequence of propagations again, we will keep increasing the beliefs in the assignment of $A=a^{1}$ . This behavior is illustrated in figure 11.2. As we can see, in later iterations the procedure overestimates the marginal probability of $A$ . However, the efect of the “feedback” decays until the iterations converge. 
+> 现在假设我们执行推理如下：
+> 我们设定四个簇 $\pmb C_1, \pmb C_2, \pmb C_3, \pmb C_4$，分别对应于四个初始势能
+> 我们将这些簇相互连接，形成 figure 11.1c 中的簇图，注意该簇图包含了回路 (无向的环)，因此它不是一棵树
+> 这种图一般称为有圈图
+> 我们可以在该图上应用信念更新传播算法 CTree-BU-clibrate (algorithm 10.3)，虽然在讨论该算法时，我们假定了输入是一棵树，但算法本身并不依赖于这一事实，在算法的每一步，我们只是在相邻的簇之间传播消息，因此，该算法完全可以应用在一个通用的簇图上
+
+The clusters in this cluster graph are smaller than those in the clique tree of figure 11.1b; therefore, the message passing steps are less expensive. But what is the result of this procedure? Suppose we propagate messages in the following order $\mu_{1,2},\,\mu_{2,3},\,\mu_{3,4}$ , and then $\mu_{4,1}$ . In the first message, the $\{A,B\}$ cluster passes information to the $\{B,C\}$ cluster through a marginal distribution on B . This information is then propagated to next cluster, and so on. However, in the final message $\mu_{4,1}$ , this information reaches the original cluster, but this time as observation about the values of $A$ . As an example, suppose all clusters favor consensus joint assignments; that is, $\beta_{1}(a^{0},b^{0})$ and $\beta_{1}(a^{1},b^{1})$ are much larger than $\beta_{1}(a^{1},b^{0})$ and $\beta_{1}(a^{0},b^{1})$ , and similarly for the other beliefs. Thus, if the message $\mu_{1,2}$ strengthens the belief that $B\,=\,b^{1}$ , then the message $\mu_{2,3}$ will increase the belief in $C=c^{1}$ and so on. Once we get around the loop, the message $\mu_{4,1}$ will strengthen the support in $A=a^{1}$ . This message will be incorporated into the cluster as though it were independent evidence that did not depend on the initial propagation. Now, if we continue to apply the same sequence of propagations again, we will keep increasing the beliefs in the assignment of $A=a^{1}$ . This behavior is illustrated in figure 11.2. As we can see, in later iterations the procedure overestimates the marginal probability of $A$ . However, the efect of the “feedback” decays until the iterations converge.  
+> figure 11.1c 中的簇比 figure11.1b 的团树中的簇要小，因此消息传递步骤的成本更低
+> 但是，这个过程的结果是什么呢？假设我们按以下顺序传递消息：$\mu_{1,2}$、$\mu_{2,3}$、$\mu_{3,4}$，然后再传递 $\mu_{4,1}$。在第一个消息传递中，$\{A,B\}$ 簇通过关于 $B$ 的边缘分布向 $\{B,C\}$ 簇传递信息。这些信息随后被传递到下一个簇，依此类推，然而，在最终的消息传递 $\mu_{4,1}$ 中，这些信息又回到了原始簇，但这次是以关于 $A$ 取值的观察形式
+> 举个例子说明：
+> 假设所有簇都偏好共识联合分配；即，$\beta_{1}(a^{0},b^{0})$ 和 $\beta_{1}(a^{1},b^{1})$ 远大于 $\beta_{1}(a^{1},b^{0})$ 和 $\beta_{1}(a^{0},b^{1})$，并且其他信念也是如此，因此，如果消息 $\mu_{1,2}$ 加强了 $B=b^{1}$ 的信念，则消息 $\mu_{2,3}$ 将增加 $C=c^{1}$ 的信念，依此类推
+> 一旦我们经过一次循环，消息 $\mu_{4,1}$ 将加强 $A=a^{1}$ 的支持，这条消息将被纳入簇中，就好像它是独立证据，不依赖于最初的传播一样
+> 现在，如果我们继续应用相同的传播序列，我们将不断加强 $A=a^{1}$ 分配的信念，这种行为如 figure 11.2 所示
+> 正如我们可以看到的，在后续的迭代中，该过程会高估 $A$ 的边缘概率，然而，“反馈”的影响会逐渐衰减直至迭代收敛
+
 This simple experiment already suggests several important issues we need to consider: 
-• In the case of cluster trees, we described a sequence of message propagations that calibrate the tree in two passes. Once the tree is calibrated, additional message propagations do not change any of the beliefs. Thus, we can say that the propagation process has converged . When we consider our example, it seems clear that the process may not converge in two passes, since information from one pass will circulate and afect the next round. Indeed, it is far from clear that the propagation of beliefs necessarily converges at all.
- • In the case of cluster trees, we saw that, in a calibrated tree, each cluster of beliefs is the joint marginal of the cluster variables. As our example suggests, for cluster graph propagation, the beliefs on $A$ are not necessarily the marginal probability in $P_{\Phi}$ . Thus, the question is the relationship between the calibrated cluster graph and the actual probability distribution. 
+> 这个简单的实验已经提出了几个我们需要考虑的重要问题：
+
+- In the case of cluster trees, we described a sequence of message propagations that calibrate the tree in two passes. Once the tree is calibrated, additional message propagations do not change any of the beliefs. Thus, we can say that the propagation process has converged . When we consider our example, it seems clear that **the process may not converge in two passes, since information from one pass will circulate and afect the next round. Indeed, it is far from clear that the propagation of beliefs necessarily converges at all.**
+> 在簇树的情况下，我们知道一个消息传递的序列可以在两次传递中校准树
+> 一旦树被校准，任何额外的消息传递都不会改变任何信念，因此，我们可以认为传播过程已经收敛
+> 而我们刚才考虑的例子中，很明显该过程可能不会在两次传递中收敛，因为来自一次传递的信息会在下一轮中循环并影响结果，实际上，信念传播是否一定会收敛远非明确
+
+- In the case of cluster trees, we saw that, in a calibrated tree, each cluster of beliefs is the joint marginal of the cluster variables. As our example suggests, for cluster graph propagation, the beliefs on $A$ are not necessarily the marginal probability in $P_{\Phi}$ . Thus, the question is the relationship between the calibrated cluster graph and the actual probability distribution. 
+> 在簇树的情况下，我们发现，在校准的树中，每个信念簇是簇变量的联合边缘分布
+> 在我们的刚才考虑的例子中，在簇图传播过程中 $A$ 上的信念不一定是在 $P_{\Phi}$ 中的边缘概率，因此，问题在于校准簇图与实际概率分布之间的关系
+
 Before we address these questions, we present the algorithm in more general terms. 
-![](images/3eb21a347b4b2a6c6f0853a7992254d93bebda355a44b3d88bd55c50850e6b4c.jpg) 
-Figure 11.3 Two examples of generalized cluster graph for an MRF with potentials over $\{A,B,C\}$ , $\{B,C,D\}$ , $\{B,D,F\}$ , $\{B,E\}$ and $\{D,E\}$ . 
+> 在我们探讨这些问题之前，我们先用更广义的方式呈现算法
+
 Box 11. A — Case Study: Turbocodes and loopy belief propagation. The idea of propagating messages in loopy graphs was first proposed in the early days of the field, in parallel with the introduction of the first exact inference algorithms. As we discussed in box 9. B, one of the first inference algorithms was Pearl’s message passing for singly connected Bayesian networks (polytrees). In his 1988 book, Pearl says: 
 When loops are present, the network is no longer singly connected and local propagation schemes will invariably run into trouble . . . If we ignore the existence of loops and permit the nodes to continue communicating with each other as if the network were singly connected, messages may circulate indefinitely around the loops and the process may not converge to a stable equilibrium . . . Such oscillations do not normally occur in probabilistic networks . . . which tend to bring all messages to some stable equilibrium as time goes on. However, this asymptotic equilibrium is not coherent, in the sense that it does not represent the posterior probabilities of all nodes of the networks. 
-loopy belief propagation 
-message decoding 
+
 As a consequence of these problems, the idea of loopy belief propagation was largely abandoned for many years. 
 Surprisingly, the revival of loopy belief propagation is due to a seemingly unrelated advance in coding theory. The area of coding addresses the problem of sending messages over a noisy channel, and recovering it from the garbled result. Formally, the coding task can be defined as follows. We wish to send a $k$ -bit message $u_{1},\ldots,u_{k}$ . We code the message using a number of bits $x_{1},.\ldots,x_{n},$ , which are then sent over the noisy channel, resulting in a set of (possibly corrupted) outputs $y_{1},\dotsc,y_{n},$ which can be either discrete or continuous. Diferent channels introduce noise in diferent ways: In a simple Gaussian noise model, each bit sent is corrupted independently by the addition of some Gaussian noise; another simple model ﬂips each bit independently with some probability; more complex channel models, where noise is added in a correlated way to consecutive bits, are also used. The message decoding task is to recover an estimate $\hat{u_{1}},\dots,\hat{u_{k}}$ from $y_{1},\dotsc,y_{n}$ . The bit error rate is the probability that a bit is ultimately decoded incorrectly. This error rate depends on the code and decoding algorithm used and on the amount of noise in the channel. The rate of a code is $k/n$ — the ratio between the number of bits in the message and the number of bits used to transmit it. 
-For example, a very simple repetition code takes each bit and transmits it three times, then decodes the bit by majority voting on the three (noisy) copies received. If the channel corrupts each bit with probability $p$ , the bit error rate of this algorithm is $p^{3}+3p^{2}$ , which, for reasonable values 
-![](images/06d3b621bd608115cfc7a94054d65839dc4d8d93453af9cc02a3bd59ade27116.jpg) 
-Figure 11.A.1 — Two examples of codes (a) A $k\,=\,4,n\,=\,7$ parity check code, where every four message bits are sent along with three bits that encode parity checks. (b) A $k=4,n=8$ turbocode. Here, the $X^{a}$ bits $X_{1},X_{3},X_{5},X_{7}$ are simply the original bits $U_{1},U_{2},U_{3},U_{4}$ and are omitted for clarity of the diagram; the $X^{b}$ bits use a shift register — a state bit that changes with each bit of the message, where the $i$ th state bit depends on the $(i-1)\mathrm{{st}}$ state bit and on the i th message bit. The code uses two shift registers, one applied to the original message bits and one to a set of permuted message bits (using some predetermined permutations). The sent bits contain both the original message bits and some number of the state bits. 
-of p , is much lower than $p$ . The rate of this code is $1/3;$ , because for every message bit, three bits are transmitted. In general, we can get better bit error rates by increasing the redundancy of the code, so we want to compare the bit error rate of diferent codes that have the same rate. Repetition codes are some of the least efcient codes designed. Figure 11.A.1a shows a simple rate 4/7 parity check code, where every four message bits are sent along with three bits that encode parity checks (exclusive ORs) of diferent subsets of the four bits. 
-In 1948, Claude Shannon provided a theoretical analysis of the coding problem (Shannon 1948). For a given rate, Shannon provided an upper bound on the maximum noise level that can be tolerated while still achieving a certain bit error rate, no matter which code is used. Shannon also showed that there exist channel codes that achieve this limit, but his proof was nonconstructive — he did not present practical encoders and decoders that achieve this limit. 
+For example, a very simple repetition code takes each bit and transmits it three times, then decodes the bit by majority voting on the three (noisy) copies received. If the channel corrupts each bit with probability $p$ , the bit error rate of this algorithm is $p^{3}+3p^{2}$ , which, for reasonable values of p , is much lower than $p$ . The rate of this code is $1/3;$ , because for every message bit, three bits are transmitted. In general, we can get better bit error rates by increasing the redundancy of the code, so we want to compare the bit error rate of diferent codes that have the same rate. Repetition codes are some of the least efcient codes designed. Figure 11.A.1a shows a simple rate 4/7 parity check code, where every four message bits are sent along with three bits that encode parity checks (exclusive ORs) of diferent subsets of the four bits.  In 1948, Claude Shannon provided a theoretical analysis of the coding problem (Shannon 1948). For a given rate, Shannon provided an upper bound on the maximum noise level that can be tolerated while still achieving a certain bit error rate, no matter which code is used. Shannon also showed that there exist channel codes that achieve this limit, but his proof was nonconstructive — he did not present practical encoders and decoders that achieve this limit. 
+
 Since Shannon’s landmark result, multiple codes were suggested. However, despite a gradual improvement in the quality of the code (bit-error rate for a given noise level), none of the codes even came close to the Shannon limit. The big breakthrough came in the early 1990s, when Berrou et al. (1993) came up with a new scheme that they called a turbocode , which, empirically, came much closer to achieving the Shannon limit than any other code proposed up to that point. However, their decoding algorithm had no theoretical justification, and, while it seemed to work well in real examples, could be made to diverge or converge to the wrong answer. The second big breakthrough was the subsequent realization that turbocodes were simply performing belief propagation on $a$ Bayesian network representing the probability model for the code and the channel noise. 
+
 To understand this, we first observe that message decoding can easily be reformulated as a probabilistic inference task: We have a prior over the message bits $U=\left<U_{1},.\,.\,.\,,U_{k}\right>$ , a (usually deterministic) function that defines how a message is converted into a sequence of transmitted bits $X_{1},\dots,X_{n},$ and another (stochastic) model that defines how the channel randomly corrupts the $X_{i}\,{\stackrel{\prime}{s}}$ to produce $Y_{i}$ ’s. The decoding task can then be viewed as finding the most likely joint assignment to $U$ given the observed message bits ${\pmb y}\,=\,\langle y_{1},.\,.\,.\,,y_{n}\rangle$ , or (alternatively) as finding the posterior $P(U_{i}\mid\pmb{y})$ for each bit $U_{i}$ . The first task is a MAP inference task, and the second task one of computing posterior probabilities. Unfortunately, the probability distribution is of high dimension, and the network structure of the associated graphical model is quite densely connected and with many loops. 
 The turbocode approach, as first proposed, comprised both a particular coding scheme, and the use of a message passing algorithm to decode it. The coding scheme transmits two sets of bits: one set comprises the original message bits $X^{a}\;=\;\left\langle X_{1}^{a},.\,.\,.\,,X_{k}^{a}\right\rangle\;=\;{\pmb u}$ ⟩ , and the second some set $X^{b}\,=\,\langle X_{1}^{b},.\,.\,.\,,X_{k}^{b}\rangle$ ⟩ of transformed bits (like the parity c its, but more complicated). The received bits then can also be partitioned into the noisy $\boldsymbol{y}^{a},\boldsymbol{y}^{b}$ . Importantly, the code is designed so that the message can be decoded (albeit with errors) using either $\boldsymbol{y}^{a}$ or $\boldsymbol{y}^{b}$ . The turbocoding algorithm then works as follows: It uses the model of $X^{a}$ (trivial in this case) and of the channel noise to compute a posterior probability over $U$ given $\boldsymbol{y}^{a}$ . It then uses that posterior $\pi_{a}(U_{1}),.\,.\,.\,,\pi_{a}(U_{k})$ as a prior over $U$ and computes a new posterior over $U$ , using the model for $X^{b}$ and the channel, and $\boldsymbol{y}^{b}$ as the evidence, to compute a new posterior $\pi_{b}(U_{1}),.\,.\,.\,,\pi_{b}(U_{k})$ . The “new information,” which is $\pi_{b}(U_{i})/\pi_{a}(U_{i})$ , is then transmitted back to the first decoder, and the process repeats until a stopping criterion is reached. In efect, the turbocoding idea was to use two weak coding schemes, but to “turbocharge” them using a feedback loop. Each decoder is used to decode one subset of received bits, generating a more informed distribution over the message bits to be subsequently updated by the other. The specific method proposed used particular coding scheme for the $X^{b}$ bits, illustrated in figure 11.A.1b. 
 This process looked a lot like black magic, and in the beginning, many people did not even believe that the algorithm worked. However, when the empirical success of these properties was demonstrated conclusively, an attempt was made to understand its theoretical properties. McEliece et al. (1998) subsequently showed that the specific message passing procedure proposed by Berrou et al. is precisely an application of belief propagation (with a particular message passing schedule) to the Bayesian network representing the turbocode (as in figure 11.A.1b). 
 This revelation had a tremendous impact on both the coding theory community and the graphical models community. For the former, loopy belief propagation provides a general-purpose algorithm for decoding a large family of codes. By separating the algorithmic question of decoding from the question of the code design, it allowed the development of many new coding schemes with improved properties. These codes have come much, much closer to the Shannon limit than any previous codes, and they have revolutionized both the theory and the practice of coding. For the graphical models community, it was the astounding success of loopy belief propagation for this application that led to the resurgence of interest in these approaches, and subsequently to much of the work described in this chapter. 
-# 11.3.2 Cluster-Graph Belief Propagation 
-cluster graph 
-Definition 11.2 running intersection property 
+
+### 11.3.2 Cluster-Graph Belief Propagation 
 The basis for our message passing algorithm is the cluster graph of definition 10.1, first defined in section 10.1.1. In that section, we required that cluster graphs be trees and that they respect the running intersection property. Those requirements led us to the definition of a clique tree. Here, we remove the first of these two assumptions, allowing inference to be performed on a loopy cluster graph. However, we still wish to require a variant of the running intersection property that is generalized to this case: for any two clusters containing $X$ , there is precisely one path between them over which information about $X$ can be propagated. 
+> 我们的消息传递算法基于 definition 10.1 定义的簇图，而在那一节中，我们要求簇图是树，并且满足运行相交性质
+> 我们将满足这两个要求使得的簇图定义为团树
+> 本节中，我们将其中树的要求移除，允许在环状簇图中执行推理，但我们仍要求一个运行相交性质的变体，我们将该性质推广到：对于任意两个包含 $X$ 的簇，它们之间正好存在一条 $X$ 可以经由传播的路径
+
+**Definition 11.2** running intersection property 
 We say that $\mathcal{U}$ satisfies the running intersection property if, w ever there is a variable $X$ such that $X\in C_{i}$ and $X\in C_{j},$ , then there is a single path between $C_{i}$ and $C_{j}$ for which $X\in S_{e}$ for all edges $e$ in the path. 
+
+> 定义
+> 对于一个簇图 $\mathcal U$，如果一个变量 $X$ 满足 $X\in \pmb C_i$ 和 $X\in \pmb C_j$，则 $\pmb C_i$ 和 $\pmb C_j$ 之间会有一条路径，满足对于路径中所有的边 $e$ 都有 $X\in \pmb S_e$，则称 $\mathcal U$ 满足运行相交性质
+
 This generalized running intersection property implies that all edges associated with $X$ form a tree that spans all the clusters that contain $X$ . Thus, intuitively, there is only a single path by which information that is directly about $X$ can ﬂow in the graph. Both parts of this assumption are significant. The fact that some path must exist forces information about $X$ to ﬂow between all clusters that contain it, so that, in a calibrated cluster graph, all clusters must agree about the marginal distribution of $X$ . The fact that there is at most one path prevents information about $X$ from cycling endlessly in a loop, making our beliefs more extreme due to “cyclic arguments.” 
 Importantly, however, since the graph is not necessarily a tree, the same pair of clusters might also be connected by other paths. For example, in the cluster graph of figure 11.3a, we see that the edges labeled with $B$ form a subtree that spans all the clusters that contain $B$ . However, there are loops in the graph. For example, there are two paths fro ${C_{3}}=\left\{{B,D,F}\right\}$ to $C_{2}=\{B,C,D\}$ . The first, through $C_{4}$ propagates information about B , and the second, through $C_{5}$ , propagates information about D . Thus, we can still get circular reasoning, albeit less directly than we would in a graph that did not satisfy the running intersection property; we return to this point in section 11.3.8. Note that while in the case of trees the definition of running intersection implied that $S_{i,j}=C_{i}\cap C_{j}$ , in a gra this e lity is no longer enf ed by the running intersection property. For example, cliques $C_{1}$ and $C_{2}$ in figure 11.3a have B in common, but $S_{1,2}=\{C\}$ . 
-In clique trees, inference is performed by calibrating beliefs. In a cluster graph, we can also associate cluster $C_{i}$ with beliefs $\beta_{i}$ . We now say that a cluster graph is calibrated if for each 
-calibrated cluster graph 
-edge $(i{-}j)$ , connecting the clusters $C_{i}$ and $C_{j}$ , we have that 
+In clique trees, inference is performed by calibrating beliefs. In a cluster graph, we can also associate cluster $C_{i}$ with beliefs $\beta_{i}$ . We now say that a cluster graph is calibrated if for each calibrated cluster graph edge $(i{-}j)$ , connecting the clusters $C_{i}$ and $C_{j}$ , we have that 
+
 $$
 \sum_{C_{i}-S_{i,j}}\beta_{i}=\sum_{C_{j}-S_{i,j}}\beta_{j};
 $$ 
 that is, the two clusters agree on the marginal of variables in $\boldsymbol{S}_{i,j}$ . Note that this defini- tion is weaker than cluster tree calibration, since the clusters do not necessarily agree on the joint marginal of all the variables they have in common, but only on those variables in the sepset. However, if a calibrated cluster graph satisfies the running intersection property, then the marginal of a variable $X$ is identical in all the clusters that contain it. 
-![](images/c3aa0d78d193fe48327359bcfe4fdc7869c3feebeeb6f0621ad06ef5157e706e.jpg) 
+ 
 How do we calibrate a cluster graph? Because calibration is a local property that relates adjoining clusters, we want to try to ensure that each cluster is sharing information with its 
-![](images/3fcbd6bc327cd9c59c34503791e60bcc23c3b299a683d57b341448d6adc5fb4c.jpg) 
-Figure 11.4 An example of a $4\times4$ two-dimensional grid network 
+ 
 neighbors. From the perspective of a single cluster $C_{i}$ , there is not much diference between a cluster graph and a cluster tree. The cluster is related to each neighboring cluster through an edge that conveys information on variables in the sepset. Thus, we can transmit information by simply having one cluster pass a message to the other. 
 However, a priori, it is not clear how we can execute a message passing algorithm over a loopy clustergraph. In particular, the sum-product calibration of algorithm 10.2 sends a message only when the sending clique is ready to transmit, that is, when all other incoming messages have been received. In the loopy cluster graph, initially, there is no cluster that has received any incoming messages. Thus, no cluster is ready to transmit, and the algorithm is deadlocked. However, in section 10.3, we showed that the two algorithms are actually equivalent; that is, any sequence of sum-product propagation steps can be emulated by the same sequence of belief- update propagation steps and leads to the same beliefs. In this transformation, we have that $\mu_{i,j}=\delta_{i\to j}\delta_{j\to i}$ . Thus, we can construct a “deadlock-free” variant of the sum-product message passing algorithm simply by initializing all messages $\delta_{i\to j}=\mathbf{1}$ . This initialization of the sum- product algorithm is equivalent to the standard initialization of the belief update algorithm, in which $\mu_{i,j}=\mathbf{1}$ . Importantly, in this variant of the sum-product algorithm, each cluster begins with all of the incoming messages initialized, and therefore it can send any of the outgoing messages at any time, without waiting for any other cluster. 
 cluster-graph belief propagation 
@@ -7636,9 +7802,9 @@ Before we continue, we note that cluster-graph belief propagation can be signifi
 Figure 11.5 An example of generalized cluster graph for a $3\times3$ grid network 
 $A_{i,j-1}$ , $A_{i,j+1}$ (except for nodes $A_{i,j}$ on the boundary of the grid); see figure 11.4. Such a network has only pairwise potentials, and hence it is very compactly represented. Yet, exact inference requires separating sets, which are as large as cutsets in the grid. Hence, in an $n\times n$ grid, exact computation is exponential in $n$ . 
 However, we can easily create a generalized cluster graph for grid networks that directly corresponds to the factors in the network. In this cluster graph, each cluster represents beliefs over two neighboring grid variables, and each cluster has a small number of adjoining edges that connect it to other clusters that share one of the two variables. See figure 11.5 for an example for a small $3\times3$ grid. (Note that there are several ways of constructing such a cluster graph; this figure represents one reasonable choice.) A round of propagations in the generalized cluster graph is linear in the size of the grid (quadratic in $n$ ). 
-# 11.3.3 Properties of Cluster-Graph Belief Propagation 
+### 11.3.3 Properties of Cluster-Graph Belief Propagation 
 What can we say about the properties and guarantees provided by cluster-graph belief propa- gation? We now consider some of the ramifications of the “mechanical” operation of message passing in the graph. Later, when we discuss cluster-graph belief propagation as an optimization procedure, we will revisit this question from a diferent perspective. 
-# 11.3.3.1 Re parameter iz ation 
+#### 11.3.3.1 Reparameterization 
 reparameteriza- tion 
 cluster graph invariant 
 Recall that in section 10.2.3 we showed that belief propagation maintains an invariant property. This allowed us to show that the convergence point represents a re parameter iz ation of the original distribution. We can directly extend this property to cluster graphs, resulting in a cluster graph invariant . 
@@ -7648,7 +7814,7 @@ $$
 $$ 
 where $\begin{array}{r}{\tilde{P}_{\Phi}(\mathcal{X})=\prod_{\phi\in\Phi}\phi}\end{array}$ is the unnormalized distribution defined by $\Phi$ . ∈ Proof Recall that $\begin{array}{r}{\beta_{i}=\psi_{i}\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\rightarrow i}}\end{array}$ Q and that $\mu_{i,j}=\delta_{j\to i}\delta_{i\to j}$ . We now have ∈ $\begin{array}{r c l}{\displaystyle\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\beta_{i}[C_{i}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\mu_{i,j}[S_{i,j}]}}&{=}&{\displaystyle\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\psi_{i}[C_{i}]\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\to i}[S_{i,j}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\delta_{j\to i}[S_{i,j}]\delta_{i\to j}[S_{i,j}]}}\\ &{=}&{\displaystyle\prod_{i\in\mathcal{V}_{\mathcal{U}}}\psi_{i}[C_{i}]}\\ &{=}&{\displaystyle\prod_{\phi\in\Phi}\phi(\boldsymbol{U}_{\phi})=\tilde{P}_{\Phi}(\mathcal{X}).}\end{array}$ 
 Note that the second step is based on the fact that each message $\delta_{i\to j}$ appears exactly once in the numerator and the denominator and thus can be canceled. 
-# 
+
 This property shows that cluster-graph belief propagation preserves all of the informa- tion about the original distribution. In particular, it does not “dilute” the original factors by performing propagation along loops. Hence, we can view the process as trying to represent the original factors anew in a more useful form. 
 11.3.3.2 Tree Consistency 
 Recall that theorem 10.4 implies that, in a calibrated cluster tree, the belief over a cluster is the marginal of the distribution. Thus, in a calibrated cluster tree, we can “read of” the marginals of $P_{\Phi}$ locally from clusters that contain them. More precisely, by normalizing the beliefs factor $\beta_{i}$ (so that it sums to 1), we get the marginal distribution over $C_{i}$ . An obvious question is whether a corresponding property holds for cluster-graph belief propagation. Suppose we manage to calibrate a generalized cluster graph and normalize the resulting beliefs; do we have an interpretation for the beliefs in each cluster? 
@@ -7671,7 +7837,7 @@ Clearly, we can apply the same type of reasoning using other subtrees of $\mathc
 cluster graph residual 
 Moreover, these subtrees allow us to get insight about the quality of the marginal distributions we read from the calibrated cluster graph. Consider our example again: we can use the residual term $\frac{\mu_{3,4}[D]\mu_{1,4}[A]}{\beta_{4}(A,D)}$ to analyze the error in the marginal distribution. In this simple example, this analysis is fairly straightforward (see exercise 11.4). 
 In other cases, the analysis can be more complex. For example, suppose we want to find a subtree in the cluster graph for a grid (e.g., figure 11.5). To construct a tree, we must remove a nontrivial number of clusters. More precisely, because each cluster corresponds to an edge in the grid, a cl ee corresponds to a subtree of the grid. For an $n\times n$ grid, such a tree will have at most $n^{2}-1$ − edges of the $2n(n-1)$ edges in the grid. Thus, each cluster tree contains about half of the clusters in the original cluster graph. In such a situation the residual term is more complex, and we cannot necessarily evaluate it. 
-# 11.3.4 Analyzing Convergence $\star$ 
+### 11.3.4 Analyzing Convergence $\star$ 
 A key question regarding the belief propagation algorithm is whether and when it converges. Indeed, there are many networks for which belief propagation does not converge; see box 11.C. 
 Although we cannot hope for convergence in all cases, it is important to understand when this algorithm does converge. We know that if the cluster graph is a tree then the algorithm will converge. Can we find other classes of cluster graphs for which we can prove convergence? 
 synchronous BP 
@@ -7726,13 +7892,13 @@ $$
 $$ 
 we can guarantee convergence of belief propagation. Intuitively, the lower the skew of the factors in our network, the more each message update “smoothes out” diferences between entries in the messages, and therefore also makes diferent messages more similar to each other. 
 While the conditions that underlie these theorems are usually too stringent to hold in practice, this analysis does provide useful insight. First, it suggests that networks with potentials that are closer to deterministic are more likely to have problems with convergence, an observation that certainly holds in practice. Second, although global contraction throughout the space is a very strong assumption, a contraction property in a region of the space may be plausible, guaranteeing convergence of the algorithm if it winds up (or is initialized) in this region. These results and their ramifications are only now being explored. 
-# 11.3.5 Constructing Cluster Graphs 
+### 11.3.5 Constructing Cluster Graphs 
 So far, we have taken the cluster graph to be given. However, the choice of cluster graph is generally far from obvious, and it can make a significant diference to the algorithm. Recall that, even in exact inference, more than one clique tree can be used to perform inference for a given distribution. However, while these diferent trees can vary in their computational cost, they all give rise to the same answers. In the case of cluster graph approximations, diferent 
 graphs can lead to very diferent answers. Thus, when selecting a cluster graph, we have to consider trade-ofs between cost and accuracy, since cluster graphs that allow fast propagation might result in a poor approximation. 
 It is important to keep in mind that the structure of the cluster graph determines the prop- agation steps the algorithm can perform, and thus dictate what type of information is passed during the propagations. These choices directly inﬂuence the quality of the results. 
 Example 11.1 Consider, for examp the cluster graphs $\mathcal{U}_{1}$ $\mathcal{U}_{2}$ of figure 11.3a and figure 11.3b. Both a fairl imilar, yet in U $\mathcal{U}_{2}$ the ed between $C_{1}$ and $C_{2}$ involves the mar al distribution over B and C . On the other hand, in U $\mathcal{U}_{1}$ , we propagate the margin only er C . Intuitively, we expect inference in $\mathcal{U}_{2}$ to better capture the dependencies between $B$ and $C$ . For , assu that the potential of $C_{1}$ intro es strong cor ations between B d C (say $B\,=\,C.$ ). In U $\mathcal{U}_{2}$ , this correlation is conveyed $C_{2}$ directly. In U $\mathcal{U}_{1}$ , t marginal on C is conveyed on the edge (1 – 2) , while the marginal on B is conveyed through $C_{4}$ . In this case, the strong dependency between the two variables is lost. In particular, if the marginal on $C$ is difuse (close to uniform), then the message $C_{1}$ sends to $C_{4}$ will also have a uniform distribution on $B$ , and from $C_{2}\mathit{\dot{s}}$ perspective the messages on $B$ and $C$ will appear as two independent variables. 
 On the other hand, if we introduce many messages between clusters or increase the scope of these messages, we run the risk of constructing a tree that violates the running intersection property. And so, we have to worry about methods that ensure that the resulting structure is a proper cluster graph. We now consider several approaches for constructing cluster graphs. 
-# 11.3.5.1 Pairwise Markov Networks 
+#### 11.3.5.1 Pairwise Markov Networks 
 pairwise Markov networks 
 We start with the class of pairwise Markov networks . In these networks, we have a univariate potential $\phi_{i}[X_{i}]$ over each variable $X_{i}$ , and in addition a pairwise potential $\phi_{(i, j)}[X_{i}, X_{j}]$ over some pairs of variables. These pairwise potentials correspond to edges in the Markov network. Many problems are naturally formulated as pairwise Markov networks, including the grid networks we discussed earlier and Boltzmann distributions (see box 4. C). Indeed, if we are willing to transform our variables, any distribution can be reformulated as a pairwise Markov network (see exercise 11.10). 
 One straightforward transformation of such a network into a cluster graph is as follows: For each potential, we introduce a corresponding cluster, and put edges between the clusters that have overlapping scope. In other words, there is an edge between the cluster $C_{(i, j)}$ that corresponds to the edge $X_{i}{-}X_{j}$ and the clusters $C_{i}$ and $C_{j}$ that correspond to the univariate factors over $X_{i}$ and $X_{j}$ . Figure 11.6 illustrates this construction in the case of a 3 by 3 grid network. 
@@ -7740,14 +7906,14 @@ Because there is a direct correspondence between the clusters in the cluster gra
 ![](images/c4c7e85612aadc64c8f5198213afd7e69fd2108f5ceb76abd662e1c526ba450d.jpg) 
 Figure 11.6 A generalized cluster graph for the $3\times3$ grid when viewed as pairwise MRF 
 loopy belief propagation ables or edges in the original Markov network, it is often convenient to think of the propagation steps as operations on the original network. Moreover, since each pairwise cluster has only two neighbors, we consider two propagation steps along the path $C_{i}{-}C_{(i, j)}{-}C_{j}$ as propagating information between $X_{i}$ and $X_{j}$ . (See exercise 11.9.) Indeed, early versions of cluster-graph be- lief propagation were stated in these terms. This algorithm is known as loopy belief propagation , since it uses propagation steps used by algorithms for Markov trees, except that it was applied to networks with loops. 
-# 11.3.5.2 Bethe Cluster Graph 
+#### 11.3.5.2 Bethe Cluster Graph 
 A natural question is how we can extend this idea to networks that are more complex than pairwise Markov networks. Once we have larger potentials, they may overlap in ways that result in complex interactions among them. 
 Bethe cluster graph 
 One simple construction, called the Bethe cluster graph , uses a bipartite graph. The first layer consists of “large” clusters, with one cluster for each factor $\phi$ in $\Phi$ , whose scope is $S c o p e[\phi]$ . These clusters ensure that we satisfy the family-preservation property. The second layer consists of “small” univariate clusters, one for each random variable. Finally, we place an edge between each univariate cluster $X$ on the second layer and each cluster in the first layer that includes $X$ ; the scope of this edge is $X$ itself. For a concrete example, see figure 11.7a. 
 We can easily verify that this cluster graph is a proper one. First, by construction, it satisfies the family preservation property. Second, the edges that mention a variable $X$ form a star- shaped subgraph with edges from the univariate cluster for $X$ to all the large clusters that contain $X$ . It is also easy to check that, if we apply this procedure to a pairwise Markov network, it results in the “natural” cluster graph for the pairwise network that we discussed. The construction of this cluster graph is simple and can easily be automated. 
 ![](images/197ec18c6fc469fe59d99b56211b01a5b5e2150ac9153e4429b11b86547343d1.jpg) 
 Figure 11.7 Examples of generalized cluster graphs for network with potentials over $\{A, B, C\}$ , $\{B, C, D\},\,\{B, D, F\},\,\{B, E\}$ and $\{D, E\}$ . For visual clarity, sepsets have been omitted — the sepset between any pair of clusters is the intersection of their scopes. (a) Bethe factorization. (b) Capturing interactions between $\{A, B, C\}$ and $\{B, C, D\}$ . 
-# 11.3.5.3 Beyond Marginal Probabilities 
+#### 11.3.5.3 Beyond Marginal Probabilities 
 The main limitation of using the Bethe cluster graph is that information between diferent clusters in the top level is passed through univariate marginal distributions. Thus, interactions between variables are lost during propagations. Consider the example of figure 11.7a. Suppose that $C_{1}$ creates a strong dependency between $B$ and $C$ . These two variables are shared with $C_{2}$ . However, the messages between two clusters are mediated through the univariate factors. And thus, interactions introduced by one cluster are not directly propagated to the other. 
 One possible solution is to merge some of the large clusters. For example, if we want to capture the interactions between $C_{1}$ and $C_{2}$ in figure 11.7a, we can replace both of them by a cluster with the score $A, B, C, D$ . This new cluster will allow us to capture the interactions between the factors involved in these two clusters. This modification, however, comes at a price, since the cost of manipulating a cluster grows exponentially with this scope. Moreover, this approach seems excessive in this case, since we can summarize these interactions simply using a distribution over $B$ and $C$ . This intuition suggests the construction of figure 11.7b. Note that this cluster graph is equivalent to figure 11.3b; see exercise 11.6. 
 Can we generalize this construction? A reasonable goal might be to capture all pairwise interactions. We can try to use a construction similar to the Bethe approximation, but in- troducing an intermediate level that includes pairwise clusters. In the same manner as we introduced $C_{12}$ in figure 11.7b, we can introduce other pairs that are shared by more than two clusters. As a concrete example, consider the factors $C_{1}=\{A, B, C\}$ , $C_{2}=\{B, C, D\}$ , and ${C_{3}}=\left\{{A, C, D}\right\}$ . The relevant pairwise factors that capture interactions among these clusters 
@@ -7786,7 +7952,7 @@ Figure 11.C.1 — Example of behavior of BP in practice on an ${\bf11}\times{\bf
 not slowed down by smoothing. However, the overall benefit of damping is evident, and without it the algorithm never converges. 
 The remaining panels illustrate the progression of the marginal beliefs over the course of the algorithm. (b) shows a marginal where both the synchronous and asynchronous updates converge quite rapidly and are close to the true marginal (thin solid black). Such behavior is atypical, and it comprises only around 10 percent of the marginals in this example. In the vast majority of the cases (almost 80 percent in this example), the synchronous beliefs oscillate around the asynchronous ones ((c)–(e)). In many cases, such as the ones shown in (e), the entropy of the synchronous beliefs is quite significant. For about 10 percent of the marginals (for example (f)), both the asynchronous and synchronous marginals are inaccurate. In these cases, using more informed message schedules can significantly improve the algorithms performance. 
 These qualitative diferences between the BP variants are quite consistent across many random and real-life models. Typically, the more complex the inference problem, the larger the gaps in performance. For very complex real-life networks involving tens of thousands of variables and multiple cycles, even asynchronous BP is not very useful and more elaborate propagation methods or convergent alternatives must be adopted. 
-# 11.3.6 Variational Analysis 
+### 11.3.6 Variational Analysis 
 So far, our discussion of cluster-graph belief propagation has been procedural, motivated purely by similarity to message passing algorithms for cluster trees. Is there any formal justification for this approach? Is there a sense in which we can view this algorithm as providing an approxima- tion to the exact inference task? In this section, we show that cluster-graph belief propagation can be justified using the energy functional formulation of section 11.1. Specifically, the mes- sages passed by cluster-graph belief propagation can be derived from fixed-point equations for the stationary points of an approximate version of the energy functional of equation (11.3). As we will see, this formulation provides significant insight into the generalized belief propagation algorithm. It allows us to understand better the convergence properties of cluster-graph belief propagation and to characterize its convergence points. It also suggests generalizations of the algorithm that have better convergence properties, or that optimize a better approximation to the energy functional. 
 Our construction will be similar to the one in section 11.2 for exact inference. However, there are important diferences that underlie the fact that this algorithm is only an approximate inference algorithm. 
 factored energy functional 
@@ -7805,7 +7971,7 @@ pseudo-marginals
 We can think of the local consistency polytope as defining a set of pseudo-marginal distri- butions , each one over the variables in one cluster. The constraints imply that these pseudo- marginals must be calibrated and therefore locally consistent with each other. However, they are not necessarily marginals of a single underlying joint distribution. 
 Overall, we can write down an optimization problem as follows: 
 CGraph-Optimize : Find Q maximizing F ˜ [ P ˜ Φ , Q ] subject to $Q\in L o c a l[\mathcal{U}]$ 
-# 
+
 Thus, our optimization problem contains two approximations: We are using an approx- imation, rather than an exact, energy functional; and we are optimizing it over the space of pseudo-marginals, which is a relaxation (a superspace) of the space of all coherent probability distributions that factorize over the cluster graph. 
 In section 11.1, we noted that the energy functional is a lower bound on the log-partition function; thus, by maximizing it, we get better approximations of $P_{\Phi}$ . Unfortunately, the factored energy functional, which is only an approximation to the true energy functional, is not necessarily also a lower bound. Nonetheless, it is still a reasonable strategy to maximize the approximate energy functional, since it may lead to a good approximation of the log-partition function. 
 fixed-point equations 
@@ -7828,9 +7994,9 @@ stable convergence point
 Second, we note that maxima are not the only fixed points of the belief propagation algorithm; minima and saddle points are also fixed points. Intuitively, however, such solutions are not likely to be stable, in the sense that slight perturbations to the messages will drive the process away from them. Indeed, it is possible to show (although this result is outside the scope of this book) that stable convergence points of belief propagation are always local maxima of the function. 
 The most important limitation of this result, however, is that it does not show that we can reach these maxima by applying belief propagation steps. There is no guarantee that the message passing steps of cluster-graph belief propagation necessarily improve the energy functional: a message passing step may increase or decrease the energy functional. Indeed, as we showed, there are examples where the belief propagation procedure oscillates indefinitely and fails to converge. Even more surprisingly, this problem is not simply a matter of the algorithm being unable to “find” the maximum. One can show examples where the global maximum is not a stable convergence point of belief propagation. That is, while it is, in principle, a fixed point of the algorithm, it will never be reached in practice, since even a slight perturbation will give rise to oscillatory behavior. 
 Nevertheless, this result is of significant importance in several ways. First, it provides us with a declarative semantics for cluster-graph belief propagation in terms of optimization of a target functional. The success of the belief propagation algorithm, when it converges, leads us to hope that the development of new, possibly more convergent, methods to solve the optimization problem may give rise to good solutions. Second, the declarative view defines the problem in terms of an objective — the factored energy functional — and a set of constraints — the set of locally consistent pseudo-marginals. Both of these are approximations to the ones used in the optimization problem for exact inference. When we view the task from this perspective, some potential directions for improvements become obvious: We can perhaps achieve a better approximation by making our objective a better approximation to the true energy functional, or by tightening our constraints so as to make the constraint space closer to the exact marginal polytope. We will describe some of the extensions based on these ideas; others are mentioned in section 11.7. 
-# 11.3.7 Other Entropy Approximations $\star$ 
+### 11.3.7 Other Entropy Approximations\*
 The variational analysis of the previous section provides us with a framework for understanding the properties of this type of approximation, and for providing significant generalizations. 
-# 11.3.7.1 Motivation 
+#### 11.3.7.1 Motivation 
 To understand this general framework, consider first the form of the factored energy functional when our cluster graph $\mathcal{U}$ has the form of the Bethe approximation. Recall that in the Bethe approximation graph there are two layers: one consisting of clusters that correspond to factors in $\Phi$ , and the other consisting of univariate clusters. When the cluster graph is calibrated, these univariate clusters have the same distribution as the sepsets between them and the factors in the first layer. As such, we can combine together the entropy terms for all the sepsets labeled by $X$ and the associated univariate cluster and rewrite the energy functional, as follows: 
 Proposition 11.3 If $Q=\{\beta_{\phi}:\phi\in\Phi\}\cup\{\beta_{i}(X_{i})\}$ is a calibrated set of beliefs for a Bethe cluster graph $\mathcal{U}$ with clusters $\left\{C_{\phi}\ :\ \phi\in\Phi\right\}\cup\left\{X_{i}\ :\ X_{i}\in\mathcal{X}\right\}$ , then 
 $$
@@ -7858,7 +8024,7 @@ $$
 $$ 
 This is simply an instance of our weighted entropy approximation, with seven regions: the three triplets, the three pairs, and the singleton $C$ . 
 This perspective provides a clean and simple framework for proposing generalizations to the class of approximations defined by the cluster graph framework. Of course, to formulate our optimization problem fully, we need to define the constraints and construct algorithms that solve the resulting optimization problems. We now address these issues in the context of two diferent classes of weighted entropy approximations. 
-# 11.3.7.2 Convex Approximations 
+#### 11.3.7.2 Convex Approximations 
 One of the biggest problems with the objective used in standard loopy BP is that it gives rise to a nonconvex optimization problem. In fact, the objective often has multiple local optima. These properties make the optimization hard and the answers nonrobust. However, a diferent choice of counting numbers can lead to a concave optimization objective, and hence to a convex optimization problem. Such problems are much easier to solve using a range of algorithms, and the solutions ofer a satisfying guarantee of optimality. We first define the class of convex BP objectives and then describe one solution algorithm. 
 We focus our discussion on energy functionals whose structure uses the two-layer Bethe cluster graph structure of example 11.2, but where the counting numbers are diferent. To preserve the desired semantics of the counting numbers, we require: 
 $$
@@ -7880,7 +8046,8 @@ $$
 H_{\beta_{r}}(C_{r})-H_{\beta_{i}}(X_{i})=H_{\beta_{r}}(C_{r}\mid X_{i}).
 $$ 
 Plugging this result back into equation (11.23), we obtain an objective that is a summation of terms each of which is either an entropy or a conditional entropy, all with positive coefcients. Because both entropies and conditional entropies are convex, we obtain the following result: 
-# Proposition 11.4 
+
+Proposition 11.4 
 concave over constraints convex entropy The function in equation (11.23) is a concave function for any set of beliefs $Q$ that satisfies the marginal consistency constraints. 
 This type of objective function is called concave over the constraints , since it is not generally concave, but it is concave over the subspace that satisfies the constraints of our optimization problem. An entropy as in equation (11.23) that uses convex counting numbers is called a convex entropy . 
 Assuming that the potentials are all strictly positive, we can now conclude that the optimiza- tion problem CGraph-Optimize with convex counting numbers is a convex optimization problem that has a unique global optimum. 
@@ -7906,7 +8073,7 @@ $$
 $$ 
 This computation results in a set of convex counting numbers (see exercise 11.18). Preliminary results suggest that the TRW counting numbers and the ones derived from optimizing equa- tion (11.25) appear to achieve similar performance in practice. 
 However, the comparison to standard (Bethe-approximation) BP is less clear. When standard BP converges, it generally tends to produce better results than the convex counterparts, and almost universally it converges much faster. Conversely, when standard BP does not converge, the convex algorithms have an advantage; but, as we discuss in box 11. B, there are many tricks we can use to improve the convergence of BP, so it is not clear how often nonconvergence is a problem. One setting where a convergent algorithm can have important benefits is in those settings (chapter 19 and chapter 20) where we generally learn the model using iterative, hill-climbing methods that use inference in the inner loop for tasks such as gradient computations. There, the use of a nonconvergent algorithm for computing the gradient can severely destabilize the learning algorithm. In other settings, however, the decision of whether to use standard or convex BP is one of approximate optimization of a pretty good (although still approximate) objective, versus exact optimization of an objective that is generally not as good. The right decision in this trade-of is not clear, and needs to be made specifically for the target application. 
-# 11.3.7.3 Region Graph Approximations 
+#### 11.3.7.3 Region Graph Approximations 
 As illustrated in example 11.3, a very diferent motivation for using an objective based on diferent counting numbers is to improve the quality of the approximation by better capturing interactions between variables. As we showed in this example, we can use the notion of a weighted entropy approximation to define a (hopefully) better approximation to the entropy. Of course, to specify the optimization problem fully, we also need to specify the constraints. In this example, it is fairly straightforward to do so: we want $\beta_{7}(C)$ to be consistent with the marginal probability of $C$ in one of the other beliefs that mention $C$ . Now, we have an optimization problem that seems to solve the problem we set out to solve: It can compute beliefs on each of the original factors while maintaining consistency at the level of each pairwise marginal shared among these factors. 
 However, the new optimization problem we defined is not one that corresponds to a cluster graph. To see this, notice that $\beta_{7}$ appears in the role of a cluster. But, if it is a cluster, it would have to be connected to one of the other factors by a sepset with scope $C$ , which would require an additional term in the energy functional associated with this cluster graph. Thus, it is not immediately clear how we would go about optimizing the new modified functional. 
 We now discuss a general framework that defines the form of the optimization objective and the constraints for constructions that capture higher-level interactions between the variables. We also describe a message passing algorithm that can be used to find fixed points of this optimization problem. 
@@ -8050,9 +8217,9 @@ After we cancel out $\delta_{2\rightarrow4}$ and $\delta_{6\rightarrow7}$ , we g
 These definitions set up a message passing algorithm similar to CGraph-SP-Calibrate , except that we use the messages as formulated in equation (11.37). As with belief propagation on cluster graphs, we can prove that convergence points of such propagations are stationary points of the RegionGraph-Optimize optimization problem. 
 A set of beliefs $Q$ is a stationary point of RegionGraph-Optimize for region graph $\mathcal{R}$ if and only if for every edge $(i\!-\! j)\in\mathcal{E}_{\mathcal{R}}$ there are auxiliary factors $\delta_{u\rightarrow d}(C_{d})$ that satisfy equation (11.36) and equation (11.37). 
 This result is a direct generalization of theorem 11.5, and is proved in a similar way. We leave the detail as an exercise (see exercise 11.14). Much of the discussion following theorem 11.5 applies here. In particular, we do not have guarantees that iterations of message passing will converge. However, if they do, we have reached a stationary point of the energy functional. In practice, the experience is that when we consider moving from the Bethe approximation to “richer” region graphs that contain intermediate regions with larger subsets, problems of nonconverging runs are less common. For example, a region graph construction for grids is much more convergent than the corresponding cluster graph (see exercise 11.15). However, except for special cases (for example, region graphs that correspond to cluster trees), we do not know how to characterize region graphs where belief propagation converges. 
-# 11.3.8 Discussion 
+### 11.3.8 Discussion 
 Cluster-graph belief propagation methods such as the ones we have described in this chapter pro- vide a general-purpose mechanism for approximate inference in graphical models. In principle, they apply to any network, including networks with high tree-width, for which exact inference is intractable. They have been applied successfully to a large number of dramatically diferent applications, including (among many others) message decoding in communication over a noisy channel (see box 11. A), predicting protein structure (see box 20. B), and image segmentation (see box 4. B). 
-However, it is important to keep in mind that cluster-graph belief propagation is not  a global panacea to the problem of inference in graphical models. The algorithm may not converge, and when it does converge, there may be multiple diferent convergence points. Although there are currently no conditions characterizing precisely when cluster-graph belief propagation converges, several factors seem to play a role. 
+However, it is important to keep in mind that cluster-graph belief propagation is not a global panacea to the problem of inference in graphical models. The algorithm may not converge, and when it does converge, there may be multiple diferent convergence points. Although there are currently no conditions characterizing precisely when cluster-graph belief propagation converges, several factors seem to play a role. 
 The first is the topology of the network: A network containing a large number of short loops is more likely to be nonconvergent. Although this notion has been elusive to characterize in practice, it has been shown that cluster-graph belief propagation is guaranteed to converge on networks with a single loop. 
 An even more significant factor is the extent to which the factors parameterizing the network are skewed, or close to deterministic. Intuitively, deterministic factors can cause difculties in several ways. First, they often induce strong correlations between variables, which cluster-graph belief propagation (depending on the approximation chosen) can lose. This error can have an efect not only for the correlated variables, but also for marginals of variables that interact with both. Second, close-to-deterministic factors allow information to be propagated reliably through long paths in the network. Recall that part of our motivation for the running intersection property was to prevent information about some variable to be propagated infinitely through a loop. While the running intersection property prevents such loops from occurring structurally, deterministic potentials allow us to recreate them using an appropriate choice of parameters. For example, if $A$ is deterministic ally equal to $B$ , then we can have a cycle of clusters where $A$ appears in some of the clusters and $B$ in others. Although this cluster graph may satisfy the running intersection property relative to $A$ , efectively there is a cycle in which the same variable appears in all clusters. Finally, as we discussed in section 11.3.4, factors that are less skewed provide smoothing of the messages, reducing oscillations; indeed, one can even prove that, if the skew of the factors in the network is sufciently bounded, it can give rise to a contraction property that guarantees convergence. 
 In summary, the key factor relating to convergence of belief propagation appears to be the extent to which the network contains strong inﬂuences that “pull” a variable in diferent directions. Owing to its local nature, the algorithm is incapable of reconciling these diferent constraints, and it can therefore oscillate as diferent messages arrive that pull it in one direction or another. 
