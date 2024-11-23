@@ -7780,73 +7780,140 @@ The basis for our message passing algorithm is the cluster graph of definition 1
 We say that $\mathcal{U}$ satisfies the running intersection property if, w ever there is a variable $X$ such that $X\in C_{i}$ and $X\in C_{j},$ , then there is a single path between $C_{i}$ and $C_{j}$ for which $X\in S_{e}$ for all edges $e$ in the path. 
 
 > 定义
-> 对于一个簇图 $\mathcal U$，如果一个变量 $X$ 满足 $X\in \pmb C_i$ 和 $X\in \pmb C_j$，则 $\pmb C_i$ 和 $\pmb C_j$ 之间会有一条路径，满足对于路径中所有的边 $e$ 都有 $X\in \pmb S_e$，则称 $\mathcal U$ 满足运行相交性质
+> 对于一个簇图 $\mathcal U$，如果一个变量 $X$ 满足 $X\in \pmb C_i$ 和 $X\in \pmb C_j$，则 $\pmb C_i$ 和 $\pmb C_j$ 之间会有恰好一条路径，满足对于路径中所有的边 $e$ 都有 $X\in \pmb S_e$，则称 $\mathcal U$ 满足运行相交性质
 
 This generalized running intersection property implies that all edges associated with $X$ form a tree that spans all the clusters that contain $X$ . Thus, intuitively, there is only a single path by which information that is directly about $X$ can ﬂow in the graph. Both parts of this assumption are significant. The fact that some path must exist forces information about $X$ to ﬂow between all clusters that contain it, so that, in a calibrated cluster graph, all clusters must agree about the marginal distribution of $X$ . The fact that there is at most one path prevents information about $X$ from cycling endlessly in a loop, making our beliefs more extreme due to “cyclic arguments.” 
+> 这一广义的运行相交性质意味着和 $X$ 相关的所有边构成了一颗树，树中包含了所有包含 $X$ 的簇，因此，直观上图中仅存在一条路径使得和 $X$ 直接相关的信息可流过
+> 这个假设的两个方面都是重要的，必须存在某个路径这一事实迫使关于 $X$ 的信息在所有包含它的簇之间传递，所以，在校准的簇图中，所有簇都必须就 $X$ 的边缘分布达成一致；而最多只有一条路径的事实则防止了关于 $X$ 的信息在循环中无休止地循环，从而避免由于“循环论证”使我们的信念变得极端
+
 Importantly, however, since the graph is not necessarily a tree, the same pair of clusters might also be connected by other paths. For example, in the cluster graph of figure 11.3a, we see that the edges labeled with $B$ form a subtree that spans all the clusters that contain $B$ . However, there are loops in the graph. For example, there are two paths fro ${C_{3}}=\left\{{B,D,F}\right\}$ to $C_{2}=\{B,C,D\}$ . The first, through $C_{4}$ propagates information about B , and the second, through $C_{5}$ , propagates information about D . Thus, we can still get circular reasoning, albeit less directly than we would in a graph that did not satisfy the running intersection property; we return to this point in section 11.3.8. Note that while in the case of trees the definition of running intersection implied that $S_{i,j}=C_{i}\cap C_{j}$ , in a gra this e lity is no longer enf ed by the running intersection property. For example, cliques $C_{1}$ and $C_{2}$ in figure 11.3a have B in common, but $S_{1,2}=\{C\}$ . 
+> 重要的是，然而，由于图不一定是树结构，同一对簇也可能通过其他路径相连
+> 例如，在 figure11.3a 的簇图中，我们可以看到标记为 $B$ 的边形成了一个子树，该子树覆盖了所有包含 $B$ 的簇；然而，图中存在回路
+> 例如，从 ${\pmb C_{3}}=\{B,D,F\}$ 到 $\pmb C_{2}=\{B,C,D\}$ 有两个路径。第一个路径通过 $\pmb C_{4}$ 传播关于 $B$ 的信息，第二个路径通过 $\pmb C_{5}$ 传播关于 $D$ 的信息。因此，我们仍然可以得到循环推理，尽管不像在一个不满足运行交集性质的图中那样直接，我们在 11.3.8 节中会回到这一点
+> 需要注意的是，在树的情况下，运行交集的定义暗示 $\pmb S_{i,j}=\pmb C_{i}\cap \pmb C_{j}$，但在一般图中，这种关系不再由运行交集性质强制。例如，在图11.3a中，簇 $\pmb C_{1}$ 和 $\pmb C_{2}$ 有 $B$ 共同存在，但 $\pmb S_{1,2}=\{C\}$
+
 In clique trees, inference is performed by calibrating beliefs. In a cluster graph, we can also associate cluster $C_{i}$ with beliefs $\beta_{i}$ . We now say that a cluster graph is calibrated if for each calibrated cluster graph edge $(i{-}j)$ , connecting the clusters $C_{i}$ and $C_{j}$ , we have that 
 
 $$
-\sum_{C_{i}-S_{i,j}}\beta_{i}=\sum_{C_{j}-S_{i,j}}\beta_{j};
+\sum_{\pmb C_{i}-\pmb S_{i,j}}\beta_{i}=\sum_{\pmb C_{j}-\pmb S_{i,j}}\beta_{j};
 $$ 
-that is, the two clusters agree on the marginal of variables in $\boldsymbol{S}_{i,j}$ . Note that this defini- tion is weaker than cluster tree calibration, since the clusters do not necessarily agree on the joint marginal of all the variables they have in common, but only on those variables in the sepset. However, if a calibrated cluster graph satisfies the running intersection property, then the marginal of a variable $X$ is identical in all the clusters that contain it. 
+that is, the two clusters agree on the marginal of variables in $\boldsymbol{S}_{i,j}$ . Note that this definition is weaker than cluster tree calibration, since the clusters do not necessarily agree on the joint marginal of all the variables they have in common, but only on those variables in the sepset. However, if a calibrated cluster graph satisfies the running intersection property, then the marginal of a variable $X$ is identical in all the clusters that contain it. 
+> 团树中，推理是通过校准信念执行的；在簇图中，我们同样将簇 $\pmb C_i$ 和信念 $\beta_i$ 关联
+> 一个簇图如果满足图中每个由边 $(i-j)$ 相连的簇 $\pmb C_i, \pmb C_j$ 在的信念其分离集上的边际是相同的，就称该簇图是校准的
+> 该定义要弱于簇树校准，因为相邻的簇并不需要在它们所公有的所有变量上的边际保持一致，仅仅是在分离集中的变量
+   如果校准的簇图满足运行相交性质，那么变量 $X$ 的边际在所有包含它的簇中就是一致的
  
-How do we calibrate a cluster graph? Because calibration is a local property that relates adjoining clusters, we want to try to ensure that each cluster is sharing information with its 
- 
-neighbors. From the perspective of a single cluster $C_{i}$ , there is not much diference between a cluster graph and a cluster tree. The cluster is related to each neighboring cluster through an edge that conveys information on variables in the sepset. Thus, we can transmit information by simply having one cluster pass a message to the other. 
-However, a priori, it is not clear how we can execute a message passing algorithm over a loopy clustergraph. In particular, the sum-product calibration of algorithm 10.2 sends a message only when the sending clique is ready to transmit, that is, when all other incoming messages have been received. In the loopy cluster graph, initially, there is no cluster that has received any incoming messages. Thus, no cluster is ready to transmit, and the algorithm is deadlocked. However, in section 10.3, we showed that the two algorithms are actually equivalent; that is, any sequence of sum-product propagation steps can be emulated by the same sequence of belief- update propagation steps and leads to the same beliefs. In this transformation, we have that $\mu_{i,j}=\delta_{i\to j}\delta_{j\to i}$ . Thus, we can construct a “deadlock-free” variant of the sum-product message passing algorithm simply by initializing all messages $\delta_{i\to j}=\mathbf{1}$ . This initialization of the sum- product algorithm is equivalent to the standard initialization of the belief update algorithm, in which $\mu_{i,j}=\mathbf{1}$ . Importantly, in this variant of the sum-product algorithm, each cluster begins with all of the incoming messages initialized, and therefore it can send any of the outgoing messages at any time, without waiting for any other cluster. 
-cluster-graph belief propagation 
+How do we calibrate a cluster graph? Because calibration is a local property that relates adjoining clusters, we want to try to ensure that each cluster is sharing information with its neighbors. From the perspective of a single cluster $C_{i}$ , there is not much diference between a cluster graph and a cluster tree. The cluster is related to each neighboring cluster through an edge that conveys information on variables in the sepset. Thus, we can transmit information by simply having one cluster pass a message to the other. 
+> 如何校准簇图？
+> 校准性是一个局部性质，仅关联相邻的簇，故我们需要尝试保证每个簇都与其邻居共享信息
+> 从单个簇 $\pmb C_i$ 的角度来看，簇图和簇树没有不同，簇都和每个邻居簇通过边相连，边表达了分离集中变量的信息，因此我们同样可以经由一个个簇传递消息
+
+However, a priori, it is not clear how we can execute a message passing algorithm over a loopy cluster graph. In particular, the sum-product calibration of algorithm 10.2 sends a message only when the sending clique is ready to transmit, that is, when all other incoming messages have been received. In the loopy cluster graph, initially, there is no cluster that has received any incoming messages. Thus, no cluster is ready to transmit, and the algorithm is deadlocked. However, in section 10.3, we showed that the two algorithms are actually equivalent; that is, any sequence of sum-product propagation steps can be emulated by the same sequence of belief-update propagation steps and leads to the same beliefs. In this transformation, we have that $\mu_{i,j}=\delta_{i\to j}\delta_{j\to i}$ . Thus, we can construct a “deadlock-free” variant of the sum-product message passing algorithm simply by initializing all messages $\delta_{i\to j}=\mathbf{1}$ . This initialization of the sum-product algorithm is equivalent to the standard initialization of the belief update algorithm, in which $\mu_{i,j}=\mathbf{1}$ . Importantly, in this variant of the sum-product algorithm, each cluster begins with all of the incoming messages initialized, and therefore it can send any of the outgoing messages at any time, without waiting for any other cluster. 
+> 然而，从先验的角度来看，不清楚我们如何可以在一个循环簇图上执行消息传递算法，特别是，algorithm 10.2的和积校准方法仅在发送簇准备好传输时才发送消息，即当所有其他传入消息均已收到时。在循环簇图中，最初没有任何簇接收到传入消息，因此，没有簇准备好传输，算法陷入死锁状态
+> 在10.3节中，我们展示了这和积校准方法和信念更新方法这两个算法实际上是等价的；也就是说，任何和积传播步骤序列都可以通过相同的一系列信念更新传播步骤来模拟，并且结果相同。在这个转换中，我们有 $\mu_{i,j}=\delta_{i\to j}\delta_{j\to i}$
+> 因此，我们可以通过将所有消息初始化为 1，即 $\delta_{i\to j}=1$ ，来构造一个“无死锁”的和积消息传递算法变体。这种和积算法的初始化等同于信念更新算法的标准初始化，其中 $\mu_{i,j}={1}$。重要的是，在这种和积算法的变体中，每个簇开始时所有传入的消息都已经初始化，因此它可以随时发送任何传出消息，而不必等待其他簇
+
+![[PGM-Algorithm11.1.png]]
+
 Algorithm 11.1 shows the sum-product message passing algorithm for cluster graphs; other than the fact that the algorithm is applied to graphs rather than trees, the algorithm is identical to CTree-SP-Calibrate . In much the same manner, we can adapt CTree-BU-Calibrate to define a procedure CGraph-BU-Calibrate that operates over cluster graphs using belief-update message passing steps. Both of these algorithms are instances of a general class of algorithms called cluster-graph belief propagation , which passes messages over cluster graphs. 
-Before we continue, we note that cluster-graph belief propagation can be significantly cheaper than performing exact inference. A canonical example of a class of networks that is compactly representable yet hard for inference is the class of grid-structured Markov networks (such as the ones used in image analysis; see box 4. B). In these networks, each variable $A_{i,j}$ corresponds to a point on a two-dimensional grid. Each edge in this network corresponds to a potential between adjacent points on the grid, with $A_{i,j}$ connected to the four nodes $A_{i-1,j}$ , $A_{i+1,j}$ , 
-![](images/31a1d5ee9883947a021f5f620f572c41705f211c961d5176391b5db16be4b122.jpg) 
-Figure 11.5 An example of generalized cluster graph for a $3\times3$ grid network 
-$A_{i,j-1}$ , $A_{i,j+1}$ (except for nodes $A_{i,j}$ on the boundary of the grid); see figure 11.4. Such a network has only pairwise potentials, and hence it is very compactly represented. Yet, exact inference requires separating sets, which are as large as cutsets in the grid. Hence, in an $n\times n$ grid, exact computation is exponential in $n$ . 
+> Algorithm 11.1 展示了簇图上的和积消息传递算法；除了该算法应用于图形而非树之外，该算法与CTree-SP-Calibrate算法相同
+> 同样地，我们可以将 CTree-BU-Calibrate 调整为定义一个称为 CGraph-BU-Calibrate 的过程，它使用信念更新消息传递步骤在簇图上操作
+> 这两种算法都是一个称为簇图信念传播的通用算法类的实例，该算法类在簇图上传递消息
+
+Before we continue, we note that cluster-graph belief propagation can be significantly cheaper than performing exact inference. A canonical example of a class of networks that is compactly representable yet hard for inference is the class of grid-structured Markov networks (such as the ones used in image analysis; see box 4. B). In these networks, each variable $A_{i,j}$ corresponds to a point on a two-dimensional grid. Each edge in this network corresponds to a potential between adjacent points on the grid, with $A_{i,j}$ connected to the four nodes $A_{i-1,j}$ , $A_{i+1,j}$ ,  $A_{i,j-1}$ , $A_{i,j+1}$ (except for nodes $A_{i,j}$ on the boundary of the grid); see figure 11.4. Such a network has only pairwise potentials, and hence it is very compactly represented. Yet, exact inference requires separating sets, which are as large as cutsets in the grid. Hence, in an $n\times n$ grid, exact computation is exponential in $n$ . 
+> 在继续之前，要注意簇图信念传播可以显著比执行精确推断更经济
+> 一类网络的例子是紧凑表示但对推断困难的网络，例如网格结构的马尔可夫网人(如用于图像分析的网络；参见框4. B)，在这些网络中，每个变量 $A_{i,j}$ 对应于二维网格上的一个点。该网络中的每条边对应于网格上相邻点之间的势能函数，其中 $A_{i,j}$ 连接到四个节点 $A_{i-1,j}$、$A_{i+1,j}$、$A_{i,j-1}$、$A_{i,j+1}$  (边界上的节点 $A_{i,j}$ 除外)；参见 figure 11.4。这样的网络只有成对的二元势函数，因此表示十分紧凑
+> 然而，精确推断需要分离集合，其大小与网格中的割集一样大，因此，在 $n \times n$ 网格中，精确计算的时间复杂度是关于 $n$ 的指数级
+
 However, we can easily create a generalized cluster graph for grid networks that directly corresponds to the factors in the network. In this cluster graph, each cluster represents beliefs over two neighboring grid variables, and each cluster has a small number of adjoining edges that connect it to other clusters that share one of the two variables. See figure 11.5 for an example for a small $3\times3$ grid. (Note that there are several ways of constructing such a cluster graph; this figure represents one reasonable choice.) A round of propagations in the generalized cluster graph is linear in the size of the grid (quadratic in $n$ ). 
+> 然而，我们可以很容易地为网格网络创建一个广义的簇图，该簇图直接对应于网络中的因子。在这个簇图中，每个簇代表两个相邻网格变量的上的信念，并且每个簇有少量相邻的边将其连接到共享这两个变量之一的其他簇
+> 图11.5展示了一个小型 $3 \times 3$ 网格的示例。（注意，构建这样的簇图有多种方法；此图代表一种合理的选择），广义簇图中一轮传播的计算量与网格的大小线性相关（在 $n$ 的平方级别）
+
 ### 11.3.3 Properties of Cluster-Graph Belief Propagation 
-What can we say about the properties and guarantees provided by cluster-graph belief propa- gation? We now consider some of the ramifications of the “mechanical” operation of message passing in the graph. Later, when we discuss cluster-graph belief propagation as an optimization procedure, we will revisit this question from a diferent perspective. 
+What can we say about the properties and guarantees provided by cluster-graph belief propagation? We now consider some of the ramifications of the “mechanical” operation of message passing in the graph. Later, when we discuss cluster-graph belief propagation as an optimization procedure, we will revisit this question from a diferent perspective. 
+
 #### 11.3.3.1 Reparameterization 
-reparameteriza- tion 
-cluster graph invariant 
-Recall that in section 10.2.3 we showed that belief propagation maintains an invariant property. This allowed us to show that the convergence point represents a re parameter iz ation of the original distribution. We can directly extend this property to cluster graphs, resulting in a cluster graph invariant . 
-Let $\mathcal{U}$ be a generalized cluster graph over a set of factors $\Phi$ . Consider the set of beliefs $\{\beta_{i}\}$ and sepsets $\{\mu_{i,j}\}$ at any iteration of CGraph-BU-Calibrate ; then 
+Recall that in section 10.2.3 we showed that belief propagation maintains an invariant property. This allowed us to show that the convergence point represents a reparameterization of the original distribution. We can directly extend this property to cluster graphs, resulting in a cluster graph invariant . 
+> section 10.2.3 中，我们证明了信念传播维护了一个不变性，该不变性最后引出的结论是算法的收敛点本质是原分布的一个重参数化
+> 该性质可以延伸到簇图，即簇图不变性
+
+**Theorem 11.4**
+Let $\mathcal{U}$ be a generalized cluster graph over a set of factors $\Phi$ . Consider the set of beliefs $\{\beta_{i}\}$ and sepsets $\{\mu_{i,j}\}$ at any iteration of CGraph-BU-Calibrate ; then
+
 $$
-\tilde{P}_{\Phi}(\mathcal{X})=\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\beta_{i}[C_{i}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\mu_{i,j}[S_{i,j}]}.
+\tilde{P}_{\Phi}(\mathcal{X})=\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\beta_{i}[\pmb C_{i}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\mu_{i,j}[\pmb S_{i,j}]}.
 $$ 
-where $\begin{array}{r}{\tilde{P}_{\Phi}(\mathcal{X})=\prod_{\phi\in\Phi}\phi}\end{array}$ is the unnormalized distribution defined by $\Phi$ . ∈ Proof Recall that $\begin{array}{r}{\beta_{i}=\psi_{i}\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\rightarrow i}}\end{array}$ Q and that $\mu_{i,j}=\delta_{j\to i}\delta_{i\to j}$ . We now have ∈ $\begin{array}{r c l}{\displaystyle\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\beta_{i}[C_{i}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\mu_{i,j}[S_{i,j}]}}&{=}&{\displaystyle\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\psi_{i}[C_{i}]\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\to i}[S_{i,j}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\delta_{j\to i}[S_{i,j}]\delta_{i\to j}[S_{i,j}]}}\\ &{=}&{\displaystyle\prod_{i\in\mathcal{V}_{\mathcal{U}}}\psi_{i}[C_{i}]}\\ &{=}&{\displaystyle\prod_{\phi\in\Phi}\phi(\boldsymbol{U}_{\phi})=\tilde{P}_{\Phi}(\mathcal{X}).}\end{array}$ 
+where $\begin{array}{r}{\tilde{P}_{\Phi}(\mathcal{X})=\prod_{\phi\in\Phi}\phi}\end{array}$ is the unnormalized distribution defined by $\Phi$ . 
+> 定理
+> $\mathcal U$ 为因子集合 $\Phi$ 上的推广的簇图，算法 CGrph-BU-Calibrate 中的任意迭代中，由 $\Phi$ 定义的未规范化的分布 $\tilde P(\mathcal X) = \prod_{\phi \in \Phi}\phi$ 都满足以上的式子
+
+Proof Recall that $\begin{array}{r}{\beta_{i}=\psi_{i}\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\rightarrow i}}\end{array}$ and that $\mu_{i,j}=\delta_{j\to i}\delta_{i\to j}$ . We now have
+
+$$\begin{array}{r c l}{\displaystyle\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\beta_{i}[\pmb C_{i}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\mu_{i,j}[\pmb S_{i,j}]}}&{=}&{\displaystyle\frac{\prod_{i\in\mathcal{V}_{\mathcal{U}}}\psi_{i}[\pmb C_{i}]\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\to i}[\pmb S_{i,j}]}{\prod_{(i-j)\in\mathcal{E}_{\mathcal{U}}}\delta_{j\to i}[\pmb S_{i,j}]\delta_{i\to j}[\pmb S_{i,j}]}}\\ &{=}&{\displaystyle\prod_{i\in\mathcal{V}_{\mathcal{U}}}\psi_{i}[\pmb C_{i}]}\\ &{=}&{\displaystyle\prod_{\phi\in\Phi}\phi(\boldsymbol{U}_{\phi})=\tilde{P}_{\Phi}(\mathcal{X}).}\end{array}$$
+
 Note that the second step is based on the fact that each message $\delta_{i\to j}$ appears exactly once in the numerator and the denominator and thus can be canceled. 
 
-This property shows that cluster-graph belief propagation preserves all of the informa- tion about the original distribution. In particular, it does not “dilute” the original factors by performing propagation along loops. Hence, we can view the process as trying to represent the original factors anew in a more useful form. 
-11.3.3.2 Tree Consistency 
+**This property shows that cluster-graph belief propagation preserves all of the information about the original distribution. In particular, it does not “dilute” the original factors by performing propagation along loops. Hence, we can view the process as trying to represent the original factors anew in a more useful form.** 
+> 该性质说明了簇图信念传播保持了原分布的所有信息，特别地，它不会通过在环路上进行传播而“稀释”原始因子
+> 因此，我们可以将这个过程视为试图以更有用的形式重新表示原始因子
+
+#### 11.3.3.2 Tree Consistency 
 Recall that theorem 10.4 implies that, in a calibrated cluster tree, the belief over a cluster is the marginal of the distribution. Thus, in a calibrated cluster tree, we can “read of” the marginals of $P_{\Phi}$ locally from clusters that contain them. More precisely, by normalizing the beliefs factor $\beta_{i}$ (so that it sums to 1), we get the marginal distribution over $C_{i}$ . An obvious question is whether a corresponding property holds for cluster-graph belief propagation. Suppose we manage to calibrate a generalized cluster graph and normalize the resulting beliefs; do we have an interpretation for the beliefs in each cluster? 
+> 在校准的簇树中，每个簇上的(规范化的)信念 $\beta_i$ 都是一个 $\pmb C_i$ 上的边际 
+> 我们考虑簇图是否有类似的性质
+
 As we saw in our simple example (figure 11.2), the beliefs we compute by BU-message are not necessarily marginals of $P_{\Phi}$ , but rather an approximation. Can we say anything about the quality of this approximation? To characterize the beliefs we get at the end of the process, we can use the cluster tree invariant property applied to subtrees of a cluster graph. 
-Consider a subtree $\mathcal{T}$ of $\mathcal{U}$ ; that is, a subset of clusters and edges that together form a tree that satisfies the running intersection property. For example, consider the cluster graph of figure 11.1c. If we remove one of the clusters and its incident edges, we are left with a proper cluster tree. Note that the running intersection property is not necessarily as easy to achieve in general, since removing some edges from the cluster graph may result in a graph that violates the running intersection property relative to a variable, necessitating the removal of additional edges, and so on. Once we select a tree $\mathcal{T}$ , we can think of it as defining a distribution 
+> 我们知道 BU-message 计算的信念并不是 $P_\Phi$ 的边际，而是对其的近似
+> 能否确定该近似的质量？
+> 为了确定我们最后得到的信念的性质，我们将簇树不变性应用到簇图中的一个子树
+
+Consider a subtree $\mathcal{T}$ of $\mathcal{U}$ ; that is, a subset of clusters and edges that together form a tree that satisfies the running intersection property. For example, consider the cluster graph of figure 11.1c. If we remove one of the clusters and its incident edges, we are left with a proper cluster tree. Note that the running intersection property is not necessarily as easy to achieve in general, since removing some edges from the cluster graph may result in a graph that violates the running intersection property relative to a variable, necessitating the removal of additional edges, and so on. 
+> 考虑 $\mathcal U$ 中的一个簇树 $\mathcal T$，它满足运行相交性质
+
+Once we select a tree $\mathcal{T}$ , we can think of it as defining a distribution 
+> 可以认为 $\mathcal T$ 定义了一个分布如下
+
 $$
-P_{\mathcal T}(\mathcal X)=\frac{\prod_{i\in\mathcal\nu_{\mathcal T}}\beta_{i}(C_{i})}{\prod_{(i-j)\in\mathcal E_{\mathcal T}}\mu_{i,j}[S_{i,j}]}.
+P_{\mathcal T}(\mathcal X)=\frac{\prod_{i\in\mathcal\nu_{\mathcal T}}\beta_{i}(\pmb C_{i})}{\prod_{(i-j)\in\mathcal E_{\mathcal T}}\mu_{i,j}[\pmb S_{i,j}]}.
 $$ 
 If the cluster graph is calibrated, then by definition so is $\mathcal{T}$ . And so, because $\mathcal{T}$ is a tree that satisfies the running intersection property, we can apply theorem 10.4, and we conclude that 
+> 如果簇图是校准的，则树也是校准的，则根据定理 10.4，有
+
 $$
-\beta_{i}(C_{i})=P_{\mathcal{T}}(C_{i}).
-$$ 
-tree consistency That is, the beliefs over $C_{i}$ in the tree are the marginal of $P_{\mathcal{T}}$ , a property called tree consistency . 
+\beta_{i}(\pmb C_{i})=P_{\mathcal{T}}(\pmb C_{i}).\tag{11.11}
+$$  
+That is, the beliefs over $C_{i}$ in the tree are the marginal of $P_{\mathcal{T}}$ , a property called tree consistency . 
+> 即 $\pmb C_i$ 上的信念是 $P_{\mathcal T}$ 的边际，该性质称为树一致性
+
 As a concrete example, consider the cluster graph of figure 11.1c. Removing the cluster $C_{4}=\{A,D\}$ , we are left with a proper cluster tree $\mathcal{T}$ . The preceding argument implies that once we have calibrated the cluster graph, we have $\beta_{1}(A,B)=P\tau(A,B)$ . This result suggests that $\beta_{1}(A,B)\,\neq\,P_{\Phi}(A,B)$ ; to show this formally, contrast equation (11.11) with theorem 11.4. We see that the tree distribution involves some of the terms that define the joint distribution. Thus, we can conclude that 
+
 $$
 P_{\mathcal{T}}(A,B,C,D)=P_{\Phi}(A,B,C,D)\frac{\mu_{3,4}[D]\mu_{1,4}[A]}{\beta_{4}(A,D)}.
 $$ 
 We see that unless $\beta_{4}(A,D)=\mu_{3,4}[D]\mu_{1,4}[A]$ , $P_{\mathcal{T}}$ will be diferent from $P_{\Phi}$ . This conclusion suggests that, in this example, the beliefs $\beta_{1}(A,B)$ in the calibrated cluster graph are not the marginal $P_{\Phi}(A,B)$ . 
+> 但 $P_{\mathcal T}$ 并不等于 $P_\Phi$，$\mathcal T$ 往往由 $\mathcal U$ 移除某个点以及和它相关的边得到，因此根据定理 11.4，$P_\Phi$ 和 $P_{\mathcal T}$ 之间往往还存在类似上式的计算关系
+> 因此，在校准的簇图中，信念 $\beta_i$ 是 $P_{\mathcal T}$ 的边际，却不是 $P_\Phi$ 的边际
+
 Clearly, we can apply the same type of reasoning using other subtrees of $\mathcal{U}$ . And so we reach the surprising conclusion that equation (11.11) must hold with respect to every cluster tree embedded in $\mathcal{U}$ . In our example, we n see that by removing a single cluster, we can construct three diferent trees that contain $C_{1}$ . The same beliefs $\beta_{1}(A,B)$ are the marginal of the three distributions defined by each of these trees. While these three distributions agree on the joint marginal of $A$ and $B$ , they can difer on the joint marginal distributions of other pairs of variables. 
-cluster graph residual 
+> 对于 $\mathcal U$ 中的每个子树，eq (11.11) 都会成立，也就是 $P_{\mathcal T}$ 在 $\pmb C_i$ 上的边际会等于 $\pmb C_i$ 的信念，尽管不同的 $\mathcal T$ 会定义不同的 $P_{\mathcal T}$，但它们在边际上达成一致
+
 Moreover, these subtrees allow us to get insight about the quality of the marginal distributions we read from the calibrated cluster graph. Consider our example again: we can use the residual term $\frac{\mu_{3,4}[D]\mu_{1,4}[A]}{\beta_{4}(A,D)}$ to analyze the error in the marginal distribution. In this simple example, this analysis is fairly straightforward (see exercise 11.4). 
+> 从校准的簇图中得到的信念相对于 $P_\Phi$ 中的边际有差异，其差异就类似于上个例子中的残差项 $\frac{\mu_{3,4}[D]\mu_{1,4}[A]}{\beta_{4}(A,D)}$ ，故我们使用残差项分析该误差
+
 In other cases, the analysis can be more complex. For example, suppose we want to find a subtree in the cluster graph for a grid (e.g., figure 11.5). To construct a tree, we must remove a nontrivial number of clusters. More precisely, because each cluster corresponds to an edge in the grid, a cl ee corresponds to a subtree of the grid. For an $n\times n$ grid, such a tree will have at most $n^{2}-1$ − edges of the $2n(n-1)$ edges in the grid. Thus, each cluster tree contains about half of the clusters in the original cluster graph. In such a situation the residual term is more complex, and we cannot necessarily evaluate it. 
-### 11.3.4 Analyzing Convergence $\star$ 
+> 在其他情况下，分析可能会更加复杂。例如，假设我们要在簇图中找到一个子树（例如，图11.5）。为了构建一棵树，我们必须移除一定数量的簇。更精确地说，因为每个簇对应于网格中的一条边，所以一个簇树对应于网格的一个子树。对于一个 $n \times n$ 的网格，这样的树最多将包含 $2n(n-1)$ 条边中的 $n^2-1$ 条边。因此，每个簇树大约包含原簇图中一半的簇。在这种情况下，残差项更为复杂，我们不能总是对其进行评估。
+
+### 11.3.4 Analyzing Convergence\*
 A key question regarding the belief propagation algorithm is whether and when it converges. Indeed, there are many networks for which belief propagation does not converge; see box 11.C. 
 Although we cannot hope for convergence in all cases, it is important to understand when this algorithm does converge. We know that if the cluster graph is a tree then the algorithm will converge. Can we find other classes of cluster graphs for which we can prove convergence? 
-synchronous BP 
-BP operator 
+
 One method of analyzing convergence is based on the following important perspective on belief propagation. This analysis is easier to perform on a variant of BP called synchronous $B P$ that performs all of the message updates simultaneously. Consider the update step that takes all of the messages $\delta^{t}$ at a particular iteration $t$ and produces a new set of messages $\delta^{t+1}$ for the next step. Letting $\Delta$ be the space of all possible messages in the cluster graph, we can view the belief-propagation update operator as a function $G_{B P}\ :\ \Delta\mapsto\Delta$ 7→ . Consider the standard sum-product message update: 
+
 $$
 \delta_{i\rightarrow j}^{\prime}\propto\sum_{C_{i}-S_{i,j}}\psi_{i}\cdot\prod_{k\in(\mathrm{Nb}_{i}-\{j\})}\delta_{k\rightarrow i},
 $$ 
 where we normalize each message to sum to 1; this renormalization step is essential to avoid a degenerate convergence to the 0 message. We can now define the $B P$ operator as the function that simultaneously takes one set of messages and computes a new one: 
+
 $$
 G_{B P}(\{\delta_{i\to j}\})=\{\delta_{i\to j}^{\prime}\}.
 $$ 
@@ -7854,6 +7921,7 @@ The question of convergence of the algorithm now reduces to one of asking whethe
 One interesting, albeit strong, condition that guarantees convergence is the contraction prop- erty : 
 Definition 11.3 contraction 
 For a number $\alpha\in[0,1)$ operator $G$ ric space $(\Delta,D(;))$ is an $\alpha$ - contraction relative to the distance function I $D(;)$ if, for any δ $\delta,\delta^{\prime}\in\Delta$ , we have that: 
+
 $$
 D(G(\delta);G(\delta^{\prime}))\leq\alpha D(\delta;\delta^{\prime}).
 $$ 
@@ -7861,97 +7929,135 @@ In other words, an operator is a contraction if its application to two points in
 A basic result in analysis shows that, under fairly weak conditions, if an operator $G$ is a contraction, we have that repeated applications of $G$ are guaranteed to converge to a unique fixed point: 
 Proposition 11.2 fixed-point 
 Let $G$ be an $\alpha$ -contraction of a complete metric space $(\Delta,D(;))$ . Then there is a unique fixed-point $\delta^{*}$ for which $G(\delta^{*})=\delta^{*}$ . Moreover, for any $\delta$ , we have that 
+
 $$
 \operatorname*{lim}_{n\to\infty}G^{n}(\delta)=\delta^{*}.
 $$ 
 The proof is left as an exercise (exercise 11.5). 
 Indeed, the contraction rate $\alpha$ can be used to provide bounds on the rate of convergence of the algorithm to its unique fixed point: To reach a point that is guaranteed to be within $\epsilon$ of $\delta^{*}$ , it sufces to apply $G$ the following number of times: 
+
 $$
 \log_{\alpha}{\frac{\epsilon}{\mathrm{diameter}(\Delta)}},
 $$ 
 where diameter $\begin{array}{r}{\cdot(\Delta)=\operatorname*{max}_{\delta,\delta^{\prime}\in\Delta}D(\delta;\delta^{\prime})}\end{array}$ . 
 Applying this analysis to the operator $G$ induced by the belief-propagation message update is far from trivial. This operator is complex and nonlinear, because it involves both multiplying messages and a renormalization step. A review of these analyses is outside the scope of this book. At a high level, these results show that if the factors in the network are fairly “smooth,” one can guarantee that the synchronous BP operator is a contraction and hence converges to a unique fixed point. We describe one of the simplest of these results, in order to give a ﬂavor for this type of analysis. 
-This analysis applies to synchronous loopy belief propagation over a pairwise Markov network with two-valued random variables $X_{i}\,\in\,\{-1,+1\}\quad$ . Specifically, we assume that the network model is parameterized as follows: 
+This analysis applies to synchronous loopy belief propagation over a pairwise Markov network with two-valued random variables $X_{i}\,\in\,\{-1,+1\}\quad$ . Specifically, we assume that the network model is parameterized as follows:
+
 $$
 P(x_{1},.\,.\,,x_{n})=\frac{1}{Z}\exp\left(\sum_{(i,j)}\epsilon_{i,j}(x_{i},x_{j})+\sum_{i}\epsilon_{i}(x_{i}),\right),
 $$ 
 where we assume for simplicity of notation that $\epsilon_{i,j}=0$ when $X_{i}$ and $X_{j}$ are not neighbors in the network. 
 hyperbolic tangent 
 We begin by introducing some notation. The hyperbolic tangent function is defined as: 
+
 $$
 \operatorname{tanh}(w)={\frac{e^{w}-e^{-w}}{e^{w}+e^{-w}}}={\frac{e^{2w}-1}{e^{2w}+1}}.
 $$ 
 The hyperbolic tangent has a shape very similar to the sigmoid function of figure 5.11a. The following condition can be shown to sufce for $G_{B P}$ to be a contraction, and hence for the convergence of belief propagation to a unique fixed point: 
+
 $$
 \operatorname*{max}_{i}\operatorname*{max}_{j\in\mathrm{Nb}_{i}}\sum_{k\in\mathrm{Nb}_{i}-\{j\}}\operatorname{tanh}{|\epsilon_{k,i}|}<1.
 $$ 
 Intuitively, this expression measures the total extent to which $i$ ’s neighbors other than $j$ can inﬂuence the message from $i$ to $j$ . The larger the magnitude of the parameters in the network, the larger this sum. 
 The analysis of the more general case is significantly more complex but shares the same intuitions. At a very high level, if we can place strong bounds on the skew of the parameters in a factor: 
+
 $$
 \operatorname*{max}_{\pmb{x},\pmb{x}^{\prime}}\phi(\pmb{x})/\phi(\pmb{x}^{\prime}),
 $$ 
 we can guarantee convergence of belief propagation. Intuitively, the lower the skew of the factors in our network, the more each message update “smoothes out” diferences between entries in the messages, and therefore also makes diferent messages more similar to each other. 
+
 While the conditions that underlie these theorems are usually too stringent to hold in practice, this analysis does provide useful insight. First, it suggests that networks with potentials that are closer to deterministic are more likely to have problems with convergence, an observation that certainly holds in practice. Second, although global contraction throughout the space is a very strong assumption, a contraction property in a region of the space may be plausible, guaranteeing convergence of the algorithm if it winds up (or is initialized) in this region. These results and their ramifications are only now being explored. 
+
 ### 11.3.5 Constructing Cluster Graphs 
-So far, we have taken the cluster graph to be given. However, the choice of cluster graph is generally far from obvious, and it can make a significant diference to the algorithm. Recall that, even in exact inference, more than one clique tree can be used to perform inference for a given distribution. However, while these diferent trees can vary in their computational cost, they all give rise to the same answers. In the case of cluster graph approximations, diferent 
-graphs can lead to very diferent answers. Thus, when selecting a cluster graph, we have to consider trade-ofs between cost and accuracy, since cluster graphs that allow fast propagation might result in a poor approximation. 
-It is important to keep in mind that the structure of the cluster graph determines the prop- agation steps the algorithm can perform, and thus dictate what type of information is passed during the propagations. These choices directly inﬂuence the quality of the results. 
-Example 11.1 Consider, for examp the cluster graphs $\mathcal{U}_{1}$ $\mathcal{U}_{2}$ of figure 11.3a and figure 11.3b. Both a fairl imilar, yet in U $\mathcal{U}_{2}$ the ed between $C_{1}$ and $C_{2}$ involves the mar al distribution over B and C . On the other hand, in U $\mathcal{U}_{1}$ , we propagate the margin only er C . Intuitively, we expect inference in $\mathcal{U}_{2}$ to better capture the dependencies between $B$ and $C$ . For , assu that the potential of $C_{1}$ intro es strong cor ations between B d C (say $B\,=\,C.$ ). In U $\mathcal{U}_{2}$ , this correlation is conveyed $C_{2}$ directly. In U $\mathcal{U}_{1}$ , t marginal on C is conveyed on the edge (1 – 2) , while the marginal on B is conveyed through $C_{4}$ . In this case, the strong dependency between the two variables is lost. In particular, if the marginal on $C$ is difuse (close to uniform), then the message $C_{1}$ sends to $C_{4}$ will also have a uniform distribution on $B$ , and from $C_{2}\mathit{\dot{s}}$ perspective the messages on $B$ and $C$ will appear as two independent variables. 
-On the other hand, if we introduce many messages between clusters or increase the scope of these messages, we run the risk of constructing a tree that violates the running intersection property. And so, we have to worry about methods that ensure that the resulting structure is a proper cluster graph. We now consider several approaches for constructing cluster graphs. 
+So far, we have taken the cluster graph to be given. However, the choice of cluster graph is generally far from obvious, and it can make a significant diference to the algorithm. Recall that, even in exact inference, more than one clique tree can be used to perform inference for a given distribution. However, while these diferent trees can vary in their computational cost, they all give rise to the same answers. **In the case of cluster graph approximations, diferent graphs can lead to very diferent answers. Thus, when selecting a cluster graph, we have to consider trade-ofs between cost and accuracy, since cluster graphs that allow fast propagation might result in a poor approximation.** 
+> 精确推理中，对于给定的分布，我们可以使用不同的团树进行推理，其计算开销不同，但最后结果相同
+> 近似推理中，因为使用簇图推理也只是得到近似解，因此不同的图会导致不同的答案，我们在选择时需要考虑开销和准确率之间的 trade-off，可以快速传播的图可能近似效果很差
+
+It is important to keep in mind that the structure of the cluster graph determines the propagation steps the algorithm can perform, and thus dictate what type of information is passed during the propagations. These choices directly inﬂuence the quality of the results. 
+> 簇图的结构决定了算法执行传播的步骤，因此决定了在传播中哪些类型的信息会被传递，这会直接影响结果的质量
+
+Example 11.1 
+Consider, for examp the cluster graphs $\mathcal{U}_{1}$ $\mathcal{U}_{2}$ of figure 11.3a and figure 11.3b. Both a fairl imilar, yet in U $\mathcal{U}_{2}$ the ed between $C_{1}$ and $C_{2}$ involves the mar al distribution over B and C . On the other hand, in U $\mathcal{U}_{1}$ , we propagate the margin only er C . Intuitively, we expect inference in $\mathcal{U}_{2}$ to better capture the dependencies between $B$ and $C$ . For , assu that the potential of $C_{1}$ intro es strong cor ations between B d C (say $B\,=\,C.$ ). In U $\mathcal{U}_{2}$ , this correlation is conveyed $C_{2}$ directly. In U $\mathcal{U}_{1}$ , t marginal on C is conveyed on the edge (1 – 2) , while the marginal on B is conveyed through $C_{4}$ . In this case, the strong dependency between the two variables is lost. In particular, if the marginal on $C$ is difuse (close to uniform), then the message $C_{1}$ sends to $C_{4}$ will also have a uniform distribution on $B$ , and from $C_{2}\mathit{\dot{s}}$ perspective the messages on $B$ and $C$ will appear as two independent variables. 
+
+On the other hand, if we introduce many messages between clusters or increase the scope of these messages, we run the risk of constructing a tree that violates the running intersection property. And so, we have to worry about methods that ensure that the resulting structure is a proper cluster graph. We now consider several approaches for constructing cluster graphs.
+> 另一方面，如果我们引入许多簇之间的消息或者增加这些消息的范围，我们就有可能构建一个违反运行相交属性的树
+> 因此，我们需要关注确保最终结构是一个合适的簇图的方法，我们现在考虑几种构建簇图的方法
+
 #### 11.3.5.1 Pairwise Markov Networks 
-pairwise Markov networks 
 We start with the class of pairwise Markov networks . In these networks, we have a univariate potential $\phi_{i}[X_{i}]$ over each variable $X_{i}$ , and in addition a pairwise potential $\phi_{(i, j)}[X_{i}, X_{j}]$ over some pairs of variables. These pairwise potentials correspond to edges in the Markov network. Many problems are naturally formulated as pairwise Markov networks, including the grid networks we discussed earlier and Boltzmann distributions (see box 4. C). Indeed, if we are willing to transform our variables, any distribution can be reformulated as a pairwise Markov network (see exercise 11.10). 
-One straightforward transformation of such a network into a cluster graph is as follows: For each potential, we introduce a corresponding cluster, and put edges between the clusters that have overlapping scope. In other words, there is an edge between the cluster $C_{(i, j)}$ that corresponds to the edge $X_{i}{-}X_{j}$ and the clusters $C_{i}$ and $C_{j}$ that correspond to the univariate factors over $X_{i}$ and $X_{j}$ . Figure 11.6 illustrates this construction in the case of a 3 by 3 grid network. 
-Because there is a direct correspondence between the clusters in the cluster graphs and vari- 
-![](images/c4c7e85612aadc64c8f5198213afd7e69fd2108f5ceb76abd662e1c526ba450d.jpg) 
-Figure 11.6 A generalized cluster graph for the $3\times3$ grid when viewed as pairwise MRF 
-loopy belief propagation ables or edges in the original Markov network, it is often convenient to think of the propagation steps as operations on the original network. Moreover, since each pairwise cluster has only two neighbors, we consider two propagation steps along the path $C_{i}{-}C_{(i, j)}{-}C_{j}$ as propagating information between $X_{i}$ and $X_{j}$ . (See exercise 11.9.) Indeed, early versions of cluster-graph be- lief propagation were stated in these terms. This algorithm is known as loopy belief propagation , since it uses propagation steps used by algorithms for Markov trees, except that it was applied to networks with loops. 
+> 考虑成对 Markov 网络，这类网络在每个变量 $X$ 上有单变量势能 $\phi_i[X_i]$，在某些变量上有成对势能 $\phi_{(i, j)}[X_i, X_j]$，这些成对势能对应于 Markov 网络中的边
+> 许多问题自然构成了成对 Markov 网络，包括网格网络和 Boltzmann 分布
+> 如果我们愿意转化我们的变量，任意分布都可以重构为一个成对 Markov 网络
+
+One straightforward transformation of such a network into a cluster graph is as follows: For each potential, we introduce a corresponding cluster, and put edges between the clusters that have overlapping scope. In other words, there is an edge between the cluster $\pmb C_{(i, j)}$ that corresponds to the edge $X_{i}{-}X_{j}$ and the clusters $\pmb C_{i}$ and $\pmb C_{j}$ that correspond to the univariate factors over $X_{i}$ and $X_{j}$ . Figure 11.6 illustrates this construction in the case of a 3 by 3 grid network. 
+> 将这类网络转化为簇图的一个直接方式就是将为每个势能引入一个对应的簇，然后在具有相交作用域的簇之间添加边
+> 换句话说，簇 $\pmb C_{(i, j)}$ 对应于边 $X_i - X_j$，簇 $\pmb C_i$ 和 $\pmb C_j$ 对应于 $X_i, X_j$ 上的单变量势能，$\pmb C_{(i, j)}$ 和 $\pmb C_i, \pmb C_j$ 相连
+
+Because there is a direct correspondence between the clusters in the cluster graphs and variables or edges in the original Markov network, it is often convenient to think of the propagation steps as operations on the original network. Moreover, since each pairwise cluster has only two neighbors, we consider two propagation steps along the path $C_{i}{-}C_{(i, j)}{-}C_{j}$ as propagating information between $X_{i}$ and $X_{j}$ . (See exercise 11.9.) Indeed, early versions of cluster-graph belief propagation were stated in these terms. This algorithm is known as loopy belief propagation , since it uses propagation steps used by algorithms for Markov trees, except that it was applied to networks with loops. 
+> 这样构建的簇图中的簇和原来的 Markov 网络中的变量或边具有直接的对应关系，因此可以将传播步骤直接认为是在原来网络中的操作
+> 并且，因为每个成对簇仅有两个邻居，我们可以将沿着路径 $\pmb C_i - \pmb C_{(i, j)} - \pmb C_j$ 之间的两次传播步骤视为在 $X_i$ 和 $X_j$ 之间传播信息
+> 事实上，早期的簇图信念传播算法就是以这种方式表述的，该算法被称为循环信念传播，因为它将用于马尔可夫树算法的传播步骤应用于存在循环的网络中
+
 #### 11.3.5.2 Bethe Cluster Graph 
 A natural question is how we can extend this idea to networks that are more complex than pairwise Markov networks. Once we have larger potentials, they may overlap in ways that result in complex interactions among them. 
 Bethe cluster graph 
+> 考虑如何将从成对 Markov 网络构建簇图的思想拓展到更复杂的网络
+
 One simple construction, called the Bethe cluster graph , uses a bipartite graph. The first layer consists of “large” clusters, with one cluster for each factor $\phi$ in $\Phi$ , whose scope is $S c o p e[\phi]$ . These clusters ensure that we satisfy the family-preservation property. The second layer consists of “small” univariate clusters, one for each random variable. Finally, we place an edge between each univariate cluster $X$ on the second layer and each cluster in the first layer that includes $X$ ; the scope of this edge is $X$ itself. For a concrete example, see figure 11.7a. 
-We can easily verify that this cluster graph is a proper one. First, by construction, it satisfies the family preservation property. Second, the edges that mention a variable $X$ form a star- shaped subgraph with edges from the univariate cluster for $X$ to all the large clusters that contain $X$ . It is also easy to check that, if we apply this procedure to a pairwise Markov network, it results in the “natural” cluster graph for the pairwise network that we discussed. The construction of this cluster graph is simple and can easily be automated. 
-![](images/197ec18c6fc469fe59d99b56211b01a5b5e2150ac9153e4429b11b86547343d1.jpg) 
-Figure 11.7 Examples of generalized cluster graphs for network with potentials over $\{A, B, C\}$ , $\{B, C, D\},\,\{B, D, F\},\,\{B, E\}$ and $\{D, E\}$ . For visual clarity, sepsets have been omitted — the sepset between any pair of clusters is the intersection of their scopes. (a) Bethe factorization. (b) Capturing interactions between $\{A, B, C\}$ and $\{B, C, D\}$ . 
+> Bethe 簇图使用二部图，其第一层由 “大” 簇组成，每个簇对应于 $\Phi$ 中的一个因子 $\phi$，其作用域为 ${Scope}[\phi]$，这些簇保证我们构建的图满足族保持性质
+> 二部图的第二层由 “小” 的单变量簇构成，每个簇对应于一个随机变量，最后，如果第一层的簇关联的因子包含了第二层的簇关联的变量，就将二者相连，相连的边的作用域就是变量 $X$ 本身
+
+We can easily verify that this cluster graph is a proper one. First, by construction, it satisfies the family preservation property. Second, the edges that mention a variable $X$ form a star-shaped subgraph with edges from the univariate cluster for $X$ to all the large clusters that contain $X$ . It is also easy to check that, if we apply this procedure to a pairwise Markov network, it results in the “natural” cluster graph for the pairwise network that we discussed. The construction of this cluster graph is simple and can easily be automated. 
+> 我们可以轻松验证这个簇图是有效的。首先，根据构造，它满足族保持性质。其次，提到变量 $X$ 的边形成一个星形子图，该子图由 $X$ 的单变量簇到所有包含 $X$ 的大簇之间的边组成
+> 同样容易检查的是，如果我们将此过程应用于成对的马尔可夫网络，它将产生我们之前讨论的成对网络的“自然”簇图
+> 这种簇图的构造方式简单，可以轻松自动化实现
+ 
 #### 11.3.5.3 Beyond Marginal Probabilities 
-The main limitation of using the Bethe cluster graph is that information between diferent clusters in the top level is passed through univariate marginal distributions. Thus, interactions between variables are lost during propagations. Consider the example of figure 11.7a. Suppose that $C_{1}$ creates a strong dependency between $B$ and $C$ . These two variables are shared with $C_{2}$ . However, the messages between two clusters are mediated through the univariate factors. And thus, interactions introduced by one cluster are not directly propagated to the other. 
+The main limitation of using the Bethe cluster graph is that information between different clusters in the top level is passed through univariate marginal distributions. Thus, interactions between variables are lost during propagations. Consider the example of figure 11.7a. Suppose that $C_{1}$ creates a strong dependency between $B$ and $C$ . These two variables are shared with $C_{2}$ . However, the messages between two clusters are mediated through the univariate factors. And thus, interactions introduced by one cluster are not directly propagated to the other. 
+> Bethe 簇图的主要限制在于不同簇之间的信息在顶层是通过单变量边际分布传递的，故变量之间的交互在传播时丢失
+
 One possible solution is to merge some of the large clusters. For example, if we want to capture the interactions between $C_{1}$ and $C_{2}$ in figure 11.7a, we can replace both of them by a cluster with the score $A, B, C, D$ . This new cluster will allow us to capture the interactions between the factors involved in these two clusters. This modification, however, comes at a price, since the cost of manipulating a cluster grows exponentially with this scope. Moreover, this approach seems excessive in this case, since we can summarize these interactions simply using a distribution over $B$ and $C$ . This intuition suggests the construction of figure 11.7b. Note that this cluster graph is equivalent to figure 11.3b; see exercise 11.6. 
-Can we generalize this construction? A reasonable goal might be to capture all pairwise interactions. We can try to use a construction similar to the Bethe approximation, but in- troducing an intermediate level that includes pairwise clusters. In the same manner as we introduced $C_{12}$ in figure 11.7b, we can introduce other pairs that are shared by more than two clusters. As a concrete example, consider the factors $C_{1}=\{A, B, C\}$ , $C_{2}=\{B, C, D\}$ , and ${C_{3}}=\left\{{A, C, D}\right\}$ . The relevant pairwise factors that capture interactions among these clusters 
-![](images/09fb3e6f1a2e4d90831bd9350700f30bd986321559c2deaa663322045b826d9c.jpg) 
-Figure 11.8 Ex generalized cluster graph for network with potentials over $\{A, B, C\}$ , $\{B, C, D\},$ , and { $\{A, C, D\}$ } . For visual clarity, sepsets have been omitted — the sepset between any pair of clusters is the intersection of their scopes. (a) A Bethe-like factorization with pairwise marginals that leads to an illegal cluster graph. (b) One possible way to make this graph legal. 
-are $\{B, C\}=C_{1}\cap C_{2}$ , $\{C, D\}=C_{2}\cap C_{3}$ , and $\{A, C\}=C_{1}\cap C_{3}$ . The resulting cluster graph appears in figure 11.8a. Unfortunately, a quick check shows that this cluster graph does not satisfy the running intersection property — all the edges in this graph are labeled by $C$ , and together they form a loop. As a result, information concerning $C$ can propagate indefinitely around the loop, “overcounting” the efect of $C$ in the result. 
+> 一个可能的解决方法是合并一些 “大” 的簇，合并后的簇可以捕获其包含的簇相关的因子之间的交互
+> 但合并会增大簇的作用域，而操纵簇的开销是随着簇作用域大小指数增长的
+
+Can we generalize this construction? A reasonable goal might be to capture all pairwise interactions. We can try to use a construction similar to the Bethe approximation, but introducing an intermediate level that includes pairwise clusters. In the same manner as we introduced $C_{12}$ in figure 11.7b, we can introduce other pairs that are shared by more than two clusters. As a concrete example, consider the factors $C_{1}=\{A, B, C\}$ , $C_{2}=\{B, C, D\}$ , and ${C_{3}}=\left\{{A, C, D}\right\}$ . The relevant pairwise factors that capture interactions among these clusters are $\{B, C\}=C_{1}\cap C_{2}$ , $\{C, D\}=C_{2}\cap C_{3}$ , and $\{A, C\}=C_{1}\cap C_{3}$ . The resulting cluster graph appears in figure 11.8a. Unfortunately, a quick check shows that this cluster graph does not satisfy the running intersection property — all the edges in this graph are labeled by $C$ , and together they form a loop. As a result, information concerning $C$ can propagate indefinitely around the loop, “overcounting” the efect of $C$ in the result. 
+
 How do we avoid this problem? In this specific example, we can consider a weaker approx- imation by removing $C$ from one of the intersection sets. For example, if we remove $C$ from $C_{5}$ , we get the cluster graph of figure 11.8b. This cluster graph satisfies the running intersection property. An alternative approach tries to “compensate” somehow for the violation of the run- ning intersection property using a more complex message passing algorithm; see section 11.3.7.3. 
-belief propagation nonconvergence Box 11. B — Skill: Making loopy belief propagation work in practice. One of the main prob- lems with loopy belief propagation is nonconvergence . This problem is particularly serious when we build systems that use inference as a subroutine within other tasks, for example, as the inner loop of a learning algorithm (see, for example, section 20.5.1). Several approaches have been used for addressing this nonconvergence issue. Some are fairly simple heuristics. Others are more so- phisticated, and typically are based on the characterization of cluster-graph belief propagation as optimizing the approximate free-energy functional. 
+
+Box 11. B — Skill: Making loopy belief propagation work in practice. One of the main prob- lems with loopy belief propagation is nonconvergence . This problem is particularly serious when we build systems that use inference as a subroutine within other tasks, for example, as the inner loop of a learning algorithm (see, for example, section 20.5.1). Several approaches have been used for addressing this nonconvergence issue. Some are fairly simple heuristics. Others are more so- phisticated, and typically are based on the characterization of cluster-graph belief propagation as optimizing the approximate free-energy functional. 
 A first observation is that, often, nonconvergence is a local problem. In many practical cases, most of the beliefs in the network do converge, and only a small portion of the network remains problematic. In such cases, it is often quite reasonable simply to stop the algorithm at some point (for example, when some predetermined amount of time has elapsed) and use the beliefs at that point, or a running average of the beliefs over some time window. This heuristic is particularly reasonable when we are not interested in individual beliefs, but rather in some aggregate over the entire network, for example, in a learning setting. 
 A second observation is that nonconvergence is often due to oscillations in the beliefs (see sec- tion 11.3.1). This observation suggests that we dampen the oscillations by reducing the diference between two subsequent updates. Consider the belief-propagation update rule in SP-Message $(i, j)$ : 
+
 $$
 \delta_{i\rightarrow j}\leftarrow\sum_{C_{i}-S_{i, j}}\psi_{i}\prod_{k\neq j}\delta_{k\rightarrow i}.
 $$ 
 damping We can replace this line by $^a$ damped (or smoothed ) version that averages the update $\delta_{i\to j}$ with the previous message between the two cliques: 
+
 $$
 \delta_{i\to j}\leftarrow\lambda\left (\sum_{C_{i}-S_{i, j}}\psi_{i}\prod_{k\neq j}\delta_{k\to i}\right)+(1-\lambda)\delta_{i\to j}^{\mathrm{old}},
 $$ 
-stable convergence point 
-message scheduling 
-asynchronous BP tree reparameter- ization 
-residual belief propagation 
 where $\lambda$ is the damping weight and $\delta_{i\to j}^{\mathrm{old}}$ is the previous value of the message. When $\lambda\,=\, 1$ , → this update is equivalent to standard belief propagation. For $0\,<\,\lambda\,<\, 1$ , the update is partial and although it shifts $\beta_{j}$ toward agreement with $\beta_{i}$ , it leaves some momentum for the old value of the belief, a dampening efect that in turn reduces the ﬂuctuations in the beliefs. It turns out that this damped update rule is “equivalent” to the original update rule, in that a set of beliefs is a convergence point of the damped update if and only if it is a convergence point of standard updates (see exercise 11.13). Moreover, one can show that, if run from a point close enough to a stable convergence point of the algorithm, with a sufciently small $\lambda$ , this damped update rule is guaranteed to converge. Of course, this guarantee is not very useful in practice, but there are indeed many cases where the damped update rule is convergent, whereas the original update rule oscillates indefinitely. 
+
 A broader-spectrum heuristic, which plays an important role not only in ensuring convergence but also in speeding it up considerably, is intelligent message scheduling . It is tempting to implement BP message passing as a synchronous algorithm, where all messages are updated at once. It turns out that, in most cases, this schedule is far from optimal, both in terms of reaching convergence, and in the number of messages required for convergence. The latter problem is easy to understand: In a cluster graph with m edges, and diameter $d$ , synchronous message passing requires $m (d-1)$ messages to pass information from one side of the graph to the other. By contrast, asynchronous message passing, appropriately scheduled, can pass information between two clusters at opposite ends of the graph using $d-1$ messages. Moreover, the fact that, in synchronous message passing, each cluster uses messages from its neighbors that are based on their previous beliefs appears to increase the chances of oscillatory behavior and nonconvergence in general. 
+
 In practice, an asynchronous message passing schedule works significantly better than the synchronous approach. Moreover, even greater improvements can be obtained by scheduling messages in a guided way. One approach, called tree re parameter iz ation (TRP) , selects a set of trees, each of which spans a large number of the clusters, and whose union covers all of the edges in the network. The TRP algorithm then iteratively selects a tree and does an upward-downward calibration of the tree, keeping all other messages fixed. Of course, calibrating this tree has the efect of “uncalibrating” other trees, and so this process repeats. This approach has the advantage of passing information more globally within the graph. It therefore converges more often, and more quickly, than other asynchronous schedules, particularly if the trees are selected using a careful design that accounts for the properties of the problem. 
+
 An even more ﬂexible approach attempts to detect dynamically in which parts of the network messages would be most useful. Specifically, as we observed, often some parts of the network converge fairly quickly, whereas others require more messages. We can schedule messages in a way that accounts for their potential usefulness; for example, we can pass a message between clusters where the beliefs disagree most strongly on the sepset. This approach, called residual belief propagation is convenient, since it is fully general and does not require a deep understanding of the properties of the network. It also works well across a range of diferent real-world networks. 
+
 An alternative general-purpose approach to avoiding nonconvergence is to directly optimize the energy functional. Here, several methods have been proposed. The simplest is to use standard optimization methods such as gradient ascent to optimize $\tilde{F}[\tilde{P}_{\Phi}, Q]$ (see appendix A.5.2 and exercise 11.12). Other methods are more specialized to the form of the energy functional, and they often turn out to be more efcient (see section 11.7). Although these methods do improve convergence, they are somewhat complex to implement, and have not (at this time) been used extensively in practice. 
 It turns out that many of the parameter settings encountered during a learning algorithm are problematic, and cause cluster-graph belief propagation to diverge. Intuitively, in many real-world problems, “appropriate” parameters encode strong constraints that tend to drive the algorithm toward well-behaved regions of the space. However, the parameters encountered during an iterative learning procedure have no such properties, and often allow the algorithm to end up in difcult regions. One approach is to train some parameters of the model separately, using a simpler network. We then use these parameters as our starting point in the general learning procedure. The use of “reasonable” parameters in the model can stabilize BP, allowing it to converge within the context of the general learning algorithm. 
-local maxima 
+
 A final problem with cluster-graph belief propagation is the fact that the energy functional objective is multimodal, and so there are many local maxima to which a cluster-graph belief propagation algorithm might converge (if it converges). One can, of course, apply any of the standard approaches for addressing optimization of multimodal functions, such as initializing the algorithm heuristically, or using multiple restarts with diferent initializations. In the setting of $B P,$ initialization must be done with care, so as not to lose the connection to the correct underlying distribution $P_{\Phi}$ , as reﬂected by the invariant of theorem 11.4. In sum-product belief propagation, we can simply initialize the messages to something other than 1 . In belief update propagation, care must be taken to initialize messages and beliefs in a coordinate way, to preserve $P_{\Phi}$ . 
-Box 11. C — Case Study: BP in practice. To convey the behavior of belief propagation in practice, we demonstrate its performance on an $11\times11$ (121 binary variables) Ising grid (see box 4. C). The potentials of the network were randomly sampled as follows: Each univariate potential was sampled uniformly in the interval $[0,1]$ ; for each pair of variables $X_{i}, Z_{j},\, w_{i, j}$ is sampled uniformly in the range $[-C, C]$ (recall that in an Ising model, we define the negative log potential $\epsilon_{i, j}(x_{i}, x_{j})=
-$ $-w_{i, j}x_{i}x_{j}).$ . This sampling process creates an energy function where some potentials are attractive
+
+Box 11. C — Case Study: BP in practice. To convey the behavior of belief propagation in practice, we demonstrate its performance on an $11\times11$ (121 binary variables) Ising grid (see box 4. C). The potentials of the network were randomly sampled as follows: Each univariate potential was sampled uniformly in the interval $[0,1]$ ; for each pair of variables $X_{i}, Z_{j},\, w_{i, j}$ is sampled uniformly in the range $[-C, C]$ (recall that in an Ising model, we define the negative log potential $\epsilon_{i, j}(x_{i}, x_{j})= -w_{i, j}x_{i}x_{j}).$ . This sampling process creates an energy function where some potentials are attractive
  $(w_{i, j}\,>\, 0)$ and some are repulsive $(w_{i, j}\,<\, 0)$ , resulting in a nontrivial inference problem. The magnitude of $C$ (11 in this example) controls the magnitude of the energy forces and higher values correspond, on average, to more challenging inference problems. 
-Figure 11.C.1 illustrates the convergence behavior on this problem. Panel (a) shows the percentage of messages converged as a function of time for three variants of the belief propagation algorithm: synchronous BP with damping (dashed line), where only a small fraction of the messages ever converge; asynchronous BP with damping (smoothing) that converges (solid line); asynchronous $B P$ with no damping (dash-dot line) that does not fully converge. The benefit of using asynchronous propagation over synchronous updating is obvious. At first, it appears as if smoothing messages is not beneficial. This is because some percentage of messages can converge quickly when updates are 
-![](images/d3b0e195cf78230d96c39d65c022d8abd53b16a3e1db87d19c25248f89f69c08.jpg) 
-Figure 11.C.1 — Example of behavior of BP in practice on an ${\bf11}\times{\bf11}$ Ising grid. (a) Percentage of messages converged as a function of time for three diferent BP variants. (b) A marginal where both variants converge rapidly. (c–e) Marginals where the synchronous BP marginals oscillate around the asynchronous BP marginals. (f) A marginal where both variants are inaccurate. 
-not slowed down by smoothing. However, the overall benefit of damping is evident, and without it the algorithm never converges. 
+ 
+Figure 11.C.1 illustrates the convergence behavior on this problem. Panel (a) shows the percentage of messages converged as a function of time for three variants of the belief propagation algorithm: synchronous BP with damping (dashed line), where only a small fraction of the messages ever converge; asynchronous BP with damping (smoothing) that converges (solid line); asynchronous $B P$ with no damping (dash-dot line) that does not fully converge. The benefit of using asynchronous propagation over synchronous updating is obvious. At first, it appears as if smoothing messages is not beneficial. This is because some percentage of messages can converge quickly when updates are not slowed down by smoothing. However, the overall benefit of damping is evident, and without it the algorithm never converges. 
+
 The remaining panels illustrate the progression of the marginal beliefs over the course of the algorithm. (b) shows a marginal where both the synchronous and asynchronous updates converge quite rapidly and are close to the true marginal (thin solid black). Such behavior is atypical, and it comprises only around 10 percent of the marginals in this example. In the vast majority of the cases (almost 80 percent in this example), the synchronous beliefs oscillate around the asynchronous ones ((c)–(e)). In many cases, such as the ones shown in (e), the entropy of the synchronous beliefs is quite significant. For about 10 percent of the marginals (for example (f)), both the asynchronous and synchronous marginals are inaccurate. In these cases, using more informed message schedules can significantly improve the algorithms performance. 
+
 These qualitative diferences between the BP variants are quite consistent across many random and real-life models. Typically, the more complex the inference problem, the larger the gaps in performance. For very complex real-life networks involving tens of thousands of variables and multiple cycles, even asynchronous BP is not very useful and more elaborate propagation methods or convergent alternatives must be adopted. 
+
 ### 11.3.6 Variational Analysis 
 So far, our discussion of cluster-graph belief propagation has been procedural, motivated purely by similarity to message passing algorithms for cluster trees. Is there any formal justification for this approach? Is there a sense in which we can view this algorithm as providing an approxima- tion to the exact inference task? In this section, we show that cluster-graph belief propagation can be justified using the energy functional formulation of section 11.1. Specifically, the mes- sages passed by cluster-graph belief propagation can be derived from fixed-point equations for the stationary points of an approximate version of the energy functional of equation (11.3). As we will see, this formulation provides significant insight into the generalized belief propagation algorithm. It allows us to understand better the convergence properties of cluster-graph belief propagation and to characterize its convergence points. It also suggests generalizations of the algorithm that have better convergence properties, or that optimize a better approximation to the energy functional. 
 Our construction will be similar to the one in section 11.2 for exact inference. However, there are important diferences that underlie the fact that this algorithm is only an approximate inference algorithm. 
