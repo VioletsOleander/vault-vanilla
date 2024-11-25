@@ -1,3 +1,6 @@
+---
+completed: true
+---
 # Introduction
 This document gives coding conventions for the Python code comprising the standard library in the main Python distribution. Please see the companion informational PEP describing [style guidelines for the C code in the C implementation of Python](https://peps.python.org/pep-0007/ "PEP 7 – Style Guide for C Code").
 
@@ -899,138 +902,202 @@ f = lambda x: 2*x
     
 The first form means that the name of the resulting function object is specifically ‘f’ instead of the generic ‘ `<lambda>` ’. This is more useful for tracebacks and string representations in general. The use of the assignment statement eliminates the sole benefit a lambda expression can offer over an explicit def statement (i.e. that it can be embedded inside a larger expression)
 
+> 始终使用 `def` 语句而不是直接将 lambda 表达式绑定到标识符的赋值语句，换句话说，需要定义有名字的函数对象时，使用 `def` 语句而不是 lambda 表达式
+> 第一种形式意味着生成的函数对象的名称是特定的 “f”，而不是通用的“`<lambda>`”
+> 这在回溯和字符串表示方面更有用
+> 使用赋值语句消除了 lambda 表达式相对于显式的 `def` 语句所能提供的唯一好处(即它可以嵌入更大的表达式中)
+
 - Derive exceptions from `Exception` rather than `BaseException`. Direct inheritance from `BaseException` is reserved for exceptions where catching them is almost always the wrong thing to do.
     
     Design exception hierarchies based on the distinctions that code _catching_ the exceptions is likely to need, rather than the locations where the exceptions are raised. Aim to answer the question “What went wrong?” programmatically, rather than only stating that “A problem occurred” (see [PEP 3151](https://peps.python.org/pep-3151/ "PEP 3151 – Reworking the OS and IO exception hierarchy") for an example of this lesson being learned for the builtin exception hierarchy)
     
     Class naming conventions apply here, although you should add the suffix “Error” to your exception classes if the exception is an error. Non-error exceptions that are used for non-local flow control or other forms of signaling need no special suffix.
-    
+
+> 从 `Exception` 类中继承异常类，而不是从 `BaseException` 中继承，直接继承 `BaseException` 的异常类在设计上是不允许捕获的
+> 基于用于捕获异常的代码之间的差异来设计异常层次结构，而不是基于异常被抛出的位置，我们设计的异常需要在程序语义上回答“发生了什么错误”，而不是仅表明“出现了一个问题”
+> 异常类的命名遵循类的命名规范，如果异常是错误，应该添加后缀 `Error` ，用于非局部的流程控制或者其他形式的信号的非错误异常则没有特殊后缀要求
+
 - Use exception chaining appropriately. `raise X from Y` should be used to indicate explicit replacement without losing the original traceback.
     
     When deliberately replacing an inner exception (using `raise X from None`), ensure that relevant details are transferred to the new exception (such as preserving the attribute name when converting KeyError to AttributeError, or embedding the text of the original exception in the new exception message).
-    
+
+> 恰当使用异常链，`raise X from Y` 应该用于表示明确的替换，并且不会丢失原来的回溯信息
+> 当有意替换一个内部异常 (使用 `raise X from None` ) 时，确保将相关的细节都转移到新的异常中 (例如在将 KeyError 向 AttributeError 转换时保留属性名称，或在新异常的消息中嵌入原始异常的文本)
+
 - When catching exceptions, mention specific exceptions whenever possible instead of using a bare `except:` clause:
+
+```python
+try:
+    import platform_specific_module
+except ImportError:
+    platform_specific_module = None
+```
     
-    try:
-        import platform_specific_module
-    except ImportError:
-        platform_specific_module = None
+A bare `except:` clause will catch SystemExit and KeyboardInterrupt exceptions, making it harder to interrupt a program with Control-C, and can disguise other problems. If you want to catch all exceptions that signal program errors, use `except Exception:` (bare except is equivalent to `except BaseException:`).
+
+A good rule of thumb is to limit use of bare ‘except’ clauses to two cases:
     
-    A bare `except:` clause will catch SystemExit and KeyboardInterrupt exceptions, making it harder to interrupt a program with Control-C, and can disguise other problems. If you want to catch all exceptions that signal program errors, use `except Exception:` (bare except is equivalent to `except BaseException:`).
-    
-    A good rule of thumb is to limit use of bare ‘except’ clauses to two cases:
-    
-    1. If the exception handler will be printing out or logging the traceback; at least the user will be aware that an error has occurred.
-    2. If the code needs to do some cleanup work, but then lets the exception propagate upwards with `raise`. `try...finally` can be a better way to handle this case.
+1. If the exception handler will be printing out or logging the traceback; at least the user will be aware that an error has occurred.
+2. If the code needs to do some cleanup work, but then lets the exception propagate upwards with `raise`. `try...finally` can be a better way to handle this case.
+
+> 捕获异常时，尽可能提到具体的异常，而不是仅使用空的 `except:` 子句
+> 空的 `except:` 子句实际上等价于 `except BaseException:` ，它会捕获所有异常，包括 SystemExit 和 KeyboradInterrupt 异常，使得我们不容易直接通过 Ctrl-C 中断程序 (会被捕获)，并且可能会掩盖其他问题
+> 如果我们确实希望捕获所有表示程序错误的异常，使用 `except Exception:`
+> 一个很好的经验法则是，仅在以下两种情况有限地使用空的 `except:` 子句
+> 1. 异常处理程序会打印或记录回溯，至少用户会知道错误已发生
+> 2. 代码想要先做一些清理工作，然后再使用 `raise` 将异常向上抛出 (这种情况下使用 `try ... finally` 结构可能是更好的选择)
+
 - When catching operating system errors, prefer the explicit exception hierarchy introduced in Python 3.3 over introspection of `errno` values.
+> 在捕获操作系统错误时，优先使用 Python 3.3 引入的显式异常层次结构，而不是通过检查 `errno` 值来进行推测
+
 - Additionally, for all try/except clauses, limit the `try` clause to the absolute minimum amount of code necessary. Again, this avoids masking bugs:
-    
-    # Correct:
-    try:
-        value = collection[key]
-    except KeyError:
-        return key_not_found(key)
-    else:
-        return handle_value(value)
-    
-    # Wrong:
-    try:
-        # Too broad!
-        return handle_value(collection[key])
-    except KeyError:
-        # Will also catch KeyError raised by handle_value()
-        return key_not_found(key)
-    
+
+```python
+# Correct:
+try:
+    value = collection[key]
+except KeyError:
+    return key_not_found(key)
+else:
+    return handle_value(value)
+
+# Wrong:
+try:
+    # Too broad!
+    return handle_value(collection[key])
+except KeyError:
+    # Will also catch KeyError raised by handle_value()
+    return key_not_found(key)
+```
+
+> 此外，对于所有的 `try/except` 子句，`try` 子句中的代码量应尽量保持在绝对最小，这样做可以避免隐藏 bugs，详见上面的例子
+
 - When a resource is local to a particular section of code, use a `with` statement to ensure it is cleaned up promptly and reliably after use. A try/finally statement is also acceptable.
+>当资源仅限于代码的某个特定部分时，使用 `with` 语句以确保在使用后能够及时且可靠地进行清理，也可以使用 `try/finally` 语句
+
 - Context managers should be invoked through separate functions or methods whenever they do something other than acquire and release resources:
+
+```python
+# Correct:
+with conn.begin_transaction():
+    do_stuff_in_transaction(conn)
+
+# Wrong:
+with conn:
+    do_stuff_in_transaction(conn)
+```
     
-    # Correct:
-    with conn.begin_transaction():
-        do_stuff_in_transaction(conn)
-    
-    # Wrong:
-    with conn:
-        do_stuff_in_transaction(conn)
-    
-    The latter example doesn’t provide any information to indicate that the `__enter__` and `__exit__` methods are doing something other than closing the connection after a transaction. Being explicit is important in this case.
-    
+The latter example doesn’t provide any information to indicate that the `__enter__` and `__exit__` methods are doing something other than closing the connection after a transaction. Being explicit is important in this case.
+
+>  当上下文管理器所做的操作不仅仅是获取和释放资源时，应通过单独的函数或方法调用它们
+>  上例中，后一个示例没有提供任何信息来表明 `__enter__` 和 `__exit__` 方法在事务结束后除了关闭连接之外还做了其他事情，在这种情况下，明确表达是很重要的
+
 - Be consistent in return statements. Either all return statements in a function should return an expression, or none of them should. If any return statement returns an expression, any return statements where no value is returned should explicitly state this as `return None`, and an explicit return statement should be present at the end of the function (if reachable):
-    
-    # Correct:
-    
-    def foo(x):
-        if x >= 0:
-            return math.sqrt(x)
-        else:
-            return None
-    
-    def bar(x):
-        if x < 0:
-            return None
+
+```python
+#  Correct:
+
+def foo(x):
+    if x >= 0:
         return math.sqrt(x)
-    
-    # Wrong:
-    
-    def foo(x):
-        if x >= 0:
-            return math.sqrt(x)
-    
-    def bar(x):
-        if x < 0:
-            return
+    else:
+        return None
+
+def bar(x):
+    if x < 0:
+        return None
+    return math.sqrt(x)
+
+# Wrong:
+
+def foo(x):
+    if x >= 0:
         return math.sqrt(x)
-    
+
+def bar(x):
+    if x < 0:
+        return
+    return math.sqrt(x)
+```
+
+> 在返回语句上保持一致性
+> 在一个函数中，要么所有的返回语句都返回一个表达式，要么都不返回表达式
+> 如果其中的任意返回语句返回了表达式，则任意其他没有值需要返回的返回语句需要显式地写为 `return None` ，并且在函数的末尾 (如果可达的话) 也要有显式的返回语句
+
 - Use `''.startswith()` and `''.endswith()` instead of string slicing to check for prefixes or suffixes.
     
     startswith() and endswith() are cleaner and less error prone:
-    
-    # Correct:
-    if foo.startswith('bar'):
-    
-    # Wrong:
-    if foo[:3] == 'bar':
-    
+
+```python
+# Correct:
+if foo.startswith('bar'):
+
+# Wrong:
+if foo[:3] == 'bar':
+```
+
+> 使用 `''.startswith()/endswith()` 而不是字符串切片来检查前缀或后缀，这样更加整洁且不易错
+
 - Object type comparisons should always use isinstance() instead of comparing types directly:
     
-    # Correct:
-    if isinstance(obj, int):
-    
-    # Wrong:
-    if type(obj) is type(1):
-    
+```python
+# Correct:
+if isinstance(obj, int):
+
+# Wrong:
+if type(obj) is type(1):
+```
+
+> 对象类型的比较应该总是使用 `isinstance()` 而不是直接比较
+
 - For sequences, (strings, lists, tuples), use the fact that empty sequences are false:
     
-    # Correct:
-    if not seq:
-    if seq:
-    
-    # Wrong:
-    if len(seq):
-    if not len(seq):
-    
+```python
+# Correct:
+if not seq:
+if seq:
+
+# Wrong:
+if len(seq):
+if not len(seq):
+```
+
+> 多利用空序列表示 false 的性质
+
 - Don’t write string literals that rely on significant trailing whitespace. Such trailing whitespace is visually indistinguishable and some editors (or more recently, reindent.py) will trim them.
+> 不要编写依赖显著尾随空格的字符串字面量，这样的尾随空格在视觉上无法区分，并且一些编辑器 (或最近的 reindent.py) 会去除它们
+
 - Don’t compare boolean values to True or False using `==`:
     
-    # Correct:
-    if greeting:
-    
-    # Wrong:
-    if greeting == True:
-    
-    Worse:
-    
-    # Wrong:
-    if greeting is True:
-    
+```python
+# Correct:
+if greeting:
+
+# Wrong:
+if greeting == True:
+```
+
+Worse:
+
+```python
+# Wrong:
+if greeting is True:
+```
+
+> 不要将布尔值和 `True/False` 用 `==` 比较，或者用 `is` 比较
+
 - Use of the flow control statements `return`/`break`/`continue` within the finally suite of a `try...finally`, where the flow control statement would jump outside the finally suite, is discouraged. This is because such statements will implicitly cancel any active exception that is propagating through the finally suite:
     
-    # Wrong:
-    def foo():
-        try:
-            1 / 0
-        finally:
-            return 42
-    
+```python
+# Wrong:
+def foo():
+    try:
+        1 / 0
+    finally:
+        return 42
+```
+
+>  不推荐在 `try ... finally` 结构中使用流程控制语句 `return/break/continue`，它们会使流程跳到 `finally` 块外面，因此这些语句会隐式地取消任何需要通过 `finally` 块传播的活跃异常
 
 ## Function Annotations
 With the acceptance of [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints"), the style rules for function annotations have changed.
@@ -1039,67 +1106,70 @@ With the acceptance of [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 –
 - The experimentation with annotation styles that was recommended previously in this PEP is no longer encouraged.
 - However, outside the stdlib, experiments within the rules of [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") are now encouraged. For example, marking up a large third party library or application with [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") style type annotations, reviewing how easy it was to add those annotations, and observing whether their presence increases code understandability.
 - The Python standard library should be conservative in adopting such annotations, but their use is allowed for new code and for big refactorings.
+
+> 函数注释遵循 PEP 484
+
 - For code that wants to make a different use of function annotations it is recommended to put a comment of the form:
     
-    # type: ignore
+```python
+# type: ignore
+```
     
-    near the top of the file; this tells type checkers to ignore all annotations. (More fine-grained ways of disabling complaints from type checkers can be found in [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints").)
-    
+near the top of the file; this tells type checkers to ignore all annotations. (More fine-grained ways of disabling complaints from type checkers can be found in [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints").)
+
+> 如果代码需要使用不同风格的函数注释，在文件顶部添加注释 `# type: ignore`，以告诉类型检查器忽略所有的注释
+
 - Like linters, type checkers are optional, separate tools. Python interpreters by default should not issue any messages due to type checking and should not alter their behavior based on annotations.
-- Users who don’t want to use type checkers are free to ignore them. However, it is expected that users of third party library packages may want to run type checkers over those packages. For this purpose [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") recommends the use of stub files: .pyi files that are read by the type checker in preference of the corresponding .py files. Stub files can be distributed with a library, or separately (with the library author’s permission) through the typeshed repo [[5]](https://peps.python.org/pep-0008/#id9).
 
-## [Variable Annotations](https://peps.python.org/pep-0008/#variable-annotations)
+> linter 和 type checker 都被认为是可选的额外工具，Python 解释器默认不会对有类型注释导致的类型检查问题抛出问题，也不会根据注释改变其行为
 
+- Users who don’t want to use type checkers are free to ignore them. However, it is expected that users of third party library packages may want to run type checkers over those packages. For this purpose [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") recommends the use of stub files: .pyi files that are read by the type checker in preference of the corresponding .py files. Stub files can be distributed with a library, or separately (with the library author’s permission) through the typeshed repo [[5]] (https://peps.python.org/pep-0008/#id9).
+>  不想使用类型检查器的用户可以自由忽略它们。然而，第三方库包的用户可能希望对这些包运行类型检查器。为此，[PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") 建议使用存根文件：优先于对应的 `.py` 文件被类型检查器读取的 `.pyi` 文件。存根文件可以随库一起分发，或者在库作者的许可下通过 `typeshed` 仓库分别分发
+
+## Variable Annotations
 [PEP 526](https://peps.python.org/pep-0526/ "PEP 526 – Syntax for Variable Annotations") introduced variable annotations. The style recommendations for them are similar to those on function annotations described above:
 
 - Annotations for module level variables, class and instance variables, and local variables should have a single space after the colon.
 - There should be no space before the colon.
 - If an assignment has a right hand side, then the equality sign should have exactly one space on both sides:
     
-    # Correct:
-    
-    code: int
-    
-    class Point:
-        coords: Tuple[int, int]
-        label: str = '<unknown>'
-    
-    # Wrong:
-    
-    code:int  # No space after colon
-    code : int  # Space before colon
-    
-    class Test:
-        result: int=0  # No spaces around equality sign
-    
+```python
+# Correct:
+
+code: int
+
+class Point:
+    coords: Tuple[int, int]
+    label: str = '<unknown>'
+
+# Wrong:
+
+code:int  # No space after colon
+code : int  # Space before colon
+
+class Test:
+    result: int=0  # No spaces around equality sign
+```
+
+> 模块级别变量、类和实例变量、局部变量的注释在 `:` 有一个空格
+> `:` 前没有空格
+> 注释后的赋值符号 `=` 左右各一个空格 
+
 - Although the [PEP 526](https://peps.python.org/pep-0526/ "PEP 526 – Syntax for Variable Annotations") is accepted for Python 3.6, the variable annotation syntax is the preferred syntax for stub files on all versions of Python (see [PEP 484](https://peps.python.org/pep-0484/ "PEP 484 – Type Hints") for details).
 
 Footnotes
+[1](https://peps.python.org/pep-0008/#id2) _Hanging indentation_ is a type-setting style where all the lines in a paragraph are indented except the first line. In the context of Python, the term is used to describe a style where the opening parenthesis of a parenthesized statement is the last non-whitespace character of the line, with subsequent lines being indented until the closing parenthesis.
 
-[[1](https://peps.python.org/pep-0008/#id2)]
+# References
+[2](https://peps.python.org/pep-0008/#id1) Barry’s GNU Mailman style guide [http://barry.warsaw.us/software/STYLEGUIDE.txt](http://barry.warsaw.us/software/STYLEGUIDE.txt)
 
-_Hanging indentation_ is a type-setting style where all the lines in a paragraph are indented except the first line. In the context of Python, the term is used to describe a style where the opening parenthesis of a parenthesized statement is the last non-whitespace character of the line, with subsequent lines being indented until the closing parenthesis.
+[3](https://peps.python.org/pep-0008/#id3) Donald Knuth’s _The TeXBook_, pages 195 and 196.
 
-# [References](https://peps.python.org/pep-0008/#references)
+[4](https://peps.python.org/pep-0008/#id4) [http://www.wikipedia.com/wiki/Camel_case](http://www.wikipedia.com/wiki/Camel_case)
 
-[[2](https://peps.python.org/pep-0008/#id1)]
+[5](https://peps.python.org/pep-0008/#id5) Typeshed repo [https://github.com/python/typeshed](https://github.com/python/typeshed)
 
-Barry’s GNU Mailman style guide [http://barry.warsaw.us/software/STYLEGUIDE.txt](http://barry.warsaw.us/software/STYLEGUIDE.txt)
-
-[[3](https://peps.python.org/pep-0008/#id3)]
-
-Donald Knuth’s _The TeXBook_, pages 195 and 196.
-
-[[4](https://peps.python.org/pep-0008/#id4)]
-
-[http://www.wikipedia.com/wiki/Camel_case](http://www.wikipedia.com/wiki/Camel_case)
-
-[[5](https://peps.python.org/pep-0008/#id5)]
-
-Typeshed repo [https://github.com/python/typeshed](https://github.com/python/typeshed)
-
-# [Copyright](https://peps.python.org/pep-0008/#copyright)
-
+# Copyright
 This document has been placed in the public domain.
 
 ---
@@ -1107,3 +1177,5 @@ This document has been placed in the public domain.
 Source: [https://github.com/python/peps/blob/main/peps/pep-0008.rst](https://github.com/python/peps/blob/main/peps/pep-0008.rst)
 
 Last modified: [2024-09-09 14:02:27 GMT](https://github.com/python/peps/commits/main/peps/pep-0008.rst)
+
+
