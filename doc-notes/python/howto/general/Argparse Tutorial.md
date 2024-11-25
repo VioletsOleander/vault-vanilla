@@ -1,3 +1,6 @@
+---
+completed: true
+---
 author: Tshepang Mbambo
 
 This tutorial is intended to be a gentle introduction to [`argparse`](https://docs.python.org/3/library/argparse.html#module-argparse "argparse: Command-line option and argument parsing library."), the recommended command-line parsing module in the Python standard library.

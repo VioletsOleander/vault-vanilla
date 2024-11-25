@@ -1,3 +1,6 @@
+---
+completed: true
+---
 # Overview
 The **Python Imaging Library** adds image processing capabilities to your Python interpreter.
 
