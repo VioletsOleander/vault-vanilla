@@ -421,8 +421,15 @@
             Incremental update: multiply the distribution with a new factor. In clique tree, we multiply the new factor into a relevant clique, and do another pass to update other relevant cliques in the tree.
             Queries outside a clique: construct the marginal over the query in containing subtree, instead of the entire tree.
             Multiple queries: compute the marginal over each clique pair using DP.
-            
+    CH11-Inference as Optimization
+        CH11.1-Introduction:
+            The approximation method's approximation arises from constructing an approximation to the target distribution $P_\Phi$.
+            The approximation distribution takes a simpler form, generally exploiting the local factorization structure.
+            The inference task is thus reformulated as optimizatin an objective function over the approximation distribution class $\mathcal Q$, which falls into the category of constrained optimization problem.
+            There are three categories of methods:
+            1. Use clique-tree message passing scheme in structures other than clique-tree, such as loopy belief propagation. It can be understood as optimizating the approximate form of energy functional.
+            2. Use message propagation in clique trees with approximation messages, konwn as the expection propagation algorithm. It maximize the exact energy functional with relaxed constraint.
+            3. Generalize the mean field method, using a class of $\mathcal Q$ which has simple factorization, using the exact energy functional.
             
 \[Doc\]
 - [[Models|huggingface/hub/Models]]: Sec0-Sec1
-- [[numpy/user-guide/Getting Started]]
