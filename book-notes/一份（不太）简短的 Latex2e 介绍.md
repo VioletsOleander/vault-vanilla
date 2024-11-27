@@ -81,13 +81,15 @@ cd <path>
 
 注意 `<path>`  中的多级目录在 Windows 系统上使用反斜线 \ 分隔，而在类 Unix 系统上使用正斜线 / 分隔。如果 `<path>`  中带有空格，则需加上引号 "。此外，在 Windows 系统上如果要切换到其他分区，还需加上 /d 选项，例如 `cd /d "C:\Program Files (x86)\"` 。 
 
+>  Windows 系统中，多级目录用反斜线/转义符号 `\` 分割，类 Unix 系统中，用正斜线/除号 `/` 分割
+
 许多用户会使用 TeXworks 或 TeXstudio 等编辑器来编写 LaTeX 文档。这些编辑器提供的编译功能，实际上只是对特定命令行程序的封装，而并非魔法。 
 
 ## 1.2 第一次使用 LaTeX 
 源代码 1.1 是一份最短的 LaTeX 源代码示例。 
 
 ```latex
-\document class{article}
+\documentclass{article}
 \begin{document}
 ``Hello world!'' from \LaTeX.
 \end{document} 
@@ -95,33 +97,35 @@ cd <path>
 
 源代码 1.1: LaTeX 的一个最简单的源代码示例。 
 
-这里首先介绍如何编译使用这份源代码，在后续小节中再介绍源代码的细节。你可以将这份源代码保存为 `helloworld.TeX` ，而后编译。具体来说 : 
+这里首先介绍如何编译使用这份源代码，在后续小节中再介绍源代码的细节。你可以将这份源代码保存为 `helloworld.tex` ，而后编译。具体来说 : 
 
 - 如果使用 TeXworks 或 TeXstudio 等编辑器，你可以使用编辑器提供的“编译”按钮或者“排版”按钮。建议使用 pdfLaTeX 或 XeLaTeX 作为默认的编译方式 (不同编译方式的差别，见 1.7 节)。 
 - 如果使用命令行方式进行编译，则需打开 Windows 命令提示符或者\*nix 的终端，在源代码所在的目录下输入： 
 
 ```
-pdfLaTeX helloworld 
+pdflatex helloworld 
 ```
 
 或者 
 
 ```
-xeLaTeX helloworld 
+xelatex helloworld 
 ```
 
-如果编译成功，可以在 `helloworld.TeX` 所在目录看到生成的 `helloworld.pdf` 以及一些其它文件。 
+如果编译成功，可以在 `helloworld.tex` 所在目录看到生成的 `helloworld.pdf` 以及一些其它文件。 
 
 源代码 1.2 是在 LaTeX 排版中文的一个最简示例。编译的方式与上一份源代码相同，但需使用 XeLaTeX 编译方式。中文支持的详细内容见 2.2 节。
 
 ```latex
-\document class{cTeXart} 
+\documentclass{ctexart} 
 \begin{document} 
 “你好，世界！” 来自 \LaTeX{} 的问候。
 \end{document} 
 ```
 
 源代码 1.2: 在 LaTeX 中排版中文的最简源代码示例。 
+
+>  注意文档类为 `ctexart` ，文件应该保存为 UTF-8 编码，以及使用 XeLaTex 引擎编译
 
 ## 1.3 LaTeX 命令和代码结构 
 LaTeX 的源代码为文本文件。这些文本除了文字本身，还包括各种命令，用在排版公式、划分文档结构、控制样式等等不同的地方。 
@@ -181,7 +185,7 @@ LaTeX 源代码以一个 \documentclass 命令作为开头，它指定了文档�
 >  LaTex 源码以 `\documentclass` 命令作为开头，指定该 LaTex 文档使用的文档类
 >  文档的正文在 `document` 环境中，`document` 环境之后的内容都会被忽略
 
-在 \document class 和 \begin{document} 之间的位置称为导言区。在导言区中常会使用 \usepackage 命令调用宏包，还会进行文档的全局设置。
+在 \documentclass 和 \begin{document} 之间的位置称为导言区。在导言区中常会使用 \usepackage 命令调用宏包，还会进行文档的全局设置。
 
 >  `\documentclass` 命令和 `document` 环境的开始 `\begin{document}` 之间的位置称为导言区
 >  导言区一般使用 `\usepackage` 命令调用宏包，以及进行文档的全局设置
@@ -260,68 +264,245 @@ LaTeX 的三个标准文档类可指定的选项包括：
 
 ### 1.4.2 宏包 
 在使用 LaTeX 时，时常需要依赖一些扩展来增强或补充 LaTeX 的功能，比如排版复杂的表格、插入图片、增加颜色甚至超链接等等。这些扩展称为宏包。调用宏包的方法非常类似调用文档类的方法： 
-\usepackage [ ⟨ options ⟩ ] { ⟨ package-name ⟩ } 
-\usepackage 可以一次性调用多个宏包，在⟨package-name⟩中用逗号隔开。这种用法一般不要指定选项 8： 
+
+>  LaTex 中的拓展称为宏包
+>  宏包通过 `\usepackage` 命令调用，其中包名是必选参数
+
+```latex
+\usepackage[<options>]{<package-name>}
+```
+
+\usepackage 可以一次性调用多个宏包，在 ⟨package-name⟩ 中用逗号隔开。这种用法一般不要指定选项： 
+
+```latex
 % 一次性调用三个排版表格常用的宏包
 \usepackage{tabularx, makecell, multirow} 
-附录B.3 汇总了常用的一些宏包。我们在手册接下来的章节中，也会穿插介绍一些最常用的宏包的使用方法。 
-在使用宏包和文档类之前，一定要首先确认它们是否安装在你的计算机中，否则\use-package 等命令会报错误。详见附录A.2。 
+```
+
+>  可以一次指定多个包名，用逗号隔开，但此时一般不要指定可选参数 (选项)
+>  因为此时执行选项相当于对每个宏包都指定相同选项，如果有宏包不识别就会出错
+
+附录 B.3 汇总了常用的一些宏包。我们在手册接下来的章节中，也会穿插介绍一些最常用的宏包的使用方法。 
+
+在使用宏包和文档类之前，一定要首先确认它们是否安装在你的计算机中，否则\use-package 等命令会报错误。详见附录 A.2。 
+
 宏包 (包括前面所说的文档类) 可能定义了许多命令和环境，或者修改了 LaTeX 已有的命令和环境。它们的用法说明记在相应宏包和文档类的帮助文档。在 Windows 命令提示符或者 Linux 终端下输入命令可查阅相应文档： 
-TeXdoc ⟨ pkg-name ⟩ 
-其中⟨pkg-name⟩是宏包或者文档类的名称。更多获得帮助的方法见附录B.2。 
+
+>  宏包以及文档类会自己定义许多命令和环境，有的还会修改 LaTex 已有的命令和环境
+
+```latex
+texdoc <pkg-name>
+```
+
+其中 ⟨pkg-name⟩ 是宏包或者文档类的名称。更多获得帮助的方法见附录 B.2。 
+
 ## 1.5 LaTeX 用到的文件一览 
-除了源代码文件. TeX 以外，我们在使用 LaTeX 时还可能接触到各种格式的文件。本节简单介绍一下在使用 LaTeX 时能够经常见到的文件。 
+除了源代码文件 `.tex` 以外，我们在使用 LaTeX 时还可能接触到各种格式的文件。本节简单介绍一下在使用 LaTeX 时能够经常见到的文件。 
+
 每个宏包和文档类都是带特定扩展名的文件，除此之外也有一些文件出现于 LaTeX 模板中： 
-.sty 宏包文件。宏包的名称与文件名一致。 
-.cls 文档类文件。文档类名称与文件名一致。 
-.bib BIBTeX 参考文献数据库文件。 
-.bst $\mathrm{BiotaEX}$ 用到的参考文献格式模板。详见 6.1.4 小节。 
-LaTeX 在编译过程中除了生成. dvi 或. pdf 格式的文档外 9，还可能会生成相当多的辅助文件和日志。一些功能如交叉引用、参考文献、目录、索引等，需要先通过编译生成辅助文件，然后再次编译时读入辅助文件得到正确的结果，所以复杂的 LaTeX 源代码可能要编译多次： 
-.log 排版引擎生成的日志文件，供排查错误使用。 
-.aux LaTeX 生成的主辅助文件，记录交叉引用、目录、参考文献的引用等。 
-.toc LaTeX 生成的目录记录文件。 
-.lot LaTeX 生成的表格目录记录文件。 
-.bbl BIBTeX 生成的参考文献记录文件。 
-.blg BIBTeX 生成的日志文件。 
-.idx LaTeX 生成的供 makeindex 处理的索引记录文件。 
-.ind makeindex 处理. idx 生成的用于排版的格式化索引文件。 
-.ilg makeindex 生成的日志文件。 
-.out hyperref 宏包生成的 PDF 书签记录文件。 
-# 1.6 文件的组织方式 
+-  `.sty` 宏包文件。宏包的名称与文件名一致。 
+-  `.cls` 文档类文件。文档类名称与文件名一致。 
+-  `.bib` BiBTeX 参考文献数据库文件。 
+-  `.bst` BiBTex 用到的参考文献格式模板。详见 6.1.4 小节。 
+
+>  每个宏包和文档类本质都是带有特定拓展名的文件，宏包文件的拓展名为 `.sty` ，文档类文件的拓展名为 `.cls`
+
+LaTeX 在编译过程中除了生成 `.dvi` 或 `.pdf` 格式的文档外，还可能会生成相当多的辅助文件和日志。一些功能如交叉引用、参考文献、目录、索引等，需要先通过编译生成辅助文件，然后再次编译时读入辅助文件得到正确的结果，所以复杂的 LaTeX 源代码可能要编译多次： 
+
+>  复杂的 LaTex 源码需要多次编译，先编译生成辅助文件，第二次编译读入辅助文件再编译得到最终文件
+
+-  `.log` 排版引擎生成的日志文件，供排查错误使用。 
+-  `.aux` LaTeX 生成的主辅助文件，记录交叉引用、目录、参考文献的引用等。 
+-  `.toc` LaTeX 生成的目录记录文件。 
+-  `.lot` LaTeX 生成的表格目录记录文件。 
+-  `.bbl` BiBTeX 生成的参考文献记录文件。 
+-  `.blg` BiBTeX 生成的日志文件。 
+-  `.idx` LaTeX 生成的供 makeindex 处理的索引记录文件。 
+-  `.ind` makeindex 处理. idx 生成的用于排版的格式化索引文件。 
+-  `.ilg` makeindex 生成的日志文件。 
+-  `.out` hyperref 宏包生成的 PDF 书签记录文件。 
+
+## 1.6 文件的组织方式 
 当编写长篇文档时，例如当编写书籍、毕业论文时，单个源文件会使修改、校对变得十分困难。将源文件分割成若干个文件，例如将每章内容单独写在一个文件中，会大大简化修改和校对的工作。可参考源代码 3.1 的写法。 
-LaTeX 提供了命令\include 用来在源代码里插入文件： 
-\include{ ⟨ filename ⟩ } 
-⟨filename⟩为文件名 (不带. TeX 扩展名) 10，如果和要编译的主文件不在一个目录中，则要加上相对或绝对路径，例如： 
+
+>  将源文件划分为多个文件可以避免修改带来的不必要的编译
+
+LaTeX 提供了命令 \include 用来在源代码里插入文件： 
+
+```latex
+\include{<filename>}
+```
+
+>  `\include` 命令用于在源码中插入文件，它只有一个必选参数为文件名
+
+⟨filename⟩ 为文件名 (不带 `.tex` 扩展名)，如果和要编译的主文件不在一个目录中，则要加上相对或绝对路径，例如： 
+
+```latex
 \include{chapters/file} % 相对路径 
 \include{/home/Bob/file} % \*nix (包含 Linux、macOS) 绝对路径
 \include{D:/file} % Windows 绝对路径，用正斜线 
-值得注意的是\include 在读入⟨filename⟩之前会另起一页。有的时候我们并不需要这样，而是用\input 命令，它纯粹是把文件里的内容插入： 
-\input{ ⟨ filename ⟩ } 
-当导言区内容较多时，常常将其单独放置在一个. TeX 文件中，再用\input 命令插入。复杂的图、表、代码等也会用类似的手段处理。 
-LaTeX 还提供了一个\includeonly 命令来组织文件，用于导言区，指定只载入某些文件。导言区使用了\includeonly 后，正文中不在其列表范围的\include 命令不会起效： 
-\includeonly{ ⟨ filename1 ⟩ , ⟨ filename2 ⟩ ,…} 
-需要注意的是，使用\include 和\input 命令载入的文件名最好不要加空格和特殊字符，也尽量避免使用中文名，否则很可能会出错 11。 
-最后介绍一个实用的工具宏包 syntonly。加载这个宏包后，在导言区使用\syntaxonly 命 
-令，可令 LaTeX 编译后不生成 DVI 或者 PDF 文档，只排查错误，编译速度会快不少：
+```
+
+>  如果 `include` 的文件和主文件不在同一目录，需要将文件名改为绝对路径或相对路径
+
+值得注意的是 \include 在读入 ⟨filename⟩ 之前会另起一页。有的时候我们并不需要这样，而是用 \input 命令，它纯粹是把文件里的内容插入： 
+
+```latex
+\input{<fliename>}
+```
+
+>  `\input` 命令也可以插入文件内容，差异在于 `\include` 会先令起一页再插入文件内容，而 `\input` 则直接插入
+
+当导言区内容较多时，常常将其单独放置在一个 `.tex` 文件中，再用 \input 命令插入。复杂的图、表、代码等也会用类似的手段处理。 
+
+>  例如，导言区内容较多时，就可以将其单独放在一个 `.tex` 文件中，用 `\input` 插入，复杂的图、表、代码也可以单独放在文件中，用 `\input` 插入
+
+LaTeX 还提供了一个 \includeonly 命令来组织文件，用于导言区，指定只载入某些文件。导言区使用了 \includeonly 后，正文中不在其列表范围的 \include 命令不会起效： 
+
+```latex
+\includeonly{<filename1>,<filename2>,...}
+```
+
+>  `\includeonly` 命令用于导言区，其作用是指定能 `\include` 的文件范围
+>  正文中 `\include` 的文件如果不在 `\includeonly` 中，就不会起效
+
+需要注意的是，使用 \include 和 \input 命令载入的文件名最好不要加空格和特殊字符，也尽量避免使用中文名，否则很可能会出错。 
+
+>  `\include, \input` 载入的文件最好使用 ASCII 字符组成文件名，防止出错
+
+最后介绍一个实用的工具宏包 syntonly。加载这个宏包后，在导言区使用\syntaxonly 命令，可令 LaTeX 编译后不生成 DVI 或者 PDF 文档，只排查错误，编译速度会快不少：
+
+```latex
 \usepackage{syntonly}
- \syntaxonly 
-如果想生成文档，则用% 注释掉\syntaxonly 命令即可。 
-# 1.7 L A TeX 和 $\mathbf{TeX}$ 相关的术语和概念 
+\syntaxonly
+```
+
+如果想生成文档，则用 % 注释掉 \syntaxonly 命令即可。 
+
+>  `syntonly` 宏包提供了 `\syntaxonly` 命令，在导言区使用时，它会令 LaTex 编译后不生产文档，只排查错误，可以用于快速排查错误
+
+## 1.7  LaTeX 和 TeX 相关的术语和概念 
 在本章的最后有必要澄清几个概念： 
-引擎全称为排版引擎，是编译源代码并生成文档的程序，如 pdfTeX、XeTeX 等。有时也称为编译器。 
-格式是定义了一组命令的代码集。LaTeX 就是最广泛应用的一个格式，高德纳本人还编写了一个简单的 plain TeX 格式，没有定义诸如\document class 和\section 等等命令。 
-编译命令是实际调用的、结合了引擎和格式的命令。如 xeLaTeX 命令是结合 XeTeX 引擎和 LaTeX 格式的一个编译命令。 
+- **引擎** 全称为排版引擎，是编译源代码并生成文档的程序，如 pdfTeX、XeTeX 等。有时也称为编译器。 
+- **格式** 是定义了一组命令的代码集。LaTeX 就是最广泛应用的一个格式，高德纳本人还编写了一个简单的 plain TeX 格式，没有定义诸如 \documentclass 和\section 等等命令。 
+- **编译命令** 是实际调用的、结合了引擎和格式的命令。如 `xelatex` 命令是结合 XeTeX 引擎和 LaTeX 格式的一个编译命令。 
+
 常见的引擎、格式和编译命令的关系总结于表 1.2。 
-LaTeX 编译命令和 LaTeX 格式往往容易混淆，在讨论关于 LaTeX 的时候需要明确。为避免混淆，本手册中的 LaTeX 一律指的是格式，编译命令则用等宽字体 LaTeX 表示。 
+
+LaTeX 编译命令和 LaTeX 格式往往容易混淆，在讨论关于 LaTeX 的时候需要明确。为避免混淆，本手册中的 LaTeX 一律指的是格式，编译命令则用等宽字体表 `latex` 表示。 
+
 在此介绍一下几个编译命令的基本特点： 
-LaTeX 虽然名为 LaTeX 命令，底层调用的引擎其实是 pdfTeX。该命令生成 dvi (Device Inde-pendent) 格式的文档，用 dvipdfmx 命令可以将其转为 pdf。 
-pdfLaTeX 底层调用的引擎也是 pdfTeX，可以直接生成 pdf 格式的文档。 
+- `latex` 虽然名为 `latex` 命令，底层调用的引擎其实是 pdfTeX。该命令生成 dvi (Device Inde-pendent) 格式的文档，用 `dvipdfmx` 命令可以将其转为 pdf。 
+- `pdflatex` 底层调用的引擎也是 pdfTeX，可以直接生成 pdf 格式的文档。 
+- `xelatex` 底层调用的引擎是 XeTex ，支持 UTF-8 编码和对 TrueType/OpenType 字体的调用。当前较为方便的中文排版解决方案基于 `xelatex`，详见 2.2 节。 
+- `lualatex` 底层调用的引擎是 LuaTex ，这个引擎在 pdfTeX 引擎基础上发展而来，除了支持 UTF-8 编码和对 TrueType/OpenType 字体的调用外，还支持通过 Lua 语言扩展 TeX 的功能。`lualatex` 编译命令下的中文排版支持需要借助 `luatexja` 宏包。 
+
 表 1.2: TeX 引擎、格式及其对应的编译命令。
+
 ![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/6caaa3cd51678f8cf5756c206181f6afb065ffbcb8d853028ab7ccf185d41101.jpg) 
-xeLaTeX 底层调用的引擎是 $\mathrm {{X}_{\mathrm{{eff}E X}} }$ ，支持 UTF-8 编码和对 TrueType/OpenType 字体的调用。当前较为方便的中文排版解决方案基于 xeLaTeX，详见 2.2 节。 
-luaLaTeX 底层调用的引擎是 $\mathrm {{L}u a T E X^{12}} $ ，这个引擎在 pdfTeX 引擎基础上发展而来，除了支持 UTF-8 编码和对 TrueType/OpenType 字体的调用外，还支持通过 Lua 语言扩展 TeX 的功能。luaLaTeX 编译命令下的中文排版支持需要借助 luaTeXja 宏包。 
+
 # 2 用 LaTeX 排版文字
-文字是排版的基础。本章主要介绍如何在 LaTeX 中输入各种文字符号，包括标点符号、连字符、重音等，以及控制文字断行和断页的方式。本章简要介绍了在 LaTeX 中排版中文的方法。随着 LaTeX 和底层 TeX 引擎的发展，旧方式 (CCT、CJK 等) 日渐退出舞台，xeLaTeX 和 luaLaTeX 编译命令配合 cTeX 宏包/文档类的方式成为当前的主流中文排版支持方式。 
+文字是排版的基础。本章主要介绍如何在 LaTeX 中输入各种文字符号，包括标点符号、连字符、重音等，以及控制文字断行和断页的方式。本章简要介绍了在 LaTeX 中排版中文的方法。随着 LaTeX 和底层 TeX 引擎的发展，旧方式 (CCT、CJK 等) 日渐退出舞台，`xelatex` 和 `lualatex` 编译命令配合 cTeX 宏包/文档类的方式成为当前的主流中文排版支持方式。 
+
+## 2.1 语言文字和编码 
+LaTeX 源代码为文本文件，而文本文件的一个至关重要的性质是它的编码。在此用尽量短的篇幅介绍一下。 
+
+### 2.1.1 ASCII 编码 
+计算机的基本存储单位是字节 (byte)，每个字节为八位(8-bit)，范围用十六进制写作 `0x00-0xFF` 。ASCII (美国通用信息交换码)使用 `0x00-0x7F` 对文字编码，也就是 7-bit，覆盖了基本的拉丁字母、数字和符号，以及一些不可打印的控制字符(如换行符、制表符等)。 
+
+由于 TeX 最初设计用于排版以英文为主的西文文档，ASCII 编码完全够用，因而早期版本的 TeX 只支持 7-bit 和 ASCII 编码。排版扩展拉丁字符必须使用后文所述的各种符号和重音命令，如 Möbius 必须通过输入 M \"obius 得到。 
+
+# 2.1.2 扩展编码 
+在 ASCII 之后，各种语言文字都发展了自己的编码，比如西欧语言的 Latin-1、日本的 Shift-JIS、中国大陆的 GB 2312—80 和 GBK 等。它们中的绝大多数都向下兼容 ASCII，因此无论是在哪种编码下， TeX 以及 LaTeX 的命令和符号都能用。 
+TeX 从 3.0 版开始支持 8-bit，能够处理编码在 $0 \mathrm{x}80{-}0 \mathrm{x} \mathrm{FF}$ 范围内的字符。西欧 (拉丁字母)、俄语系 (西里尔字母) 等语言文字的编码方案大都利用了 $0 \mathrm{x}80{-}0 \mathrm{x} \mathrm{FF}$ 这个范围，处理起来较为方便。使用 laTeX 或 pdflaTeX 编译命令时，对源代码的编码处理由 inputenc 宏包支持。比如将源代码保存为 Latin-1 编码，并在导言区调用 inputenc 宏包并指定 latin1 选项后，Möbius 这样的词语就可以直接通过 (用适当输入法) 输入 Möbius 得到了。 
+用于汉字的 GBK 等编码是多字节编码，ASCII 字符为一个字节，汉字等非 ASCII 字符为两个字节，使用 laTeX 或 pdflaTeX 编译命令时需要借助一些宏包进行较为复杂的判断和处理。早期排版中文须使用 CJK 宏包，它是一个用于处理中、日、韩等东亚语言文字编码和字体配置的宏包。但 CJK 宏包的使用非常不方便，目前已不再推荐直接使用。 
+# 2.1.3UTF-8 编码 
+Unicode 是一个多国字符的集合，覆盖了几乎全球范围内的语言文字。UTF-8 是 Unicode 的一套编码方案，一个字符由一个到四个字节编码，其中单字节字符的编码与 ASCII 编码兼容。现行版本的 LaTeX 使用 UTF-8 作为默认编码 1。将使用拉丁字母的文档保存为 UTF-8 编码后，可以用 pdflaTeX 直接编译，比如： 
+ \document class{article}
+  \begin{document} Français Português Español Føroyskt  \end{document} 
+但是非拉丁字母仍然无法直接在 LaTeX 中使用，如西里尔字母 (俄文)、希腊字母、阿拉伯字母以及东亚文字等。 
+较为现代的 TeX 引擎，如 XƎTeX 和 LuaTeX，它们均原生支持 UTF-8 编码。使用 xelaTeX 和 lualaTeX 排版时，将源代码保存为 UTF-8 编码，并借助 fontspec 宏包 (见 5.1.5 小节) 调用适当的字体，原则上就可以在源代码中输入任意语言的文字。注意此时不再适用 inputenc 宏包。但一些复杂语言 (如印地语、阿拉伯语等) 的排版需要考虑到断词规则、文字方向、标点禁则等诸多细节，因此需要更多的宏包支持，如 babel、poly gloss i a 等，此处不再涉及。 
+# 2.2 排版中文 
+用 LaTeX 排版中文需要解决两方面问题，一方面是对中文字体的支持，另一方面是对中文排版中的一些细节的处理，包括在汉字之间控制断行、标点符号的禁则 (如句号、逗号不允许出现在行首)、中英文之间插入间距等。CJK 宏包对中文字体的支持比较麻烦，已经不再推荐直接使用。XƎTeX 和 LuaTeX 除了直接支持 UTF-8 编码外，还支持直接调用 TrueType/OpenType 格式的字体。 $ \mathsf{x e C J K}$ 及 luaTeXja 宏包则在此基础上封装了对汉字排版细节的处理功能。 
+cTeX 宏包和文档类 2 进一步封装了 CJK、xeCJK、luaTeXja 等宏包，使得用户在排版中文时不用再考虑排版引擎等细节。cTeX 宏包本身用于配合各种文档类排版中文，而 cTeX 文档类对 LaTeX 的标准文档类进行了封装，对一些排版根据中文排版习惯做了调整，包括 cTeXart、cTeXrep、cTeXbook 等。cTeX 宏包和文档类能够识别操作系统和 TeX 发行版中安装的中文字体，因此基本无需额外配置即可排版中文文档。下面举一个使用 cTeX 文档类排版中文的最简例子： 
+ \document class{cTeXart}
+  \begin{document} 
+在 \LaTeX{}中排版中文。汉字和 English 单词混排，通常不需要在中英文之间添加额外的空格。当然，为了代码的可读性，加上汉字和 English 之间的空格也无妨。汉字换行时不会引入多余的空格。 \end{document} 
+注意源代码须保存为 UTF-8 编码，并使用 xelaTeX 或 lualaTeX 命令编译。虽然 cTeX 宏包和文档类保留了对 GBK 编码以及 laTeX 和 pdflaTeX 编译命令的兼容，但我们并不推荐这样做。 
+# 2.3LATeX 中的字符 
+# 2.3.1 空格和分段 
+LaTeX 源代码中，空格键和 Tab 键输入的空白字符视为“空格”。连续的若干个空白字符视为一个空格。一行开头的空格忽略不计。行末的换行符视为一个空格；但连续两个换行符，也就是空行，会将文字分段。多个空行被视为一个空行。也可以在行末使用 \par 命令分段。 
+Several spaces equal one. Front spaces are ignored. An empty line starts a new paragraph. \par A  \verb| \par| command does the same. 
+# 2.3.2 注释 
+$ \mathrm{emptyset}$ 用% 字符作为注释。在这个字符之后直到行末，所有的字符都被忽略，行末的换行符也不引入空格。 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/bf95fa075042842a2d9ee4816edc881248f12f00b865460ed05f37e51337d09b.jpg) 
+This is an example: Comments do not break a word. 
+# 2.3.3 特殊字符 
+以下字符在 $ \mathrm{emptyset}$ 里有特殊用途，如% 表示注释， $ \Updownarrow$ 、^、_ 等用于排版数学公式，& 用于排版表格，等等。直接输入这些字符得不到对应的符号，还往往会出错： 
+#  \$ % & { } _ ^  \~  \ 
+如果想要输入以上符号，需要使用以下带反斜线的形式输入，类似编程语言里的“转义”符号： 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/5d543d1c7346e23c4685639114376a6f23eea082fbb966eaa1dab68a2db3780a.jpg) 
+这些“转义”符号事实上是一些 $ \mathrm{emptyset}$ 命令。其中 $ \setminus \! \sim$ 和 $ \setminus^{ \sim}$ 两个命令需要一个参数，加一对花括号的写法相当于提供了空的参数，否则它们可能会将后面的字符作为参数，形成重音效果 (详见 2.3.6 节)。 \ \ 被直接定义成了手动换行的命令，输入反斜线就需要用 \TeXt backslash。 
+# 2.3.4 连字 
+西文排版中经常会出现连字 (ligatures)，常见的有 ff/fi/fl/ffi/ffl。 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/7318c3ef7aa6e8af5f6c808cc53088a7575fbc65165451f7eead02a82ab62fea.jpg) 
+# 2.3.5 标点符号 
+中文的标点符号 (绝大多数为非 ASCII 字符) 使用中文输入法输入即可，一般不需要过多留意。而输入西文标点符号时，有不少地方需要留意。 
+引号 
+$ \mathrm{emptyset}$ 中单引号‘和’分别用 \` 和' 输入；双引号“ 和” 分别用 \` \` 和'' 输入 (" 可以输入后双引号，但没有直接输入前双引号的字符，习惯上用'' 输入以和 \` \` 更好地对应)。 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/139eb8fe990ac549fee5cce86a5e85684e15caa8c0fa5d3fb045dfc194fde063.jpg) 
+中文的引号‘’和“ ”与西文的引号实际上是同一组符号 3，但由于中西文通常用不同的字体显示，它们的具体形状和宽度可能有所不同。在使用 cTeX 宏包或文档类的情况下，中文引号可以通过输入法直接输入。 
+# 连字号和破折号 
+$ \mathrm{emptyset}$ 中有三种长度的“横线”可用：连字号 (hyphen)、短破折号 (en-dash) 和长破折号 (em-dash)。它们分别有不同的用途：连字号- 用来组成复合词；短破折号– 用来连接数字表示范围；长破折号— 用来连接单词，语义上类似中文的破折号。 
+daughter-in-law, X-rated \ \ pages 13--67 \ \ 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/e9dd1664a6afc329e03c0e2023bebf212f04b4ae381ca827d378784bd171da89.jpg) 
+# 省略号 
+$ \mathrm{emptyset}$ 提供了 \ldots 命令表示省略号，相对于直接输入三个点的方式更为合理。 \dots 与 \ldots 命令等效。 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/2d2e8130a01f4c7a4c82676956b4f86f3e8a7f3af9cd6f6787a13adafb2a7e9f.jpg) 
+# 波浪号 
+我们在 2.3.3 小节中了解了 \ \~ 命令，它可以用来输入波浪号，但位置靠顶端 ( \ \~ 命令主要用作重音，参考下一小节)。西文中较少将波浪号作为标点符号使用，在中文环境中一般直接使用全角波浪号 (～)。 
+# 2.3.6 拉丁文扩展与重音 
+LaTeX 支持用命令输入西欧语言中使用的各种拉丁文扩展字符，主要为带重音的字母： 
+H \^otel, na \" \i ve,  \'el \ \`eve, \ \ sm \o rrebr \o d, ! \`Se \ norita!, \ \ Sch \"onbrunner Schlo \ss{} Stra \ss e 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/a16a713490fdaba7aa48549b84f0a4c22d9abbcc2d708464325c45d59d39e4d4.jpg) 
+更多可用的符号和重音见表 2.1。注意与 4.3.7 小节的数学重音区分开来。 
+表 2.1: $ \mathrm{emptyset}$ 文本中的重音和特殊字符
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/19ee9078281eb44b065e4b6e5ebbd31da6fe183d23156b5d5656aaa345a71cca.jpg) 
+前四行实际上都是带一个参数的命令。 \^o 也可以写作 $ \setminus \{ \circ \}$ ，以此类推。 
+# 2.3.7 其它符号 
+$ \mathrm{emptyset}$ 预定义了其它一些文本模式的符号，部分符号可参考表 4.4。 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/2d78cd69b44419eb88897e723957739b87f89aed9b486342f80413b4a69f8955.jpg) 
+更多的符号多由特定的宏包支持。参考文献[14] 搜集了所有在 TeX 发行版中可用的符号，使用时要留意每个符号所依赖的宏包。 
+# 2.3.8 $ \mathbf{tan}_{ \mathbf{E}} \mathbf{X}$ 标志 
+我们见到的所有错落有致的 $ \mathrm{emptyset}$ 标志都是由以下命令输入的： 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/09738b0b7ef46a51031b1fb06599269de9999ec843ee44b462813cfd408d9012.jpg) 
+# 2.4 断行和断页 
+LaTeX 将文字段落在合适的位置进行断行，尽可能做到每行的疏密程度匀称，单词间距不会过宽或过窄。文字段落和公式、图表等内容从上到下顺序排布，并在合适的位置断页，分割成匀称的页面。在绝大多数时候，我们无需自己操心断行和断页。但偶尔会遇到需要手工调整的地方。 
+# 2.4.1 单词间距 
+在西文排版实践中，断行的位置优先选取在两个单词之间，也就是在源代码中输入的“空格”4。“空格”本身通常生成一个间距，它会根据行宽和上下文自动调整，文字密一些的地方，单词间距就略窄，反之略宽。 
+文字在单词间的“空格”处断行时，“空格”生成的间距随之舍去。我们可以使用字符 \~ 输入一个不会断行的空格 (高德纳称之为 tie，“带子”)，通常用在英文人名、图表名称等上下文环境： 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/0a67d704b0ba0f6ae346e3819b22b459ccfa9929bd9181e830548590915e45af.jpg) 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/3e35d883cdde15383166739d84f3c78fc1d8e8a5c056024985cc1c6a91b3b016.jpg) 
+# 2.4.2 手动断行和断页 
+如果我们确实需要手动断行，可使用如下命令： 
+ \ \ [ ⟨ length ⟩ ]  \ \  \* [ ⟨ length ⟩ ]  \newline 
+它们有两点区别：一是 \ \ 可以带可选参数⟨length⟩，用于在断行处向下增加垂直间距 (见 5.3.5 小节)，而 \newline 不带可选参数；二是 \ \ 也在表格、公式等地方用于换行，而 \newline 只用于文本段落中。带星号的 \ \ 表示禁止在断行处分页。 
+另外需要注意的是，使用 \verb| \ \|断行命令 \ \ 不会令内容另起一段，而是在段落中直接开始新的一行。 
+另外需要注意的是，使用 \ \ 断行命令不会令内容另起一段，而是在段落中直接开始新的一行。 
+断页的命令有两个： 
+ \newpage 
+ \clearpage 
+通常情况下两个命令都起到另起一页的作用，区别在于：第一，在双栏排版模式中 \newpage 起到另起一栏的作用， \clearpage 则能够另起一页；第二，在涉及浮动体的排版上行为不同。后文的 3.9 节以及 5.4.3 小节会更详细地介绍相关内容。 
+有时候我们不满足于 LaTeX 默认的断行和断页位置，需要进行微调，可以用以下命令告诉 LaTeX 哪些地方适合断行或断页，哪些地方不适合： 
+ \linebreak $[ \langle n \rangle]$  \no line break $[ \langle n \rangle]$  \pagebreak $[ \langle n \rangle]$  \no page break $[ \langle n \rangle]$ 
+以上命令都带一个可选参数，用数字 $ \langle n \rangle$ 代表适合/不适合的程度，取值范围为 0–4，不带可选参数时，缺省为 4。比如 \linebreak 或者 \linebreak[4] 意味着此处需要强行断行； \no page break 或 \no page break[4] 意味着禁止在此处断页。 
+以上命令适合给出优先考虑断行断页/禁止断行断页的位置，但不适合直接拿来断行或断页，使用 \newline 或 \newpage 等命令是更好的选择。因为 \newline 和 \newpage 会在断行/断页位置填充适当的间距，但 \linebreak 和 \pagebreak 不能，使用这些命令强行断行/断页可能会制造出糟糕的排版效果，并导致 $ \mathrm{emptyset}$ 报 Underfull  \hbox 等警告。 
+![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/a453b1cd780e5a770923350dde05973d895f6d158c1ffc546b868fcbfd006d4d.jpg) 
+# 2.4.3 断词 
+如果 LaTeX 遇到了很长的英文单词，仅在单词之间的“空格”处断行无法生成疏密程度匀称的段落时，就会考虑从单词中间断开。对于绝大多数单词， $ \mathrm{emptyset}$ 能够找到合适的断词位置，在断开的行尾加上连字符-。 
+如果一些单词没能自动断词，我们可以在单词内手动使用 \- 命令指定断词的位置： 
+I think this is: su \-per \-cal \-% i \-frag \-i \-lis \-tic \-ex \-pi \-% al \-i \-do \-cious. 
+I think this is: super cali fragilis tice xp i a lidocious. 
 # 3 文档元素
 # 4 排版数学公式
 # 5 排版样式设定
