@@ -8576,40 +8576,73 @@ This average is an arithmetic average, whereas the one used in the mean field ap
 
 #### 11.5.1.3 Maximizing the Energy Functional: The Mean Field Algorithm 
 How do we convert the fixed-point equation of equation (11.52) into an update algorithm? We start by observing that if $X_{i}\,\notin\,S c o p e[\phi]$ then $E_{U_{\phi}\sim Q}[\ln\phi\mid x_{i}]=E_{U_{\phi}\sim Q}[\ln\phi]$ . Thus, expectation terms on such factors are independent of the value of $X_{i}$ . Consequently, we can absorb them into the normalization constant $Z_{i}$ and get the following simplification. 
+>  进一步观察 (11.52)，发现 $E_{\pmb U_{\phi}\sim Q}[\ln\phi\mid x_{i}]=E_{\pmb U_{\phi}\sim Q}[\ln\phi]$ 在 $X_i \not\in Scope[\phi]$ 时成立
+>  因此，我们进一步缩小范围，简化到仅和包含 $X_i$ 的因子有关的形式，其他无关项融合到规范化常数 $Z_i$ 中
 
+**Corollary 11.6**
 In the mean field approximation, $Q(X_{i})$ is locally optimal only if 
 
 $$
-Q(x_{i})=\frac{1}{Z_{i}}\exp\left\{\sum_{\phi:X_{i}\in S c o p e[\phi]}E_{(U_{\phi}-\{X_{i}\})\sim Q}[\ln\phi(U_{\phi},x_{i})]\right\}.
+Q(x_{i})=\frac{1}{Z_{i}}\exp\left\{\sum_{\phi:X_{i}\in S c o p e[\phi]}E_{(U_{\phi}-\{X_{i}\})\sim Q}[\ln\phi(U_{\phi},x_{i})]\right\}.\tag{11.56}
 $$ 
 where $Z_{i}$ is a normalizing constant. 
+> 引理
+> 平均场近似中，$Q(X_i)$ 仅在满足 (11.56) 时为局部最优
 
 This representation shows that $Q(X_{i})$ has to be consistent with the expectation of the potentials in which it appears. In our grid network example, this characterization implies that $Q(A_{i,j})$ is a product of four terms measuring its interaction with each of its four neighbors: 
 
 $$
-Q(a_{i,j})=\frac{1}{Z_{i,j}}\exp\left\{\begin{array}{l l}{\sum_{a_{i-1,j}}Q(a_{i-1,j})\ln(\phi(a_{i-1,j},a_{i,j}))+}\\ {\sum_{a_{i,j-1}}Q(a_{i,j-1})\ln(\phi(a_{i,j-1},a_{i,j}))+}\\ {\sum_{a_{i+1,j}}Q(a_{i+1,j})\ln(\phi(a_{i,j},a_{i+1,j}))+}\\ {\sum_{a_{i,j+1}}Q(a_{i,j+1})\ln(\phi(a_{i,j},a_{i,j+1}))}\end{array}\right\}.
+Q(a_{i,j})=\frac{1}{Z_{i,j}}\exp\left\{\begin{array}{l l}{\sum_{a_{i-1,j}}Q(a_{i-1,j})\ln(\phi(a_{i-1,j},a_{i,j}))+}\\ {\sum_{a_{i,j-1}}Q(a_{i,j-1})\ln(\phi(a_{i,j-1},a_{i,j}))+}\\ {\sum_{a_{i+1,j}}Q(a_{i+1,j})\ln(\phi(a_{i,j},a_{i+1,j}))+}\\ {\sum_{a_{i,j+1}}Q(a_{i,j+1})\ln(\phi(a_{i,j},a_{i,j+1}))}\end{array}\right\}.\tag{11.57}
 $$ 
 Each term is a (geometric) average of one of the potentials involving $A_{i,j}$ . For example, the final term in the exponent represents a geometric average of the potential between $A_{i,j}$ and $A_{i,j+1}$ , averaged using the distribution $Q(A_{i,j+1})$ . 
 
-The characterization of corollary 11.6 provides tools for developing an algorithm to maximize $F[\tilde{P}_{\Phi},Q]$ ] . For example, examining equation (11.57), we see that we can easily evaluate the term within the exponential by considering each of $A_{i,j}$ ’s neighbors and computing the interaction between the values that neighbor can take and possible values of $A_{i,j}$ . Moreover, in this example, we see that $Q(A_{i,j})$ does not appear on the right-hand side of the update rule. Thus, we can choose $Q(A_{i,j})$ , which satisfies the required equality by assigning it to the term denoted by the right-hand side of the equation. 
+>  因此，$Q(X_i)$ 的最优值需要和它相关的因子上的势能的期望的和一致
+>  在网格网络中，$a_{i, j}$ 相关的因子就是 $a_{i, j}$ 分别和它的上下左右变量组成的二变量因子
+>  (11.56) 中的求和中，每一项都是包含了 $X_i$ 的势能的几何平均 ( $\ln \phi(U_\phi, x_i)$ 在 $Q$ 上的期望)
+
+The characterization of corollary 11.6 provides tools for developing an algorithm to maximize $F[\tilde{P}_{\Phi},Q]$  . For example, examining equation (11.57), we see that we can easily evaluate the term within the exponential by considering each of $A_{i,j}$ ’s neighbors and computing the interaction between the values that neighbor can take and possible values of $A_{i,j}$ . Moreover, in this example, we see that $Q(A_{i,j})$ does not appear on the right-hand side of the update rule. Thus, we can choose $Q(A_{i,j})$ , which satisfies the required equality by assigning it to the term denoted by the right-hand side of the equation. 
+>  我们根据引理 11.6 进行对 $Q(x_i)$ 的更新，每次取一个 $X_i$ 的可能值 $x_i$ ，计算和 $X_i$ 相关的因子上的期望值，得到结果后赋值给 $Q(x_i)$
 
 This last observation is true in general. All the terms on the right-hand side of equation (11.56) involve expectations of variables other than $X_{i}$ , and do not depend on the choice of $Q(X_{i})$ . We can achieve equality simply by evaluating the exponential terms for each value $x_{i}$ , normalizing the results to sum to 1 , and then assigning them to $Q(X_{i})$ . As a consequence, we reach the optimal value of $Q(X_{i})$ in one easy step. 
+>  (11.56) 中 RHS 的所有项涉及的是 $X_i$ 以外的变量上的期望，不依赖于 $Q(X_i)$ 的值，因此我们为每个可能的 $x_i$ 值直接计算 $Q(x_i)$ 即可，最后再进行归一化，得到完整的 $Q(X_i)$，得到的就是 (固定其他 $Q(X_j)$ 情况下的) 最优的 $Q(X_i)$ 
 
-This last statement must be interpreted with some care. The resulting value for $Q(X_{i})$ is its optimal value given the choice of all other marginals. Thus, this step optimizes our function relative only to a single coordinate in the space — the marginal of $Q(X_{i})$ . To optimize the function in its entirety, we need to optimize relative to all of the coordinates. We can embed this step in an iterated coordinate ascent algorithm, which repeatedly optimizes a single marginal at a time, given fixed choices to all of the others. The resulting algorithm is shown in algorithm 11.7. Importantly, a single optimization of $Q(X_{i})$ does not usually sufce: a subsequent modification to another marginal $Q(X_{j})$ may result in a diferent optimal parameter iz ation for $Q(X_{i})$ . Thus, the algorithm repeats these steps until convergence. Note that, in practice, we do not test for equality in line 9, but rather for equality up to some fixed small-error tolerance. 
+This last statement must be interpreted with some care. The resulting value for $Q(X_{i})$ is its optimal value given the choice of all other marginals. Thus, this step optimizes our function relative only to a single coordinate in the space — the marginal of $Q(X_{i})$ . To optimize the function in its entirety, we need to optimize relative to all of the coordinates. We can embed this step in an iterated coordinate ascent algorithm, which repeatedly optimizes a single marginal at a time, given fixed choices to all of the others. The resulting algorithm is shown in algorithm 11.7. Importantly, a single optimization of $Q(X_{i})$ does not usually sufce: a subsequent modification to another marginal $Q(X_{j})$ may result in a diferent optimal parameterization for $Q(X_{i})$ . Thus, the algorithm repeats these steps until convergence. Note that, in practice, we do not test for equality in line 9, but rather for equality up to some fixed small-error tolerance. 
+>  注意我们在推导时假定其他所有边际是给定的，因此得到的 $Q(X_i)$ 的最优解也是该情况下的最优解
+>  因此，这一步优化实际上仅在空间的单个坐标轴上 ($Q(X_i)$ 的边际) 优化了我们的函数 $Q$
+>  要完整优化 $Q$，我们需要对全部坐标轴优化，因此我们考虑迭代式坐标上升算法，也就是固定其他所有选择，一次优化一个坐标轴 (边际)，迭代式进行，这样得到的算法就是 algorithm 11.7
+>  注意仅优化 $Q(X_i)$ 一次往往不够，其他边际 $Q(X_j)$ 的更新也会为 $Q(X_i)$ 带来更优的解，因此我们需要重复迭代直到收敛
+>  实践中测试是否收敛时，我们在 line9 不会要求完全相等，而是有一定容忍误差
 
-A key property of the coordinate ascent procedure is that each step leads to an increase in the energy functional. Thus, each iteration of Mean-Field results in a better approximation $Q$ to the target density $P_{\Phi}$ , guaranteeing convergence. 
+![[PGM-Algorithm11.7.png]]
 
+A key property of the coordinate ascent procedure is that each step leads to an increase in the energy functional. **Thus, each iteration of Mean-Field results in a better approximation $Q$ to the target density $P_{\Phi}$ , guaranteeing convergence.** 
+>  坐标上升过程是保证收敛的，因为每一步都保证能量泛函是不减的，并且能量泛函存在上界，当且仅当 $P_\Phi$ 和 $Q$ 之间的 KL 散度为零时达到
+>  也就是说每一次迭代得到的都是对目标分布 $P_\Phi$ 更好的近似 $Q$
+
+**Theorem 11.10**
 The Mean-Field iterations are guaranteed to converge. Moreover, the distribution $Q^{*}$ returned by Mean-Field is a stationary point of $F[\tilde{P}_{\Phi},Q]$ , subject to the constraint that $\begin{array}{r}{Q(\mathcal{X})=\prod_{i}Q(X_{i})}\end{array}$ is a distribution. 
+>  定理
+>  算法 11.7 保证收敛，并且返回的分布 $Q^*$ 是 $F[\tilde P_\Phi, Q]$ 的驻点，且满足约束 (11.50) 和 (11.51)，即 $Q(\mathcal X) = \prod_i Q(X_i)$ 是一个分布
 
-Proof We showed earlier that each iteration of Mean-Field is monotonically nondecreasing in $F[\tilde{P}_{\Phi},Q]$ ] . Because the energy functional is bounded, the sequence of distributions represented by successive iterations of Mean-Field must converge. At the convergence point the fixed-point equations of theorem 11.9 hold for all the variables in the domain. As a consequence, the convergence point is a stationary point of the energy functional. 
+Proof 
+We showed earlier that each iteration of Mean-Field is monotonically nondecreasing in $F[\tilde{P}_{\Phi},Q]$ . Because the energy functional is bounded, the sequence of distributions represented by successive iterations of Mean-Field must converge. At the convergence point the fixed-point equations of theorem 11.9 hold for all the variables in the domain. As a consequence, the convergence point is a stationary point of the energy functional. 
+>  证明
+>  我们直到算法的每次迭代在能量泛函 $F[\tilde P_\Phi, Q]$ 的值上都是不减的，而能量泛函有界，因此多次迭代得到的连续的分布序列一定收敛
+>  根据上面的推导，收敛点上，定理 11.9 的固定点方程显然对于定义域中的所有变量都是满足的，因此收敛点是能量泛函的驻点 (也就是满足约束)
 
-As we discussed, the distribution $Q^{*}$ returned by Mean-Field is not necessarily a local op- timum of the algorithm. However, local minima and saddle points are not stable convergence points of the algorithm, in the sense that a small perturbation of $Q$ followed by optimization will lead to a better convergence point. Because the algorithm is unlikely to accidentally land precisely on the unstable point and get stuck there, in practice, the convergence points of the algorithm are local maxima. 
+As we discussed, the distribution $Q^{*}$ returned by Mean-Field is not necessarily a local optimum of the algorithm. However, local minima and saddle points are not stable convergence points of the algorithm, in the sense that a small perturbation of $Q$ followed by optimization will lead to a better convergence point. Because the algorithm is unlikely to accidentally land precisely on the unstable point and get stuck there, in practice, the convergence points of the algorithm are local maxima. 
+>  算法返回的分布 $Q^*$ 保证是驻点，但不一定是算法的局部最优，但是，局部最小值和鞍点一般不会是算法稳定的收敛点，因为在这些点上，对 $Q$ 的小的扰动就可以让它继续前往更好的收敛点
+>  因为算法恰好完全落在一个不稳定的鞍点的概率极低，故我们可以认为在实践中认为算法的收敛点就是局部最大值
 
 In general, however, the result of the mean field approximation is a local maximum, and not necessarily a global one. 
+>  总的来说，该近似算法的结果就是局部最大值，但不一定是全局最大值
 
-Consider a distribution $P_{\Phi}$ that is an approximate XOR (exclusive or) of two variables $A$ and $B$ , that ${P_{\Phi}}(a,b)=0.5-\epsilon$ if $a\neq b$ and ${\cal P}_{\Phi}(a,b)=\epsilon$ if $a=b$ . Clearly, we cannot approxima $P_{\Phi}$ by a product of marginals, since such a product cannot capture the relationship between A and $B$ . It turns out that if $\epsilon$ is sufciently small, say 0 . 01 , then the energy potential surface has two local maxima that correspond to the two cases where $a\neq b$ . See figure 11.16. (For sufciently large ϵ , such as 0 . 1 , the mean field approximation has a single maximum point at the uniform distribution.) 
+Example 11.11
+Consider a distribution $P_{\Phi}$ that is an approximate XOR (exclusive or) of two variables $A$ and $B$ , that ${P_{\Phi}}(a,b)=0.5-\epsilon$ if $a\neq b$ and ${\cal P}_{\Phi}(a,b)=\epsilon$ if $a=b$ . Clearly, we cannot approxima $P_{\Phi}$ by a product of marginals, since such a product cannot capture the relationship between A and $B$ . It turns out that if $\epsilon$ is sufciently small, say 0.01 , then the energy potential surface has two local maxima that correspond to the two cases where $a\neq b$ . See figure 11.16. (For sufciently large ϵ , such as 0.1 , the mean field approximation has a single maximum point at the uniform distribution.) 
 
 We can use standard strategies, such as multiple random restarts, to try to avoid getting stuck in local maxima. However, these do not overcome the basic shortcoming of the mean field approximation, which is apparent in this example. The approximation cannot describe complex posteriors, such as the XOR posterior we discussed. And thus, we cannot expect it to give satisfactory approximations in these situations. To provide better approximations, we must use a richer class of distributions $\mathcal{Q}_{i}$ , which has greater expressive power. 
+>  可以用一些常规策略，例如多次随机启动，以尝试避免卡在局部最大值
+>  但平均场近似的最大限制仍然在于它无法描述带有交互的复杂分布
 
 ### 11.5.2 Structured Approximations 
 The mean field algorithm provides an easy approximation method. However, it is limited by forcing $Q$ to be a very simple distribution. As we just saw, the fact that all variables are independent of each other in $Q$ can lead to very poor approximations. Intuitively, if we use a distribution $Q$ that can capture some of the dependencies in $P_{\Phi}$ , we can get a better approximation. Thus, we would like to explore the spectrum of approximations between the mean field approximation and exact inference. 
@@ -9031,18 +9064,34 @@ In general, our approximate partition function will be a function $\tilde{Z}(\la
 
 ## 11.6 Summary and Discussion
 In this chapter, we have described a general class of methods for performing approximate inference in a distribution $P_{\Phi}$ defined by a graphical model. These methods all attempt to construct a representation $Q$ within some approximation class $\mathcal{Q}$ that best approximates $P_{\Phi}$ . The key issue that must be tackled in this task is the construction of such an approximation without performing inference on the (intractable) $P_{\Phi}$ . The methods that we described all take a similar approach of using the I-projection framework, whereby we minimize the KL- divergence $D (Q\|P_{\Phi})$ ; these methods all reformulate this problem as one of maximizing the energy functional. 
+>  在本章中，我们描述了一类用于在由图形模型定义的分布 $P_{\Phi}$ 中执行近似推理的方法。所有这些方法都试图在某个近似类 $\mathcal{Q}$ 内构建一个表示 $Q$，该表示最能逼近 $P_{\Phi}$。
+>  在这项任务中必须解决的关键问题是，在不对（难以处理的）$P_{\Phi}$ 进行推理的情况下构造这样的近似。我们所描述的方法都采用了类似的策略，即使用 I-投影框架，通过最小化KL散度 $D(Q \| P_{\Phi})$ 来实现；这些方法都将这个问题重新表述为最大化能量泛函的问题。
 
 The different methods that we described all follow a similar template. We optimize the free energy, or an approximation thereof, over a class of representations $\mathcal{Q}$ . We provided an optimization-based view for four diferent methods, each of which makes a particular choice regarding the objective and the constraints. We now recap these choices and their repercussions. 
+>  我们描述的不同方法都遵循类似的模板。
+>  我们在一组表示 $\mathcal{Q}$ 上优化自由能或其近似。
+>  我们提供了四种不同方法的基于优化的观点，每种方法对目标函数和约束条件进行了特定的选择。我们现在总结这些选择及其影响。
 
 Clique tree calibration optimizes the factored energy functional, which is exact for clique trees. The optimization is performed over the space of calibrated clique potentials. For clique trees, any set of calibrated clique potentials must arise from a real distribution, and so this space is precisely the marginal polytope. As a consequence, both our objective and our constraint space are exact, so our solution represents the exact posterior. 
+>  团树校准优化分解的能量泛函，这对于团树而言是精确的。
+>  优化是在校准团势能的空间上进行的。
+>  对于团树来说，任何一组校准的团势能都必须来源于实际的分布，因此这个空间正是边缘多胞形。因此，我们的目标和约束空间都是精确的，所以我们的解代表了精确的后验。
 
 Cluster-graph (loopy) belief propagation optimizes the factored energy functional, which is approximate for loopy graphs. The optimization is performed over the space of locally consistent pseudo-marginals, which is a relaxation of the marginal polytope. Thus, both the objective and the constraint space are approximate. 
+>  簇图（循环）置信传播优化因子能量泛函，这在循环图中是近似的。
+>  优化是在局部一致伪边缘的空间上进行的，这是边缘多胞形的一个松弛。因此，无论是目标还是约束空间都是近似的。
 
 Expectation propagation over clique trees optimizes the factored energy functional, which is the exact objective in this case. However, the constraints define a space of pseudo-marginals that are not even entirely consistent — only their moments are required to match. Thus, the constraint space here is a relaxation of our constraints, even when the structure is a tree. Expectation propagation over cluster graphs adds, on top of these, all of the approximations induced by belief propagation. 
+>  在团树上的期望传播优化因子能量泛函，在这种情况下它是精确的目标函数。然而，约束定义了一个连贯伪边缘的空间，这些伪边缘甚至都不是完全一致的——只有它们的矩需要匹配。因此，即使结构是一棵树，这里的约束空间也比我们的原始约束空间更宽松。在簇图上的期望传播除了这些外，还包括信念传播所导致的所有近似。
 
 Finally, structured variational methods optimize the exact factored energy functional, for a class of distributions that is (generally) less expressive than necessary to encode $P_{\Phi}$ . As a consequence, the constraint space is actually a tightening of our original constraint space. Because the objective function is exact, the result of this optimization provides a lower bound on the value of the exact optimization problem. As we will see, such bounds can play an important role in the context of learning. 
+>  最后，有结构的变分方法优化了分解的能量泛函，但是对于一类通常不如编码 $P_{\Phi}$ 所需那样具有表现力的分布。
+>  因此，约束空间实际上是对我们原始约束空间的紧缩。
+>  由于目标函数是精确的，这种优化的结果会为精确优化问题的值提供一个下界。正如我们将看到的，这种界限在学习的背景下可以发挥重要作用。
 
 In the approaches we discussed, the optimization method was based on the method of Lagrange multipliers. This derivation gave rise to a series of fixed-point equations for the solution, where one variable is defined in terms of the others. As we showed, an iterative solution for these fixed-point equations gives rise to a suite of message passing algorithms that generalize the clique-tree message passing algorithms of chapter 10. 
+> 在我们讨论的方法中，优化方法基于拉格朗日乘数法。此推导产生了一系列固定的点方程来求解，在这些方程中一个变量是根据其他变量定义的。
+> 正如我们所展示的，这些固定点方程式的迭代解产生了一系列消息传递算法，这些算法推广了第十章中的团树消息传递算法。
 
 This general framework opens the door to the development of many other approaches. Each of the methods that we described here involves a design choice in three dimensions: the objective function that we aim to optimize, the space of (pseudo-) distributions over which we perform our optimization, and the algorithm that we choose to use in order to perform the optimization. Although these three decisions afect each other, these dimensions are sufciently independent that we can improve each one separately. Some recent work takes exactly this approach. For example, we have already seen some work that focuses on better approximations to the energy functional; other work (see section 11.7) focuses on identifying constraints over the space of pseudo-marginals that make it a tighter relaxation to the (exact) marginal polytope; yet other work aims to find better (for example, more convergent) algorithms for a general class of optimization problems. 
 
