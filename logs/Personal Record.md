@@ -174,7 +174,7 @@
 - [[doc-notes/triton/Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
     Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapasulates all the compilcated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
 
-### Week4
+### Week 4
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
     SecA-Related Work
@@ -213,7 +213,7 @@
 - [[Argparse Tutorial|python/how/general/Argparse Tutorial]] 
 - [[nvidia/CUDA C++ Programming Guide v12.6]]: CH1
 
-### Week2
+### Week 2
 \[Paper\]
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec0-Sec4.5
     Sec0-Abstract
@@ -256,7 +256,7 @@
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
 - [[huggingface/hub/Repositories]]: Sec4-Sec10
 
-### Week3
+### Week 3
 \[Paper\]
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec4.6-Sec10
     Sec4-Method: 
@@ -431,3 +431,6 @@
 \[Doc\]
 - [[Models|huggingface/hub/Models]]: Sec0-Sec1
 - [[python/pep/PEP 8-Style Guide for Python Code]]
+
+## December
+### Week 1
