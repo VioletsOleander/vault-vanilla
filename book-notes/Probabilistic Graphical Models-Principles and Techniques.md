@@ -3399,7 +3399,13 @@ To prove the other direction of this equivalence, we ﬁrst prove some important
 >我们要展示的基本结果是：我们可以将任意连通弦图 $\mathcal{H}$ 分解成一个由团组成的树——这棵树的节点是由 ${\mathcal{H}}$ 中的极大团组成，而树的结构精确地编码了 $\mathcal{H}$ 中的独立性（在非连通图的情况下，我们得到的是一个由团组成的森林，而不是一棵树）
 
 We begin by introducing some notation. Le $\mathcal{H}$ be connected undirected graph, and let $C_{1},\ldots,C_{k}$ be the set of maximal cliques in H . Let T $\mathcal{T}$ be any tree-structured graph whose nodes correspond to the maximal cliques $C_{1},\ldots,C_{k}$ . Let $C_{i},C_{j}$ be two cliques in the tree that direct edge; we deﬁne $S_{i,j}=C_{i}\cap C_{j}$ to be a sepset between $C_{i}$ and $C_{j}$ . Let $W_{<(i,j)}\ (W_{<(j,i)})$ ) be all of the variables that appear in any clique on the $C_{i}$ $(C_{j})$ edge us, each edge decomposes $\mathcal{X}$ into three disjoint sets: $W_{<(i,j)}-S_{i,j}$ , $W_{<(j,i)}-S_{i,j}$ − , and $\boldsymbol{S}_{i,j}$ . 
-> 引入一些记号：$\mathcal H$ 表示连通无向图；$\pmb C_1, \dots, \pmb C_k$ 为 $\mathcal H$ 中的一系列极大团；$\mathcal T$ 为任意树，其节点对应于极大团；$\pmb C_i, \pmb C_j$ 为树中直接相连的两个团；定义 $\pmb S_{i, j} =  \pmb C_i \cap \pmb C_j$ 为 $\pmb C_i, \pmb C_j$ 之间的分离集 sepset； $\pmb W_{<(i,j)}\ (\pmb W_{<(j,i)})$  表示出现在 $\pmb C_i(\pmb C_j)$ 那一边的团中的任意节点，因此，一条边将 $\mathcal X$ 分为三个不相交集合 $\pmb W_{<(i, j)} - \pmb S_{ij} , \pmb W_{<(j, i)} - \pmb S_{ij}, \pmb S_{ij}$
+> 引入一些记号：
+> $\mathcal H$ 表示连通无向图；
+> $\pmb C_1, \dots, \pmb C_k$ 为 $\mathcal H$ 中的一系列极大团；
+> $\mathcal T$ 为任意树，其节点对应于极大团；
+> $\pmb C_i, \pmb C_j$ 为树中直接相连的两个团；
+> 定义 $\pmb S_{i, j} =  \pmb C_i \cap \pmb C_j$ 为 $\pmb C_i, \pmb C_j$ 之间的分离集 sepset；
+> $\pmb W_{<(i,j)}\ (\pmb W_{<(j,i)})$  表示出现在 $\pmb C_i(\pmb C_j)$ 那一边的团中的任意节点，因此，一条边将 $\mathcal X$ 分为三个不相交集合 $\pmb W_{<(i, j)} - \pmb S_{ij} , \pmb W_{<(j, i)} - \pmb S_{ij}, \pmb S_{ij}$
 
 **Deﬁnition 4.17** clique tree 
 We say that a tree $\mathcal{T}$ s a clique tree for $\mathcal{H}$ if: 
@@ -6480,7 +6486,7 @@ Let $\Phi$ be a set of factors over $\mathcal{X}$ . A cluster tree ver $\Phi$ th
 Note that we have already deﬁned one notion of a clique tree in deﬁnition 4.17. This double deﬁnition is not an overload of terminology, because the two deﬁnitions are actually equivalent: It follows from the results of this chapter that $\mathcal{T}$ is a clique tree for $\Phi$ (in sense of deﬁnition 10.3) if and only if it is a clique tree for a chordal graph containing ${\mathcal{H}}_{\Phi}$ (in the sense of deﬁnition 4.17), and these properties are true if and only if the clique-tree data structure admits variable elimination by passing messages over the tree. 
 > 该定义和 definition 4.17 中对于团树的定义是等价的：$\mathcal T$ 是 $\Phi$ 的团树当且仅当 $\mathcal T$ 是包含 $\mathcal H_{\Phi}$ 的弦图的团树，并且这些性质成立当且仅当团树数据结构通过在树上传递消息来支持变量消去
 
-We ﬁrst show that the running intersection property implies the independence statement, which is the heart of our ﬁrst deﬁnition of clique trees. Let $\mathcal{T}$ be a cluster tree over $\Phi$ , and let H ${\mathcal{H}}_{\Phi}$ be the undirected graph associated with this set of factors. For any sepset $\boldsymbol{S}_{i,j}$ , let $W_{<(i,j)}$ be the set of all variables in the scope of clusters in the $C_{i}$ side of the tree, and $W_{<(j,i)}$ be the set of all variables in the scope of clusters in the $C_{j}$ side of the tree. 
+We ﬁrst show that the running intersection property implies the independence statement, which is the heart of our ﬁrst deﬁnition of clique trees. Let $\mathcal{T}$ be a cluster tree over $\Phi$ , and let ${\mathcal{H}}_{\Phi}$ be the undirected graph associated with this set of factors. For any sepset $\boldsymbol{S}_{i,j}$ , let $W_{<(i,j)}$ be the set of all variables in the scope of clusters in the $C_{i}$ side of the tree, and $W_{<(j,i)}$ be the set of all variables in the scope of clusters in the $C_{j}$ side of the tree. 
 > 运行相交性质意味着独立性陈述
 > $\mathcal T$ 为 $\Phi$ 上的团树，$\mathcal H_\Phi$ 为和因子集合 $\Phi$ 相关的无向图，对于任意分离集 $\pmb S_{i, j}$，令 $\pmb W_{<(i, j)}$ 为树的 $\pmb C_i$ 边的所有簇的作用域包含的变量，$\pmb W_{<(j, i)}$ 为数的 $\pmb C_j$ 边的所有簇的作用域包含的变量
 
@@ -7327,7 +7333,7 @@ This approach reformulates the inference task as one of optimizing an objective 
 > 在我们的设定中，该表征的形式为一组固定点方程，通过这些方程，每个变量都可以用其他变量来定义
 > 一个较为优雅的结果是从约束能量优化导出的固定点方程可以被视为在一个图对象上发送消息，因此甚至标准的团树 sum-product 方法也可以从这一角度推导，许多其他的消息传递算法也亦如此
 
-Methods in this class fall into three main categories. The first category includes methods that use clique-tree message passing schemes on structures other than trees. This class of methods, which includes the famous loopy belief propagation algorithm, can be understood as optimizing approximate versions of the energy functional. The second category includes methods that use message propagation on clique trees with approximate messages. This class of methods, often known as the expectation propagation algorithm, maximize the exact energy functional, but with relaxed consistency constraints on the representation $Q$ . Finally, in the third category there are methods that generalize the mean field method originating in statistical physics. These methods e the exact energy functional, but they restrict attention to a class $\mathcal{Q}$ consisting of distributions $Q$ that have a particular simple factorization. This factorization is chosen to be simple enough to ensure that we can perform inference with $Q$ .
+Methods in this class fall into three main categories. The first category includes methods that use clique-tree message passing schemes on structures other than trees. This class of methods, which includes the famous loopy belief propagation algorithm, can be understood as optimizing approximate versions of the energy functional. The second category includes methods that use message propagation on clique trees with approximate messages. This class of methods, often known as the expectation propagation algorithm, maximize the exact energy functional, but with relaxed consistency constraints on the representation $Q$ . Finally, in the third category there are methods that generalize the mean field method originating in statistical physics. These methods use the exact energy functional, but they restrict attention to a class $\mathcal{Q}$ consisting of distributions $Q$ that have a particular simple factorization. This factorization is chosen to be simple enough to ensure that we can perform inference with $Q$ .
 > 这类方法可以分为三类
 > 第一类在非树的结构上使用团树消息传递方法，例如 loopy belief propagation 算法，这类方法可以理解为优化能量泛函的近似形式
 > 第二类在团树结构上使用近似消息进行消息传递，这类方法称为期望传播算法，它们最大化精确的能量泛函，但用 $Q$ 的表示松弛了一致性约束
@@ -7451,8 +7457,8 @@ The preceding discussion suggests a strategy for constructing approximations of 
 > 此外，在设计目标分布集合时，我们可以确保这些分布是我们能够高效进行推理的分布
  
 One problem that we will face is that the target of the optimization $D(Q\|P_{\Phi})$ is unwieldy for direct optimization. The relative entropy term contains an explicit summation over all possible instantiations of $\mathcal{X}$ , an operation that is infeasible in practice. However, since we know the form of $\ln{P_{\Phi}}(\xi)$ from equation (11.1), we can exploit its structure to rewrite the relative entropy in a simpler form, as shown in the following theorem.
-> 我们将面临的一个问题是，优化目标 $D(Q\|P_{\Phi})$ 在直接优化时难以处理，相对熵项包含对 $\mathcal{X}$ 所有可能实例的显式求和，而在实际操作中这是不可行的
-> 然而，由于我们从公式 (11.1) 中知道了 $\ln{P_{\Phi}}(\xi)$ 的形式，我们可以利用其结构将其重写为一个更简单的形式，如下定理所示
+> 我们将面临的一个问题是，优化目标 $D(Q\|P_{\Phi})$ 在直接优化时难以处理，相对熵项包含对 $\mathcal{X}$ 所有可能实例的显式求知道和，而在实际操作中这是不可行的
+> 然而，由于我们从公式 (11.1) 中了 $\ln{P_{\Phi}}(\xi)$ 的形式，我们可以利用其结构将其重写为一个更简单的形式，如下定理所示
 
 **Theorem 11.2**
 $D(Q||P_\Phi) = \ln Z  - F[\tilde P_\Phi, Q]$
@@ -7637,7 +7643,6 @@ Remember that $\mathcal{J}$ is a function of the clique beliefs $\{\beta_{i}\}$ 
 > 要找到拉格朗日函数的极大值，我们取 $\mathcal J$ 相对于 $\beta_i(\pmb c_i), \mu_{i, j}[\pmb s_{i, j}]$ 和拉格朗日乘子的偏导数
    因此得到 (拉格朗日乘子的偏导数会重构约束，因此略去)：
 
-
 $$
 \begin{array}{r c l}{\displaystyle\frac{\partial}{\partial\beta_{i}(\pmb{c}_{i})}\mathcal{J}}&{=}&{\ln\psi_{i}[\pmb{c}_{i}]-\ln\beta_{i}(\pmb{c}_{i})-1-\lambda_{i}-\displaystyle\sum_{j\in\mathrm{Nb}_{i}}\lambda_{j\rightarrow i}[\pmb{s}_{i,j}]}\\ {\displaystyle\frac{\partial}{\partial\mu_{i,j}[\pmb{s}_{i,j}]}\mathcal{J}}&{=}&{\ln\mu_{i,j}[\pmb{s}_{i,j}]+1+\lambda_{i\rightarrow j}[\pmb{s}_{i,j}]+\lambda_{j\rightarrow i}[\pmb{s}_{i,j}].}\end{array}
 $$ 
@@ -7692,7 +7697,7 @@ $$
 > 定理
 > 一组信念 $\pmb Q$ 是 CTree-Optimize 的驻点当且仅当存在一组作用域在各个分离集上的因子 $\{\delta_{i\rightarrow j}[\pmb S_{i, j}]: (i-j) \in \mathcal E_{\mathcal T}\}$，这些因子满足 (11.10)，即 $\delta_{i\rightarrow j}$ 正比于 $\psi_i$ 和除去来自 $j$ 的所有消息的乘积在 $\pmb S_{i, j}$ 上的边际，并且还要满足信念 $\beta_i$ 正比于 $\psi_i$ 乘上所有的消息，以及信念 $\mu_{i, j}$ 等于 $\delta_{i\rightarrow j}$ 和 $\delta_{j\rightarrow i}$ 的乘积
 
-**This theorem characterizes the solution of the optimization problem in terms of fixed-point equations that must hold when we find a maximal $Q$ . These fixed-point equations define the relationships that must hold between the diferent parameters involved in the optimization problem. Most importantly, equation (11.10) defines each message in terms of other messages, allowing an easy iterative approach to solving the fixed point equations. These same themes appear in all the approaches we will discuss later in this chapter.** 
+**This theorem characterizes the solution of the optimization problem in terms of fixed-point equations that must hold when we find a maximal $Q$ . These fixed-point equations define the relationships that must hold between the different parameters involved in the optimization problem. Most importantly, equation (11.10) defines each message in terms of other messages, allowing an easy iterative approach to solving the fixed point equations. These same themes appear in all the approaches we will discuss later in this chapter.** 
 > 这个定理通过固定点方程刻画了优化问题的解，这些固定点方程在找到最大化的 $Q$ 时必须成立
 > 这些固定点方程定义了优化问题中涉及的不同参数之间必须满足的关系，最重要的是，方程 (11.10) 通过其他消息定义了每个消息，这允许我们采用简单的迭代方法来解决固定点方程
 > 这些相同的主题将在本章后续讨论的所有方法中出现
@@ -7730,7 +7735,7 @@ Now suppose that, instead, we perform inference as follows. We set up four clust
 > 我们设定四个簇 $\pmb C_1, \pmb C_2, \pmb C_3, \pmb C_4$，分别对应于四个初始势能
 > 我们将这些簇相互连接，形成 figure 11.1c 中的簇图，注意该簇图包含了回路 (无向的环)，因此它不是一棵树
 > 这种图一般称为有圈图
-> 我们可以在该图上应用信念更新传播算法 CTree-BU-clibrate (algorithm 10.3)，虽然在讨论该算法时，我们假定了输入是一棵树，但算法本身并不依赖于这一事实，在算法的每一步，我们只是在相邻的簇之间传播消息，因此，该算法完全可以应用在一个通用的簇图上
+> 我们可以在该图上应用信念更新传播算法 CTree-BU-Clibrate (algorithm 10.3)，虽然在讨论该算法时，我们假定了输入是一棵树，但算法本身并不依赖于这一事实，在算法的每一步，我们只是在相邻的簇之间传播消息，因此，该算法完全可以应用在一个通用的簇图上
 
 The clusters in this cluster graph are smaller than those in the clique tree of figure 11.1b; therefore, the message passing steps are less expensive. But what is the result of this procedure? Suppose we propagate messages in the following order $\mu_{1,2},\,\mu_{2,3},\,\mu_{3,4}$ , and then $\mu_{4,1}$ . In the first message, the $\{A,B\}$ cluster passes information to the $\{B,C\}$ cluster through a marginal distribution on B . This information is then propagated to next cluster, and so on. However, in the final message $\mu_{4,1}$ , this information reaches the original cluster, but this time as observation about the values of $A$ . As an example, suppose all clusters favor consensus joint assignments; that is, $\beta_{1}(a^{0},b^{0})$ and $\beta_{1}(a^{1},b^{1})$ are much larger than $\beta_{1}(a^{1},b^{0})$ and $\beta_{1}(a^{0},b^{1})$ , and similarly for the other beliefs. Thus, if the message $\mu_{1,2}$ strengthens the belief that $B\,=\,b^{1}$ , then the message $\mu_{2,3}$ will increase the belief in $C=c^{1}$ and so on. Once we get around the loop, the message $\mu_{4,1}$ will strengthen the support in $A=a^{1}$ . This message will be incorporated into the cluster as though it were independent evidence that did not depend on the initial propagation. Now, if we continue to apply the same sequence of propagations again, we will keep increasing the beliefs in the assignment of $A=a^{1}$ . This behavior is illustrated in figure 11.2. As we can see, in later iterations the procedure overestimates the marginal probability of $A$ . However, the efect of the “feedback” decays until the iterations converge.  
 > figure 11.1c 中的簇比 figure11.1b 的团树中的簇要小，因此消息传递步骤的成本更低
@@ -7845,7 +7850,7 @@ $$
 $$ 
 where $\begin{array}{r}{\tilde{P}_{\Phi}(\mathcal{X})=\prod_{\phi\in\Phi}\phi}\end{array}$ is the unnormalized distribution defined by $\Phi$ . 
 > 定理
-> $\mathcal U$ 为因子集合 $\Phi$ 上的推广的簇图，算法 CGrph-BU-Calibrate 中的任意迭代中，由 $\Phi$ 定义的未规范化的分布 $\tilde P(\mathcal X) = \prod_{\phi \in \Phi}\phi$ 都满足以上的式子
+> $\mathcal U$ 为因子集合 $\Phi$ 上的推广的簇图，算法 CGraph-BU-Calibrate 中的任意迭代中，由 $\Phi$ 定义的未规范化的分布 $\tilde P(\mathcal X) = \prod_{\phi \in \Phi}\phi$ 都满足以上的式子
 
 Proof Recall that $\begin{array}{r}{\beta_{i}=\psi_{i}\prod_{j\in\mathrm{Nb}_{i}}\delta_{j\rightarrow i}}\end{array}$ and that $\mu_{i,j}=\delta_{j\to i}\delta_{i\to j}$ . We now have
 
@@ -7977,7 +7982,7 @@ It is important to keep in mind that the structure of the cluster graph determin
 > 簇图的结构决定了算法执行传播的步骤，因此决定了在传播中哪些类型的信息会被传递，这会直接影响结果的质量
 
 Example 11.1 
-Consider, for examp the cluster graphs $\mathcal{U}_{1}$ $\mathcal{U}_{2}$ of figure 11.3a and figure 11.3b. Both a fairl imilar, yet in U $\mathcal{U}_{2}$ the ed between $C_{1}$ and $C_{2}$ involves the mar al distribution over B and C . On the other hand, in U $\mathcal{U}_{1}$ , we propagate the margin only er C . Intuitively, we expect inference in $\mathcal{U}_{2}$ to better capture the dependencies between $B$ and $C$ . For , assu that the potential of $C_{1}$ intro es strong cor ations between B d C (say $B\,=\,C.$ ). In U $\mathcal{U}_{2}$ , this correlation is conveyed $C_{2}$ directly. In U $\mathcal{U}_{1}$ , t marginal on C is conveyed on the edge (1 – 2) , while the marginal on B is conveyed through $C_{4}$ . In this case, the strong dependency between the two variables is lost. In particular, if the marginal on $C$ is difuse (close to uniform), then the message $C_{1}$ sends to $C_{4}$ will also have a uniform distribution on $B$ , and from $C_{2}\mathit{\dot{s}}$ perspective the messages on $B$ and $C$ will appear as two independent variables. 
+Consider, for examp the cluster graphs $\mathcal{U}_{1}$ $\mathcal{U}_{2}$ of figure 11.3a and figure 11.3b. Both a fairl imilar, yet in $\mathcal{U}_{2}$ the ed between $C_{1}$ and $C_{2}$ involves the mar al distribution over B and C . On the other hand, in $\mathcal{U}_{1}$ , we propagate the margin only er C . Intuitively, we expect inference in $\mathcal{U}_{2}$ to better capture the dependencies between $B$ and $C$ . For , assu that the potential of $C_{1}$ intro es strong cor ations between B d C (say $B\,=\,C.$ ). In U $\mathcal{U}_{2}$ , this correlation is conveyed $C_{2}$ directly. In $\mathcal{U}_{1}$ , t marginal on C is conveyed on the edge (1 – 2) , while the marginal on B is conveyed through $C_{4}$ . In this case, the strong dependency between the two variables is lost. In particular, if the marginal on $C$ is difuse (close to uniform), then the message $C_{1}$ sends to $C_{4}$ will also have a uniform distribution on $B$ , and from $C_{2}\mathit{\dot{s}}$ perspective the messages on $B$ and $C$ will appear as two independent variables. 
 
 On the other hand, if we introduce many messages between clusters or increase the scope of these messages, we run the risk of constructing a tree that violates the running intersection property. And so, we have to worry about methods that ensure that the resulting structure is a proper cluster graph. We now consider several approaches for constructing cluster graphs.
 > 另一方面，如果我们引入许多簇之间的消息或者增加这些消息的范围，我们就有可能构建一个违反运行相交属性的树
@@ -8014,15 +8019,20 @@ We can easily verify that this cluster graph is a proper one. First, by construc
  
 #### 11.3.5.3 Beyond Marginal Probabilities 
 The main limitation of using the Bethe cluster graph is that information between different clusters in the top level is passed through univariate marginal distributions. Thus, interactions between variables are lost during propagations. Consider the example of figure 11.7a. Suppose that $C_{1}$ creates a strong dependency between $B$ and $C$ . These two variables are shared with $C_{2}$ . However, the messages between two clusters are mediated through the univariate factors. And thus, interactions introduced by one cluster are not directly propagated to the other. 
-> Bethe 簇图的主要限制在于不同簇之间的信息在顶层是通过单变量边际分布传递的，故变量之间的交互在传播时丢失
+> Bethe 簇图的主要限制在于不同簇之间的信息在顶层是通过单变量的边际分布(间接)传递的，故变量之间的交互在传播时丢失
 
 One possible solution is to merge some of the large clusters. For example, if we want to capture the interactions between $C_{1}$ and $C_{2}$ in figure 11.7a, we can replace both of them by a cluster with the score $A, B, C, D$ . This new cluster will allow us to capture the interactions between the factors involved in these two clusters. This modification, however, comes at a price, since the cost of manipulating a cluster grows exponentially with this scope. Moreover, this approach seems excessive in this case, since we can summarize these interactions simply using a distribution over $B$ and $C$ . This intuition suggests the construction of figure 11.7b. Note that this cluster graph is equivalent to figure 11.3b; see exercise 11.6. 
 > 一个可能的解决方法是合并一些 “大” 的簇，合并后的簇可以捕获其包含的簇相关的因子之间的交互
 > 但合并会增大簇的作用域，而操纵簇的开销是随着簇作用域大小指数增长的
 
 Can we generalize this construction? A reasonable goal might be to capture all pairwise interactions. We can try to use a construction similar to the Bethe approximation, but introducing an intermediate level that includes pairwise clusters. In the same manner as we introduced $C_{12}$ in figure 11.7b, we can introduce other pairs that are shared by more than two clusters. As a concrete example, consider the factors $C_{1}=\{A, B, C\}$ , $C_{2}=\{B, C, D\}$ , and ${C_{3}}=\left\{{A, C, D}\right\}$ . The relevant pairwise factors that capture interactions among these clusters are $\{B, C\}=C_{1}\cap C_{2}$ , $\{C, D\}=C_{2}\cap C_{3}$ , and $\{A, C\}=C_{1}\cap C_{3}$ . The resulting cluster graph appears in figure 11.8a. Unfortunately, a quick check shows that this cluster graph does not satisfy the running intersection property — all the edges in this graph are labeled by $C$ , and together they form a loop. As a result, information concerning $C$ can propagate indefinitely around the loop, “overcounting” the efect of $C$ in the result. 
+> 我们可以推广这种构造吗？一个合理的目标可能是捕捉所有的成对交互作用
+> 我们可以尝试使用类似于 Bethe 近似的构造，但引入一个包含成对簇的中间层级。就像我们在图11.7b 中引入 $C_{12}$ 一样，我们也可以引入由超过两个簇共享的其他成对簇
+> 以具体的例子来说，考虑因子 $C_{1}=\{A, B, C\}$ ，$C_{2}=\{B, C, D\}$ 和 $C_{3}=\{A, C, D\}$。这些簇之间相关联的成对因子是 $\{B, C\}=C_{1}\cap C_{2}$，$\{C, D\}=C_{2}\cap C_{3}$ 和 $\{A, C\}=C_{1}\cap C_{3}$。所得到的聚类图如图11.8a 所示
+> 不幸的是，快速检查显示该聚类图并不满足运行相交性质——图中的所有边都标记为 $C$，并且它们共同形成一个环路。因此，关于 $C$ 的信息可以在环路上无限传播，“在结果中过度计算” $C$ 的影响
 
-How do we avoid this problem? In this specific example, we can consider a weaker approx- imation by removing $C$ from one of the intersection sets. For example, if we remove $C$ from $C_{5}$ , we get the cluster graph of figure 11.8b. This cluster graph satisfies the running intersection property. An alternative approach tries to “compensate” somehow for the violation of the run- ning intersection property using a more complex message passing algorithm; see section 11.3.7.3. 
+How do we avoid this problem? In this specific example, we can consider a weaker approximation by removing $C$ from one of the intersection sets. For example, if we remove $C$ from $C_{5}$ , we get the cluster graph of figure 11.8b. This cluster graph satisfies the running intersection property. An alternative approach tries to “compensate” somehow for the violation of the run- ning intersection property using a more complex message passing algorithm; see section 11.3.7.3. 
+> 我们如何避免这个问题？在这个特定的例子中，我们可以通过从一个交集中移除 $C$ 来考虑一个较弱的近似方法。例如，如果我们从 $C_{5}$ 中移除 $C$，我们得到图11.8b中的簇图。此簇图满足运行相交性质。另一种方法试图通过更复杂的传信算法来“补偿”违反运行相交性质的问题；参见第11.3.7.3节。
 
 Box 11. B — Skill: Making loopy belief propagation work in practice. One of the main prob- lems with loopy belief propagation is nonconvergence . This problem is particularly serious when we build systems that use inference as a subroutine within other tasks, for example, as the inner loop of a learning algorithm (see, for example, section 20.5.1). Several approaches have been used for addressing this nonconvergence issue. Some are fairly simple heuristics. Others are more so- phisticated, and typically are based on the characterization of cluster-graph belief propagation as optimizing the approximate free-energy functional. 
 A first observation is that, often, nonconvergence is a local problem. In many practical cases, most of the beliefs in the network do converge, and only a small portion of the network remains problematic. In such cases, it is often quite reasonable simply to stop the algorithm at some point (for example, when some predetermined amount of time has elapsed) and use the beliefs at that point, or a running average of the beliefs over some time window. This heuristic is particularly reasonable when we are not interested in individual beliefs, but rather in some aggregate over the entire network, for example, in a learning setting. 
@@ -8059,20 +8069,33 @@ The remaining panels illustrate the progression of the marginal beliefs over the
 These qualitative diferences between the BP variants are quite consistent across many random and real-life models. Typically, the more complex the inference problem, the larger the gaps in performance. For very complex real-life networks involving tens of thousands of variables and multiple cycles, even asynchronous BP is not very useful and more elaborate propagation methods or convergent alternatives must be adopted. 
 
 ### 11.3.6 Variational Analysis 
-So far, our discussion of cluster-graph belief propagation has been procedural, motivated purely by similarity to message passing algorithms for cluster trees. Is there any formal justification for this approach? Is there a sense in which we can view this algorithm as providing an approxima- tion to the exact inference task? In this section, we show that cluster-graph belief propagation can be justified using the energy functional formulation of section 11.1. Specifically, the mes- sages passed by cluster-graph belief propagation can be derived from fixed-point equations for the stationary points of an approximate version of the energy functional of equation (11.3). As we will see, this formulation provides significant insight into the generalized belief propagation algorithm. It allows us to understand better the convergence properties of cluster-graph belief propagation and to characterize its convergence points. It also suggests generalizations of the algorithm that have better convergence properties, or that optimize a better approximation to the energy functional. 
+So far, our discussion of cluster-graph belief propagation has been procedural, motivated purely by similarity to message passing algorithms for cluster trees. Is there any formal justification for this approach? Is there a sense in which we can view this algorithm as providing an approximation to the exact inference task? In this section, we show that cluster-graph belief propagation can be justified using the energy functional formulation of section 11.1. Specifically, the messages passed by cluster-graph belief propagation can be derived from fixed-point equations for the stationary points of an approximate version of the energy functional of equation (11.3). As we will see, this formulation provides significant insight into the generalized belief propagation algorithm. It allows us to understand better the convergence properties of cluster-graph belief propagation and to characterize its convergence points. It also suggests generalizations of the algorithm that have better convergence properties, or that optimize a better approximation to the energy functional. 
+>  我们目前对于簇图信念传播算法的讨论都是过程性的，是直接效仿簇树中的消息传递算法而来
+>  本节展示簇图信念传播算法可以由能量泛函推导而来，具体地说，可以从能量泛函的近似形式的驻点所满足的固定点方程推导而来
+
 Our construction will be similar to the one in section 11.2 for exact inference. However, there are important diferences that underlie the fact that this algorithm is only an approximate inference algorithm. 
 factored energy functional 
-marginal polytope 
-First, the exact energy functional $F[\tilde{P}_{\Phi}, Q]$ has terms involving the entropy of an entire joint distribution; thus, it cannot be tractably optimized. However, the factored energy functional $\left[\tilde{F}[\tilde{P}_{\Phi}, Q]\right.$ is defined in terms of entropies of clusters and sepsets, each of which can be computed efciently based purely on local information at the clusters. Importantly, however, unlike for clique trees, $\tilde{F}[\tilde{P_{\Phi}}, Q]$ is no longer simply a reformulation of the energy functional, but rather an approximation of it. 
+
+First, the exact energy functional $F[\tilde{P}_{\Phi}, Q]$ has terms involving the entropy of an entire joint distribution; thus, it cannot be tractably optimized. However, the factored energy functional $\tilde{F}[\tilde{P}_{\Phi}, Q].$ is defined in terms of entropies of clusters and sepsets, each of which can be computed efciently based purely on local information at the clusters. Importantly, however, unlike for clique trees, $\tilde{F}[\tilde{P_{\Phi}}, Q]$ is no longer simply a reformulation of the energy functional, but rather an approximation of it. 
+>  精确能量泛函 $F[\tilde P_\Phi, Q]$ 其中一项是整个联合分布的熵，因此无法直接优化
+>  分解形式的能量泛函 $\tilde F[\tilde P_\Phi, \pmb Q]$ 则根据簇和分离集的熵定义，这些熵可以基于簇上的局部信息高效计算
+>  但和团树中的情况不同的是，在簇图中，$\tilde F[\tilde P_\Phi, \pmb Q]$ 将不再和 $F[\tilde P_\Phi, Q]$ 等价，而是对后者的一个近似
+
 However, even the factored energy functional cannot be optimized over the space of all marginals $Q$ that correspond to some actual distribution $P_{\Phi}$ . More precisely, consider some cluster graph $\mathcal{U}$ ; for a distribution $P$ e define $Q_{P}=\{P (C_{i})\}_{i\in\mathcal{V}_{\mathcal{U}}}\cup\{P (S_{i, j})\}_{(i-j)\in\mathcal{E}_{\mathcal{U}}}$ . We now define the marginal polytope of U to be 
+
 $$
-M a r g[\mathcal{U}]=\{Q_{P}: P\mathrm{~is~a~distribution~over~}\mathcal{X}\}
+M a r g[\mathcal{U}]=\{\pmb Q_{P}: P\mathrm{~is~a~distribution~over~}\mathcal{X}\}
 $$ 
-That is, the marginal polytope is the set of all cluster (and sepset) beliefs that can be obtained from marginalizing an actual distribution $P$ . It is called the marginal polytope because it is the set of marginals obtained from the polytope of all pro bility distributions over $\mathcal{X}$ . Unfortunately, not every set of beliefs that correspond to clusters in U is in the marginal polytope; that is, there are calibrated cluster graph beliefs that do not represent the marginals of any single coherent joint distribution over $\mathcal{X}$ (see exercise 11.2). However, the marginal polytope is a complex object with exponentially many facets. (In fact, the problem of determining whether a set of beliefs is in the marginal polytope can be shown to be $\mathcal{N P}$ -hard.) Thus, optimizing a function over the local consistency polytope 
-marginal polytope is a computationally difcult task that is generally as hard as exact inference over the cluster graph. To circumvent these problems, we perform our optimization over the local consistency polytope : 
-$$
-\begin{array}{r l}&{\mathcal{U}]=}\\ &{\left\{\begin{array}{l l l}{\phantom{-}\{\beta_{i}: i\in\mathcal{V}_{\mathcal{U}}\}\cup}&{\left|\begin{array}{l l l}{\mu_{i, j}[\pmb{s}_{i, j}]}&{=}&{\sum_{\pmb{C}_{i}-\pmb{S}_{i, j}}\beta_{i}(\pmb{c}_{i})}&{\forall (i\!-\! j)\in\mathcal{E}_{\mathcal{U}},\forall\pmb{s}_{i, j}\in\mathcal{U}}\\ {\{\mu_{i, j}: (i\!-\! j)\in\mathcal{E}_{\mathcal{U}}\}}&{\left|\begin{array}{l l l}{1}&{=}&{\sum_{\pmb{C}_{i}}\beta_{i}(\pmb{c}_{i})}&{\forall i\in\mathcal{V}_{\mathcal{U}}}\\ {\beta_{i}(\pmb{c}_{i})}&{\geq}&{0}&{\forall i\in\mathcal{V}_{\mathcal{U}},\pmb{c}_{i}\in V a l (\pmb{C}_{i})}\end{array}\right|\left.\right.}\end{array}
-$$ 
+>  并且，即便是分解形式的能量泛函，也难以在关于 $\pmb Q$ 的空间 ($\pmb Q$ 对应于可以构造出目标分布 $P_\Phi$ 的全部边际集合) 上优化
+>  对于簇图 $\mathcal U$ 和一个分布 $P$，我们定义 $\pmb Q_{P}=\{P (\pmb C_{i})\}_{i\in\mathcal{V}_{\mathcal{U}}}\cup\{P (\pmb S_{i, j})\}_{(i-j)\in\mathcal{E}_{\mathcal{U}}}$，进而定义 $\mathcal U$ 的边际多面体如上
+
+That is, the marginal polytope is the set of all cluster (and sepset) beliefs that can be obtained from marginalizing an actual distribution $P$ . It is called the marginal polytope because it is the set of marginals obtained from the polytope of all pro bility distributions over $\mathcal{X}$ . Unfortunately, not every set of beliefs that correspond to clusters in U is in the marginal polytope; that is, there are calibrated cluster graph beliefs that do not represent the marginals of any single coherent joint distribution over $\mathcal{X}$ (see exercise 11.2). However, the marginal polytope is a complex object with exponentially many facets. (In fact, the problem of determining whether a set of beliefs is in the marginal polytope can be shown to be $\mathcal{N P}$ -hard.) Thus, optimizing a function over the local consistency polytope marginal polytope is a computationally difcult task that is generally as hard as exact inference over the cluster graph. To circumvent these problems, we perform our optimization over the local consistency polytope : 
+>  也就是说，边际多面体是从实际分布 $P$ 的边际化中获得的所有簇（和分割集）信念的集合
+>  之所以称为边际多面体，是因为它是从 $\mathcal{X}$ 上所有概率分布的多面体中得到的边际分布的集合
+>  不幸的是，并不是每个对应于 $\mathcal{U}$ 中簇的信念集合都属于边际多面体；也就是说，存在校准后的簇图信念集合，它们并不表示 $\mathcal{X}$ 上任何单一一致联合分布的边际（参见练习 11.2）
+>  然而，边际多面体是一个具有指数多个面的复杂对象（事实上，判断一组信念是否在边际多面体中的问题可以证明是 NP 难的），因此，在局部一致性多面体上优化函数是一项计算上困难的任务，通常与簇图上的精确推理一样难
+>  为了解决这些问题，我们在局部一致性多面体上进行优化：
+ 
 pseudo-marginals 
 We can think of the local consistency polytope as defining a set of pseudo-marginal distri- butions , each one over the variables in one cluster. The constraints imply that these pseudo- marginals must be calibrated and therefore locally consistent with each other. However, they are not necessarily marginals of a single underlying joint distribution. 
 Overall, we can write down an optimization problem as follows: 
@@ -8100,6 +8123,7 @@ stable convergence point
 Second, we note that maxima are not the only fixed points of the belief propagation algorithm; minima and saddle points are also fixed points. Intuitively, however, such solutions are not likely to be stable, in the sense that slight perturbations to the messages will drive the process away from them. Indeed, it is possible to show (although this result is outside the scope of this book) that stable convergence points of belief propagation are always local maxima of the function. 
 The most important limitation of this result, however, is that it does not show that we can reach these maxima by applying belief propagation steps. There is no guarantee that the message passing steps of cluster-graph belief propagation necessarily improve the energy functional: a message passing step may increase or decrease the energy functional. Indeed, as we showed, there are examples where the belief propagation procedure oscillates indefinitely and fails to converge. Even more surprisingly, this problem is not simply a matter of the algorithm being unable to “find” the maximum. One can show examples where the global maximum is not a stable convergence point of belief propagation. That is, while it is, in principle, a fixed point of the algorithm, it will never be reached in practice, since even a slight perturbation will give rise to oscillatory behavior. 
 Nevertheless, this result is of significant importance in several ways. First, it provides us with a declarative semantics for cluster-graph belief propagation in terms of optimization of a target functional. The success of the belief propagation algorithm, when it converges, leads us to hope that the development of new, possibly more convergent, methods to solve the optimization problem may give rise to good solutions. Second, the declarative view defines the problem in terms of an objective — the factored energy functional — and a set of constraints — the set of locally consistent pseudo-marginals. Both of these are approximations to the ones used in the optimization problem for exact inference. When we view the task from this perspective, some potential directions for improvements become obvious: We can perhaps achieve a better approximation by making our objective a better approximation to the true energy functional, or by tightening our constraints so as to make the constraint space closer to the exact marginal polytope. We will describe some of the extensions based on these ideas; others are mentioned in section 11.7. 
+
 ### 11.3.7 Other Entropy Approximations\*
 The variational analysis of the previous section provides us with a framework for understanding the properties of this type of approximation, and for providing significant generalizations. 
 #### 11.3.7.1 Motivation 
@@ -8332,5 +8356,696 @@ In summary, the key factor relating to convergence of belief propagation appears
 A second problem relates to the quality of the results obtained. Despite the appeal and im- portance of the energy-based analysis, it does not (except in a few rare cases — see section 11.7) provide any guarantees on the accuracy of the marginals obtained by cluster-graph belief prop- agation. This is in contrast to the sampling-based methods of chapter 12, where we are at least assured that, if we run the algorithm for long enough, we will obtain accurate estimates of the posteriors. (Of course, the key question of “how long is long enough” does not usually have an answer, so it is not clear how important this distinction is in practice.) Empirical results show that, in the settings where cluster-graph belief propagation convergence is more likely (not too many tight loops, no highly skewed factors), one also often obtains reasonable answers. 
 Importantly, these answers are often good but overconfident: The value $x\ \in\ V a l (X)$ to which cluster-graph belief propagation gives the highest probability is often the value for which $P_{\Phi}(X=x)$ is indeed the highest, but the probability assigned to $x$ by the approximation is often too high. This phenomenon arises (partly) from the fact the cluster-graph belief propagation ignores correlations between messages and can therefore count the same piece of evidence multiple times as it arrives along diferent paths, leading to overly strong conclusions. In other cases, however, the answers obtained by cluster-graph belief propagation are simply wrong (see section 11.3.1); unfortunately, there is currently no way of determining when the answers returned by a run of cluster-graph belief propagation are reasonable approximations to the true marginals. 
 The intuitions described previously do help us, however, to design approximations that are more likely to produce good answers. In general, we cannot construct a cluster graph that pre- serves all of the higher-order interactions among the factors. Hence, we need to decide which factors to include in the cluster graph and how to relate them. As the preceding discussion suggests, we do better if we construct approximations that incorporate tight loops and maintain the strongest factors within clusters as much as possible. While these intuitions provide reason- able rules of thumb on how to construct approximations, it is not obvious how to capture them within a general-purpose automated cluster-graph construction procedure. 
-![](images/bd427b567b9970d4db45cb5b263b33b4a651f3924f3fdcd9db6ecfbc7705c043.jpg) 
-Figure 11.12 A cluster for a $4\times4$ grid network. The structure within each cluster represents the arcs whose factors are assigned to that cluster. 
+
+## 11.5 Structured Variational Approximations 
+In the previous two sections, we examined approximations based on belief propagation. As we saw, both methods can be viewed as optimizing an approximate energy functional over the structured variational class of pseudo-marginals. These pseudo-marginals generally do not correspond to a globally coherent joint distribution $Q$ . **The structured variational approach aims to optimize the energy functional over a family $\mathcal{Q}$ of coherent distributions $Q$ . This family is chosen to be computationally tractable, and hence it is generally not sufciently expressive to capture all of the information in $P_{\Phi}$ .** 
+>  之前的部分中，我们介绍了基于信念传播的近似方法，它可以视作在结构化的伪边际上的变分类中优化近似的能量泛函，这些伪边际一般不对应于全局一致的联合分布 $Q$
+>  本节介绍的结构化变分方法意在一致分布 $Q$ 的一族 $\mathcal Q$ 中优化能量泛函，这一族一般选择为计算可解的，因此它们的表示能力一般不足以充分捕获 $P_\Phi$ 中的全部信息
+
+More precisely, we aim to address the following maximization problem: 
+
+$\begin{array}{l l}{{\mathrm{Find}}}&{{Q\in{\mathcal Q}}}\\ {{\mathrm{maximize}}}&{{F[\tilde{P}_{\Phi},Q]}}\end{array}$ 
+
+where $\mathcal{Q}$ is a given family of distributions. In these methods, we are using the exact energy functional $F[\tilde{P}_{\Phi},\bar{Q}]$ , which satisfies theorem 11.2. Thus, maximizing the energy functional corresponds directly to obtaining a better approximation to $P_{\Phi}$ (in terms of $D(Q\|P_{\Phi}))$ . 
+>  我们意在解决以上优化问题，其中 $\mathcal Q$ 是给定的一族分布
+>  我们使用满足定理 11.2 的精确能量函数，因此最大化能量泛函直接对应于在 $D(Q||P_\Phi)$ 的维度上获得对 $P_\Phi$ 的在 $\mathcal Q$ 中的最优近似 $Q$
+
+The main parameter in this maximization problem is the choice of family Q . This choice induces a trade-of. On one hand, families that are “simpler,” that is, that can be described by a Bayesian network or a Markov network with small tree-width, allow more efcient inference. As we will see, simpler families also allow us to solve the maximization problem efciently. On the other hand, if the fa y $\mathcal{Q}$ is too restrictive, then it cannot r resent distributions that are good approximations of $P_{\Phi}$ , giving rise to a poor approximation Q . In either case, this family is generally chosen to have enough structure that allows inference to be tractable, giving rise to the name structured variational approximation. 
+>  对于分布族 $\mathcal Q$ 的选择是该最大化问题的主要参数，该选择存在 trade-off
+>  更简单的分布可以在其中高效推理，同时求解最大化问题也更快，但表示性更弱
+>  但在这类方法中，我们应该保证 $\mathcal Q$ 的结构性充足使得在其中推理是可解的，因此这类方法被称为结构化变分近似
+
+As we will see, the methods of this type difer from generalized belief propagation in several ways. They are guaranteed to lower-bound the log-partition function, and they also are guaranteed to converge. 
+>  这类方法和通用的信念传播不同，它们由确定的下界和对数划分函数，它们确定收敛
+
+### 11.5.1 The Mean Field Approximation 
+The first approach we consider is called the mean field approximation. As we will see, in many respects, it resembles the algorithm obtained using the Bethe approximation to the energy functional. In particular, the resulting algorithm performs message passing where the messages are distributions over single variables. As we will see, however, the form of the updates is somewhat diferent. 
+>  首先考虑平均场近似，它在许多方面和使用 Bethe 近似方法近似能量泛函得到的算法类似，例如，平均场近似得到的算法执行的消息传递中的消息也是单个变量上的分布
+
+#### 11.5.1.1 The Mean Field Energy 
+Unlike our presentation in earlier sections, we begin our discussion with the energy functional, and we derive the algorithm directly from analyzing it. The mean field algorithm finds the distribution $Q$ , which is closest to $P_{\Phi}$ in terms of $D(Q\|P_{\Phi})$ within the class of distributions representable as a product of independent marginals: 
+
+$$
+Q({\mathcal{X}})=\prod_{i}Q(X_{i}).\tag{11.48}
+$$
+On the one hand, the approximation of $P_{\Phi}$ as a fully factored distribution is likely to lose a lot of information in the distribution. On the other hand, this approximation is computationally attractive, since we can easily evaluate any query on $Q$ by a product over terms that involve the variables in the scope of the query. Moreover, to represent $Q$ , we need only to describe the marginal probabilities of each of the variables. 
+
+>  平均场算法考虑的分布族 $\mathcal Q$ 满足其中的分布可以完全分解为所有独立边际乘积的形式，即 $\mathcal X$ 中的所有随机变量相互独立
+>  这样完全分解的近似形式可能会丢失 $P_\Phi$ 中的许多信息，但计算上是简单可解的，我们可以将任意对 $Q$ 的查询完全分解，要表示 $Q$ 时，我们也仅需要考虑各个独立边际
+
+As in previous sections, the mean field algorithm is derived by considering fixed points of the energy functional . We thus begin by considering the form of the energy functional in equation (11.3) when $Q$ has the form of a product distribution as in equation (11.48). We can then characterize its fixed points and thereby derive an iterative algorithm to find such fixed points. 
+>  确定了 $Q$ 的形式，我们开始推导平均场算法的迭代式优化算法
+
+The functional contains two terms. The first is a sum of terms of the form $E_{U_{\phi}\sim Q}[\ln\phi]$ , where we need to evaluate 
+
+$$
+\begin{array}{r c l}{{E_{\pmb U_{\phi}\sim Q}[\ln\phi]}}&{{=}}&{{\displaystyle\sum_{\pmb{u}_{\phi}}Q(\pmb{u}_{\phi})\ln\phi(\pmb{u}_{\phi})}}\\ {{}}&{{=}}&{{\displaystyle\sum_{\pmb{u}_{\phi}}\left(\prod_{X_{i}\in \pmb U_{\phi}}Q(x_{i})\right)\ln\phi(\pmb{u}_{\phi}).}}\end{array}
+$$ 
+As shown, we can use the form of $Q$ to compute $Q(\pmb{u}_{\phi})$ as a product of marginals, allowing the evaluation of this term to be performed in time linear in the number of values of $U_{\phi}$ . Because this cost is linear in the description size of the factors of $P_{\Phi}$ , we cannot expect to do much better. 
+
+>  能量泛函的第一项是形式为 $E_{\pmb U_\phi \sim Q}[\ln \phi]$ 的乘积，利用 $Q$ 的结构，我们可以将 $Q(\pmb u_\phi)$ 完全分解，因此仅需要线性于 $\pmb U_\phi$ 的取值数量的时间就可以评估 $Q(\pmb u_\phi)$
+
+As we saw in section 8.4.1, the term $H_{Q}(\mathcal X)$ also decomposes in this case. 
+
+Corollary 11.3 
+
+$$
+H_{Q}({\mathcal{X}})=\sum_{i}H_{Q}(X_{i}).\tag{11.49}
+$$ 
+Thus, the energy functional for a fully factored distribution $Q$ can be rewritten simply as a sum of expectations, each one over a small set of variables. Importantly, the complexity of this expression depends on the size of the factors in $P_{\Phi}$ , and not on the topology of the network. Thus, the energy functional in this case can be represented and manipulated efectively, even in networks that would require exponential time for exact inference. 
+>  同理，能量泛函中的第二项 $Q$ 的熵也可以完全分解
+>  因此整个能量泛函可以重写为期望的和，其中每个期望仅关于一小组变量，该表示的复杂度仅依赖于 $P_\phi$ 中因子的大小，不依赖于网络拓扑 (因为 $Q$ 没有拓扑结构)
+
+Example 11.10 
+Continuing our running example, consider the form of the mean field energy for a $4\times4$ grid network. Based on our discussion, we see that it has the form 
+
+$$
+{\begin{array}{r c l}{F[{\tilde{P}}_{\Phi},Q]}&{=}&{\displaystyle\sum_{i\in\{1,2,3\},j\in\{1,2,3,4\}}E_{Q}[\ln\phi(A_{i,j},A_{i+1,j})]}\\ &&{+\displaystyle\sum_{i\in\{1,2,3,4\},j\in\{1,2,3\}}E_{Q}[\ln\phi(A_{i,j},A_{i,j+1})]}\\ &&{+\displaystyle\sum_{i\in\{1,2,3,4\},j\in\{1,2,3,4\}}H_{Q}(A_{i,j}).}\end{array}}
+$$ 
+We see that the energy functional involves only expectations over single variables and pairs of neighboring variable expression has the same general form for an $n\times n$ grid. Thus, although the tree-width of an $n\times n$ × grid is exponential in $n$ , the energy functional can be represented and computed in cost $O(n^{2})$ ; that is, in a time linear in the number of variables. 
+
+#### 11.5.1.2 Maximizing the Energy Functional: Fixed-point Characterization 
+The next step is to consider the task of optimizing the energy function: finding the distribution $Q$ for which this energy functional is maximized: 
+>  将能量泛函分解后，考虑对它的优化
+
+Mean-Field
+Find $\{Q(X_i)\}$
+maximizing $F[\tilde P_\Phi, Q]$
+subject to 
+
+$$
+\begin{align}
+Q(\mathcal X)  &= \prod_i Q(X_i)\tag{11.50}\\
+\sum_{x_i}Q(x_i) &=1,\quad\forall i\tag{11.51}
+\end{align}
+$$
+
+To simplify notation, from now on we use $X_{-i}$ to denote $\mathcal{X}-\{X_{i}\}$ 
+
+Note that, unlike the cluster-graph belief propagation algorithms of section 11.3 and the expectation propagation algorithm of section 11.4, here we are not approximating the objective. We are approximating only the optimization space by selecting a space of distributions $\mathcal{Q}$ that generally does not contain our original distribution $P_{\Phi}$ . 
+>  注意和簇图信念传播算法和期望传播算法不同，这里我们没有对目标进行近似，我们仅近似了分布选择的空间 $\mathcal Q$，近似后的空间一般不会包含原始 $P_\Phi$
+
+As with the previous optimization problems in this chapter, we use the method of Lagrange multipliers to derive a characterization of the stationary points of $F[\tilde{P}_{\Phi},Q]$ . However, the structure of $Q$ allows us to consider the optimal value of each component (that is, marginal distribution) given the rest. (This iterative optimization procedure was not feasible in cluster trees and graphs due to constraints that relate diferent beliefs.) 
+>  我们用拉格朗日乘子法描述 $F[\tilde P_\Phi, Q]$ 的驻点
+>  此时 $Q$ 的结构允许我们在给定其他的情况下，考虑每个成分 (边际分布) 单独的最优值 (这种迭代优化过程在簇树和簇图中是无效的，因为其中的信念/边际存在相关性)
+
+We now provide a set of fixed-point equations that characterize the stationary points of the mean field optimization problem: 
+
+**Theorem 11.9** 
+The distribution $Q(X_{i})$ is a local maximum of Mean-Field given $\{Q(X_{j})\}_{j\neq i}$ if and only if 
+
+$$
+Q(x_{i})=\frac{1}{Z_{i}}\exp\left\{\sum_{\phi\in\Phi}E_{\mathcal{X}\sim Q}[\ln\phi\mid x_{i}]\right\},\tag{11.52}
+$$ 
+where $Z_{i}$ is a local normalizing constant and $E_{\mathcal{X}\sim Q}[\ln\phi\mid x_{i}]$ is the conditional expectation given the value $x_{i}$ 
+
+$$
+E_{\mathcal{X}\sim Q}[\ln\phi\mid x_{i}]=\sum_{\pmb{u}_{\phi}}Q(\pmb{u}_{\phi}\mid x_{i})\ln\phi(\pmb{u}_{\phi}).
+$$
+
+>  定理
+>  平均场优化问题中，给定 $\{Q(X_j)\}_{j\ne i}$，分布 $Q(X_i)$ 当且仅当满足 (11.52) 时，它使得平均场优化问题达到局部最大值
+>  (11.52) 中，$Z_i$ 是规范化常数， $E_{\mathcal X \sim Q}[\ln \phi \mid x_i]$ 是给定值 $x_i$ 时的条件期望
+
+Proof 
+The proof of this theorem relies on proving the fixed-point characterization of the individual marginal $Q(X_{i})$ in terms of the other components, $Q(X_{1}),\dots,Q(X_{i-1}),\,Q(X_{i+1}),\dots,$ , $Q(X_{n})$ , as specified in equation (11.52). 
+
+We first consider the restriction of our objective $F[\tilde{P}_{\Phi},Q]$ to those terms that involve $Q(X_{i})$ : 
+>  先将能量泛函中和 $Q(X_i)$ 有关的部分写出，记作 $F_i[Q]$
+
+$$
+F_{i}[Q]=\sum_{\phi\in\Phi}{\pmb E}_{{\pmb U}_{\phi}\sim Q}[\ln\phi]+{\pmb H}_{Q}(X_{i}).\tag{11.53}
+$$ 
+To optimize $Q(X_{i})$ , we define the Lagrangian that consists of all terms in $F[\tilde{P}_{\Phi},Q]$ that involve $Q(X_{i})$ 
+>  我们为 $F_i[Q]$ 和约束 $\sum_{x_i} Q(x_i) = 1$ 写出拉格朗日函数
+$$
+L_{i}[Q]=\sum_{\phi\in\Phi}{\pmb E}_{{\pmb U}_{\phi}\sim Q}[\ln\phi]+{\pmb H}_{Q}(X_{i})+\lambda\left(\sum_{x_{i}}{Q}(x_{i})-1\right).
+$$ 
+The Lagrange multiplier $\lambda$ corresponds to the constraint that $Q(X_{i})$ is a distribution. We now take derivatives with respect to $Q(x_{i})$ . The following result plays an important role in the remainder of the derivation: 
+>  我们将拉格朗日函数相对于 $Q(x_i)$ 求导
+
+**Lemma 11.1** 
+If $\begin{array}{r}{Q(\mathcal{X})=\prod_{i}Q(X_{i})}\end{array}$ then, for any function $f$ with scope $U$ , 
+
+$$
+{\frac{\partial}{\partial Q(x_{i})}}E_{U\sim Q}[f(U)]=E_{U\sim Q}[f(U)\mid x_{i}].
+$$ 
+The proof of this lemma is left as an exercise (see exercise 11.24). 
+
+Using this lemma, and standard derivatives of entropies, we see that 
+
+$$
+{\frac{\partial}{\partial Q(x_{i})}}L_{i}=\sum_{\phi\in\Phi}{\pmb E}_{{\pmb X}\sim Q}[\ln\phi\mid x_{i}]-\ln Q(x_{i})-1+{\lambda}.
+$$ 
+Setting the derivative to 0 , and rearranging terms, we get that 
+
+$$
+\ln Q(x_{i})=\lambda-1+\sum_{\phi\in\Phi}E_{\mathcal{X}\sim Q}[\ln\phi\mid x_{i}].
+$$
+
+We take exponents of both sides and renormalize; because $\lambda$ is constant relative to $x_{i}$ , it drops out in the renormalization, so that we obtain the formula in equation (11.52). 
+>  将导数设为零，两边取指数并且重规范化，就得到了 (11.52)
+
+This derivation, by itself, shows only that the solution of equation (11.52) is a stationary point of equation (11.53). To prove that it is a maximum, we note that equation (11.53) is a sum of two terms: $\begin{array}{r}{\sum_{\phi\in\Phi_{\circ}}E_{U_{\phi}\sim Q}[\ln\phi]}\end{array}$ is linear in $Q(X_{i})$ , given all the other components $Q(X_{j});H_{Q}(X_{i})$ is a concave function in $Q(X_{i})$ . As a whole, given the other components of $Q$ , the function $F_{i}$ is concave in $Q(X_{i})$ , and therefore has a unique global optimum, which is easily verified to be equation (11.52) rather than any of the extremal points. 
+>  上述的论证证明了 (11.52) 的解是 (11.53) 的驻点，要进一步证明它是最大值
+>  注意到 (11.53) 中， $\begin{array}{r}{\sum_{\phi\in\Phi_{\circ}}E_{U_{\phi}\sim Q}[\ln\phi]}\end{array}$ 在给定其他 $Q(X_j)$ 是线性于 $Q(X_i)$，以及 $H_Q(X_i)$ 是关于 $Q(X_i)$ 的凹函数，因此整个函数 $F_i$ 在给定其他 $Q(X_j)$ 的情况下是关于 $Q(X_i)$ 的凹函数，故存在唯一的全局最大值
+>  容易验证在驻点取得最大值，而不是其他极限点
+
+From this it follows that: 
+
+**Corollary 11.4** 
+The distribution $Q$ is a stationary point of Mean-Field if and only if, for each $X_{i}.$ , equation (11.52) holds. 
+>  引理
+>  分布 $Q$ 当且仅当对于每个 $X_i$ ，都有 (11.52) 成立时，它是 Mean-Field 问题的驻点
+
+In contrast to theorem 11.9, this result only provides a characterization of stationary points of the objective, and not necessarily of its optima. The stationary points include local maxima, local minima, and saddle points. The reason for the diference is that, although each “coordinate” $Q(X_{i})$ is guaranteed to be locally maximal given the others, the direction that locally improves the objective may require a coordinated change in several components. We return to this point in section 11.5.1.3. 
+
+We now move to interpreting this characterization. The key term in equation (11.52) is the argument in the expectation. We can prove the following property. 
+
+**Corollary 11.5**
+In the mean field approximation, $Q(X_i)$ is locally optimal only if
+
+$$
+Q(x_{i})={\frac{1}{Z_{i}}}\exp\left\{E_{\pmb X_{-i}\sim Q}[\ln P_{\Phi}(x_{i}\mid \pmb X_{-i})]\right\}\tag{11.54}
+$$ 
+where $Z_{i}$ is a normalizing constant. 
+>  引理
+>  平均场近似中，$Q(X_i)$ 仅在满足 (11.54) 时构成局部最优，其中 $Z_i$ 是规范化常数
+
+Proof 
+Recall that $\begin{array}{r}{\tilde{P}_{\Phi}\;=\;\prod_{\phi\in\Phi}\phi}\end{array}$ is the unnormalized measure defined by $\Phi$ . Due to the linearity of expectation: 
+
+$$
+\sum_{\phi\in\Phi}{\pmb E}_{\mathcal{X}\sim Q}[\ln\phi\mid x_{i}]={\pmb E}_{\mathcal{X}\sim Q}\Bigl[\ln\tilde{P}_{\Phi}(X_{i},{\pmb X}_{-i})\mid x_{i}\Bigr].
+$$
+
+Because $Q$ is a product of marginals, we can rewrite $Q(X_{-i}\mid x_{i})=Q(X_{-i})$ , and get that: 
+>  将 $Q(X_{-i} \mid x_i)$ 重写为 $Q(X_{-i})$ (因为 $X_i$ 之间完全相互独立)
+
+$$
+{\pmb E}_{\mathcal{X}\sim Q}\Bigl[\ln\tilde{P}_{\Phi}(X_{i},{\pmb X}_{-i})\mid x_{i}\Bigr]={\pmb E}_{{\pmb X}_{-i}\sim Q}\Bigl[\ln\tilde{P}_{\Phi}(x_{i},{\pmb X}_{-i})\Bigr].
+$$ 
+Using properties of conditional distributions, it follows that: 
+
+$$
+{\tilde{P}}_{\Phi}(x_{i},\pmb X_{-i})=Z P_{\Phi}(x_{i},\pmb X_{-i})=Z P_{\Phi}(\pmb X_{-i})P_{\Phi}(x_{i}\mid \pmb X_{-i}).
+$$ 
+We conclude that 
+
+$$
+\sum_{\phi\in\Phi}{\pmb E}_{\mathcal X\sim Q}[\ln\phi\mid x_{i}]={\pmb E}_{\pmb X_{-i}\sim Q}[\ln P_{\Phi}(x_{i}\mid \pmb X_{-i})]+{\pmb E}_{\pmb X_{-i}\sim Q}[\ln P_{\Phi}(\pmb X_{-i})Z].
+$$ 
+Plugging this equality into the update equation equation (11.52), we get that 
+
+$$
+{\cal Q}(x_{i})=\frac{1}{Z_{i}}\exp\left\{E_{\pmb X_{-i}\sim{\cal Q}}[\ln{ P}_{\Phi}(x_{i}\mid \pmb X_{-i})]\right\}\exp\left\{E_{\pmb X_{-i}\sim{ Q}}[\ln{P}_{\Phi}(\pmb X_{-i})Z]\right\}.
+$$ 
+The term $\ln P_{\Phi}(\pmb X_{-i})Z$ does not depend on the value of $x_{i}$ . Recall that when we multiply a belief by a constant factor, it does not change the distribution $Q$ ; in fact, as we renormalize the distribution at the end to sum to 1, this constant will be “absorbed” into the normalizing function, to achieve normalization. Thus, we can simply ignore this term, thereby achieving the desired conclusion. We note that this type of algebraic manipulation will prove useful multiple times throughout this section. 
+
+This corollary shows that $Q(x_{i})$ is the geometric average of the conditional probability of $x_{i}$ given all other variables in the domain. The average is based on the probability that $Q$ assigns to all possible assignments to the variables in the domain. In this sense, the mean field approximation requires that the marginal of $X_{i}$ be “consistent” with the marginals of other variables. 
+>  该引理表明了 $Q(x_i)$ 是给定作用域中其他所有变量时 $x_i$ 的条件概率的几何平均 ($\ln P_\Phi(x_i \mid \pmb X_{-i})$ 在 $Q$ 中的期望)
+
+Note that, in $P_{\Phi}$ , we can also represent the marginal of $X_{i}$ as an average: 
+
+$$
+P_{\Phi}(x_{i})=\sum_{x_{-i}}P_{\Phi}(x_{-i})P_{\Phi}(x_{i}\mid x_{-i})=E_{\pmb X_{-i}\sim P_{\Phi}}[P_{\Phi}(x_{i}\mid \pmb X_{-i})].
+$$ 
+This average is an arithmetic average, whereas the one used in the mean field approximation is a geometric average. In general, the latter tends to lead to marginals that are more sharply peaked than the original marginals in $P_{\Phi}$ . More significant, however, is the fact that the expectations in equation (11.55) are taken relative to $P_{\Phi}$ , whereas the ones in equation (11.54) are taken relative to the approximation $Q$ . Thus, this similarity does not imply as a consequence that our approximation in $Q$ to the marginals in $P_{\Phi}$ is a good one. 
+>  $P_\Phi$ 中，$P_\Phi(x_i)$ 则可以写为 $x_i$ 的条件概率的算数平均 ($P_\Phi(x_i \mid \pmb X_{-i})$ 在 $P_\Phi$ 中的期望)
+>  一般来说，几何平均会使得我们得到的分布比 $P_\Phi$ 中的分布更加锐利，同时注意二者一个是在 $Q$ 中期望，一个是在 $P_\Phi$ 中取期望，故虽然形式上相似，这不表示 $Q$ 中的对于 $P_\Phi$ 中的边际的近似是好的
+
+#### 11.5.1.3 Maximizing the Energy Functional: The Mean Field Algorithm 
+How do we convert the fixed-point equation of equation (11.52) into an update algorithm? We start by observing that if $X_{i}\,\notin\,S c o p e[\phi]$ then $E_{U_{\phi}\sim Q}[\ln\phi\mid x_{i}]=E_{U_{\phi}\sim Q}[\ln\phi]$ . Thus, expectation terms on such factors are independent of the value of $X_{i}$ . Consequently, we can absorb them into the normalization constant $Z_{i}$ and get the following simplification. 
+
+In the mean field approximation, $Q(X_{i})$ is locally optimal only if 
+
+$$
+Q(x_{i})=\frac{1}{Z_{i}}\exp\left\{\sum_{\phi:X_{i}\in S c o p e[\phi]}E_{(U_{\phi}-\{X_{i}\})\sim Q}[\ln\phi(U_{\phi},x_{i})]\right\}.
+$$ 
+where $Z_{i}$ is a normalizing constant. 
+
+This representation shows that $Q(X_{i})$ has to be consistent with the expectation of the potentials in which it appears. In our grid network example, this characterization implies that $Q(A_{i,j})$ is a product of four terms measuring its interaction with each of its four neighbors: 
+
+$$
+Q(a_{i,j})=\frac{1}{Z_{i,j}}\exp\left\{\begin{array}{l l}{\sum_{a_{i-1,j}}Q(a_{i-1,j})\ln(\phi(a_{i-1,j},a_{i,j}))+}\\ {\sum_{a_{i,j-1}}Q(a_{i,j-1})\ln(\phi(a_{i,j-1},a_{i,j}))+}\\ {\sum_{a_{i+1,j}}Q(a_{i+1,j})\ln(\phi(a_{i,j},a_{i+1,j}))+}\\ {\sum_{a_{i,j+1}}Q(a_{i,j+1})\ln(\phi(a_{i,j},a_{i,j+1}))}\end{array}\right\}.
+$$ 
+Each term is a (geometric) average of one of the potentials involving $A_{i,j}$ . For example, the final term in the exponent represents a geometric average of the potential between $A_{i,j}$ and $A_{i,j+1}$ , averaged using the distribution $Q(A_{i,j+1})$ . 
+
+The characterization of corollary 11.6 provides tools for developing an algorithm to maximize $F[\tilde{P}_{\Phi},Q]$ ] . For example, examining equation (11.57), we see that we can easily evaluate the term within the exponential by considering each of $A_{i,j}$ ’s neighbors and computing the interaction between the values that neighbor can take and possible values of $A_{i,j}$ . Moreover, in this example, we see that $Q(A_{i,j})$ does not appear on the right-hand side of the update rule. Thus, we can choose $Q(A_{i,j})$ , which satisfies the required equality by assigning it to the term denoted by the right-hand side of the equation. 
+
+This last observation is true in general. All the terms on the right-hand side of equation (11.56) involve expectations of variables other than $X_{i}$ , and do not depend on the choice of $Q(X_{i})$ . We can achieve equality simply by evaluating the exponential terms for each value $x_{i}$ , normalizing the results to sum to 1 , and then assigning them to $Q(X_{i})$ . As a consequence, we reach the optimal value of $Q(X_{i})$ in one easy step. 
+
+This last statement must be interpreted with some care. The resulting value for $Q(X_{i})$ is its optimal value given the choice of all other marginals. Thus, this step optimizes our function relative only to a single coordinate in the space — the marginal of $Q(X_{i})$ . To optimize the function in its entirety, we need to optimize relative to all of the coordinates. We can embed this step in an iterated coordinate ascent algorithm, which repeatedly optimizes a single marginal at a time, given fixed choices to all of the others. The resulting algorithm is shown in algorithm 11.7. Importantly, a single optimization of $Q(X_{i})$ does not usually sufce: a subsequent modification to another marginal $Q(X_{j})$ may result in a diferent optimal parameter iz ation for $Q(X_{i})$ . Thus, the algorithm repeats these steps until convergence. Note that, in practice, we do not test for equality in line 9, but rather for equality up to some fixed small-error tolerance. 
+
+A key property of the coordinate ascent procedure is that each step leads to an increase in the energy functional. Thus, each iteration of Mean-Field results in a better approximation $Q$ to the target density $P_{\Phi}$ , guaranteeing convergence. 
+
+The Mean-Field iterations are guaranteed to converge. Moreover, the distribution $Q^{*}$ returned by Mean-Field is a stationary point of $F[\tilde{P}_{\Phi},Q]$ , subject to the constraint that $\begin{array}{r}{Q(\mathcal{X})=\prod_{i}Q(X_{i})}\end{array}$ is a distribution. 
+
+Proof We showed earlier that each iteration of Mean-Field is monotonically nondecreasing in $F[\tilde{P}_{\Phi},Q]$ ] . Because the energy functional is bounded, the sequence of distributions represented by successive iterations of Mean-Field must converge. At the convergence point the fixed-point equations of theorem 11.9 hold for all the variables in the domain. As a consequence, the convergence point is a stationary point of the energy functional. 
+
+As we discussed, the distribution $Q^{*}$ returned by Mean-Field is not necessarily a local op- timum of the algorithm. However, local minima and saddle points are not stable convergence points of the algorithm, in the sense that a small perturbation of $Q$ followed by optimization will lead to a better convergence point. Because the algorithm is unlikely to accidentally land precisely on the unstable point and get stuck there, in practice, the convergence points of the algorithm are local maxima. 
+
+In general, however, the result of the mean field approximation is a local maximum, and not necessarily a global one. 
+
+Consider a distribution $P_{\Phi}$ that is an approximate XOR (exclusive or) of two variables $A$ and $B$ , that ${P_{\Phi}}(a,b)=0.5-\epsilon$ if $a\neq b$ and ${\cal P}_{\Phi}(a,b)=\epsilon$ if $a=b$ . Clearly, we cannot approxima $P_{\Phi}$ by a product of marginals, since such a product cannot capture the relationship between A and $B$ . It turns out that if $\epsilon$ is sufciently small, say 0 . 01 , then the energy potential surface has two local maxima that correspond to the two cases where $a\neq b$ . See figure 11.16. (For sufciently large ϵ , such as 0 . 1 , the mean field approximation has a single maximum point at the uniform distribution.) 
+
+We can use standard strategies, such as multiple random restarts, to try to avoid getting stuck in local maxima. However, these do not overcome the basic shortcoming of the mean field approximation, which is apparent in this example. The approximation cannot describe complex posteriors, such as the XOR posterior we discussed. And thus, we cannot expect it to give satisfactory approximations in these situations. To provide better approximations, we must use a richer class of distributions $\mathcal{Q}_{i}$ , which has greater expressive power. 
+
+### 11.5.2 Structured Approximations 
+The mean field algorithm provides an easy approximation method. However, it is limited by forcing $Q$ to be a very simple distribution. As we just saw, the fact that all variables are independent of each other in $Q$ can lead to very poor approximations. Intuitively, if we use a distribution $Q$ that can capture some of the dependencies in $P_{\Phi}$ , we can get a better approximation. Thus, we would like to explore the spectrum of approximations between the mean field approximation and exact inference. 
+
+A natural approach to get richer approximations that capture some of the dependencies in $P_{\Phi}$ is to use network structures of diferent complexity. By adding and removing edges from the network we can control the cost of inference in the approximating distribution and how well it captures dependencies in the target distribution. We can achieve this type of ﬂexibility by using either Bayesian networks or Markov networks. Both types of networks lead to similar approximations, and so we focus on the undirected case, parameterized as Gibbs distributions (so that we are not restricted to factors over maximal cliques). Exercise 11.34 develops similar ideas using a Bayesian network approximation. 
+
+#### 11.5.2.1 Fixed-Point Characterization 
+We now consider the form of the variational approximation when we are given a general form of $Q$ as a Gibbs parametric family. Formally, we assume we are given a set of potential scopes $\{C_{j}\subseteq\mathcal{X}:j=1,.\,.\,.\,,J\}$ . We can then choose an approximation $Q$ that has the form: 
+
+$$
+Q(\mathcal X)=\frac{1}{Z_{Q}}\prod_{j=1}^{J}\psi_{j},
+$$ 
+where $\psi_{j}$ is a factor with $S c o p e[\psi_{j}]=C_{j}$ . 
+
+Example 11.12 Consider again the grid network example. There are many possible approximating network struc- tures we can choose that allow for efcient inference. As a concrete example, we might choose potential scopes $\{A_{1,1},A_{1,2}\}$ , $\{A_{1,2},A_{1,3}\},.\,.\,.\,,\{A_{2,1},A_{2,2}\}$ , $\{A_{2,2},A_{2,3}\},.\,.\,.$ . That is, we pre- serve the dependencies between variables in the same row, but ignore the ones that relate difer- ent columns. Alternatively, we can consider an approximation that preserves dependencies along columns and ignores the dependencies between rows. As we can see in figure 11.17, in both cases, 
+
+the structure we use is a collection of independent chain structures. Exact inference with such structures is linear, and so the cost of inference is not much worse than in the mean field approx- imation. Clearly, we can also consider many other structures for the approximating distributions. These might introduce additional dependencies and can have higher cost in terms of inference. We will return to the question of what structure to use. 
+
+Assume that we decide on the form of the potentials for the approxi ating family $\mathcal{Q}$ . As before, we consider the form of the energy functional for a distribution Q in this family. We then characterize the stationary points of the functional, and we use those to derive an iterative optimization algorithm. 
+
+As before, evaluating the terms that involve $E_{U_{\phi}\sim Q}[\ln\phi]$ requires performing expectations ∼ with respect to the variables in Scope [ φ ] . Unlike the case of mean field approximation, the complexity of computing this expectation depends on the structure of the approximating distri- bution. However, we assume that we can solve this problem by exact inference (in the network corresponding to $Q.$ ), using the methods we discussed in previous chapters. 
+
+As discussed in section 8.4.1, the entropy term in the energy functional also reduces to computing a similar set of expectation terms: 
+
+Proposition 11.5 
+
+$$
+{H_{Q}}(\mathcal{X})=-\sum_{j=1}^{J}{E_{{C_{j}}\sim Q}}[\ln{{\psi_{j}}({C_{j}})}]+\ln{Z_{Q}}.
+$$ 
+Overall, we obtain the following form for the energy functional, for distributions $Q$ in the family $\mathcal{Q}$ : 
+
+$$
+{\cal F}[\tilde{P}_{\Phi},Q]=\sum_{k=1}^{K}{\pmb E}_{Q}[\ln\phi_{k}]-\sum_{j=1}^{J}{\pmb E}_{Q}[\ln\psi_{j}]+\ln Z_{Q}.
+$$ 
+As before, the hard question is how to optimize the potential to get the best approximation. We solve this problem using the same general strategy we discussed in the context of the mean field approximation. First, we derive the fixed-point equations that hold when the approximation is a local maximum (or, more precisely, a stationary point) of the energy functional. We then use these fixed-point equations to help derive an optimization algorithm. 
+
+fixed-point equations 
+
+Theorem 11.11 
+
+We derive the fixed-point equations by taking derivatives of $F[\tilde{P}_{\Phi},Q]$ with respect to param- eters of the distribution $Q$ . In our case, the parameters will be an entry $\psi_{j}(c_{j})$ in each of the factors that define the distribution. We then set those equations to zero, obtaining the following result: 
+
+If $\begin{array}{r}{Q(\mathcal{X})=\frac{1}{Z_{Q}}\prod_{j}\psi_{j}}\end{array}$ Q , then the potential $\psi_{j}$ is a stationary point of the energy functional if and only if 
+
+$$
+\psi_{j}(c_{j})\propto\exp\left\{E_{Q}\Big[\ln\tilde{P}_{\Phi}\ |\ c_{j}\Big]-\sum_{k\neq j}E_{Q}[\ln\psi_{k}\ |\ c_{j}]-F[\tilde{P}_{\Phi},Q]\right\}.
+$$ 
+The proof is straightforward algebraic manipulation and is left as an exercise (exercise 11.26). 
+
+This theorem establishes a characterization of the fixed point as the diference between the expected value of logarithm of the original potentials and the expected value of the logarithm of the approximating potentials. The last term in equation (11.60) is the energy functional $\bar{F}[\tilde{P}_{\Phi},Q]$ , which is independent of the assignment $c_{j}$ ; thus, as we discussed in the proof of corollary 11.5, we can absorb this term into the normalization constant of the distribution and ignore it. 
+
+If $\begin{array}{r}{Q(\mathcal{X})=\frac{1}{Z_{Q}}\prod_{j}\psi_{j}}\end{array}$ Q , then the potential $\psi_{j}$ is a stationary point of the energy functional if and only if: 
+
+$$
+\psi_{j}(\pmb{c}_{j})\propto\exp\left\{E_{Q}\left[\ln\tilde{P}_{\Phi}\mid\pmb{c}_{j}\right]-\sum_{k\neq j}\pmb{E}_{Q}[\ln\psi_{k}\mid\pmb{c}_{j}]\right\}.
+$$ 
+As we show in section 11.5.2.3 and section 11.5.2.4, we can often exploit additional structure in $Q$ to reduce further the complexity of the fixed-point equations, and hence of the resulting update steps. The following discussion, which describes the procedure of applying the fixed- point equations to find a stationary point of the energy functional, is orthogonal to these simplifications. 
+
+#### 11.5.2.2 Optimization 
+Given a set of fixed-point equations as in equation (11.61), our task is to find a distribution $Q$ that satisfies them. As in section 11.5.1, our strategy is based on the key observation that the factor $\psi_{j}$ does not afect the right-hand side of the fixed-point equations defining its value: The first expectation, I $\pmb{{\cal E}}_{Q}\left[\ln\tilde{P}_{\Phi}\mid\pmb{c}_{j}\right]$ i , is conditioned on $c_{j}$ and therefore does not depend on the parameter iz ation of $\psi_{j}$ . The same observation holds for the second expectation, $E_{Q}[\ln\psi_{k}\mid c_{j}]$ | , for any $k\neq j$ . (Importantly, there is no such term for $k\,=\,j$ in the right-hand side.) Thus, we can use the same general approach as in Mean-Field : We can optimize each potential $\psi_{j}$ , given values for the other potentials , by simply selecting $\psi_{j}$ to satisfy the fixed-point equation. As for the case of mean field, this step is guaranteed to increase (or not decrease) the value of the objective; thus, the overall process is guaranteed to converge to a stationary point of the objective. 
+
+This last step requires that we perform inference in the approximating distribution $Q$ to compute the requisite expectations. Although this step was also present (implicitly) in the mean field approximation, there the structure of the approximating distribution was trivial, and so the inference step involved only individual marginals. Here, we need to collect the expectation of several factors, and each of these requires that we compute expectations given diferent assignments to the factor of interest. (See exercise 11.27 for a discussion of how these expectations can be computed efciently.) For a general distribution $Q$ , even one with tractable structure, running inference in the corresponding network $\mathcal{H}_{Q}$ can be costly, and we may want to reduce the number of calls to the inference subroutine. 
+
+This observation leads to a question of how best to perform updates for several factors in $Q$ . We can consider two strategies. The sequential update strategy is similar to our strategy in the mean field algorithm: We choose a factor $\psi_{j}$ , apply the fixed-point equation to that factor by running inference in $\mathcal{H}_{Q}$ , update the distribution, and then repeat this process with another factor until convergence. The problematic aspect of this approach is that we need to perform inference after each update step. For example, if we are using cluster tree inference in the network $\mathcal{H}_{Q}$ , the network parameter iz ation changes after each update step, so we need to recalibrate the clique tree every time. Some of these steps can be made more efcient by selecting an appropriate order of updates and using dynamic programming (see exercise 11.27), but the process can still be quite expensive. 
+
+An alternative approach is the parallel update strategy, where we compute the right-hand side of our fixed-point equations (for example, equation (11.61)) simultaneously for each of the factors in $Q$ . If we are using a cluster tree for inference, this process involves multiple queries from the same calibrated cluster tree. Thus, we can perform a single calibration step and use the resulting tree to reestimate all of our potentials. However, the diferent queries required all have diferent evidence; hence, it is not easy to obtain significant computational savings, and the algorithms needed are fairly tricky. Nevertheless, this approach might be less costly than recalibrating the clique tree $J$ times. 
+
+On the other hand, the guarantees provided by these two update steps are diferent. For the sequential update strategy, we can prove that each update step is monotonic in the energy functional: each step maximizes the value of one potential given the values of all the others, and therefore is guaranteed not to decrease (and generally to increase) the energy functional. This monotonic improvement implies that iterations of sequential updates necessarily converge, generally to a local maximum. The issue of convergence is more complicated in the parallel update strategy. Because we update all the potentials at once, we have no guarantees that any fixed-point equation holds after the update; a value that was optimal for $\psi_{j}$ with respect to the values of all other factors before the parallel update step is not necessarily optimal given their new values. As such, it is conceivable that parallel updates will not converge (for example, oscillate between two sets of values for the potentials). Such oscillations can generally be avoided using damped update steps, similar to these we discussed in the case of cluster- graph belief propagation (see box 11. B), but this modified procedure still does not guarantee convergence. 
+
+At this point, there is no generally accepted procedure for scheduling updates in variational methods, and diferent approaches are likely to be best for diferent applications. 
+
+#### 11.5.2.3 Simplifying the Update Equations 
+Equation (11.61) provides a general characterization of the fixed points of the energy functional, for any approximating class of distributions $\mathcal{Q}$ obeying a particular factorization, as in equ tion (11.58). In many cases, we can exploit additional structure of the approximating class Q and of the distribution $P_{\Phi}$ to simplify significantly the form of these fixed-point equations and thereby make the update step more efcient. 
+
+The simplifications we describe take two forms. The first utilizes marginal independencies in $\mathcal{Q}$ to simplify the right-hand side of the fixed-point equation, eq tion (11.61), elimi ing irrelevant terms. The second xploits interactions between the form of Q and the form of $P_{\Phi}$ to simplify the factorization of Q , without loss in expressive power. Both simplifications allow the fixed-point updates to be performed more efciently. We motivate each of the simplifications using an example, and then we present the general result. 
+
+Example 11.13 Once again, consider the $4\!\times\! 4$ grid network. Assume that we approximate it by a “row” network that has the structure shown in figure 11.17a. This approximating network consists of four independent chains. Now we can apply the general form of the fixed-point equation equation (11.61) for a specific entry in our approximation, say: 
+
+$$
+\begin{array}{r}{{}_{1}(a_{1,1}, a_{1,2})\propto\exp\left\{\begin{array}{l}{\pmb{E}_{Q}\left[\ln\tilde{P}_{\Phi}\mid a_{1,1}, a_{1,2}\right]}\\ {-\sum_{\scriptstyle\begin{array}{c}{i=1,\dots, 4}\\ {j=1,\dots, 3}\\ {(i, j)\neq (1,1)}\end{array}}\pmb{E}_{Q}\left[\ln\psi_{(i, j)}(A_{i, j}, A_{i, j+1})\mid a_{1,1}, a_{1,2}\right]}\\ {}\end{array}\right\}}\end{array}
+$$ 
+As in the proof of corollary 11.5, the expectation of $\ \ln{\tilde{P}_{\Phi}}$ is the sum of expectations of the logarithm of each of the potentials in $\Phi$ . Some of these terms, however, do not depend on the choice of value of $A_{1,1}, A_{1,2}$ we are evaluating. For example, because $A_{2,1}$ and $A_{2,2}$ are independent of $A_{1,1}, A_{1,2}$ in $Q$ , we conclude that 
+
+$$
+E_{\{A_{2,1}, A_{2,2}\}\sim Q}[\ln\phi (A_{2,1}, A_{2,2})\mid a_{1,1}, a_{1,2}]=E_{\{A_{2,1}, A_{2,2}\}\sim Q}[\ln\phi (A_{2,1}, A_{2,2})].
+$$ 
+Thus, this term will contribute the same value to each of the entries of $\psi (A_{1,1}, A_{1,2})$ , and can therefore be absorbed into the corresponding normalizing term. We can continue in this manner and remove all terms that are not dependent on the context of the factor we are in- terested in. Overall, we can remove any term $E_{Q}[\ln\phi (A_{i, j}, A_{i, j+1})\mid a_{1,1}, a_{1,2}]$ | and any term $E_{Q}[\ln\phi (A_{i, j}, A_{i+1, j})\mid a_{1,1}, a_{1,2}]$ | except those where i $i=1$ ilarly, we can remove any term $E_{Q}\left[\ln\psi_{(i, j)}{\left (A_{i, j}, A_{i, j+1}\right)}\mid a_{1,1}, a_{1,2}\right]$ except those where i $i\,=\, 1$ . These simplifications result in the following update rule: 
+
+$$
+\begin{array}{r l}&{\psi_{1,1}(a_{1,1}, a_{1,2})\propto}\\ &{\qquad\exp\left\{\begin{array}{l}{\sum_{j=1,\dots, 3}\pmb{E}_{\{A_{1, j}, A_{1, j+1}\}\sim Q}\left[\ln\phi_{(1, j)}(A_{1, j}, A_{1, j+1})\mid a_{1,1}, a_{1,2}\right]}\\ {+\sum_{j=1,\dots, 4}\pmb{E}_{\{A_{1, j}, A_{2, j}\}\sim Q}\left[\ln\phi_{(1, j)}(A_{1, j}, A_{2, j})\mid a_{1,1}, a_{1,2}\right]}\\ {-\sum_{j=2,3}\pmb{E}_{\{A_{1, j}, A_{1, j+1}\}\sim Q}\left[\ln\psi_{(1, j)}(A_{1, j}, A_{1, j+1})\mid a_{1,1}, a_{1,2}\right]}\end{array}\right\}.}\end{array}
+$$ 
+
+We can generalize this analysis to arbitrary sets of factors: 
+
+Theorem 11.12 
+
+$$
+\psi_{j}(\pmb{c}_{j})\propto\exp\left\{\sum_{\phi\in A_{j}}\pmb{E}_{\mathcal{X}\sim Q}[\ln\phi\ |\ \pmb{c}_{j}]-\sum_{\psi_{k}\in B_{j}}\pmb{E}_{\mathcal{X}\sim Q}[\ln\psi_{k}\ |\ \pmb{c}_{j}]\right\},
+$$ 
+
+where 
+
+$$
+A_{j}=\{\phi\in\Phi: Q\neq (U_{\phi}\perp C_{j})\}
+$$ 
+
+and 
+
+$$
+B_{j}=\{\psi_{k}: Q\neq (C_{k}\perp C_{j})\}-\{C_{j}\}.
+$$ 
+Stated in words, this result shows that the parameter iz ation of a factor $\psi_{j}(C_{j})$ depends only on factors in $P_{\Phi}$ and in $Q$ whose scopes are not independent of $C_{j}$ in $\mathcal{Q}$ . This result, applied to example 11.13, provides us precisely with the simplification shown: only factors whose scopes intersect with the first row are relevant to $\psi_{1,1}(A_{1,1}, A_{1,2})$ . Thus, we can use independence properties of the approximating family $\mathcal{Q}$ to simplify the right-hand side of equation (11.61) by removing irrelevant terms. 
+
+#### 11.5.2.4 Simplifying the Family $\mathcal{Q}$ 
+It turns out that a similar analysis allows us to simplify the form of the approximating family $\mathcal{Q}$ without loss in the quality of the approximation. We start by considering a simple example. 
+
+Example 11.14 Consider again the four-variable pairwise Markov network of figure 11.18a, which is parameterized by the pairwise factors: 
+
+$$
+{\cal P}_{\Phi}(A, B, C, D)\propto\phi_{A B}(A, B)\cdot\phi_{B C}(B, C)\cdot\phi_{C D}(C, D)\cdot\phi_{A D}(A, D).
+$$ 
+Consider applying the variational approximation with the distribution 
+
+$$
+Q (A, B, C, D)=\frac{1}{Z_{Q}}\psi_{1}(A, B)\cdot\psi_{2}(C, D)
+$$ 
+that has the structure shown in figure 11.18b. Using equation (11.62), we conclude that the fixed-point characterization of $\psi_{1}$ is 
+
+$$
+\psi_{1}(a, b)\propto\exp{\{E_{Q}[\ln\phi_{A B}(A, B)\mid a, b]+E_{Q}[\ln\phi_{B C}(B, C)\mid a, b]+E_{Q}[\ln\phi_{A D}(A, B)\mid a, b]\}}
+$$ 
+
+Can we further simplify this equation? Consider the first term. Clearly, ${\cal E}_{Q}[\ln\phi_{A B}(A, B)\mid a, b]=$ | $\ln\phi_{A B}(a, b)$ . What about the second term, $E_{Q}[\ln\phi_{B C}(B, C)\mid a, b].$ | ? To compute this expectation, we need to compute $Q (B, C\mid a, b)$ . According to the structure of $Q$ , we can see that $Q (B, C\mid a, b)={\left\{\begin{array}{l l}{Q (C)}&{I\! f\, B=b}\\ {0}&{o t h e r w i s e.}\end{array}\right.}$ 
+
+Thus, we conclude that 
+
+$$
+\pmb{{\cal E}}_{A, B, C\sim Q}[\ln\phi_{B C}(B, C)\mid a, b]=\pmb{{\cal E}}_{C\sim Q}[\ln\phi_{B C}(b, C)].
+$$ 
+We can simplify the third term in exactly the same way, concluding that: 
+
+$$
+\psi_{1}(a, b)\propto\exp\left\{\ln\phi_{A B}(a, b)+E_{C\sim Q}[\ln\phi_{B C}(b, C)]+E_{D\sim Q}[\ln\phi_{A D}(a, D)]\right\}.
+$$ 
+Setting $\psi_{1}^{\prime}(a)=\exp\{E_{D\sim Q}[\ln\phi_{A D}(a, D)]\}$ { } and $\psi_{1}^{\prime\prime}(b)=\exp\{E_{C\sim Q}[\ln\phi_{B C}(b, C)]\}$ { } , we con- ∼ ∼ clude that the optimal $\psi_{1}$ factorizes as a product of three factors: 
+
+$$
+\psi_{1}(A, B)=\phi_{A B}(A, B)\cdot\psi_{1}^{\prime}(A)\cdot\psi_{1}^{\prime\prime}(B).
+$$ 
+Have we gained anything from this decomposition? First, we see that $Q$ preserves the original pairwise interaction term $\phi (A, B)$ from $P_{\Phi}$ . Moreover, the efect of the interactions between these variables and the rest of the network ( $\mathcal{C}$ and $D$ in this example) is summarized by $^a$ univariate factor for each of the variables. Thus, $Q$ does not change the interaction between $A$ and $B$ . 
+
+Applying the same set of arguments to $\psi_{2}$ , we conclude that we can rewrite $Q$ as 
+
+$$
+Q^{\prime}(A, B, C, D)=\frac{1}{Z_{Q}}\phi_{A B}(A, B)\cdot\phi_{C D}(C, D)\cdot\psi_{1}^{\prime}(A)\cdot\psi_{1}^{\prime\prime}(B)\cdot\psi_{2}^{\prime}(C)\cdot\psi_{2}^{\prime\prime}(D)
+$$ 
+The preceding discussion shows that the best approximation to $P_{\Phi}$ within $\mathcal{Q}$ can be rewritten in the form of $Q^{\prime}$ . Thus, there is no point in using the more complicated form of the approximating family of equation (11.63); we may as well use the form of $Q^{\prime}$ in equation (11.64). Note that the form of $Q^{\prime}$ involves a product of a subset of the original factors, which we keep intact without change, and $a$ set of new factors, which we need to optimize. In this example, instead of estimating two pairwise potentials, we estimate four univariate potentials, which utilize a smaller number of parameters. 
+
+Moreover, the update equations for $Q^{\prime}$ are simpler. Consider, for example, applying equa- tion (11.62) for $\psi_{1}^{\prime}$ : 
+
+$$
+\begin{array}{r l}&{)\propto\pmb{E}_{B\sim Q^{\prime}}[\ln\phi_{A B}(a, B)\mid a]+\pmb{E}_{D\sim Q^{\prime}}[\ln\phi_{A D}(a, D)\mid a]+\pmb{E}_{B, C\sim Q^{\prime}}[\ln\phi_{B C}(B, B)\mid a]}\\ &{\quad-\pmb{E}_{B\sim Q^{\prime}}[\ln\phi_{A B}(a, B)\mid a]-\pmb{E}_{B\sim Q^{\prime}}[\ln\psi_{1}^{\prime\prime}(B)\mid a]}\\ &{\quad=\pmb{E}_{D\sim Q^{\prime}}[\ln\phi_{A D}(a, D)\mid a]+\pmb{E}_{B, C\sim Q^{\prime}}[\ln\phi_{B C}(B, C)\mid a]-\pmb{E}_{B\sim Q^{\prime}}[\ln\psi_{1}^{\prime\prime}(B)\mid a].}\end{array}
+$$ 
+The terms involving $E_{Q^{\prime}}[\ln\phi_{A B}\mid a]$ | ] appear twice, once as a factor in $P_{\Phi}$ and once as a factor in $Q^{\prime}$ . These two terms cancel out, and we are left with the simpler update equation. Although this equation does not explicitly mention $\phi_{A B}$ , this factor participates in the computation of $Q^{\prime}(B\mid a)$ that implicitly appears in $E_{B\sim Q^{\prime}}[\ln\psi_{1}^{\prime\prime}(B)\mid a]$ | . 
+
+Note that this result is somewhat counter intuitive, since it shows that the interactions between $A$ and $B$ are captured by the original potential in $P_{\Phi}$ . Intuitively, we would expect the chain of inﬂuence $\scriptstyle A-D-C-B$ to introduce additional interactions between $A$ and $B$ that should be represented in $Q$ . This is not the only counter intuitive result. 
+
+Example 11.15 
+
+Consider another approximating family for the same network, using the network structure shown in figure 11.18c. In this approximation, we have two pairwise factors, $\psi_{1}(A, C)$ , and $\psi_{2}(B, D)$ . Applying the same set of arguments as before, we can show that the update equation can be written as 
+
+$$
+\begin{array}{r c l}{\ln\psi_{1}(a, c)}&{\propto}&{{\cal E}_{B\sim Q}[\ln\phi_{A B}(a, B)]+{\cal E}_{D\sim Q}[\ln\phi_{A D}(a, D)]}\\ &&{+{\cal E}_{B\sim Q}[\ln\phi_{B C}(B, c)]+{\cal E}_{D\sim Q}[\ln\phi_{C D}(c, D)].}\end{array}
+$$ 
+
+Thus, we can factorize $\psi_{1}$ into two factors, one with a scope of $A$ and the other with $C$ 
+
+$$
+\psi_{1}(A, C)=\psi_{1}^{\prime}(A)\cdot\psi_{1}^{\prime\prime}(C).
+$$ 
+
+In other words, the approximation in this case is equivalent to the mean field approximation. This result shows that, in some cases, we can remove spurious dependencies in the approximating distribution. However, this result is surprising, since it holds regardless of the actual values of the potentials in $P_{\Phi}$ . And so, we can imagine a network where there are very strong interactions between $A$ and $C$ and between $B$ and $D$ in $P_{\Phi}$ , and yet the variational approximation with a network structure of figure 11.18c will not capture these dependencies. This is a consequence of using $I^{,}$ -projections. Had we used an $M\cdot$ -projection that minimizes $D (P_{\Phi}\|Q)$ | | , then we would have represented the dependencies between $A$ and $C$ ; see exercise 11.30. 
+
+These two examples suggest that we can use the fixed-point characterization to refine an initial approximating network by factorizing its factors into a product of, possibly smaller, factors and potentials from $P_{\Phi}$ . We now consider the general theory of such factorizations and then discuss its implications. 
+
+We start with a simple definition and a proposition that form the basis of the simplifications we consider. 
+
+Definition 11.8 interface 
+
+Example 11.16 
+
+Let $\mathcal{H}$ be a Markov network structure and let $X, Y\subseteq\mathcal{X}$ . We define the $Y$ - interface of $X$ , denoted Interfac $z e_{\mathcal{H}}(X; Y)$ , to be the minimal subset of X such that $\mathrm{sep}_{\mathcal{H}}(X; Y\mid$ Interface $_{\mathcal{U}}(X; Y)_{,}$ ) . That is, the $Y$ -interface of $X$ is the subset of $X$ that sufces to separate it from $Y$ . 
+
+The $\{A, D\}$ -in rface of $\{A, B\}$ in $\mathcal{H}_{P_{\Phi}}$ of figure 11.18 is $\{A, B\}$ , since neither $A$ is parated from $\{A, D\}$ given B , no is B is separated from $\{A, D\}$ given A . In $\mathcal{H}_{\mathcal{Q}_{1}}$ , we have that B is separated from $\{A, D\}$ given A , so that Interfa $\iota c e_{{\mathcal{H}_{\mathcal{Q}_{1}}}}(\{A, B\};\{A, D\})$ is $\{A\}$ . The same holds in ${\mathcal{H}}_{{\mathcal{Q}}_{3}}$ . In $\mathcal{H}_{\mathcal{Q}_{2}}$ , we have that, again, neither $A$ nor $B$ sufces to separate the other from $\{A, D\}$ , and hence, Interfa $\iota c e_{{\mathcal{H}_{\mathcal{Q}_{2}}}}(\{A, B\};\{A, D\})=\{A, B\}$ . 
+
+The definition of interface can be used to reduce the scope of the conditional expectations in the fixed-point equations: 
+
+Proposition 11.6 
+
+$$
+E_{U_{\phi}\sim Q}[\phi\mid c_{j}]=E_{U_{\phi}\sim Q}[\phi\mid c_{j}\langle I n t e r f a c e_{\mathcal{H}}(C_{j}; U_{\phi})\rangle].
+$$ 
+
+The proof follows immediately from the definition of conditional independence. 
+
+This proposition provides a principled approach for reformulating terms on the right-hand side of the fixed-point equation. 
+
+We can use this simplification result to define a two-phase strategy for designing approximation. First, we define a “rough” outline for approximation by defining $Q$ over factors with a fairly large scope. We use this outline to obtain a set of update equations, as implied by equation (11.62) on $Q$ . We then derive a finer-grained representation by factorizing each of these factors using proposition 11.6. This process results in a finer- grained approximation that is provably equivalent to the one with which we started. 
+
+Theorem 11.13 (Factorization) Let $\mathcal{Q}$ be an approximating family defined in terms of factors $\{\psi_{j}(C_{k})\}$ , which Markov network structure $\mathcal{H}_{\mathcal{Q}}$ . Let $Q\in{\mathcal{Q}}$ be a stationary point of the energy functional $F[\tilde{P}_{\Phi}, Q]$ subject to the given factorization. Then, factors in $Q$ are factorized as 
+
+$$
+\psi_{j}(C_{j})=\prod_{\phi\in\Phi_{j}}\phi\prod_{D_{l}\in\mathcal{D}_{j}}\psi_{j, l}(D_{l}),
+$$ 
+
+where 
+
+$$
+\Phi_{j}=\{\phi\in\Phi: S c o p e[\phi]\subseteq C_{j}\}
+$$ 
+
+and 
+
+$$
+D_{j}=\{I n t e r f a c e_{\mathcal{H}_{\emptyset}}(C_{j}; X): X\in\{S c o p e[\phi]:\phi\in\Phi-\Phi_{j}\}\cup\{S c o p e[\psi_{k}]: k\neq j\},
+$$ 
+
+This theorem states that $\psi_{j}$ can be written as the product of two sets of factors. The first set contains factors in the original distribution $P_{\Phi}$ whose scope is a subset of the scope of $\psi_{j}$ . The factors in the second set are the interfaces of $\psi_{j}$ with other factors that appear in the update equation. These include factors in $P_{\Phi}$ that are partially “covered” by the scope of $\psi_{k}$ , and other factors in $Q$ . The set $\mathcal{D}_{k}$ defines the set of interfaces between $\psi_{k}$ and these factors. 
+
+To gain a better understanding of this theorem, let us consider various approximations in two concrete examples. The first example serves to demonstrate the ease with which this theorem allows us to determine the form of the factorization of $Q$ . 
+
+Let us return to example 11.14. In example 11.16, we have already shown the interfaces of $\{A, B\}$ with $\{A, D\}$ in $\mathcal{H}_{1}$ . This analysis, togeth rem 11.13, direct mply the reduced factor- example 11.14 In particular, for $\psi_{1}(\{A, B\})$ { } , we have that $\Phi_{1}$ contains only the factor $\phi (\{A, B\})$ { } in $P_{\Phi}$ , which therefore constitutes the first term in the factorization of equation (11.65). The second set of terms in the equation corresponds to the interfaces of $\{A, B\}$ with other factors in bo $\mathcal{H}_{P_{\Phi}}$ and in $\mathcal{H}_{\mathcal{Q}_{1}}$ . We get two such interfaces: one with scope $\{A\}$ from the factor $\phi\big (\{A, D\}\big)$ in $P_{\Phi}$ , and one with scope $\{B\}$ f e factor $\phi (\{B, C\})$ . 
+
+Assume that we add the edge $A{-}C$ , as in figure 11.18d. Now, Interfa $c e_{\mathcal{H}_{\mathcal{Q}_{3}}}(\{A, B\};\{B, C\})$ is the entire set $\{A, B\}$ , since $B$ no longer separates $C$ from $A$ . Thus, in this case, the second set of terms in the factorization of $\psi$ also contains a new pairwise interaction factor $\psi_{1,\{A, B\}}$ . As $^a$ consequence, the pairwise interaction of $A, B$ is no longer the same in $Q$ and in $P_{\Phi}$ . This result is somewhat counterintuit n the simpler ork $\mathcal{H}_{\mathcal{Q}_{1}}$ , h contained no factors allowing any interaction between the $A, B$ pair and the $C, D$ pair, the $A, B$ interaction was the same in $P_{\Phi}$ and in $Q$ . But if we enrich our approximation (presumably allowing a better fit via the introduction of the $A, C$ factor), the pairwise interaction term does change. 
+
+Finally, $\mathcal{H}_{\mathcal{Q}_{2}}$ does not contain an $\{A, B\}$ factor. Here, $\Phi_{j}\,=\,\emptyset$ for both factors in $\mathcal{H}_{\mathcal{Q}_{2}}$ , and each $\mathcal{D}_{j}$ consists solely of singleton scopes; for example, Interfa $c e_{\mathcal{H}_{\mathcal{Q}_{2}}}(\{A, C\};\{A, D\})=\{A\}$ . 
+
+Our second example serves to illustrate the two-phase strategy described earlier, where we first select a “rough” approximation containing a few large factors and then use the theorem to refine them. 
+
+Consider again our running example of the $4\times4$ grid. Suppose we select an approximation where each factor consists of the variables in a single row in the grid. Thus, for example, $C_{1}=$ $\{A_{1,1},.\,.\,.\,, A_{1,4}\}$ . Note that this approximation is not the one shown in figure 11.17a, since the structure in our approximation here is a full clique over each row. We now apply theorem 11.13. What is the factorization of $C_{1}$ ? First, we search for factors in $\Phi_{1}$ . We see that the factors $\phi (A_{1,1}, A_{1,2})$ , $\phi (A_{1,2}, A_{1,3})$ , and $\phi (A_{1,3}, A_{1,4})$ have a scope that is a subset of $C_{1}$ . Next, we consider the interfaces between $C_{1}$ and other factors in $P_{\Phi}$ and $Q$ . For example, the interface with $\phi (A_{1,1}, A_{2,1})$ is $\{A_{1,1}\}$ . Similarly, $\{A_{1,2}\},\,\{A_{1,3}\}$ , and $\{A_{1,4}\}$ are interfaces with other factors in $P_{\Phi}$ . It is easy to convince ourselves that these are the only non-empty interfaces in $\mathcal{L}_{1}$ . Thus, by applying theorem 11.13, we get the following factorization: 
+
+$$
+\begin{array}{r c l}{\psi_{1}(A_{1,1},\dots, A_{1,4})}&{=}&{\phi (A_{1,1}, A_{1,2})\cdot\phi (A_{1,2}, A_{1,3})\cdot\phi (A_{1,3}, A_{1,4})}\\ &&{\psi_{1,1}(A_{1,1})\cdot\psi_{1,2}(A_{1,2})\cdot\psi_{1,3}(A_{1,3})\cdot\psi_{1,4}(A_{1,4}).}\end{array}
+$$ 
+
+We conclude that, once we decide that the approximation should decouple the rows in the group, we might as well work with an approximation where we keep all original potentials along each row and introduce univariate potentials only to capture interactions along columns. Additional potentials, such as a potential between $A_{1,1}$ and $A_{1,3}$ , would not improve the approximation. Thus, while we started with an approximation containing full cliques on each of the rows, we ended up with an approximation whose structure is that of figure 11.17a, and where we have only the original factors and new factors over single variables. 
+
+We can work directly with this new factorized form of $Q$ , ignoring our original factorization entirely. More precisely, we define $Q^{\prime}$ to be 
+
+$$
+\begin{array}{r c l}{{Q^{\prime}(\mathcal{X})}}&{{=}}&{{\phi (A_{1,1}, A_{1,2})\cdot\phi (A_{1,2}, A_{1,3})\cdot\phi (A_{1,3}, A_{1,4})}}\\ {{}}&{{}}&{{\cdot\cdot\cdot}}\\ {{}}&{{}}&{{\phi (A_{4,1}, A_{4,2})\cdot\phi (A_{4,2}, A_{4,3})\cdot\phi (A_{4,3}, A_{4,4})}}\\ {{}}&{{}}&{{\psi_{1,1}(A_{1,1})\cdot\,\cdot\psi_{4,4}(A_{4,4}).}}\end{array}
+$$ 
+
+In this new form, we fix the value of all the pairwise potentials, and so we have to define an update rule only for the new singleton potentials. For example, consider the fixed-point equation for $\psi_{1,1}(A_{1,1})$ . Applying theorem 11.12 we get that 
+
+$$
+\begin{array}{r l}&{\ln\psi_{1,1}(a_{1,1})\propto}\\ &{\qquad+E_{Q^{\prime}}[\ln\phi (A_{1,1}, A_{2,1})\mid a_{1,1}]+E_{Q^{\prime}}[\ln\phi (A_{1,2}, A_{2,2})\mid a_{1,1}]}\\ &{\qquad+E_{Q^{\prime}}[\ln\phi (A_{1,3}, A_{2,3})\mid a_{1,1}]+E_{Q^{\prime}}[\ln\phi (A_{1,4}, A_{2,4})\mid a_{1,1}]}\\ &{\qquad-E_{Q^{\prime}}[\ln\psi_{1,2}(A_{1,2})\mid a_{1,1}]-E_{Q^{\prime}}[\ln\psi_{1,3}(A_{1,3})\mid a_{1,1}]-E_{Q^{\prime}}[\ln\psi_{1,4}(A_{1,4})\mid a_{1,1}]}\end{array}
+$$ 
+
+where we have exploited the fact that the terms involving factors such as $\phi (A_{1,1}, A_{1,2})$ appear in both $P_{\Phi}$ and $Q$ , and so cancel out of the equation. Note that to compute terms such as $E_{Q^{\prime}}[\ln\phi (A_{1,2}, A_{2,2})\mid a_{1,1}]$ | we need to evaluate $Q^{\prime}(A_{1,2}, A_{2,2}\,\,\mid\,\, a_{1,1})\;=\; Q^{\prime}(A_{1,2}\,\,\mid\,\, a_{1,1})$ · $Q^{\prime}(A_{2,2})$ (where we used the independencies in $Q^{\prime}$ to simplify the joint marginal). Note that $Q^{\prime}(A_{2,2})$ does not change when we update factors in the first row, such as $\psi_{1,1}(A_{1,1})$ . Thus, we can cache the computation of this marginal when updating the factors $\psi_{1,1}(A_{1,1}),.\,.\,.\,,\psi_{1,4}(A_{1,4})$ . When performing inference in a large model this can result in dramatic efect. 
+
+cluster mean field 
+
+This example is a special case of an approximation approach called cluster mean field . In this case, our initial approximation has the form 
+
+$$
+Q (\mathcal{X})=\frac{1}{Z_{Q}}\prod_{j}\psi_{j}(C_{j}),
+$$ 
+
+where the scopes $C_{1},\ldots, C_{K}$ are partition of $\mathcal{X}$ . That is, each pair of factors have disjoint scopes, and each variable in X appears in one factor. This approximation resembles the mean field approximation, except that it is clusters, rather than individual variables, that are marginally independent. We can now apply theorem 11.13 to refine the approximation. Because the factors are all disjoint, there are no chains of inﬂuence, and so the interfaces take a particularly simple form: 
+
+Proposition 11.7 Let $\begin{array}{r}{Q (\mathcal{X})=\frac{1}{Z_{Q}}\prod_{j}\psi_{j}(C_{j})}\end{array}$ be a cluster mean field approximation to a set of factors $P_{\Phi}$ , and let $\psi_{j}$ be a factor of Q . Then, the set $\mathcal{D}_{j}$ of theorem 11.13 can be written as 
+
+$$
+\begin{array}{r}{\mathcal{D}_{j}=\{C_{j}\cap S c o p e[\phi]:\phi\in\Phi-\Phi_{j}\}-\{\emptyset\}.}\end{array}
+$$ 
+
+The proof follows directly from the independence properties in $Q$ , and is left as an exercise (exercise 11.31). 
+
+In words, this result states that the interfaces of a cluster are simply the places where the cluster scope intersects potentials in $\Phi$ that are not fully contained in the cluster. In our grid example, when we choose the clusters to be the individual columns, the interfaces are the intersections with the row potentials, which are precisely the singleton variables that we discussed in example 11.18. 
+
+We conclude this discussion with a slightly more elaborate example, demonstrating again the strength of this result: 
+
+Example 11.19 Consider again our $4\times4$ grid, and the “comb” approximation whose structure is shown in fig- ure 11.19a. In this structure, we have a fully connected clique over each of the columns, and a “backbone” connecting the columns to each other. Consider again the factorization of the potential over $C_{1}=\{A_{1,1},.\,.\,.\,, A_{4,1}\}$ . As in the previous example, the first term in the new factorization contains the pairwise factors $\phi (A_{1,1}, A_{2,1})$ , $\phi (A_{2,1}, A_{3,1})$ , and $\phi (A_{3,1}, A_{4,1})$ . The second set of terms contains the interfaces with other factors in $P_{\Phi}$ and $Q$ . Due to the structure of the approxi- mation, the $Q$ interfaces introduce only singleton potentials. The factors in $P_{\Phi}$ , however, are more interesting. Consider, for example, the factor $\phi (A_{4,1}, A_{4,2})$ . The interface of $C_{1}$ with $\{A_{4,1}, A_{4,2}\}$ is $A_{1,1}, A_{4,1}$ — the variable $A_{4,1}$ separates $C_{1}$ from itself, and the variable $A_{1,1}$ from $A_{4,2}$ . Now, consider $a$ factor $\phi (A_{2,3}, A_{3,3}).$ ; in this case, the interface is simply $A_{1,1}$ , which separates the first column from both of these variables. Continuing this argument, it follows that all other factors in 
+
+$P_{\Phi}$ induce an interface containing a variable at the head of the column and (possibly) another variable in the column. Thus, we can eliminate any (new) pairwise interaction terms between any other pair of variables. For $a$ general $n\times n$ grid, this reduces the overall number of (new) pairwise potentials from $\textstyle n\cdot{\binom{n}{2}}$ to $n\times (n-1)$ . 
+
+#### 11.5.2.5 Selecting the Approximation 
+In general, both the quality and the computational complexity of the variational approximation depend on the structure of $P_{\Phi}$ and the structure of the approximating family $\mathcal{Q}$ . There are several guiding intuitions. First, we want to be able to perform efcient inference in the approximating network. In example 11.18, the approximating structure was a chain of variables, where we can perform inference in linear time (as a function of the number of variables in the chain). In general, we often select our network so that the resulting factorization leads to a tractable network (that is, one of low tree-width). 
+
+It is important to note, however, that the structure of the original distribution is not the only aspect in determining the complexity of inference in $Q$ . We also need to take into account factors that correspond to the interfaces of the cluster. In our grid example, these interfaces involved a single variable at time, and so they did not add to the network complexity. However, in more complex networks, these factors can have a significant efect. 
+
+Another consideration besides computational complexity is the quality of our approximation. Intuitively, we should design $\mathcal{Q}$ so as to preserve the strong dependencies in $P_{\Phi}$ . By preserving such dependencies we maintain the main efects in the distribution we want to apply. 
+
+These intuitions provide some guidelines in choosing the approximating distribution. How- ever, these choices are far from an exact science at this stage. The theory we described here allows to automate two parts of the process: defining the form of the approximation given some initial rough set of (disjoint or overlapping) clusters; and defining the fixed-point iterations to 
+
+optimize such an approximation. The current tools do not provide for an automated way for determining what are reasonable sets of clusters to achieve a desired degree of approximation. 
+
+### 11.5.3 Local Variational Methods\* 
+Lemma 11.2 
+The general method that we used throughout this chapter is an instance of a general class of methods known as variational methods . In this class of methods, we take a complex objective function $f_{\mathrm{obj}}(\pmb{x})$ , and lower or upper bound it using a parameterized family of functions ${\pmb g}({\pmb x},{\pmb\lambda})$ . Focusing, for concreteness, on the case of a lower bound , this family has the property that $f_{\mathrm{obj}}(\pmb{x})\,\geq\,\pmb{g}(\pmb{x},\pmb{\lambda})$ for any value of $\lambda$ , and that, for any $_{_{x}}$ , the bound is tight for some value of λ (a diferent one for every $_{_{x}}$ ). 
+
+As an example, we can show the variational lower bound : 
+
+For any choice of $\lambda$ and $x$ 
+
+$$
+-\ln (x)\geq-\lambda x+\ln (\lambda)+1,
+$$ 
+
+and, for any $x$ , this bound is tight for some value of $\lambda$ . 
+
+Proof Consider the tangent of $\ln (x)$ at the point $x_{0}$ 
+
+$$
+f_{\mathrm{obj}}(x: x_{0})=\ln (x_{0})+(x-x_{0})\frac{1}{x_{0}}=\frac{x}{x_{0}}+\ln (x_{0})-1.
+$$ 
+
+Since $\ln (x)$ is a concave function, it is upper bounded by each of its tangents. And so, $-\ln (x)\geq-f_{\mathrm{obj}}(x: x_{0})$ for any choice of $x$ and $x_{0}$ . Setting $x_{0}=\lambda^{-1}$ leads to the desired result. 
+
+convex duality 
+
+variational parameter 
+
+This result is illustrated in figure 11.20. It is a special case of a general result in the field of convex duality , which guarantees the existence of such bounds for a broad class of functions. 
+
+This l wer bound allows to approximate a nonlinear function $-\ln (x)$ with a term that s linear in x . This simplification comes at the price of introducing a new variational parameter λ , whose value is undetermined. If we optimize $\lambda$ exactly for each value of $x$ , we obtain a tight lower bound, but a bound is obtained for any value of $\lambda$ . 
+
+The techniques we have used in this chapter so far also fall into this category. Equation (11.5) shows that the energy functional is a lower bound on the log-partition function for any distribu- tion $Q$ . Thus, we can take $f_{\mathrm{obj}}$ to be the partition function, $_{_{x}}$ to correspond to the parameters of the true distribution $P_{\Phi}$ , and $\lambda$ to correspond to the parameters of the approximating dis- tribution $Q$ . Although the lower bound is tight when $Q$ precisely represents $P_{\Phi}$ , for reasons of efciency, we generally optimize $Q$ in a restricted space that provides a bound, but not a tight one, on the log-partition function. 
+
+variational variable elimination 
+
+This general approach of introducing auxiliary variational parameters that help in simplifying a complex objective function appears in many other domains. While it is beyond our scope to introduce a general theory of variational methods, we now brieﬂy describe one other application of variational methods that is relevant to probabilistic inference and does not fall directly within the scope of optimizing the energy functional. This application arises in the context of exact inference using an algorithm such as variable elimination. Here, we use variational bounds to avoid creating large factors that can lead to exponential complexity in the algorithm, giving rise to an approximate variational variable elimination algorithm. Such simplifications can be achieved in several ways; we describe two. 
+
+#### 11.5.3.1 Variational Bounds 
+Consider, for example, the diamond network of figure 11.18a. Assume that we run variable elimination to sum out the variable $B$ , which we assume for convenience is binary-valued. The elimination of $B$ introduces a new factor: 
+
+$$
+\phi_{B}(A, C)=\sum_{b}\phi_{1}(A, b)\phi_{2}(b, C)
+$$ 
+Coupling $A$ and $C$ in a single factor may be expensive, for example, if $A$ and $C$ have many values. In more complex networks, this type of coupling can induce complexity if an elimination step couples a larger set of variables, or if the local coupling leads to additional cost later in the computation, when we eliminate $A$ or $C$ . 
+
+As we now show, we can use a variational bound to avoid this coupling. Consider the following bound: 
+
+Proposition 11.8 
+
+$$
+\ln (1+e^{x})\geq\lambda x+H (\lambda),
+$$ 
+
+$$
+1+e^{x}\geq e^{\lambda x+H (\lambda)}.
+$$ 
+
+Why is this useful? Using some algebraic manipulation, we can bound each of the entries in our newly generated factor: 
+
+$$
+\begin{array}{r c l}{{\phi_{B}(a, c)}}&{{=}}&{{\phi_{1}(b^{0}, a)\phi_{2}(b^{0}, c)+\phi_{1}(b^{1}, a)\phi_{2}(b^{1}, c)}}\\ {{}}&{{=}}&{{\phi_{1}(b^{0}, a)\phi_{2}(b^{0}, c)\left[1+\exp\left\{\ln\frac{\phi_{1}(b^{1}, a)\phi_{2}(b^{1}, c)}{\phi_{1}(b^{0}, a)\phi_{2}(b^{0}, c)}\right\}\right]}}\\ {{}}&{{\geq}}&{{\phi_{1}(b^{0}, a)\phi_{2}(b^{0}, c)\exp\left\{\lambda_{a, c}\ln\frac{\phi_{1}(b^{1}, a)\phi_{2}(b^{1}, c)}{\phi_{1}(b^{0}, a)\phi_{2}(b^{0}, c)}+H (\lambda_{a, c})\right\}}}\\ {{}}&{{=}}&{{\left (\phi_{1}(b^{0}, a)^{1-\lambda_{a, c}}\phi_{1}(b^{1}, a)^{\lambda_{a, c}}\right)\cdot}}\\ {{}}&{{}}&{{\left (\phi_{2}(b^{0}, c)^{1-\lambda_{a, c}}\phi_{2}(b^{1}, c)^{\lambda_{a, c}}\right)\cdot e^{H (\lambda_{a, c})}.}}\end{array}
+$$ 
+
+Thus, we can replace a factor that couples $A$ and $C$ by a product of three terms: an expression involving only factors of $A$ , an expression involving only factors of $C$ , and the final factor $e^{H (\lambda_{a, c})}$ . However, all three terms also involve the variational parameter $\lambda_{a, c}$ and therefore also depend on both $A$ and $C$ . At this point, it is unclear what we gain from the transformation. 
+
+However, we can choose the same $\lambda$ for all joint assignments to $A, C$ . In doing so, we replace four variational parameters by a single parameter $\lambda$ . This operation relaxes the bound, which is no longer tight. On the other hand, it also decouples $A$ and $C$ , leading to a product of terms none of which depends on both variables: 
+
+$$
+\phi_{1}(b^{0}, a)^{1-\lambda}\phi_{1}(b^{1}, a)^{\lambda}\bigr)\cdot\bigl (\phi_{2}(b^{0}, c)^{1-\lambda}\phi_{2}(b^{1}, c)^{\lambda}\bigr)\cdot e^{\pmb{H}(\lambda)}=\tilde{\phi}_{1}(a,\lambda)\tilde{\phi}_{2}(c,\lambda) e^{\pmb{H}(\lambda)}
+$$ 
+
+Thus, if we use this approximation, we have efectively eliminated $B$ without coupling $A$ and $C$ . As we saw in chapter 9, this type of simplification can circumvent the need for coupling yet more variables in later stages in variable elimination, potentially leading to significant savings. 
+
+It is interesting to observe how $\lambda$ decouples the two factors. Each factor is replaced by a geometric average over the values of $B$ . The variational parameter specifies the weight we assign to each of the two cases. Note that the original bound in equation (11.66) is tight; thus, if we pick the “right” variational parameter $\lambda_{a, c}$ for each assignment $a, c,$ we reproduce the correct factor $\phi_{B}(A, C)$ . However, these variational parameters are generally diferent for each assignment $a, c,$ and hence, a single variational parameter cannot optimize all of the terms. Our choice of $\lambda$ efectively determines the quality of our approximation for each of the terms $\phi_{B}(a, c)$ . Thus, the overall quality of our approximation for a particular choice of $\lambda$ depends on the importance of these diferent terms in the variable elimination computation as a whole. 
+
+Other variational approximations exploit specific parametric forms of CPDs in the network. For example, consider networks with sigmoid CPDs (see section 5.4.2). Recall that a logistic CPD $P (X\mid U)$ has the parametric form: 
+
+$$
+P (x^{1}\mid\mathbf{u})=\mathrm{sigmoid}(\sum_{i}w_{i}u_{i}+w_{0}),
+$$ 
+
+where $\begin{array}{r}{\mathrm{sigmoid}(x)=\frac{1}{1+e^{-x}}}\end{array}$ . The observation of $X$ couples the parents $U$ . Can we decouple these parents using an approximation? Using proposition 11.8 we can find an upper bound: 
+
+$$
+\ln\operatorname{sigmoid}(\sum_{i}w_{i}u_{i}+w_{0})\leq\lambda\left (\sum_{i}w_{i}u_{i}+w_{0}\right)-H (\lambda).
+$$ 
+
+Similarly to our earlier example, such an approximation allows us to replace a factor over several variables by a product of smaller factors. In this case, all the parents of $X$ are decoupled by the approximate form. 
+
+#### 11.5.3.2 Variational Variable Elimination 
+How do we use this approximation in the course of inference? Note that equation (11.67) provides a lower bound to $\phi_{B}(a, c)$ for every value of $a, c$ . Assume that, in the course of running variable elimination, rather than generating $\phi_{B}(A, C)$ , we introduce the expression in equation (11.67) and continue the variable elimination process with these decoupled factors. From a graph- theoretic perspective, the result of this approximation when applied to a variable $B$ is analogous to the efect of conditioning on $B$ , as described in section 9.5.3: it removes from the graph $B$ and all its adjacent edges. However, unlike conditioning, we do not enumerate and perform inference for all values of $B$ (of course, at the cost of obtaining an approximate result). 
+
+variational variable elimination 
+
+More generally, in an execution of variable elimination, there may be some set of elimination steps that create large factors that couple many variables. This variational approximation can allow us to avoid this coupling. Like conditioning (see section 9.5.4.1), we can perform such an approximation step not only at the very beginning, but also in a way that is interleaved with variable elimination, allowing us to reuse computation. This class of algorithms is called variational variable elimination . 
+
+What is the result of this approximation? Each of the entries in the approximated factor is replaced with a lower bound; thus, each entry in every subsequent factor produced by the algorithm is also a lower bound to the original entry. If we proceed to eliminate all variables, either exactly or using additional variational approximation steps for other intermediate factors, the outcome of this process is a lower bound to the partition function. If we do not eliminate all of the variables, the result is an approximate factor in which every entry is a lower bound to the original. Of course, once we renormalize the factor to produce a distribution, we can make no guarantees about the direction of the approximation for any given entry. Nevertheless, the resulting factor might be a reasonable approximation to the original. 
+
+The quality of our approximation depends on the choice of variational parameters introduced during the course of the variable elimination algorithm. How do we select them? One approach is simply to select the variational parameter at each step to optimize the quality of our ap- proximation at that step. However, this high-level goal is not fully defined. For example, we can choose $\lambda$ so as to make $\tilde{\phi}_{1}(a^{1},\lambda)\tilde{\phi}_{2}(b^{1},\lambda) e^{H (\lambda)}$ as close as possible to $\phi_{B}(a^{1}, c^{1})$ ; or, we can focus on $a^{1}, c^{0}$ . The decision of where to focus our “approximation efort” depends on the impact of these components of the factor on the final outcome of the computation. Thus, a more correct approach is to identify the actual expression that we are trying to estimate — for example, the partition function — and to try to maximize our bound to that expression. In our simple example, we can write down the partition function as a function of the variational parameter $\lambda$ introduced when eliminating $B$ : 
+
+$$
+\tilde{Z}(\lambda)=e^{H (\lambda)}\sum_{a}\sum_{c}\phi_{3}(a, d)\phi_{4}(c, d)\sum_{d}\tilde{\phi}_{1}(a,\lambda)\tilde{\phi}_{2}(c,\lambda).
+$$ 
+
+This expression is a function of $\lambda$ ; we can then try to identify the best bound by maximizing $\operatorname*{max}_{\lambda}\hat{\tilde{Z}}(\lambda)$ , say, using gradient ascent or another numerical optimization method. 
+
+However, as we discussed, in most cases we would use several approximate elimination steps within the variable elimination algorithm. In our example, the elimination of $D$ also couples $A$ and $C$ , a situation we may wish to avoid. Thus, we could apply the same type of variational bound to the internal summation: 
+
+$$
+\phi_{D}(A, C)=\sum_{d}\tilde{\phi}_{1}(a,\lambda)\tilde{\phi}_{2}(c,\lambda),
+$$ 
+
+giving rise to the bound $\tilde{\phi}_{3}(a,\lambda^{\prime})\tilde{\phi}_{4}(c,\lambda^{\prime}) e^{H (\lambda^{\prime})}$ . The resulting approximate partition function now has the form 
+
+$$
+\tilde{Z}(\lambda,\lambda^{\prime})=e^{H (\lambda)}e^{H (\lambda^{\prime})}\sum_{a}\tilde{\phi}_{1}(a,\lambda)\tilde{\phi}_{3}(a,\lambda^{\prime})\sum_{c}\tilde{\phi}_{2}(c,\lambda)\tilde{\phi}_{4}(c,\lambda^{\prime}).
+$$ 
+
+We can now maximize $\mathrm{max}_{\lambda,\lambda^{\prime}}\,\tilde{Z}(\lambda,\lambda^{\prime})$ ; the higher the value we find, the better our approxi- mation to the true partition function. 
+
+In general, our approximate partition function will be a function $\tilde{Z}(\lambda)$ , where $\lambda$ is the vector of all variational parameters $\lambda$ produced during the diferent approximation steps in the algorithm. One approach is to reformulate the variable elimination algorithm so that it produces factors that are not purely numerical, but rather symbolic expressions in the variables $\lambda$ ; see exercise 11.32. Given the multivariate function $\tilde{Z}(\lambda)$ , we can optimize it numerically to produce the best possible bound. A similar principle applies when we use the variational bound for sigmoid CPDs; see exercise 11.36 for an example. While we only sketch the basic idea here, this approach can be used as the basis for an algorithm that interleaves variational approximation steps with exact elimination steps to form a variational variable elimination algorithm. 
+
+## 11.6 Summary and Discussion
+In this chapter, we have described a general class of methods for performing approximate inference in a distribution $P_{\Phi}$ defined by a graphical model. These methods all attempt to construct a representation $Q$ within some approximation class $\mathcal{Q}$ that best approximates $P_{\Phi}$ . The key issue that must be tackled in this task is the construction of such an approximation without performing inference on the (intractable) $P_{\Phi}$ . The methods that we described all take a similar approach of using the I-projection framework, whereby we minimize the KL- divergence $D (Q\|P_{\Phi})$ ; these methods all reformulate this problem as one of maximizing the energy functional. 
+
+The different methods that we described all follow a similar template. We optimize the free energy, or an approximation thereof, over a class of representations $\mathcal{Q}$ . We provided an optimization-based view for four diferent methods, each of which makes a particular choice regarding the objective and the constraints. We now recap these choices and their repercussions. 
+
+Clique tree calibration optimizes the factored energy functional, which is exact for clique trees. The optimization is performed over the space of calibrated clique potentials. For clique trees, any set of calibrated clique potentials must arise from a real distribution, and so this space is precisely the marginal polytope. As a consequence, both our objective and our constraint space are exact, so our solution represents the exact posterior. 
+
+Cluster-graph (loopy) belief propagation optimizes the factored energy functional, which is approximate for loopy graphs. The optimization is performed over the space of locally consistent pseudo-marginals, which is a relaxation of the marginal polytope. Thus, both the objective and the constraint space are approximate. 
+
+Expectation propagation over clique trees optimizes the factored energy functional, which is the exact objective in this case. However, the constraints define a space of pseudo-marginals that are not even entirely consistent — only their moments are required to match. Thus, the constraint space here is a relaxation of our constraints, even when the structure is a tree. Expectation propagation over cluster graphs adds, on top of these, all of the approximations induced by belief propagation. 
+
+Finally, structured variational methods optimize the exact factored energy functional, for a class of distributions that is (generally) less expressive than necessary to encode $P_{\Phi}$ . As a consequence, the constraint space is actually a tightening of our original constraint space. Because the objective function is exact, the result of this optimization provides a lower bound on the value of the exact optimization problem. As we will see, such bounds can play an important role in the context of learning. 
+
+In the approaches we discussed, the optimization method was based on the method of Lagrange multipliers. This derivation gave rise to a series of fixed-point equations for the solution, where one variable is defined in terms of the others. As we showed, an iterative solution for these fixed-point equations gives rise to a suite of message passing algorithms that generalize the clique-tree message passing algorithms of chapter 10. 
+
+This general framework opens the door to the development of many other approaches. Each of the methods that we described here involves a design choice in three dimensions: the objective function that we aim to optimize, the space of (pseudo-) distributions over which we perform our optimization, and the algorithm that we choose to use in order to perform the optimization. Although these three decisions afect each other, these dimensions are sufciently independent that we can improve each one separately. Some recent work takes exactly this approach. For example, we have already seen some work that focuses on better approximations to the energy functional; other work (see section 11.7) focuses on identifying constraints over the space of pseudo-marginals that make it a tighter relaxation to the (exact) marginal polytope; yet other work aims to find better (for example, more convergent) algorithms for a general class of optimization problems. 
+
+Many of these improvements aimed to address a fundamental problem arising in these algorithms: the possible lack of convergence to a stable solution. The issue of convergence is one on which some progress has been made. Some recently developed methods have better convergence properties in practice, and others are even guaranteed to converge. There are also theoretical analyses that can help determine when the algorithms converge. 
+
+A second key question, and one on which relatively little progress has been made, is the quality of the approximation. There is very little work that provides guarantees on the error made in the answers (for example, individual marginals) by any of these methods. As a consequence, there is almost no work that provides help in choosing a low-error approximation for a particular problem. Thus, the problem of applying these methods in practice is still a combination of manual tuning on one hand, and luck on the other. The development of automated methods that can help guide the selection of an approximating class for a particular problem is an important direction for future work. 
