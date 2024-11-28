@@ -436,7 +436,7 @@
 ## December
 ### Week 1
 \[Book\]
-- [[book-notes/一份（不太）简短的 Latex2e 介绍|一份（不太）简短的 Latex2e 介绍]]: CH1
+- [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH1
     CH1-LaTex 的基本概念
         LaTex 命令分为两种：`\` + 一串字母；`\` + 单个非字母符号
         字母形式的命令忽略其后的空格字符
