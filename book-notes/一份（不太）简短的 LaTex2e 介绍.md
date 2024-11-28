@@ -106,7 +106,7 @@ cd <path>
 pdflatex helloworld 
 ```
 
-或者 
+或者
 
 ```
 xelatex helloworld 
@@ -114,7 +114,7 @@ xelatex helloworld
 
 如果编译成功，可以在 `helloworld.tex` 所在目录看到生成的 `helloworld.pdf` 以及一些其它文件。 
 
-源代码 1.2 是在 LaTeX 排版中文的一个最简示例。编译的方式与上一份源代码相同，但需使用 XeLaTeX 编译方式。中文支持的详细内容见 2.2 节。
+源代码 1.2 是在 LaTeX 排版中文的一个最简示例。编译的方式与上一份源代码相同，但需使用 `xelatex` 编译方式。中文支持的详细内容见 2.2 节。
 
 ```latex
 \documentclass{ctexart} 
@@ -125,7 +125,7 @@ xelatex helloworld
 
 源代码 1.2: 在 LaTeX 中排版中文的最简源代码示例。 
 
->  注意文档类为 `ctexart` ，文件应该保存为 UTF-8 编码，以及使用 XeLaTex 引擎编译
+>  注意文档类为 `ctexart` ，文件应该保存为 UTF-8 编码，以及使用 XeTex 引擎编译
 
 ## 1.3 LaTeX 命令和代码结构 
 LaTeX 的源代码为文本文件。这些文本除了文字本身，还包括各种命令，用在排版公式、划分文档结构、控制样式等等不同的地方。 
@@ -402,7 +402,7 @@ LaTeX 编译命令和 LaTeX 格式往往容易混淆，在讨论关于 LaTeX 的
 ![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/6caaa3cd51678f8cf5756c206181f6afb065ffbcb8d853028ab7ccf185d41101.jpg) 
 
 # 2 用 LaTeX 排版文字
-文字是排版的基础。本章主要介绍如何在 LaTeX 中输入各种文字符号，包括标点符号、连字符、重音等，以及控制文字断行和断页的方式。本章简要介绍了在 LaTeX 中排版中文的方法。随着 LaTeX 和底层 TeX 引擎的发展，旧方式 (CCT、CJK 等) 日渐退出舞台，`xelatex` 和 `lualatex` 编译命令配合 cTeX 宏包/文档类的方式成为当前的主流中文排版支持方式。 
+文字是排版的基础。本章主要介绍如何在 LaTeX 中输入各种文字符号，包括标点符号、连字符、重音等，以及控制文字断行和断页的方式。本章简要介绍了在 LaTeX 中排版中文的方法。随着 LaTeX 和底层 TeX 引擎的发展，旧方式 (CCT、CJK 等) 日渐退出舞台，`xelatex` 和 `lualatex` 编译命令配合 `ctex` 宏包/文档类的方式成为当前的主流中文排版支持方式。 
 
 ## 2.1 语言文字和编码 
 LaTeX 源代码为文本文件，而文本文件的一个至关重要的性质是它的编码。在此用尽量短的篇幅介绍一下。 
@@ -410,38 +410,114 @@ LaTeX 源代码为文本文件，而文本文件的一个至关重要的性质�
 ### 2.1.1 ASCII 编码 
 计算机的基本存储单位是字节 (byte)，每个字节为八位(8-bit)，范围用十六进制写作 `0x00-0xFF` 。ASCII (美国通用信息交换码)使用 `0x00-0x7F` 对文字编码，也就是 7-bit，覆盖了基本的拉丁字母、数字和符号，以及一些不可打印的控制字符(如换行符、制表符等)。 
 
-由于 TeX 最初设计用于排版以英文为主的西文文档，ASCII 编码完全够用，因而早期版本的 TeX 只支持 7-bit 和 ASCII 编码。排版扩展拉丁字符必须使用后文所述的各种符号和重音命令，如 Möbius 必须通过输入 M \"obius 得到。 
+>  每个字节的范围为 `0x00-0xFF`，ASCII 使用的范围是 `0x00-0x7F` ，也就是仅使用 7 个 bit，ASCII 覆盖了基本的字母、数字、符号以及一些控制字符
 
-# 2.1.2 扩展编码 
+由于 TeX 最初设计用于排版以英文为主的西文文档，ASCII 编码完全够用，因而早期版本的 TeX 只支持 7-bit 和 ASCII 编码。排版扩展拉丁字符必须使用后文所述的各种符号和重音命令，如 Möbius 必须通过输入 M \\"obius 得到。 
+
+>  早期 TeX 仅支持 7 bit 的 ASCII 编码，要排版拓展拉丁字符需要使用符号命令和重音命令
+
+### 2.1.2 扩展编码 
 在 ASCII 之后，各种语言文字都发展了自己的编码，比如西欧语言的 Latin-1、日本的 Shift-JIS、中国大陆的 GB 2312—80 和 GBK 等。它们中的绝大多数都向下兼容 ASCII，因此无论是在哪种编码下， TeX 以及 LaTeX 的命令和符号都能用。 
-TeX 从 3.0 版开始支持 8-bit，能够处理编码在 $0 \mathrm{x}80{-}0 \mathrm{x} \mathrm{FF}$ 范围内的字符。西欧 (拉丁字母)、俄语系 (西里尔字母) 等语言文字的编码方案大都利用了 $0 \mathrm{x}80{-}0 \mathrm{x} \mathrm{FF}$ 这个范围，处理起来较为方便。使用 laTeX 或 pdflaTeX 编译命令时，对源代码的编码处理由 inputenc 宏包支持。比如将源代码保存为 Latin-1 编码，并在导言区调用 inputenc 宏包并指定 latin1 选项后，Möbius 这样的词语就可以直接通过 (用适当输入法) 输入 Möbius 得到了。 
-用于汉字的 GBK 等编码是多字节编码，ASCII 字符为一个字节，汉字等非 ASCII 字符为两个字节，使用 laTeX 或 pdflaTeX 编译命令时需要借助一些宏包进行较为复杂的判断和处理。早期排版中文须使用 CJK 宏包，它是一个用于处理中、日、韩等东亚语言文字编码和字体配置的宏包。但 CJK 宏包的使用非常不方便，目前已不再推荐直接使用。 
-# 2.1.3UTF-8 编码 
-Unicode 是一个多国字符的集合，覆盖了几乎全球范围内的语言文字。UTF-8 是 Unicode 的一套编码方案，一个字符由一个到四个字节编码，其中单字节字符的编码与 ASCII 编码兼容。现行版本的 LaTeX 使用 UTF-8 作为默认编码 1。将使用拉丁字母的文档保存为 UTF-8 编码后，可以用 pdflaTeX 直接编译，比如： 
- \document class{article}
-  \begin{document} Français Português Español Føroyskt  \end{document} 
+
+>  各种语言的编码对 ASCII 进行了拓展，中文的编码有 GB 2321——80 和 GBK 等
+
+TeX 从 3.0 版开始支持 8-bit，能够处理编码在 `0x80-0xFF` 范围内的字符。西欧 (拉丁字母)、俄语系 (西里尔字母) 等语言文字的编码方案大都利用了 `0x80-0xFF` 这个范围，处理起来较为方便。使用 `latex` 或 `pdflatex` 编译命令时，对源代码的编码处理由 inputenc 宏包支持。比如将源代码保存为 Latin-1 编码，并在导言区调用 inputenc 宏包并指定 latin1 选项后，Möbius 这样的词语就可以直接通过 (用适当输入法) 输入 Möbius 得到了。 
+
+>  TeX 3.0 开始支持 8-bit 编码，ASCII 没有使用到范围 `0x80-0xFF` 可以被映射到其他的字符 (取决于特定的编码方案是否这么做)
+>  使用 `latex/paflatex` 命令时 (调用 pdfTeX 引擎编译)，文件源码的编码处理由 `inputenc` 宏包支持，例如，我们首先将源文件保存为 Latin-1 编码，然后在导言区使用 `inputenc` 宏包，指定 `latin1` 选项，pdfTeX 引擎就可以直接将 Latin-1 编码的文件正确编译
+
+用于汉字的 GBK 等编码是多字节编码，ASCII 字符为一个字节，汉字等非 ASCII 字符为两个字节，使用 `latex` 或 `pdflatex` 编译命令时需要借助一些宏包进行较为复杂的判断和处理。早期排版中文须使用 CJK 宏包，它是一个用于处理中、日、韩等东亚语言文字编码和字体配置的宏包。但 CJK 宏包的使用非常不方便，目前已不再推荐直接使用。 
+
+>  GBK 编码是多字节编码，ASCII 字符占一个字节 (`0x00-0x7F`)，汉字等非 ASCII 字符占两个字节
+>  对于使用 GBK 编码的源文件，使用 `latex/pdflatex` 调用 pdfTeX 引擎编译时同样需要使用额外的宏包，例如早期的 CJK 宏包
+
+### 2.1.3 UTF-8 编码 
+Unicode 是一个多国字符的集合，覆盖了几乎全球范围内的语言文字。UTF-8 是 Unicode 的一套编码方案，一个字符由一个到四个字节编码，其中单字节字符的编码与 ASCII 编码兼容。现行版本的 LaTeX 使用 UTF-8 作为默认编码。将使用拉丁字母的文档保存为 UTF-8 编码后，可以用 `pdflatex` 直接编译，比如： 
+
+>  Unicode 字符集合包含了大量的多语言字符，UTF-8 对 Unicode 字符集进行了编码，UTF-8 对一个字符采用 1 个到 4 个字节编码，ASCII 字符仍然采用单字节，与 ASCII 编码方式兼容
+>  目前的 LaTeX 使用 UTF-8 编码作为默认编码方式，因此我们将源文件保存为 UTF-8 编码方式后，可以直接用 `pdflatex` 编译
+
+```latex
+\documentclass{artical}
+\begin{document}
+Français Português Español Føroyskt
+\end{document}
+```
+
 但是非拉丁字母仍然无法直接在 LaTeX 中使用，如西里尔字母 (俄文)、希腊字母、阿拉伯字母以及东亚文字等。 
-较为现代的 TeX 引擎，如 XƎTeX 和 LuaTeX，它们均原生支持 UTF-8 编码。使用 xelaTeX 和 lualaTeX 排版时，将源代码保存为 UTF-8 编码，并借助 fontspec 宏包 (见 5.1.5 小节) 调用适当的字体，原则上就可以在源代码中输入任意语言的文字。注意此时不再适用 inputenc 宏包。但一些复杂语言 (如印地语、阿拉伯语等) 的排版需要考虑到断词规则、文字方向、标点禁则等诸多细节，因此需要更多的宏包支持，如 babel、poly gloss i a 等，此处不再涉及。 
-# 2.2 排版中文 
-用 LaTeX 排版中文需要解决两方面问题，一方面是对中文字体的支持，另一方面是对中文排版中的一些细节的处理，包括在汉字之间控制断行、标点符号的禁则 (如句号、逗号不允许出现在行首)、中英文之间插入间距等。CJK 宏包对中文字体的支持比较麻烦，已经不再推荐直接使用。XƎTeX 和 LuaTeX 除了直接支持 UTF-8 编码外，还支持直接调用 TrueType/OpenType 格式的字体。 $ \mathsf{x e C J K}$ 及 luaTeXja 宏包则在此基础上封装了对汉字排版细节的处理功能。 
-cTeX 宏包和文档类 2 进一步封装了 CJK、xeCJK、luaTeXja 等宏包，使得用户在排版中文时不用再考虑排版引擎等细节。cTeX 宏包本身用于配合各种文档类排版中文，而 cTeX 文档类对 LaTeX 的标准文档类进行了封装，对一些排版根据中文排版习惯做了调整，包括 cTeXart、cTeXrep、cTeXbook 等。cTeX 宏包和文档类能够识别操作系统和 TeX 发行版中安装的中文字体，因此基本无需额外配置即可排版中文文档。下面举一个使用 cTeX 文档类排版中文的最简例子： 
- \document class{cTeXart}
-  \begin{document} 
-在 \LaTeX{}中排版中文。汉字和 English 单词混排，通常不需要在中英文之间添加额外的空格。当然，为了代码的可读性，加上汉字和 English 之间的空格也无妨。汉字换行时不会引入多余的空格。 \end{document} 
-注意源代码须保存为 UTF-8 编码，并使用 xelaTeX 或 lualaTeX 命令编译。虽然 cTeX 宏包和文档类保留了对 GBK 编码以及 laTeX 和 pdflaTeX 编译命令的兼容，但我们并不推荐这样做。 
-# 2.3LATeX 中的字符 
-# 2.3.1 空格和分段 
+
+>  但 LaTeX 对 UTF-8 的支持不完全，例如中文字符有被 UTF-8 编码，但包含中文字符的 UTF-8 源码文件无法直接被编译 (本质上是 pdfTeX 引擎对 UTF-8 的支持不完全)
+
+较为现代的 TeX 引擎，如 XeTeX 和 LuaTeX，它们均原生支持 UTF-8 编码。使用 `xelatex` 和 `lualatex` 排版时，将源代码保存为 UTF-8 编码，并借助 fontspec 宏包 (见 5.1.5 小节) 调用适当的字体，原则上就可以在源代码中输入任意语言的文字。注意此时不再适用 inputenc 宏包。但一些复杂语言 (如印地语、阿拉伯语等) 的排版需要考虑到断词规则、文字方向、标点禁则等诸多细节，因此需要更多的宏包支持，如 babel、polyglossia 等，此处不再涉及。 
+
+>  更现代的 TeX 引擎例如 XeTex 和 LuaTex 完全支持 UTF-8 编码
+>  我们将包含 Unicode 字符的源文件保存为 UTF-8 编码，并借助 `fontspec` 宏包调节字体，使用 `xelatex/lualatex` 编译即可
+
+## 2.2 排版中文 
+用 LaTeX 排版中文需要解决两方面问题，一方面是对中文字体的支持，另一方面是对中文排版中的一些细节的处理，包括在汉字之间控制断行、标点符号的禁则 (如句号、逗号不允许出现在行首)、中英文之间插入间距等。CJK 宏包对中文字体的支持比较麻烦，已经不再推荐直接使用。XeTeX 和 LuaTeX 除了直接支持 UTF-8 编码外，还支持直接调用 TrueType/OpenType 格式的字体。 `xeCJK` 及 `luaTeXja` 宏包则在此基础上封装了对汉字排版细节的处理功能。 
+
+>  XeTeX 和 LuaTeX 支持排版 UTF-8 编码的 Unicode 字符，但是汉字排版仍需要进一步的细节处理，包括对中文字体的支持和一些排版细节
+>  XeTeX 和 LuaTex 直接支持直接调用 TrueType/OpenType 格式的字体，`xeCJK` 和 `luatexja` 宏包封装了这一功能，还进一步封装了对中文排版细节的处理功能
+
+`ctex` 宏包和文档类进一步封装了 `CJK`、`xeCJK`、`luatexja` 等宏包，使得用户在排版中文时不用再考虑排版引擎等细节。`ctex` 宏包本身用于配合各种文档类排版中文，而 `ctex` 文档类对 LaTeX 的标准文档类进行了封装，对一些排版根据中文排版习惯做了调整，包括 `ctexart`、`ctexrep`、`ctexbook` 等。`ctex` 宏包和文档类能够识别操作系统和 TeX 发行版中安装的中文字体，因此基本无需额外配置即可排版中文文档。下面举一个使用 `ctex` 文档类排版中文的最简例子： 
+
+>  `ctex` 宏包进一步封装了这些宏包，使得用户不需要考虑具体的排版引擎
+>  `ctex` 文档类包括 `ctexart\ctexrep\ctexbook` 等，它封装了标准文档类，对中文排版进行了优化
+>  `ctex` 宏包可以和其他文档类配合排版中文，当然最好和 `ctex` 文档类配合
+
+```latex
+\documentclass{ctexart}
+\begin{document}
+在 \LaTeX{}中排版中文。汉字和 English 单词混排，通常不需要在中英文之间添加额外的空格。
+当然，为了代码的可读性，加上汉字和 English 之间的空格也无妨。
+汉字换行时不会引入多余的空格。 
+\end{document} 
+```
+
+注意源代码须保存为 UTF-8 编码，并使用 `xelatex` 或 `lualatex` 命令编译。虽然 `ctex` 宏包和文档类保留了对 GBK 编码以及 `latex` 和 `pdflatex` 编译命令的兼容，但我们并不推荐这样做。 
+
+## 2.3 LaTeX 中的字符 
+### 2.3.1 空格和分段 
 LaTeX 源代码中，空格键和 Tab 键输入的空白字符视为“空格”。连续的若干个空白字符视为一个空格。一行开头的空格忽略不计。行末的换行符视为一个空格；但连续两个换行符，也就是空行，会将文字分段。多个空行被视为一个空行。也可以在行末使用 \par 命令分段。 
-Several spaces equal one. Front spaces are ignored. An empty line starts a new paragraph. \par A  \verb| \par| command does the same. 
-# 2.3.2 注释 
-$ \mathrm{emptyset}$ 用% 字符作为注释。在这个字符之后直到行末，所有的字符都被忽略，行末的换行符也不引入空格。 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/bf95fa075042842a2d9ee4816edc881248f12f00b865460ed05f37e51337d09b.jpg) 
-This is an example: Comments do not break a word. 
-# 2.3.3 特殊字符 
-以下字符在 $ \mathrm{emptyset}$ 里有特殊用途，如% 表示注释， $ \Updownarrow$ 、^、_ 等用于排版数学公式，& 用于排版表格，等等。直接输入这些字符得不到对应的符号，还往往会出错： 
-#  \$ % & { } _ ^  \~  \ 
+
+>  LaTeX 源码忽略行首的空白字符，连续的空白字符视为一个
+>  连续的两个换行符 (一个空行) 会将文字分段，多个空行视为一个空行
+>  `\par` 命令也可以用于分段
+
+```latex
+several spaces     equal one.
+    Front space are ignored.
+    
+A empty line stats a new paragraph.\par
+A \verb|\par| does the same
+```
+
+### 2.3.2 注释 
+LaTex 用 % 字符作为注释。在这个字符之后直到行末，所有的字符都被忽略，行末的换行符也不引入空格。 
+
+>  `%` 为注释字符，注释字符到行末的所有字符都被忽略，包括行末的换行符
+
+```latex
+This is an % short comment
+% ---
+% Long and organized
+% comments
+% ---
+example: Comments do not bre%
+ak a work
+```
+
+### 2.3.3 特殊字符 
+以下字符在 LaTex 里有特殊用途，如 % 表示注释， \$ 、^、_ 等用于排版数学公式，& 用于排版表格，等等。直接输入这些字符得不到对应的符号，还往往会出错： 
+
+```
+# $ % & { } _ ^  ~  \ 
+```
+
 如果想要输入以上符号，需要使用以下带反斜线的形式输入，类似编程语言里的“转义”符号： 
+
 ![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/5d543d1c7346e23c4685639114376a6f23eea082fbb966eaa1dab68a2db3780a.jpg) 
+
 这些“转义”符号事实上是一些 $ \mathrm{emptyset}$ 命令。其中 $ \setminus \! \sim$ 和 $ \setminus^{ \sim}$ 两个命令需要一个参数，加一对花括号的写法相当于提供了空的参数，否则它们可能会将后面的字符作为参数，形成重音效果 (详见 2.3.6 节)。 \ \ 被直接定义成了手动换行的命令，输入反斜线就需要用 \TeXt backslash。 
 # 2.3.4 连字 
 西文排版中经常会出现连字 (ligatures)，常见的有 ff/fi/fl/ffi/ffl。 
