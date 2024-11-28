@@ -317,14 +317,15 @@
         PagedAttention manage KV cache in block granularity, reducing memory fragmentation and enabling sharing. vLLM is built upon PagedAttention, it shows how established techniques like virtual memory and copy-on-write can be used to efficiently manage KV cache and handle various decoding algorithm in LLM serving.
 
 \[Book\]
-- [[A Tour of C++]] : CH9-CH9.2
-    CH9.1-Introduction:
-    CH9.2-Strings:
-        `string` is a `Regular` type.
-        `string` support cacatenation, comparison, subscripting, substring operations, lexicographical ordering etc.
-        `s` suffix's corresponding operator is defined in `std::literals::string_literals`.
-        `string` 's implementation is shor-string optimized.
-        `string` is actually an alias of `basic_string<char>`.
+- [[A Tour of C++]] : CH9.1-CH9.2
+    CH9-Strings and Regular Expressions
+        CH9.1-Introduction
+        CH9.2-Strings
+            `string` is a `Regular` type.
+            `string` support cacatenation, comparison, subscripting, substring operations, lexicographical ordering etc.
+            `s` suffix's corresponding operator is defined in `std::literals::string_literals`.
+            `string` 's implementation is shor-string optimized.
+            `string` is actually an alias of `basic_string<char>`.
 - [[面向计算机科学的组合数学]]: CH4.4.1-CH4.5.2
     Write characteristic polynominal directly from the recurrence relation, and slove the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
 
@@ -403,7 +404,7 @@
             Queries outside a clique: construct the marginal over the query in containing subtree, instead of the entire tree.
             Multiple queries: compute the marginal over each clique pair using DP.
     CH11-Inference as Optimization
-        CH11.1-Introduction:
+        CH11.1-Introduction
             The approximation method's approximation arises from constructing an approximation to the target distribution $P_\Phi$.
             The approximation distribution takes a simpler form, generally exploiting the local factorization structure.
             The inference task is thus reformulated as optimizatin an objective function over the approximation distribution class $\mathcal Q$, which falls into the category of constrained optimization problem.
@@ -434,3 +435,18 @@
 
 ## December
 ### Week 1
+\[Book\]
+- [[book-notes/一份（不太）简短的 Latex2e 介绍|一份（不太）简短的 Latex2e 介绍]]: CH1
+    CH1-LaTex 的基本概念
+        LaTex 命令分为两种：`\` + 一串字母；`\` + 单个非字母符号
+        字母形式的命令忽略其后的空格字符
+        LaTex 的环境由 `\begin,\end` 命令包围
+        LaTex 用 `{}` 划分分组，限制命令的作用范围
+        `\documentclass` 指定文档类，`\begin{document}` 开启文档环境，二者之间为导言区，用于用 `\usepackage` 使用宏包
+        `\include, \input` 用于插入文件
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH11.5.1
+    CH11.5-Structured Variational Inference
+        CH11.5.1-The Mean Field Approximation
+            The mean field approximation assumes all the variables are independent from each other. Thus $Q$ is fully factorized.
+            The optimization for the enerty functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guarnateed to be nonincreasing under the coordinate ascent process.
+            The computation for optima $Q(X_i)$ only involves the potentials that contains variable $X_i$ .
