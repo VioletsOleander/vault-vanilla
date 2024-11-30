@@ -9279,6 +9279,8 @@ When we have multiple observations and we want our sampling process to set all o
 Example 12.3 
 Consider the same network, where our evidence set now consists of $l^{0},s^{1}$ . Assume that we sample $D\,=\,d^{1}$ , $I\,=\,i^{0}$ , set $S\;=\;s^{1}$ , sample $G\,=\,g^{2}$ , and set $L\,=\,l^{0}$ . The probability that, given $I\,=\,i^{0}$ , forward sampling would have generated $S\;=\;s^{1}$ is 0 . 05 . The probability that, given $G\,=\,g^{2}$ , forward sampling would have generated $L\,=\,l^{0}$ is 0 . 4 . If we consider the standard forward sampling process, each of these events is the result of an independent coin toss. Hence, the probability that both would have occurred is simply the product of their probabilities. Thus, the weight required for this sample to compensate for the setting of the evidence is $0.05\cdot0.4=0.02.$ 
 
+![[pics/PGM-Algorithm12.2.png]]
+
 Generalizing this intuition results in an algorithm called likelihood weighting (LW) , shown in algorithm 12.2. The name indicates that the weights of diferent samples are derived from the likelihood of the evidence accumulated throughout the sampling process. 
 >  我们将这一直觉推广为似然加权算法，见 algorithm 12.2
 >  似然加权意味着不同样本的权重来自于 evidence 在采样过程中累计的似然
@@ -9626,18 +9628,22 @@ $$
 In ratio LW, the numerator and denominator are both using unnormalized importance sampling, which admits a rigorous theoretical analysis. Thus, we can now provide bounds on the number of samples $M$ required to obtain a good estimate for both $P(\pmb{y},\pmb e)$ and $P(\pmb e)$ . 
 
 >  考虑为特定的事件 $\pmb y$ 计算条件概率 $P(\pmb y \mid \pmb e)$，
->  一个直接的方法是比率似然加权，即我们用 $P(\pmb y, \pmb e)/ P(\pmb e)$ 计算条件概率，其中分母和分子分别使用未规范化的重要性采样进行估计，如 (12.19) 所示
+>  一个直接的方法是比率似然加权，即我们用 $P(\pmb y, \pmb e)/ P(\pmb e)$ 计算条件概率，其中分母和分子分别使用未规范化的重要性采样 (等价于似然加权算法) 进行估计
+>  具体地说，估计分子 $P(\pmb y, \pmb e)$ 时，我们将 $\pmb Y = \pmb y, \pmb E = \pmb e$ 一起作为 evidence 应用 algorithm 12.2 对 $P(\pmb y, \pmb e)$ 进行采样估计；估计分母 $P(\pmb e)$ 时，我们将 $\pmb e$ 作为 evidence 应用 algorithm 12.2 进行另一次采样估计，如 (12.19) 所示
 >  在比率似然加权中，分母和分子都使用未规范化的重要性采样，因为未规范化的重要性采样有严格的理论分析界，故我们可以为估计好 $P(\pmb y, \pmb e), P(\pmb e)$ 给出关于样本数量 $M$ 的界
 
 #### 12.2.3.4 Normalized Likelihood Weighting 
 Ratio LW allows us to estimate the probability of a single query $P(\pmb{y}\mid\pmb{e})$ . In many cases, however, we are inter ted in estimating an entire joint distribution $P(\pmb Y\mid \pmb e)$ for some variable or subset of variables Y . We can answer such a query by running ratio LW for each $\pmb{y}\in V a l(\pmb{Y})$ , but this approach is typically too computationally expensive to be practical. 
 >  比率似然加权可以用于估计单个查询 $P(\pmb y \mid \pmb e)$ 的概率
->  如果我们感兴趣整个后验分布 $P(\pmb Y \mid \pmb e)$，则为每个 $\pmb y \in Val(\pmb Y)$ 执行一次估计显然不现实
+>  如果我们感兴趣整个后验分布 $P(\pmb Y \mid \pmb e)$，则为每个 $\pmb y \in Val(\pmb Y)$ 执行一次采样估计显然不现实
 
 An alternative approach is to use normalized likelihood weighting , which is based on the normalized importance sampling estimator of equation (12.13). In this application, our target distribution is $P(\mathcal{X})=\operatorname{P_{\mathcal{B}}}(\mathcal{X}\mid e)$ . As we mentioned, we do not have access to $P$ directly; rather, we can evaluate $\tilde{P}(\mathcal{X})=P_{\mathcal{B}}(\mathcal{X},e)$ , which is the probability of a full assignment and can be easily computed via the chain rule. In this case, we are trying to estimate the expectation of a function $f$ which is the indicator function of the query ${y}$ : $f(\xi)=I\!\!\left\{\xi\langle Y\rangle=y\right\}$ . Applying the normalized importance sampling estimator of equation (12.13) to this setting, we obtain precisely the estimator of equation (12.6). 
 >  考虑采用规范化似然加权，比率似然加权基于未规范化的重要性采样，规范化似然加权则基于规范化的重要性采样
 >  我们的目标分布是 $P_{\mathcal B}(\mathcal X \mid \pmb e)$，记为 $P(\mathcal X)$
 >  我们难以直接访问目标分布 $P(\mathcal X)$，但可以访问其未规范化的分布 $\tilde P(\mathcal X) = P_{\mathcal B}(\mathcal X , \pmb e)$ (因为 $\mathcal X, \pmb e$ 是对 $\mathcal B$ 中全部变量的完整赋值，故其概率可以利用 $P_{\mathcal B}$ 的分解进行计算)
+>  我们应用 (12.13) 的规范化采样估计器，估计函数 $f(\xi) = \mathbf 1 \{\xi\langle \pmb Y \rangle = \pmb y\}$ 相对于 $P_{\mathcal B}(\mathcal X\mid \pmb e)$ 的期望
+
+>  该方法和上一种方法的差别就在于该方法的分子分母是用同一轮采样得到的同一组样本一起估计的，而不是分别为分母分子进行一轮采样
 
 **The quality of the importance sampling estimator depends largely on how close the proposal distribution $Q$ is to the target distribution $P$ . We can gain intuition for this question by considering two extreme cases. If all of the evidence in our network is at the roots, the proposal distribution is precisely the posterior, and there is no need to compensate; indeed, no evidence is encountered along the way, and all samples will have the same weight $P(e)$ . On the other side of the spectrum, if all of the evidence is at the leaves, our proposal distribution $Q(\mathcal X)$ is the prior distribution $P_{\mathcal{B}}(\mathcal{X})$ , leaving the correction purely to the weights. In this situation, LW will work reasonably only if the prior is similar to the posterior. Otherwise, most of our samples will be irrelevant, a fact that will be reﬂected by their low weight.** For example, consider a medical-diagnosis setting, and assume that our evidence is a very unusual combination of symptoms generated by only one very rare disease. Most samples will not involve this disease and will give only very low probability to this combination of symptoms. Indeed, the combinations sampled are likely to be irrelevant and are not useful at all for understanding what disease the patient has. We return to this issue in section 12.2.4. 
 >  重要性采样估计器的质量很大程度上取决于提案分布 $Q$ 与目标分布 $P$ 的接近程度。
@@ -9658,17 +9664,20 @@ If the evidence is very likely, then it is a major component in this summation, 
 
 Unfortunately, there is currently no formal analysis for the number of particles required to achieve a certain quality of estimate using normalized importance sampling. In many cases, we simply preselect a number of particles that seems large enough, and we generate that number. Alternatively, we can use a heuristic approach that uses the total weight of the particles generated so far as guidance as to the extent to which they are representative. Thus, for example, we might decide to generate samples until a certain minimum bound on the total weight has been reached, as in Data-Dependent-LW . We note, however, that this approach is entirely heuristic in this case (as in all cases where we do not have bounds $[\ell,u]$ on our CPDs). Furthermore, there are cases where the evidence is simply unlikely in all conﬁgurations, and therefore all samples will have low weights. 
 >  不幸的是，目前还没有关于使用归一化重要性采样达到一定质量估计所需的粒子数量的正式分析。
->  在许多情况下，我们通常预先选择一个看起来足够大的粒子数量，然后生成这么多粒子。或者，我们可以使用一种启发式方法，根据迄今为止生成的所有粒子的总权重来确定它们代表性的程度。
->  例如，我们可以决定一直生成样本直到总权重达到某个最小值，就像在 Data-Dependent-LW 方法中那样。不过，需要注意的是，在这种情况下（以及在我们没有先验和后验的上下界 $[\ell, u]$ 的所有情况下），这种方法完全是启发式的。此外，有些情况下证据在所有配置中都是不可能的，因此所有样本都会具有较低的权重。
+>  在许多情况下，我们通常预先选择一个看起来足够大的粒子数量，然后生成这么多粒子。
+>  或者，我们可以使用一种启发式方法，根据迄今为止生成的所有粒子的总权重来确定它们代表性的程度。例如，我们可以决定一直生成样本直到总权重达到某个最小值，就像在 Data-Dependent-LW 方法中那样。
+>  不过，需要注意的是，在这种情况下（以及在我们没有先验和后验的上下界 $[\ell, u]$ 的所有情况下），这种方法完全是启发式的。此外，有些情况下证据在所有配置中都是不可能的，因此所有样本都会具有较低的权重。
 
 #### 12.2.3.5 Conditional Probabilities: Comparison 
-We have seen two variants of likelihood weighting: normalized LW and ratio LW. Ratio LW has two related advantages. The normalized LW process samples an assignment of the variables $Y$ (those not in $E$ ), whereas ratio LW simply sets the values of these variables. The additional sam- pling step for $Y$ introduces additional variance into the overall process, leading to a reduction in the robustness of the estimate. Thus, in many cases, the variance of this estimator is lower than that of equation (12.6), leading to more robust estimates. 
->  我们已经看到了两种似然加权的变体：归一化似然加权（normalized LW）和比率似然加权（ratio LW）。
->  比率似然加权有两个相关的优势。
->  归一化似然加权过程对变量 $\pmb Y$（那些不在 $\pmb E$ 中的变量）进行采样，而比率似然加权则直接设置这些变量的值。对 $\pmb Y$ 的额外采样步骤引入了额外的方差，从而降低了估计的鲁棒性。因此，在许多情况下，这个估计器的方差低于方程（12.6）中的方差，从而产生更稳健的估计。
+We have seen two variants of likelihood weighting: normalized LW and ratio LW. Ratio LW has two related advantages. The normalized LW process samples an assignment of the variables $Y$ (those not in $E$ ), whereas ratio LW simply sets the values of these variables. The additional sampling step for $Y$ introduces additional variance into the overall process, leading to a reduction in the robustness of the estimate. Thus, in many cases, the variance of this estimator is lower than that of equation (12.6), leading to more robust estimates. 
+>  我们已经看到了两种似然加权算法的变体：归一化似然加权 (normalized LW) 和比率似然加权 (ratio LW)。
+>  比率似然加权有两个相关的优势。归一化似然加权过程对变量 $\pmb Y$  (那些不在 $\pmb E$ 中的变量) 进行采样，而比率似然加权则直接设置这些变量的值。
+>  对 $\pmb Y$ 的额外采样步骤引入了额外的方差，从而降低了估计的鲁棒性。因此，在许多情况下，这个估计器的方差低于方程 (12.6) 中的方差，从而产生更稳健的估计。
+>  (比率似然加权会采样两次，方差更低)
 
 A second advantage of ratio LW is that it is much easier to analyze, and therefore it is associated with stronger guarantees regarding the number of samples required to get a good estimate. However, these bounds are useful only under very strong conditions: a small number of evidence variables, and a bound on the skew of the CPD entries in the network. 
->  比率似然加权的第二个优势在于它更容易分析，并因此与获取良好估计所需的样本数量有更强的保证。然而，这些界限只有在非常强的条件下才有用：少量的证据变量，以及对网络中条件概率分布（CPD）条目的偏斜有边界限制。
+>  比率似然加权的第二个优势在于它更容易分析，并因此与获取良好估计所需的样本数量有更强的保证。
+>  然而，这些界限只有在非常强的条件下才有用：证据变量的数量较少，并且网络中条件概率分布 (CPD) 条目的偏斜有边界限制。
 
 On the other hand, a signiﬁcant disadvantage of ratio LW is the fact that each query $_{_y}$ requires that we generate a new set of samples for the event $\pmb y, \pmb e$ . It is often the case that we want to evaluate the probability of multiple queries relative to the same set of evidence. The normalized LW approach allows these multiple computations to be executed relative to the same set of samples, whereas ratio LW requires a separate sample set for each query $_{_y}$ . This cost is particularly problematic when we are interested in computing the joint distribution over a subset of variables. Probably due to this last point, normalized LW is used more often in practice. 
 >  另一方面，比率似然加权的一个显著缺点是，每个查询 $\pmb y$ 都需要我们为事件 $\pmb y, \pmb e$ 生成一组新的样本。
@@ -9677,10 +9686,14 @@ On the other hand, a signiﬁcant disadvantage of ratio LW is the fact that each
 
 ### 12.2.4 Importance Sampling Revisited 
 The likelihood weighting algorithm uses, as its proposal distribution, the very simple distribution obtained from mutilating the network by eliminating edges incoming to observed variables. However, this proposal distribution can be far from optimal. For example, if the CPDs associated with these evidence variables are skewed, the importance weights are likely to be quite large, resulting in estimators with high variance. Indeed, somewhat surprisingly, even in very simple cases, the obvious proposal distribution may not be optimal. For example, if $X$ is not a root node in the network, the optimal proposal distribution for computing $P(X=x)$ may not be the distribution $P$ , even without evidence! (See exercise 12.5.) 
->  似然加权算法使用了一种非常简单的建议分布，即通过消除观测变量的入射边来破坏网络所得的分布。然而，这种建议分布可能远非最优。例如，如果这些证据变量的条件概率分布（CPDs）是偏斜的，则重要性权重可能会相当大，导致方差高的估计器。事实上，即使在非常简单的情况下，显而易见的建议分布也可能不是最优的。例如，如果 $X$ 不是网络中的根节点，在没有证据的情况下，计算 $P(X=x)$ 的最优建议分布可能并不是分布 $P$！（参见习题 12.5。）
+>  似然加权算法使用了一种非常简单的提案分布，即通过消除观测变量的入射边来破坏网络原有的分布。然而，这种提案分布可能远非最优。
+>  例如，如果这些证据变量的条件概率分布 (CPDs) 是偏斜的，则重要性权重可能会相当大，导致估计器的方差过高。事实上，即使在非常简单的情况下，显而易见的提案分布也可能不是最优的。例如，如果 $X$ 不是网络中的根节点，在没有证据的情况下，计算 $P(X=x)$ 的最优提案分布可能并不是分布 $P$ (参见习题 12.5)
 
 The importance sampling framework is very general, however, and several other proposal distributions have been utilized. For example, backward importance sampling generates samples for parents of evidence variables using the likelihood of their children. Most simply, if $X$ is a variable whose child $Y$ is observed to be $Y=y$ , we might generate some samples for $X$ from renormalized distribution $Q(X)\propto P(Y=y\mid X)$ . We can continue this process, sampling $X$ ’s parents from the likelihood of $X$ ’s sampled value. We can also propose more complex schemes that sample the value of a variable given a combination of sampled or observed values for some of its parents and/or children. One can also consider hybrid approaches that use some global approximate inference algorithm (such as those in chapter 11) to construct a proposal distribution, which is then used as the basis for sampling. As long as the importance weights are computed correctly, we are guaranteed that this process is correct. (See exercise 12.7.) This process can lead to signiﬁcant improvements in theory, and it does lead to improvements in some cases in practice. 
->  然而，重要性采样框架是非常通用的，并且已经利用了多种其他建议分布。例如，逆向重要性采样使用证据变量后代的似然性来生成其父节点的样本。最简单地，如果 $X$ 是一个变量，其后代 $Y$ 被观察到为 $Y=y$，我们可以从重新归一化的分布 $Q(X) \propto P(Y=y \mid X)$ 中生成一些 $X$ 的样本。我们可以继续这一过程，从 $X$ 的采样值的概率中采样其父节点。我们还可以提出更复杂的方案，根据其某些父节点和/或后代的采样值或观察值的组合来采样变量的值。人们也可以考虑混合方法，使用某些全局近似推理算法（如第 11 章中的算法）来构建建议分布，然后基于此分布进行采样。只要正确计算了重要性权重，我们就能保证这一过程是正确的。（参见习题 12.7。）这一过程理论上可以带来显著改进，并且在实际中确实改善了一些情况下的结果。
+>  然而，重要性采样框架是非常通用的，并且已经利用了多种其他建议分布。
+>  例如，逆向重要性采样使用证据变量的似然性来生成其父节点的样本。最简单地，如果 $X$ 是一个变量，其后代 $Y$ 被观察到为 $Y=y$，我们可以从重新归一化的分布 $Q(X) \propto P(Y=y \mid X)$ 中生成一些 $X$ 的样本。
+>  我们可以继续这一过程，从 $X$ 的采样值的概率中采样其父节点。我们还可以提出更复杂的方案，根据其某些父节点和/或后代的采样值或观察值的组合来采样变量的值。人们也可以考虑混合方法，使用某些全局近似推理算法（如第 11 章中的算法）来构建建议分布，然后基于此分布进行采样。只要正确计算了重要性权重，我们就能保证这一过程是正确的。（参见习题 12.7。）
+>  这一过程理论上可以带来显著改进，并且在实际中确实改善了一些情况下的结果。
 
 ## 12.3 Markov Chain Monte Carlo Methods 
 One of the limitations of likelihood weighting is that an evidence node afects the sampling only for nodes that are its descendants. The efect on nodes that are nondescendants is accounted for only by the weights. As we discussed, in cases where much of the evidence is at the leaves of the network, we are essentially sampling from the prior distribution, which is often very far from the desired posterior. We now present an alternative sampling approach that generates a sequence of samples. This sequence is constructed so that, although the ﬁrst sample may be generated from the prior, successive samples are generated from distributions that provably get closer and closer to the desired posterior. We note that, unlike forward sampling methods (including likelihood weighting), Markov chain methods apply equally well to directed and to undirected models. Indeed, the algorithm is easier to present in the context of a distribution $P_{\Phi}$ deﬁned in terms of a general set of factors $\Phi$ . 
