@@ -436,18 +436,24 @@
 ## December
 ### Week 1
 \[Book\]
-- [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH1
-    CH1-LaTex 的基本概念
-        LaTex 命令分为两种：`\` + 一串字母；`\` + 单个非字母符号
-        字母形式的命令忽略其后的空格字符
-        LaTex 的环境由 `\begin,\end` 命令包围
-        LaTex 用 `{}` 划分分组，限制命令的作用范围
-        `\documentclass` 指定文档类，`\begin{document}` 开启文档环境，二者之间为导言区，用于用 `\usepackage` 使用宏包
-        `\include, \input` 用于插入文件
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH11.5.1, CH12.1-CH12.3
     CH11.5-Structured Variational Inference
         CH11.5.1-The Mean Field Approximation
             The mean field approximation assumes all the variables are independent from each other. Thus $Q$ is fully factorized.
             The optimization for the enerty functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guarnateed to be nonincreasing under the coordinate ascent process.
             The computation for optima $Q(X_i)$ only involves the potentials that contains variable $X_i$ .
-        
+- [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH1-CH2
+    CH1-LaTeX 的基本概念
+        LaTeX 命令分为两种：`\` + 一串字母；`\` + 单个非字母符号
+        字母形式的命令忽略其后的空格字符
+        LaTeX 的环境由 `\begin,\end` 命令包围
+        LaTeX 用 `{}` 划分分组，限制命令的作用范围
+        `\documentclass` 指定文档类，`\begin{document}` 开启文档环境，二者之间为导言区，用于用 `\usepackage` 使用宏包
+        `\include, \input` 用于插入文件
+    CH2-用 LaTeX 排版文字
+        UTF-8 是对 Unicode 字符集的一种编码方式
+        XeTeX 和 LuaTeX 完全支持 UTF-8，`fontspec` 宏包用于调节字体
+        `ctex` 宏包和文档类 (`ctexart, ctexbook, ctexrep` ) 用于支持中文排版
+        LaTeX 将空格和 Tab 视作空白字符，连续的空白视作一个空白，行首的空白会被忽略
+        连续两个换行符生成一个空行，将文字分段 (等价于 `\par` )，连续空行视作一个空行
+        LaTeX 会自动在合适位置断行断页，也可以手动用命令控制
