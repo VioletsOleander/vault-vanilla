@@ -9960,8 +9960,15 @@ $$
 Let $\pmb x_{j,-i}$ denote the assignment in ${\pmb x}_{-i}$ to $\pmb D_{j}-\{X_{i}\}$ , noting that when $X_{i}\notin \pmb D_{j}$ , $\pmb x_{j,-i}$ is a full assignment to $\pmb D_{j}$ . We can now derive: 
 
 $$
-\begin{array}{r c l}{P(x_{i}^{\prime}\mid \pmb x_{-i})}&{=}&{\frac{P(x_{i}^{\prime},x_{-i})}{\sum_{x_{i}^{\prime\prime}}P(x_{i}^{\prime},x_{-i})}}\\ &{=}&{\frac{\frac{1}{Z}\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime},x_{j-i})\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime},x_{j-i})}{\frac{1}{Z}\sum_{x_{i}^{\prime\prime}}\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime\prime},x_{j-i})\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime\prime},x_{j-i})}}\\ &{=}&{\frac{\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime},x_{j-i})\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{j-i})}{\sum_{x_{i}^{\prime\prime}}\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime\prime},x_{j-i})\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{j-i})}}\\ &{=}&{\frac{\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime},x_{j-i})}{\sum_{x_{i}^{\prime\prime}}\prod_{D_{j}\ni X_{i}}\phi_{j}(x_{i}^{\prime\prime},x_{j-i})}.}\tag{12.23}\end{array}
-$$ 
+\begin{align}
+P(x_i' \mid \pmb x_{-i}) &=\frac {P(x_i', \pmb x_{-i})}{\sum_{x_i''} P(x_i'', \pmb x_{-i})}\\
+&=\frac {\frac 1 Z\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i',\pmb x_{j,-i})}{\frac 1 Z\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})}\\
+&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i',\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})}\\
+&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(\pmb x_{j,-i})}\\
+&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})}\tag{12.23}\\
+\end{align}
+$$
+
 This last expression uses only the factors involving $X_{i}$ , and depends only on the instantiation in ${\pmb x}_{-i}$ of $X_{i}$ ’s Markov blanket. In the case of Bayesian networks, this expression reduces to a formula involving only the CPDs of $X_{i}$ and its children, and its value, again, depends only on the assignment in ${\pmb x}_{-i}$ to the Markov blanket of $X_{i}$ . 
 
 >  根据 (12.23) ，$P(x_i' \mid \pmb x_{-i})$ 仅依赖于包含了 $X_i$ 的因子，进而仅依赖于 $\pmb x_{-i}$ 中涉及到 $X_i$ 的 Markov blanket 的取值
@@ -10016,119 +10023,168 @@ Importantly, however, even chains that are regular may require a long time to mi
 
 ### 12.3.4 A Broader Class of Markov Chains\*
 As we discussed, the use of MCMC methods relies on the construction of a Markov chain that has the desired properties: regularity, and the target stationary distribution. In the previous section, we described the Gibbs chain, a simple Markov chain that is guaranteed to have these properties under certain assumptions. However, Gibbs sampling is applicable only in certain circumstances; in particular, we must be able to sample from the distribution $P(X_{i}\mid\mathbf{\sigma}\mathbf{x}_{-i})$ . Although this sampling step is easy for discrete graphical models, in continuous models, the conditional distribution may not be one that has a parametric form that allows sampling, so that Gibbs is not applicable. 
+>  我们知道 MCMC 方法依赖于构建一个稳态分布为目标分布，且满足规范性的 Markov chain，为此，我们构造了 Gibbs chain，介绍了 Gibbs 采样算法
+>  Gibbs 采样需要从 $P(X_i \mid \pmb x_{-i})$ 中采样，对于离散图模型不难，但在连续模型的情况下该条件分布并不一定会具有允许采样的参数化形式
 
-Even more important, the Gibbs chain uses only very local moves over the state space: moves that change one variable at a time. In models where variables are tightly cor- related, such moves often lead from states whose probability is high to states whose probability is very low. In this case, the high-probability states will form strong basins of attraction, and the chain will be very unlikely to move away from such a state; that is, the chain will mix very slowly. In this case, we often want to consider chains that allow a broader range of moves, including much larger steps in the space. The framework we develop in this section allows us to construct a broad family of chains in a way that guarantees the desired stationary distribution. 
+Even more important, the Gibbs chain uses only very local moves over the state space: moves that change one variable at a time. In models where variables are tightly correlated, such moves often lead from states whose probability is high to states whose probability is very low. In this case, the high-probability states will form strong basins of attraction, and the chain will be very unlikely to move away from such a state; that is, the chain will mix very slowly. In this case, we often want to consider chains that allow a broader range of moves, including much larger steps in the space. The framework we develop in this section allows us to construct a broad family of chains in a way that guarantees the desired stationary distribution. 
+>  Gibbs chain 一次仅改变一个变量，即在状态空间中的移动是局部的
+>  在变量高度相关的模型中，这样的移动 (仅改变单个变量的值) 时常会导致从概率较高的状态移动到概率较低的状态
+>  此时，高概率状态会形成吸引盆地，链将几乎不可能离开这个状态，故链的收敛速度会非常慢
+>  此时我们希望考虑允许更大范围移动的链，包括在空间中移动更大步长
 
-12.3.4.1 Detailed Balance 
-
+#### 12.3.4.1 Detailed Balance 
 Before we address the question of how to construct a Markov chain with a particular stationary distribution, we address the question of how to verify easily that our Markov chain has the desired stationary distribution. Fortunately, we can deﬁne a test that is local and easy to check, and that sufces to characterize the stationary distribution. As we will see, this test also provides us with a simple method for constructing an appropriate chain. 
+>  先考虑如何验证 Markov chain 有想要的稳态分布
 
-Deﬁnition 12.5 
-
-reversible Markov chain 
-
+**Deﬁnition 12.5**  reversible Markov chain 
 A ﬁnite-state Markov chain $\mathcal{T}$ is reversible if there exists a unique distribution $\pi$ such that, for all $x,x^{\prime}\in V a l(X)$ : 
 
 $$
-\pi(x){\mathcal{T}}(x\to x^{\prime})=\pi(x^{\prime}){\mathcal{T}}(x^{\prime}\to x).
+\pi(\pmb x){\mathcal{T}}(\pmb x\to \pmb x^{\prime})=\pi(\pmb x^{\prime}){\mathcal{T}}(\pmb x^{\prime}\to \pmb x).\tag{12.24}
 $$ 
+This equation is called the detailed balance . 
 
-detailed balance This equation is called the detailed balance . 
+>  定义
+>  有限状态的 Markov chain $\mathcal T$ 如果满足存在唯一的分布 $\pi$，使得对于状态空间任意一对状态 $\pmb x, \pmb x'\in Val(\pmb X)$，从 $\pi(\pmb x)$ 移动到 $\pmb x'$ 的概率等于从 $\pi(\pmb x')$ 移动到 $\pmb x$ 的概率，称它是可逆的
+>  (12.24) 称为细致平衡方程
 
-The product $\pi({\pmb x})\mathcal{T}({\pmb x}\,\rightarrow\,{\pmb x}^{\prime})$ represents a process where we pick a starting state at random according to $\pi$ , and then take a random transition from the chosen state according to the transition model. The detailed balance equation asserts that, using this process, the probability of a transition from $_{_{x}}$ to $\scriptstyle{\boldsymbol{x}}^{\prime}$ is the same as the probability of a transition for $\scriptstyle{\boldsymbol{x}}^{\prime}$ to $_{_{x}}$ . 
+The product $\pi({\pmb x})\mathcal{T}({\pmb x}\,\rightarrow\,{\pmb x}^{\prime})$ represents a process where we pick a starting state at random according to $\pi$ , and then take a random transition from the chosen state according to the transition model. The detailed balance equation asserts that, using this process, the probability of a transition from $\pmb {x}$ to $\pmb x'$ is the same as the probability of a transition for $\pmb x'$ to $\pmb x$.
 
-Reversibility implies that $\pi$ is a stationary distri ion of $\mathcal{T}$ , but not necessarily that the chain will converge to $\pi$ (see example 12.8). However, if T $\mathcal{T}$ is regular, then convergence is guaranteed, and the reversibility condition provides a simple characterization of its stationary distribution: 
+Reversibility implies that $\pi$ is a stationary distriion of $\mathcal{T}$ , but not necessarily that the chain will converge to $\pi$ (see example 12.8). However, if $\mathcal{T}$ is regular, then convergence is guaranteed, and the reversibility condition provides a simple characterization of its stationary distribution: 
+>  可逆性说明了 $\pi$ 是 $\mathcal T$ 的一个稳态分布，但 Markov chain 不一定收敛到 $\pi$
+>  如果 $\mathcal T$ 规范，则保证收敛到 $\pi$
 
+**Proposition 12.3**
 If $\mathcal{T}$ is regular and it sa ﬁes the detailed balance equation relative to $\pi$ , then $\pi$ is the unique stationary distribution of T . 
+>  命题
+>  如果 $\mathcal T$ 规范，且相对于 $\pi$ 满足细致平衡方程，则 $\pi$ 是 $\mathcal T$ 的唯一稳态分布
 
 The proof is left as an exercise (exercise 12.14). 
 
-Example 12.13 
+>  证明
 
+$$
+\begin{align}
+&\sum_{\pmb x} \pi(\pmb x)\mathcal T(\pmb x \rightarrow \pmb x')\\
+=&\sum_{\pmb x} \pi(\pmb x')\mathcal T(\pmb x' \rightarrow \pmb x)\\
+=& \pi(\pmb x')\sum_{\pmb x}\mathcal T(\pmb x' \rightarrow \pmb x)\\
+=& \pi(\pmb x')
+\end{align}
+$$
+
+>  因此 $\pi(\pmb x)$ 为 $\mathcal T$ 的稳态分布
+>  又因为 $\mathcal T$ 规范，故其稳态分布是唯一的
+
+Example 12.13 
 We can test this proposition on the Markov chain of ﬁgure 12.4. Our detailed balance equation for the two states $x^{1}$ and $x^{3}$ asserts that 
 
 $$
 \pi(x^{1}){\mathcal{T}}(x^{1}\rightarrow x^{3})=\pi(x^{3}){\mathcal{T}}(x^{3}\rightarrow x^{1}).
 $$ 
-
 Testing this equation for the stationary distribution $\pi$ described in example 12.7, we have: 
 
 $$
 0.2\cdot0.75=0.3\cdot0.5=0.15.
 $$ 
-
 The detailed balance equation can also be applied to multiple kernels. If each kernel $\mathcal{T}_{i}$ satisﬁes the detailed balance equation relative to some stationary distribution $\pi$ , then so does the mi ure transition model $\mathcal{T}$ (see exercise 12.16). The application to the multistep transition model $\mathcal{T}$ is also possible, but requires some care (see exercise 12.17). 
+>  细致平衡条件对于多个 kernel 也适用，如果每个 kernel $\mathcal T_i$ 都相对于分布 $\pi$ 满足细致平衡方程，则这些 kernels 定义的混合转移模型 $\mathcal T$ 也相对于 $\pi$ 满足细致平衡方程
 
 #### 12.3.4.2 Metropolis-Hastings Algorithm 
-
-Metropolis- Hastings algorithm 
-
-proposal distribution The reversibility condition gives us a condition for verifying that our Markov chain has the desired stationary distribution. However, it does not provide us with a constructive approach for producing such a Markov chain. The Metropolis-Hastings algorithm is a general construction that allows us to build a reversible Markov chain with a particular stationary distribution. 
+The reversibility condition gives us a condition for verifying that our Markov chain has the desired stationary distribution. However, it does not provide us with a constructive approach for producing such a Markov chain. The Metropolis-Hastings algorithm is a general construction that allows us to build a reversible Markov chain with a particular stationary distribution. 
+>  可逆条件方便我们验证 Marko chain 是否具有我们想要的稳态分布 (代入我们想要的稳态分布查看是否满足细致平衡方程)
+>  Metropolis-Hastings 算法用于构建一个具有特定稳态分布的可逆 Markov chain
 
 Unlike the Gibbs chain, the algorithm does not assume that we can generate next-state samples from a particular target distribution. Rather, it uses the idea of a proposal distribution that we have already seen in the case of importance sampling. 
+>  Metropilis-Hasting 构建的 Markov chain 并不要求我们从特定的目标分布生成下一个状态样本 (和 Gibbs chain 不同)，而是可以使用提案分布
 
 As for importance sampling, the proposal distribution in the Metropolis-Hastings algorithm is intended to deal with cases where we cannot sample directly from a desired distribution. In the case of a Markov chain, the target distribution is our next-state sampling distribution at a given state. We would like to deal with cases where we cannot sample directly from this target. Therefore, we sample from a diferent distribution — the proposal distribution — and then correct for the resulting error. However, unlike importance sampling, we do not want to keep track of importance weights, which are going to decay exponentially with the number of transitions, leading to a whole slew of problems. Therefore, we instead randomly choose whether to accept the proposed transition, with a probability that corrects for the discrepancy between the proposal distribution and the target. 
+>  MH 中使用提案分布的目的也是解决不能直接从某个目标分布采样的情况
+>  Markov chain 中，我们的目标分布就是在给定状态下对下一个状态的采样分布
+>  此时的思路同样是从另一个提案分布采样，然后修正误差
+>  和重要性采样不同，这里不追踪重要性权重，重要性权重会随着转移的数量增加而指数衰减
+>  我们随机选择是否接受提案的转移，同时用一个概率修正提案分布和目标分布的差异
 
-More precise proposal distribution $\mathcal{T}^{Q}$ deﬁnes a transition model over our state space: For each state x , T $\mathcal{T}^{Q}$ deﬁnes a distribution over possible successor states in $V a l(X)$ , from acceptance probability which we select randomly a candidate next state $\scriptstyle{\boldsymbol{x}}^{\prime}$ . We can either accept the proposal and transition to $\scriptstyle{\boldsymbol{x}}^{\prime}$ , or reject it and stay at $_{_{x}}$ . Thus, for each pair of states ${\boldsymbol{x}},{\boldsymbol{x}}^{\prime}$ we have an acceptance probability $\mathcal{A}(\pmb{x}\rightarrow\pmb{x}^{\prime})$ . The actual transition model of the Markov chain is then: 
+More precise, our proposal distribution $\mathcal{T}^{Q}$ deﬁnes a transition model over our state space: For each state x , $\mathcal{T}^{Q}$ deﬁnes a distribution over possible successor states in $V a l(X)$ , from which we select randomly a candidate next state $\scriptstyle{\boldsymbol{x}}^{\prime}$ . We can either accept the proposal and transition to $\scriptstyle{\boldsymbol{x}}^{\prime}$ , or reject it and stay at $_{_{x}}$ . Thus, for each pair of states ${\boldsymbol{x}},{\boldsymbol{x}}^{\prime}$ we have an acceptance probability $\mathcal{A}(\pmb{x}\rightarrow\pmb{x}^{\prime})$ . The actual transition model of the Markov chain is then: 
+>  提案分布 $\mathcal T^Q$ 同样是一个定义在状态空间 $Val(\pmb X)$ 上的转移模型
+>  $\mathcal T^Q$ 为每个状态 $\pmb x$ 定义它转移到 $Val(\pmb X)$ 中各个状态的概率，同时为每个转移额外定义了一个接收概率
+>  我们将状态转移 $\pmb x \rightarrow \pmb x'$ 的接受概率记作 $\mathcal A(\pmb x \rightarrow \pmb x')$，则 Markov chain 的实际转移模型为
 
 $$
-\begin{array}{r c l}{{\mathcal{T}(x\to x^{\prime})}}&{{=}}&{{\mathcal{T}^{Q}(x\to x^{\prime})\mathcal{A}(x\to x^{\prime})\qquad x\neq x^{\prime}}}\\ {{\mathcal{T}(x\to x)}}&{{=}}&{{\mathcal{T}^{Q}(x\to x)+\sum_{x^{\prime}\neq x}\mathcal{T}^{Q}(x\to x^{\prime})(1-\mathcal{A}(x\to x^{\prime})).}}\end{array}
-$$ 
+\begin{align}
+\mathcal T(\pmb x \rightarrow \pmb x') &= \mathcal T^Q(\pmb x \rightarrow \pmb x')\mathcal A(\pmb x\rightarrow \pmb x')\quad \pmb x\ne \pmb x'\\
+\mathcal T(\pmb x \rightarrow \pmb x) &= \mathcal T^Q(\pmb x \rightarrow \pmb x)+\sum_{\pmb x' \ne \pmb x}\mathcal T^Q(\pmb x\rightarrow \pmb x')(1-\mathcal A(\pmb x\rightarrow \pmb x'))
+\end{align}\tag{12.25}
+$$
 
 By using a proposal distribution, we allow the Metropolis-Hastings algorithm to be applied even in cases where we cannot directly sample from the desired next-state distribution; for example, where the distribution in equation (12.22) is too complex to represent. The choice of proposal distribution can be arbitrary, so long as it induces a regular chain. One simple choice in discrete factored state spaces is to use a multiple transition model, where $\mathcal{T}_{i}^{Q}$ is a uniform distribution over the values of the variable $X_{i}$ . 
+>  当我们难以从目标分布直接采样时，我们可以使用提案分布
+>  提案分布的选择可以任意，只要它能使得 chain 是规范的
+>  对于离散可可分解状态空间的 Markov chain 来说，一种选择是使用多个转移模型定义提案分布，其中 $\mathcal T_i^Q$ 是 $X_i$ 上的均匀分布
 
-Given a proposal distribution, we can use the detailed balance equation to select the accep- tance probabilities so as to obtain the desired stationary distribution. For this Markov chain, the detailed balance equations assert that, for all $\mathbf{\nabla}x\neq\mathbf{\nabla}x^{\prime}$ , 
+Given a proposal distribution, we can use the detailed balance equation to select the acceptance probabilities so as to obtain the desired stationary distribution. For this Markov chain, the detailed balance equations assert that, for all $\pmb x \ne \pmb x'$
 
 $$
-\pi(x)\mathcal{T}^{Q}(x\to x^{\prime})\mathcal{A}(x\to x^{\prime})=\pi(x^{\prime})\mathcal{T}^{Q}(x^{\prime}\to x)\mathcal{A}(x^{\prime}\to x).
+\pi(\pmb x)\mathcal{T}^{Q}(\pmb x\to \pmb x^{\prime})\mathcal{A}(\pmb x\to \pmb x^{\prime})=\pi(\pmb x^{\prime})\mathcal{T}^{Q}(\pmb x^{\prime}\to \pmb x)\mathcal{A}(\pmb x^{\prime}\to \pmb x).
 $$ 
-
 We can verify that the following acceptance probabilities satisfy these equations: 
 
 $$
-\mathcal{A}(x\rightarrow x^{\prime})=\operatorname*{min}\left[1,\frac{\pi(x^{\prime})\mathcal{T}^{Q}(x^{\prime}\rightarrow x)}{\pi(x)\mathcal{T}^{Q}(x\rightarrow x^{\prime})}\right],
+\mathcal{A}(\pmb x\rightarrow \pmb x^{\prime})=\operatorname*{min}\left[1,\frac{\pi(\pmb x^{\prime})\mathcal{T}^{Q}(\pmb x^{\prime}\rightarrow \pmb x)}{\pi(\pmb x)\mathcal{T}^{Q}(\pmb x\rightarrow \pmb x^{\prime})}\right],\tag{12.26}
 $$ 
-
 and hence that the chain has the desired stationary distribution: 
 
-Theorem 12.5 Let $\mathcal{T}^{Q}$ be any proposal distribution, and consider the Markov chain deﬁned by equation (12.25) and equation (12.26). If this Markov chain is regular, then it has the stationary distribution $\pi$ . 
+>  确定提案分布 $\mathcal T^Q$ 后，我们根据细致平衡方程选择接受概率，条件是能够得到想要的稳态分布 (也就是要求提案分布 $\mathcal T^Q$ 和接受概率 $\mathcal A$ 定义的 Markov chain 的稳态分布是 $\pi$，根据 $\pi$ 和 $\mathcal T^Q$ 解出 $\mathcal A$)
 
-The proof is not difcult, and is left as an exercise (exercise 12.15). Let us see how this construction process works. 
+**Theorem 12.5** 
+Let $\mathcal{T}^{Q}$ be any proposal distribution, and consider the Markov chain deﬁned by equation (12.25) and equation (12.26). If this Markov chain is regular, then it has the stationary distribution $\pi$ . 
+>  定理
+>  $\mathcal T^Q$ 为任意提案分布，对于 (12.25) 和 (12.26) 定义的 Markov chain，如果 chain 规范，则它具有稳态分布 $\pi$
 
-Example 12.14 Assume that our proposal distribution $\mathcal{T}^{Q}$ is given by the chain of ﬁgure 12.4, but that we want to sample from a stationary distribution π $\pi^{\prime}$ where: $\pi^{\prime}(x^{1})=0.6$ , $\pi^{\prime}(x^{2})=0.3,$ , and $\pi^{\prime}(x^{3})=0.1$ . To deﬁne the chain, we need to compute the acceptance probabilities. Applying equation (12.26), we obtain, for example, that: 
+The proof is not difcult, and is left as an exercise (exercise 12.15). 
+
+Let us see how this construction process works. 
+
+Example 12.14 
+Assume that our proposal distribution $\mathcal{T}^{Q}$ is given by the chain of ﬁgure 12.4, but that we want to sample from a stationary distribution π $\pi^{\prime}$ where: $\pi^{\prime}(x^{1})=0.6$ , $\pi^{\prime}(x^{2})=0.3,$ , and $\pi^{\prime}(x^{3})=0.1$ . To deﬁne the chain, we need to compute the acceptance probabilities. Applying equation (12.26), we obtain, for example, that: 
 
 $$
 \begin{array}{l l l}{{A(x^{1}\to x^{3})}}&{{=}}&{{\displaystyle\operatorname*{min}\left[1,\frac{\pi^{\prime}(x^{3})\mathcal{T}^{Q}(x^{3}\to x^{1})}{\pi^{\prime}(x^{1})\mathcal{T}^{Q}(x^{1}\to x^{3})}\right]=\operatorname*{min}\left[1,\frac{0.1\cdot0.5}{0.6\cdot0.75}\right]=0.11}}\\ {{A(x^{3}\to x^{1})}}&{{=}}&{{\displaystyle\operatorname*{min}\left[1,\frac{\pi^{\prime}(x^{1})\mathcal{T}^{Q}(x^{1}\to x^{3})}{\pi^{\prime}(x^{3})\mathcal{T}^{Q}(x^{3}\to x^{1})}\right]=\operatorname*{min}\left[1,\frac{0.6\cdot0.75}{0.1\cdot0.5}\right]=1.}}\end{array}
 $$ 
-
 We can now easily verify that the stationary distribution of the chain resulting from equation (12.25) and these acceptance probabilities gives the desired stationary distribution $\pi^{\prime}$ . 
 
 The Metropolis-Hastings algorithm has a particularly natural implementation in the context of graphical models. Each local transition model $\mathcal{T}_{i}$ is deﬁned via an associated proposal distribution $\mathcal{T}_{i}^{Q_{i}}$ . The acceptance probability for this chain has the form 
+>  在图模型中，为每个局部转移模型 $\mathcal T_i$ 定义其相关的提案分布 $\mathcal T_i^{Q_i}$
+>  则 Markov chain 的接受概率形式如下
 
 $$
-\begin{array}{r c l}{{{\mathcal A}(x_{-i},x_{i}\to x_{-i},x_{i}^{\prime})}}&{{=}}&{{\mathrm{min}\left[1,\frac{\pi\left(x_{-i},\,x_{i}^{\prime}\right){\mathcal T}_{i}^{Q_{i}}\left(x_{-i},\,x_{i}^{\prime}\to x_{-i},\,x_{i}\right)}{\pi\left(x_{-i},\,x_{i}\right){\mathcal T}_{i}^{Q_{i}}\left(x_{-i},\,x_{i}\to x_{-i},\,x_{i}^{\prime}\right)}\right]}}\\ {{}}&{{=}}&{{\mathrm{min}\left[1,\frac{P_{\Phi}\left(x_{i}^{\prime},\,x_{-i}\right)}{P_{\Phi}\left(x_{i},\,x_{-i}\right)}\frac{{\mathcal T}_{i}^{Q_{i}}\left(x_{-i},\,x_{i}^{\prime}\to x_{-i},\,x_{i}\right)}{{\mathcal T}_{i}^{Q_{i}}\left(x_{-i},\,x_{i}\to x_{-i},\,x_{i}^{\prime}\right)}\right].}}\end{array}
-$$ 
+\begin{align}
+\mathcal A(\pmb x_{-i}, x_i \rightarrow \pmb x_{-i}, x_i') &= \min \left[1, \frac {\pi(\pmb x_{-i},x_i')\mathcal T_i^{Q_i}(\pmb x_{-i},x_i'\rightarrow \pmb x_{-i}, x_i)}{\pi(\pmb x_{-i}, x_i)\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i \rightarrow \pmb x_{-i}, x_i')}\right]\\
+&=\min\left[1, \frac {P_\Phi(x_i',\pmb x_{-i})}{P_\Phi(x_i,\pmb x_{-i})}\frac {\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i'\rightarrow \pmb x_{-i}, x_i)}{\mathcal T_i^{Q_i}(\pmb x_{-i},x_i\rightarrow \pmb x_{-i}, x_i')}\right]
+\end{align}
+$$
 
 The proposal distributions are usually fairly simple, so it is easy to compute their ratios. In the case of graphical models, the ﬁrst ratio can also be computed easily: 
 
 $$
 \begin{array}{r c l}{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime},{\pmb x}_{-i})}{P_{\Phi}(x_{i},{\pmb x}_{-i})}}&{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid{\pmb x}_{-i})P_{\Phi}({\pmb x}_{-i})}{P_{\Phi}(x_{i}\mid{\pmb x}_{-i})P_{\Phi}({\pmb x}_{-i})}}\\ &{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid{\pmb x}_{-i})}{P_{\Phi}(x_{i}\mid{\pmb x}_{-i})}.}\end{array}
 $$ 
-
-As for Gibbs sampling, we can use the observation that each variable $X_{i}$ is conditionally independent of the remaining variables in the network given its Markov blanket. Letting $U_{i}$ denote ${\mathrm{MB}}_{\mathcal{K}}(X_{i})$ , and $\pmb{u}_{i}=(\pmb{x}_{-i})\langle\pmb{U}_{i}\rangle$ , we have that: 
+As for Gibbs sampling, we can use the observation that each variable $X_{i}$ is conditionally independent of the remaining variables in the network given its Markov blanket. Letting $\pmb U_{i}$ denote ${\mathrm{MB}}_{\mathcal{K}}(X_{i})$ , and $\pmb{u}_{i}=(\pmb{x}_{-i})\langle\pmb{U}_{i}\rangle$ , we have that: 
 
 $$
 \begin{array}{r c l}{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid\mathbf{\boldsymbol{x}}_{-i})}{P_{\Phi}(x_{i}\mid\mathbf{\boldsymbol{x}}_{-i})}}&{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid\mathbf{\boldsymbol{u}}_{i})}{P_{\Phi}(x_{i}\mid\mathbf{\boldsymbol{u}}_{i})}.}\end{array}
 $$ 
+This expression can be computed locally and efciently, based only on the local parameterization of $X_{i}$ and its Markov blanket (exercise 12.18). 
 
-This expression can be computed locally and efciently, based only on the local parameter iz ation of $X_{i}$ and its Markov blanket (exercise 12.18). 
+>  其中提案分布一般会选择为简单的分布，因此是容易计算的
+>  同时第一个比值也是容易计算的，根据上述推导，可以知道该比值仅和 $X_i$ 和其 Markov blanket 有关
 
 The similarity to the derivation of Gibbs sampling is not accidental. Indeed, it is not difcult to show that Gibbs sampling is simply a special case of Metropolis-Hastings, one with a particular choice of proposal distribution (exercise 12.19). 
+>  Gibbs 采样可以视为 MH 的一个特例，即选择了特定的提案分布的 MH 采样就是 Gibbs 采样
 
 The Metropolis-Hastings construction allows us to produce a Markov chain for an arbitrary stationary distribution. Importantly, however, we point out that the key theorem still requires that the constructed chain be regular. This property does not follow directly from the construction. In particular, the exclusive-or network of example 12.12 induces a nonregular Markov chain for any Metropolis-Hastings construction that uses a local proposal distribution — one that proposes changes to only a single variable at a time. In order to obtain a regular chain for this example, we would need a proposal distribution that allows simultaneous changes to both $X$ and $Y$ at a single step. 
+>  MH 构造方法允许我们为任意的一个稳态分布构造 Markov chain，但注意构造出的 chain 需要是规范的
 
 ### 12.3.5 Using a Markov Chain 
-
 So far, we have discussed methods for deﬁning Markov chains that induce the desired stationary distribution. Assume that we have constructed a chain that has a unique stationary distribution $\pi$ , which is the one from which we wish to sample. How do we use this chain to answer queries? A naive answer is straightforward. We run the chain using the algorithm of algorithm 12.5 until it converges to the stationary distribution (or close to it). We then collect a sample from $\pi$ . We repeat this process once for each particle we want to collect. The result is a data set $\mathcal{D}$ consisting of independent particles, each of which is sampled (approximately) from the stationary distribution $\pi$ . The analysis of section 12.1 is applicable to this setting, so we can provide tight bounds on the number of samples required to get estimators of a certain quality. Unfortunately, matters are not so straightforward, as we now discuss. 
 
 #### 12.3.5.1 Mixing Time 
@@ -10169,15 +10225,11 @@ Intuitively, $P(S\curvearrowright S^{c})$ is the total “bandwidth” for trans
 
 In the context of Markov chains corresponding to graphical models, chains with low conduc- tance are most common in networks that have deterministic or highly skewed parameter iz ation. 
 
-![](images/74ee3d8db9c7e7535bb5501146d327ccc3b923c4ad8612f698e54620d45962d2.jpg) 
-Figure 12.6 Visualization of a Markov chain with low conductance 
-
 In fact, as we saw in example 12.12, networks with deterministic CPDs might even lead to reducible chains, where diferent regions are entirely disconnected. However, even when the dis- tribution is positive, we might still have regions that are connected only by very low-probability transitions. (See exercise 12.21.) 
 
 There are methods for providing tight bounds on the $\epsilon$ -mixing time of a given Markov chain. These methods are based on an analysis of the transition matrix between the states in the Markov chain. Unfortunately, in the case of graphical models, an exhaustive enumeration of the exponentially many states is precisely what we wish to avoid. (If this enumeration were feasible, we would not have to resort to approximate inference techniques in the ﬁrst place.) Alternatively, there is a suite of indirect techniques that allow us to provide bounds on the mixing time for some general class of chains. However, the application of these methods to each new class of chains requires a separate and usually quite sophisticated mathematical analysis. As of yet, there is no such analysis for the chains that are useful in the setting of graphical models. A more common approach is to use a variety of heuristics to try to evaluate the extent to which a sample trajectory has “mixed.” See box 12.B for some further discussion. 
 
 #### 12.3.5.2 Collecting Samples 
-
 The burn-in time for a large Markov chain is often quite large. Thus, the naive algorithm described above has to execute a large number of sampling steps for every usable sample. However, a key observation is that, if $\bar{\mathbf{\mathit{x}}^{(t)}}$ is sampled from $\pi$ , then $\cdot_{\pmb{x}}(t{+}1)$ is also sampled from $\pi$ . Thus, once we have run the chain long enough that we are sampling from the stationary distribution (or a distribution close to it), we can continue generating samples from the same trajectory and obtain a large number of samples from the stationary distribution. 
 
 More formally, assume that we use $\mathbfit{\bar{x}}^{(0)},\hat{\mathbfit{\alpha}},\mathbfit{x}^{(T)}$ as our burn-in phase, and then collect $M$ mples ${\mathcal{D}}=\{{\pmb x}[1],.\,.\,.\,,{\pmb x}[M]\}$ from the stationary dis simp might collect $M$ consecutive samples, so that ${\pmb x}[m]\,=\,{\pmb x}^{(T+m)}$ , for $m\,=\,1,\ldots,M$ . If $\pmb{x}^{(T+1)}$ is sampled from $\pi$ , then so are all of the samples in $\mathcal{D}$ . Thus, if our chain has mixed by the time we collect our ﬁrst sample, then for any function $f$ , 
@@ -10294,7 +10346,7 @@ even a small value of $K$ (2 or 3) will likely sufce to cover most of the probab
 
 From a high level, it appears that sampling methods are the ultimate general-purpose inference algorithm. They are the only method that can be applied to arbitrary probabilistic models and that is guaranteed to achieve the correct results at the large sample limit. Indeed, when faced with a complex probabilistic model that involves continuous variables or a nonparametric model, there are often very few other choices available to us. While optimization-based methods, such as those of chapter 11, can sometimes be applied, the application often requires a nontrivial derivation, speciﬁc to the problem at hand. Moreover, these methods provide no accuracy guarantee. Conversely, it seems that sampling-based methods can be applied easily, of-the- shelf, to virtually any model. 
 
-This impression, however, is somewhat misleading. While it is true that sampling methods  provide asymptotic guarantees, their performance for reasonable sample sizes is very difcult to predict. In practice, a naive application of sampling methods to a complex probabilistic model often fails dismally, in that the estimates obtained from any rea- sonable number of samples are highly inaccurate. Thus, the success of these methods depends heavily on the properties of the distribution, and on a careful design of our sampling algorithm. Moreover, there is little theoretic basis for this design, so that the process of getting sampling methods to work is largely a matter of intuition and intensive experimentation. 
+This impression, however, is somewhat misleading. While it is true that sampling methods provide asymptotic guarantees, their performance for reasonable sample sizes is very difcult to predict. In practice, a naive application of sampling methods to a complex probabilistic model often fails dismally, in that the estimates obtained from any rea- sonable number of samples are highly inaccurate. Thus, the success of these methods depends heavily on the properties of the distribution, and on a careful design of our sampling algorithm. Moreover, there is little theoretic basis for this design, so that the process of getting sampling methods to work is largely a matter of intuition and intensive experimentation. 
 
 Nevertheless, the methods described in this chapter do provide an important component in our arsenal of methods for inference in complex models. Moreover, they are often used very successfully in combination with exact or approximate global inference methods. Standard com- binations include the use of global inference for providing more informed proposal distributions, and for manipulating collapsed particles. Such combinations are highly successful in practice, and they often lead to much better results than any of the two types of inference methods in isolation. 
 
