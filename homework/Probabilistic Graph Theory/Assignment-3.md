@@ -3,7 +3,7 @@ Student ID: 2024316427
 # Problem 1
 (1)
 
-![[Prob Graph-3.1.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-3.1.1.png]]
 
 $y_{ij} \sim \mathcal N (\mu_j, \frac 1 {\tau_j}),\quad i = 1,2,\dots,n_j;j=1,2,\dots,m$
 $\mu_j \sim \Gamma (\alpha_\mu, \beta_\mu),\quad j=1,2,\dots,m$
@@ -12,7 +12,7 @@ $\alpha_\mu \sim Possion (\lambda)$
 $\beta_\mu \sim \Gamma (c, d)$
 (2)
 
-![[Prob Graph-3.1.2.png]]
+![[homework/pics/probabilistic graph theory/pgm-3.1.2.png]]
 
 $y_{ij}\sim \mathcal N (g (\pmb x_{ij}^T\beta_j),\frac 1 {\tau_j}),\quad i=1,\dots, n_j, j=1,\dots, m$
 $\beta_j \sim \mathcal N (\pmb \mu, \pmb \Sigma),\quad j=1,\dots, m$

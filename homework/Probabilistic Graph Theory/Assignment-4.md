@@ -296,7 +296,7 @@ Therefore, the value of $P (H_1 \mid \pmb V)$ will increase $a_1 + \sum_j w_{1j}
 # Problem 5
 (1) 
 
-![[Prob Graph-4.5.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-4.5.1.png]]
 
 (2) According to the graph, 
 

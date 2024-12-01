@@ -105,12 +105,12 @@ c): $S_3 = \{E\}$
 (1)
 The prefect I-map is drawn as:
 
-![[Prob Graph-2.3.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-2.3.1.png]]
 
 (2)
 The mininal I-map is drawn as:
 
-![[Prob Graph-2.3.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-2.3.1.png]]
 I could not find a perfect I-map for this case.
 
 # Problem 4
@@ -126,7 +126,7 @@ Note $E, F, V$ are observed variables which contain noise.
 
 The Bayesian network is drawn as following:
 
-![[Prob Graph-2.4.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-2.4.1.png]]
 
 (2) We need to consider the correlation between continuous time steps, therefore, we add suffix $t$ for each random variables to denote that the variable is sampled at time step $t$.
 
@@ -134,7 +134,7 @@ Thus, we get 4 random variables at a given time step $t$: $L_t, E_t, F_t, V_t$
 
 Considering continous time steps, we should realize that previous time steps may affect the following time steps. To simplify the model, we only consider the effect that the previous time step brought to the next time step, which is drawn as:
 
-![[Prob Graph-2.4.2.png]]
+![[homework/pics/probabilistic graph theory/pgm-2.4.2.png]]
 
 # Problem 5
 The k-th base PDF of gamma-distributed random variable $x$ with $\alpha_k, \beta_k>0$ is written as:
@@ -155,7 +155,7 @@ $$
 
 The graphical representation is as follows:
 
-![[Prob Graph-Fig2.5.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-2.5.1.png]]
 (2) 
 
 $$
@@ -173,7 +173,7 @@ $$
 $p (\pmb z[n]) = \mathcal N (\pmb z[n]\mid \pmb 0, \pmb I)$
 $p (\pmb x[n]\mid \pmb z[n]) = \mathcal N (\pmb x[n]\mid \pmb W\pmb z[n] + \pmb \mu + \pmb \Psi)$
 
-![[Prob Graph-Fig6.1.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-6.1.1.png]]
 (b)
 For factor analysis model: Because $\pmb W \in R^{D\times L}, \pmb \mu \in R^D, \Psi \in R^{D\times D}$, therefore $\pmb W$ accouts for $D\times L$ parameters, and $\pmb \mu$ accounts for $D$ parameters. Note that $\Psi$ is forced to be diagonal, therefore $\Psi$ accounts for $D$ parameters.
 
