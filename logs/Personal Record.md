@@ -440,7 +440,7 @@
     CH11.5-Structured Variational Inference
         CH11.5.1-The Mean Field Approximation
             The mean field approximation assumes all the variables are independent from each other. Thus $Q$ is fully factorized.
-            The optimization for the enerty functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guarnateed to be nonincreasing under the coordinate ascent process.
+            The optimization for the energy functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guaranteed to be nonincreasing under the coordinate ascent process.
             The computation for optima $Q(X_i)$ only involves the potentials that contains variable $X_i$ .
 - [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH1-CH2
     CH1-LaTeX 的基本概念
