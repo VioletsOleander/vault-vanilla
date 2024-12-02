@@ -173,7 +173,7 @@ $$
 $p (\pmb z[n]) = \mathcal N (\pmb z[n]\mid \pmb 0, \pmb I)$
 $p (\pmb x[n]\mid \pmb z[n]) = \mathcal N (\pmb x[n]\mid \pmb W\pmb z[n] + \pmb \mu + \pmb \Psi)$
 
-![[homework/pics/probabilistic graph theory/pgm-6.1.1.png]]
+![[homework/pics/probabilistic graph theory/pgm-2.6.1.png]]
 (b)
 For factor analysis model: Because $\pmb W \in R^{D\times L}, \pmb \mu \in R^D, \Psi \in R^{D\times D}$, therefore $\pmb W$ accouts for $D\times L$ parameters, and $\pmb \mu$ accounts for $D$ parameters. Note that $\Psi$ is forced to be diagonal, therefore $\Psi$ accounts for $D$ parameters.
 
