@@ -5,13 +5,13 @@
 -  [[Programming Massively Parallel Processors A Hands-on Approach-2023|Programming Massively Parallel Processor A Hands-on-Approach]]: CH2-CH6.3, CH10
     Derived Ideas:
         1. Tiling: 搬运数据 from Global Memory to Shared Memory
-        2. Coaleasing: 利用 DRAM burst 优化 Tiling 过程中对 Global Memory 的访问次数 
-        3. Corsening (Optional)
+        2. Coalescing: 利用 DRAM burst 优化 Tiling 过程中对 Global Memory 的访问次数 
+        3. Coarsening (Optional)
 - [[CUDA C++ Programming Guide v12.5-2024|CUDA C++ Programming Guide v12.5]]: CH5-CH11, CH19
-    Derived Iedas:
-        1. Avoid Bank Confilct: 数据访问对齐32bit 的 Bank Size
+    Derived Ideas:
+        1. Avoid Bank Conflict: 数据访问对齐32bit 的 Bank Size
         2. Occupancy Calculator: 利用工具计算一下合适的 Blocksize 和 Gridsize
-        3. Coaleasing: Warp 对 Shared Memory 的访问同样可以进行合并优化
+        3. Coalescing: Warp 对 Shared Memory 的访问同样可以进行合并优化
         4. `memcpy_async()` (Questioned): 异步访问，访存与计算流水线
 - [[Managing Projects with GNU Make-2011|Managing Projects with GNU Make]]: CH1-CH2.7
 
@@ -22,7 +22,7 @@
 -  [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
     Derived Ideas:
         1. Thread Tile: 改变 Thread Tile 内矩阵的运算顺序，利用 Register 减少对 global memory 的访问次数；其中 Thread tile 的长宽 $M_{frag},N_{frag}$ 的选取与线程内 FFMA 指令对非 FFMA 指令如 LDS 指令的延迟覆盖是相关的
-## Augest
+## August
 ### Week 1
 \[Book\]
 -  [[Parallel Thread Execution ISA v8.5-2024|PTX ISA v8.5]]
@@ -39,7 +39,7 @@
         4. Pipeline: 由于改变矩阵乘法顺序增大了单线程的寄存器使用量，导致 Warp 数量降低，进一步导致 Occupancy 降低，因此考虑流水并行 Global Memory to Shared Memory、Shared Memory to Register、Computation in Register 这三个操作，提高 Warp 的指令并行度，以提高硬件占用率
 -  [CUDA 矩阵乘法终极优化指南](https://zhuanlan.zhihu.com/p/410278370)
     Derived Ideas:
-        1. Corsening: 一个线程计算 $4\times 4$ 的结果，提高线程的算数密度
+        1. Coarsening: 一个线程计算 $4\times 4$ 的结果，提高线程的算数密度
         2. `LDS.128`: 读取 `float4` 向量类型，减少 Shared Memory 访问
 -  [cuda 入门的正确姿势：how-to-optimize-gemm](https://zhuanlan.zhihu.com/p/478846788)
     Derived Ideas:
@@ -178,9 +178,9 @@
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
     SecA-Related Work
-    SecB-Algorithm Details: Memory-efficient forward/backward pass: using for-loop to avoid stroing $O(N^2)$ intermediate matrix; FlashAttention backward pass: In implementation, the backward algorithm of FlashAttention is actually simpler than the forward algorithm, because it's just about tiled matrix multiplication without bothering softmax rescaling
+    SecB-Algorithm Details: Memory-efficient forward/backward pass: using for-loop to avoid storing $O(N^2)$ intermediate matrix; FlashAttention backward pass: In implementation, the backward algorithm of FlashAttention is actually simpler than the forward algorithm, because it's just about tiled matrix multiplication without bothering softmax rescaling
     SecC-Proofs: just counting, nothing special
-    SecE-Extension Details: block-sparse implementation is justing skipping masked block, nothing special
+    SecE-Extension Details: block-sparse implementation is just skipping masked block, nothing special
     SecF-Full Experimental Results
 - [[Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec3
     Sec3-Markov Fields and the Harmmersly-Clifford Theorem: define ground state -> define Q function -> expand Q function -> proof the terms in Q function (G function) are only not null when their relating variables form a clique
@@ -194,14 +194,14 @@
 \[Paper\]
 - [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]
     FlashAttention-2: 
-    (1) tweak the algorithm, reducing the non-mamul op: remove the rescale of softmax weights in each inner loop, only do it in the end of inner loop
-    (2) parallize in thread blocks to improve occupancy: exchange the inner loop and outerloop,  which makes each iteration in outerloop independent of each other, therefore parallelize them by assigning $\mathbf {O}$ blocks to thread blocks
-    (3) distribute the work between warps to reduce shared memory communication: divide $\mathbf Q$ block to warps and keep $\mathbf {K, V}$ blocks intact, the idea is similar to exchanging outer loop and inner loop, which makes the $\mathbf O$ blocks the warp responsible for be independent of each other, thus primarily reducing the shared memory reads/writes for the final accumlation
+    (1) tweak the algorithm, reducing the non-matmul op: remove the rescale of softmax weights in each inner loop, only do it in the end of inner loop
+    (2) parallize in thread blocks to improve occupancy: exchange the inner loop and outer loop,  which makes each iteration in outer loop independent of each other, therefore parallelize them by assigning $\mathbf {O}$ blocks to thread blocks
+    (3) distribute the work between warps to reduce shared memory communication: divide $\mathbf Q$ block to warps and keep $\mathbf {K, V}$ blocks intact, the idea is similar to exchanging outer loop and inner loop, which makes the $\mathbf O$ blocks the warp responsible for be independent of each other, thus primarily reducing the shared memory reads/writes for the final accumulation
     FlashAttention-2 also uses thread blocks to load KV cache in parallel for iterative decoding
 
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
-    CH4.6.1-Conditional Random Fields: CRF models conditional distribution by partially directely graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditoinal distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict explanability, because the parameters learned has less semantics on their own.
+    CH4.6.1-Conditional Random Fields: CRF models conditional distribution by partially directed graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditional distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict expandability, because the parameters learned has less semantics on their own.
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
     Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
@@ -335,11 +335,11 @@
     CH2-Programming Model:
         Kernel is executed by each CUDA thread
         Thread hierarchy: thread -> thread block -> thread block cluster -> grid
-        Memory hierarhy: local memory -> shared memory -> distributed shared memory -> global/constant/texture memory
+        Memory hierarchy: local memory -> shared memory -> distributed shared memory -> global/constant/texture memory
         Host program manage global/constant/texture memory space for kernels via calls to CUDA runtime
         Unified memory provides coherent memory space for all devices in system
         In CUDA, thread is the lowest level of abstraction doing memory and computation operation
-        Asynchronous programming model (started from Ampere) provides `cuda::memcpy_async/cooperative_groups::memcpy_async` operation, and the asynchronous operation use synchornization objects (`cuda::barrier` , `cuda::pipeline`) to synchronize threads in thread scope
+        Asynchronous programming model (started from Ampere) provides `cuda::memcpy_async/cooperative_groups::memcpy_async` operation, and the asynchronous operation use synchronization objects (`cuda::barrier` , `cuda::pipeline`) to synchronize threads in thread scope
         The thread scope in CUDA includes `cuda::thread_scope::thread_scope_thread/block/device/system`
         Compute Capability is the version of SM architecture, denoted by a major version number and a minor version number
         CUDA version is the version of CUDA software platform
@@ -352,53 +352,53 @@
 - [[docker/get-started/Docker Concepts]]
         The Basics: 
         Container is essentially an isolated process. Multiple containers share the same kernel.
-        Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which representes a set of filesystem changes.
+        Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which represents a set of filesystem changes.
         Repository is a collection of related images in the registry.
         Keep each container doing only one thing.
-        Docker Compose uses yaml file to define the configurations and interactoins for all related containers. Docker Compose is an declarative tool.
+        Docker Compose uses yaml file to define the configurations and interactions for all related containers. Docker Compose is an declarative tool.
         Building Images:
         The image is consists of multiple layers. We reuse other images' base layers to define custom layer.
         After each layer is downloaded, it is extracted into the own directory in the host filesystem.
         When running a container from an image, a union filesystem is created, where layers are stacked on top of each other. The container's root directory will be changed to the location of the unified directory by `chroot`.
         In the union filesystem, in addition to the image layers, Docker will create a new directory for the container, which allows the container make filesystems changes while keeping original layers untouched.
         Dockerfile provides instructions to the image builder. Common instructions include `FROM/WORKDIR/COPY/RUN/ENV/EXPOSE/USER/CMD` etc.
-        A Dockerfile typically 1. determine base image 2. insatll dependencies 3. copy in sources/binaries 4. configure the final image.
+        A Dockerfile typically 1. determine base image 2. install dependencies 3. copy in sources/binaries 4. configure the final image.
         Use `docker build` to build image from Dockerfile. 
         Image's name pattern is `[HOST[:PORT_NUMBER]/]PATH[:TAG]` 
         Use `docker build -t` to specify a tag for the image when building. Use `docker image tag` to specify another tag for an image.
         Use `docker push` to push built image.
-        Modify `RUN` 's command will invaildate the build cache for this layer.
+        Modify `RUN` 's command will invalidate the build cache for this layer.
         Modify files be `COPY` ed or `ADD` ed will invalidate the build cache for this layer.
         All the following layer of an invalidated layer will be invalidated.
-        When writing Dockerfile, considering the invalidation rule to ensure the Dockerfile can build as efficent as possible.
-        Multi-stage build introduces multiple stages in Dockerfile. It is recommended to use one stage to build and minfy code for interpreted languages or use one stage to compile code for compiled languages. Then use another stage, copying in the artifects in the previous stage, only bundle the runtime environment, thus reducing the image size.
-        Use `FROM <image-name> AS <stage-name>` to define stage. Use `--from=<stage-name>` in `COPY` to copy previous stages artifects.
+        When writing Dockerfile, considering the invalidation rule to ensure the Dockerfile can build as efficient as possible.
+        Multi-stage build introduces multiple stages in Dockerfile. It is recommended to use one stage to build and minify code for interpreted languages or use one stage to compile code for compiled languages. Then use another stage, copying in the artifacts in the previous stage, only bundle the runtime environment, thus reducing the image size.
+        Use `FROM <image-name> AS <stage-name>` to define stage. Use `--from=<stage-name>` in `COPY` to copy previous stages artifacts.
 
 ### Week 4
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH10.1-CH10.3, CH11.1-CH11.3.4
     CH10-Exect Inference: Clique Trees
         CH10.1-Variable Elimination and Clique Trees
-            We condiser a factor $\psi_i$ to be a computational data structure, whichi takes a message $\tau_j$ generated by factor $\psi_j$ and send message $\tau_i$ to another factor.
-            In cluster graph, each node/cluster is associated with a set of variables. Two cluster is connected by an edge if and only their associated variable set has overalap.
+            We consider a factor $\psi_i$ to be a computational data structure, which takes a message $\tau_j$ generated by factor $\psi_j$ and send message $\tau_i$ to another factor.
+            In cluster graph, each node/cluster is associated with a set of variables. Two cluster is connected by an edge if and only their associated variable set has overlap.
             The variable elimination algorithm's execution process defines a cluster graph. Each factor $\psi_i$ used in the computation corresponds to a cluster $\pmb C_i$, whose associating variable set is the scope of the factor.
             The computation in variable elimination will eliminate a variable in the associating factor. If the message $\tau_i$ generated by the variable elimination in $\psi_i$ will be used in generating $\tau_j$ in $\psi_j$, then we draw an edge between $\pmb C_i, \pmb C_j$.
-            The cluster graph generated by variable elimination process is a tree (each factor in the alogirhtm will only be used once, thus each node in the graph will only has one parent node). What's more, this cluster tree satisfies running intersection property. Such a cluster tree can also be called as clique tree.
+            The cluster graph generated by variable elimination process is a tree (each factor in the algorithm will only be used once, thus each node in the graph will only has one parent node). What's more, this cluster tree satisfies running intersection property. Such a cluster tree can also be called as clique tree.
             The running intersection property implies independencies (Theorem 10.2)
         CH10.2-Message Passing: Sum Product
             The same clique tree can be used for many different executions of variable elimination. The clique tree can cache computation, allowing multiple variable elimination execution to be more efficient.
             The clique tree can be used to guide the operations of variable elimination. The clique dictates the operations to perform on the factors in it, and defines the partial order of these operations.
-            In the clique tree message passing algorithm, each clique $\pmb C_j$ 's initial potential is the product of all of its associated factors. For each clique, to compute the message to pass, it first mulitply all incoming messages, and then sum out all variables in its scope except those in the sepset between itself and the message receiver. The process proceeds up to the root clique, the root finally get the unnormalized marginal measure over its scope (equals to the joint measure summed out of all other variables), which is called as belief. (Colloary 10.1)
+            In the clique tree message passing algorithm, each clique $\pmb C_j$ 's initial potential is the product of all of its associated factors. For each clique, to compute the message to pass, it first multiply all incoming messages, and then sum out all variables in its scope except those in the sepset between itself and the message receiver. The process proceeds up to the root clique, the root finally get the unnormalized marginal measure over its scope (equals to the joint measure summed out of all other variables), which is called as belief. (Corollary 10.1)
             Intuitively, the message between $\pmb C_i , \pmb C_j$ is the products of all factors in $\mathcal F_{\prec i(\rightarrow j)}$ , marginalized over the variables over in the sepset between $\pmb C_i$ and $\pmb C_j$. (Theorem 10.3)
             In all executions of the clique tree algorithm, whenever the message is sent between two cliques in the same direction, it is necessarily the same. Thus each edge in the clique tree essentially associates two messages, one for each direction.
-            The sum-product belief propogation utilizes this property. It consists of an upward pass and an downward pass. After the two passes, each edge will get its associated two messages, therefore each clique's belief/marginal measure can be immediately computed. This is an efficient algorithm to use when computing all the cliques beliefs. (Colloary 10.2)
+            The sum-product belief propagation utilizes this property. It consists of an upward pass and an downward pass. After the two passes, each edge will get its associated two messages, therefore each clique's belief/marginal measure can be immediately computed. This is an efficient algorithm to use when computing all the cliques beliefs. (Corollary 10.2)
             This algorithm will also calibrate all the neighboring cliques in the Tree. Thus the clique tree is calibrated.
-            The belief over the sepset associated with the edge is preciesly the product of its two associated messages. Further, the unnomralized Gibbs measure over the clique tree equals to the product of all cliques' beliefs divided by the product of all sepset's beliefs. (Proposition 10.3)
+            The belief over the sepset associated with the edge is precisely the product of its two associated messages. Further, the unnormalized Gibbs measure over the clique tree equals to the product of all cliques' beliefs divided by the product of all sepset's beliefs. (Proposition 10.3)
             Thus the clique and sepset beliefs provides a reparameterization of the unnormalized measure. This property is called the clique tree invariant.
         CH10.3-Message Passing: Belief Update
             In sum-product-division algorithm, the entire message passing process is executed in terms of the belief of cliques and sepsets instead of initial potential and messages. The message maintained by the edge is used to avoid double-counting: Whenever a new message is passed along the edge, it is divided by the old message, therefore eliminating the previous/old message from updating the clique (who sent the previous/old message).
-            At convergence, we will have a calibrated tree, because in order to make the message update have no effect, we need to have $\sigma_{i\rightarrow j} = \mu_{i, j} = \sigma_{j\rightarrow i}$ for all $i, j$, which means the neighboring cliques argee on the variables in the sepset.
-            sum-product message propogation is equivalent to belief-update.
+            At convergence, we will have a calibrated tree, because in order to make the message update have no effect, we need to have $\sigma_{i\rightarrow j} = \mu_{i, j} = \sigma_{j\rightarrow i}$ for all $i, j$, which means the neighboring cliques agree on the variables in the sepset.
+            sum-product message propagation is equivalent to belief-update.
             In the execution of belief-update message passing, the clique tree invariant equation (10.10) holds initially and after every message passing step (Corollary 10.3)
             Incremental update: multiply the distribution with a new factor. In clique tree, we multiply the new factor into a relevant clique, and do another pass to update other relevant cliques in the tree.
             Queries outside a clique: construct the marginal over the query in containing subtree, instead of the entire tree.
@@ -422,26 +422,49 @@
             Utilizing Lagrangian multiplier method, we can derive the forms/equations that the beliefs in the optimal solution $Q$ should conform to. (Theorem 11.3)
             Most importantly, equation (11.10) defines each message in terms of other messages, which allows us to use iterative approach to solve the fixed-point equations.
             To solve the fixed-point equation, we apply each equation as assignments, iteratively use the RHS as the new value for the LHS until convergence. In certain conditions (such as the cluster tree is a clique tree), the convergence is guaranteed. Therefore, in clique tree, this iterative method is equivalent to the belief-update/sum-product message passing algorithm we discussed previously. 
-            The running intersection property for cluster graph is relaxed, but can still prevent direct 'cyclic argument'. However, the loop in cluster graph can still lead to circular reasoning. The definition for general cluster graph is also weaker, which only requries the agreement on sepset variables instead of all comman variables (sepset is not necessarily equal to the intersection set in general cluster graph).
+            The running intersection property for cluster graph is relaxed, but can still prevent direct 'cyclic argument'. However, the loop in cluster graph can still lead to circular reasoning. The definition for general cluster graph is also weaker, which only requires the agreement on sepset variables instead of all common variables (sepset is not necessarily equal to the intersection set in general cluster graph).
             Though the beliefs in cluster graph are not guaranteed to be $P_\Phi$ 's marginals, the cluster graph still maintains the invariant property, which means the cluster graph can be viewed as a reparameterization of the unnormalized original distribution $P_\Phi$. 
             What's more, the beliefs in cluster graph is essentially $P_{\mathcal T}$ 's marginal, where $\mathcal T$ is a subtree in the graph. This property is called tree consistency.
             For pairwise Markov networks, we can introduce a cluster for each potential, and put edges between clusters which have overlapping scope. Loopy belief propagation was originally based on this construction.
-            For more complex network, we can use Bethe cluster graph, wihch uses bipartite graph.
+            For more complex network, we can use Bethe cluster graph, which uses bipartite graph.
 - [[面向计算机科学的组合数学]]: CH5.1-CH5.2
 
 \[Doc\]
 - [[Models|huggingface/hub/Models]]: Sec0-Sec1
-- [[python/pep/PEP 8-Style Guide for Python Code]]
+- [[doc-notes/python/pep/PEP 8-Style Guide for Python Code]]
 
 ## December
 ### Week 1
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH11.5.1, CH12.1-CH12.3
-    CH11.5-Structured Variational Inference
-        CH11.5.1-The Mean Field Approximation
-            The mean field approximation assumes all the variables are independent from each other. Thus $Q$ is fully factorized.
-            The optimization for the energy functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guaranteed to be nonincreasing under the coordinate ascent process.
-            The computation for optima $Q(X_i)$ only involves the potentials that contains variable $X_i$ .
+    CH11-Inference as Optimization
+        CH11.5-Structured Variational Inference
+            CH11.5.1-The Mean Field Approximation
+                The mean field approximation assumes all the variables are independent from each other. Thus $Q$ is fully factorized.
+                The optimization for the energy functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guaranteed to be nonincreasing under the coordinate ascent process.
+                The computation for optima $Q(X_i)$ only involves the potentials that contains variable $X_i$ .
+    CH12-Partical-Based Approximation Inference
+        This chapter talks about Monte Carlo methods, i.e. , how to generate samples from the target distribution or an approximate distribution and how to construct estimator for the desired expectation from these samples.
+        CH12.1-Forward Sampling
+            Forward sampling utilizes Bayesian network's factorization theorem. It samples variables according to the partial order of BN. Thus with parent variables' sample value determined, each variable's sampling process only involves its CPD.
+            To sample from the posterior, a simple method is rejection sampling, which rejects the samples inconsistent with the evidence.
+            The problem of rejection sampling is that too many samples will be rejected in case the evidence has low probability, thus leading to low efficiency.
+        CH12.2-Likelihood Weighting and Importance Sampling
+            To address rejection sampling's inefficiency problem, likelihood weighting algorithm directly sets evidence variables' value to the observed value. Thus no rejection is needed anymore.
+            However, in this way, the relevance between the evidence value and other variables' sampled value is missed. To compensate for it, the algorithm give a weight to each sample. A sample's weight is the probability of evidence occurring together with other variables' sampled value in this sample.
+            Importance sampling samples from another distribution called proposal distribution, and weight the sample accordingly to ensure the expectation still remains unchanged.
+            Importance sampling achieves the lowest variance when $Q(\pmb X) \propto |f(\pmb X)|P(\pmb X)$.
+            Normalized importance sampling assumes we can only access the unnormalized version of $P$ (i.e. $\tilde P$). In this case, the estimator for an expectation with respect to $P$ can still be constructed, by estimating the normalization constant $Z$ simultaneously. 
+            The normalized importance sampling estimator is not unbiased. Its bias and variance goes down as the reciprocal of sample number $M$ (i.e. $\frac 1 M$).
+            In practice, the normalized importance sampling estimator is typically lower then the unnormalized one (no theory guarantee). This reduction in variation often outweighs the bias term, so that the normalized one is used often even if $P$ is known. 
+            The effective sample size for a particular set of samples is defined in terms of the variance. That is, the variance of $M_{\text{eff}}$ samples from $P$ is equivalent to the variance of $M$ samples from $Q$.
+            In BN, using importance sampling with $Q$ defined by the mutilated network is equivalent to using likelihood weighting algorithm.
+        CH12.3-Markov Chain Monte Carlo Methods
+            In likelihood weighting, the evidence will only affect the sampling process for the decedents, so the non-decedents are essentially sampled from the prior instead of the posterior. If the divergence between the prior and the posterior is too large, the weight is not enough to compensate for it.
+            The MCMC method adopts an entirely different pattern from the weighting methods. The MCMC methods is inspired by a physical observation, which says an particle's state evolves in a Markov chain, and its distribution will converge to a stationary distribution as the Markov chain proceeds.
+            The MCMC method defines a Markov chain whose stationary distribution is the desire sampling distribution $P$, and make the sample generated from the initial distribution (usually the prior) keep evolve its assignment(state) in the Markov chain. Because the Markov chain's state distribution will eventually converge to its stationary distribution, the distribution that the sample conforms to will eventually converge to the desired sampling distribution. Thus we can eventually treat the sample as sampled from the desired sampling distribution. In the process, the sample's distribution will gradually get closer to the desired sampling distribution.
+            To ensure the Markov chain has an unique stationary distribution, the state space should be ergodic (i.e. the transition matrix should have all its entries positive).
+            Gibbs sampling algorithm is an implementation of the MCMC method. It constructs a separate transition model for each variable (as the posterior in $P$ as this variable given all other variables' current sampled value ), and combines them as a whole transition model for the Markov chain. This construction is proved to make the Markov chain converge to the desired distribution $P$.
 - [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH1-CH2
     CH1-LaTeX 的基本概念
         LaTeX 命令分为两种：`\` + 一串字母；`\` + 单个非字母符号
@@ -457,3 +480,5 @@
         LaTeX 将空格和 Tab 视作空白字符，连续的空白视作一个空白，行首的空白会被忽略
         连续两个换行符生成一个空行，将文字分段 (等价于 `\par` )，连续空行视作一个空行
         LaTeX 会自动在合适位置断行断页，也可以手动用命令控制
+\[Doc\]
+- [[doc-notes/python/pep/PEP 257-Docstring Conventions|python/pep/PEP 257–Docstring Conventions]]]
