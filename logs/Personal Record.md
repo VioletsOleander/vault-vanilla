@@ -435,6 +435,8 @@
 
 ## December
 ### Week 1
+Date: 2024.11.25-2024.12.2
+
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH11.5.1, CH12.1-CH12.3
     CH11-Inference as Optimization
@@ -481,4 +483,9 @@
         连续两个换行符生成一个空行，将文字分段 (等价于 `\par` )，连续空行视作一个空行
         LaTeX 会自动在合适位置断行断页，也可以手动用命令控制
 \[Doc\]
-- [[doc-notes/python/pep/PEP 257-Docstring Conventions|python/pep/PEP 257–Docstring Conventions]]]
+- [[doc-notes/python/pep/PEP 257-Docstring Conventions|python/pep/PEP 257–Docstring Conventions]]
+
+### Week 2
+Date: 2024.12.2-2024.12.9
+
+
