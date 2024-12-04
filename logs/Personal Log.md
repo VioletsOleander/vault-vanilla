@@ -467,6 +467,8 @@ Date: 2024.11.25-2024.12.2
             The MCMC method defines a Markov chain whose stationary distribution is the desire sampling distribution $P$, and make the sample generated from the initial distribution (usually the prior) keep evolve its assignment(state) in the Markov chain. Because the Markov chain's state distribution will eventually converge to its stationary distribution, the distribution that the sample conforms to will eventually converge to the desired sampling distribution. Thus we can eventually treat the sample as sampled from the desired sampling distribution. In the process, the sample's distribution will gradually get closer to the desired sampling distribution.
             To ensure the Markov chain has an unique stationary distribution, the state space should be ergodic (i.e. the transition matrix should have all its entries positive).
             Gibbs sampling algorithm is an implementation of the MCMC method. It constructs a separate transition model for each variable (as the posterior in $P$ as this variable given all other variables' current sampled value ), and combines them as a whole transition model for the Markov chain. This construction is proved to make the Markov chain converge to the desired distribution $P$.
+            If a Markov chain $\mathcal T$ satisfies the detailed balance equation with respect to some distribution $\pi$, then $\mathcal T$ is reversible, and $\pi$ is a stationary distribution. If $\mathcal T$ is regular, then $\pi$ is the unique one.
+            MH algorithm is a general method for constructing a Markov chain for a desired stationary distribution $P$. It uses any proposal distribution $Q$ as part of the transition model, and define the acceptance probability in terms of the $Q$ and $P$. The proposal distribution and acceptance probability together define the trainsition model for the Markov chain, whose stationary distribution is proved to be $P$.
 - [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH1-CH2
     CH1-LaTeX 的基本概念
         LaTeX 命令分为两种：`\` + 一串字母；`\` + 单个非字母符号
@@ -488,4 +490,14 @@ Date: 2024.11.25-2024.12.2
 ### Week 2
 Date: 2024.12.2-2024.12.9
 
-
+\[Doc\]
+- [[docker/get-started/Docker Concepts]]
+    Running Containers:
+    `-p HOST_PORT:CONTAINER_PORT` is used to publish the container's port `CONTAINER_PORT` and forward the traffic of `HOST_PORT` to the container's port.
+    `-P` is used to publish all the ports specified in `EXPOSE`
+    `-e ...=...` is used to set environment variables
+    environment variables can be specified in `.env` , and use `--env-file` to pass this file.
+    `--memory/--cpus` is used to set container's avaliable resource limit.
+    `-v` is used to mount volume. A volume can be mounted to multiple containers simultaneously
+    `--mount` can be used to specify bind mount. Permissions is specified by `:ro/:rw` .
+    Keep each container do one thing. Docker Compose use `compose.yml` to define multiple containers' configuration and connection.    
