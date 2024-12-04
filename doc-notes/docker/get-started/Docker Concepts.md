@@ -439,3 +439,286 @@ This Dockerfile uses two stages:
 > 该 Dockerfile 中，构建阶段使用包含了需要用于编译应用的构建工具的基础映像，它包含了用于安装构建工具、拷贝源代码、执行构建命令的指令；最终阶段使用更小的映像作为运行应用的基础映像，它从构建阶段拷贝编译产物，最后定义启动应用时的运行时配置 (使用 `CMD` 或 `ENTRYPOINT` )
 
 > 对于多阶段构建的 Dockerfile，`docker build` 默认构建最后的阶段，我们可以通过 `--target` 选择需要构建的特定阶段
+
+# Running Containers
+## Publishing and exposing ports
+### Explanation
+If you've been following the guides so far, you understand that containers provide isolated processes for each component of your application. Each component - a React frontend, a Python API, and a Postgres database - runs in its own sandbox environment, completely isolated from everything else on your host machine. This isolation is great for security and managing dependencies, but it also means you can’t access them directly. For example, you can’t access the web app in your browser.
+
+That’s where port publishing comes in.
+
+>  我们知道容器为应用的每个独立成分提供了隔离的进程，每个成分运行于自己的沙盒环境，和主机中所有其他进程隔离
+>  进程完全隔离的问题是我们不能直接访问它们，例如不能从浏览器中访问容器中的 web 应用
+
+#### Publishing ports
+Publishing a port provides the ability to break through a little bit of networking isolation by setting up a forwarding rule. As an example, you can indicate that requests on your host’s port `8080` should be forwarded to the container’s port `80`. 
+>  可以通过发布端口并设置转发规则来破坏容器的网络隔离
+>  我们通过设置转发规则连接到容器的端口，例如设置向本地主机的 `8080` 端口发送的请求会被转发到容器的 `80` 端口
+
+Publishing ports happens during container creation using the `-p` (or `--publish`) flag with `docker run`. The syntax is:
+
+```console
+$ docker run -d -p HOST_PORT:CONTAINER_PORT nginx
+```
+
+- `HOST_PORT`: The port number on your host machine where you want to receive traffic
+- `CONTAINER_PORT`: The port number within the container that's listening for connections
+
+>  在运行 (创建容器) 时，通过 `-p/--publish` 选项来为容器发布端口
+>  `HOST_PORT` 指示主机上接受网络请求的端口
+>  `CONTAINER_PORT` 指定容器内监听链接的端口
+
+For example, to publish the container's port `80` to host port `8080`:
+
+```console
+$ docker run -d -p 8080:80 nginx
+```
+
+Now, any traffic sent to port `8080` on your host machine will be forwarded to port `80` within the container.
+
+>  设定之后，任意发送到主机的 `HOST_PORT` 端口的请求都会被转发到容器的 `CONTAINER_PORT` 端口
+
+> **Important**
+> 
+> When a port is published, it's published to all network interfaces by default. This means any traffic that reaches your machine can access the published application. Be mindful of publishing databases or any sensitive information. [Learn more about published ports here](https://docs.docker.com/engine/network/#published-ports).
+
+#### Publishing to ephemeral ports
+At times, you may want to simply publish the port but don’t care which host port is used. In these cases, you can let Docker pick the port for you. To do so, simply omit the `HOST_PORT` configuration.
+
+For example, the following command will publish the container’s port `80` onto an ephemeral port on the host:
+
+```console
+$ docker run -p 80 nginx
+```
+
+Once the container is running, using `docker ps` will show you the port that was chosen:
+
+```console
+docker ps
+CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS                    NAMES
+a527355c9c53   nginx         "/docker-entrypoint.…"   4 seconds ago    Up 3 seconds    0.0.0.0:54772->80/tcp    romantic_williamson
+```
+
+In this example, the app is exposed on the host at port `54772`.
+
+>  忽略 `HOST_PORT` 时 Docker 会为我们自动选择一个，容器运行后用 `docker ps` 查看
+
+#### Publishing all ports
+When creating a container image, the `EXPOSE` instruction is used to indicate the packaged application will use the specified port. These ports aren't published by default.
+>  映像中的 `EXPOSE` 指令用于指示应用将使用哪些特定接口，这些接口默认不会发布
+
+With the `-P` or `--publish-all` flag, you can automatically publish all exposed ports to ephemeral ports. This is quite useful when you’re trying to avoid port conflicts in development or testing environments.
+>  `-P/--publish-all` 选项会自动将这些 exposed 接口发布到主机上的随机接口
+
+For example, the following command will publish all of the exposed ports configured by the image:
+
+```console
+$ docker run -P nginx
+```
+
+## Overriding container defaults
+### Explanation
+When a Docker container starts, it executes an application or command. The container gets this executable (script or file) from its image’s configuration. Containers come with default settings that usually work well, but you can change them if needed. These adjustments help the container's program run exactly how you want it to.
+>  容器启动时，会执行一个应用或命令，其可执行文件 (脚本或文件) 来自于其映像配置
+>  容器都具有默认配置，可以按照需要修改它们
+
+For example, if you have an existing database container that listens on the standard port and you want to run a new instance of the same database container, then you might want to change the port settings the new container listens on so that it doesn’t conflict with the existing container. Sometimes you might want to increase the memory available to the container if the program needs more resources to handle a heavy workload or set the environment variables to provide specific configuration details the program needs to function properly.
+>  例如，为容器指定监听的端口、指定环境变量、指定可用内存等
+
+The `docker run` command offers a powerful way to override these defaults and tailor the container's behavior to your liking. The command offers several flags that let you to customize container behavior on the fly.
+>  通过 `docker run` 的选项就可以定制容器的行为
+
+Here's a few ways you can achieve this.
+
+#### Overriding the network ports
+Sometimes you might want to use separate database instances for development and testing purposes. Running these database instances on the same port might conflict. You can use the `-p` option in `docker run` to map container ports to host ports, allowing you to run the multiple instances of the container without any conflict.
+>  `-p` 映射端口
+
+```console
+$ docker run -d -p HOST_PORT:CONTAINER_PORT postgres
+```
+
+#### Setting environment variables
+This option sets an environment variable `foo` inside the container with the value `bar`.
+>  `-e` 设置环境变量
+
+```console
+$ docker run -e foo=bar postgres env
+```
+
+You will see output like the following:
+
+```console
+HOSTNAME=2042f2e6ebe4
+foo=bar
+```
+
+> **Tip**
+> 
+> The `.env` file acts as a convenient way to set environment variables for your Docker containers without cluttering your command line with numerous `-e` flags. To use a `.env` file, you can pass `--env-file` option with the `docker run` command.
+> 
+> ```console
+> $ docker run --env-file .env postgres env
+> ```
+
+>  `.env` 文件可以用于设定容器的环境变量，通过 `--env-file` 传递 `.env` 文件
+
+### Restricting the container to consume the resources
+You can use the `--memory` and `--cpus` flags with the `docker run` command to restrict how much CPU and memory a container can use. For example, you can set a memory limit for the Python API container, preventing it from consuming excessive resources on your host. Here's the command:
+
+```console
+$ docker run -e POSTGRES_PASSWORD=secret --memory="512m" --cpus="0.5" postgres
+```
+
+This command limits container memory usage to 512 MB and defines the CPU quota of 0.5 for half a core.
+
+>  `--memory/--cpus` 设定容器的资源用量限制
+
+> **Monitor the real-time resource usage**
+> 
+> You can use the `docker stats` command to monitor the real-time resource usage of running containers. This helps you understand whether the allocated resources are sufficient or need adjustment.
+
+>  `docker stats` 用于监控容器的实时资源使用
+
+By effectively using these `docker run` flags, you can tailor your containerized application's behavior to fit your specific requirements.
+
+## Persisting container data
+### Explanation
+When a container starts, it uses the files and configuration provided by the image. Each container is able to create, modify, and delete files and does so without affecting any other containers. When the container is deleted, these file changes are also deleted.
+>  容器被删除时，默认其文件修改都会被删除
+
+While this ephemeral nature of containers is great, it poses a challenge when you want to persist the data. For example, if you restart a database container, you might not want to start with an empty database. So, how do you persist files?
+
+#### Container volumes
+Volumes are a storage mechanism that provide the ability to persist data beyond the lifecycle of an individual container. Think of it like providing a shortcut or symlink from inside the container to outside the container.
+>  Volume 可以用于保存生命周期大于单独容器的数据
+>  可以将 Volumne 视为容器内保存了容器外文件的一个快捷方式或符号链接
+
+As an example, imagine you create a volume named `log-data`.
+
+```console
+$ docker volume create log-data
+```
+
+When starting a container with the following command, the volume will be mounted (or attached) into the container at `/logs`:
+
+```console
+$ docker run -d -p 80:80 -v log-data:/logs docker/welcome-to-docker
+```
+
+If the volume `log-data` doesn't exist, Docker will automatically create it for you.
+
+>  `docker volume create log-data` 用于创建 Volume `log-data`，在运行时，通过 `-v log-data:/logs` 将该 Volumen 挂载到容器文件系统的 `/logs` 目录下
+>  如果没有名为 `log-data` 的 Volume，Docker 会自动创建一个
+
+When the container runs, all files it writes into the `/logs` folder will be saved in this volume, outside of the container. If you delete the container and start a new container using the same volume, the files will still be there.
+>  容器在 `/logs` 下写入的文件会被保存在该 Volume 中，之后的容器通过重新挂载该 Volume 就可以复用这些文件
+
+> **Sharing files using volumes**
+> 
+> You can attach the same volume to multiple containers to share files between containers. This might be helpful in scenarios such as log aggregation, data pipelines, or other event-driven applications.
+
+>  一个 Volumne 可以同时挂载到多个容器，实现容器间文件共享
+
+#### Managing volumes
+Volumes have their own lifecycle beyond that of containers and can grow quite large depending on the type of data and applications you’re using. The following commands will be helpful to manage volumes:
+
+- `docker volume ls` - list all volumes
+- `docker volume rm <volume-name-or-id>` - remove a volume (only works when the volume is not attached to any containers)
+- `docker volume prune` - remove all unused (unattached) volumes
+
+## Sharing local files with containers
+### Explanation
+Each container has everything it needs to function with no reliance on any pre-installed dependencies on the host machine. Since containers run in isolation, they have minimal influence on the host and other containers. This isolation has a major benefit: containers minimize conflicts with the host system and other containers. However, this isolation also means containers can't directly access data on the host machine by default.
+>  容器完全自洽，自己拥有所有依赖，并且在隔离状态运行，以最小化和主机系统以及其他容器的冲突
+>  但隔离运行意味着容器默认无法访问主机上的数据
+
+Consider a scenario where you have a web application container that requires access to configuration settings stored in a file on your host system. This file may contain sensitive data such as database credentials or API keys. Storing such sensitive information directly within the container image poses security risks, especially during image sharing. To address this challenge, Docker offers storage options that bridge the gap between container isolation and your host machine's data.
+
+Docker offers two primary storage options for persisting data and sharing files between the host machine and containers: volumes and bind mounts.
+>  想要在主机和容器中共享文件和保存数据有两个选择：卷和绑定挂载
+
+#### Volume versus bind mounts
+If you want to ensure that data generated or modified inside the container persists even after the container stops running, you would opt for a volume. See [Persisting container data](https://docs.docker.com/get-started/docker-concepts/running-containers/persisting-container-data/) to learn more about volumes and their use cases.
+
+If you have specific files or directories on your host system that you want to directly share with your container, like configuration files or development code, then you would use a bind mount. It's like opening a direct portal between your host and container for sharing. Bind mounts are ideal for development environments where real-time file access and sharing between the host and container are crucial.
+
+>  如果希望保存容器的文件修改记录，一般使用卷
+>  如果有主机上的特定文件，例如配置文件、代码等需要与容器共享，一般使用绑定挂载，绑定挂载适用于开发环境，我们在主机上开发，和容器实时共享代码
+
+#### Sharing files between a host and container
+Both `-v` (or `--volume`) and `--mount` flags used with the `docker run` command let you share files or directories between your local machine (host) and a Docker container. However, there are some key differences in their behavior and usage.
+
+The `-v` flag is simpler and more convenient for basic volume or bind mount operations. If the host location doesn’t exist when using `-v` or `--volume`, a directory will be automatically created.
+>  `-v` 更加方便，如果使用 `-v /HOST/PATH:/CONTAINER/PATH` 中 `/HOST/PATH` 并不存在，Docker 会自动创建一个
+
+Imagine you're a developer working on a project. You have a source directory on your development machine where your code resides. When you compile or build your code, the generated artifacts (compiled code, executables, images, etc.) are saved in a separate subdirectory within your source directory. In the following examples, this subdirectory is `/HOST/PATH`. Now you want these build artifacts to be accessible within a Docker container running your application. Additionally, you want the container to automatically access the latest build artifacts whenever you rebuild your code.
+
+Here's a way to use `docker run` to start a container using a bind mount and map it to the container file location.
+
+```console
+$ docker run -v /HOST/PATH:/CONTAINER/PATH -it nginx
+```
+
+The `--mount` flag offers more advanced features and granular control, making it suitable for complex mount scenarios or production deployments. If you use `--mount` to bind-mount a file or directory that doesn't yet exist on the Docker host, the `docker run` command doesn't automatically create it for you but generates an error.
+
+```console
+$ docker run --mount type=bind,source=/HOST/PATH,target=/CONTAINER/PATH,readonly nginx
+```
+
+>  `--mount` 不会自动创建
+>  Docker 推荐使用 `--mount` 语法而不是 `-v` 
+
+> **Note**
+> 
+> Docker recommends using the `--mount` syntax instead of `-v`. It provides better control over the mounting process and avoids potential issues with missing directories.
+
+#### File permissions for Docker access to host files
+When using bind mounts, it's crucial to ensure that Docker has the necessary permissions to access the host directory. To grant read/write access, you can use the `:ro` flag (read-only) or `:rw` (read-write) with the `-v` or `--mount` flag during container creation. For example, the following command grants read-write access permission.
+
+```console
+$ docker run -v HOST-DIRECTORY:/CONTAINER-DIRECTORY:rw nginx
+```
+
+Read-only bind mounts let the container access the mounted files on the host for reading, but it can't change or delete the files. With read-write bind mounts, containers can modify or delete mounted files, and these changes or deletions will also be reflected on the host system. Read-only bind mounts ensures that files on the host can't be accidentally modified or deleted by a container.
+
+>  绑定挂载时需要确定容器有足够的访问权限
+>  访问权限通过 `:ro/:rw` 指定
+
+> **Synchronized File Share**
+> 
+> As your codebase grows larger, traditional methods of file sharing like bind mounts may become inefficient or slow, especially in development environments where frequent access to files is necessary. [Synchronized file shares](https://docs.docker.com/desktop/features/synchronized-file-sharing/) improve bind mount performance by leveraging synchronized filesystem caches. This optimization ensures that file access between the host and virtual machine (VM) is fast and efficient.
+
+## Multi-container applications
+### Explanation
+Starting up a single-container application is easy. For example, a Python script that performs a specific data processing task runs within a container with all its dependencies. Similarly, a Node.js application serving a static website with a small API endpoint can be effectively containerized with all its necessary libraries and dependencies. However, as applications grow in size, managing them as individual containers becomes more difficult.
+
+Imagine the data processing Python script needs to connect to a database. Suddenly, you're now managing not just the script but also a database server within the same container. If the script requires user logins, you'll need an authentication mechanism, further bloating the container size.
+
+One best practice for containers is that each container should do one thing and do it well. While there are exceptions to this rule, avoid the tendency to have one container do multiple things.
+>  容器的最佳实践之一是每个容器仅做一件事
+
+Now you might ask, "Do I need to run these containers separately? If I run them separately, how shall I connect them all together?"
+
+While `docker run` is a convenient tool for launching containers, it becomes difficult to manage a growing application stack with it. Here's why:
+
+- Imagine running several `docker run` commands (frontend, backend, and database) with different configurations for development, testing, and production environments. It's error-prone and time-consuming.
+- Applications often rely on each other. Manually starting containers in a specific order and managing network connections become difficult as the stack expands.
+- Each application needs its `docker run` command, making it difficult to scale individual services. Scaling the entire application means potentially wasting resources on components that don't need a boost.
+- Persisting data for each application requires separate volume mounts or configurations within each `docker run` command. This creates a scattered data management approach.
+- Setting environment variables for each application through separate `docker run` commands is tedious and error-prone.
+
+That's where Docker Compose comes to the rescue.
+
+Docker Compose defines your entire multi-container application in a single YAML file called `compose.yml`. This file specifies configurations for all your containers, their dependencies, environment variables, and even volumes and networks. With Docker Compose:
+
+- You don't need to run multiple `docker run` commands. All you need to do is define your entire multi-container application in a single YAML file. This centralizes configuration and simplifies management.
+- You can run containers in a specific order and manage network connections easily.
+- You can simply scale individual services up or down within the multi-container setup. This allows for efficient allocation based on real-time needs.
+- You can implement persistent volumes with ease.
+- It's easy to set environment variables once in your Docker Compose file.
+
+By leveraging Docker Compose for running multi-container setups, you can build complex applications with modularity, scalability, and consistency at their core.
+
+>  Docker Compose 在 `compose.yml` 文件中定义多容器应用，该文件指定所有容器的配置，各自的依赖、环境变量、卷、网络等
+
