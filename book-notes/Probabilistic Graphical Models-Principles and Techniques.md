@@ -7814,7 +7814,7 @@ How do we calibrate a cluster graph? Because calibration is a local property tha
 > 从单个簇 $\pmb C_i$ 的角度来看，簇图和簇树没有不同，簇都和每个邻居簇通过边相连，边表达了分离集中变量的信息，因此我们同样可以经由一个个簇传递消息
 
 However, a priori, it is not clear how we can execute a message passing algorithm over a loopy cluster graph. In particular, the sum-product calibration of algorithm 10.2 sends a message only when the sending clique is ready to transmit, that is, when all other incoming messages have been received. In the loopy cluster graph, initially, there is no cluster that has received any incoming messages. Thus, no cluster is ready to transmit, and the algorithm is deadlocked. However, in section 10.3, we showed that the two algorithms are actually equivalent; that is, any sequence of sum-product propagation steps can be emulated by the same sequence of belief-update propagation steps and leads to the same beliefs. In this transformation, we have that $\mu_{i,j}=\delta_{i\to j}\delta_{j\to i}$ . Thus, we can construct a “deadlock-free” variant of the sum-product message passing algorithm simply by initializing all messages $\delta_{i\to j}=\mathbf{1}$ . This initialization of the sum-product algorithm is equivalent to the standard initialization of the belief update algorithm, in which $\mu_{i,j}=\mathbf{1}$ . Importantly, in this variant of the sum-product algorithm, each cluster begins with all of the incoming messages initialized, and therefore it can send any of the outgoing messages at any time, without waiting for any other cluster. 
-> 然而，从先验的角度来看，不清楚我们如何可以在一个循环簇图上执行消息传递算法，特别是，algorithm 10.2的和积校准方法仅在发送簇准备好传输时才发送消息，即当所有其他传入消息均已收到时。在循环簇图中，最初没有任何簇接收到传入消息，因此，没有簇准备好传输，算法陷入死锁状态
+> 然而，从先验的角度来看，不清楚我们如何可以在一个循环簇图上执行消息传递算法，特别是，algorithm 10.2 的和积校准方法仅在发送簇准备好传输时才发送消息，即当所有其他传入消息均已收到时。在循环簇图中，最初没有任何簇接收到传入消息，因此，没有簇准备好传输，算法陷入死锁状态
 > 在10.3节中，我们展示了这和积校准方法和信念更新方法这两个算法实际上是等价的；也就是说，任何和积传播步骤序列都可以通过相同的一系列信念更新传播步骤来模拟，并且结果相同。在这个转换中，我们有 $\mu_{i,j}=\delta_{i\to j}\delta_{j\to i}$
 > 因此，我们可以通过将所有消息初始化为 1，即 $\delta_{i\to j}=1$ ，来构造一个“无死锁”的和积消息传递算法变体。这种和积算法的初始化等同于信念更新算法的标准初始化，其中 $\mu_{i,j}={1}$。重要的是，在这种和积算法的变体中，每个簇开始时所有传入的消息都已经初始化，因此它可以随时发送任何传出消息，而不必等待其他簇
 
@@ -7822,7 +7822,7 @@ However, a priori, it is not clear how we can execute a message passing algorith
 
 Algorithm 11.1 shows the sum-product message passing algorithm for cluster graphs; other than the fact that the algorithm is applied to graphs rather than trees, the algorithm is identical to CTree-SP-Calibrate . In much the same manner, we can adapt CTree-BU-Calibrate to define a procedure CGraph-BU-Calibrate that operates over cluster graphs using belief-update message passing steps. Both of these algorithms are instances of a general class of algorithms called cluster-graph belief propagation , which passes messages over cluster graphs. 
 > Algorithm 11.1 展示了簇图上的和积消息传递算法；除了该算法应用于图形而非树之外，该算法与CTree-SP-Calibrate算法相同
-> 同样地，我们可以将 CTree-BU-Calibrate 调整为定义一个称为 CGraph-BU-Calibrate 的过程，它使用信念更新消息传递步骤在簇图上操作
+> 同样地，我们可以将 CTree-BU-Calibrate 调整，以定义一个称为 CGraph-BU-Calibrate 的过程，它使用信念更新消息传递步骤在簇图上操作
 > 这两种算法都是一个称为簇图信念传播的通用算法类的实例，该算法类在簇图上传递消息
 
 Before we continue, we note that cluster-graph belief propagation can be significantly cheaper than performing exact inference. A canonical example of a class of networks that is compactly representable yet hard for inference is the class of grid-structured Markov networks (such as the ones used in image analysis; see box 4. B). In these networks, each variable $A_{i,j}$ corresponds to a point on a two-dimensional grid. Each edge in this network corresponds to a potential between adjacent points on the grid, with $A_{i,j}$ connected to the four nodes $A_{i-1,j}$ , $A_{i+1,j}$ ,  $A_{i,j-1}$ , $A_{i,j+1}$ (except for nodes $A_{i,j}$ on the boundary of the grid); see figure 11.4. Such a network has only pairwise potentials, and hence it is very compactly represented. Yet, exact inference requires separating sets, which are as large as cutsets in the grid. Hence, in an $n\times n$ grid, exact computation is exponential in $n$ . 
@@ -9106,7 +9106,7 @@ In the previous chapter, we discussed one class of approximate inference methods
 
 Particle-based methods can be roughly characterized along two axes. On one axis, approaches vary on the process by which particles are generated. There is a wide variety of possible processes. At one extreme, we can generate particles using some deterministic process. At another, we can sample particles from some distribution. Within each category, there are many possible variations. 
 
-On the other axis, techniques use diferent notions of particles. Most simply, we can consider full particles — complete assignments to all of the network variables $\mathcal{X}$ . The disadvantage of this approach is that each particle covers only a very small part of the space. A more efective notion is that of a collapsed particle . A collapsed particle speciﬁes an assignment $\mathbfit{w}$ only to some subset of the variables $W$ , associating with it the conditional distribution $P(\mathcal{X}\mid w)$ or some “summary” of it. 
+On the other axis, techniques use different notions of particles. Most simply, we can consider full particles — complete assignments to all of the network variables $\mathcal{X}$ . The disadvantage of this approach is that each particle covers only a very small part of the space. A more effective notion is that of a collapsed particle . A collapsed particle speciﬁes an assignment $\mathbfit{w}$ only to some subset of the variables $W$ , associating with it the conditional distribution $P(\mathcal{X}\mid w)$ or some “summary” of it. 
 
 >  基于粒子的方法可以分为两类
 >  其中一类的方法在粒子生成的过程中加入变化，我们可以使用确定性的过程生成粒子，也可以从某个分布采样粒子
@@ -9115,10 +9115,10 @@ On the other axis, techniques use diferent notions of particles. Most simply, we
 The general framework for most of the discussion in this chapter is as follows. Consider some distribution $P(\mathcal X)$ , and assume we want to estimate the probability of some event $Y=y$ relative to $P$ , for some $Y\subseteq\mathcal{X}$ and $\pmb{y}\in V a l(\pmb{Y})$ More generally, we might want to estimate the expectation of some function $f(\mathcal{X})$ relative to $P$ ; this task is a generalization, since we can choose $f(\xi)=I\!\!\left\{\xi\langle Y\rangle=y\right\}$  , where we recall that $\xi\langle Y\rangle$ is e assignment in $\xi$ to the variables $Y$ . We approximate this expectation by generating a set of M particles, estimating the value of the function or its expectation relative to each of the generated particles, and then aggregating the results. 
 >  本章的讨论框架如下：
 >  考虑某个分布 $P(\mathcal X)$，我们要估计其中某个事件 $\pmb Y = \pmb y$ 的概率 ($\pmb Y \subseteq \mathcal X, \pmb y \in Val(\pmb Y)$)，更一般地说，我们要估计某个函数 $f(\mathcal X)$ 相对于 $P$ 的期望
->  显然第一种目标是第二种目标的特例，如果我们选择 $f(\xi) = \mathbf 1\{\xi\langle \pmb Y \rangle = \pmb y\}$ (其中 $\xi \langle \pmb Y \rangle$ 表示赋值 $\xi$ 中对 $\pmb Y$ 的赋值)，那么估计某个事件 $\pmb Y = \pmb y$ 的概率就是估计 $f(\xi)$ 相对于 $P$ 的期望，也就是
->  为了估计某个函数 $f(\mathcal X)$ 相对于 $P$ 的期望，我们通过生成一组粒子，计算函数相对于这些粒子的期望值，用该值作为近似
+>  显然，第一种目标是第二种目标的特例，如果我们选择 $f(\xi) = \mathbf 1\{\xi\langle \pmb Y \rangle = \pmb y\}$ (其中 $\xi \langle \pmb Y \rangle$ 表示赋值 $\xi$ 中对 $\pmb Y$ 的赋值)，那么估计某个事件 $\pmb Y = \pmb y$ 的概率就是估计 $f(\xi)$ 相对于 $P$ 的期望
+>  为了估计函数 $f(\mathcal X)$ 相对于 $P$ 的期望，我们通过生成一组粒子，计算函数相对于这些粒子的期望值，用该值作为近似
 
-For most of this chapter, we focus on methods that generate particles using random sampling: In section 12.1, we consider the simplest possible method, which simply generates samples from the original network. In section 12.2, we present a signiﬁcantly improved method that generates samples from a distribution that is closer to the posterior distribution. In section 12.3, we discuss a method based on Markov chains that deﬁnes a sampling process that, as it converges, generates samples from distributions arbitrarily close to the posterior. In section 12.5, we consider a very diferent type of method, one that generates particles deterministic ally by searching for high-probability instantiations in the joint distribution. Finally, in section 12.4, we extend these methods to the case of collapsed particles. We note that, unlike our discussion of exact inference, some of the methods presented in this chapter — forward sampling and likelihood weighting — apply (at least in their simple form) only to Bayesian networks, and not to Markov networks or chain graphs. 
+For most of this chapter, we focus on methods that generate particles using random sampling: In section 12.1, we consider the simplest possible method, which simply generates samples from the original network. In section 12.2, we present a signiﬁcantly improved method that generates samples from a distribution that is closer to the posterior distribution. In section 12.3, we discuss a method based on Markov chains that deﬁnes a sampling process that, as it converges, generates samples from distributions arbitrarily close to the posterior. In section 12.5, we consider a very different type of method, one that generates particles deterministic ally by searching for high-probability instantiations in the joint distribution. Finally, in section 12.4, we extend these methods to the case of collapsed particles. We note that, unlike our discussion of exact inference, some of the methods presented in this chapter — forward sampling and likelihood weighting — apply (at least in their simple form) only to Bayesian networks, and not to Markov networks or chain graphs. 
 >  我们生成粒子的方法一般采用随机采样
 >  12.1 节考虑最简单的方法，即从原网络中生成样本
 >  12.2 节从一个接近后验分布的分布生成样本
@@ -9141,11 +9141,11 @@ Consider the Student network, shown again in ﬁgure 12.1. We begin by sampling 
 
 ![[pics/PGM-Algorithm12.1.png]]
 
-As shown in algorithm 12.1, we sample the nodes in some order consistent with the partial order of the BN, so that by the time we sample a node we have values for all of its parents. We can then sample from the distribution deﬁned by the CPD and by the chosen values for the node’s parents. Note that the algorithm requires that we have the ability to sample from the distributions underlying our CPD. Such sampling is straightforward in the discrete case (see box 12.A), but subtler when dealing with continuous measures (see section 14.5.1). 
+As shown in algorithm 12.1, we sample the nodes in some order consistent with the partial order of the BN, so that by the time we sample a node we have values for all of its parents. We can then sample from the distribution deﬁned by the CPD and by the chosen values for the node’s parents. Note that the algorithm requires that we have the ability to sample from the distributions underlying our CPD. Such sampling is straightforward in the discrete case (see box 12. A), but subtler when dealing with continuous measures (see section 14.5.1). 
 >  在 algorithm 12.1 中，我们遵循 BN 定义的偏序对节点进行采样，因此当我们需要采样一个节点时，我们已经有了它所有父节点的值，此时我们直接从该节点的 CPD 中采样 (CPD 由其父节点当前的采样值定义)
 >  该方法要求我们直接从 CPD 中采样，CPD 为离散分布时较为容易，CPD 为连续分布的情况下则略微困难
 
-Box 12.A — Skill: Sampling from a Discrete Distribution. 
+Box 12. A — Skill: Sampling from a Discrete Distribution. 
 How do we generate a sample from a distribution? For a uniform distribution, we can use any pseudo-random number generator on our machine. Other distributions require more thought, and much work has been devoted in statistics to the problem of sampling from a variety of parametric distributions. Most obviously, consider a multinomial distribution $P(X)$ for $V a l(X)\,=\,\{x^{1},\cdot\,\cdot\,,x^{k}\}$ , which is deﬁned by parameters $\theta_{1},\ldots,\theta_{k}$ . This process can be done quite simply as follows: We generate a sample $s$ uniformly from the interval $[0,1]$ . We then partition the interval into $k$ subintervals: $[0,\theta_{1}),[\theta_{1},\theta_{1}+\theta_{2}),.\;.\;.,$ ; at is, the i th interval is $\textstyle[\sum_{j=1}^{i-1}\theta_{j},\sum_{j=1}^{i}\theta_{j})$ . If $s$ is in the i th interval, then the sampled value is $x^{i}$ . We can determine the interval for s using binary search in time $O(\log k)$ . 
 
 This approach gives us a general-purpose solution for generating samples from the CPD of any discrete-valued variable: given a parent assignment $\mathbfit{u}$ , we can always generate the full conditional distribution $P(X\mid{\pmb u})$ and sample from it. (Of course, more efcient methods may exist if $X$ has $^a$ large value space or a CPD that requires an expensive computation.) As we discuss in section 14.5.1, the problem of sampling from continuous CPDs is considerably more complex. 
@@ -9240,7 +9240,7 @@ The problem, of course, is that the number of unrejected particles can be quite 
 Unfortunately, in many applications, low-probability evidence is the rule rather than the exception. For example, in medical diagnosis, any set of symptoms typically has low probability. In general, as the number of observe variables $k=|E|$ grows, the probability of the evidence usually decreases exponentially with k . 
 >  在许多应用中，evidence 的概率 $P(\pmb e)$ 低是常态，并且，随着 evidence 涉及到的变量数量 $k = |\pmb E|$ 增长，evidence 的概率会随着 $k$ 指数级下降
 
-An alternative approach to the problem is to use a separate estimator for $P(e)$ and for $P(\pmb{y},e)$ and then compute the ratio. We can show that if we have estimators of low relative error for both of these quantities, then their ratio will also have a low relative error (exercise 12.2). Unfortunately, this approach only moves the problem from one place to the other. As we said, **the number of samples required to achieve a low relative error also grows linearly with $1/P(e)$ . The number of samples required to get low absolute error does not grow with $P(e)$ . However, it is not hard to verify (exercise 12.2) that a bound on the absolute error for $P(e)$ does not sufce to get any type of bound (relative or absolute) for the ratio $P(\pmb{y},\pmb{e})/P(\pmb{e})$ .** 
+An alternative approach to the problem is to use a separate estimator for $P(e)$ and for $P(\pmb{y},e)$ and then compute the ratio. We can show that if we have estimators of low relative error for both of these quantities, then their ratio will also have a low relative error (exercise 12.2). Unfortunately, this approach only moves the problem from one place to the other. As we said, **the number of samples required to achieve a low relative error also grows linearly with $1/P(e)$ . The number of samples required to get low absolute error does not grow with $P(e)$ . However, it is not hard to verify (exercise 12.2) that a bound on the absolute error for $P(e)$ does not suffice to get any type of bound (relative or absolute) for the ratio $P(\pmb{y},\pmb{e})/P(\pmb{e})$ .** 
 >  还有一种方法是分别估计 $P(\pmb e)$ 和 $P(\pmb y, \pmb e)$，然后计算它们的比值
 >  可以证明，如果对于 $P(\pmb e)$ 和 $P(\pmb y, \pmb e)$ 的估计的相对误差都较小，则它们的比值和 $P(\pmb y \mid \pmb e)$ 的相对误差也会较小
 >  但问题仍然存在，我们知道要达到特定相对误差所需要的采样样本数量随着 $1/P(\pmb e)$ 线性增长，因此对于 $P(\pmb e)$ 小的 evidence 我们仍需要大量的样本
@@ -9281,7 +9281,7 @@ Consider the same network, where our evidence set now consists of $l^{0},s^{1}$ 
 
 ![[pics/PGM-Algorithm12.2.png]]
 
-Generalizing this intuition results in an algorithm called likelihood weighting (LW) , shown in algorithm 12.2. The name indicates that the weights of diferent samples are derived from the likelihood of the evidence accumulated throughout the sampling process. 
+Generalizing this intuition results in an algorithm called likelihood weighting (LW) , shown in algorithm 12.2. The name indicates that the weights of different samples are derived from the likelihood of the evidence accumulated throughout the sampling process. 
 >  我们将这一直觉推广为似然加权算法，见 algorithm 12.2
 >  似然加权意味着不同样本的权重来自于 evidence 在采样过程中累计的似然
 
@@ -9315,7 +9315,7 @@ In some cases, however, we might prefer to generate samples from a diferent dist
 >  在一些情况下，我们可能希望从另一个分布 $Q$ 进行采样，该分布称为提案分布或采样分布
 >  这样做的一大原因在于有时从 $P$ 中生成样本是非常昂贵的，例如 $P$ 是一个 BN 的后验分布，或者 MN 的先验分布
 
-In this section, we discuss how we might obtain estimates of an expectation relative to $P$ by generating samples from a diferent distribution $Q$ . In general, the proposal distribution $Q$ can be arbitrary; we require only that $Q({\pmb x})\,>\,0$ whenever $P(\pmb{x})\;>\;0$ , so that $Q$ does not “ignore” any states that have nonzero probability relative to $P$ . (More formally, the support of a distribution $P$ is the set of points ${x}$ for which $P({\pmb x})\,>\,0$ ; we require that the support of $Q$ contain the support of $P$ .) However, as we will see, the computational performance of this approach does depend strongly on the extent to which $Q$ is similar to $P$ . 
+In this section, we discuss how we might obtain estimates of an expectation relative to $P$ by generating samples from a different distribution $Q$ . In general, the proposal distribution $Q$ can be arbitrary; we require only that $Q({\pmb x})\,>\,0$ whenever $P(\pmb{x})\;>\;0$ , so that $Q$ does not “ignore” any states that have nonzero probability relative to $P$ . (More formally, the support of a distribution $P$ is the set of points ${x}$ for which $P({\pmb x})\,>\,0$ ; we require that the support of $Q$ contain the support of $P$ .) However, as we will see, the computational performance of this approach does depend strongly on the extent to which $Q$ is similar to $P$ . 
 >  本节中，我们讨论用 $Q$ 中采样的样本对相对于 $P$ 的期望进行估计
 >  提案分布 $Q$ 通常可以是任意的，我们仅要求当 $P(\pmb x) > 0$ 时 $Q(\pmb x)>0$，故 $Q$ 不会“忽略” 任何相对于 $P$ 具有非零概率的状态
 
@@ -9325,7 +9325,6 @@ If we generate samples from $Q$ instead of $P$ , we cannot simply average the $f
 $$
 \pmb{{E}}_{P(\pmb X)}[f(\pmb X)]=\pmb{{E}}_{Q(\pmb X)}\bigg[f(\pmb X)\frac{P(\pmb X)}{Q(\pmb X)}\bigg].\tag{12.7}
 $$ 
-
 This equality follows directly:
 
 $$
@@ -9383,7 +9382,7 @@ To understand the constant term in this expression, consider the (uninteresting)
 $$
 \begin{array}{r c l}{\pmb E_{Q(\pmb X)}\left[w(\pmb X)^{2}\right]-\pmb E_{P(\pmb X)}[1]}&{=}&{\pmb E_{Q(\pmb X)}\Biggl[\left(\frac{P(\pmb X)}{Q(\pmb X)}\right)^{2}\Biggr]-\left(\pmb E_{Q(\pmb X)}\left[\frac{P(\pmb X)}{Q(\pmb X)}\right]\right)^{2},}\end{array}
 $$ 
-which is simply the variance of the weighting function $P(\pmb x)/Q(\pmb x)$ . Thus, the more diferent $Q$ is from $P$ , the higher the variance of this estimator. When $f$ is an indicator function over part of the space, we obtain an identical expression restricted to the relevant subspace. 
+which is simply the variance of the weighting function $P(\pmb x)/Q(\pmb x)$ . Thus, the more different $Q$ is from $P$ , the higher the variance of this estimator. When $f$ is an indicator function over part of the space, we obtain an identical expression restricted to the relevant subspace. 
 >  考虑 $f$ 为恒等函数 $f\equiv 1$ 时的情况，我们可以将 (12.9) 中的方差简化为上式
 >  可以看到，此时该方差就是权重函数 $P(\pmb x)/Q(\pmb x)$ 相对于 $Q$ 的方差 (注意 $P(\pmb x)/ Q(\pmb x)$ 相对于 $Q$ 的期望是 1)
 >  因此，如果 $Q$ 和 $P$ 的差异越大，则方差项 $\sigma_Q$ 就越大，也就是误差项 $\epsilon_{\mathcal D}$ 的方差越大，因此估计器的方差等于 $E[\epsilon_{\mathcal D}^2]  = Var[\epsilon_{\mathcal D}] + E[\epsilon_{\mathcal D}]^2 = Var[\epsilon_{\mathcal D}]$ 就越大
@@ -9403,8 +9402,8 @@ Note that we should avoid cases where our sampling probability $Q(\pmb X)\ll P(\
 >  因此，在使用非常偏斜的采样分布时必须小心，$Q(\pmb X)$ 仅在确保 $P(\pmb X) f(\pmb X$) 非常小时，才可以接近于零
 
 #### 12.2.2.2 Normalized Importance Sampling 
-One problem with the preceding discussion is that it assumes that $P$ is known. A frequent situation, and one of the most common reasons why we must resort to sampling from a diferent distribution $Q$ , is that $P$ is known only up to a normalizing constant $Z$ . Speciﬁcally, what we have access to is a function ${\tilde{P}}(X)$ such that $\tilde{P}$ is not a normalized distribution, but ${\tilde{P}}(X)=Z P(X)$ . For example, in a Bayesi work $\mathcal{B}$ , we might have (for $X=\mathcal{X}$ ) $P(\mathcal X)$ be our posterior distribution $P_{\mathcal{B}}(\mathcal{X}\mid e)$ , and $\tilde{P}(\mathcal X)$ b the unnormalized distribution $P_{\mathcal{B}}(\mathcal{X},e)$ . In a Markov network, $P(\mathcal X)$ might be $P_{\mathcal H}(\mathcal X)$ , and $\tilde{P}$ might be the unnormalized distribution obtained by multiplying together the clique potentials, but without normalizing by the partition function. 
->  之前的讨论中假设了 $P$ 是已知的，而一般我们需要转而在 $Q$ 中采样的原因往往是 $P$ 仅仅知道其规范化常数 $Z$
+One problem with the preceding discussion is that it assumes that $P$ is known. A frequent situation, and one of the most common reasons why we must resort to sampling from a different distribution $Q$ , is that $P$ is known only up to a normalizing constant $Z$ . Speciﬁcally, what we have access to is a function ${\tilde{P}}(X)$ such that $\tilde{P}$ is not a normalized distribution, but ${\tilde{P}}(X)=Z P(X)$ . For example, in a Bayesian work $\mathcal{B}$ , we might have (for $X=\mathcal{X}$ ) $P(\mathcal X)$ be our posterior distribution $P_{\mathcal{B}}(\mathcal{X}\mid e)$ , and $\tilde{P}(\mathcal X)$ b the unnormalized distribution $P_{\mathcal{B}}(\mathcal{X},e)$ . In a Markov network, $P(\mathcal X)$ might be $P_{\mathcal H}(\mathcal X)$ , and $\tilde{P}$ might be the unnormalized distribution obtained by multiplying together the clique potentials, but without normalizing by the partition function. 
+>  之前的讨论中假设了 $P$ 是已知的，而一般我们需要转而在 $Q$ 中采样的原因往往是距离知道 $P$ 还相差一个规范化常数 $Z$
 >  具体来说，我们能够访问的是一个函数 ${\tilde{P}}(\pmb X)$, ${\tilde{P}}$ 不是一个规范化的分布，但 ${\tilde{P}}(\pmb X) = Z P(\pmb X)$
 >  例如，在 BN $\mathcal B$ 中，我们可能有 $P(\mathcal X)$ 为后验分布 $P_{\mathcal B}(\mathcal X\mid \pmb e)$ ，而 $\tilde P(\mathcal X)$ 为未规范化的分布 $P_{\mathcal B}(\mathcal X, \pmb e)$；在 MN 中，$P(\mathcal X)$ 可以为 $P_{\mathcal H}(\mathcal X)$，而 $\tilde P$ 为将所有团势能相乘得到的未规范化的分布 (没有除以分区函数)
 
@@ -9446,7 +9445,7 @@ $$
 We call this estimator the normalized importance sampling estimator ; it is also known as the weighted importance sampling estimator. 
 >  称该估计器为规范化的重要性采样估计器，也称为加权的重要性采样估计器
 
-The normalized estimator involves a quotient, and it is therefore much more difcult to analyze theoretically. However, unlike the unnormalized estimator of equation (12.8), the normalized estimator is not unbiased. This bias is particularly immediate in the case $M=1$ . Here, the estimator reduces to: 
+The normalized estimator involves a quotient, and it is therefore much more difficult to analyze theoretically. However, unlike the unnormalized estimator of equation (12.8), the normalized estimator is not unbiased. This bias is particularly immediate in the case $M=1$ . Here, the estimator reduces to: 
 
 $$
 \frac{f(\pmb{x}[1])w(\pmb{x}[1])}{w(\pmb{x}[1])}=f(\pmb{x}[1]).
@@ -9462,9 +9461,9 @@ One can show that the variance of the importance sampling estimator with $M$ dat
 $$
 {V a r}_{P}\Big[\hat{\pmb{E}}_{D}(f(\pmb{X}))\Big]\approx\frac{1}{M}{ V a r}_{P}[f(\pmb{X})](1+{V a r}_{Q}[w(\pmb{X})]),\tag{12.14}
 $$ 
-which also goes down as $1/M$ . Theoretically, this variance and the variance of the unnormalized estimator (equation (12.8)) are incomparable, and each of them can be larger than the other. Indeed, it is possible to construct examples where each of them performs better than the other. In practice, however, the variance of the normalized estimator is typically lower than that of the unnormalized estimator. This reduction in variance often outweighs the bias term, so that the normalized estimator is often used in place of the unnormalized estimator, even in cases where $P$ is known and we can sample from it efectively. 
+which also goes down as $1/M$ . Theoretically, this variance and the variance of the unnormalized estimator (equation (12.8)) are incomparable, and each of them can be larger than the other. Indeed, it is possible to construct examples where each of them performs better than the other. In practice, however, the variance of the normalized estimator is typically lower than that of the unnormalized estimator. This reduction in variance often outweighs the bias term, so that the normalized estimator is often used in place of the unnormalized estimator, even in cases where $P$ is known and we can sample from it effectively. 
 
->  可以证明 $M$ 个样本的规范化重要性采样估计器的方差的形式为 (12.14)，该方差随着 $1/M$ 下降
+>  可以证明 $M$ 个样本的重要性采样估计器的方差的形式为 (12.14)，该方差随着 $1/M$ 下降
 >  理论上该方差和未规范化重要性采样估计器的方差是不可比的，$M$ 相同时，不能保证在所有情况下一者比另一者更好
 >  实践中一般规范化估计器的方差更低，因此虽然存在偏置，我们还是常用规范化估计器替代未规范化的估计器，即便在 $P$ 已知的情况下
 
@@ -9504,12 +9503,12 @@ With this theoretical foundation, we can now describe the application of importa
 Assume that we are interested in a particular event $Z=z$ , either because we wish to estimate its probability, or because we have observed it as evidence. We wish to focus our sampling process on the parts of the joint that are consistent with this event. In this section, we deﬁne an importance sampling process that achieves this goal. 
 >  假定我们对特定事件 $\pmb Z = \pmb z$ 感兴趣，我们希望将采样过程聚焦在联合分布中和该事件一致的部分
 
-To gain some intuition, consider the network of ﬁgure 12.1 and assume that we are interested in a particular event concerning a student’s grade: $G\,=\,g^{2}$ . We wish to bias our sampling toward parts of the space where this event holds. It is easy to take this event into consideration when sampling $L$ : we imply sample $L$ m $P(L\mid g^{2})$ . However, it is considerably more difcult to account for G ’s inﬂuence on $D,\,I$ , and S without doing inference in the network. 
+To gain some intuition, consider the network of ﬁgure 12.1 and assume that we are interested in a particular event concerning a student’s grade: $G\,=\,g^{2}$ . We wish to bias our sampling toward parts of the space where this event holds. It is easy to take this event into consideration when sampling $L$ : we imply sample $L$ m $P(L\mid g^{2})$ . However, it is considerably more difficult to account for G ’s inﬂuence on $D,\,I$ , and S without doing inference in the network. 
 >  考虑 figure 12.1 的例子，假设我们对事件 $G = g^2$ 感兴趣，故希望将我们的采样向该事件成立的空间中偏置
 >  在采样 $L$ 时，要偏置到该事件很简单，我们直接从 $P(L\mid g^2)$ 中进行采样，因为 $L$ 的 CPD 是由 $G$ 的值决定的
 >  但 $G$ 的值对网络中的其他变量 $D, I, S$ 的影响如果不执行推理则不明确
 
-Our goal is to deﬁne a simple proposal distribution that allows for the effcient generation of particles. We therefore avoid the problem of accounting for the effect of the event on nondescendants; we deﬁne a proposal distribution that “sets” the value of a $Z\in \pmb Z$ to take the prespeciﬁed value in a way that inﬂuences the sampling process for its descendants, but not for the other nodes in the network. The proposal distribution is most easily described in terms of a Bayesian network: 
+Our goal is to deﬁne a simple proposal distribution that allows for the efficient generation of particles. We therefore avoid the problem of accounting for the effect of the event on nondescendants; we deﬁne a proposal distribution that “sets” the value of a $Z\in \pmb Z$ to take the prespeciﬁed value in a way that inﬂuences the sampling process for its descendants, but not for the other nodes in the network. The proposal distribution is most easily described in terms of a Bayesian network: 
 >  我们的目标是定义一个简单的可以高效采样我们感兴趣的粒子的提案分布，因此我们回避考虑该事件对于它的非后继节点的影响
 >  我们定义提案分布的方式是通过将变量 $Z\in \pmb Z$ 的值设定为观察值来影响关于它的后继节点的采样过程，这不会影响网络中的其他节点
 >  这样定义的提案分布可以描述为一个贝叶斯网络
@@ -9625,44 +9624,44 @@ We can therefore estimat nditional probability $P(\pmb{y}\mid\pmb{e})$ in two ph
 $$
 \hat{P}_{\mathcal{D}}(\pmb{y}\mid \pmb e)=\frac{\hat{P}_{\mathcal{D}}(\pmb{y},\pmb e)}{\hat{P}_{\mathcal{D}^{\prime}}(\pmb e)}=\frac{1/M\sum_{m=1}^{M}w[m]}{1/M^{\prime}\sum_{m=1}^{M^{\prime}}w^{\prime}[m]}.\tag{12.19}
 $$ 
-In ratio LW, the numerator and denominator are both using unnormalized importance sampling, which admits a rigorous theoretical analysis. Thus, we can now provide bounds on the number of samples $M$ required to obtain a good estimate for both $P(\pmb{y},\pmb e)$ and $P(\pmb e)$ . 
+In ratio LW, the numerator and denominator are both using unnormalized importance sampling, which admits a rigorous theoretical analysis. Thus, we can now provide bounds on the number of samples $M$ required to obtain a good estimate for both $P (\pmb{y},\pmb e)$ and $P (\pmb e)$ . 
 
->  考虑为特定的事件 $\pmb y$ 计算条件概率 $P(\pmb y \mid \pmb e)$，
->  一个直接的方法是比率似然加权，即我们用 $P(\pmb y, \pmb e)/ P(\pmb e)$ 计算条件概率，其中分母和分子分别使用未规范化的重要性采样 (等价于似然加权算法) 进行估计
->  具体地说，估计分子 $P(\pmb y, \pmb e)$ 时，我们将 $\pmb Y = \pmb y, \pmb E = \pmb e$ 一起作为 evidence 应用 algorithm 12.2 对 $P(\pmb y, \pmb e)$ 进行采样估计；估计分母 $P(\pmb e)$ 时，我们将 $\pmb e$ 作为 evidence 应用 algorithm 12.2 进行另一次采样估计，如 (12.19) 所示
->  在比率似然加权中，分母和分子都使用未规范化的重要性采样，因为未规范化的重要性采样有严格的理论分析界，故我们可以为估计好 $P(\pmb y, \pmb e), P(\pmb e)$ 给出关于样本数量 $M$ 的界
+>  考虑为特定的事件 $\pmb y$ 计算条件概率 $P (\pmb y \mid \pmb e)$，
+>  一个直接的方法是比率似然加权，即我们用 $P (\pmb y, \pmb e)/ P (\pmb e)$ 计算条件概率，其中分母和分子分别使用未规范化的重要性采样 (等价于似然加权算法) 进行估计
+>  具体地说，估计分子 $P (\pmb y, \pmb e)$ 时，我们将 $\pmb Y = \pmb y, \pmb E = \pmb e$ 一起作为 evidence 应用 algorithm 12.2 对 $P (\pmb y, \pmb e)$ 进行采样估计；估计分母 $P (\pmb e)$ 时，我们将 $\pmb e$ 作为 evidence 应用 algorithm 12.2 进行另一次采样估计，如 (12.19) 所示
+>  在比率似然加权中，分母和分子都使用未规范化的重要性采样，因为未规范化的重要性采样有严格的理论分析界，故我们可以为估计好 $P (\pmb y, \pmb e), P (\pmb e)$ 给出关于样本数量 $M$ 的界
 
 #### 12.2.3.4 Normalized Likelihood Weighting 
-Ratio LW allows us to estimate the probability of a single query $P(\pmb{y}\mid\pmb{e})$ . In many cases, however, we are inter ted in estimating an entire joint distribution $P(\pmb Y\mid \pmb e)$ for some variable or subset of variables Y . We can answer such a query by running ratio LW for each $\pmb{y}\in V a l(\pmb{Y})$ , but this approach is typically too computationally expensive to be practical. 
->  比率似然加权可以用于估计单个查询 $P(\pmb y \mid \pmb e)$ 的概率
->  如果我们感兴趣整个后验分布 $P(\pmb Y \mid \pmb e)$，则为每个 $\pmb y \in Val(\pmb Y)$ 执行一次采样估计显然不现实
+Ratio LW allows us to estimate the probability of a single query $P (\pmb{y}\mid\pmb{e})$ . In many cases, however, we are inter ted in estimating an entire joint distribution $P (\pmb Y\mid \pmb e)$ for some variable or subset of variables Y . We can answer such a query by running ratio LW for each $\pmb{y}\in V a l (\pmb{Y})$ , but this approach is typically too computationally expensive to be practical. 
+>  比率似然加权可以用于估计单个查询 $P (\pmb y \mid \pmb e)$ 的概率
+>  如果我们感兴趣整个后验分布 $P (\pmb Y \mid \pmb e)$，则为每个 $\pmb y \in Val (\pmb Y)$ 执行一次采样估计显然不现实
 
-An alternative approach is to use normalized likelihood weighting , which is based on the normalized importance sampling estimator of equation (12.13). In this application, our target distribution is $P(\mathcal{X})=\operatorname{P_{\mathcal{B}}}(\mathcal{X}\mid e)$ . As we mentioned, we do not have access to $P$ directly; rather, we can evaluate $\tilde{P}(\mathcal{X})=P_{\mathcal{B}}(\mathcal{X},e)$ , which is the probability of a full assignment and can be easily computed via the chain rule. In this case, we are trying to estimate the expectation of a function $f$ which is the indicator function of the query ${y}$ : $f(\xi)=I\!\!\left\{\xi\langle Y\rangle=y\right\}$ . Applying the normalized importance sampling estimator of equation (12.13) to this setting, we obtain precisely the estimator of equation (12.6). 
+An alternative approach is to use normalized likelihood weighting , which is based on the normalized importance sampling estimator of equation (12.13). In this application, our target distribution is $P (\mathcal{X})=\operatorname{P_{\mathcal{B}}}(\mathcal{X}\mid e)$ . As we mentioned, we do not have access to $P$ directly; rather, we can evaluate $\tilde{P}(\mathcal{X})=P_{\mathcal{B}}(\mathcal{X}, e)$ , which is the probability of a full assignment and can be easily computed via the chain rule. In this case, we are trying to estimate the expectation of a function $f$ which is the indicator function of the query ${y}$ : $f (\xi)=I\!\!\left\{\xi\langle Y\rangle=y\right\}$ . Applying the normalized importance sampling estimator of equation (12.13) to this setting, we obtain precisely the estimator of equation (12.6). 
 >  考虑采用规范化似然加权，比率似然加权基于未规范化的重要性采样，规范化似然加权则基于规范化的重要性采样
->  我们的目标分布是 $P_{\mathcal B}(\mathcal X \mid \pmb e)$，记为 $P(\mathcal X)$
->  我们难以直接访问目标分布 $P(\mathcal X)$，但可以访问其未规范化的分布 $\tilde P(\mathcal X) = P_{\mathcal B}(\mathcal X , \pmb e)$ (因为 $\mathcal X, \pmb e$ 是对 $\mathcal B$ 中全部变量的完整赋值，故其概率可以利用 $P_{\mathcal B}$ 的分解进行计算)
->  我们应用 (12.13) 的规范化采样估计器，估计函数 $f(\xi) = \mathbf 1 \{\xi\langle \pmb Y \rangle = \pmb y\}$ 相对于 $P_{\mathcal B}(\mathcal X\mid \pmb e)$ 的期望
+>  我们的目标分布是 $P_{\mathcal B}(\mathcal X \mid \pmb e)$，记为 $P (\mathcal X)$
+>  我们难以直接访问目标分布 $P (\mathcal X)$，但可以访问其未规范化的分布 $\tilde P (\mathcal X) = P_{\mathcal B}(\mathcal X , \pmb e)$ (因为 $\mathcal X, \pmb e$ 是对 $\mathcal B$ 中全部变量的完整赋值，故其概率可以利用 $P_{\mathcal B}$ 的分解进行计算)
+>  我们应用 (12.13) 的规范化采样估计器，估计函数 $f (\xi) = \mathbf 1 \{\xi\langle \pmb Y \rangle = \pmb y\}$ 相对于 $P_{\mathcal B}(\mathcal X\mid \pmb e)$ 的期望
 
 >  该方法和上一种方法的差别就在于该方法的分子分母是用同一轮采样得到的同一组样本一起估计的，而不是分别为分母分子进行一轮采样
 
-**The quality of the importance sampling estimator depends largely on how close the proposal distribution $Q$ is to the target distribution $P$ . We can gain intuition for this question by considering two extreme cases. If all of the evidence in our network is at the roots, the proposal distribution is precisely the posterior, and there is no need to compensate; indeed, no evidence is encountered along the way, and all samples will have the same weight $P(e)$ . On the other side of the spectrum, if all of the evidence is at the leaves, our proposal distribution $Q(\mathcal X)$ is the prior distribution $P_{\mathcal{B}}(\mathcal{X})$ , leaving the correction purely to the weights. In this situation, LW will work reasonably only if the prior is similar to the posterior. Otherwise, most of our samples will be irrelevant, a fact that will be reﬂected by their low weight.** For example, consider a medical-diagnosis setting, and assume that our evidence is a very unusual combination of symptoms generated by only one very rare disease. Most samples will not involve this disease and will give only very low probability to this combination of symptoms. Indeed, the combinations sampled are likely to be irrelevant and are not useful at all for understanding what disease the patient has. We return to this issue in section 12.2.4. 
+**The quality of the importance sampling estimator depends largely on how close the proposal distribution $Q$ is to the target distribution $P$ . We can gain intuition for this question by considering two extreme cases. If all of the evidence in our network is at the roots, the proposal distribution is precisely the posterior, and there is no need to compensate; indeed, no evidence is encountered along the way, and all samples will have the same weight $P (e)$ . On the other side of the spectrum, if all of the evidence is at the leaves, our proposal distribution $Q (\mathcal X)$ is the prior distribution $P_{\mathcal{B}}(\mathcal{X})$ , leaving the correction purely to the weights. In this situation, LW will work reasonably only if the prior is similar to the posterior. Otherwise, most of our samples will be irrelevant, a fact that will be reﬂected by their low weight.** For example, consider a medical-diagnosis setting, and assume that our evidence is a very unusual combination of symptoms generated by only one very rare disease. Most samples will not involve this disease and will give only very low probability to this combination of symptoms. Indeed, the combinations sampled are likely to be irrelevant and are not useful at all for understanding what disease the patient has. We return to this issue in section 12.2.4. 
 >  重要性采样估计器的质量很大程度上取决于提案分布 $Q$ 与目标分布 $P$ 的接近程度。
->  我们可以通过考虑两种极端情况来获得对此问题的直观理解。第一个极端是如果网络中的所有证据都在根节点处，那么提案分布就是后验分布，不需要补偿；实际上，在采样过程中不会遇到任何证据，所有样本将具有相同的权重 $P(\pmb e)$。
->  另一极端是，如果所有证据都在叶节点处，我们的提案分布 $Q(\mathcal{X})$ 就是先验分布 $P_{\mathcal{B}}(\mathcal{X})$，此时完全依赖权重来进行修正。在这种情况下，如果先验分布与后验分布相似，LW 算法才能合理工作。否则，大多数样本将是不相关的，这一事实会通过它们的低权重反映出来。
+>  我们可以通过考虑两种极端情况来获得对此问题的直观理解。第一个极端是如果网络中的所有证据都在根节点处，那么提案分布就是后验分布，不需要补偿；实际上，在采样过程中不会遇到任何证据，所有样本将具有相同的权重 $P (\pmb e)$。
+>  另一极端是，如果所有证据都在叶节点处，我们的提案分布 $Q (\mathcal{X})$ 就是先验分布 $P_{\mathcal{B}}(\mathcal{X})$，此时完全依赖权重来进行修正。在这种情况下，如果先验分布与后验分布相似，LW 算法才能合理工作。否则，大多数样本将是不相关的，这一事实会通过它们的低权重反映出来。
 >  例如，在医学诊断场景中，假设我们的证据是一组非常罕见的疾病导致的异常症状组合。大多数样本不会涉及这种疾病，并且只会给出非常低的症状组合概率。实际上，所采样的组合可能是不相关的，对理解患者患有什么疾病毫无帮助。我们在第 12.2.4 节中再回到这个问题。
 
 To understand the relationship between the prior and the posterior, note that the prior is a weighted average of the posteriors, weighted over diferent instantiations of the evidence: 
 >  为了理解先验分布和后验分布之间的关系，需要注意先验分布是通过对不同证据实例化的加权平均得到的：
 
 $$
-P(\mathcal{X})=\sum_{\pmb e}P(\pmb e)P(\mathcal{X}\mid \pmb e).
+P (\mathcal{X})=\sum_{\pmb e}P (\pmb e) P (\mathcal{X}\mid \pmb e).
 $$ 
-If the evidence is very likely, then it is a major component in this summation, and it is probably not too far from the prior. For example, in the network $\mathcal{B}^{s t u d e n t}$ , the event $S=s^{1}$ is fairly likely, and the posterior distribution $P_{\mathcal{B}^{s t u d e n t}}(\mathcal{X}\mid s^{1})$ is fairly similar to the prior. However, for unlikely evidence, the weight of $P(\mathcal{X}\mid e)$ is negligible, and there is nothing constraining the posterior to be similar to the prior. Indeed, our distribution $P_{\mathcal{B}^{s t u d e n t}}(\mathcal{X}\mid l^{0})$ is very diferent from the prior. 
+If the evidence is very likely, then it is a major component in this summation, and it is probably not too far from the prior. For example, in the network $\mathcal{B}^{s t u d e n t}$ , the event $S=s^{1}$ is fairly likely, and the posterior distribution $P_{\mathcal{B}^{s t u d e n t}}(\mathcal{X}\mid s^{1})$ is fairly similar to the prior. However, for unlikely evidence, the weight of $P (\mathcal{X}\mid e)$ is negligible, and there is nothing constraining the posterior to be similar to the prior. Indeed, our distribution $P_{\mathcal{B}^{s t u d e n t}}(\mathcal{X}\mid l^{0})$ is very diferent from the prior. 
 >  如果证据非常有可能出现，则它是此求和的主要组成部分，很可能与先验分布相差不大。
 >  例如，在网络 $\mathcal{B}^{s t u d e n t}$ 中，事件 $S=s^{1}$ 发生的可能性相对较高，后验分布 $P_{\mathcal{B}^{s t u d e n t}}(\mathcal{X}\mid s^{1})$ 与先验分布相当接近。
->  然而，对于不太可能的证据，$P(\mathcal{X}\mid \pmb e)$ 的权重可以忽略不计，因此没有什么可以约束后验分布与先验分布相似。事实上，我们的分布 $P_{\mathcal{B}^{s t u d e n t}}(\mathcal{X}\mid l^{0})$ 与先验分布有很大的不同。
+>  然而，对于不太可能的证据，$P (\mathcal{X}\mid \pmb e)$ 的权重可以忽略不计，因此没有什么可以约束后验分布与先验分布相似。事实上，我们的分布 $P_{\mathcal{B}^{s t u d e n t}}(\mathcal{X}\mid l^{0})$ 与先验分布有很大的不同。
 
-Unfortunately, there is currently no formal analysis for the number of particles required to achieve a certain quality of estimate using normalized importance sampling. In many cases, we simply preselect a number of particles that seems large enough, and we generate that number. Alternatively, we can use a heuristic approach that uses the total weight of the particles generated so far as guidance as to the extent to which they are representative. Thus, for example, we might decide to generate samples until a certain minimum bound on the total weight has been reached, as in Data-Dependent-LW . We note, however, that this approach is entirely heuristic in this case (as in all cases where we do not have bounds $[\ell,u]$ on our CPDs). Furthermore, there are cases where the evidence is simply unlikely in all conﬁgurations, and therefore all samples will have low weights. 
+Unfortunately, there is currently no formal analysis for the number of particles required to achieve a certain quality of estimate using normalized importance sampling. In many cases, we simply preselect a number of particles that seems large enough, and we generate that number. Alternatively, we can use a heuristic approach that uses the total weight of the particles generated so far as guidance as to the extent to which they are representative. Thus, for example, we might decide to generate samples until a certain minimum bound on the total weight has been reached, as in Data-Dependent-LW . We note, however, that this approach is entirely heuristic in this case (as in all cases where we do not have bounds $[\ell, u]$ on our CPDs). Furthermore, there are cases where the evidence is simply unlikely in all conﬁgurations, and therefore all samples will have low weights. 
 >  不幸的是，目前还没有关于使用归一化重要性采样达到一定质量估计所需的粒子数量的正式分析。
 >  在许多情况下，我们通常预先选择一个看起来足够大的粒子数量，然后生成这么多粒子。
 >  或者，我们可以使用一种启发式方法，根据迄今为止生成的所有粒子的总权重来确定它们代表性的程度。例如，我们可以决定一直生成样本直到总权重达到某个最小值，就像在 Data-Dependent-LW 方法中那样。
@@ -9685,19 +9684,19 @@ On the other hand, a signiﬁcant disadvantage of ratio LW is the fact that each
 >  可能由于这个最后一点，归一化似然加权在实践中使用得更为频繁。
 
 ### 12.2.4 Importance Sampling Revisited 
-The likelihood weighting algorithm uses, as its proposal distribution, the very simple distribution obtained from mutilating the network by eliminating edges incoming to observed variables. However, this proposal distribution can be far from optimal. For example, if the CPDs associated with these evidence variables are skewed, the importance weights are likely to be quite large, resulting in estimators with high variance. Indeed, somewhat surprisingly, even in very simple cases, the obvious proposal distribution may not be optimal. For example, if $X$ is not a root node in the network, the optimal proposal distribution for computing $P(X=x)$ may not be the distribution $P$ , even without evidence! (See exercise 12.5.) 
+The likelihood weighting algorithm uses, as its proposal distribution, the very simple distribution obtained from mutilating the network by eliminating edges incoming to observed variables. However, this proposal distribution can be far from optimal. For example, if the CPDs associated with these evidence variables are skewed, the importance weights are likely to be quite large, resulting in estimators with high variance. Indeed, somewhat surprisingly, even in very simple cases, the obvious proposal distribution may not be optimal. For example, if $X$ is not a root node in the network, the optimal proposal distribution for computing $P (X=x)$ may not be the distribution $P$ , even without evidence! (See exercise 12.5.) 
 >  似然加权算法使用了一种非常简单的提案分布，即通过消除观测变量的入射边来破坏网络原有的分布。然而，这种提案分布可能远非最优。
->  例如，如果这些证据变量的条件概率分布 (CPDs) 是偏斜的，则重要性权重可能会相当大，导致估计器的方差过高。事实上，即使在非常简单的情况下，显而易见的提案分布也可能不是最优的。例如，如果 $X$ 不是网络中的根节点，在没有证据的情况下，计算 $P(X=x)$ 的最优提案分布可能并不是分布 $P$ (参见习题 12.5)
+>  例如，如果这些证据变量的条件概率分布 (CPDs) 是偏斜的，则重要性权重可能会相当大，导致估计器的方差过高。事实上，即使在非常简单的情况下，显而易见的提案分布也可能不是最优的。例如，如果 $X$ 不是网络中的根节点，在没有证据的情况下，计算 $P (X=x)$ 的最优提案分布可能并不是分布 $P$ (参见习题 12.5)
 
-The importance sampling framework is very general, however, and several other proposal distributions have been utilized. For example, backward importance sampling generates samples for parents of evidence variables using the likelihood of their children. Most simply, if $X$ is a variable whose child $Y$ is observed to be $Y=y$ , we might generate some samples for $X$ from renormalized distribution $Q(X)\propto P(Y=y\mid X)$ . We can continue this process, sampling $X$ ’s parents from the likelihood of $X$ ’s sampled value. We can also propose more complex schemes that sample the value of a variable given a combination of sampled or observed values for some of its parents and/or children. One can also consider hybrid approaches that use some global approximate inference algorithm (such as those in chapter 11) to construct a proposal distribution, which is then used as the basis for sampling. **As long as the importance weights are computed correctly, we are guaranteed that this process is correct.** (See exercise 12.7.) This process can lead to signiﬁcant improvements in theory, and it does lead to improvements in some cases in practice. 
+The importance sampling framework is very general, however, and several other proposal distributions have been utilized. For example, backward importance sampling generates samples for parents of evidence variables using the likelihood of their children. Most simply, if $X$ is a variable whose child $Y$ is observed to be $Y=y$ , we might generate some samples for $X$ from renormalized distribution $Q (X)\propto P (Y=y\mid X)$ . We can continue this process, sampling $X$ ’s parents from the likelihood of $X$ ’s sampled value. We can also propose more complex schemes that sample the value of a variable given a combination of sampled or observed values for some of its parents and/or children. One can also consider hybrid approaches that use some global approximate inference algorithm (such as those in chapter 11) to construct a proposal distribution, which is then used as the basis for sampling. **As long as the importance weights are computed correctly, we are guaranteed that this process is correct.** (See exercise 12.7.) This process can lead to signiﬁcant improvements in theory, and it does lead to improvements in some cases in practice. 
 >  然而，重要性采样框架是非常通用的，目前也存在许多常利用的提案分布
->  例如，逆向重要性采样使用证据变量的似然性来生成其父节点的样本。最简单地，如果 $X$ 是一个变量，其后代 $Y$ 被观察到为 $Y=y$，我们可以从重新归一化的分布 $Q(X) \propto P(Y=y \mid X)$ 中生成一些 $X$ 的样本。
+>  例如，逆向重要性采样使用证据变量的似然性来生成其父节点的样本。最简单地，如果 $X$ 是一个变量，其后代 $Y$ 被观察到为 $Y=y$，我们可以从重新归一化的分布 $Q (X) \propto P (Y=y \mid X)$ 中生成一些 $X$ 的样本。
 >  我们可以继续这一过程，从 $X$ 的采样值的概率中采样其父节点。我们还可以提出更复杂的方案，根据其某些父节点和/或后代的采样值或观察值的组合来采样变量的值。
 >  人们也可以考虑混合方法，使用某些全局近似推理算法（如第 11 章中的算法）来构建提案分布，然后基于此分布进行采样。只要正确计算了重要性权重，我们就能保证这一过程是正确的。（参见习题 12.7）
 >  这一过程理论上可以带来显著改进，并且在实际中确实改善了一些情况下的结果。
 
 ## 12.3 Markov Chain Monte Carlo Methods 
-One of the limitations of likelihood weighting is that an evidence node afects the sampling only for nodes that are its descendants. The efect on nodes that are nondescendants is accounted for only by the weights. As we discussed, in cases where much of the evidence is at the leaves of the network, we are essentially sampling from the prior distribution, which is often very far from the desired posterior. 
+One of the limitations of likelihood weighting is that an evidence node affects the sampling only for nodes that are its descendants. The effect on nodes that are nondescendants is accounted for only by the weights. As we discussed, in cases where much of the evidence is at the leaves of the network, we are essentially sampling from the prior distribution, which is often very far from the desired posterior. 
 >  似然加权算法的一个限制在于采样过程中证据节点仅会影响其后代节点的采样，对于非后代节点的影响仅根据权重表示 (非后代节点的 CPD 不会受证据影响，因此其采样不受影响，但证据节点会根据其采样值影响粒子的权重，粒子的权重相应放缩了粒子的重要性，同时放缩了非后代节点的采样值，这个过程体现了证据节点对非后代节点的采样的影响)
 >  当证据节点都是网络的叶子节点时，我们本质上是在先验中采样 (叶子节点没有后代，故不影响任何节点的 CPD，在对应的残缺化网络前向采样等价于在原网络中前向采样，证据无法通过影响 CPD 的方式引入后验信息)，而该先验往往和后验相距甚远 (因此在先验中采样和在后验中采样的结果往往是差异很大的，我们不能保证重要性权重可以补足这一差异)
 
@@ -9716,31 +9715,31 @@ One idea for addressing the problem with forward sampling approaches is to try t
 
 ![[pics/PGM-Algorithm12.4.png]]
 
-To apply this algorithm to a network with evidence, we ﬁrst reduce all of the factors by the observations $\pmb e$ , so that the distribution $P_{\Phi}$ used in the algorithm corresponds to $P(\pmb X\mid \pmb e)$ . 
->  将该算法推广到带有证据的网络中，我们只需要首先将所有的因子根据观测 $\pmb e$ 简化即可，此时算法中使用的分布 $P_\Phi$ 实际上就是 $P(\pmb X\mid \pmb e)$
+To apply this algorithm to a network with evidence, we ﬁrst reduce all of the factors by the observations $\pmb e$ , so that the distribution $P_{\Phi}$ used in the algorithm corresponds to $P (\pmb X\mid \pmb e)$ . 
+>  将该算法推广到带有证据的网络中，我们只需要首先将所有的因子根据观测 $\pmb e$ 简化即可，此时算法中使用的分布 $P_\Phi$ 实际上就是 $P (\pmb X\mid \pmb e)$
 
 Example 12.4
-Let us revisit example 12.3, recalling that we have the observations s1; l0. In this case, our algorithm will generate samples over the variables D; I; G. The set of reduced factors Φ is therefore: P(I); P(D); P(G j I; D); P(s1 j I); P(l0 j G). Our algorithm begins by generating one sample, say by forward sampling. Assume that this sample is d(0) = d1; i(0) = i0; g(0) = g2. In the first iteration, it would now resample all of the unobserved variables, one at a time, in some predetermined order, say G; I; D. Thus, we first sample g(1) from the distribution PΦ(G j d1; i0)
+Let us revisit example 12.3, recalling that we have the observations s1; l0. In this case, our algorithm will generate samples over the variables D; I; G. The set of reduced factors Φ is therefore: P (I); P (D); P (G j I; D); P (s1 j I); P (l0 j G). Our algorithm begins by generating one sample, say by forward sampling. Assume that this sample is d (0) = d1; i (0) = i0; g (0) = g2. In the first iteration, it would now resample all of the unobserved variables, one at a time, in some predetermined order, say G; I; D. Thus, we first sample g (1) from the distribution PΦ(G j d1; i0)
 
-Note that because we are computing the distribution over a single variable given all the others, this computation can be performed very efciently: 
+Note that because we are computing the distribution over a single variable given all the others, this computation can be performed very efficiently: 
 
 $$
-\begin{array}{l l l}{{P_{\Phi}(G\mid d^{1},i^{0})}}&{{=}}&{{\displaystyle\frac{P(i^{0})P(d^{1})P(G\mid i^{0},d^{1})P(l^{0}\mid G)P(s^{1}\mid i^{0})}{\sum_{g}P(i^{0})P(d^{1})P(g\mid i^{0},d^{1})P(l^{0}\mid g)P(s^{1}\mid i^{0})}}}\\ {{}}&{{=}}&{{\displaystyle\frac{P(G\mid i^{0},d^{1})P(l^{0}\mid G)}{\sum_{g}P(g\mid i^{0},d^{1})P(l^{0}\mid g)}.}}\end{array}
+\begin{array}{l l l} {{P_{\Phi}(G\mid d^{1},i^{0})}} & {{=}} & {{\displaystyle\frac{P(i^{0})P(d^{1})P(G\mid i^{0},d^{1})P(l^{0}\mid G)P(s^{1}\mid i^{0})}{\sum_{g}P(i^{0})P(d^{1})P(g\mid i^{0},d^{1})P(l^{0}\mid g)P(s^{1}\mid i^{0})}} }\\ {{}} & {{=}} & {{\displaystyle\frac{P(G\mid i^{0},d^{1})P(l^{0}\mid G)}{\sum_{g}P(g\mid i^{0},d^{1})P(l^{0}\mid g)}.}} \end{array}
 $$ 
 Thus, we can compute the distribution simply by multiplying all factors that contain $G$ , with all other variables instantiated, and renormalizing to obtain a distribution over $G$ . 
 
-Having sampled $g^{(1)}\,=\,g^{3}$ , w ntinue to resampling $i^{(1)}$ from he distribution $P_{\Phi}(I\mid$ $d^{1},g^{3})$ , obtaining, for example, i $i^{(1)}\,=\,i^{1}$ ; note that the distribution for I is conditioned on the newly sampled value $g^{(1)}$ . Finally, we sample $d^{(1)}$ from $P_{\Phi}(D\mid g^{3},i^{1})$ , obtaining $d^{1}$ . The result of the ﬁrst iteration of sampling is, then, the sample $(i^{1},d^{1},g^{3})$ . The process now repeats. 
+Having sampled $g^{(1)}\,=\, g^{3}$ , w ntinue to resampling $i^{(1)}$ from he distribution $P_{\Phi}(I\mid$ $d^{1}, g^{3})$ , obtaining, for example, i $i^{(1)}\,=\, i^{1}$ ; note that the distribution for I is conditioned on the newly sampled value $g^{(1)}$ . Finally, we sample $d^{(1)}$ from $P_{\Phi}(D\mid g^{3}, i^{1})$ , obtaining $d^{1}$ . The result of the ﬁrst iteration of sampling is, then, the sample $(i^{1}, d^{1}, g^{3})$ . The process now repeats. 
 
-Note that, unlike forward sampling, the sampling process for $G$ takes into consideration the downstream evidence at its child $L$ . Thus, its sampling distribution is arguably closer to the posterior. Of course, it is not the true posterior, since it still conditions on the originally sampled values for $I,D$ , which were sampled from the prior distribution. 
+Note that, unlike forward sampling, the sampling process for $G$ takes into consideration the downstream evidence at its child $L$ . Thus, its sampling distribution is arguably closer to the posterior. Of course, it is not the true posterior, since it still conditions on the originally sampled values for $I, D$ , which were sampled from the prior distribution. 
 >  在上一个例子中，和前向采样不同的是，Gibbs 采样在对变量 $G$ 进行采样时，考虑到了它的子节点 $L$ (同时也是证据节点)，因此其采样分布可以认为更接近后验分布
 >  当然这也不是 $G$ 条件于证据的真实的后验分布，因为它还条件于从先验分布中对 $I, D$ 的采样值
 
-However, we now resample $I$ and $D$ from a distribution that conditions on the new value of $G$ , so one can imagine that their sampling distribution may also be closer to the posterior. Thus, perhaps the next sample of $G$ ,  which uses these new values for $I,D$ (and conditions on the evidence $l^{0}$ ), will be sampled from a distribution even closer to the posterior. 
+However, we now resample $I$ and $D$ from a distribution that conditions on the new value of $G$ , so one can imagine that their sampling distribution may also be closer to the posterior. Thus, perhaps the next sample of $G$ ,  which uses these new values for $I, D$ (and conditions on the evidence $l^{0}$ ), will be sampled from a distribution even closer to the posterior. 
 >  我们采样完 $G$ 之后，又从条件于 $G$ 的新采样值的分布中重新采样 $I, D$，我们可以认为 $I, D$ 各自的采样分布也更接近于它们的后验分布
 >  那么，对 $G$ 的下一次采样将条件于 $I, D$ 的新值，以及证据 $l^0$，可以认为这次的采样分布离后验分布更接近
 
-Indeed, this intuition is correct. One can show that, as we repeat this sampling process, the distribution from which we generate each sample gets closer and closer to the posterior $P_{\Phi}(\pmb X)=P(\pmb X\mid \pmb e)$ . 
->  上述直觉是正确的，可以证明，随着我们重复这个采样过程，我们生成每个样本的分布将越来越接近后验分布 $P_\Phi(\pmb X) = P(\pmb X \mid \pmb e)$
+Indeed, this intuition is correct. One can show that, as we repeat this sampling process, the distribution from which we generate each sample gets closer and closer to the posterior $P_{\Phi}(\pmb X)=P (\pmb X\mid \pmb e)$ . 
+>  上述直觉是正确的，可以证明，随着我们重复这个采样过程，我们生成每个样本的分布将越来越接近后验分布 $P_\Phi (\pmb X) = P (\pmb X \mid \pmb e)$
 
 In the subsequent sections, we formalize this intuitive argument using a framework called Markov chain Monte Carlo (MCMC) . This framework provides a general approach for generating samples from the posterior distribution, in cases where we cannot efciently sample from the posterior directly. In MCMC, we construct an iterative process that gradually samples from distributions that are closer and closer to the posterior. A key question is, of course, how many iterations we should perform before we can collect a sample as being (almost) generated from the posterior. In the following discussion, we provide the formal foundations for MCMC algorithms, and we try to address this and other important questions. We also present several valuable generalizations. 
 >  本节的后续中，我们使用 MCMC 框架形式化这一直观的论点
@@ -9753,15 +9752,11 @@ At a high level, a Markov chain is deﬁned in terms of a graph of states over w
 >  Markov 链被定义为一个状态图，采样算法在该图上进行随机游走
 >  从图模型的视角看，该图的节点是对变量 $\pmb X$ 的可能赋值 (每个赋值是 $\pmb X$ 的一个状态)
 
-homogeneous Markov chain 
-
-Example 12.5 
-
 **Deﬁnition 12.2** Markov chain transition model 
-A Markov chain is deﬁned via a state space $V a l(\pmb X)$ and a model that deﬁnes, for every state ${\pmb x}\in{{V a l}}(\pmb X)$ a next-state dis ion over $V a l(X)$ . More precisely, the transition del $\mathcal{T}$ speciﬁes for each pair of state ${\boldsymbol{x}},{\boldsymbol{x}}^{\prime}$ the probability $\tau(\pmb{x}\ \rightarrow\ \pmb{x}^{\prime})$ of going from ${x}$ to $\scriptstyle{\boldsymbol{x}}^{\prime}$ . This transition probability applies whenever the chain is in state ${x}$ . 
+A Markov chain is deﬁned via a state space $V a l (\pmb X)$ and a model that deﬁnes, for every state ${\pmb x}\in {{V a l}} (\pmb X)$ a next-state dis ion over $V a l (X)$ . More precisely, the transition del $\mathcal{T}$ speciﬁes for each pair of state ${\boldsymbol{x}},{\boldsymbol{x}}^{\prime}$ the probability $\tau (\pmb{x}\ \rightarrow\ \pmb{x}^{\prime})$ of going from ${x}$ to $\scriptstyle{\boldsymbol{x}}^{\prime}$ . This transition probability applies whenever the chain is in state ${x}$ . 
 >  定义
->  一个状态空间 $Val(\pmb X)$ 和为其中每个状态 $\pmb x\in Val(\pmb X)$ 定义了其下一个状态在 $Val(\pmb X)$ 上的分布的模型 (转换模型) 定义了一个 Markov 链
->  具体地说，转换模型 $\mathcal T$ 为每对状态 $\pmb x, \pmb x'$ 指定了状态转移概率 $\tau(\pmb x \rightarrow \pmb x')$，表示从 $\pmb x$ 转移到 $\pmb x'$ 的概率，当 Markov 链处于状态 $\pmb x$ 时，该转移概率就适用
+>  一个状态空间 $Val (\pmb X)$ 和为其中每个状态 $\pmb x\in Val (\pmb X)$ 定义了其下一个状态在 $Val (\pmb X)$ 上的分布的模型 (转换模型) 定义了一个 Markov 链
+>  具体地说，转换模型 $\mathcal T$ 为每对状态 $\pmb x, \pmb x'$ 指定了状态转移概率 $\tau (\pmb x \rightarrow \pmb x')$，表示从 $\pmb x$ 转移到 $\pmb x'$ 的概率，当 Markov 链处于状态 $\pmb x$ 时，该转移概率就适用
 
 We note that, in this deﬁnition and in the subsequent discussion, we restrict attention to homogeneous , where the system dynamics do not change over time.  
 >  我们进考虑同质的 Markov 链，即系统动态不会随时间而改变
@@ -9771,10 +9766,10 @@ We illustrate this concept with a simple example.
 Example 12.5
 Consider a Markov chain whose states consist of the nine integers -4, . . . , +4, arranged as points on a line. Assume that a drunken grasshopper starts out in position 0 on the line. At each point in time, it stays where it is with probability 0:5, or it jumps left and right with equal probability. Thus, T (i ! i) = 0:5, T (i ! i + 1) = 0:25, and T (i ! i - 1) = 0:25. However, the two end positions are blocked by walls; hence, if the grasshopper is in position +4 and tries to jump right, it remains in position $+4$ . Thus, for example, $\mathcal{T}(+4\rightarrow+4)=0.75$ . We can visualize the state space as a graph, with probability-weighted directed edges corresponding to transitions between diferent states. The graph for our example is shown in ﬁgure 12.3. 
 
-We can imagine a random sampling process, that deﬁnes a random sequence of states ${\pmb x}^{(0)},{\pmb x}^{(1)},{\pmb x}^{(2)},\breve{~}.\cdot\cdot$ . Because the transition model is random, the state of the process at step $t$ can be viewed as a random variable $X^{(t)}$ . We assume that the initial state $X^{{\bar{(0)}}}$ is distributed according to some initial state distribution $P^{(0)}(X^{(0)})$ . We can now deﬁne distributions over the subsequent states $P^{(1)}(X^{(1)}),P^{(2)}(X^{(2)}),.\,.\,.$ using the chain dynamics: 
+We can imagine a random sampling process, that deﬁnes a random sequence of states ${\pmb x}^{(0)},{\pmb x}^{(1)},{\pmb x}^{(2)},\breve{~}.\cdot\cdot$ . Because the transition model is random, the state of the process at step $t$ can be viewed as a random variable $X^{(t)}$ . We assume that the initial state $X^ {{\bar{(0)}} }$ is distributed according to some initial state distribution $P^{(0)}(X^{(0)})$ . We can now deﬁne distributions over the subsequent states $P^{(1)}(X^{(1)}), P^{(2)}(X^{(2)}),.\,.\,.$ using the chain dynamics: 
 
 $$
-P^{(t+1)}(\pmb{X}^{(t+1)}=\pmb{x}^{\prime})=\sum_{\pmb{x}\in V a l(\pmb{X})}P^{(t)}(\pmb{X}^{(t)}=\pmb{x}){\mathcal{T}}(\pmb{x}\rightarrow\pmb{x}^{\prime}).\tag{12.20}
+P^{(t+1)}(\pmb{X}^{(t+1)}=\pmb{x}^{\prime})=\sum_{\pmb{x}\in V a l (\pmb{X})}P^{(t)}(\pmb{X}^{(t)}=\pmb{x}){\mathcal{T}}(\pmb{x}\rightarrow\pmb{x}^{\prime}).\tag{12.20}
 $$ 
 >  考虑一个随机采样过程，该过程定义了一个关于状态的随机序列 $\pmb x^{(0)}, \pmb x^{(1)}, \pmb x^{(2)},\dots$
 >  状态转移带有随机性，故我们可以将第 $t$ 步的状态视作一个随机变量 $\pmb X^{(t)}$
@@ -9787,9 +9782,9 @@ For our purposes, the most important aspect of a Markov chain is its long-term b
 >  我们最关心 Markov 链的长期行为，也就是随着 $t$ 增大，$X^{(t)}$ 的分布会如何变化
 
 Example 12.6 
-Because the grasshopper’s motion is random, we can consider its location at time $t$ to be a random variable, which we denote $X^{(t)}$ . Consider the distribution over $X^{(t)}$ . Initially, the grasshopper is at 0 , so that $P(X^{(0)}\,=\,0)\,=\,1$ . At time 1 , we have that $X^{(1)}$ is 0 with probability 0 . 5 , $+1$ $-1$ h probabil 0 . 25 . At time 2 , we have that $X^{(2)}$ is 0 with pr bility $0.5^{2}+2\cdot0.25^{2}=0.375$ · $+1$ $-1$ ch with probability $2(0.5\cdot0.25)=0.25$ , and +2 and $-2$ − each with probability $0.25^{2}\,=\,0.0625$ . As the proces nues, the probability gets spread out over more and more of the states. For example, at time t $t=10$ , the probabilities of the diferent states range from 0 . 1762 for the value 0 , and 0 . 0518 for the values $\pm4$ . At $t=50$ , the distribution is almost uniform, with a range of 0 . 1107–0 . 1116 . 
+Because the grasshopper’s motion is random, we can consider its location at time $t$ to be a random variable, which we denote $X^{(t)}$ . Consider the distribution over $X^{(t)}$ . Initially, the grasshopper is at 0 , so that $P (X^{(0)}\,=\, 0)\,=\, 1$ . At time 1 , we have that $X^{(1)}$ is 0 with probability 0 . 5 , $+1$ $-1$ h probabil 0 . 25 . At time 2 , we have that $X^{(2)}$ is 0 with pr bility $0.5^{2}+2\cdot0.25^{2}=0.375$ · $+1$ $-1$ ch with probability $2 (0.5\cdot0.25)=0.25$ , and +2 and $-2$ − each with probability $0.25^{2}\,=\, 0.0625$ . As the proces nues, the probability gets spread out over more and more of the states. For example, at time t $t=10$ , the probabilities of the diferent states range from 0 . 1762 for the value 0 , and 0 . 0518 for the values $\pm4$ . At $t=50$ , the distribution is almost uniform, with a range of 0 . 1107–0 . 1116 . 
 
-Thus, one approach for sampling from the uniform distribution over the set $-4,\cdot\cdot\cdot,+4$ is to start of at 0 and then randomly choose the next state from the transition model for this chain. After some number of such steps $t$ , our state $X^{(t)}$ would be sampled from a distribution that is very close to uniform over this space. We note that this approach is not a very good one for sampling from a uniform distribution; indeed, the expected time required for such a chain even to reach the boundaries of the interval $[-K,K]$ is $K^{2}$ steps. However, this general approach applies much more broadly, including in cases where our “long-term” distribution is not one from which we can easily sample. 
+Thus, one approach for sampling from the uniform distribution over the set $-4,\cdot\cdot\cdot,+4$ is to start of at 0 and then randomly choose the next state from the transition model for this chain. After some number of such steps $t$ , our state $X^{(t)}$ would be sampled from a distribution that is very close to uniform over this space. We note that this approach is not a very good one for sampling from a uniform distribution; indeed, the expected time required for such a chain even to reach the boundaries of the interval $[-K, K]$ is $K^{2}$ steps. However, this general approach applies much more broadly, including in cases where our “long-term” distribution is not one from which we can easily sample. 
 >  Example 12.6 中，该 Markov 链随着 $t$ 增长，$X^{(t)}$ 的分布将逐渐趋近于均匀分布
 >  因此，一种从均匀分布采样的方式就是从该 Markov 链中逐渐采样，但该方法实际上并不是一个较优的方法，因为该 Markov 链达到 $[-K, K]$ 上的均匀分布的期望步数是 $K^2$
 
@@ -9804,41 +9799,41 @@ Markov chain Monte carlo (MCMC) sampling is a process that mirrors the dynamics 
 Intuitively, as the process converges, we would expect $P^{(t+1)}$ to be close to $P^{(t)}$ . Using equation (12.20), we obtain: 
 
 $$
-P^{(t)}(\pmb{x}^{\prime})\approx P^{(t+1)}(\pmb{x}^{\prime})=\sum_{\pmb{x}\in V a l(\pmb{X})}P^{(t)}(\pmb{x})\mathcal{T}(\pmb{x}\rightarrow\pmb{x}^{\prime}).
+P^{(t)}(\pmb{x}^{\prime})\approx P^{(t+1)}(\pmb{x}^{\prime})=\sum_{\pmb{x}\in V a l (\pmb{X})}P^{(t)}(\pmb{x})\mathcal{T}(\pmb{x}\rightarrow\pmb{x}^{\prime}).
 $$
 
 >  直观上，随着该过程收敛，$t+1$ 时刻的分布 $P^{(t+1)}$ 应该和 $t$ 时刻的分布 $P^{(t)}$ 足够接近
 
-At convergence, we would expect the resulting distribution $\pi(X)$ to be an equilibrium relative to the transition model; that is, the probability of being in a state is the same as the probability of transitioning into it from a randomly sampled predecessor. Formally: 
+At convergence, we would expect the resulting distribution $\pi (X)$ to be an equilibrium relative to the transition model; that is, the probability of being in a state is the same as the probability of transitioning into it from a randomly sampled predecessor. Formally: 
 >  收敛时，我们期望得到的分布 $\pi (\pmb X)$ 是转移模型的一个稳态，即某个状态的概率等于从一个随机采样的上一个状态转移到该状态的概率
 
 **Deﬁnition 12.3** 
-A distribution $\pi(\pmb X)$ is $a$ stationary distribution for a Markov chain $\mathcal{T}$ if it satisﬁes: 
+A distribution $\pi (\pmb X)$ is $a$ stationary distribution for a Markov chain $\mathcal{T}$ if it satisﬁes: 
 
 $$
-\pi(\pmb X=\pmb x^{\prime})=\sum_{\pmb x\in V a l(\pmb X)}\pi(\pmb X=\pmb x)\mathcal{T}(\pmb x\to \pmb x^{\prime}).\tag{12.21}
+\pi (\pmb X=\pmb x^{\prime})=\sum_{\pmb x\in V a l (\pmb X)}\pi (\pmb X=\pmb x)\mathcal{T}(\pmb x\to \pmb x^{\prime}).\tag{12.21}
 $$ 
 A stationary distribution is also called an invariant distribution . 
 
 >  定义
 >  满足 (12.21) 的分布称为 Markov 链 $\mathcal T$ 的稳态分布
->  如果我们将转移模型用矩阵 $A$ 表示，其中 $A_{ij} =  \mathcal T(\pmb x_i\rightarrow \pmb x_j)$ ，则稳态分布可以视作该矩阵特征值 1 对应的特征向量
+>  如果我们将转移模型用矩阵 $A$ 表示，其中 $A_{ij} =  \mathcal T (\pmb x_i\rightarrow \pmb x_j)$ ，则稳态分布可以视作该矩阵特征值 1 对应的特征向量
 >  显然，在该定义下，到达稳态分布之后，再转移得到的分布将还是稳态分布
 
-As we have already discussed, the uniform distribution is a stationary distribution for the Markov chain of example 12.5. To take a slightly diferent example: 
+As we have already discussed, the uniform distribution is a stationary distribution for the Markov chain of example 12.5. To take a slightly different example: 
 
 Example 12.7 
-Figure 12.4 shows an example of a diferent simple Markov chain where the transition probabilities are less uniform. By deﬁnition, the stationary distribution $\pi$ must satisfy the following three equations: 
+Figure 12.4 shows an example of a different simple Markov chain where the transition probabilities are less uniform. By deﬁnition, the stationary distribution $\pi$ must satisfy the following three equations: 
 
 $$
-\begin{array}{l c l}{{\pi(x^{1})}}&{{=}}&{{0.25\pi(x^{1})+0.5\pi(x^{3})}}\\ {{\pi(x^{2})}}&{{=}}&{{0.7\pi(x^{2})+0.5\pi(x^{3})}}\\ {{\pi(x^{3})}}&{{=}}&{{0.75\pi(x^{1})+0.3\pi(x^{2}),}}\end{array}
+\begin{array}{l c l} {{\pi(x^{1})}} & {{=}} & {{0.25\pi(x^{1})+0.5\pi(x^{3})}} \\ {{\pi(x^{2})}} & {{=}} & {{0.7\pi(x^{2})+0.5\pi(x^{3})}} \\ {{\pi(x^{3})}} & {{=}} & {{0.75\pi(x^{1})+0.3\pi(x^{2}),}} \end{array}
 $$ 
 as well as the one asserting that it is a legal distribution: 
 
 $$
-\pi(x^{1})+\pi(x^{2})+\pi(x^{3})=1.
+\pi (x^{1})+\pi (x^{2})+\pi (x^{3})=1.
 $$ 
-$I t$ is straightforward to verify that this system has a unique solution: $\pi(x^{1})=0.2$ , $\pi(x^{2})=0.5$ , $\pi(x^{3})=0.3$ . For example, the ﬁrst equation asserts that 
+$I t$ is straightforward to verify that this system has a unique solution: $\pi (x^{1})=0.2$ , $\pi (x^{2})=0.5$ , $\pi (x^{3})=0.3$ . For example, the ﬁrst equation asserts that 
 
 $$
 0.2=0.25\cdot0.2+0.5\cdot0.3,
@@ -9849,7 +9844,7 @@ In general, there is no guarantee that our MCMC sampling process converges to a 
 >  一般情况下，我们不能保证 MCMC 过程一定收敛到一个稳态分布
 
 Example 12.8 
-Consider th rkov chain ov $x^{1}$ and $x^{2}$ , suc that $\tau(x^{1}\rightarrow x^{2})=1$ and $\mathcal{T}(x^{2}\rightarrow$ $x^{1})=1$ . If P $P^{(0)}$ is such that $P^{(0)}(x^{1})=1$ , then the step t distribution $P^{(t)}$ has $P^{(t)}(x^{1})=1$ if $t$ is even, and $P^{(t)}(x^{2})=1$ if $t$ is odd. Thus, there is no convergence to a stationary distribution. 
+Consider th rkov chain ov $x^{1}$ and $x^{2}$ , suc that $\tau (x^{1}\rightarrow x^{2})=1$ and $\mathcal{T}(x^{2}\rightarrow$ $x^{1})=1$ . If P $P^{(0)}$ is such that $P^{(0)}(x^{1})=1$ , then the step t distribution $P^{(t)}$ has $P^{(t)}(x^{1})=1$ if $t$ is even, and $P^{(t)}(x^{2})=1$ if $t$ is odd. Thus, there is no convergence to a stationary distribution. 
 
 Markov chains such as this, which exhibit a ﬁxed cyclic behavior, are called periodic Markov chains . 
 >  不存在单个稳态分布，而是周期性地在一组分布中转换地 Markov 链被称为周期性 Markov 链
@@ -9859,16 +9854,16 @@ There is also no guarantee that the stationary distribution is unique: In some c
 >  这类情况发生的原因在于 Markov 链存在多个独立的区域，这些区域互相不可达
 >  这类 Markov 链称为可简化的 Markov 链
 
-We wish to restrict attention to Markov chains that have a unique stationary distribution, which is reached from any starting distribution $P^{(0)}$ . There are various conditions that sufce to guarantee this property. The condition most commonly used is a fairly technical one: that the chain be ergodic . In the context of Markov chains where the state space $V a l(X)$ is ﬁnite, the following condition is equivalent to this requirement: 
+We wish to restrict attention to Markov chains that have a unique stationary distribution, which is reached from any starting distribution $P^{(0)}$ . There are various conditions that suffice to guarantee this property. The condition most commonly used is a fairly technical one: that the chain be ergodic . In the context of Markov chains where the state space $V a l (X)$ is ﬁnite, the following condition is equivalent to this requirement: 
 >  我们关注仅存在可以从任意初始分布达到唯一稳态分布的 Markov 链
 >  保证这一性质成立的一个条件称为各态遍历性
->  如果 Markov 链的状态空间 $Val(\pmb X)$ 有限，各态遍历性等价于以下表述：
+>  如果 Markov 链的状态空间 $Val (\pmb X)$ 有限，各态遍历性等价于以下表述：
 
 **Definition 12.4** regular Markov chain
-A Markov chain is said to be regular if there exists some number $k$ such that for every $\pmb x, \pmb x' \in Val(\pmb X)$, the probability of getting from $\pmb x$ to $\pmb x'$ in exactly $k$ steps is > 0
+A Markov chain is said to be regular if there exists some number $k$ such that for every $\pmb x, \pmb x' \in Val (\pmb X)$, the probability of getting from $\pmb x$ to $\pmb x'$ in exactly $k$ steps is > 0
 
 >  定义
->  如果 Markov 链满足对于状态空间 $Val(\pmb X)$ 中的任意两个状态 $\pmb x, \pmb x'$，存在一个数 $k$，使得正好通过 $k$ 步从 $\pmb x$ 转移到 $\pmb x'$ 的概率大于零，该 Markov 链就是规则的
+>  如果 Markov 链满足对于状态空间 $Val (\pmb X)$ 中的任意两个状态 $\pmb x, \pmb x'$，存在一个数 $k$，使得正好通过 $k$ 步从 $\pmb x$ 转移到 $\pmb x'$ 的概率大于零，该 Markov 链就是规则的
 
 In our Markov chain of example 12.5, the probability of getting from any state to any state in exactly 9 steps is greater than 0. Thus, this Markov chain is regular. Similarly, in the Markov chain of example 12.7, we can get from any state to any state in exactly two steps. 
 
@@ -9880,7 +9875,7 @@ If a finite state Markov chain is regular, then it has a unique stationary distr
 >  定理
 >  如果 Markov chain 的状态空间有限，且 Markov chain 规则，则 Markov chain 有唯一的稳态分布
 
-Ensuring regularity is usually straightforward. Two simple conditions that together guarantee regularity in ﬁnite-state Markov chains are as follows. First, it is possible to get from any state to any state using a positive probability path in the state graph. Second, for each state $_{_{x}}$ , there is a positive probability of transitioning from $_{_{x}}$ to $_{_{x}}$ in one step (a self-loop). These two conditions together are sufcient but not necessary to guarantee regularity (see exercise 12.12). However, they often hold in the chains used in practice. 
+Ensuring regularity is usually straightforward. Two simple conditions that together guarantee regularity in ﬁnite-state Markov chains are as follows. First, it is possible to get from any state to any state using a positive probability path in the state graph. Second, for each state $_{_{x}}$ , there is a positive probability of transitioning from $_{_{x}}$ to $_{_{x}}$ in one step (a self-loop). These two conditions together are sufficient but not necessary to guarantee regularity (see exercise 12.12). However, they often hold in the chains used in practice. 
 >  对于有限状态的 Markov 链，以下两个条件成立是该 Markov 链满足规则性的充分条件：
 >  1. 状态图中，从任意一个状态转移到任意状态都存在一条概率为正的路径
 >  2. 对于每个状态 $\pmb x$，存在一条一步从 $\pmb x$ 转移到 $\pmb x$ 的概率为正的路径 (即自环)
@@ -9888,15 +9883,15 @@ Ensuring regularity is usually straightforward. Two simple conditions that toget
 
 #### 12.3.2.4 Multiple Transition Models 
 In the case of graphical models, our state space has a factorized structure — each state is an assignment to several variables. When deﬁning a transition model over this state space, we can consider a fully general case, where a transition can go from any state to any state. However, it is often convenient to decompose the transition model, considering transitions that update only a single component of the state vector at a time, that is, only a value for a single variable. 
->  在图模型中，整个状态空间应该是所有变量 $\mathcal X$ 的所有取值 $Val(\mathcal X)$
+>  在图模型中，整个状态空间应该是所有变量 $\mathcal X$ 的所有取值 $Val (\mathcal X)$
 >  该状态空间往往具有可分解的结构，即我们将对 $\mathcal X$ 的赋值拆分为对多组变量的赋值的组合
 >  在该状态空间上定义转移模型时，可以考虑分解转移模型，令每次转移仅更新状态变量的一个成分，即仅更新 $\mathcal X$ 中单个变量的取值
 
 Example 12.9 
-Consider an extension to our Grasshopper chain, where the grasshopper lives, not on a line, but in a two-dimensional plane. In this case, the state of the system is deﬁned via a pair of random variables $X,Y$ . Although we could deﬁne a joint transition model over both dimensions simultaneously, it might be easier to have separate transition models for the $X$ and $Y$ coordinate. 
+Consider an extension to our Grasshopper chain, where the grasshopper lives, not on a line, but in a two-dimensional plane. In this case, the state of the system is deﬁned via a pair of random variables $X, Y$ . Although we could deﬁne a joint transition model over both dimensions simultaneously, it might be easier to have separate transition models for the $X$ and $Y$ coordinate. 
 >  例如，在一个二维坐标系中，可以为 $X, Y$ 分别定义各自的转移模型，而不是在 $X, Y$ 上定义联合的转移模型
 
-In this case, as in several other settings, we often deﬁne a set of transition models, each with its own dynamics. Each such transition model $\mathcal{T}_{i}$ is called a kernel . In certain cases, the diferent kernels are necessary, because no single kernel on its own sufces to ensure regularity. This is the case in example 12.9. In other cases, having multiple kernels simply makes the state space more “connected” and therefore speeds the convergence to a stationary distribution. 
+In this case, as in several other settings, we often deﬁne a set of transition models, each with its own dynamics. Each such transition model $\mathcal{T}_{i}$ is called a kernel . In certain cases, the different kernels are necessary, because no single kernel on its own suffices to ensure regularity. This is the case in example 12.9. In other cases, having multiple kernels simply makes the state space more “connected” and therefore speeds the convergence to a stationary distribution. 
 >  我们可以定义一组转移模型，其中每个转移模型 $\mathcal T_i$ 称为一个 kernel
 >  一些情况下，多个转移模型是必要的，例如仅定义单个 kernel 无法保证 Markov chain 的规则性
 >  一些情况下，定义多个 kernel 可以让状态空间更 “相连”，进而加速向稳态分布的收敛
@@ -9906,7 +9901,7 @@ There are several ways of constructing a single Markov chain from multiple kerne
 >  常见方法是在每一步使用任意分布随机选择一个 kernel 用于转移；
 >  又或者可以循环使用各个 kernel，注意该方法没有定义一个同质的 Markov chain，因为第 $i$ 步使用的 kernel 和第 $i+1$ 步使用的 kernel 不同，但可以将该视为定义了另一个 Markov 链 $\mathcal T$，其每一步是原来的多步合并 (从 $\mathcal T_1$ 开始到 $\mathcal T_k$)
 
-In the case of graphical models, one approach is to deﬁne a multikernel chain, where we have a el $\mathcal{T}_{i}$ for eac ariable $X_{i}\in X$ $X_{-i}=\mathcal{X}-\{X_{i}\}$ , and let $\mathbf{\Delta}x_{i}$ denote an tion to $X_{i}$ . The model T $\mathcal{T}_{i}$ takes a state ( $({\boldsymbol{x}}_{-i},{\boldsymbol{x}}_{i})$ and transitions to a state of the form ( $(\pmb{x}_{-i},x_{i}^{\prime})$ . As − − we discussed, we can combine the diferent kernels into a single global model in various ways. 
+In the case of graphical models, one approach is to deﬁne a multikernel chain, where we have a el $\mathcal{T}_{i}$ for eac ariable $X_{i}\in X$ $X_{-i}=\mathcal{X}-\{X_{i}\}$ , and let $\mathbf{\Delta}x_{i}$ denote an tion to $X_{i}$ . The model T $\mathcal{T}_{i}$ takes a state ( $({\boldsymbol{x}}_{-i},{\boldsymbol{x}}_{i})$ and transitions to a state of the form ( $(\pmb{x}_{-i}, x_{i}^{\prime})$ . As − − we discussed, we can combine the diferent kernels into a single global model in various ways. 
 >  具体在图模型中，我们会定义一个多 kernel 的 Markov chain，其中每个变量 $X_i \in \pmb X$ 都有一个 kernel
 >  对于每个变量 $X_i$，我们令 $\pmb X_{-i} = \mathcal X - \{X_i\}$，同时令 $\pmb x_i$ 表示 $\pmb X_i$ 的实例
 >  我们将每个 kernel $\mathcal T_i$ 定义为接受形式为 $(\pmb x_{-i}, x_i)$ 的状态，转移到形式为 $(\pmb x_{-i}, x_i')$ 的状态，即仅改变 $X_i$ 的实例
@@ -9914,43 +9909,43 @@ In the case of graphical models, one approach is to deﬁne a multikernel chain,
 
 Regardless of the structure of the diferent kernels, **we can prove that a distribution is a stationary distribution for the multiple kernel chain by proving that it is a stationary distribution (satisﬁes equation (12.21)) for each of individual kernels $\mathcal{T}_{i}$ . Note that each kernel by itself is generally not ergodic; but as long as each kernel satisﬁes certain conditions (speciﬁed in deﬁnition 12.5) that imply that it has the desired stationary distribution, we can combine them to produce a coherent chain, which may be ergodic as a whole. This ability to add new types of transitions to our chain is an important asset in dealing with the issue of local maxima, as we will discuss.**
 >  无论不同 kernel 的结构如何，我们可以通过证明一个分布对于每个单独的 kernel $\mathcal{T}_{i}$ 都是稳态分布 (满足 eq 12.21) 来证明该分布是该多 kernel Markov chain 的稳态分布
->  需要注意的是，每个 kernel 本身通常不一定是各态遍历的；但是，只要每个 kernel 满足某些条件 (在定义12.5中指定)，这些条件就将表明该 kernel 具有所需的稳态分布，我们就可以将它们结合起来形成一个连贯的链，整体上这个链可能是各态遍历的
+>  需要注意的是，每个 kernel 本身通常不一定是各态遍历的；但是，只要每个 kernel 满足某些条件 (在定义 12.5 中指定)，这些条件就将表明该 kernel 具有所需的稳态分布，我们就可以将它们结合起来形成一个连贯的链，整体上这个链可能是各态遍历的
 >  这种向链中添加新 kernel 的能力，在处理局部最大值问题时是一个重要的优势，这一点我们将在后续讨论
 
 ### 12.3.3 Gibbs Sampling Revisited 
-The theory of Markov chains provides a general framework for generating samples from a target distribution $\pi$ . In this section, we discuss the application of this framework to the sampling tasks encountered in probabilistic graphical models. In this case, we typically wish to generate samples from the posterior n $P(X\mid E=e)$ , where $X=\mathcal{X}-E$ . Thus, we wish to deﬁne a chain for which $P(X\mid e)$ | is e st y distribution. Thus, we deﬁne the states of the Markov chain to be instantiations x to X − $\mathcal{X}-E$ . In order to deﬁne a Markov chain, we need to deﬁne a process that transitions from one state to the other, converging to a stationary distribution $\pi(X)$ , which terior distribution $P(X\mid e)$ . 
+The theory of Markov chains provides a general framework for generating samples from a target distribution $\pi$ . In this section, we discuss the application of this framework to the sampling tasks encountered in probabilistic graphical models. In this case, we typically wish to generate samples from the posterior n $P (X\mid E=e)$ , where $X=\mathcal{X}-E$ . Thus, we wish to deﬁne a chain for which $P (X\mid e)$ | is e st y distribution. Thus, we deﬁne the states of the Markov chain to be instantiations x to X − $\mathcal{X}-E$ . In order to deﬁne a Markov chain, we need to deﬁne a process that transitions from one state to the other, converging to a stationary distribution $\pi (X)$ , which terior distribution $P (X\mid e)$ . 
 >  MCMC 方法提供了一种从目标分布 $\pi$ 生成样本的通用框架
->  本节讨论使用该框架完成图模型中的采样，我们希望从后验分布 $P(\pmb X \mid \pmb E = \pmb e)$ 中生成样本，其中 $\pmb X = \mathcal X - \pmb E$
->  故我们希望定义一个稳态分布为 $P(\pmb X \mid \pmb e)$ 的 Markov chain，其状态空间为 $Val(\pmb X)$
->  要定义 Markov chain，我们需要定义在状态空间中从一个状态转移到另一个状态的过程，该过程收敛到稳态分布 $\pi(\pmb X ) = P(\pmb X \mid \pmb e)$
+>  本节讨论使用该框架完成图模型中的采样，我们希望从后验分布 $P (\pmb X \mid \pmb E = \pmb e)$ 中生成样本，其中 $\pmb X = \mathcal X - \pmb E$
+>  故我们希望定义一个稳态分布为 $P (\pmb X \mid \pmb e)$ 的 Markov chain，其状态空间为 $Val (\pmb X)$
+>  要定义 Markov chain，我们需要定义在状态空间中从一个状态转移到另一个状态的过程，该过程收敛到稳态分布 $\pi (\pmb X ) = P (\pmb X \mid \pmb e)$
 
-As in our earlier example, we assume that P $P(X\mid e)\;=\;P_{\Phi}$ | for some set of factor $\Phi$ that are deﬁned by reducing the original factors in our graphical model by the evidence e . This reduction allows us to simplify notation and to discuss the methods in a way that applies both to directed and undirected graphical models. 
->  我们将目标分布 $P(\pmb X \mid \pmb e)$ 写为 Gibbs 分布 $P_\Phi$ 的形式，因子集合 $\Phi$ 通过将原来图模型中的因子在证据 $\pmb e$ 上简化得到
+As in our earlier example, we assume that P $P (X\mid e)\;=\; P_{\Phi}$ | for some set of factor $\Phi$ that are deﬁned by reducing the original factors in our graphical model by the evidence e . This reduction allows us to simplify notation and to discuss the methods in a way that applies both to directed and undirected graphical models. 
+>  我们将目标分布 $P (\pmb X \mid \pmb e)$ 写为 Gibbs 分布 $P_\Phi$ 的形式，因子集合 $\Phi$ 通过将原来图模型中的因子在证据 $\pmb e$ 上简化得到
 
 Gibbs sampling is based on one yet efective Markov chain for factored state spaces, which is particularly efcient for gr hical models. 
 >  Gibbs 采样实际上基于一类具有可因子化分解的状态空间的 Markov chain，称为 Gibbs chain，Gibbs chain 对于图模型十分高效
 
-We deﬁne the kernel $\mathcal{T}_{i}$ as follows. In tively, we simply “forget” the value of $X_{i}$ in the current state and sample a new value for $X_{i}$ from its posterior given the rest of the current state. More precisely, let $({\boldsymbol{x}}_{-i},{{x}}_{i})$ be a state in the chain. We deﬁne: 
+We deﬁne the kernel $\mathcal{T}_{i}$ as follows. In tively, we simply “forget” the value of $X_{i}$ in the current state and sample a new value for $X_{i}$ from its posterior given the rest of the current state. More precisely, let $({\boldsymbol{x}}_{-i}, {{x}} _{i})$ be a state in the chain. We deﬁne: 
 
 $$
-\begin{array}{r}{\mathcal{T}_{i}((\pmb{x}_{-i},x_{i})\rightarrow(\pmb{x}_{-i},x_{i}^{\prime}))=P(x_{i}^{\prime}\mid\pmb{x}_{-i}).}\end{array}\tag{12.22}
+\begin{array}{r}{\mathcal{T}_{i}((\pmb{x}_{-i}, x_{i})\rightarrow (\pmb{x}_{-i}, x_{i}^{\prime}))=P (x_{i}^{\prime}\mid\pmb{x}_{-i}).}\end{array}\tag{12.22}
 $$ 
-Note that the transition probability does not depend on the current value $x_{i}$ of $X_{i}$ , but only on the remaining state ${\pmb x}_{-i}$ . It is not difcult to show that the posterior distribution $P_{\Phi}(X)=$ $P(\mathcal{X}\mid e)$ is a stationary distribution of this process. (See exercise 12.13.) 
+Note that the transition probability does not depend on the current value $x_{i}$ of $X_{i}$ , but only on the remaining state ${\pmb x}_{-i}$ . It is not difcult to show that the posterior distribution $P_{\Phi}(X)=$ $P (\mathcal{X}\mid e)$ is a stationary distribution of this process. (See exercise 12.13.) 
 
 >  Gibbs chain 中，直观上，在使用 $\mathcal T_i$ 转移时，我们遗忘 $X_i$ 的当前值，并从给定其他变量当前值的 $X_i$ 的后验分布中为 $X_i$ 采样一个新的值
 >  $\mathcal T_i$ 的具体定义为 (12.22)
 >  注意转移概率并不依赖于 $X_i$ 的当前值 $x_i$，但依赖于所有其他变量的当前值 $\pmb x_{-i}$
->  可以证明后验分布 $P_\Phi(\pmb X) = P(\mathcal X \mid \pmb e)$ 为该 Gibbs chain 的稳态分布
+>  可以证明后验分布 $P_\Phi (\pmb X) = P (\mathcal X \mid \pmb e)$ 为该 Gibbs chain 的稳态分布
 
 The sampling algorithm for a single trajectory of the Gibbs chain was shown earlier in this section, in algorithm 12.4. Recall that the Gibbs chain is deﬁned via a set of kernels; we use the multistep approach to combine them. Thus, the diferent local kernels are taken consecutively; having changed the value for a variable $X_{1}$ , the value for $X_{2}$ is sampled based on the new value. Note that a step in the aggregate chain occurs only once we have executed every local transition once. 
 >  Gibbs chain 由多个 kernel 定义，在转移过程中轮流使用各个 kernel，执行一次局部转移
 >  例如，使用 kernel $\mathcal T_1$ 为 $X_1$ 采样了新值以后，下一次就是使用 kernel $\mathcal T_2$ 为 $X_2$ 采样新值，注意 $X_2$ 的新值采样会基于 $X_1$ 的新值
 >  我们认为在执行完一轮局部转移之后，在 chain 中前进了一步
 
-Gibbs sampling is particularly easy to implement in the many graphical models where we can compute the transition probability $P(X_{i}\mid\pmb{x}_{-i})$ (in line 5 of the algorithm) very efciently. In particular, as we now show, this distribution can be done based only on the Markov blanket of $X_{i}$ .
+Gibbs sampling is particularly easy to implement in the many graphical models where we can compute the transition probability $P (X_{i}\mid\pmb{x}_{-i})$ (in line 5 of the algorithm) very efciently. In particular, as we now show, this distribution can be done based only on the Markov blanket of $X_{i}$ .
 >  Gibbs 采样在许多图模型中都可以高效实现
->  Gibbs 采样的核心操作就是每一次的局部转移中在 $P(X_i \mid \pmb x_{-i})$ 中对 $X_i$ 进行采样
->  我们可以证明后验分布 $P(X_i \mid \pmb x_{-i})$ 仅仅基于 $X_i$ 的 Markov blanket
+>  Gibbs 采样的核心操作就是每一次的局部转移中在 $P (X_i \mid \pmb x_{-i})$ 中对 $X_i$ 进行采样
+>  我们可以证明后验分布 $P (X_i \mid \pmb x_{-i})$ 仅仅基于 $X_i$ 的 Markov blanket
 
 We show this analysis for a Markov network; the application to Bayesian networks is straightforward. Recalling deﬁnition 4.4, we have that: 
 
@@ -9961,32 +9956,32 @@ Let $\pmb x_{j,-i}$ denote the assignment in ${\pmb x}_{-i}$ to $\pmb D_{j}-\{X_
 
 $$
 \begin{align}
-P(x_i' \mid \pmb x_{-i}) &=\frac {P(x_i', \pmb x_{-i})}{\sum_{x_i''} P(x_i'', \pmb x_{-i})}\\
-&=\frac {\frac 1 Z\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i',\pmb x_{j,-i})}{\frac 1 Z\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})}\\
-&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i',\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})}\\
-&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j(\pmb x_{j,-i})}\\
-&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j(x_i',\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j(x_i'',\pmb x_{j,-i})}\tag{12.23}\\
+P (x_i' \mid \pmb x_{-i}) &=\frac {P (x_i', \pmb x_{-i})}{\sum_{x_i''} P (x_i'', \pmb x_{-i})}\\
+&=\frac {\frac 1 Z\prod_{\pmb D_j \ni X_i}\phi_j (x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j (x_i',\pmb x_{j,-i})}{\frac 1 Z\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j (x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j (x_i'',\pmb x_{j,-i})}\\
+&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j (x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j (x_i',\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j (x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j (x_i'',\pmb x_{j,-i})}\\
+&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j (x_i',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j (\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j (x_i'',\pmb x_{j,-i})\prod_{\pmb D_j \not \ni X_i}\phi_j (\pmb x_{j,-i})}\\
+&=\frac {\prod_{\pmb D_j \ni X_i}\phi_j (x_i',\pmb x_{j,-i})}{\sum_{x_i''}\prod_{\pmb D_j \ni X_i}\phi_j (x_i'',\pmb x_{j,-i})}\tag{12.23}\\
 \end{align}
 $$
 
 This last expression uses only the factors involving $X_{i}$ , and depends only on the instantiation in ${\pmb x}_{-i}$ of $X_{i}$ ’s Markov blanket. In the case of Bayesian networks, this expression reduces to a formula involving only the CPDs of $X_{i}$ and its children, and its value, again, depends only on the assignment in ${\pmb x}_{-i}$ to the Markov blanket of $X_{i}$ . 
 
->  根据 (12.23) ，$P(x_i' \mid \pmb x_{-i})$ 仅依赖于包含了 $X_i$ 的因子，进而仅依赖于 $\pmb x_{-i}$ 中涉及到 $X_i$ 的 Markov blanket 的取值
->  在 BN 中，推导是类似的，最后我们将得到 $P(x_i' \mid \pmb x_{-i})$ 仅依赖于包含了 $X_i$ 和其子节点的 CPDs (只有这些 CPDs 和 $X_i$ 有关)，进而仅依赖于 $X_i$ 的 Markov blanket 的取值
+>  根据 (12.23) ，$P (x_i' \mid \pmb x_{-i})$ 仅依赖于包含了 $X_i$ 的因子，进而仅依赖于 $\pmb x_{-i}$ 中涉及到 $X_i$ 的 Markov blanket 的取值
+>  在 BN 中，推导是类似的，最后我们将得到 $P (x_i' \mid \pmb x_{-i})$ 仅依赖于包含了 $X_i$ 和其子节点的 CPDs (只有这些 CPDs 和 $X_i$ 有关)，进而仅依赖于 $X_i$ 的 Markov blanket 的取值
 
 Example 12.10
-Consider again the Student network of ﬁgure 12.1, with the evidence $s^{1},l^{0}$ . The kernel for the $G$ en a state $(i,d,g,s^{1},l^{0})$ , we deﬁne ${\mathcal{T}}((i,g,d,s^{1},l^{0})\ \rightarrow$ $(i,g^{\prime},d,s^{1},l^{0}))\,=\,P(g^{\prime}\mid i,d,s^{1},l^{0})$ | . Th value can be computed locally, using only the CPDs that involve G , that is, the CPDs of G and L : 
+Consider again the Student network of ﬁgure 12.1, with the evidence $s^{1}, l^{0}$ . The kernel for the $G$ en a state $(i, d, g, s^{1}, l^{0})$ , we deﬁne ${\mathcal{T}}((i, g, d, s^{1}, l^{0})\ \rightarrow$ $(i, g^{\prime}, d, s^{1}, l^{0}))\,=\, P (g^{\prime}\mid i, d, s^{1}, l^{0})$ | . Th value can be computed locally, using only the CPDs that involve G , that is, the CPDs of G and L : 
 
 $$
-P(g^{\prime}\mid i,d,s^{1},l^{0})=\frac{P(g^{\prime}\mid i,d)P(l^{0}\mid g^{\prime})}{\sum_{g^{\prime\prime}}P(g^{\prime\prime}\mid i,d)P(l^{0}\mid g^{\prime\prime})}.
+P (g^{\prime}\mid i, d, s^{1}, l^{0})=\frac{P (g^{\prime}\mid i, d) P (l^{0}\mid g^{\prime})}{\sum_{g^{\prime\prime}}P (g^{\prime\prime}\mid i, d) P (l^{0}\mid g^{\prime\prime})}.
 $$ 
-Similarly, the kernel for the variable $I$ is deﬁned to be ${\mathcal{T}}((i,g,d,s^{1},l^{0})\,\rightarrow\,(i^{\prime},g,d,s^{1},l^{0}))\,=$ $P(i^{\prime}\mid g,d,s^{1},l^{0})$ , which simpliﬁes as follows: 
+Similarly, the kernel for the variable $I$ is deﬁned to be ${\mathcal{T}}((i, g, d, s^{1}, l^{0})\,\rightarrow\, (i^{\prime}, g, d, s^{1}, l^{0}))\,=$ $P (i^{\prime}\mid g, d, s^{1}, l^{0})$ , which simpliﬁes as follows: 
 
 $$
-P(i^{\prime}\mid g,d,s^{1},l^{0})=\frac{P(i^{\prime})P(g\mid i^{\prime},d)P(s^{1}\mid i^{\prime})}{\sum_{i^{\prime\prime}}P(i^{\prime\prime})P(g\mid i^{\prime\prime},d)P(s^{1}\mid i^{\prime\prime})}.
+P (i^{\prime}\mid g, d, s^{1}, l^{0})=\frac{P (i^{\prime}) P (g\mid i^{\prime}, d) P (s^{1}\mid i^{\prime})}{\sum_{i^{\prime\prime}}P (i^{\prime\prime}) P (g\mid i^{\prime\prime}, d) P (s^{1}\mid i^{\prime\prime})}.
 $$ 
 
-As presented, the algorithm is deﬁned via a sequence of local kernels, where each samples a single variable conditioned on all the rest. The reason for this approach is computational. As we showed, we can easily compute the transition model for a single variable given the rest. However, there are cases where we can simultaneously sample several variables efciently. Speciﬁcally, assume we can partition the variables $X$ into several disjoint blocks of variables $X_{1},\dots,X_{k}$ , such that we can efciently sample $\pmb x_{i}$ from $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ . In this case, we can modify our Gibbs sampling algorithm to iteratively sample blocks of variables, rather than individual variables, thereby taking much “longer-range” transitions in the state space in a single sampling step. Here, like in Gibbs sampling, we deﬁne the algorithm to be producing a new sample only once all blocks have been resampled. This algorithm is called block Gibbs . Note that standard Gibbs sampling is a special case of block Gibbs sampling, with the blocks corresponding to individual variables. 
+As presented, the algorithm is deﬁned via a sequence of local kernels, where each samples a single variable conditioned on all the rest. The reason for this approach is computational. As we showed, we can easily compute the transition model for a single variable given the rest. However, there are cases where we can simultaneously sample several variables efciently. Speciﬁcally, assume we can partition the variables $X$ into several disjoint blocks of variables $X_{1},\dots, X_{k}$ , such that we can efciently sample $\pmb x_{i}$ from $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ . In this case, we can modify our Gibbs sampling algorithm to iteratively sample blocks of variables, rather than individual variables, thereby taking much “longer-range” transitions in the state space in a single sampling step. Here, like in Gibbs sampling, we deﬁne the algorithm to be producing a new sample only once all blocks have been resampled. This algorithm is called block Gibbs . Note that standard Gibbs sampling is a special case of block Gibbs sampling, with the blocks corresponding to individual variables. 
 >  我们知道 Gibbs 采样算法的流程由一序列局部 kernels 定义，每个 kernel 基于所有其他变量采样一个变量
 >  我们已经知道基于所有其他变量为单个变量采样的计算十分容易，但我们可以进一步同时采样多个变量
 >  具体地说，我们将 $\pmb X$ 划分为多个不相交的变量组 $\pmb X_1, \dots, \pmb X_k$，同一个变量组内的变量可以同时采样，条件于其他所有变量组，即我们从 $P_{\Phi}(\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 中采样 $\pmb X_i$ 的实例 $\pmb x_i$
@@ -9995,17 +9990,17 @@ As presented, the algorithm is deﬁned via a sequence of local kernels, where e
 >  该算法称为 block Gibbs，标准的 Gibbs 是 block size = 1 时的特例
 
 Example 12.11
-with a variable representing its difculty. We also have a set of grades for students in classes (not necessarily $^a$ grade for each student in every class). Using an abbreviated notation, we have $^a$ set of variables $I_{1},\ldots,I_{n}$ for the students (where each $I_{j}=I(s_{j}))$ ), $D=\{D_{1},.\,.\,.\,,D_{\ell}\}$ for the courses, and $G=\{G_{j,k}\}$ for th s, wh h variable $G_{j,k}$ has the parents $I_{j}$ and $D_{k}$ . See ﬁgure 12.5 for an example with n $n=4$ and ℓ $\ell=2$ . Let us assume that we observe the grades, so that we have evidence $G=g$ . An examination of active paths shows that the diferent variables $I_{j}$ are conditionally independent given an assignment $^d$ to $_D$ . Thus, given $D=d,G=g$ , we can efciently sample all of the $\boldsymbol{I}$ variables as a block by sampling each $I_{j}$ independently of the others. Similarly, we can sample all of the $_D$ variables as a block given an assignment $I=i,G=g$ . Thus, we can alternate steps where in one we sample $\pmb{i}[m]$ given $_{g}$ and $d[m]$ , and in the other we sample $d[m+1]$ given $_{g}$ and $\pmb{i}[m]$ . 
+with a variable representing its difficulty. We also have a set of grades for students in classes (not necessarily $^a$ grade for each student in every class). Using an abbreviated notation, we have $^a$ set of variables $I_{1},\ldots, I_{n}$ for the students (where each $I_{j}=I (s_{j}))$ ), $D=\{D_{1},.\,.\,.\,, D_{\ell}\}$ for the courses, and $G=\{G_{j, k}\}$ for th s, wh h variable $G_{j, k}$ has the parents $I_{j}$ and $D_{k}$ . See ﬁgure 12.5 for an example with n $n=4$ and ℓ $\ell=2$ . Let us assume that we observe the grades, so that we have evidence $G=g$ . An examination of active paths shows that the diferent variables $I_{j}$ are conditionally independent given an assignment $^d$ to $_D$ . Thus, given $D=d, G=g$ , we can efciently sample all of the $\boldsymbol{I}$ variables as a block by sampling each $I_{j}$ independently of the others. Similarly, we can sample all of the $_D$ variables as a block given an assignment $I=i, G=g$ . Thus, we can alternate steps where in one we sample $\pmb{i}[m]$ given $_{g}$ and $d[m]$ , and in the other we sample $d[m+1]$ given $_{g}$ and $\pmb{i}[m]$ . 
 
 In this example, we can easily apply block Gibbs because the variables in each block are marginally independent given the variables outside the block. This independence property allows us to compute efciently the conditional distribution $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ , and to sample from it. Importantly, however, full independence is not essential: we need only have the property that the block-conditional distribution can be efciently manipulated. For example, in a grid-structured network, we can easily deﬁne our blocks to consist of separate rows or of separate columns. In this case, the structure of each block is a simple chain-structured network; we can easily compute the conditional distribution of one row given all the others, and sample from it (see exercise 12.3). 
->  block Gibbs 要求同个 block 内的变量在给定 block 外的所有其他变量时都相互独立，因此我们可以将采样分布 $P_\Phi(\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 完全分解，转化为独立给每个 $\pmb X_i$ 中的变量采样
+>  block Gibbs 要求同个 block 内的变量在给定 block 外的所有其他变量时都相互独立，因此我们可以将采样分布 $P_\Phi (\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 完全分解，转化为独立给每个 $\pmb X_i$ 中的变量采样
 >  有时也不必要要求 block 内相互独立，只需要分布 $P_\Phi (\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 可以进行高效采样即可
 
 We note that the Gibbs chain is not necessarily regular, and might not converge to a unique stationary distribution. 
 >  Gibbs chain 不一定规则，也不一定收敛到唯一的稳态分布
 
 Example 12.12
-Consider a sim e net rk that consists of a single $\nu$ -structur $X\rightarrow Z\leftarrow Y$ , where the variables are all binary, X and $Y$ are both uniformly distributed, and Z is the deterministic exclusive or of $X$ and $Y$ (t is, $Z=z^{1}$ if $X\neq Y.$ ). Consider applying Gibbs sampling to thi with the evidence z $z^{1}$ . The true posterior assigns probability $1/2$ to each of the two states $x^{1},y^{0},z^{1}$ and $x^{0},y^{1},z^{1}$ . Assu that we start the ﬁrst of these two states. In is case, $P(X\mid y^{0},z^{1})$ assig probability 1 to x $x^{1}$ , so that the X transition leaves the value of X unchanged. Similarly, the Y transition leaves the value of $Y$ unchanged. Therefore, the chain will simply stay at the initial state forever, and it will never sample from the other state. The analogous phenomenon occurs for the other starting state. This chain is an example of a reducible Markov chain. 
+Consider a sim e net rk that consists of a single $\nu$ -structur $X\rightarrow Z\leftarrow Y$ , where the variables are all binary, X and $Y$ are both uniformly distributed, and Z is the deterministic exclusive or of $X$ and $Y$ (t is, $Z=z^{1}$ if $X\neq Y.$ ). Consider applying Gibbs sampling to thi with the evidence z $z^{1}$ . The true posterior assigns probability $1/2$ to each of the two states $x^{1}, y^{0}, z^{1}$ and $x^{0}, y^{1}, z^{1}$ . Assu that we start the ﬁrst of these two states. In is case, $P (X\mid y^{0}, z^{1})$ assig probability 1 to x $x^{1}$ , so that the X transition leaves the value of X unchanged. Similarly, the Y transition leaves the value of $Y$ unchanged. Therefore, the chain will simply stay at the initial state forever, and it will never sample from the other state. The analogous phenomenon occurs for the other starting state. This chain is an example of a reducible Markov chain. 
 
 However, this chain is guaranteed to be regular whenever the distribution is positive, so that every value of $X_{i}$ has positive probability given an assignment ${\pmb x}_{-i}$ to the remaining variables. 
 
@@ -10022,9 +10017,9 @@ Positivity is, however, not necessary; there are many examples of nonpositive di
 Importantly, however, even chains that are regular may require a long time to mix , that is, get close to the stationary distribution. In this case, instances generated from early in the sampling process will not be representative of the desired stationary distribution. 
 
 ### 12.3.4 A Broader Class of Markov Chains\*
-As we discussed, the use of MCMC methods relies on the construction of a Markov chain that has the desired properties: regularity, and the target stationary distribution. In the previous section, we described the Gibbs chain, a simple Markov chain that is guaranteed to have these properties under certain assumptions. However, Gibbs sampling is applicable only in certain circumstances; in particular, we must be able to sample from the distribution $P(X_{i}\mid\mathbf{\sigma}\mathbf{x}_{-i})$ . Although this sampling step is easy for discrete graphical models, in continuous models, the conditional distribution may not be one that has a parametric form that allows sampling, so that Gibbs is not applicable. 
+As we discussed, the use of MCMC methods relies on the construction of a Markov chain that has the desired properties: regularity, and the target stationary distribution. In the previous section, we described the Gibbs chain, a simple Markov chain that is guaranteed to have these properties under certain assumptions. However, Gibbs sampling is applicable only in certain circumstances; in particular, we must be able to sample from the distribution $P (X_{i}\mid\mathbf{\sigma}\mathbf{x}_{-i})$ . Although this sampling step is easy for discrete graphical models, in continuous models, the conditional distribution may not be one that has a parametric form that allows sampling, so that Gibbs is not applicable. 
 >  我们知道 MCMC 方法依赖于构建一个稳态分布为目标分布，且满足规范性的 Markov chain，为此，我们构造了 Gibbs chain，介绍了 Gibbs 采样算法
->  Gibbs 采样需要从 $P(X_i \mid \pmb x_{-i})$ 中采样，对于离散图模型不难，但在连续模型的情况下该条件分布并不一定会具有允许采样的参数化形式
+>  Gibbs 采样需要从 $P (X_i \mid \pmb x_{-i})$ 中采样，对于离散图模型不难，但在连续模型的情况下该条件分布并不一定会具有允许采样的参数化形式
 
 Even more important, the Gibbs chain uses only very local moves over the state space: moves that change one variable at a time. In models where variables are tightly correlated, such moves often lead from states whose probability is high to states whose probability is very low. In this case, the high-probability states will form strong basins of attraction, and the chain will be very unlikely to move away from such a state; that is, the chain will mix very slowly. In this case, we often want to consider chains that allow a broader range of moves, including much larger steps in the space. The framework we develop in this section allows us to construct a broad family of chains in a way that guarantees the desired stationary distribution. 
 >  Gibbs chain 一次仅改变一个变量，即在状态空间中的移动是局部的
@@ -10037,18 +10032,18 @@ Before we address the question of how to construct a Markov chain with a particu
 >  先考虑如何验证 Markov chain 有想要的稳态分布
 
 **Deﬁnition 12.5**  reversible Markov chain 
-A ﬁnite-state Markov chain $\mathcal{T}$ is reversible if there exists a unique distribution $\pi$ such that, for all $x,x^{\prime}\in V a l(X)$ : 
+A ﬁnite-state Markov chain $\mathcal{T}$ is reversible if there exists a unique distribution $\pi$ such that, for all $x, x^{\prime}\in V a l (X)$ : 
 
 $$
-\pi(\pmb x){\mathcal{T}}(\pmb x\to \pmb x^{\prime})=\pi(\pmb x^{\prime}){\mathcal{T}}(\pmb x^{\prime}\to \pmb x).\tag{12.24}
+\pi (\pmb x){\mathcal{T}}(\pmb x\to \pmb x^{\prime})=\pi (\pmb x^{\prime}){\mathcal{T}}(\pmb x^{\prime}\to \pmb x).\tag{12.24}
 $$ 
 This equation is called the detailed balance . 
 
 >  定义
->  有限状态的 Markov chain $\mathcal T$ 如果满足存在唯一的分布 $\pi$，使得对于状态空间任意一对状态 $\pmb x, \pmb x'\in Val(\pmb X)$，从 $\pi(\pmb x)$ 移动到 $\pmb x'$ 的概率等于从 $\pi(\pmb x')$ 移动到 $\pmb x$ 的概率，称它是可逆的
+>  有限状态的 Markov chain $\mathcal T$ 如果满足存在唯一的分布 $\pi$，使得对于状态空间任意一对状态 $\pmb x, \pmb x'\in Val (\pmb X)$，从 $\pi (\pmb x)$ 移动到 $\pmb x'$ 的概率等于从 $\pi (\pmb x')$ 移动到 $\pmb x$ 的概率，称它是可逆的
 >  (12.24) 称为细致平衡方程
 
-The product $\pi({\pmb x})\mathcal{T}({\pmb x}\,\rightarrow\,{\pmb x}^{\prime})$ represents a process where we pick a starting state at random according to $\pi$ , and then take a random transition from the chosen state according to the transition model. The detailed balance equation asserts that, using this process, the probability of a transition from $\pmb {x}$ to $\pmb x'$ is the same as the probability of a transition for $\pmb x'$ to $\pmb x$.
+The product $\pi ({\pmb x})\mathcal{T}({\pmb x}\,\rightarrow\,{\pmb x}^{\prime})$ represents a process where we pick a starting state at random according to $\pi$ , and then take a random transition from the chosen state according to the transition model. The detailed balance equation asserts that, using this process, the probability of a transition from $\pmb {x}$ to $\pmb x'$ is the same as the probability of a transition for $\pmb x'$ to $\pmb x$.
 
 Reversibility implies that $\pi$ is a stationary distriion of $\mathcal{T}$ , but not necessarily that the chain will converge to $\pi$ (see example 12.8). However, if $\mathcal{T}$ is regular, then convergence is guaranteed, and the reversibility condition provides a simple characterization of its stationary distribution: 
 >  可逆性说明了 $\pi$ 是 $\mathcal T$ 的一个稳态分布，但 Markov chain 不一定收敛到 $\pi$
@@ -10065,21 +10060,21 @@ The proof is left as an exercise (exercise 12.14).
 
 $$
 \begin{align}
-&\sum_{\pmb x} \pi(\pmb x)\mathcal T(\pmb x \rightarrow \pmb x')\\
-=&\sum_{\pmb x} \pi(\pmb x')\mathcal T(\pmb x' \rightarrow \pmb x)\\
-=& \pi(\pmb x')\sum_{\pmb x}\mathcal T(\pmb x' \rightarrow \pmb x)\\
-=& \pi(\pmb x')
+&\sum_{\pmb x} \pi (\pmb x)\mathcal T (\pmb x \rightarrow \pmb x')\\
+=&\sum_{\pmb x} \pi (\pmb x')\mathcal T (\pmb x' \rightarrow \pmb x)\\
+=& \pi (\pmb x')\sum_{\pmb x}\mathcal T (\pmb x' \rightarrow \pmb x)\\
+=& \pi (\pmb x')
 \end{align}
 $$
 
->  因此 $\pi(\pmb x)$ 为 $\mathcal T$ 的稳态分布
+>  因此 $\pi (\pmb x)$ 为 $\mathcal T$ 的稳态分布
 >  又因为 $\mathcal T$ 规范，故其稳态分布是唯一的
 
 Example 12.13 
 We can test this proposition on the Markov chain of ﬁgure 12.4. Our detailed balance equation for the two states $x^{1}$ and $x^{3}$ asserts that 
 
 $$
-\pi(x^{1}){\mathcal{T}}(x^{1}\rightarrow x^{3})=\pi(x^{3}){\mathcal{T}}(x^{3}\rightarrow x^{1}).
+\pi (x^{1}){\mathcal{T}}(x^{1}\rightarrow x^{3})=\pi (x^{3}){\mathcal{T}}(x^{3}\rightarrow x^{1}).
 $$ 
 Testing this equation for the stationary distribution $\pi$ described in example 12.7, we have: 
 
@@ -10104,15 +10099,15 @@ As for importance sampling, the proposal distribution in the Metropolis-Hastings
 >  和重要性采样不同，这里不追踪重要性权重，重要性权重会随着转移的数量增加而指数衰减
 >  我们随机选择是否接受提案的转移，同时用一个概率修正提案分布和目标分布的差异
 
-More precise, our proposal distribution $\mathcal{T}^{Q}$ deﬁnes a transition model over our state space: For each state x , $\mathcal{T}^{Q}$ deﬁnes a distribution over possible successor states in $V a l(X)$ , from which we select randomly a candidate next state $\scriptstyle{\boldsymbol{x}}^{\prime}$ . We can either accept the proposal and transition to $\scriptstyle{\boldsymbol{x}}^{\prime}$ , or reject it and stay at $_{_{x}}$ . Thus, for each pair of states ${\boldsymbol{x}},{\boldsymbol{x}}^{\prime}$ we have an acceptance probability $\mathcal{A}(\pmb{x}\rightarrow\pmb{x}^{\prime})$ . The actual transition model of the Markov chain is then: 
->  提案分布 $\mathcal T^Q$ 同样是一个定义在状态空间 $Val(\pmb X)$ 上的转移模型
->  $\mathcal T^Q$ 为每个状态 $\pmb x$ 定义它转移到 $Val(\pmb X)$ 中各个状态的概率，同时为每个转移额外定义了一个接收概率
->  我们将状态转移 $\pmb x \rightarrow \pmb x'$ 的接受概率记作 $\mathcal A(\pmb x \rightarrow \pmb x')$，则 Markov chain 的实际转移模型为
+More precise, our proposal distribution $\mathcal{T}^{Q}$ deﬁnes a transition model over our state space: For each state x , $\mathcal{T}^{Q}$ deﬁnes a distribution over possible successor states in $V a l (X)$ , from which we select randomly a candidate next state $\scriptstyle{\boldsymbol{x}}^{\prime}$ . We can either accept the proposal and transition to $\scriptstyle{\boldsymbol{x}}^{\prime}$ , or reject it and stay at $_{_{x}}$ . Thus, for each pair of states ${\boldsymbol{x}},{\boldsymbol{x}}^{\prime}$ we have an acceptance probability $\mathcal{A}(\pmb{x}\rightarrow\pmb{x}^{\prime})$ . The actual transition model of the Markov chain is then: 
+>  提案分布 $\mathcal T^Q$ 同样是一个定义在状态空间 $Val (\pmb X)$ 上的转移模型
+>  $\mathcal T^Q$ 为每个状态 $\pmb x$ 定义它转移到 $Val (\pmb X)$ 中各个状态的概率，同时为每个转移额外定义了一个接收概率
+>  我们将状态转移 $\pmb x \rightarrow \pmb x'$ 的接受概率记作 $\mathcal A (\pmb x \rightarrow \pmb x')$，则 Markov chain 的实际转移模型为
 
 $$
 \begin{align}
-\mathcal T(\pmb x \rightarrow \pmb x') &= \mathcal T^Q(\pmb x \rightarrow \pmb x')\mathcal A(\pmb x\rightarrow \pmb x')\quad \pmb x\ne \pmb x'\\
-\mathcal T(\pmb x \rightarrow \pmb x) &= \mathcal T^Q(\pmb x \rightarrow \pmb x)+\sum_{\pmb x' \ne \pmb x}\mathcal T^Q(\pmb x\rightarrow \pmb x')(1-\mathcal A(\pmb x\rightarrow \pmb x'))
+\mathcal T (\pmb x \rightarrow \pmb x') &= \mathcal T^Q (\pmb x \rightarrow \pmb x')\mathcal A (\pmb x\rightarrow \pmb x')\quad \pmb x\ne \pmb x'\\
+\mathcal T (\pmb x \rightarrow \pmb x) &= \mathcal T^Q (\pmb x \rightarrow \pmb x)+\sum_{\pmb x' \ne \pmb x}\mathcal T^Q (\pmb x\rightarrow \pmb x')(1-\mathcal A (\pmb x\rightarrow \pmb x'))
 \end{align}\tag{12.25}
 $$
 
@@ -10124,12 +10119,12 @@ By using a proposal distribution, we allow the Metropolis-Hastings algorithm to 
 Given a proposal distribution, we can use the detailed balance equation to select the acceptance probabilities so as to obtain the desired stationary distribution. For this Markov chain, the detailed balance equations assert that, for all $\pmb x \ne \pmb x'$
 
 $$
-\pi(\pmb x)\mathcal{T}^{Q}(\pmb x\to \pmb x^{\prime})\mathcal{A}(\pmb x\to \pmb x^{\prime})=\pi(\pmb x^{\prime})\mathcal{T}^{Q}(\pmb x^{\prime}\to \pmb x)\mathcal{A}(\pmb x^{\prime}\to \pmb x).
+\pi (\pmb x)\mathcal{T}^{Q}(\pmb x\to \pmb x^{\prime})\mathcal{A}(\pmb x\to \pmb x^{\prime})=\pi (\pmb x^{\prime})\mathcal{T}^{Q}(\pmb x^{\prime}\to \pmb x)\mathcal{A}(\pmb x^{\prime}\to \pmb x).
 $$ 
 We can verify that the following acceptance probabilities satisfy these equations: 
 
 $$
-\mathcal{A}(\pmb x\rightarrow \pmb x^{\prime})=\operatorname*{min}\left[1,\frac{\pi(\pmb x^{\prime})\mathcal{T}^{Q}(\pmb x^{\prime}\rightarrow \pmb x)}{\pi(\pmb x)\mathcal{T}^{Q}(\pmb x\rightarrow \pmb x^{\prime})}\right],\tag{12.26}
+\mathcal{A}(\pmb x\rightarrow \pmb x^{\prime})=\operatorname*{min}\left[1,\frac{\pi (\pmb x^{\prime})\mathcal{T}^{Q}(\pmb x^{\prime}\rightarrow \pmb x)}{\pi (\pmb x)\mathcal{T}^{Q}(\pmb x\rightarrow \pmb x^{\prime})}\right],\tag{12.26}
 $$ 
 and hence that the chain has the desired stationary distribution: 
 
@@ -10148,7 +10143,7 @@ Example 12.14
 Assume that our proposal distribution $\mathcal{T}^{Q}$ is given by the chain of ﬁgure 12.4, but that we want to sample from a stationary distribution π $\pi^{\prime}$ where: $\pi^{\prime}(x^{1})=0.6$ , $\pi^{\prime}(x^{2})=0.3,$ , and $\pi^{\prime}(x^{3})=0.1$ . To deﬁne the chain, we need to compute the acceptance probabilities. Applying equation (12.26), we obtain, for example, that: 
 
 $$
-\begin{array}{l l l}{{A(x^{1}\to x^{3})}}&{{=}}&{{\displaystyle\operatorname*{min}\left[1,\frac{\pi^{\prime}(x^{3})\mathcal{T}^{Q}(x^{3}\to x^{1})}{\pi^{\prime}(x^{1})\mathcal{T}^{Q}(x^{1}\to x^{3})}\right]=\operatorname*{min}\left[1,\frac{0.1\cdot0.5}{0.6\cdot0.75}\right]=0.11}}\\ {{A(x^{3}\to x^{1})}}&{{=}}&{{\displaystyle\operatorname*{min}\left[1,\frac{\pi^{\prime}(x^{1})\mathcal{T}^{Q}(x^{1}\to x^{3})}{\pi^{\prime}(x^{3})\mathcal{T}^{Q}(x^{3}\to x^{1})}\right]=\operatorname*{min}\left[1,\frac{0.6\cdot0.75}{0.1\cdot0.5}\right]=1.}}\end{array}
+\begin{array}{l l l} {{A(x^{1}\to x^{3})}} & {{=}} & {{\displaystyle\operatorname*{min}\left[1,\frac{\pi^{\prime}(x^{3})\mathcal{T}^{Q}(x^{3}\to x^{1})}{\pi^{\prime}(x^{1})\mathcal{T}^{Q}(x^{1}\to x^{3})}\right]=\operatorname*{min}\left[1,\frac{0.1\cdot0.5}{0.6\cdot0.75}\right]=0.11}} \\ {{A(x^{3}\to x^{1})}} & {{=}} & {{\displaystyle\operatorname*{min}\left[1,\frac{\pi^{\prime}(x^{1})\mathcal{T}^{Q}(x^{1}\to x^{3})}{\pi^{\prime}(x^{3})\mathcal{T}^{Q}(x^{3}\to x^{1})}\right]=\operatorname*{min}\left[1,\frac{0.6\cdot0.75}{0.1\cdot0.5}\right]=1.}} \end{array}
 $$ 
 We can now easily verify that the stationary distribution of the chain resulting from equation (12.25) and these acceptance probabilities gives the desired stationary distribution $\pi^{\prime}$ . 
 
@@ -10158,15 +10153,15 @@ The Metropolis-Hastings algorithm has a particularly natural implementation in t
 
 $$
 \begin{align}
-\mathcal A(\pmb x_{-i}, x_i \rightarrow \pmb x_{-i}, x_i') &= \min \left[1, \frac {\pi(\pmb x_{-i},x_i')\mathcal T_i^{Q_i}(\pmb x_{-i},x_i'\rightarrow \pmb x_{-i}, x_i)}{\pi(\pmb x_{-i}, x_i)\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i \rightarrow \pmb x_{-i}, x_i')}\right]\\
-&=\min\left[1, \frac {P_\Phi(x_i',\pmb x_{-i})}{P_\Phi(x_i,\pmb x_{-i})}\frac {\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i'\rightarrow \pmb x_{-i}, x_i)}{\mathcal T_i^{Q_i}(\pmb x_{-i},x_i\rightarrow \pmb x_{-i}, x_i')}\right]
+\mathcal A (\pmb x_{-i}, x_i \rightarrow \pmb x_{-i}, x_i') &= \min \left[1, \frac {\pi (\pmb x_{-i}, x_i')\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i'\rightarrow \pmb x_{-i}, x_i)}{\pi (\pmb x_{-i}, x_i)\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i \rightarrow \pmb x_{-i}, x_i')}\right]\\
+&=\min\left[1, \frac {P_\Phi (x_i',\pmb x_{-i})}{P_\Phi (x_i,\pmb x_{-i})}\frac {\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i'\rightarrow \pmb x_{-i}, x_i)}{\mathcal T_i^{Q_i}(\pmb x_{-i}, x_i\rightarrow \pmb x_{-i}, x_i')}\right]
 \end{align}
 $$
 
 The proposal distributions are usually fairly simple, so it is easy to compute their ratios. In the case of graphical models, the ﬁrst ratio can also be computed easily: 
 
 $$
-\begin{array}{r c l}{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime},{\pmb x}_{-i})}{P_{\Phi}(x_{i},{\pmb x}_{-i})}}&{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid{\pmb x}_{-i})P_{\Phi}({\pmb x}_{-i})}{P_{\Phi}(x_{i}\mid{\pmb x}_{-i})P_{\Phi}({\pmb x}_{-i})}}\\ &{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid{\pmb x}_{-i})}{P_{\Phi}(x_{i}\mid{\pmb x}_{-i})}.}\end{array}
+\begin{array}{r c l}{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime},{\pmb x}_{-i})}{P_{\Phi}(x_{i},{\pmb x}_{-i})}}&{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid{\pmb x}_{-i}) P_{\Phi}({\pmb x}_{-i})}{P_{\Phi}(x_{i}\mid{\pmb x}_{-i}) P_{\Phi}({\pmb x}_{-i})}}\\ &{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid{\pmb x}_{-i})}{P_{\Phi}(x_{i}\mid{\pmb x}_{-i})}.}\end{array}
 $$ 
 As for Gibbs sampling, we can use the observation that each variable $X_{i}$ is conditionally independent of the remaining variables in the network given its Markov blanket. Letting $\pmb U_{i}$ denote ${\mathrm{MB}}_{\mathcal{K}}(X_{i})$ , and $\pmb{u}_{i}=(\pmb{x}_{-i})\langle\pmb{U}_{i}\rangle$ , we have that: 
 
@@ -10212,33 +10207,33 @@ Deﬁnition 12.7 conductance
 t $\mathcal{T}$ be a Markov chain transition model and $\pi$ its stationary distribution. The conductance of $\mathcal{T}$ is deﬁned as follows: 
 
 $$
-\begin{array}{c c}{\displaystyle\operatorname*{min}}&{\displaystyle\frac{P(\mathcal{S}\cap\mathcal{S}^{c})}{\pi(\mathcal{S})},}\\ {0<\pi(\mathcal{S})\le1/2}\end{array}
+\begin{array}{c c}{\displaystyle\operatorname*{min}}&{\displaystyle\frac{P (\mathcal{S}\cap\mathcal{S}^{c})}{\pi (\mathcal{S})},}\\ {0<\pi (\mathcal{S})\le1/2}\end{array}
 $$ 
 
-where $\pi(S)$ is the probability assigned by the stationary distribution to the set of states $s$ , $S^{c}=$ $V a l(X)-S,$ , and 
+where $\pi (S)$ is the probability assigned by the stationary distribution to the set of states $s$ , $S^{c}=$ $V a l (X)-S,$ , and 
 
 $$
-P(\mathcal{S}\sim\mathcal{S}^{c})=\sum_{\pmb{x}\in\mathcal{S},\pmb{x}^{\prime}\in\mathcal{S}^{c}}\mathcal{T}(\pmb{x}\rightarrow\pmb{x}^{\prime}).
+P (\mathcal{S}\sim\mathcal{S}^{c})=\sum_{\pmb{x}\in\mathcal{S},\pmb{x}^{\prime}\in\mathcal{S}^{c}}\mathcal{T}(\pmb{x}\rightarrow\pmb{x}^{\prime}).
 $$ 
 
-Intuitively, $P(S\curvearrowright S^{c})$ is the total “bandwidth” for transitioning f m $s$ to its comp ment. In cases where the conductance is low, there is some set of states S where, once in S , it is very difcult to transition out of it. Figure 12.6 visualizes this type of situation, where the only tran on between $S=\{x^{1},x^{2},x^{3}\}$ and its complement is the dashed transition between $x^{2}$ and $x^{4}$ , which has a very low probability. In cases such as this, if we start in a state within S , the chain is likely to stay in S and to take a very long time before exploring other regions of the state space. Indeed, it is possible to provide both upper and lower bounds on the mixing rate of a Markov chain in terms of its conductance. 
+Intuitively, $P (S\curvearrowright S^{c})$ is the total “bandwidth” for transitioning f m $s$ to its comp ment. In cases where the conductance is low, there is some set of states S where, once in S , it is very difcult to transition out of it. Figure 12.6 visualizes this type of situation, where the only tran on between $S=\{x^{1}, x^{2}, x^{3}\}$ and its complement is the dashed transition between $x^{2}$ and $x^{4}$ , which has a very low probability. In cases such as this, if we start in a state within S , the chain is likely to stay in S and to take a very long time before exploring other regions of the state space. Indeed, it is possible to provide both upper and lower bounds on the mixing rate of a Markov chain in terms of its conductance. 
 
 In the context of Markov chains corresponding to graphical models, chains with low conduc- tance are most common in networks that have deterministic or highly skewed parameter iz ation. 
 
 In fact, as we saw in example 12.12, networks with deterministic CPDs might even lead to reducible chains, where diferent regions are entirely disconnected. However, even when the dis- tribution is positive, we might still have regions that are connected only by very low-probability transitions. (See exercise 12.21.) 
 
-There are methods for providing tight bounds on the $\epsilon$ -mixing time of a given Markov chain. These methods are based on an analysis of the transition matrix between the states in the Markov chain. Unfortunately, in the case of graphical models, an exhaustive enumeration of the exponentially many states is precisely what we wish to avoid. (If this enumeration were feasible, we would not have to resort to approximate inference techniques in the ﬁrst place.) Alternatively, there is a suite of indirect techniques that allow us to provide bounds on the mixing time for some general class of chains. However, the application of these methods to each new class of chains requires a separate and usually quite sophisticated mathematical analysis. As of yet, there is no such analysis for the chains that are useful in the setting of graphical models. A more common approach is to use a variety of heuristics to try to evaluate the extent to which a sample trajectory has “mixed.” See box 12.B for some further discussion. 
+There are methods for providing tight bounds on the $\epsilon$ -mixing time of a given Markov chain. These methods are based on an analysis of the transition matrix between the states in the Markov chain. Unfortunately, in the case of graphical models, an exhaustive enumeration of the exponentially many states is precisely what we wish to avoid. (If this enumeration were feasible, we would not have to resort to approximate inference techniques in the ﬁrst place.) Alternatively, there is a suite of indirect techniques that allow us to provide bounds on the mixing time for some general class of chains. However, the application of these methods to each new class of chains requires a separate and usually quite sophisticated mathematical analysis. As of yet, there is no such analysis for the chains that are useful in the setting of graphical models. A more common approach is to use a variety of heuristics to try to evaluate the extent to which a sample trajectory has “mixed.” See box 12. B for some further discussion. 
 
 #### 12.3.5.2 Collecting Samples 
 The burn-in time for a large Markov chain is often quite large. Thus, the naive algorithm described above has to execute a large number of sampling steps for every usable sample. However, a key observation is that, if $\bar{\mathbf{\mathit{x}}^{(t)}}$ is sampled from $\pi$ , then $\cdot_{\pmb{x}}(t{+}1)$ is also sampled from $\pi$ . Thus, once we have run the chain long enough that we are sampling from the stationary distribution (or a distribution close to it), we can continue generating samples from the same trajectory and obtain a large number of samples from the stationary distribution. 
 
-More formally, assume that we use $\mathbfit{\bar{x}}^{(0)},\hat{\mathbfit{\alpha}},\mathbfit{x}^{(T)}$ as our burn-in phase, and then collect $M$ mples ${\mathcal{D}}=\{{\pmb x}[1],.\,.\,.\,,{\pmb x}[M]\}$ from the stationary dis simp might collect $M$ consecutive samples, so that ${\pmb x}[m]\,=\,{\pmb x}^{(T+m)}$ , for $m\,=\,1,\ldots,M$ . If $\pmb{x}^{(T+1)}$ is sampled from $\pi$ , then so are all of the samples in $\mathcal{D}$ . Thus, if our chain has mixed by the time we collect our ﬁrst sample, then for any function $f$ , 
+More formally, assume that we use $\mathbfit{\bar{x}}^{(0)},\hat{\mathbfit{\alpha}},\mathbfit{x}^{(T)}$ as our burn-in phase, and then collect $M$ mples ${\mathcal{D}}=\{{\pmb x}[1],.\,.\,.\,,{\pmb x}[M]\}$ from the stationary dis simp might collect $M$ consecutive samples, so that ${\pmb x}[m]\,=\,{\pmb x}^{(T+m)}$ , for $m\,=\, 1,\ldots, M$ . If $\pmb{x}^{(T+1)}$ is sampled from $\pi$ , then so are all of the samples in $\mathcal{D}$ . Thus, if our chain has mixed by the time we collect our ﬁrst sample, then for any function $f$ , 
 
 $$
-\hat{\boldsymbol E}_{\mathcal{D}}(\boldsymbol f)=\frac{1}{M}\sum_{m=1}^{M}\boldsymbol f(\boldsymbol x[m],\boldsymbol e)
+\hat{\boldsymbol E}_{\mathcal{D}}(\boldsymbol f)=\frac{1}{M}\sum_{m=1}^{M}\boldsymbol f (\boldsymbol x[m],\boldsymbol e)
 $$ 
 
-estimator is an unbiased estimator for $E_{\pi(X)}[f(X,e)]$ . 
+estimator is an unbiased estimator for $E_{\pi (X)}[f (X, e)]$ . 
 
 How good is this estimator? As we discussed in appendix A.2.1, the quality of an unbiased estimator is measured by its variance: the lower the variance, the higher the probability that the estimator is close to its mean. In theorem A.2, we showed an analysis of the variance of an estimator obtained from $M$ independent samples. Unfortunately, we cannot apply that analysis in this setting. The key problem, of course, is that consecutive samples from the same trajectory are correlated. Thus, we cannot expect the same performance as we would from $M$ independent samples from $\pi$ . More formally, the variance of the estimator is signiﬁcantly higher than that of an estimator generated by $M$ independent samples from $\pi$ , as discussed before. 
 
@@ -10248,20 +10243,20 @@ central limit theorem
 
 Theorem 12.6 
 
-Consider the Gibbs chain for the deterministic exclusive-or network of example 12.12, and assume we compute, for a given run of the chain, the fraction of states in which $x^{1}$ holds in the last 100 states traversed by the chain. A chain started in the state $x^{1},y^{0}$ would have that $100/100$ of the states have $x^{1}$ , whereas a chain started in the state $x^{0},y^{1}$ would have that $0/100$ of the states have $x^{1}$ . Thus, the variance of the estimator is very high in this case. 
+Consider the Gibbs chain for the deterministic exclusive-or network of example 12.12, and assume we compute, for a given run of the chain, the fraction of states in which $x^{1}$ holds in the last 100 states traversed by the chain. A chain started in the state $x^{1}, y^{0}$ would have that $100/100$ of the states have $x^{1}$ , whereas a chain started in the state $x^{0}, y^{1}$ would have that $0/100$ of the states have $x^{1}$ . Thus, the variance of the estimator is very high in this case. 
 
 One can formalize this intuition by the following generalization of the central limit theorem that applies to samples collected from a Markov chain: 
 
-Let T be a rkov chain a ${\overline{{X}}}[1],\ldots,X[M]$ a set of samples collected from $\mathcal{T}$ at its stationary distribution P . Then, since $M\longrightarrow\infty$ : 
+Let T be a rkov chain a ${\overline {{X}} }[1],\ldots, X[M]$ a set of samples collected from $\mathcal{T}$ at its stationary distribution P . Then, since $M\longrightarrow\infty$ : 
 
 $$
-\left(\hat{E}_{\mathcal{D}}(f)-E_{X\sim P}[f(X)]\right)\longrightarrow\mathcal{N}\left(0;\sigma_{f}^{2}\right)
+\left (\hat{E}_{\mathcal{D}}(f)-E_{X\sim P}[f (X)]\right)\longrightarrow\mathcal{N}\left (0;\sigma_{f}^{2}\right)
 $$ 
 
 where 
 
 $$
-\sigma_{f}^{2}={\mathbb{V}\!a r_{X\sim\mathcal{T}}}[f(X)]+2\sum_{\ell=1}^{\infty}C o\nu_{\mathcal{T}}[f(X[m]);f(X[m+\ell])]<\infty.
+\sigma_{f}^{2}={\mathbb{V}\! a r_{X\sim\mathcal{T}}}[f (X)]+2\sum_{\ell=1}^{\infty}C o\nu_{\mathcal{T}}[f (X[m]); f (X[m+\ell])]<\infty.
 $$ 
 
 autocovariance The terms in the summation are called autocovariance terms, since they measure the covariance between samples from the chain, taken at diferent lags. The stronger the correlations between diferent samples, the larger the autocovariance terms, the higher the variance of our estimator. This result is consistent with the behavior we discussed in example 12.12. 
@@ -10269,20 +10264,20 @@ autocovariance The terms in the summation are called autocovariance terms, since
 We want to use theorem 12.6 in order to assess the quality of our estimator. In order to do so, we need to estimate the quantity $\sigma_{f}^{2}$ . We can estimate the variance from our empirical data using the standard estimator: 
 
 $$
-\pmb{V a r}_{\pmb{X}\sim\mathcal{T}}[f(\pmb{X})]\approx\frac{1}{M-1}\left[\sum_{m=1}^{M}\left(f(\pmb{X})-\hat{\pmb{E}}_{\mathcal{D}}(f)\right)^{2}\right].
+\pmb{V a r}_{\pmb{X}\sim\mathcal{T}}[f (\pmb{X})]\approx\frac{1}{M-1}\left[\sum_{m=1}^{M}\left (f (\pmb{X})-\hat{\pmb{E}}_{\mathcal{D}}(f)\right)^{2}\right].
 $$ 
 
 To estimate the autocovariance terms from the empirical data, we compute: 
 
 $$
-\mathbb{C}o v_{\mathcal{T}}[f(X[m]);f(X[m+\ell])]\approx\frac{1}{M-\ell}\sum_{m=1}^{M-\ell}(f(X[m]-\hat{\mathbf{E}}_{\mathcal{D}}(f))(f(X[m+\ell]-\hat{\mathbf{E}}_{\mathcal{D}}(f))).
+\mathbb{C}o v_{\mathcal{T}}[f (X[m]); f (X[m+\ell])]\approx\frac{1}{M-\ell}\sum_{m=1}^{M-\ell}(f (X[m]-\hat{\mathbf{E}}_{\mathcal{D}}(f))(f (X[m+\ell]-\hat{\mathbf{E}}_{\mathcal{D}}(f))).
 $$ 
 
 At ﬁrst glance, theorem 12.6 suggests that the variance of the estimate could be reduced if the chain is allowed a sufcient number of iterations between sample collections. Thus, having collected a particle ${\pmb x}^{(T)}$ , we can let the chain run for a while, and collect a second particle $\pmb{x}^{(T+d)}$ for some appropriate choice of $d$ . For $d$ large enough, ${\pmb x}^{(T)}$ and $\pmb{x}^{(T+d)}$ are only slightly correlated, reducing the correlation in the preceding theorem. 
 
 However, this approach is suboptimal for various reasons. First, the time $d$ required for “forgetting” the correlation is clearly related to the mixing time of the chain. Thus, chains that are slow to mix initially also require larger $d$ in order to produce close-to-independent particles. Nevertheless, the samples do come from the correct distribution for any value of $d$ , and hence it is often better to compromise and use a shorter $d$ than it is to use a shorter burn-in time $T$ . This method thus allows us to collect a larger number of usable particles with fewer transitions of the Markov chain. Indeed, although the samples between ${\pmb x}^{(\bar{T})}$ and $\pmb{x}^{(T+d)}$ are not independent samples, there is no reason to discard them. That is, one can show that using all of the samples $\mathbf{\boldsymbol{x}}^{(T)},\mathbf{\boldsymbol{x}}^{(T+1)},\ldots,\mathbf{\boldsymbol{x}}^{(T+d)}$ produces a provably better estimator than using just the two samples ${\pmb x}^{(T)}$ and $\pmb{x}^{(T+d)}$ : our variance is always no higher if we use all of the samples we generated rather than a subset. Thus, the strategy of picking only a subset of the samples is useful primarily in settings where there is a signiﬁcant cost associated with using each sample (for example, the evaluation of $f$ is costly), so that we might want to reduce the overall number of particles used. 
 
-Box 12.B — Skill: MCMC in Practice. A key question when using a Markov chain is evaluating the time required for the chain to “mix” — that is, approach the stationary distribution. As we discussed, no general-purpose theoretical analysis exists for the mixing time of graphical models. However, we can still hope to estimate the extent to which a sample trajectory has “forgotten” its origin. Recall that, as we discussed, the most common problem with mixing arises when the state space consists of several regions that are connected only by low-probability transitions. If we start the chain in a state in one of these regions, it is likely to spend some amount of time in that same region before transitioning to another region. Intuitively, the states sampled in the initial phase are clearly not from the stationary distribution, since they are strongly correlated with our initial state, which is arbitrary. However, later in the trajectory, we might reach a state where the current state is as likely to have originated in any initial state. In this case, we might consider the chain to have mixed. 
+Box 12. B — Skill: MCMC in Practice. A key question when using a Markov chain is evaluating the time required for the chain to “mix” — that is, approach the stationary distribution. As we discussed, no general-purpose theoretical analysis exists for the mixing time of graphical models. However, we can still hope to estimate the extent to which a sample trajectory has “forgotten” its origin. Recall that, as we discussed, the most common problem with mixing arises when the state space consists of several regions that are connected only by low-probability transitions. If we start the chain in a state in one of these regions, it is likely to spend some amount of time in that same region before transitioning to another region. Intuitively, the states sampled in the initial phase are clearly not from the stationary distribution, since they are strongly correlated with our initial state, which is arbitrary. However, later in the trajectory, we might reach a state where the current state is as likely to have originated in any initial state. In this case, we might consider the chain to have mixed. 
 
 Diagnosing convergence of a Markov chain Monte Carlo method is a notoriously hard problem. The chain may appear to have converged simply by spending a large number of iterations in a particular mode due to low conductance between modes. However, there are approaches that can tell us if a chain has not converged. 
 
@@ -10291,7 +10286,7 @@ One technique is based directly on theorem 12.6. In particular, we can compute t
 A diferent technique uses the observation that multiple chains sampling the same distribution should, upon convergence, all yield similar estimates. In addition, estimates based on a complete set of samples collected from all of the chains should have variance comparable to variance in each of the chains. More formally, assume that $K$ separate chains are each run for $T+M$ steps starting from a diverse set of starting points. After discarding the ﬁrst $T$ samples from each chain, let $X_{k}[m]$ denote $a$ sample from chain $k$ after iteration $T+m$ . We can now compute the $B$ (between-chains) and $W$ (within-chain) variances: 
 
 $$
-\begin{array}{r c l}{\bar{f}_{k}}&{=}&{\displaystyle\frac{1}{M}\sum_{m=1}^{M}f(X_{k}[m])}\\ {\bar{f}}&{=}&{\displaystyle\frac{1}{K}\sum_{k=1}^{K}\bar{f}_{k}}\\ {B}&{=}&{\displaystyle\frac{M}{K-1}\sum_{k=1}^{K}(\bar{f}_{k}-\bar{f})^{2}}\\ {W}&{=}&{\displaystyle\frac{1}{K}\frac{1}{M-1}\sum_{k=1}^{K}\sum_{m=1}^{M}\left(f(X_{k}[m])-\bar{f}_{k}\right)^{2}.}\end{array}
+\begin{array}{r c l}{\bar{f}_{k}}&{=}&{\displaystyle\frac{1}{M}\sum_{m=1}^{M}f (X_{k}[m])}\\ {\bar{f}}&{=}&{\displaystyle\frac{1}{K}\sum_{k=1}^{K}\bar{f}_{k}}\\ {B}&{=}&{\displaystyle\frac{M}{K-1}\sum_{k=1}^{K}(\bar{f}_{k}-\bar{f})^{2}}\\ {W}&{=}&{\displaystyle\frac{1}{K}\frac{1}{M-1}\sum_{k=1}^{K}\sum_{m=1}^{M}\left (f (X_{k}[m])-\bar{f}_{k}\right)^{2}.}\end{array}
 $$ 
 
 The expression $\begin{array}{r}{V=\frac{M-1}{M}W+\frac{1}{M}B}\end{array}$ can now be shown to overestimate the variance of our estimate of $f$ based on the collected samples. In the limit of $M\longrightarrow\infty$ →∞ , both $W$ and $V$ converge to the true variance of the estimate. One measure of disagreement between chains is given by $\begin{array}{r}{\hat{R}=\sqrt{\frac{V}{W}}}\end{array}$ q . If the chains have not all converged to the stationary distribution, this estimate will be high. If this value is close to 1, either the chains have all converged to the true distribution, or the starting points were not sufciently dispersed and all of the chains have converged to the same mode or a set of modes. We can use this strategy with multiple diferent functions $f$ in order to increase our conﬁdence that our chain has mixed. We can, for example, use indicator functions of various events, as well as more complex functions of multiple variables. 
@@ -10304,13 +10299,13 @@ MCMC methods have many advantages over other methods. Unlike the global approxim
 
 However, MCMC methods are not generally an out-of-the-box solution for dealing with in- ference in complex models. First, the application of MCMC methods leaves many options that need to be speciﬁed: the proposal distribution, the number of chains to run, the metrics for evaluating mixing, techniques for determining the delay between samples that would allow them to be considered independent, and more. Unfortunately, at this point, there is little theoretical analysis that can help answer these questions for the chains that are of interest to us. Thus, the application of Markov chains is more of an art than a science, and it often requires signiﬁcant experimentation and hand-tuning of parameters. 
 
-Second, MCMC methods are only viable if the chain we are using mixes reasonably quickly. Unfortunately, many of the chains derived from real-world graphical models frequently have multimodal posterior distributions, with slow mixing between the modes. For such chains, the straightforward MCMC methods described in this chapter are unlikely to work. In such cases, diagnostics such as the ones described in box 12.B can be used to determine that the chain is not mixing, and better methods must then be applied. The key to improving the convergence of a Markov chain is to introduce transitions that take larger steps in the space, allowing the chain to move more rapidly between modes, and thereby to better explore the space. The best strategy is often to analyze the properties of the posterior landscape of interest, and to construct moves that are tailored for this speciﬁc space. (See, for example, exercise 12.23.) Fortunately, the ability to mix diferent reversible kernels within a single chain (as discussed in section 12.3.4) allows us to introduce a variety of long-range moves while still maintaining the same target posterior. 
+Second, MCMC methods are only viable if the chain we are using mixes reasonably quickly. Unfortunately, many of the chains derived from real-world graphical models frequently have multimodal posterior distributions, with slow mixing between the modes. For such chains, the straightforward MCMC methods described in this chapter are unlikely to work. In such cases, diagnostics such as the ones described in box 12. B can be used to determine that the chain is not mixing, and better methods must then be applied. The key to improving the convergence of a Markov chain is to introduce transitions that take larger steps in the space, allowing the chain to move more rapidly between modes, and thereby to better explore the space. The best strategy is often to analyze the properties of the posterior landscape of interest, and to construct moves that are tailored for this speciﬁc space. (See, for example, exercise 12.23.) Fortunately, the ability to mix diferent reversible kernels within a single chain (as discussed in section 12.3.4) allows us to introduce a variety of long-range moves while still maintaining the same target posterior. 
 
 simulated annealing 
 
 temperature parameter 
 
-In addition to the use of long-range steps that are speciﬁcally designed for particular (classes of) chains, there are also some general-purpose methods that try to achieve that goal. The block Gibbs approach (section 12.3.3) is an instance of this general class of methods. Another strategy uses the same ideas in simulated annealing to improve convergence of local search to a better optimum. Here, we can deﬁne an intermediate distribution parameterized by a temperature parameter $T;\,T$ : 
+In addition to the use of long-range steps that are speciﬁcally designed for particular (classes of) chains, there are also some general-purpose methods that try to achieve that goal. The block Gibbs approach (section 12.3.3) is an instance of this general class of methods. Another strategy uses the same ideas in simulated annealing to improve convergence of local search to a better optimum. Here, we can deﬁne an intermediate distribution parameterized by a temperature parameter $T;\, T$ : 
 
 $$
 \tilde{P}_{T}(X)\propto\exp\{-\frac{1}{T}\log\tilde{P}(X)\}.
@@ -10323,31 +10318,260 @@ Figure 12.C.1 — Example of bugs model speciﬁcation (a) A simple hybrid Bayes
 
 chains; thus, if we can understand our speciﬁc posterior well enough to construct specialized operators that move between modes, that often provides a more efective solution. 
 
-Box 12.C — Case Study: The bugs System. One of the main advantages of MCMC methods is their broad applicability to a very general class of networks. Not only do they apply (at least in principle) to any discrete network, regardless of its complexity, they also generalize fairly simply to continuous variables (see section 14.5.3). One very useful system that exploits this generality is the bugs system, developed by Thomas et al. (1992). This system provides a general-purpose language for representing a broad range of probabilistic models and uses MCMC to run inference over these models. 
+Box 12. C — Case Study: The bugs System. One of the main advantages of MCMC methods is their broad applicability to a very general class of networks. Not only do they apply (at least in principle) to any discrete network, regardless of its complexity, they also generalize fairly simply to continuous variables (see section 14.5.3). One very useful system that exploits this generality is the bugs system, developed by Thomas et al. (1992). This system provides a general-purpose language for representing a broad range of probabilistic models and uses MCMC to run inference over these models. 
 
 BUGS system 
 
-The bugs system provides a programming-language-based representation of a probabilistic model. The model deﬁnes a joint distribution over a set of random variables. Variables can be deﬁned as functions of each other; these functions can be deterministic functions, or stochastic functions utiliz- ing a rich set of predeﬁned distributions. For example, consider the simple Bayesian network shown in ﬁgure 12.C.1a, where $A,B,C$ are discrete and $X,Y$ are continuous. One possible probabilistic model can be written in bugs using the commands shown in ﬁgure 12.C.1b. This model deﬁnes: A to be a binary-valued variable, with $P(a^{1})\,=\,0.3$ ; $B$ is a 3-valued variable that depends on A , whose CPT is deﬁned in the trix $P$ ; $X$ is a Gaussian random variable with mea $-1$ a precision (inverse variance) $0.25;Y$ is a conditional Gaussian whose mean depends on X and B and whose precision also depends on $X$ ; and $C$ is a logistic function of $4X+2$ . Even in this very simple example, we can see that the bugs language provides a rich language for encoding diferent families of functional and stochastic dependencies between variables. 
+The bugs system provides a programming-language-based representation of a probabilistic model. The model deﬁnes a joint distribution over a set of random variables. Variables can be deﬁned as functions of each other; these functions can be deterministic functions, or stochastic functions utiliz- ing a rich set of predeﬁned distributions. For example, consider the simple Bayesian network shown in ﬁgure 12.C.1a, where $A, B, C$ are discrete and $X, Y$ are continuous. One possible probabilistic model can be written in bugs using the commands shown in ﬁgure 12.C.1b. This model deﬁnes: A to be a binary-valued variable, with $P (a^{1})\,=\, 0.3$ ; $B$ is a 3-valued variable that depends on A , whose CPT is deﬁned in the trix $P$ ; $X$ is a Gaussian random variable with mea $-1$ a precision (inverse variance) $0.25; Y$ is a conditional Gaussian whose mean depends on X and B and whose precision also depends on $X$ ; and $C$ is a logistic function of $4X+2$ . Even in this very simple example, we can see that the bugs language provides a rich language for encoding diferent families of functional and stochastic dependencies between variables. 
 
-Given a probabilistic model deﬁned in this way, the bugs system can instantiate evidence for some of the variables (for example, by reading their values from a ﬁle) and then perform inference over the model by running various MCMC algorithms. The system analyzes the parametric form specifying the distribution of the diferent variables, and it selects an appropriate sampling algorithm to use. The user speciﬁes the number of sampling iterations to perform, and which variables are to be monitored — their values are to be stored during the MCMC iterations. We can then compute such values as the mean and standard deviation of these monitored variables. The system also provides various methods to help detect convergence of the MCMC runs (see also box 12.B). 
+Given a probabilistic model deﬁned in this way, the bugs system can instantiate evidence for some of the variables (for example, by reading their values from a ﬁle) and then perform inference over the model by running various MCMC algorithms. The system analyzes the parametric form specifying the distribution of the diferent variables, and it selects an appropriate sampling algorithm to use. The user speciﬁes the number of sampling iterations to perform, and which variables are to be monitored — their values are to be stored during the MCMC iterations. We can then compute such values as the mean and standard deviation of these monitored variables. The system also provides various methods to help detect convergence of the MCMC runs (see also box 12. B). 
 
 Overall, the bugs tool provides a general-purpose and highly ﬂexible framework for specifying and reasoning with probabilistic models. Its ability to provide such a high level of expression power rests on the generality of MCMC as an inference method, and its applicability to a very broad range of distributions (broader than any other inference method currently available). 
 
 ## 12.6 Summary 
 This chapter presents a series of methods that attempt to approximate a joint distribution using a set of particles. We discussed three main classes of techniques for generating particles. 
+>  本章讨论了使用一组粒子近似联合分布的一系列方法，以及讨论了三类生成粒子的方法
 
-Importance sampling, and speciﬁcally likelihood weighting, generates particles by random sampling from a distribution. Because we cannot, in general, sample from the posterior dis- tribution, we generate particles from a diferent distribution, called the proposal distribution, and then adjust their weights so as to get an unbiased estimator. The proposal distribution is a mutilated Bayesian network, and the samples are generated using forward sampling. Owing to the use of forward sampling, likelihood weighting applies only to directed graphical mod- els. However, if we somehow choose a proposal distribution, the more general framework of importance sampling can also be applied to undirected graphical models (see exercise 12.9). 
+Importance sampling, and speciﬁcally likelihood weighting, generates particles by random sampling from a distribution. Because we cannot, in general, sample from the posterior distribution, we generate particles from a different distribution, called the proposal distribution, and then adjust their weights so as to get an unbiased estimator. The proposal distribution is a mutilated Bayesian network, and the samples are generated using forward sampling. Owing to the use of forward sampling, likelihood weighting applies only to directed graphical models. However, if we somehow choose a proposal distribution, the more general framework of importance sampling can also be applied to undirected graphical models (see exercise 12.9). 
+>  首先是重要性采样，以及似然加权算法
+>  它们从一个分布中随机采样以生成粒子，但这类方法中我们一般不能从后验中采样，而是从另一个分布 (提案分布) 中采样，然后调节它们的权重，以得到无偏的估计器
+>  提案分布可以由残缺化的贝叶斯网络定义，采样时只需要从残缺化贝叶斯网络中进行前向采样即可
+>  因为依赖于前向采样，似然加权算法仅适用于有向模型，但可以通过选择其他的提案分布，将重要性采样的思想应用到无向模型
 
-Markov chain Monte Carlo techniques attempt to generate samples from the posterior distri- bution. We deﬁne a Markov chain, or a stochastic sampling process, whose stationary distri- bution (the asymptotic result of the sampling process) is the correct posterior distribution. The Metropolis-Hastings algorithm is a general scheme for specifying a Markov chain that induces a particular posterior distribution. We showed how we can use the Metropolis-Hastings algorithm for graphical models. We also showed a particular instantiation, called Gibbs sampling, that is speciﬁcally designed for graphical models. 
+Markov chain Monte Carlo techniques attempt to generate samples from the posterior distribution. We deﬁne a Markov chain, or a stochastic sampling process, whose stationary distribution (the asymptotic result of the sampling process) is the correct posterior distribution. The Metropolis-Hastings algorithm is a general scheme for specifying a Markov chain that induces a particular posterior distribution. We showed how we can use the Metropolis-Hastings algorithm for graphical models. We also showed a particular instantiation, called Gibbs sampling, that is speciﬁcally designed for graphical models. 
+> MCMC 方法尝试从后验分布中生成样本
+> 在这类方法中，我们定义一个 Markov chain，其稳态分布 (采样过程的渐进结果) 是真实的后验分布
+> MH 算法是构造这样的 Markov chain 的一个通用方法，MH 算法可以用于图模型
+> Gibbs 采样算法是一类特定的 Markov chain 构造方法，特别适用于图模型
 
-Finally, search methods take a diferent approach, where particles are generated determin- istically, trying to focus on instantiations that have high probability. Unlike random sampling methods, deterministic search methods do not provide an unbiased estimator for the target query. However, they do provide sound upper and lower bounds. When the probability distribu- tion is highly difuse, so that many particles are necessary to cover most of the probability mass, these bounds will be very loose, and generally without value. However, when a small number of instantiations account for a large fraction of the probability mass, deterministic search tech- niques can obtain very accurate results with a very small number of particles, often much more accurate results than sampling-based methods with a comparable number of particles. There are several applications that have this property. For example, when performing fault diagnosis (see, for example, box 5.A), where faults are very rare, it can be very efcient to enumerate all hypotheses where the system has up to $K$ faults. Because multiple faults are highly unlikely, 
-
-even a small value of $K$ (2 or 3) will likely sufce to cover most of the probability mass — even the mass consistent with our evidence. Another example is speech recognition (box 6.B), where only very few trajectories through the HMM are likely. In both of these applications, deterministic search methods have been successfully applied. 
+Finally, search methods take a different approach, where particles are generated deterministically, trying to focus on instantiations that have high probability. Unlike random sampling methods, deterministic search methods do not provide an unbiased estimator for the target query. However, they do provide sound upper and lower bounds. When the probability distribution is highly diffuse, so that many particles are necessary to cover most of the probability mass, these bounds will be very loose, and generally without value. However, when a small number of instantiations account for a large fraction of the probability mass, deterministic search techniques can obtain very accurate results with a very small number of particles, often much more accurate results than sampling-based methods with a comparable number of particles. There are several applications that have this property. For example, when performing fault diagnosis (see, for example, box 5. A), where faults are very rare, it can be very efficient to enumerate all hypotheses where the system has up to $K$ faults. Because multiple faults are highly unlikely, even a small value of $K$ (2 or 3) will likely suffice to cover most of the probability mass — even the mass consistent with our evidence. Another example is speech recognition (box 6. B), where only very few trajectories through the HMM are likely. In both of these applications, deterministic search methods have been successfully applied. 
 
 From a high level, it appears that sampling methods are the ultimate general-purpose inference algorithm. They are the only method that can be applied to arbitrary probabilistic models and that is guaranteed to achieve the correct results at the large sample limit. Indeed, when faced with a complex probabilistic model that involves continuous variables or a nonparametric model, there are often very few other choices available to us. While optimization-based methods, such as those of chapter 11, can sometimes be applied, the application often requires a nontrivial derivation, speciﬁc to the problem at hand. Moreover, these methods provide no accuracy guarantee. Conversely, it seems that sampling-based methods can be applied easily, of-the- shelf, to virtually any model. 
+>  从高层次来看，采样方法似乎就是终极的通用目的的推断算法，采样方法是唯一的可以应用于任意图模型的方法，并且在足够大的样本规模下可以保证达到正确的结果
+>  但当概率模型非常复杂并且涉及了连续变量或非参数模型时，可选的采样方法是很少的；而基于优化的方法，例如 CH11 所介绍的则有时可以应用，但它们一般需要针对问题的复杂的推导，并且不提供正确性保证
+>  因此反而是基于采样的方法可以简单直接应用于几乎所有模型
 
-This impression, however, is somewhat misleading. While it is true that sampling methods provide asymptotic guarantees, their performance for reasonable sample sizes is very difcult to predict. In practice, a naive application of sampling methods to a complex probabilistic model often fails dismally, in that the estimates obtained from any rea- sonable number of samples are highly inaccurate. Thus, the success of these methods depends heavily on the properties of the distribution, and on a careful design of our sampling algorithm. Moreover, there is little theoretic basis for this design, so that the process of getting sampling methods to work is largely a matter of intuition and intensive experimentation. 
+This impression, however, is somewhat misleading. While it is true that sampling methods provide asymptotic guarantees, their performance for reasonable sample sizes is very difficult to predict. In practice, a naive application of sampling methods to a complex probabilistic model often fails dismally, in that the estimates obtained from any rea- sonable number of samples are highly inaccurate. Thus, the success of these methods depends heavily on the properties of the distribution, and on a careful design of our sampling algorithm. Moreover, there is little theoretic basis for this design, so that the process of getting sampling methods to work is largely a matter of intuition and intensive experimentation. 
+>  但该印象是有误导性的，采样方法有渐进的正确性保证，但具体需要多大的样本集合才可以有理想的性能则很难预测
+>  实际上，对一个复杂的概率模型直接应用采样方法通常会失败，因为从任何合理的样本数量中获得的估计值往往非常不准确
+>  因此，这些方法的成功很大程度上取决于分布的性质以及我们采样算法的精心设计，但这种设计几乎没有理论基础，因此让采样方法奏效的过程在很大程度上依赖于直觉和密集的实验
 
-Nevertheless, the methods described in this chapter do provide an important component in our arsenal of methods for inference in complex models. Moreover, they are often used very successfully in combination with exact or approximate global inference methods. Standard com- binations include the use of global inference for providing more informed proposal distributions, and for manipulating collapsed particles. Such combinations are highly successful in practice, and they often lead to much better results than any of the two types of inference methods in isolation. 
+Nevertheless, the methods described in this chapter do provide an important component in our arsenal of methods for inference in complex models. Moreover, they are often used very successfully in combination with exact or approximate global inference methods. Standard combinations include the use of global inference for providing more informed proposal distributions, and for manipulating collapsed particles. Such combinations are highly successful in practice, and they often lead to much better results than any of the two types of inference methods in isolation. 
+>  尽管如此，本章中描述的方法为我们处理复杂模型的推理提供了一个重要的工具
+>  此外，它们经常与精确或近似的全局推理方法结合使用，并且通常能取得很好的效果，常见的组合包括使用全局推理来提供更有信息量的提案分布，以及操作塌缩后的粒子
+>  这样的组合在实践中非常成功，通常比单独使用这两种类型的推理方法能得到更好的结果
 
 Having described these basic methods, we showed how they can be extended to the case of collapsed particles, which consist of an assignment to a subset of network variables, associ- ated with a closed-form distribution over the remaining ones. The answer to a query is then a (possibly weighted) sum over the particles, of the answer to the query within each associated dis- tribution. This approach approximates part of the inference task via particles, while performing exact inference on a subnetwork, which may be simpler than the original network. 
+
+# 17 Parameter Estimation 
+In this chapter, we discuss the problem of estimating parameters for a Bayesian network. We assume that the network structure data set $\mathcal{D}$ consists of fully observed instances of the network variables: D ${\mathcal D}=\{\xi[1],\dots,\xi[M]\}$ { } . This problem arises fairly often in practice, since numerical parameters are harder to elicit from human experts than structure is. It also plays a key role as a building block for both structure learning and learning from incomplete data. As we will see, despite the apparent simplicity of our task deﬁnition, there is surprisingly much to say about it. 
+>  本章讨论为 BN 估计参数的问题，问题设定中，我们有一个固定结构的 BN，和一个抱恨了一组网络变量实例的数据集 $\mathcal D = \{\xi[1], \dots, \xi[M]\}$
+
+As we will see, there are two main approaches to dealing with the parameter-estimation task: one based on maximum likelihood estimation , and the other using Bayesian approaches. For each of these approaches, we ﬁrst discuss the general principles, demonstrating their application in the simplest context: a Bayesian network with a single random variable. We then show how the structure of the distribution allows the techniques developed in this very simple case to generalize to arbitrary network structures. Finally, we show how to deal with parameter estimation in the context of structured CPDs. 
+>  参数估计有两类主要方法：极大似然估计、贝叶斯方法
+>  我们先讨论这些方法对于包含单个随机变量 BN 的应用，然后推广到任意网络结构
+
+## 17.1 Maximum Likelihood Estimation 
+In this section, we describe the basic principles behind maximum likelihood estimation. 
+>  本节描述 MLE 的基本原则
+
+### 17.1.1 The Thumbtack Example 
+We start with what may be considered the simplest learning problem: parameter learning for a single variable. This is a classical Statistics 101 problem that illustrates some of the issues that we will encounter in more complex learning problems. Surprisingly, this simple problem already contains some interesting issues that we need to tackle. 
+>  考虑为单个变量学习参数
+
+Imagine that we have a thumbtack, and we conduct an experiment whereby we ﬂip the thumbtack in the air. It comes to land as either heads or tails, as in ﬁgure 17.1. We toss the thumbtack several times, obtaining a data set consisting of heads or tails outcomes. Based on this data set, we want to estimate the probability with which the next ﬂip will land heads or tails. In this description, we already made the implicit assumption that the thumbtack tosses are controlled by an (unknown) parameter $\theta$ , which describes the frequency of heads in thumbtack tosses. In addition, we also assume that the data instances are independent and identically distributed (IID). 
+>  假设做随机抛掷图钉的试验，我们假设抛掷的结构由一个未知参数 $\theta$ 控制，同时假设数据集 (试验结果集合) 是独立同分布的
+
+Assume that we toss the thumbtack 100 times, of which 35 come up heads. What is our estimate for $\theta\colon$ Our intuition suggests that the best estimate is 0 . 35 . Had $\theta$ been 0 . 1 , for example, our chances of seeing $35/100$ heads would have been much lower. In fact, we examined a similar situation in our discussion of sampling methods in section 12.1, where we used samples from a distribution to estimate the probability of a query. As we discussed, the central limit theorem shows that, as the number of coin tosses grows, it is increasingly unlikely to sample a sequence of IID thumbtack ﬂips where the fraction of tosses that come out heads is very far from $\theta$ . Thus, for sufficiently large $M$ , the fraction of heads among the tosses is a good estimate with high probability. 
+>  中心极限定理表明，随着抛次数的增加，抽样到一系列独立同分布的图钉翻转序列，其中朝上的比例与 $\theta$ 相差很远的情况变得越来越不可能，因此，对于足够大的 $M$，抛掷中正面的比例 (频率) 有很高的概率是一个很好的估计
+
+To formalize this intuition, assume that we have a set of thumbtack tosses $x[1],\cdot\cdot\cdot,x[M]$ that are IID, that is, each is sampled independently from the same distribution in which $X[m]$ is equal to $H$ (heads) or $T$ (tails) th probability $\theta$ and $1-\theta$ , respectively. Our task is to ﬁnd a good value for the parameter θ . As in many formulations of learning tasks, we deﬁne a hypothesis space $\Theta$ — a set of possibilities that we are considering — and an objective function that tells us how good dif nt hypotheses in the space are relative to our data set $\mathcal{D}$ . In this case, our hypothesis space Θ is the set of all param ers $\theta\in[0,1]$ . 
+>  假设有一组 IID 样本 $x[1], \dots, x[M]$ ，其服从的分布为 $P(X[m] = H) = \theta$, $P(X[m] = T) = 1-\theta$，我们的目标是估计 $\theta$
+>  对于学习任务，我们定义假设空间 $\Theta$ ( 我们所考虑的可能值 )，和目标函数 (用于判断假设空间的假设相对于数据集 $\mathcal D$ 的优异程度)
+>  本例的假设空间为 $\theta \in [0, 1]$ 中的所有参数
+
+How do we score different possible parameters θ ? As we discussed in section 16.3.1, one way of evaluating $\theta$ is by how well it predicts the data. In other words, if the data are likely given the parameter, the parameter is a good predictor. 
+>  评估可能参数 $\theta$ 的准则就是该参数能否很好地预测数据，即数据有可能给出该参数，该参数就是好的估计
+
+For example, suppose we observe the sequence of outcomes $H,T,T,H,H$ . If we know $\theta$ , we could assign a probability to observing this particular sequence. The probability of the ﬁrst toss is $P(X[1]=H)=\theta$ . The probability of the second toss is $P(X[2]=T\mid X[1]=H)$ ) , but our assume es are independent allows us to conclude that this probability is simply $P(X[2]=T)=1-\theta$ − . This is also the probability of the third outcome, and so on. Thus, the probability of the sequence is 
+
+$$
+P(\langle H,T,T,H,H\rangle:\theta)=\theta(1-\theta)(1-\theta)\theta\theta=\theta^{3}(1-\theta)^{2}.
+$$ 
+As expected, this probability depends on the particular value $\theta$ . As we consider diferent values of $\theta$ , we get diferent probabilities for the sequence. Thus, we can examine how the probability of the data changes as a function of $\theta$ . We thus deﬁne the likelihood function to be 
+
+$$
+L(\theta:\langle H,T,T,H,H\rangle)=P(\langle H,T,T,H,H\rangle:\theta)=\theta^{3}(1-\theta)^{2}.
+$$ 
+>  假如我们知道参数，我们可以为某个特定的观测序列计算其概率
+>  因此，对于不同的参数选择，我们的数据集就有不同的概率，故我们可以用一个关于 $\theta$ 的函数衡量数据集的出现概率随 $\theta$ 的变化关系
+>  该函数就是似然函数，它是关于参数 $\theta$ 和数据集观测的函数
+
+Figure 17.2 plots the likelihood function in our example.
+
+Clearly, parameter values with higher likelihood are more likely to generate the observed sequences. Thus, we can use the likelihood function as our measure of quality for different parameter values and select the parameter value that maximizes the likelihood; this value is called the maximum likelihood estimator (MLE) . By viewing ﬁgure 17.2 we see that $\hat{\theta}=0.6=3/5$ maximizes the likelihood for the sequence $H,T,T,H,H$ . 
+>  显然，给定数据集，似然更高的参数 $\theta$ 更有可能生成该观测序列，因此，我们使用似然函数度量不同参数值的质量，选择能最大化似然的参数值作为估计值
+>  该估计值就称为极大似然估计器
+
+Can we ﬁnd the MLE for the general case? Assume that r data set $\mathcal{D}$ of observations contains $M[1]$ heads and $M[0]$ tails. We want to ﬁnd the value $\hat{\theta}$ that maximizes the likelihood of $\theta$ relative to $\mathcal{D}$ . The likelihood function in this case is: 
+>  $\theta$ 相对于数据集 $\mathcal D$ 的似然函数定义如下
+
+$$
+L(\theta:{\mathcal{D}})=\theta^{M[1]}(1-\theta)^{M[0]}.
+$$ 
+It turns out that it is easier to maximize the logarithm of the likelihood function. In our case, the log-likelihood function is: 
+>  对似然函数取对数即得到对数似然函数
+
+$$
+\ell(\theta:{\mathcal{D}})=M[1]\log\theta+M[0]\log(1-\theta).
+$$
+
+Note that the log-likelihood is monotonically related to the likelihood. Therefore, maximizing the one is equivalent to maximizing the other. However, the log-likelihood is more convenient to work with, since products are converted to summations. 
+>  对数似然函数的单调性和似然函数相同，因此最大化对数似然函数等价于最大化似然函数
+
+Differentiating the log-likelihood, setting the derivative to 0 , and solving for $\theta$ , we get that the maximum likelihood parameter, which we denote $\hat{\theta}$ , is 
+
+$$
+\hat{\theta}=\frac{M[1]}{M[1]+M[0]},\tag{17.1}
+$$ 
+as expected (see exercise 17.1). 
+
+>  对对数似然求导，令导数为零，得到极大似然参数 $\hat \theta$
+
+As we will see, the maximum likelihood approach has many advantages. However, the approach also has some limitations. For example, if we get 3 heads out of 10 tosses, the MLE estimate is 0.3 . We get the same estimate if we get 300 heads out of 1,000 tosses. Clearly, the two experiments are not equivalent. Our intuition is that, in the second experiment, we should be more conﬁdent of our estimate. Indeed, statistical estimation theory deals with conﬁdence intervals . These are common in news reports, for example, when describing the results of election polls, where we often hear that $"61\pm2$ percent” plan to vote for a certain candidate. The 2 percent is a conﬁdence interval — the poll is designed to select enough people so that the MLE estimate will be within 0 . 02 of the true parameter, with high probability. 
+>  极大似然方法存在问题，例如我们可以从 10 次试验中 3 次 Head 的结果得到 MLE 估计值为 0.3，而从 100 次试验中 30 次 Head 的结果得到 MLE 估计值也是 0.3
+>  显然这两次试验应该是不等价的，我们应该对第二次估计的结果更自信
+>  因此，我们要考虑置信区间，置信区间为 2% 表示我们的 MLE (极大似然估计) 将有很高概率在真实参数的 0.02 相对误差左右
+
+### 17.1.2 The Maximum Likelihood Principle 
+We now generalize the discussion of maximum likelihood estimation to a broader range of learning problems. We then consider how to apply it to the task of learning the parameters of a Bayesian network. 
+>  考虑将 MLE 应用到 BN
+
+We start by describing the setting of the learning problem. Assume that we observe several IID samples of a set of random variables $\mathcal{X}$ from an unknown distribution $P^{*}(\mathcal{X})$ . We assume we know in advance the sample space we are dealing with (that is, which random variables, and what values they can take). However, we do not make any additional assumptions about $P^{*}$ . We denote the training set of samples as $\mathcal{D}$ and assume that it consists of $M$ instances of $\mathcal{X}$ : $\xi[1],\cdot\cdot\cdot\xi[M]$ . 
+>  假设我们有从未知分布 $P^*(\mathcal X)$ 观测到的 IID 样本集合 $\mathcal D$ (训练集)，我们知道样本空间 (即每个随机变量的所有取值可能)
+
+Next, we need to consider what exactly we want to learn. We assume that we are given a parametric model for which we wish to estimate parameters . Formally, a parametric model (also known as a parametric family; see section 8.2) is deﬁned by a function $P(\xi:\theta)$ , speciﬁed in terms of a set of parameters . Given a particular set of parameter values $\theta$ and an instance $\xi$ of $\mathcal{X}$ , the model ss robability (or density) to $\xi$ . Of course, we require that for each choice of parameters θ , $P(\xi:\theta)$ is a legal distribution; that is, it is nonnegative and 
+>  假设给定一个参数化模型 (参数化族) ，即函数 $P(\xi:\pmb \theta)$
+>  该参数化模型在给定特定样本和参数 $\pmb \theta$ 时可以评估该样本的概率
+>  要求参数化模型定义合法的分布，即非负并且和为 1
+
+$$
+\sum_{\xi}P(\xi:\pmb \theta)=1.
+$$ 
+In general, for each model, not all parameter values are legal. Thus, we need to deﬁne the parameter space $\Theta$ , which is the set of allowable parameters. 
+>  注意对于各个模型，不是所有参数值都合法，我们需要定义合法参数组成的参数空间 $\Theta$
+
+To get some intuition, we consider concrete examples. The model we examined in section 17.1.1 has parameter space $\Theta_{t h u m b t a c k}=[0,1]$ and is deﬁned as 
+
+$$
+P_{t h u m b t a c k}(x:\theta)={\left\{\begin{array}{l l}{\theta}&{{\mathrm{if~}}x=H}\\ {1-\theta}&{{\mathrm{if~}}x=T.}\end{array}\right.}
+$$ 
+There are many additional examples. 
+
+Example 17.1 multinomial 
+Suppose that $X$ is a multinomial variable that can take values $x^{1},\cdot\cdot\cdot,x^{K}$ . The simplest representation of a multinomial distribution is as a vector $\pmb{\theta}\in\mathbb{R}^{K}$ , such that 
+
+$$
+P_{m u l t i n o m i a l}(x:\theta)=\theta_{k}{\mathrm{~}}i f\,x=x^{k}.
+$$ 
+The parameter space of this model is 
+
+$$
+\Theta_{m u l t i n o m i a l}=\left\{\pmb{\theta}\in[0,1]^{K}:\sum_{i}\theta_{i}=1\right\}.
+$$ 
+Example 17.2 Gaussian 
+Suppose that $X$ is a continuous variable that can take values in the real line. A Gaussian model for $X$ is 
+
+$$
+P_{G a u s s i a n}(x:\mu,\sigma)=\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\mu)^{2}}{2\sigma^{2}}},
+$$ 
+where $\theta=\langle\mu,\sigma\rangle$ . The parameter space for this model is $\Theta_{G a u s s i a n}=I\!\!R\times I\!\!R^{+}$ × . That is, we allow any real value of $\mu$ and any positive real value for $\sigma$ . 
+
+The next step in maximum likelihood estimation is deﬁning the likelihood function . As we saw in our example, the likelihood function for a given choice of parameters $\theta$ is the probability (or density) the model assigns the training data: 
+
+$$
+L(\pmb\theta:\mathcal D)=\prod_{m}P(\xi[m]:\pmb\theta).
+$$ 
+>  接着我们定义似然函数
+>  似然函数是关于参数 $\pmb \theta$ 的函数，它给出模型在 $\pmb \theta$ 下赋予训练数据集 $\mathcal D$ 的概率
+
+In the thumbtack example, we saw that we can write the likelihood function using simpler terms. That is, using the counts $M[1]$ and $M[0]$ , we managed to have a compact description of the likelihood. More precisely, once we knew the values of $M[1]$ and $M[0]$ , we did not need to consider other aspects of training data (for example, the order of tosses). These are the sufficient statistics for the thumbtack learning problem. In a more general setting, a sufficient statistic is a function of the data that summarizes the relevant information for computing the likelihood. 
+>  在图钉的例子中，我们看到可以通过更简单的术语来表示似然函数，也就是说，利用计数 $M[1]$ 和 $M[0]$，我们能够简洁地描述似然性。更确切地说，一旦我们知道 $M[1]$ 和 $M[0]$ 的值，就不需要考虑训练数据的其他方面（例如，抛掷的顺序）
+>  图钉每次抛掷的结果 (Head or Tail) 就是图钉学习问题的充分统计量
+>  在更一般的设定下，充分统计量是数据的一个函数，它总结了计算似然所需的全部相关信息
+
+**Deﬁnition 17.1** sufficient statistics 
+A function $\tau(\xi)$ from in of $\mathcal{X}$ to $I\!\!R^{\ell}$ (for some $\ell$ ) is $a$ sufficient statistic $i f,$ for any two data sets and and any $\theta\in\Theta$ , we have that 
+
+$$
+\sum_{\xi[m]\in{\mathcal D}}\tau(\xi[m])=\sum_{\xi^{\prime}[m]\in{\mathcal D}^{\prime}}\tau(\xi^{\prime}[m])\quad\Longrightarrow\quad L(\pmb \theta:{\mathcal D})=L(\pmb \theta:{\mathcal D}^{\prime}).
+$$ 
+We often refer to the tuple $\begin{array}{r}{\sum_{\xi[m]\in\mathcal{D}}\tau\big(\xi[m]\big)}\end{array}$ as the sufficient statistics of the data set $\mathcal{D}$ . 
+
+>  定义
+>  函数 $\tau(\xi): \mathcal X \mapsto R^{\mathscr l}$ 如果对于任意两个数据集 $\mathcal D, \mathcal D'$ 和任意参数空间内的参数 $\pmb \theta \in \Theta$ 满足当 $\tau(\xi)$ 在 $\mathcal D$ 上求和的结果等于 $\tau(\xi)$ 在 $\mathcal D'$ 上求和的结果相等时，$\pmb \theta$ 相对于 $\mathcal D$ 和 $\mathcal D'$ 的似然函数就相等，$\tau(\xi)$ 就是一个充分统计量
+>  我们经常将 $\sum_{\xi[m]\in \mathcal D}\tau(\xi[m])$ 称为数据集 $\mathcal D$ 的充分统计量
+>  (直观上说，在同一参数下，如果任意两个数据集的某个统计量相等时，可以保证二者的似然相等，则该统计量就是充分统计量)
+
+Example 17.3 
+Let us reconsider the multinomial model of example 17.1. It is easy to see that a sufficient statistic for th ata set is the tuple of counts $\langle M[1],.\,.\,.\,,M[K]\rangle$ , such that $M[k]$ is number of times the value $x^{k}$ appears in the training data. To obtain these counts by summing instance-level statistics, we deﬁne $\tau(x)$ to be a tuple of dimension $K$ , such that $\tau(x)$ has $a\;0$ in every position, except at the position $k$ for which $x=x^{k}$ , where its value is 1 : 
+
+$$
+\tau(x^{k})=(\overbrace{0,.\\,.\,0}^{k-1},1,\overbrace{0,.\,.\,.\,0}^{n-k}).
+$$ 
+Given the vector of counts, we can write the likelihood function as 
+
+$$
+L(\pmb\theta:\mathcal{D})=\prod_{k}\theta_{k}^{M[k]}.
+$$ 
+Example 17.4 
+Let us reconsider the Gaussian model of example 17.2. In this case, it is less obvious how to construct sufficient statistics. However, if we expand the term $(x-\mu)^{2}$ in the exponent, we can rewrite the model as 
+
+$$
+P_{G a u s s i a n}(x:\mu,\sigma)=e^{-x^{2}\frac{1}{2\sigma^{2}}+x\frac{\mu}{\sigma^{2}}-\frac{\mu^{2}}{2\sigma^{2}}-\frac{1}{2}\log(2\pi)-\log(\sigma)}.
+$$ 
+We then see that the function 
+
+$$
+s_{G a u s s i a n}(x)=\langle1,x,x^{2}\rangle
+$$
+
+is a sufficient statistic for this model. Note that the ﬁrst element in the sufficient statistics tuple is “1,” which does not depend on the value of the data item; it serves, as in the multinomial case, to count the number of data items. 
+
+We venture several comments about the likelihood function. First, we stress that the likelihood function measures the effect of the choice of parameters on the training data. Thus, for example, if we have two sets of parameters $\theta$ and $\theta^{\prime}$ , so that $L(\pmb\theta:\mathcal D)=L(\pmb\theta^{\prime}:\mathcal D)$ , then we cannot , given only the data, distinguish between the two choices of parameters. Moreover, if $L(\theta\,:$ $\mathcal{D})=L(\boldsymbol{\theta}^{\prime}:\mathcal{D})$ for all possible choices of $\mathcal{D}$ , then the two parameters are indistinguishable for any outcome. In such a situation, we can say in advance (that is, before seeing the data) that some distinctions cannot be resolved based on the data alone. 
+>  对似然函数的评价：
+>  首先，似然函数度量了参数选择对训练数据的影响，例如我们有两组参数 $\pmb \theta, \pmb \theta'$，给定数据集 $\mathcal D$ 时，如果 $L(\pmb \theta: \mathcal D ) = L(\pmb \theta' : \mathcal D)$，则认为这两组参数无法区分
+>  如果对于 $\mathcal D$ 的所有可能选择，这两组参数都无法区分，这两组参数对于任意结果都无法区分
+>  此时我们可以说参数间的一些区别不能仅仅基于数据就明确
+
+Second, since we are maximizing the likelihood function, we usually want it to be continuous (and preferably smooth) function of $\theta$ . To ensure these properties, most of the theory of statistical estimation requires that $P(\xi:\theta)$ is a continuous and differentiable function of $\theta$ , and moreover that $\Theta$ is a continuous set of points (which is often assumed to be convex). 
+>  其次，因为需要最大化似然函数，我们一般要求似然函数连续 (最好光滑)
+>  为了保证这些性质，大多数统计估计理论要求概率 $P(\xi: \pmb \theta)$ 是关于 $\pmb \theta$ 的连续可微函数，并且 $\Theta$ 是一个连续的点集 (并且常常假设为凸的)
+
+Once we have deﬁned the likelihood function, we can use maximum likelihood estimation to choose the parameter values. Formally, we state this principle as follows. 
+
+**Maximum Likelihood Estimation:** 
+Given a data set $\mathcal{D}$ , choose parameters $\hat{\pmb\theta}$ that satisfy 
+
+$$
+L({\hat{\pmb \theta}}:{\mathcal{D}})=\operatorname*{max}_{\pmb \theta\in\Theta}L(\pmb \theta:{\mathcal{D}}).
+$$ 
+>  极大似然估计
+>  给定数据集 $\mathcal D$，选择参数 $\hat {\pmb \theta}$ 使得似然函数可以最大
+
+Example 17.5 
+Consider estimating the parameters of the multinomial distribution of example 17.3. As one might guess, the maximum likelihood is attained when 
+
+$$
+{\hat{\theta}}_{k}={\frac{M[k]}{M}}
+$$ 
+(see exercise 17.2). That is, the probability of each value of $X$ corresponds to its frequency in the training data. 
+
+Example 17.6 empirical mean, variance 
+Consider estimating the parameters of a Gaussian distribution of example 17.4. It turns out that the maximum is attained when $\mu$ and $\sigma$ correspond to the empirical mean and variance of the training data: 
+
+$$
+\begin{array}{r c l}{{\hat{\mu}}}&{{=}}&{{\displaystyle\frac{1}{M}\sum_{m}x[m]}}\\ {{}}&{{}}&{{}}\\ {{\hat{\sigma}}}&{{=}}&{{\displaystyle\sqrt{\frac{1}{M}\sum_{m}(x[m]-\hat{\mu})^{2}}}}\end{array}
+$$ 
+
+## 17.2 MLE for Bayesian Networks 
