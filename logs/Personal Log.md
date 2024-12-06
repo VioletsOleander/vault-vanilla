@@ -492,6 +492,7 @@ Date: 2024.12.2-2024.12.9
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]
+- [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH3
 
 \[Doc\]
 - [[docker/get-started/Docker Concepts]]
@@ -500,7 +501,7 @@ Date: 2024.12.2-2024.12.9
     `-P` is used to publish all the ports specified in `EXPOSE`
     `-e ...=...` is used to set environment variables
     environment variables can be specified in `.env` , and use `--env-file` to pass this file.
-    `--memory/--cpus` is used to set container's avaliable resource limit.
+    `--memory/--cpus` is used to set container's available resource limit.
     `-v` is used to mount volume. A volume can be mounted to multiple containers simultaneously
     `--mount` can be used to specify bind mount. Permissions is specified by `:ro/:rw` .
     Keep each container do one thing. Docker Compose use `compose.yml` to define multiple containers' configuration and connection.    
