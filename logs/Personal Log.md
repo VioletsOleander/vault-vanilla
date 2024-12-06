@@ -490,6 +490,9 @@ Date: 2024.11.25-2024.12.2
 ### Week 2
 Date: 2024.12.2-2024.12.9
 
+\[Book\]
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]
+
 \[Doc\]
 - [[docker/get-started/Docker Concepts]]
     Running Containers:
