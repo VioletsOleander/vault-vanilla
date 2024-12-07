@@ -9764,7 +9764,7 @@ We note that, in this deﬁnition and in the subsequent discussion, we restrict 
 We illustrate this concept with a simple example.
 
 Example 12.5
-Consider a Markov chain whose states consist of the nine integers -4, . . . , +4, arranged as points on a line. Assume that a drunken grasshopper starts out in position 0 on the line. At each point in time, it stays where it is with probability 0:5, or it jumps left and right with equal probability. Thus, T (i ! i) = 0:5, T (i ! i + 1) = 0:25, and T (i ! i - 1) = 0:25. However, the two end positions are blocked by walls; hence, if the grasshopper is in position +4 and tries to jump right, it remains in position $+4$ . Thus, for example, $\mathcal{T}(+4\rightarrow+4)=0.75$ . We can visualize the state space as a graph, with probability-weighted directed edges corresponding to transitions between diferent states. The graph for our example is shown in ﬁgure 12.3. 
+Consider a Markov chain whose states consist of the nine integers -4, . . . , +4, arranged as points on a line. Assume that a drunken grasshopper starts out in position 0 on the line. At each point in time, it stays where it is with probability 0:5, or it jumps left and right with equal probability. Thus, T (i ! i) = 0:5, T (i ! i + 1) = 0:25, and T (i ! i - 1) = 0:25. However, the two end positions are blocked by walls; hence, if the grasshopper is in position +4 and tries to jump right, it remains in position $+4$ . Thus, for example, $\mathcal{T}(+4\rightarrow+4)=0.75$ . We can visualize the state space as a graph, with probability-weighted directed edges corresponding to transitions between different states. The graph for our example is shown in ﬁgure 12.3. 
 
 We can imagine a random sampling process, that deﬁnes a random sequence of states ${\pmb x}^{(0)},{\pmb x}^{(1)},{\pmb x}^{(2)},\breve{~}.\cdot\cdot$ . Because the transition model is random, the state of the process at step $t$ can be viewed as a random variable $X^{(t)}$ . We assume that the initial state $X^ {{\bar{(0)}} }$ is distributed according to some initial state distribution $P^{(0)}(X^{(0)})$ . We can now deﬁne distributions over the subsequent states $P^{(1)}(X^{(1)}), P^{(2)}(X^{(2)}),.\,.\,.$ using the chain dynamics: 
 
@@ -9847,7 +9847,7 @@ Example 12.8
 Consider th rkov chain ov $x^{1}$ and $x^{2}$ , suc that $\tau (x^{1}\rightarrow x^{2})=1$ and $\mathcal{T}(x^{2}\rightarrow$ $x^{1})=1$ . If P $P^{(0)}$ is such that $P^{(0)}(x^{1})=1$ , then the step t distribution $P^{(t)}$ has $P^{(t)}(x^{1})=1$ if $t$ is even, and $P^{(t)}(x^{2})=1$ if $t$ is odd. Thus, there is no convergence to a stationary distribution. 
 
 Markov chains such as this, which exhibit a ﬁxed cyclic behavior, are called periodic Markov chains . 
->  不存在单个稳态分布，而是周期性地在一组分布中转换地 Markov 链被称为周期性 Markov 链
+>  不存在单个稳态分布，而是周期性地在一组分布中转换的 Markov 链被称为周期性 Markov 链
 
 There is also no guarantee that the stationary distribution is unique: In some chains, the stationary distribution reached depends on our starting distribution $\bar{P}^{(0)}$ . Situations like this occur when the chain has several distinct regions that are not reachable from each other. Chains such as this are called reducible Markov chains . 
 >  稳态分布也可能不是唯一的，一些 Markov 链中，不同的初始分布将导向不同的稳态分布
@@ -9907,7 +9907,7 @@ In the case of graphical models, one approach is to deﬁne a multikernel chain,
 >  我们将每个 kernel $\mathcal T_i$ 定义为接受形式为 $(\pmb x_{-i}, x_i)$ 的状态，转移到形式为 $(\pmb x_{-i}, x_i')$ 的状态，即仅改变 $X_i$ 的实例
 >  我们进而利用将用这些 kernels 定义 Markov chain，如之前所讨论的
 
-Regardless of the structure of the diferent kernels, **we can prove that a distribution is a stationary distribution for the multiple kernel chain by proving that it is a stationary distribution (satisﬁes equation (12.21)) for each of individual kernels $\mathcal{T}_{i}$ . Note that each kernel by itself is generally not ergodic; but as long as each kernel satisﬁes certain conditions (speciﬁed in deﬁnition 12.5) that imply that it has the desired stationary distribution, we can combine them to produce a coherent chain, which may be ergodic as a whole. This ability to add new types of transitions to our chain is an important asset in dealing with the issue of local maxima, as we will discuss.**
+Regardless of the structure of the different kernels, **we can prove that a distribution is a stationary distribution for the multiple kernel chain by proving that it is a stationary distribution (satisﬁes equation (12.21)) for each of individual kernels $\mathcal{T}_{i}$ . Note that each kernel by itself is generally not ergodic; but as long as each kernel satisﬁes certain conditions (speciﬁed in deﬁnition 12.5) that imply that it has the desired stationary distribution, we can combine them to produce a coherent chain, which may be ergodic as a whole. This ability to add new types of transitions to our chain is an important asset in dealing with the issue of local maxima, as we will discuss.**
 >  无论不同 kernel 的结构如何，我们可以通过证明一个分布对于每个单独的 kernel $\mathcal{T}_{i}$ 都是稳态分布 (满足 eq 12.21) 来证明该分布是该多 kernel Markov chain 的稳态分布
 >  需要注意的是，每个 kernel 本身通常不一定是各态遍历的；但是，只要每个 kernel 满足某些条件 (在定义 12.5 中指定)，这些条件就将表明该 kernel 具有所需的稳态分布，我们就可以将它们结合起来形成一个连贯的链，整体上这个链可能是各态遍历的
 >  这种向链中添加新 kernel 的能力，在处理局部最大值问题时是一个重要的优势，这一点我们将在后续讨论
@@ -9922,10 +9922,10 @@ The theory of Markov chains provides a general framework for generating samples 
 As in our earlier example, we assume that P $P (X\mid e)\;=\; P_{\Phi}$ | for some set of factor $\Phi$ that are deﬁned by reducing the original factors in our graphical model by the evidence e . This reduction allows us to simplify notation and to discuss the methods in a way that applies both to directed and undirected graphical models. 
 >  我们将目标分布 $P (\pmb X \mid \pmb e)$ 写为 Gibbs 分布 $P_\Phi$ 的形式，因子集合 $\Phi$ 通过将原来图模型中的因子在证据 $\pmb e$ 上简化得到
 
-Gibbs sampling is based on one yet efective Markov chain for factored state spaces, which is particularly efcient for gr hical models. 
->  Gibbs 采样实际上基于一类具有可因子化分解的状态空间的 Markov chain，称为 Gibbs chain，Gibbs chain 对于图模型十分高效
+Gibbs sampling is based on one yet effective Markov chain for factored state spaces, which is particularly efficient for graphical models. 
+>  Gibbs 采样实际上基于一类具有可因子化分解的状态空间的 Markov chain，称为 Gibbs chain, Gibbs chain 对于图模型十分高效
 
-We deﬁne the kernel $\mathcal{T}_{i}$ as follows. In tively, we simply “forget” the value of $X_{i}$ in the current state and sample a new value for $X_{i}$ from its posterior given the rest of the current state. More precisely, let $({\boldsymbol{x}}_{-i}, {{x}} _{i})$ be a state in the chain. We deﬁne: 
+We deﬁne the kernel $\mathcal{T}_{i}$ as follows. Intuitively, we simply “forget” the value of $X_{i}$ in the current state and sample a new value for $X_{i}$ from its posterior given the rest of the current state. More precisely, let $({\boldsymbol{x}}_{-i}, {{x}} _{i})$ be a state in the chain. We deﬁne: 
 
 $$
 \begin{array}{r}{\mathcal{T}_{i}((\pmb{x}_{-i}, x_{i})\rightarrow (\pmb{x}_{-i}, x_{i}^{\prime}))=P (x_{i}^{\prime}\mid\pmb{x}_{-i}).}\end{array}\tag{12.22}
@@ -9942,7 +9942,7 @@ The sampling algorithm for a single trajectory of the Gibbs chain was shown earl
 >  例如，使用 kernel $\mathcal T_1$ 为 $X_1$ 采样了新值以后，下一次就是使用 kernel $\mathcal T_2$ 为 $X_2$ 采样新值，注意 $X_2$ 的新值采样会基于 $X_1$ 的新值
 >  我们认为在执行完一轮局部转移之后，在 chain 中前进了一步
 
-Gibbs sampling is particularly easy to implement in the many graphical models where we can compute the transition probability $P (X_{i}\mid\pmb{x}_{-i})$ (in line 5 of the algorithm) very efciently. In particular, as we now show, this distribution can be done based only on the Markov blanket of $X_{i}$ .
+Gibbs sampling is particularly easy to implement in the many graphical models where we can compute the transition probability $P (X_{i}\mid\pmb{x}_{-i})$ (in line 5 of the algorithm) very efficiently. In particular, as we now show, this distribution can be done based only on the Markov blanket of $X_{i}$ .
 >  Gibbs 采样在许多图模型中都可以高效实现
 >  Gibbs 采样的核心操作就是每一次的局部转移中在 $P (X_i \mid \pmb x_{-i})$ 中对 $X_i$ 进行采样
 >  我们可以证明后验分布 $P (X_i \mid \pmb x_{-i})$ 仅仅基于 $X_i$ 的 Markov blanket
@@ -9992,7 +9992,7 @@ As presented, the algorithm is deﬁned via a sequence of local kernels, where e
 Example 12.11
 with a variable representing its difficulty. We also have a set of grades for students in classes (not necessarily $^a$ grade for each student in every class). Using an abbreviated notation, we have $^a$ set of variables $I_{1},\ldots, I_{n}$ for the students (where each $I_{j}=I (s_{j}))$ ), $D=\{D_{1},.\,.\,.\,, D_{\ell}\}$ for the courses, and $G=\{G_{j, k}\}$ for th s, wh h variable $G_{j, k}$ has the parents $I_{j}$ and $D_{k}$ . See ﬁgure 12.5 for an example with n $n=4$ and ℓ $\ell=2$ . Let us assume that we observe the grades, so that we have evidence $G=g$ . An examination of active paths shows that the diferent variables $I_{j}$ are conditionally independent given an assignment $^d$ to $_D$ . Thus, given $D=d, G=g$ , we can efciently sample all of the $\boldsymbol{I}$ variables as a block by sampling each $I_{j}$ independently of the others. Similarly, we can sample all of the $_D$ variables as a block given an assignment $I=i, G=g$ . Thus, we can alternate steps where in one we sample $\pmb{i}[m]$ given $_{g}$ and $d[m]$ , and in the other we sample $d[m+1]$ given $_{g}$ and $\pmb{i}[m]$ . 
 
-In this example, we can easily apply block Gibbs because the variables in each block are marginally independent given the variables outside the block. This independence property allows us to compute efciently the conditional distribution $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ , and to sample from it. Importantly, however, full independence is not essential: we need only have the property that the block-conditional distribution can be efciently manipulated. For example, in a grid-structured network, we can easily deﬁne our blocks to consist of separate rows or of separate columns. In this case, the structure of each block is a simple chain-structured network; we can easily compute the conditional distribution of one row given all the others, and sample from it (see exercise 12.3). 
+In this example, we can easily apply block Gibbs because the variables in each block are marginally independent given the variables outside the block. This independence property allows us to compute efficiently the conditional distribution $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ , and to sample from it. Importantly, however, full independence is not essential: we need only have the property that the block-conditional distribution can be efficiently manipulated. For example, in a grid-structured network, we can easily deﬁne our blocks to consist of separate rows or of separate columns. In this case, the structure of each block is a simple chain-structured network; we can easily compute the conditional distribution of one row given all the others, and sample from it (see exercise 12.3). 
 >  block Gibbs 要求同个 block 内的变量在给定 block 外的所有其他变量时都相互独立，因此我们可以将采样分布 $P_\Phi (\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 完全分解，转化为独立给每个 $\pmb X_i$ 中的变量采样
 >  有时也不必要要求 block 内相互独立，只需要分布 $P_\Phi (\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 可以进行高效采样即可
 
@@ -10000,7 +10000,7 @@ We note that the Gibbs chain is not necessarily regular, and might not converge 
 >  Gibbs chain 不一定规则，也不一定收敛到唯一的稳态分布
 
 Example 12.12
-Consider a sim e net rk that consists of a single $\nu$ -structur $X\rightarrow Z\leftarrow Y$ , where the variables are all binary, X and $Y$ are both uniformly distributed, and Z is the deterministic exclusive or of $X$ and $Y$ (t is, $Z=z^{1}$ if $X\neq Y.$ ). Consider applying Gibbs sampling to thi with the evidence z $z^{1}$ . The true posterior assigns probability $1/2$ to each of the two states $x^{1}, y^{0}, z^{1}$ and $x^{0}, y^{1}, z^{1}$ . Assu that we start the ﬁrst of these two states. In is case, $P (X\mid y^{0}, z^{1})$ assig probability 1 to x $x^{1}$ , so that the X transition leaves the value of X unchanged. Similarly, the Y transition leaves the value of $Y$ unchanged. Therefore, the chain will simply stay at the initial state forever, and it will never sample from the other state. The analogous phenomenon occurs for the other starting state. This chain is an example of a reducible Markov chain. 
+Consider a sim e net rk that consists of a single $\nu$ -structure $X\rightarrow Z\leftarrow Y$ , where the variables are all binary, X and $Y$ are both uniformly distributed, and Z is the deterministic exclusive or of $X$ and $Y$ (t is, $Z=z^{1}$ if $X\neq Y.$ ). Consider applying Gibbs sampling to thi with the evidence z $z^{1}$ . The true posterior assigns probability $1/2$ to each of the two states $x^{1}, y^{0}, z^{1}$ and $x^{0}, y^{1}, z^{1}$ . Assume that we start the ﬁrst of these two states. In is case, $P (X\mid y^{0}, z^{1})$ assig probability 1 to x $x^{1}$ , so that the X transition leaves the value of X unchanged. Similarly, the Y transition leaves the value of $Y$ unchanged. Therefore, the chain will simply stay at the initial state forever, and it will never sample from the other state. The analogous phenomenon occurs for the other starting state. This chain is an example of a reducible Markov chain. 
 
 However, this chain is guaranteed to be regular whenever the distribution is positive, so that every value of $X_{i}$ has positive probability given an assignment ${\pmb x}_{-i}$ to the remaining variables. 
 
@@ -10090,9 +10090,9 @@ The reversibility condition gives us a condition for verifying that our Markov c
 >  Metropolis-Hastings 算法用于构建一个具有特定稳态分布的可逆 Markov chain
 
 Unlike the Gibbs chain, the algorithm does not assume that we can generate next-state samples from a particular target distribution. Rather, it uses the idea of a proposal distribution that we have already seen in the case of importance sampling. 
->  Metropilis-Hasting 构建的 Markov chain 并不要求我们从特定的目标分布生成下一个状态样本 (和 Gibbs chain 不同)，而是可以使用提案分布
+>  Metropolis-Hasting 构建的 Markov chain 并不要求我们从特定的目标分布生成下一个状态样本 (和 Gibbs chain 不同)，而是可以使用提案分布
 
-As for importance sampling, the proposal distribution in the Metropolis-Hastings algorithm is intended to deal with cases where we cannot sample directly from a desired distribution. In the case of a Markov chain, the target distribution is our next-state sampling distribution at a given state. We would like to deal with cases where we cannot sample directly from this target. Therefore, we sample from a diferent distribution — the proposal distribution — and then correct for the resulting error. However, unlike importance sampling, we do not want to keep track of importance weights, which are going to decay exponentially with the number of transitions, leading to a whole slew of problems. Therefore, we instead randomly choose whether to accept the proposed transition, with a probability that corrects for the discrepancy between the proposal distribution and the target. 
+As for importance sampling, the proposal distribution in the Metropolis-Hastings algorithm is intended to deal with cases where we cannot sample directly from a desired distribution. In the case of a Markov chain, the target distribution is our next-state sampling distribution at a given state. We would like to deal with cases where we cannot sample directly from this target. Therefore, we sample from a different distribution — the proposal distribution — and then correct for the resulting error. However, unlike importance sampling, we do not want to keep track of importance weights, which are going to decay exponentially with the number of transitions, leading to a whole slew of problems. Therefore, we instead randomly choose whether to accept the proposed transition, with a probability that corrects for the discrepancy between the proposal distribution and the target. 
 >  MH 中使用提案分布的目的也是解决不能直接从某个目标分布采样的情况
 >  Markov chain 中，我们的目标分布就是在给定状态下对下一个状态的采样分布
 >  此时的思路同样是从另一个提案分布采样，然后修正误差
@@ -10135,7 +10135,7 @@ Let $\mathcal{T}^{Q}$ be any proposal distribution, and consider the Markov chai
 >  定理
 >  $\mathcal T^Q$ 为任意提案分布，对于 (12.25) 和 (12.26) 定义的 Markov chain，如果 chain 规范，则它具有稳态分布 $\pi$
 
-The proof is not difcult, and is left as an exercise (exercise 12.15). 
+The proof is not difficult, and is left as an exercise (exercise 12.15). 
 
 Let us see how this construction process works. 
 
@@ -10168,7 +10168,7 @@ As for Gibbs sampling, we can use the observation that each variable $X_{i}$ is 
 $$
 \begin{array}{r c l}{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid\mathbf{\boldsymbol{x}}_{-i})}{P_{\Phi}(x_{i}\mid\mathbf{\boldsymbol{x}}_{-i})}}&{=}&{\displaystyle\frac{P_{\Phi}(x_{i}^{\prime}\mid\mathbf{\boldsymbol{u}}_{i})}{P_{\Phi}(x_{i}\mid\mathbf{\boldsymbol{u}}_{i})}.}\end{array}
 $$ 
-This expression can be computed locally and efciently, based only on the local parameterization of $X_{i}$ and its Markov blanket (exercise 12.18). 
+This expression can be computed locally and efficiently, based only on the local parameterization of $X_{i}$ and its Markov blanket (exercise 12.18). 
 
 >  其中提案分布一般会选择为简单的分布，因此是容易计算的
 >  同时第一个比值也是容易计算的，根据上述推导，可以知道该比值仅和 $X_i$ 和其 Markov blanket 有关
