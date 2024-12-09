@@ -443,8 +443,8 @@ Date: 2024.11.25-2024.12.2
         CH11.5-Structured Variational Inference
             CH11.5.1-The Mean Field Approximation
                 The mean field approximation assumes all the variables are independent from each other. Thus $Q$ is fully factorized.
-                The optimization for the energy functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guaranteed to be nonincreasing under the coordinate ascent process.
-                The computation for optima $Q(X_i)$ only involves the potentials that contains variable $X_i$ .
+                The optimization for the energy functional takes the form of iterative optimization (coordinate ascent). In each iteration, we only optimize $Q(X_i)$, other variables' marginal is fixed. The iterative coordinate ascent algorithm is guaranteed to converge, because the energy functional is bounded, and guaranteed to be nondecreasing under the coordinate ascent process.
+                The computation for optimal $Q(X_i)$ only involves the potentials that contains variable $X_i$ .
     CH12-Partical-Based Approximation Inference
         This chapter talks about Monte Carlo methods, i.e. , how to generate samples from the target distribution or an approximate distribution and how to construct estimator for the desired expectation from these samples.
         CH12.1-Forward Sampling
@@ -469,7 +469,7 @@ Date: 2024.11.25-2024.12.2
             Gibbs sampling algorithm is an implementation of the MCMC method. It constructs a separate transition model for each variable (as the posterior in $P$ as this variable given all other variables' current sampled value ), and combines them as a whole transition model for the Markov chain. This construction is proved to make the Markov chain converge to the desired distribution $P$.
             If a Markov chain $\mathcal T$ satisfies the detailed balance equation with respect to some distribution $\pi$, then $\mathcal T$ is reversible, and $\pi$ is a stationary distribution. If $\mathcal T$ is regular, then $\pi$ is the unique one.
             MH algorithm is a general method for constructing a Markov chain for a desired stationary distribution $P$. It uses any proposal distribution $Q$ as part of the transition model, and define the acceptance probability in terms of the $Q$ and $P$. The proposal distribution and acceptance probability together define the transition model for the Markov chain, whose stationary distribution is proved to be $P$.
-- [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH1-CH2
+- [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH1-CH2
     CH1-LaTeX 的基本概念
         LaTeX 命令分为两种：`\` + 一串字母；`\` + 单个非字母符号
         字母形式的命令忽略其后的空格字符
@@ -490,9 +490,12 @@ Date: 2024.11.25-2024.12.2
 ### Week 2
 Date: 2024.12.2-2024.12.9
 
+\[Paper\]
+- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
+
 \[Book\]
-- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]
-- [[book-notes/一份（不太）简短的 LaTex2e 介绍|一份（不太）简短的 LaTex2e 介绍]]: CH3
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: 
+- [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
 
 \[Doc\]
 - [[docker/get-started/Docker Concepts]]
@@ -505,3 +508,6 @@ Date: 2024.12.2-2024.12.9
     `-v` is used to mount volume. A volume can be mounted to multiple containers simultaneously
     `--mount` can be used to specify bind mount. Permissions is specified by `:ro/:rw` .
     Keep each container do one thing. Docker Compose use `compose.yml` to define multiple containers' configuration and connection.    
+- [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
+- [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
+
