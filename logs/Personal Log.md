@@ -490,12 +490,42 @@ Date: 2024.11.25-2024.12.2
 ### Week 2
 Date: 2024.12.2-2024.12.9
 
-\[Paper\]
-- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
-
 \[Book\]
-- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: 
-- [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH17.1-CH17.3
+    CH17-Parameter Estimation
+        Two main approaches for parameter estimation is MLE and Bayesian approach.
+        CH17.1-Maximum Likelihood Estimation
+            The hypothesis space contains all the possibilities we are considering. The objective function measures how good different hypotheses in the space are relative to the data set.
+            The 'goodness' of one hypothesis is how well it can predict the observed data set. If the data is likely given the hypothesis/parameter, then the hypothesis/parameter is a good predictor.
+            Likelihood function is a function respect to parameter $\theta$ and the data set $\mathcal D$. It measures the posterior probability of the data set given the parameter $\theta$.
+            The parameter values with higher likelihood are more likely to generate the observed data. The parameter value which maximize the likelihood is called the maximum likelihood estimator (MLE)
+            The log likelihood is monotonically related to the likelihood. Thus maximizing one is equivalent to maximizing the other.
+            Confidence intervals measure our confidence about our estimation.
+            A sufficient statistic is a function of the data, which summarizes the relevant information for computing the likelihood. A static becomes sufficient statistic if given the same parameter, the equality of any two data sets' statistic implies the equality of their likelihood.
+            If the two parameter's likelihood for all possible choices of $\mathcal D$ is equivalent, then the two parameter is indistinguishable.
+        CH17.2-MLE for Bayesian Networks
+            In Bayesian network, the likelihood function can be factorized according to the network's structure. Each CPD's local likelihood function can be further decomposed according to the parent variables' assignment. (with an implicit assumption that each CPD's parameter is independent with each other)
+            This property is called the decomposability of the likelihood function. This property holds if each CPD is parameterized by a separate set of parameters that do not overlap.
+            If the decomposability of the likelihood function holds, then the global MLE is the combination of each CPD's local MLE. The global problem is decomposed into independent subproblems.
+            The problem of MLE is related to the data fragmentation phenomenon. With the dimensionality of the parents set growing large, the dataset will be partitioned into a large number of small subsets. The number of parameters will explode exponentially, and the number of samples to estimate a parameter will become too small. This is the key factor limiting our learning BN from data.
+        CH17.3-Bayesian Parameter Estimation
+            Compared with MLE, Bayesian statistics takes prior knowledge into account.
+            We encode our prior knowledge about the parameter $\theta$ as a probability distribution: the prior distribution. We create a joint distribution over the observed data and the parameter, which can be represented as a meta-network.
+            We can decompose this joint distribution into the product of the likelihood and the prior. The posterior of the parameter is proportional to the product of the likelihood and the prior.
+            The prediction of next sample if rewritten as the integral of the product of the conditional probability and the posterior over all possible values of $\theta$ .
+            In the toss experiment setting, for uniform priors, the form of the prediction (Bayesian estimator) is much like the MLE, except that is adds one "imaginary" sample to each count. The Bayesian estimator and the MLE estimator converges to the same value as the number of samples grows.
+            The Bayesian estimator under uniform prior is called Laplace's correction.
+            Another natural choice for prior is Beta distribution, which is parameterized by two hyperparameters. which corresponds the imaginary heads and tails respectively.
+            If the prior is the Beta distribution and the likelihood function is the Bernoulli likelihood function, the posterior is also the Beta distribution with its hyperparameters corrected by the observation. Therefore, we say that the Beta distribution is conjugate to the Bernoulli likelihood function.
+            As we obtain more data, the effect of the prior diminishes.
+            The Bayesian framework allows us to capture prior knowledge as the prior probability, also allows us to capture the distinction a few samples and many samples by the peakedness of the posterior. 
+            In Bayesian approach, we view the parameter as a random variable, and use probabilities to describe the uncertainty about the parameter, and then use Bayes rule to take into account the observations to see how they affect our belief about the parameter.
+            Whether we can compactly describe the posterior depends on the form of the prior.
+            The Dirichlet priors are conjugate to the multinomial model, which means if the likelihood takes the form of multinomial distribution and the prior is an Dirichlet distribution, then the posterior is also an Dirichlet distribution.
+            The estimation for this situation takes a similar form to MLE, the difference is that we added the hyperparameters to our counts. Thus the Dirichlet hyperparameters are also called pseudo-counts.
+            The summation of pseudo-counts reflects our confidence of the prior, which is called the equivalent sample size.
+            The estimation in this situation can be also viewed as the weighted average of the prior mean and the MLE estimation, therefore, it's easy to see that the Bayesian prediction converges to the MLE estimation when $M\rightarrow \infty$. Intuitively, large data set will make the prior's contribution negligible, while small data set's estimation will be biased toward to the prior probability.
+            The existence of prior makes Bayesian estimation more stable then the MLE estimation. This smoothing effect results in more robust estimates when the data is not enough. If we do not have enough prior knowledge, we can use uniform prior, to prevent our estimates from taking extreme values
 
 \[Doc\]
 - [[docker/get-started/Docker Concepts]]
@@ -508,6 +538,15 @@ Date: 2024.12.2-2024.12.9
     `-v` is used to mount volume. A volume can be mounted to multiple containers simultaneously
     `--mount` can be used to specify bind mount. Permissions is specified by `:ro/:rw` .
     Keep each container do one thing. Docker Compose use `compose.yml` to define multiple containers' configuration and connection.    
-- [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
-- [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
 
+### Week 3
+Date: 2024.12.9-2024.12.16
+\[Paper\]
+- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
+
+\[Book\]
+- [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
+
+\[Doc\]
+- [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
+- [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
