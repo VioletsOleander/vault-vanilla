@@ -3872,13 +3872,14 @@ Now, we need to describe the CPD $P(J\mid A,S,L)$ . In our domain, even if the s
 
 We can elaborate this model even further. Assume that our recruiter, knowing that SAT scores are a far more reliable indicator of the student’s intelligence than a recommendation letter, ﬁrst considers the SAT score. If it is high, he generates an ofer immediately. (As we said, Acme Consulting is somewhat desperate for employees.) If, on the other hand, the SAT score is low, he goes to the efort of obtaining the professor’s letter of recommendation, and makes his decision accordingly. In this case, we have yet more regularity in the CPD: $P(J\mid a^{1},s^{1},l^{1})=P(J\mid a^{1},s^{1},l^{0})$ . 
 
-In this simple example, we have a CPD in which several values of $\mathrm{Pa}_{J}$ specify the same conditional probability over $J$ . In general, we often have CPDs where, for certain partial assign- ments $\mathbfit{u}$ to subsets $U\subset\mathrm{Pa}_{X}$ , the values of the remaining parents are not relevant. In such cases, several diferent distributions $P(X\mid\mathrm{{pa}}_{X})$ are identical. In this section, we discuss how we might capture this regularity in our CPD representation and what implications this structure has on conditional independence. There are many possible approaches for capturing functions over a scope $X$ that are constant over certain subsets of instantiations to $X$ . In this section, we present two common and useful choices: trees and rules. 
+In this simple example, we have a CPD in which several values of $\mathrm{Pa}_{J}$ specify the same conditional probability over $J$ . In general, we often have CPDs where, for certain partial assign- ments $\mathbfit{u}$ to subsets $U\subset\mathrm{Pa}_{X}$ , the values of the remaining parents are not relevant. In such cases, several different distributions $P(X\mid\mathrm{{pa}}_{X})$ are identical. In this section, we discuss how we might capture this regularity in our CPD representation and what implications this structure has on conditional independence. There are many possible approaches for capturing functions over a scope $X$ that are constant over certain subsets of instantiations to $X$ . In this section, we present two common and useful choices: trees and rules. 
 > 本例中，$\text{Pa}_J$ 的多个赋值都指向了在 $J$ 上的相同的条件概率分布
 > 一般情况下，对于 $U\subset \text{Pa}_j$ 的部分赋值 $\pmb u$ 可以让 $\text{Pa}_J$ 中剩余的父变量的值和 CPDs 的形式无关，此时，多个分布 $P (X\mid \text{Pa}_X)$ 实质上是完全相同的
 > 本节讨论如何捕获这类 regularity
 > 在集合 $\pmb X$ 上捕获对于 $\pmb X$ 的特定子集实例保持为常数的函数有两种通用的方法：树和规则
+
 #### 5.3.1.1 Tree-CPDs 
-A very natural representation for capturing common elements in a CPD is via a tree , where the leaves of the tree represent diferent possible (conditional) distributions over $J$ , and where the path to each leaf dictates the contexts in which this distribution is used. 
+A very natural representation for capturing common elements in a CPD is via a tree , where the leaves of the tree represent different possible (conditional) distributions over $J$ , and where the path to each leaf dictates the contexts in which this distribution is used. 
 > 在 CPDs 捕获共同元素的非常自然的一个方法就是树
 > 树中的叶子表示 $J$ 上不同的可能条件概率分布，而到每一个叶子的路径表示分布被使用时所在的上下文
 
@@ -3960,6 +3961,7 @@ Trees provide a very natural framework for representing context-speciﬁcity in 
 Box 5.A — Case Study: Context-Speciﬁcity in Diagnostic Networks. A common setting where context-speciﬁc CPDs arise is in troubleshooting of physical systems, as described, for example, by Heckerman, Breese, and Rommelse (1995). In such networks, the context speciﬁcity is due to the presence of alternative conﬁgurations. For example, consider a network for diagnosis of faults in $^a$ printer, developed as part of a suite of troubleshooting networks for Microsoft’s Windows $95^{T M}$ op- erating system. This network, shown in ﬁgure 5.A.1a, models the fact that the printer can be hooked up either to the network via an Ethernet cable or to a local computer via a cable, and therefore depends on both the status of the local transport medium and the network transport medium. However, the status of the Ethernet cable only afects the printer’s output if the printer is hooked up to the network. The tree-CPD for the variable Printer-Output is shown in ﬁgure 5.A.1b. Even in this very simple network, this use of local structure in the CPD reduced the number of parameters required from 145 to 55. 
 
 We return to the topic of Bayesian networks for troubleshooting in box 21.C and box 23.C. 
+
 #### 5.3.1.2 Rule CPDs 
 As we seen, trees are appealing for several reasons. However, trees are a global representation that captures the entire CPD in a single data structure. In many cases, it is easier to reason using a CPD if we break down the dependency structure into ﬁner-grained elements. A ﬁner- grained representation of context-speciﬁc dependencies is via rules . Roughly speaking, each rule corresponds to a single entry in the CPD of the variable. It speciﬁes a context in which the CPD entry applies and its numerical value. 
 > 树是一个在单个数据结构内捕获整个 CPD 的全局表示
@@ -3978,7 +3980,7 @@ Consider the tree of ﬁgure 5.4. There are eight entries in the CPD tree, such 
 
 $$
 \left\{\begin{array}{l l}{\rho_{1}\colon\langle a^{0},j^{0};0,8\rangle}\\ {\rho_{2}\colon\langle a^{0},j^{1};0,2\rangle}\\ {\rho_{3}\colon\langle a^{1},s^{0},j^{0};0,9\rangle}\\ {\rho_{4}\colon\langle a^{1},s^{0},l^{0},j^{1};0,1\rangle}\\ {\rho_{5}\colon\langle a^{1},s^{0},l^{1},j^{0};0,4\rangle}\\ {\rho_{6}\colon\langle a^{1},s^{0},l^{1},j^{1};0,6\rangle}\\ {\rho_{7}\colon\langle a^{1},s^{1},j^{0};0,1\rangle}\\ {\rho_{8}\colon\langle a^{1},s^{1},j^{1};0,9\rangle}\end{array}\right\}
-$$ 
+$$
 
 For example, the rule $\rho_{4}$ is derived by following the branch $a^{1},s^{0},l^{0}$ and then selecting the probability associated with the assignment $J=j^{1}$ . 
 
@@ -4028,6 +4030,7 @@ The rule representation is more than a simple transformation of tree-CPDs. In pa
 
 Example 5.13 
 Consider the rule-based CPD of example 5.12. In any rule set that is derived from a tree, one variable — the one at the root — appears in all rules. In the rule set $\mathcal{R}$ , none of the parent variables $A,B,C$ appears in all rules, and hence the rule set is not derived from a tree. If we try to represent it as a tree-CPD, we would have to select one of $A$ , $B$ , or $C$ to be the root. Say, for example, that we select A to be the root. In this case, rules that do not contain $A$ would necessarily correspond to more than one branch (one for $a^{1}$ and one for $a^{0}$ ). Thus, the transformation would result in more branches than rules. For example, ﬁgure 5.6 shows a minimal tree-CPD that represents the rule-based CPD of example 5.12. 
+
 #### 5.3.1.3 Other Representations 
 The tree and rule representations provide two possibilities for representing context-speciﬁc structure. We have focused on these two approaches as they have been demonstrated to be useful for representation, for inference, or for learning. However, other representations are also possible, and can also be used for these tasks. In general, if we abstract away from the details of these representations, we see that they both simply induce partitions of $V a l(\{X\}\cup\mathrm{Pa}_{X})$ , deﬁned by the branches in the tree on one hand or the rule contexts on the other. Each partition is associated with a diferent entry in $X$ ’s CPD. 
 > 如果我们对这些表示进行抽象，我们可以认为这些表示都是简单地引入了对 $Val (\{X\}\cup \text{Pa}_X$) 的划分，在树中，它被定义为分支，在规则集中，它被定义为规则，每一个划分都对应于 $X$ 的 CPD 的一个 entry
@@ -4042,6 +4045,7 @@ Of course, we can still represent distributions with these properties by simply 
 Box 5.B — Concept: Multinets and Similarity Networks. The multinet representation provides a more global approach to capturing context-speciﬁc independence. In its simple form, a multinet is a network centered on a single distinguished class variable $C$ , which is a root of the network. The multinet deﬁnes a separate network $\mathcal{B}_{c}$ for each value of $C$ , where the structure as well as the parameters can difer for these diferent networks. In most cases, a multinet deﬁnes a single network where every variable $X$ has as its parents $C$ , and all variables $Y$ in any of the networks $\mathcal{B}_{c}$ . However, the CPD of $X$ is such th in context $C\,=\,c_{i}$ , it depends y on $\dot{\mathrm{Pa}}_{X}^{\mathcal{B}_{c}}$ . In some cases, however, a subtlety arises, where Y $Y$ is a parent of X in $\mathcal{B}_{c^{1}}$ , and X is a parent of $Y$ in $\mathcal{B}_{c^{2}}$ . In this case, the Bayesian network induced by the multinet is cyclic; nevertheless, because of the context-speciﬁc independence properties of this network, it speciﬁes a coherent distribution. (See also exercise 5.2.) Although, in most cases, a multinet can be represented as a standard BN with context-speciﬁc CPDs, it is nevertheless useful, since it explicitly shows the independencies in $^a$ graphical form, making them easier to understand and elicit. 
 
 A related representation, the similarity network , was developed as part of the Pathﬁnder system (see box $3.D$ ). In a similarity network, we deﬁne a network $\mathcal{B}_{S}$ for certain subsets of values $S\subset V a l(C)$ , which contains only those attributes re ant for distinguishing between the values in S . The underlying assumption is th variable X d not appear in e network $\mathcal{B}_{S}$ , then $P(X\mid C=c)$ is the same for all c $c\in S$ ∈ . More er, if X not ha $Y$ as a parent in this network, then $X$ is contextually independent of Y given C $C\,\in\,S$ ∈ and $X\mathit{\dot{s}}$ ’s ot pa nts in this network. A similarity network easily captures structure where the dependence of X on C is deﬁned in terms of a taxonomic hierarchy on $C$ . For example, we might have that our class variable is Disease. While Sore-throat depends on Disease, it does not have a diferent conditional distribution for every value $d$ of Disease. For example, we might partition diseases into diseases that do not cause sore throat and those that do, and the latter might be further split into difuse disease (causing soreness throughout the throat) and localized diseases (such as abscesses). Using this partition, we might have only three diferent conditional distributions for $P$ ( Sore-Throat $\mid D i s e a s e=d_{\mid}$ ) . Multinets facilitate elicitation both by focusing the expert’s attention on attributes that matter, and by reducing the number of distinct probabilities that must be elicited. 
+
 ### 5.3.2 Independencies 
 In many of our preceding examples, we used phrases such as “In the case $a^{0}$ , where the student does not apply, the recruiter’s decision cannot depend on the variables $S$ and $L$ .” These phrases suggest that context-speciﬁc CPDs induce context-speciﬁc independence. In this section, we analyze the independencies induced by context-speciﬁc dependency models. 
 > 针对上下文的 CPDs 会引入针对上下文的独立性，本节对其进行讨论
@@ -9844,7 +9848,7 @@ In general, there is no guarantee that our MCMC sampling process converges to a 
 >  一般情况下，我们不能保证 MCMC 过程一定收敛到一个稳态分布
 
 Example 12.8 
-Consider th rkov chain ov $x^{1}$ and $x^{2}$ , suc that $\tau (x^{1}\rightarrow x^{2})=1$ and $\mathcal{T}(x^{2}\rightarrow$ $x^{1})=1$ . If P $P^{(0)}$ is such that $P^{(0)}(x^{1})=1$ , then the step t distribution $P^{(t)}$ has $P^{(t)}(x^{1})=1$ if $t$ is even, and $P^{(t)}(x^{2})=1$ if $t$ is odd. Thus, there is no convergence to a stationary distribution. 
+Consider the Markov chain over two states $x^{1}$ and $x^{2}$ , such that $\tau (x^{1}\rightarrow x^{2})=1$ and $\mathcal{T}(x^{2}\rightarrow$ $x^{1})=1$ . If P $P^{(0)}$ is such that $P^{(0)}(x^{1})=1$ , then the step t distribution $P^{(t)}$ has $P^{(t)}(x^{1})=1$ if $t$ is even, and $P^{(t)}(x^{2})=1$ if $t$ is odd. Thus, there is no convergence to a stationary distribution. 
 
 Markov chains such as this, which exhibit a ﬁxed cyclic behavior, are called periodic Markov chains . 
 >  不存在单个稳态分布，而是周期性地在一组分布中转换的 Markov 链被称为周期性 Markov 链
@@ -9875,7 +9879,7 @@ If a finite state Markov chain is regular, then it has a unique stationary distr
 >  定理
 >  如果 Markov chain 的状态空间有限，且 Markov chain 规则，则 Markov chain 有唯一的稳态分布
 
-Ensuring regularity is usually straightforward. Two simple conditions that together guarantee regularity in ﬁnite-state Markov chains are as follows. First, it is possible to get from any state to any state using a positive probability path in the state graph. Second, for each state $_{_{x}}$ , there is a positive probability of transitioning from $_{_{x}}$ to $_{_{x}}$ in one step (a self-loop). These two conditions together are sufficient but not necessary to guarantee regularity (see exercise 12.12). However, they often hold in the chains used in practice. 
+Ensuring regularity is usually straightforward. Two simple conditions that together guarantee regularity in ﬁnite-state Markov chains are as follows. First, it is possible to get from any state to any state using a positive probability path in the state graph. Second, for each state ${{x}}$ , there is a positive probability of transitioning from ${{x}}$ to ${x}$ in one step (a self-loop). These two conditions together are sufficient but not necessary to guarantee regularity (see exercise 12.12). However, they often hold in the chains used in practice. 
 >  对于有限状态的 Markov 链，以下两个条件成立是该 Markov 链满足规则性的充分条件：
 >  1. 状态图中，从任意一个状态转移到任意状态都存在一条概率为正的路径
 >  2. 对于每个状态 $\pmb x$，存在一条一步从 $\pmb x$ 转移到 $\pmb x$ 的概率为正的路径 (即自环)
@@ -9896,7 +9900,7 @@ In this case, as in several other settings, we often deﬁne a set of transition
 >  一些情况下，多个转移模型是必要的，例如仅定义单个 kernel 无法保证 Markov chain 的规则性
 >  一些情况下，定义多个 kernel 可以让状态空间更 “相连”，进而加速向稳态分布的收敛
 
-There are several ways of constructing a single Markov chain from multiple kernels . One com- mon approach is simply to select randomly between them at each step, using any distribution. Thus, for example, at each step, we might select one of $\tau_{1},\dots,\tau_{k}$ , each with probability $1/k$ . Alternatively, we can simply cycle over the diferent kernels, taking each one in turn. Clearly, this approach does not deﬁne a homogeneous chain, since the kernel used in step $i$ is diferent from the one used in step $i+1$ . However, we can simply view the process as deﬁning a single chain $\mathcal{T}$ , each of whose steps is an aggregate step, consisting of ﬁrst taking $\mathcal{T}_{1}$ , then $\tau_{2},\,.\,.\,,$ , through $\mathcal{T}_{k}$ . 
+There are several ways of constructing a single Markov chain from multiple kernels . One com- mon approach is simply to select randomly between them at each step, using any distribution. Thus, for example, at each step, we might select one of $\tau_{1},\dots,\tau_{k}$ , each with probability $1/k$ . Alternatively, we can simply cycle over the different kernels, taking each one in turn. Clearly, this approach does not deﬁne a homogeneous chain, since the kernel used in step $i$ is different from the one used in step $i+1$ . However, we can simply view the process as deﬁning a single chain $\mathcal{T}$ , each of whose steps is an aggregate step, consisting of ﬁrst taking $\mathcal{T}_{1}$ , then $\tau_{2},\,.\,.\,,$ , through $\mathcal{T}_{k}$ . 
 >  用多个 kernel 定义 Markov chain 的方法也有多种
 >  常见方法是在每一步使用任意分布随机选择一个 kernel 用于转移；
 >  又或者可以循环使用各个 kernel，注意该方法没有定义一个同质的 Markov chain，因为第 $i$ 步使用的 kernel 和第 $i+1$ 步使用的 kernel 不同，但可以将该视为定义了另一个 Markov 链 $\mathcal T$，其每一步是原来的多步合并 (从 $\mathcal T_1$ 开始到 $\mathcal T_k$)
@@ -9937,7 +9941,7 @@ Note that the transition probability does not depend on the current value $x_{i}
 >  注意转移概率并不依赖于 $X_i$ 的当前值 $x_i$，但依赖于所有其他变量的当前值 $\pmb x_{-i}$
 >  可以证明后验分布 $P_\Phi (\pmb X) = P (\mathcal X \mid \pmb e)$ 为该 Gibbs chain 的稳态分布
 
-The sampling algorithm for a single trajectory of the Gibbs chain was shown earlier in this section, in algorithm 12.4. Recall that the Gibbs chain is deﬁned via a set of kernels; we use the multistep approach to combine them. Thus, the diferent local kernels are taken consecutively; having changed the value for a variable $X_{1}$ , the value for $X_{2}$ is sampled based on the new value. Note that a step in the aggregate chain occurs only once we have executed every local transition once. 
+The sampling algorithm for a single trajectory of the Gibbs chain was shown earlier in this section, in algorithm 12.4. Recall that the Gibbs chain is deﬁned via a set of kernels; we use the multistep approach to combine them. Thus, the different local kernels are taken consecutively; having changed the value for a variable $X_{1}$ , the value for $X_{2}$ is sampled based on the new value. Note that a step in the aggregate chain occurs only once we have executed every local transition once. 
 >  Gibbs chain 由多个 kernel 定义，在转移过程中轮流使用各个 kernel，执行一次局部转移
 >  例如，使用 kernel $\mathcal T_1$ 为 $X_1$ 采样了新值以后，下一次就是使用 kernel $\mathcal T_2$ 为 $X_2$ 采样新值，注意 $X_2$ 的新值采样会基于 $X_1$ 的新值
 >  我们认为在执行完一轮局部转移之后，在 chain 中前进了一步
@@ -9979,9 +9983,9 @@ Similarly, the kernel for the variable $I$ is deﬁned to be ${\mathcal{T}}((i, 
 
 $$
 P (i^{\prime}\mid g, d, s^{1}, l^{0})=\frac{P (i^{\prime}) P (g\mid i^{\prime}, d) P (s^{1}\mid i^{\prime})}{\sum_{i^{\prime\prime}}P (i^{\prime\prime}) P (g\mid i^{\prime\prime}, d) P (s^{1}\mid i^{\prime\prime})}.
-$$ 
+$$
 
-As presented, the algorithm is deﬁned via a sequence of local kernels, where each samples a single variable conditioned on all the rest. The reason for this approach is computational. As we showed, we can easily compute the transition model for a single variable given the rest. However, there are cases where we can simultaneously sample several variables efciently. Speciﬁcally, assume we can partition the variables $X$ into several disjoint blocks of variables $X_{1},\dots, X_{k}$ , such that we can efciently sample $\pmb x_{i}$ from $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ . In this case, we can modify our Gibbs sampling algorithm to iteratively sample blocks of variables, rather than individual variables, thereby taking much “longer-range” transitions in the state space in a single sampling step. Here, like in Gibbs sampling, we deﬁne the algorithm to be producing a new sample only once all blocks have been resampled. This algorithm is called block Gibbs . Note that standard Gibbs sampling is a special case of block Gibbs sampling, with the blocks corresponding to individual variables. 
+As presented, the algorithm is deﬁned via a sequence of local kernels, where each samples a single variable conditioned on all the rest. The reason for this approach is computational. As we showed, we can easily compute the transition model for a single variable given the rest. However, there are cases where we can simultaneously sample several variables efficiently. Speciﬁcally, assume we can partition the variables $X$ into several disjoint blocks of variables $X_{1},\dots, X_{k}$ , such that we can efficiently sample $\pmb x_{i}$ from $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ . In this case, we can modify our Gibbs sampling algorithm to iteratively sample blocks of variables, rather than individual variables, thereby taking much “longer-range” transitions in the state space in a single sampling step. Here, like in Gibbs sampling, we deﬁne the algorithm to be producing a new sample only once all blocks have been resampled. This algorithm is called block Gibbs . Note that standard Gibbs sampling is a special case of block Gibbs sampling, with the blocks corresponding to individual variables. 
 >  我们知道 Gibbs 采样算法的流程由一序列局部 kernels 定义，每个 kernel 基于所有其他变量采样一个变量
 >  我们已经知道基于所有其他变量为单个变量采样的计算十分容易，但我们可以进一步同时采样多个变量
 >  具体地说，我们将 $\pmb X$ 划分为多个不相交的变量组 $\pmb X_1, \dots, \pmb X_k$，同一个变量组内的变量可以同时采样，条件于其他所有变量组，即我们从 $P_{\Phi}(\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 中采样 $\pmb X_i$ 的实例 $\pmb x_i$
@@ -9990,14 +9994,14 @@ As presented, the algorithm is deﬁned via a sequence of local kernels, where e
 >  该算法称为 block Gibbs，标准的 Gibbs 是 block size = 1 时的特例
 
 Example 12.11
-with a variable representing its difficulty. We also have a set of grades for students in classes (not necessarily $^a$ grade for each student in every class). Using an abbreviated notation, we have $^a$ set of variables $I_{1},\ldots, I_{n}$ for the students (where each $I_{j}=I (s_{j}))$ ), $D=\{D_{1},.\,.\,.\,, D_{\ell}\}$ for the courses, and $G=\{G_{j, k}\}$ for th s, wh h variable $G_{j, k}$ has the parents $I_{j}$ and $D_{k}$ . See ﬁgure 12.5 for an example with n $n=4$ and ℓ $\ell=2$ . Let us assume that we observe the grades, so that we have evidence $G=g$ . An examination of active paths shows that the diferent variables $I_{j}$ are conditionally independent given an assignment $^d$ to $_D$ . Thus, given $D=d, G=g$ , we can efciently sample all of the $\boldsymbol{I}$ variables as a block by sampling each $I_{j}$ independently of the others. Similarly, we can sample all of the $_D$ variables as a block given an assignment $I=i, G=g$ . Thus, we can alternate steps where in one we sample $\pmb{i}[m]$ given $_{g}$ and $d[m]$ , and in the other we sample $d[m+1]$ given $_{g}$ and $\pmb{i}[m]$ . 
+with a variable representing its difficulty. We also have a set of grades for students in classes (not necessarily $^a$ grade for each student in every class). Using an abbreviated notation, we have $^a$ set of variables $I_{1},\ldots, I_{n}$ for the students (where each $I_{j}=I (s_{j}))$ ), $D=\{D_{1},.\,.\,.\,, D_{\ell}\}$ for the courses, and $G=\{G_{j, k}\}$ for th s, wh h variable $G_{j, k}$ has the parents $I_{j}$ and $D_{k}$ . See ﬁgure 12.5 for an example with n $n=4$ and ℓ $\ell=2$ . Let us assume that we observe the grades, so that we have evidence $G=g$ . An examination of active paths shows that the different variables $I_{j}$ are conditionally independent given an assignment $^d$ to $_D$ . Thus, given $D=d, G=g$ , we can efficiently sample all of the $\boldsymbol{I}$ variables as a block by sampling each $I_{j}$ independently of the others. Similarly, we can sample all of the $_D$ variables as a block given an assignment $I=i, G=g$ . Thus, we can alternate steps where in one we sample $\pmb{i}[m]$ given $_{g}$ and $d[m]$ , and in the other we sample $d[m+1]$ given $_{g}$ and $\pmb{i}[m]$ . 
 
 In this example, we can easily apply block Gibbs because the variables in each block are marginally independent given the variables outside the block. This independence property allows us to compute efficiently the conditional distribution $P_{\Phi}(X_{i}\mid\mathbf{\mathcal{x}}_{1},.\,.\,,\mathbf{\mathcal{x}}_{i-1},\mathbf{\mathcal{x}}_{i+1},.\,.\,.\,,\mathbf{\mathcal{x}}_{k})$ , and to sample from it. Importantly, however, full independence is not essential: we need only have the property that the block-conditional distribution can be efficiently manipulated. For example, in a grid-structured network, we can easily deﬁne our blocks to consist of separate rows or of separate columns. In this case, the structure of each block is a simple chain-structured network; we can easily compute the conditional distribution of one row given all the others, and sample from it (see exercise 12.3). 
 >  block Gibbs 要求同个 block 内的变量在给定 block 外的所有其他变量时都相互独立，因此我们可以将采样分布 $P_\Phi (\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 完全分解，转化为独立给每个 $\pmb X_i$ 中的变量采样
 >  有时也不必要要求 block 内相互独立，只需要分布 $P_\Phi (\pmb X_i\mid \pmb x_1, \dots, \pmb x_{i-1}, \pmb x_{i}, \dots, \pmb x_k)$ 可以进行高效采样即可
 
 We note that the Gibbs chain is not necessarily regular, and might not converge to a unique stationary distribution. 
->  Gibbs chain 不一定规则，也不一定收敛到唯一的稳态分布
+>  注意 Gibbs chain 不一定规则，也不一定收敛到唯一的稳态分布
 
 Example 12.12
 Consider a sim e net rk that consists of a single $\nu$ -structure $X\rightarrow Z\leftarrow Y$ , where the variables are all binary, X and $Y$ are both uniformly distributed, and Z is the deterministic exclusive or of $X$ and $Y$ (t is, $Z=z^{1}$ if $X\neq Y.$ ). Consider applying Gibbs sampling to thi with the evidence z $z^{1}$ . The true posterior assigns probability $1/2$ to each of the two states $x^{1}, y^{0}, z^{1}$ and $x^{0}, y^{1}, z^{1}$ . Assume that we start the ﬁrst of these two states. In is case, $P (X\mid y^{0}, z^{1})$ assig probability 1 to x $x^{1}$ , so that the X transition leaves the value of X unchanged. Similarly, the Y transition leaves the value of $Y$ unchanged. Therefore, the chain will simply stay at the initial state forever, and it will never sample from the other state. The analogous phenomenon occurs for the other starting state. This chain is an example of a reducible Markov chain. 
@@ -10005,11 +10009,11 @@ Consider a sim e net rk that consists of a single $\nu$ -structure $X\rightarrow
 However, this chain is guaranteed to be regular whenever the distribution is positive, so that every value of $X_{i}$ has positive probability given an assignment ${\pmb x}_{-i}$ to the remaining variables. 
 
 **Theorem 12.4** 
-Let H be a Markov network such that all of the clique potentials are strictly positive. Then the Gibbs-sampling Markov chain is regular. 
+Let $\mathcal H$ be a Markov network such that all of the clique potentials are strictly positive. Then the Gibbs-sampling Markov chain is regular. 
 >  定理
->  Markov 网络 $\mathcal H$ 的所有团势能都严格为正，则 Gibss chain 是规则的
+>  Markov 网络 $\mathcal H$ 的所有团势能都严格为正，则 Gibbs chain 是规则的
 
-The proof is not difcult, and is left as an exercise (exercise 12.20). 
+The proof is not difficult, and is left as an exercise (exercise 12.20). 
 
 Positivity is, however, not necessary; there are many examples of nonpositive distributions where the Gibbs chain is regular. 
 >  Positivity 是充分条件不是必要条件
@@ -10365,7 +10369,7 @@ Having described these basic methods, we showed how they can be extended to the 
 
 # 17 Parameter Estimation 
 In this chapter, we discuss the problem of estimating parameters for a Bayesian network. We assume that the network structure data set $\mathcal{D}$ consists of fully observed instances of the network variables: D ${\mathcal D}=\{\xi[1],\dots,\xi[M]\}$ { } . This problem arises fairly often in practice, since numerical parameters are harder to elicit from human experts than structure is. It also plays a key role as a building block for both structure learning and learning from incomplete data. As we will see, despite the apparent simplicity of our task deﬁnition, there is surprisingly much to say about it. 
->  本章讨论为 BN 估计参数的问题，问题设定中，我们有一个固定结构的 BN，和一个抱恨了一组网络变量实例的数据集 $\mathcal D = \{\xi[1], \dots, \xi[M]\}$
+>  本章讨论为 BN 估计参数的问题，问题设定中，我们有一个固定结构的 BN，和一个包含了一组网络变量实例的数据集 $\mathcal D = \{\xi[1], \dots, \xi[M]\}$
 
 As we will see, there are two main approaches to dealing with the parameter-estimation task: one based on maximum likelihood estimation , and the other using Bayesian approaches. For each of these approaches, we ﬁrst discuss the general principles, demonstrating their application in the simplest context: a Bayesian network with a single random variable. We then show how the structure of the distribution allows the techniques developed in this very simple case to generalize to arbitrary network structures. Finally, we show how to deal with parameter estimation in the context of structured CPDs. 
 >  参数估计有两类主要方法：极大似然估计、贝叶斯方法
@@ -10382,10 +10386,10 @@ We start with what may be considered the simplest learning problem: parameter le
 Imagine that we have a thumbtack, and we conduct an experiment whereby we ﬂip the thumbtack in the air. It comes to land as either heads or tails, as in ﬁgure 17.1. We toss the thumbtack several times, obtaining a data set consisting of heads or tails outcomes. Based on this data set, we want to estimate the probability with which the next ﬂip will land heads or tails. In this description, we already made the implicit assumption that the thumbtack tosses are controlled by an (unknown) parameter $\theta$ , which describes the frequency of heads in thumbtack tosses. In addition, we also assume that the data instances are independent and identically distributed (IID). 
 >  假设做随机抛掷图钉的试验，我们假设抛掷的结构由一个未知参数 $\theta$ 控制，同时假设数据集 (试验结果集合) 是独立同分布的
 
-Assume that we toss the thumbtack 100 times, of which 35 come up heads. What is our estimate for $\theta\colon$ Our intuition suggests that the best estimate is 0 . 35 . Had $\theta$ been 0 . 1 , for example, our chances of seeing $35/100$ heads would have been much lower. In fact, we examined a similar situation in our discussion of sampling methods in section 12.1, where we used samples from a distribution to estimate the probability of a query. As we discussed, the central limit theorem shows that, as the number of coin tosses grows, it is increasingly unlikely to sample a sequence of IID thumbtack ﬂips where the fraction of tosses that come out heads is very far from $\theta$ . Thus, for sufficiently large $M$ , the fraction of heads among the tosses is a good estimate with high probability. 
+Assume that we toss the thumbtack 100 times, of which 35 come up heads. What is our estimate for $\theta\colon$ Our intuition suggests that the best estimate is 0 . 35 . Had $\theta$ been 0.1 , for example, our chances of seeing $35/100$ heads would have been much lower. In fact, we examined a similar situation in our discussion of sampling methods in section 12.1, where we used samples from a distribution to estimate the probability of a query. As we discussed, the central limit theorem shows that, as the number of coin tosses grows, it is increasingly unlikely to sample a sequence of IID thumbtack ﬂips where the fraction of tosses that come out heads is very far from $\theta$ . Thus, for sufficiently large $M$ , the fraction of heads among the tosses is a good estimate with high probability. 
 >  中心极限定理表明，随着抛次数的增加，抽样到一系列独立同分布的图钉翻转序列，其中朝上的比例与 $\theta$ 相差很远的情况变得越来越不可能，因此，对于足够大的 $M$，抛掷中正面的比例 (频率) 有很高的概率是一个很好的估计
 
-To formalize this intuition, assume that we have a set of thumbtack tosses $x[1],\cdot\cdot\cdot,x[M]$ that are IID, that is, each is sampled independently from the same distribution in which $X[m]$ is equal to $H$ (heads) or $T$ (tails) th probability $\theta$ and $1-\theta$ , respectively. Our task is to ﬁnd a good value for the parameter θ . As in many formulations of learning tasks, we deﬁne a hypothesis space $\Theta$ — a set of possibilities that we are considering — and an objective function that tells us how good dif nt hypotheses in the space are relative to our data set $\mathcal{D}$ . In this case, our hypothesis space Θ is the set of all param ers $\theta\in[0,1]$ . 
+To formalize this intuition, assume that we have a set of thumbtack tosses $x[1],\cdot\cdot\cdot,x[M]$ that are IID, that is, each is sampled independently from the same distribution in which $X[m]$ is equal to $H$ (heads) or $T$ (tails) th probability $\theta$ and $1-\theta$ , respectively. Our task is to ﬁnd a good value for the parameter θ . As in many formulations of learning tasks, we deﬁne a hypothesis space $\Theta$ — a set of possibilities that we are considering — and an objective function that tells us how good different hypotheses in the space are relative to our data set $\mathcal{D}$ . In this case, our hypothesis space Θ is the set of all parameters $\theta\in[0,1]$ . 
 >  假设有一组 IID 样本 $x[1], \dots, x[M]$ ，其服从的分布为 $P(X[m] = H) = \theta$, $P(X[m] = T) = 1-\theta$，我们的目标是估计 $\theta$
 >  对于学习任务，我们定义假设空间 $\Theta$ ( 我们所考虑的可能值 )，和目标函数 (用于判断假设空间的假设相对于数据集 $\mathcal D$ 的优异程度)
 >  本例的假设空间为 $\theta \in [0, 1]$ 中的所有参数
@@ -10406,8 +10410,6 @@ $$
 >  假如我们知道参数，我们可以为某个特定的观测序列计算其概率
 >  因此，对于不同的参数选择，我们的数据集就有不同的概率，故我们可以用一个关于 $\theta$ 的函数衡量数据集的出现概率随 $\theta$ 的变化关系
 >  该函数就是似然函数，它是关于参数 $\theta$ 和数据集观测的函数
-
-Figure 17.2 plots the likelihood function in our example.
 
 Clearly, parameter values with higher likelihood are more likely to generate the observed sequences. Thus, we can use the likelihood function as our measure of quality for different parameter values and select the parameter value that maximizes the likelihood; this value is called the maximum likelihood estimator (MLE) . By viewing ﬁgure 17.2 we see that $\hat{\theta}=0.6=3/5$ maximizes the likelihood for the sequence $H,T,T,H,H$ . 
 >  显然，给定数据集，似然更高的参数 $\theta$ 更有可能生成该观测序列，因此，我们使用似然函数度量不同参数值的质量，选择能最大化似然的参数值作为估计值
@@ -10438,7 +10440,7 @@ as expected (see exercise 17.1).
 
 >  对对数似然求导，令导数为零，得到极大似然参数 $\hat \theta$
 
-As we will see, the maximum likelihood approach has many advantages. However, the approach also has some limitations. For example, if we get 3 heads out of 10 tosses, the MLE estimate is 0.3 . We get the same estimate if we get 300 heads out of 1,000 tosses. Clearly, the two experiments are not equivalent. Our intuition is that, in the second experiment, we should be more conﬁdent of our estimate. Indeed, statistical estimation theory deals with conﬁdence intervals . These are common in news reports, for example, when describing the results of election polls, where we often hear that $"61\pm2$ percent” plan to vote for a certain candidate. The 2 percent is a conﬁdence interval — the poll is designed to select enough people so that the MLE estimate will be within 0 . 02 of the true parameter, with high probability. 
+As we will see, the maximum likelihood approach has many advantages. However, the approach also has some limitations. For example, if we get 3 heads out of 10 tosses, the MLE estimate is 0.3 . We get the same estimate if we get 300 heads out of 1,000 tosses. Clearly, the two experiments are not equivalent. Our intuition is that, in the second experiment, we should be more conﬁdent of our estimate. Indeed, statistical estimation theory deals with conﬁdence intervals . These are common in news reports, for example, when describing the results of election polls, where we often hear that $"61\pm2$ percent” plan to vote for a certain candidate. The 2 percent is a conﬁdence interval — the poll is designed to select enough people so that the MLE estimate will be within 0.02 of the true parameter, with high probability. 
 >  极大似然方法存在问题，例如我们可以从 10 次试验中 3 次 Head 的结果得到 MLE 估计值为 0.3，而从 100 次试验中 30 次 Head 的结果得到 MLE 估计值也是 0.3
 >  显然这两次试验应该是不等价的，我们应该对第二次估计的结果更自信
 >  因此，我们要考虑置信区间，置信区间为 2% 表示我们的 MLE (极大似然估计) 将有很高概率在真实参数的 0.02 相对误差左右
@@ -10635,15 +10637,15 @@ $$
 Each of the individual terms $P(y[m]\mid x[m]:\theta_{Y\mid x^{0}})$ can take one of two values, depending on the value of $y[m]$ . If $y[m]=y^{1}$ , it is equal to $\theta_{y^{1}|x^{0}}$ . If $y[m]=y^{0}$ , it is equal to $\theta_{y^{0}|x^{0}}$ . How many cases of each type do we get? First, we restrict attention only to those data cases where $x[m]=x^{0}$ . These, in turn, partition into the two categories. Thus, we get $\theta_{y^{1}|x^{0}}$ in those data cases where $x[m]\,=\,x^{0}$ and $y[m]\,=\,y^{1}$ ; we use $M[x^{0},y^{1}]$ to denote their number. We get $\theta_{y^{0}|x^{0}}$ in those data cases where $x[m]=x^{0}$ and $y[m]=x^{0}$ , and use $M[x^{0},y^{0}]$ to denote their number. Thus, the term in equation (17.2) is equal to: 
 
 $$
-\prod_{m: x[m]=x^{0}}{ P}(y[m]\mid x[m]:\theta_{Y|x^{0}})\;\;\;=\;\;\;\theta_{y^{1}|x^{0}}^{M[x^{0}, y^{1}]}\cdot\theta_{y^{0}|x^{0}}^{M[x^{0}, y^{0}]}.
+\prod_{m:x[m]=x^{0}}{ P}(y[m]\mid x[m]:\theta_{Y|x^{0}})\;\;\;=\;\;\;\theta_{y^{1}|x^{0}}^{M[x^{0},y^{1}]}\cdot\theta_{y^{0}|x^{0}}^{M[x^{0},y^{0}]}.
 $$ 
 >  再从中选择一项 ($X$ 取 $x^0$ 时的情况)，我们根据 $y[m]$ 的取值将它进一步划分，$y[m]$ 取 $y^1$ 时，概率就是 $\theta_{y^1\mid x^0}$，$y[m]$ 取 $y^0$ 时，概率就是 $\theta_{y^0\mid x^0}$
->  我们用 $M[x^0, y^1]$ 表示 $x[m] = x^0, y[m] =  y^1$ 出现的次数，将 (17.2) 写为如上形式
+>  我们用 $M[x^0, y^1]$ 表示 $x[m] = x^0,y[m] =  y^1$ 出现的次数，将 (17.2) 写为如上形式
 
 Based on our discussion of the multinomial likelihood in example 17.5, we know that we maximize $\theta_{Y\mid x^{0}}$ by setting: 
 
 $$
-\theta_{y^{1}|x^{0}}=\frac{M[x^{0}, y^{1}]}{M[x^{0}, y^{1}]+M[x^{0}, y^{0}]}=\frac{M[x^{0}, y^{1}]}{M[x^{0}]},
+\theta_{y^{1}|x^{0}}=\frac{M[x^{0},y^{1}]}{M[x^{0},y^{1}]+M[x^{0},y^{0}]}=\frac{M[x^{0},y^{1}]}{M[x^{0}]},
 $$ 
 and similarly for $\theta_{y^{0}|x^{0}}$ . Thus, we can ﬁnd the maximum likelihood parameters in this CPD by simply counting how many times each of the possible assignments of $X$ and $Y$ appears in the training data. 
 
@@ -10674,7 +10676,7 @@ We start by examining the likelihood function of a Bayesian network. Suppose we 
 As we discussed, we are also given a data set $\mathcal{D}$ consisting of samples $\xi[1],\cdot\cdot\cdot,\xi[M]$ . Writing the likelihood, and repeating the steps we performed in our example, we get 
 
 $$
-\begin{array}{r c l} {{{\cal L}(\pmb\theta:{\cal D})}} & {{=}} & {{\displaystyle\prod_{m}{ P}_{\mathcal G}(\xi[m]:\pmb\theta)}} \\ {{}} & {{=}} & {{\displaystyle\prod_{m}\prod_{i}{ P}(x_{i}[m]\mid\mathrm{pa}_{X_{i}} [m]:\pmb\theta)}}\\ {{}} & {{=}} & {{\displaystyle\prod_{i}\left[\displaystyle\prod_{m}{ P}(x_{i}[m]\mid\mathrm{pa}_{X_{i}} [m]:\pmb\theta)\right].}}\end{array}
+\begin{array}{r c l}{{{\cal L}(\pmb\theta:{\cal D})}}&{{=}}&{{\displaystyle\prod_{m}{ P}_{\mathcal G}(\xi[m]:\pmb\theta)}}\\ {{}}&{{=}}&{{\displaystyle\prod_{m}\prod_{i}{ P}(x_{i}[m]\mid\mathrm{pa}_{X_{i}}[m]:\pmb\theta)}}\\ {{}}&{{=}}&{{\displaystyle\prod_{i}\left[\displaystyle\prod_{m}{ P}(x_{i}[m]\mid\mathrm{pa}_{X_{i}}[m]:\pmb\theta)\right].}}\end{array}
 $$
 
 >  我们具有从网络中采样得到的数据集 $\mathcal D$，包含 $M$ 个样本
@@ -10683,10 +10685,10 @@ $$
 Note that each of the terms in the square brackets refers to the conditional likelihood of a particular variable given its parents in the network. 
 >  注意到方括号中的每一项都是特定变量 $X_i$ 在给定其网络中的父变量时在 $\pmb \theta$ 下的条件似然，整体的似然函数是所有 $X_i$ 的似然的乘积
 
-We use $\pmb \theta_{X_{i}|\mathrm{Pa}_{X_{i}}}$ to denote the subset of parameters that determines $P (X_{i}\mid\mathrm{Pa}_{X_{i}})$ in our model. Then, we can write 
+We use $\pmb \theta_{X_{i}|\mathrm{Pa}_{X_{i}}}$ to denote the subset of parameters that determines $P(X_{i}\mid\mathrm{Pa}_{X_{i}})$ in our model. Then, we can write 
 
 $$
-L (\pmb\theta:\mathcal{D})=\prod_{i}L_{i}(\pmb\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}:\mathcal{D}),
+L(\pmb\theta:\mathcal{D})=\prod_{i}L_{i}(\pmb\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}:\mathcal{D}),
 $$ 
 where the local likelihood function for $X_{i}$ is: 
 
@@ -10694,7 +10696,7 @@ $$
 L_{i}(\pmb{\theta}_{X_{i}\mid\mathrm{Pa}_{X_{i}}}:\mathcal{D})=\prod_{m}{P}(x_{i}[m]\mid\mathrm{pa}_{X_{i}}[m]:\pmb{\theta}_{X_{i}\mid\mathrm{Pa}_{X_{i}}}).
 $$ 
 
->  我们用 $\pmb \theta_{X_i\mid \text{Pa}_{X_i}}$ 表示决定了条件概率 $P (X_i \mid \text{Pa}_{X_i})$ 的参数子集，也就是 $X_i$ 的似然仅由 $\pmb \theta_{X_i \mid \text{Pa}_{X_i}}$ 决定
+>  我们用 $\pmb \theta_{X_i\mid \text{Pa}_{X_i}}$ 表示决定了条件概率 $P(X_i \mid \text{Pa}_{X_i})$ 的参数子集，也就是 $X_i$ 的似然仅由 $\pmb \theta_{X_i \mid \text{Pa}_{X_i}}$ 决定
 >  我们将似然函数写为各个 $X_i$ 各自似然函数的乘积，其中 $X_i$ 的似然函数是关于 $\pmb \theta_{X_i \mid \text{Pa}_{X_i}}$ 的函数
 
 This form is particularly useful when the parameter sets $\pmb \theta_{X_{i}|\mathrm{Pa}_{X_{i}}}$ are disjoint . 
@@ -10709,11 +10711,11 @@ That is, each CPD is parameterized by a separate set of parameters that do not o
 We can now immediately derive the following result: 
 
 **Proposition 17.1** 
-Let $\mathcal{D}$ be a complete data set for $X_{1},\dots, X_{n},$ , let $\mathcal{G}$ be a network structure over these variables, and suppose that the parameters $\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}$ are disjoint from $\theta_{X_{j}|\mathrm{Pa}_{X_{j}}}$ for all j $j\neq i$ ̸ . Let $\hat{\pmb{\theta}}_{X_{i}|\mathrm{Pa}_{X_{i}}}$ be the parameters that maximize $L_{i}(\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}:\mathcal{D})$ . Then, $\hat{\pmb\theta}=\langle\hat{\pmb\theta}_{X_{1}|\mathrm{Pa}_{1}},.\,.\,.\,,\hat{\pmb\theta}_{X_{n}|\mathrm{Pa}_{n}}\rangle$ ⟨ ⟩ maximizes $L (\theta:{\mathcal{D}})$ . 
+Let $\mathcal{D}$ be a complete data set for $X_{1},\dots,X_{n},$ , let $\mathcal{G}$ be a network structure over these variables, and suppose that the parameters $\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}$ are disjoint from $\theta_{X_{j}|\mathrm{Pa}_{X_{j}}}$ for all j $j\neq i$ ̸ . Let $\hat{\pmb{\theta}}_{X_{i}|\mathrm{Pa}_{X_{i}}}$ be the parameters that maximize $L_{i}(\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}:\mathcal{D})$ . Then, $\hat{\pmb\theta}=\langle\hat{\pmb\theta}_{X_{1}|\mathrm{Pa}_{1}},.\,.\,.\,,\hat{\pmb\theta}_{X_{n}|\mathrm{Pa}_{n}}\rangle$ ⟨ ⟩ maximizes $L(\theta:{\mathcal{D}})$ . 
 >  命题
 >  $\mathcal D$ 为 $X_1, \dots, X_n$ 的完整数据集，$\mathcal G$ 为这些变量上的网络结构
 >  假设对于所有 $j\ne i$，参数集合 $\pmb \theta_{X_i\mid \text{Pa}_{X_i}}$ 和参数集合 $\pmb \theta_{X_j\mid \text{Pa}_{X_j}}$ 不相交
->  令 $\pmb {\hat \theta}_ {{X_n\mid \text{Pa}_{n}} }$ 为最大化局部似然函数 $L_i (\pmb \theta_{X_i \mid \text{Pa}_{X_i}}:\mathcal D)$ 的参数，则 $\hat{\pmb\theta}=\langle\hat{\pmb\theta}_{X_{1}|\mathrm{Pa}_{1}},.\,.\,.\,,\hat{\pmb\theta}_{X_{n}|\mathrm{Pa}_{n}}\rangle$ 就是最大化整体似然函数 $L (\pmb \theta:\mathcal D)$ 的参数
+>  令 $\pmb {\hat \theta}_{{X_n\mid \text{Pa}_{n}}}$ 为最大化局部似然函数 $L_i(\pmb \theta_{X_i \mid \text{Pa}_{X_i}}:\mathcal D)$ 的参数，则 $\hat{\pmb\theta}=\langle\hat{\pmb\theta}_{X_{1}|\mathrm{Pa}_{1}},.\,.\,.\,,\hat{\pmb\theta}_{X_{n}|\mathrm{Pa}_{n}}\rangle$ 就是最大化整体似然函数 $L(\pmb \theta:\mathcal D)$ 的参数
 
 In other words, we can maximize each local likelihood function independently of rest of the network, and then combine the solutions to get an MLE solution. This decomposition of the global problem to independent subproblems allows us to devise efficient solutions to the MLE problem. Moreover, this decomposition is an immediate consequence of the network structure and does not depend on any particular choice of parameterization for the CPDs. 
 >  因此，我们可以独立于网络的其他部分，最大化每个局部似然函数，然后将它们各自的解结合得到整体的 MLE 解
@@ -10726,14 +10728,14 @@ Based on the preceding discussion, we know that the likelihood of a Bayesian net
 >  CPD 的参数化决定了我们如何最大化局部似然函数
 >  本节考虑最简单的 CPD 参数化 - Table CPD
 
-Suppose we have a variable $X$ with parents $\pmb U$ . If we represent that CPD $P (X\mid \pmb U)$ as a table, then we will have a parameter $\theta_{x|u}$ for each combination of $x\in V a l (X)$ and $u\in V a l (U)$ . In this case, we can rewrite the local likelihood function as follows: 
+Suppose we have a variable $X$ with parents $\pmb U$ . If we represent that CPD $P(X\mid \pmb U)$ as a table, then we will have a parameter $\theta_{x|u}$ for each combination of $x\in V a l(X)$ and $u\in V a l(U)$ . In this case, we can rewrite the local likelihood function as follows: 
 
 $$
-\begin{array}{r c l} {{{\cal L}_{X}(\pmb{\theta}_{X|\pmb U}:\mathcal{D})}} & {{=}} & {{\displaystyle\prod_{m}\theta_{x[m]|\pmb{u}[m]}} }\\ {{}} & {{}} & {{}} \\ {{}} & {{=}} & {{\displaystyle\prod_{\pmb{u}\in V a l(\pmb{U})}\left[\displaystyle\prod_{x\in V a l(X)}\theta_{x|\pmb{u}} ^{M[\pmb{u}, x]}\right],}}\end{array}\tag{17.4}
+\begin{array}{r c l}{{{\cal L}_{X}(\pmb{\theta}_{X|\pmb U}:\mathcal{D})}}&{{=}}&{{\displaystyle\prod_{m}\theta_{x[m]|\pmb{u}[m]}}}\\ {{}}&{{}}&{{}}\\ {{}}&{{=}}&{{\displaystyle\prod_{\pmb{u}\in V a l(\pmb{U})}\left[\displaystyle\prod_{x\in V a l(X)}\theta_{x|\pmb{u}}^{M[\pmb{u},x]}\right],}}\end{array}\tag{17.4}
 $$ 
-where $M[{\boldsymbol{\mathbf{\mathit{u}}}}, x]$ is the number of times $\xi[m]=x$ and ${\pmb u}[m]={\pmb u}$ in $\mathcal{D}$ . That is, we grouped together all the occurrences of $\theta_{x|\pmb u}$ in the product over all instances. This provides a further local decomposition of the likelihood function. 
+where $M[{\boldsymbol{\mathbf{\mathit{u}}}},x]$ is the number of times $\xi[m]=x$ and ${\pmb u}[m]={\pmb u}$ in $\mathcal{D}$ . That is, we grouped together all the occurrences of $\theta_{x|\pmb u}$ in the product over all instances. This provides a further local decomposition of the likelihood function. 
 
->  考虑变量 $X$，其父变量为 $\pmb U$，我们将 $P (X\mid \pmb U)$ 用表格表示，则对于每个组合 $x\in Val (X), u \in Val (\pmb U)$，我们都有一个参数 $\theta_{x\mid \pmb u}$ 定义其概率
+>  考虑变量 $X$，其父变量为 $\pmb U$，我们将 $P(X\mid \pmb U)$ 用表格表示，则对于每个组合 $x\in Val(X), u \in Val(\pmb U)$，我们都有一个参数 $\theta_{x\mid \pmb u}$ 定义其概率
 >  故我们将 $X$ 相对于数据集的似然函数写为 (17.4)
 >  其中 $M[\pmb u, x]$ 为 $\xi[m] = x$ 且 $\pmb u[m] = \pmb u$ 在 $\mathcal D$ 中出现的次数，也就是我们通过 $\pmb U$ 的取值 $\pmb u$ 将局部似然函数进行进一步划分，将 $\pmb u$ 相关的 $\theta_{x\mid \pmb u}$ 聚集在一起
 
@@ -10747,14 +10749,14 @@ These constraints imply that the choice of value for $\theta_{x|\pmb u}$ can imp
 >  注意到该最大化优化问题还有一个约束，就是每个 $\pmb U$ 的取值 $\pmb u$ 都需要定义一个合法的 CPD，即所有的 $\theta_{x\mid \pmb u}$ 和为 1
 >  同时注意到每个 $\pmb u$ 相关的参数仅和自己有关，因此可以针对各个 $\pmb u$ 分别优化
 
-We can thus further decompose the local likelihood function for a tabular CPD into a product of simple likelihood functions. Each of these likelihood functions is a multinomial likelihood, of the type that we examined in example 17.3. The counts in the data for the different outcomes $x$ are simply $\{M[{\pmb u},{ x}]:{ x}\in V a l ({ X})\}$ . We can then immediately use the maximum likelihood estimation for multinomial likelihood of example 17.5 and see that the MLE parameters are 
+We can thus further decompose the local likelihood function for a tabular CPD into a product of simple likelihood functions. Each of these likelihood functions is a multinomial likelihood, of the type that we examined in example 17.3. The counts in the data for the different outcomes $x$ are simply $\{M[{\pmb u},{ x}]:{ x}\in V a l({ X})\}$ . We can then immediately use the maximum likelihood estimation for multinomial likelihood of example 17.5 and see that the MLE parameters are 
 
 $$
-{\hat{\theta}}_{x\mid \pmb u}={\frac{M[{\pmb u}, x]}{M[{\pmb u}]}},\tag{17.5}
+{\hat{\theta}}_{x\mid \pmb u}={\frac{M[{\pmb u},x]}{M[{\pmb u}]}},\tag{17.5}
 $$ 
-where we use the fact that $\begin{array}{r}{M[\pmb{u}]=\sum_{x}M[\pmb{u}, x]}\end{array}$ . 
+where we use the fact that $\begin{array}{r}{M[\pmb{u}]=\sum_{x}M[\pmb{u},x]}\end{array}$ . 
 
->  因此我们将表格类 CPD 的局部似然函数进一步分解为了多个简单似然函数的乘积，其中每个简单似然函数都是一个多项式似然 ($\prod_{x\in Val (X)}\theta_{x\mid \pmb u}^{M[x, \pmb u]}$)
+>  因此我们将表格类 CPD 的局部似然函数进一步分解为了多个简单似然函数的乘积，其中每个简单似然函数都是一个多项式似然 ($\prod_{x\in Val(X)}\theta_{x\mid \pmb u}^{M[x, \pmb u]}$)
 >  因此，$\theta_{x\mid \pmb u}$ 的 MLE 就是 $(x, \pmb u)$ 在数据集中出现的次数在所有 $\pmb u$ 出现中所占的比例是多少 ($M[\pmb u] = \sum_x M[\pmb u, x]$)
 
 This simple formula reveals a key challenge when estimating parameters for a Bayesian networks. Note that the number of data points used to estimate the parameter ${\hat{\theta}}_{x\mid \pmb u}$ is $M[\pmb{u}]$ . Data points that do not agree with the parent assignment $\mathbfit{u}$ play no role in this computation. As the number of parents $U$ grows, the number of different parent assignments grows exponentially. Therefore, the number of data instances that we expect to have for a single parent assignment shrinks exponentially. This phenomenon is called data fragmentation , since the data set is partitioned into a large number of small subsets. Intuitively, when we have a very small number of data instances from which we estimate a parameter, the estimates we get can be very noisy (this intuition is formalized in section 17.6), leading to overﬁtting . We are also more likely to get a large number of zeros in the distribution, which can lead to very poor performance. **Our inability to estimate parameters reliably as the dimensionality of the parent set grows is one of the key limiting factors in learning Bayesian networks from data.** This problem is even more severe when the variables can take on a large number of values, for example, in text applications. 
@@ -10764,49 +10766,49 @@ This simple formula reveals a key challenge when estimating parameters for a Bay
 >  同时我们也很可能得到大量的零参数 (因为没有对应样本出现)，导致性能降低
 >  BN 中，随着父变量集合维度增长，我们便难以评估参数，这是限制 BN 从数据中学习的关键因素，如果变量的取值空间也非常大，该问题会更加严重
 
-Box 17. A — Concept: Naive Bayes Classiﬁer. One of the basic tasks of learning is classiﬁcation . In this task, our goal is build a classiﬁer — a procedure that assigns instances into two or more categories, for example, deciding whether an email message is junk mail that should be discarded or a relevant message that should be presented to the user. In the usual setting, we are given a training example of instances from each category, where instances are represented by various features. In our email classiﬁcation example, a message might be analyzed by multiple features: its length, the type of attachments it contains, the domain of the sender, whether that sender appears in the user’s address book, whether a particular word appears in the subject, and so on. 
+Box 17.A — Concept: Naive Bayes Classiﬁer. One of the basic tasks of learning is classiﬁcation . In this task, our goal is build a classiﬁer — a procedure that assigns instances into two or more categories, for example, deciding whether an email message is junk mail that should be discarded or a relevant message that should be presented to the user. In the usual setting, we are given a training example of instances from each category, where instances are represented by various features. In our email classiﬁcation example, a message might be analyzed by multiple features: its length, the type of attachments it contains, the domain of the sender, whether that sender appears in the user’s address book, whether a particular word appears in the subject, and so on. 
 
-One general approach to this problem, which is referred to as Bayesian classiﬁer , is to learn a probability distribution of the features of instances of each class. In the language of probabilistic models, we use the random variables $X$ to represent the instance, and the random variable $C$ to represent the category of the instance. The distribution $P (X\mid C)$ is the probability of a particular combination of features given the category. Using Bayes rule, we have that 
+One general approach to this problem, which is referred to as Bayesian classiﬁer , is to learn a probability distribution of the features of instances of each class. In the language of probabilistic models, we use the random variables $X$ to represent the instance, and the random variable $C$ to represent the category of the instance. The distribution $P(X\mid C)$ is the probability of a particular combination of features given the category. Using Bayes rule, we have that 
 
 $$
-P (C\mid X)\propto P (C) P (X\mid C).
+P(C\mid X)\propto P(C)P(X\mid C).
 $$ 
-Thus, if we have a good model of how instances of each category behave (that is, of $P (X\mid C)),$ we can combine it with our prior estimate for the frequency of each category (that is, $P (C))$ to estimate the posterior probability of each of the categories (that is, $P (C\mid X))$ . We can then decide either to predict the most likely category or to perform a more complex decision based on the strength of likelihood of each option. For example, to reduce the number of erroneously removed messages, a junk-mail ﬁlter might remove email messages only when the probability that it is junk mail is higher than a strict threshold. 
+Thus, if we have a good model of how instances of each category behave (that is, of $P(X\mid C)),$ we can combine it with our prior estimate for the frequency of each category (that is, $P(C))$ to estimate the posterior probability of each of the categories (that is, $P(C\mid X))$ . We can then decide either to predict the most likely category or to perform a more complex decision based on the strength of likelihood of each option. For example, to reduce the number of erroneously removed messages, a junk-mail ﬁlter might remove email messages only when the probability that it is junk mail is higher than a strict threshold. 
 
 This Bayesian classiﬁcation approach is quite intuitive. Loosely speaking, it states that to classify objects successfully, we need to recognize the characteristics of objects of each category. Then, we can classify a new object by considering whether it matches the characteristic of each of the classes. More formally, we use the language of probability to describe each category, assigning higher probability to objects that are typical for the category and low probability to ones that are not. 
 
-The main hurdle in constructing a Bayesian classiﬁer is the question of representation of the multivariate distribution $p (X\mid C)$ . The naive Bayes classiﬁer is one where we use the simplest representation we can think of. That is, we assume that each feature $X_{i}$ is independent of all the other features given the class variable $C$ . That is, 
+The main hurdle in constructing a Bayesian classiﬁer is the question of representation of the multivariate distribution $p(X\mid C)$ . The naive Bayes classiﬁer is one where we use the simplest representation we can think of. That is, we assume that each feature $X_{i}$ is independent of all the other features given the class variable $C$ . That is, 
 
 $$
-P (X\mid C)=\prod_{i}{\cal P}(X_{i}\mid C).
+P(X\mid C)=\prod_{i}{\cal P}(X_{i}\mid C).
 $$
 
-Learning the distribution $P (C) P (X\mid C)$ is thus reduced to learning the parameters in the naive Bayes structure, with the category variable C rendering all other features as conditionally independent of each other. 
+Learning the distribution $P(C)P(X\mid C)$ is thus reduced to learning the parameters in the naive Bayes structure, with the category variable C rendering all other features as conditionally independent of each other. 
 
-As can be expected, learning this classiﬁer is a straightforward application of the parameter estimation that we consider in this chapter. Moreover, classifying new examples requires simple computation, evaluating $\textstyle P (c)\prod_{i}P (x_{i}\mid c)$ for each category $c$ . 
+As can be expected, learning this classiﬁer is a straightforward application of the parameter estimation that we consider in this chapter. Moreover, classifying new examples requires simple computation, evaluating $\textstyle P(c)\prod_{i}P(x_{i}\mid c)$ for each category $c$ . 
 
-Although this simple classiﬁer is often dismissed as naive, in practice it is often surprisingly efective. From a training perspective, this classiﬁer is quite robust, since in most applications, even with relatively few training examples, we can learn the parameters of conditional distribution $P (X_{i}\mid C)$ . However, one might argue that robust learning does not compensate for oversimpliﬁed independence assumption. Indeed, the strong independence assumption usually results in poor representation of the distribution of instances. However, errors in estimating the probability of an instance do not necessarily lead to classiﬁcation errors. For classiﬁcation, we are interested in the relative size of the conditional distribution of the instances given different categories. The ranking of different labels may not be that sensitive to errors in estimating the actual probability of the instance. Empirically, one often ﬁnds that the naive Bayes classiﬁer correctly classiﬁes an example to the right category, yet its posterior probability is very skewed and quite far from the correct distribution. 
+Although this simple classiﬁer is often dismissed as naive, in practice it is often surprisingly efective. From a training perspective, this classiﬁer is quite robust, since in most applications, even with relatively few training examples, we can learn the parameters of conditional distribution $P(X_{i}\mid C)$ . However, one might argue that robust learning does not compensate for oversimpliﬁed independence assumption. Indeed, the strong independence assumption usually results in poor representation of the distribution of instances. However, errors in estimating the probability of an instance do not necessarily lead to classiﬁcation errors. For classiﬁcation, we are interested in the relative size of the conditional distribution of the instances given different categories. The ranking of different labels may not be that sensitive to errors in estimating the actual probability of the instance. Empirically, one often ﬁnds that the naive Bayes classiﬁer correctly classiﬁes an example to the right category, yet its posterior probability is very skewed and quite far from the correct distribution. 
 
-In practice, the naive Bayes classiﬁer is often a good baseline classiﬁer to try before considering more complex solutions. It is easy to implement, it is robust, and it can handle different choices of descriptions of instances (for example, box 17. E). 
+In practice, the naive Bayes classiﬁer is often a good baseline classiﬁer to try before considering more complex solutions. It is easy to implement, it is robust, and it can handle different choices of descriptions of instances (for example, box 17.E). 
 
 ### 17.2.4 Gaussian Bayesian Networks\* 
 Our discussion until now has focused on learning discrete-state Bayesian networks with multi-nomial parameters. However, the concepts we have developed in this section carry through to a wide variety of other types of Bayesian networks. In particular, the global decomposition properties we proved for a Bayesian network apply, without any change, to any other type of CPD. That is, if the data are complete, the learning problem reduces to a set of local learning problems, one for each variable. The main diference is in applying the maximum likelihood estimation process to a CPD of a different type: how we deﬁne the sufficient statistics, and how we compute the maximum likelihood estimate from them. In this section, we demonstrate how MLE principles can be applied in the setting of linear Gaussian Bayesian networks. In section 17.2.5 we provide a general procedure for CPDs in the exponential family. 
 
-Consider a variable $X$ with parents $U=\{U_{1},.\,.\,.\,, U_{k}\}$ with a linear Gaussian CPD: 
+Consider a variable $X$ with parents $U=\{U_{1},.\,.\,.\,,U_{k}\}$ with a linear Gaussian CPD: 
 
 $$
-P (X\mid\mathbf{\boldsymbol{u}})=\mathcal{N}\left (\beta_{0}+\beta_{1}u_{1}+\ldots,\beta_{k}u_{k};\sigma^{2}\right).
+P(X\mid\mathbf{\boldsymbol{u}})=\mathcal{N}\left(\beta_{0}+\beta_{1}u_{1}+\ldots,\beta_{k}u_{k};\sigma^{2}\right).
 $$ 
 Our task is to learn the parameters $\theta_{X|U}\;=\;\langle\beta_{0},.\,.\,.\,,\beta_{k},\sigma\rangle$ . To ﬁnd the MLE values of these parameters, we need to differentiate the likelihood and solve the equations that deﬁne a stationary point. As usual, it will be easier to work with the log-likelihood function. Using the deﬁnition of the Gaussian distribution, we have that 
 
 $$
-\begin{array}{l l l}{\lefteqn{\ell_{X}\big (\pmb{\theta}_{X|U}:\mathcal{D}\big)=\log L_{X}\big (\pmb{\theta}_{X|U}:\mathcal{D}\big)}}\\ &{=}&{\sum_{m}\left[-\frac{1}{2}\log (2\pi\sigma^{2})-\frac{1}{2}\frac{1}{\sigma^{2}}\left (\beta_{0}+\beta_{1}u_{1}[m]+\ldots+\beta_{k}u_{k}[m]-x[m]\right)^{2}\right].}\end{array}
+\begin{array}{l l l}{\lefteqn{\ell_{X}\big(\pmb{\theta}_{X|U}:\mathcal{D}\big)=\log L_{X}\big(\pmb{\theta}_{X|U}:\mathcal{D}\big)}}\\ &{=}&{\sum_{m}\left[-\frac{1}{2}\log(2\pi\sigma^{2})-\frac{1}{2}\frac{1}{\sigma^{2}}\left(\beta_{0}+\beta_{1}u_{1}[m]+\ldots+\beta_{k}u_{k}[m]-x[m]\right)^{2}\right].}\end{array}
 $$ 
 
 We start by considering the gradient of the log-likelihood with respect to $\beta_{0}$ : 
 
 $$
-\begin{array}{c c}{\displaystyle\frac{\partial}{\partial\beta_{0}}\ell_{X}(\pmb{\theta}_{X|U}:\mathcal{D})=\sum_{m}-\frac{1}{\sigma^{2}}\left (\beta_{0}+\beta_{1}u_{1}[m]+\ldots+\beta_{k}u_{k}[m]-x[m]\right)}\\ {=}&{\displaystyle-\frac{1}{\sigma^{2}}\left (M\beta_{0}+\beta_{1}\sum_{m}u_{1}[m]+\ldots+\beta_{k}\sum_{m}u_{k}[m]-\sum_{m}x[m]\right).}\end{array}
+\begin{array}{c c}{\displaystyle\frac{\partial}{\partial\beta_{0}}\ell_{X}(\pmb{\theta}_{X|U}:\mathcal{D})=\sum_{m}-\frac{1}{\sigma^{2}}\left(\beta_{0}+\beta_{1}u_{1}[m]+\ldots+\beta_{k}u_{k}[m]-x[m]\right)}\\ {=}&{\displaystyle-\frac{1}{\sigma^{2}}\left(M\beta_{0}+\beta_{1}\sum_{m}u_{1}[m]+\ldots+\beta_{k}\sum_{m}u_{k}[m]-\sum_{m}x[m]\right).}\end{array}
 $$ 
 
 Equating this gradient to 0 , and multiplying both sides with $\frac{\sigma^{2}}{M}$ , we get the equation 
@@ -10822,16 +10824,16 @@ $$
 to denote this expectation. Using this notation, we see that we get the following equation: 
 
 $$
-\begin{array}{r} {{\pmb E}_{\mathcal{D}} [X]=\beta_{0}+\beta_{1}{\pmb E}_{\mathcal{D}}[U_{1}]+.\,.+\beta_{k}{\pmb E}_{\mathcal{D}}[U_{k}].}\end{array}
+\begin{array}{r}{{\pmb E}_{\mathcal{D}}[X]=\beta_{0}+\beta_{1}{\pmb E}_{\mathcal{D}}[U_{1}]+.\,.+\beta_{k}{\pmb E}_{\mathcal{D}}[U_{k}].}\end{array}
 $$ 
-Recall that theorem 7.3 speciﬁes the mean of a linear Gaussian variable $X$ in terms of the means of its parents $U_{1},\dots, U_{k}$ , using an expression that has precisely this form. Thus, equation (17.6) tells us that the MLE parameters should be such that the mean of $X$ in the data is consistent with the predicted mean of $X$ according to the parameters. 
+Recall that theorem 7.3 speciﬁes the mean of a linear Gaussian variable $X$ in terms of the means of its parents $U_{1},\dots,U_{k}$ , using an expression that has precisely this form. Thus, equation (17.6) tells us that the MLE parameters should be such that the mean of $X$ in the data is consistent with the predicted mean of $X$ according to the parameters. 
 
 Next, consider the gradient with respect to one of the parameters $\beta_{i}$ . Using similar arithmetic manipulations, we see that the equation $\begin{array}{r}{0=\frac{\partial}{\partial\beta_{i}}\ell_{X}(\bar{\pmb\theta_{X|U}}:\mathcal{D})}\end{array}$ can be formulated as: 
 
 $$
 \begin{array}{r}{E_{\mathcal{D}}[X\cdot U_{i}]=\beta_{0}E_{\mathcal{D}}[U_{i}]+\beta_{1}E_{\mathcal{D}}[U_{1}\cdot U_{i}]+\ldots+\beta_{k}E_{\mathcal{D}}[U_{k}\cdot U_{i}].}\end{array}
 $$ 
-At this stage, we have $k+1$ linear equations with $k+1$ unknowns, and we can use standard linear algebra techniques for solving for the value of $\beta_{0},\beta_{1},.\cdot\cdot,\beta_{k}$ . We can get additional intuition, however, by doing additional manipulation of equation (17.7). Recall that the covariance $\mathbf{C}o v[X; Y]=E[X\cdot Y]-E[X]\cdot E[Y]$ · − · . Thus, if we subtract $\pmb{E}_{\mathcal{D}}[X]\cdot\pmb{E}_{\mathcal{D}}[U_{i}]$ D · D from the left-hand side of equation (17.7), we would get the empirical covariance of X and $U_{i}$ . Using equation (17.6), we have that this term can also be written as: 
+At this stage, we have $k+1$ linear equations with $k+1$ unknowns, and we can use standard linear algebra techniques for solving for the value of $\beta_{0},\beta_{1},.\cdot\cdot,\beta_{k}$ . We can get additional intuition, however, by doing additional manipulation of equation (17.7). Recall that the covariance $\mathbf{C}o v[X;Y]=E[X\cdot Y]-E[X]\cdot E[Y]$ · − · . Thus, if we subtract $\pmb{E}_{\mathcal{D}}[X]\cdot\pmb{E}_{\mathcal{D}}[U_{i}]$ D · D from the left-hand side of equation (17.7), we would get the empirical covariance of X and $U_{i}$ . Using equation (17.6), we have that this term can also be written as: 
 
 $$
 \begin{array}{r}{\pmb{E}_{\mathcal{D}}[X]\cdot\pmb{E}_{\mathcal{D}}[U_{i}]=\beta_{0}\pmb{E}_{\mathcal{D}}[U_{i}]+\beta_{1}\pmb{E}_{\mathcal{D}}[U_{1}]\cdot\pmb{E}_{\mathcal{D}}[U_{i}]+.+.+\beta_{k}\pmb{E}_{\mathcal{D}}[U_{k}]\cdot\pmb{E}_{\mathcal{D}}[U_{i}].}\end{array}
@@ -10839,48 +10841,48 @@ $$
 Subtracting this equation from equation (17.7), we get: 
 
 $$
-\begin{array}{r c l} {{{\cal E}_{\mathcal{D}} [X\cdot U_{i}]-{\cal E}_{\mathcal{D}}[X]\cdot{\pmb E}_{\mathcal{D}}[U_{i}]}}& {{=}} & {{\beta_{1}\left({\pmb E}_{\mathcal{D}} [U_{1}\cdot U_{i}]-{\pmb E}_{\mathcal{D}}[U_{1}]\cdot{\pmb E}_{\mathcal{D}}[U_{i}]\right)+\ldots+}}\\ {{}} & {{}} & {{\beta_{k}\left({\pmb E}_{\mathcal{D}} [U_{k}\cdot U_{i}]-{\pmb E}_{\mathcal{D}}[U_{k}]\cdot{\pmb E}_{\mathcal{D}}[U_{i}]\right).}}\end{array}
+\begin{array}{r c l}{{{\cal E}_{\mathcal{D}}[X\cdot U_{i}]-{\cal E}_{\mathcal{D}}[X]\cdot{\pmb E}_{\mathcal{D}}[U_{i}]}}&{{=}}&{{\beta_{1}\left({\pmb E}_{\mathcal{D}}[U_{1}\cdot U_{i}]-{\pmb E}_{\mathcal{D}}[U_{1}]\cdot{\pmb E}_{\mathcal{D}}[U_{i}]\right)+\ldots+}}\\ {{}}&{{}}&{{\beta_{k}\left({\pmb E}_{\mathcal{D}}[U_{k}\cdot U_{i}]-{\pmb E}_{\mathcal{D}}[U_{k}]\cdot{\pmb E}_{\mathcal{D}}[U_{i}]\right).}}\end{array}
 $$ 
-Using $\mathbf{\it{C}}o v_{\mathcal{D}}[X; U_{i}]$ to denote the observed covariance of $X$ and $U_{i}$ in the data, we get: 
+Using $\mathbf{\it{C}}o v_{\mathcal{D}}[X;U_{i}]$ to denote the observed covariance of $X$ and $U_{i}$ in the data, we get: 
 
 $$
-\begin{array}{r}{\pmb{C}o v_{\mathcal{D}}[X; U_{i}]=\beta_{1}\pmb{C}o v_{\mathcal{D}}[U_{1}; U_{i}]+.\,.+\beta_{k}\pmb{C}o v_{\mathcal{D}}[U_{k}; U_{i}].}\end{array}
+\begin{array}{r}{\pmb{C}o v_{\mathcal{D}}[X;U_{i}]=\beta_{1}\pmb{C}o v_{\mathcal{D}}[U_{1};U_{i}]+.\,.+\beta_{k}\pmb{C}o v_{\mathcal{D}}[U_{k};U_{i}].}\end{array}
 $$ 
 In other words, the observed covariance of $X$ with $U_{i}$ should be the one predicted by theorem 7.3 given the parameters and the observed covariances between the parents of $X$ . 
 
 Finally, we need to ﬁnd the value of the $\sigma^{2}$ parameter. Taking the derivative of the likelihood and equating to 0 , we get an equation that, after suitable reformulation, can be written as 
 
 $$
-\sigma^{2}={\bf C}o v_{\mathcal{D}}[X; X]-\sum_{i}\sum_{j}\beta_{i}\beta_{j}{\bf C}o v_{\mathcal{D}}[U_{i}; U_{j}]
+\sigma^{2}={\bf C}o v_{\mathcal{D}}[X;X]-\sum_{i}\sum_{j}\beta_{i}\beta_{j}{\bf C}o v_{\mathcal{D}}[U_{i};U_{j}]
 $$ 
 (see exercise 17.4). Again, we see that the MLE estimate has to match the constraints implied by theorem 7.3. 
 
-e glob picture that emerges is as follows. To estimate $P (X\mid U)$ , we estimate the means of X and U and covariance matrix of $\{X\}\cup U$ from the vector of means and covariance matrix deﬁnes a joint Gaussian distribution over { $\{X\}\cup U$ } ∪ . (In fact, this is the MLE estimate of the joint Gaussian; see exercise 17.5.) We then solve for the (unique) linear Gaussian that matches the joint Gaussian with these parameters. For this purpose, we can use the formulas provided by theorem 7.4. While these equations seem somewhat complex, they are merely describing the solution to a system of linear equations. 
+e glob picture that emerges is as follows. To estimate $P(X\mid U)$ , we estimate the means of X and U and covariance matrix of $\{X\}\cup U$ from the vector of means and covariance matrix deﬁnes a joint Gaussian distribution over { $\{X\}\cup U$ } ∪ . (In fact, this is the MLE estimate of the joint Gaussian; see exercise 17.5.) We then solve for the (unique) linear Gaussian that matches the joint Gaussian with these parameters. For this purpose, we can use the formulas provided by theorem 7.4. While these equations seem somewhat complex, they are merely describing the solution to a system of linear equations. 
 
 This discussion also identiﬁes the sufficient statistics we need to collect to estimate linear Gaussians. These are the un the f $\textstyle\sum_{m}x[m]$ and $\textstyle\sum_{m}u_{i}[m]$ , and the interaction terms of the form $\textstyle\sum_{m}x[m]\cdot u_{i}[m]$ P · and P $\textstyle\sum_{m}u_{i}[m]\cdot u_{j}[m]$ · ] . From these, we can estimate the mean and covariance matrix of the joint distribution. 
 
-Box 17. B — Concept: Nonparametric Models. The discussion in this chapter has focused on estimating parameters for speciﬁc parametric models of CPDs: multinomials and linear Gaussians. However, a theory of maximum likelihood and Bayesian estimation exists for a wide variety of other parametric models. Moreover, in recent years, there has been a growing interest in the use of nonparametric Bayesian estimation methods, where a (conditional) distribution is not deﬁned to be in some particular parametric class with a ﬁxed number of parameters, but rather the complexity of the representation is allowed to grow as we get more data instances. In the case of discrete variables, any CPD can be described as a table, albeit perhaps a very large one; thus a nonparametric method is less essential (although see section 19.5.2.2 for a very useful example of a nonparametric method in the discrete case). In the case of continuous variables, we do not have a “universal” parametric distribution. While Gaussians are often the default, many distributions are not well ﬁt by them, and it is often difcult to determine which parametric family (if any) will be appropriate for a given variable. In such cases, nonparametric methods ofer a useful substitute. In such methods, we use the data points themselves as the basis for a probability distribution. Many nonparametric methods have been developed; we describe one simple variant that serves to illustrate this type of approach. 
+Box 17.B — Concept: Nonparametric Models. The discussion in this chapter has focused on estimating parameters for speciﬁc parametric models of CPDs: multinomials and linear Gaussians. However, a theory of maximum likelihood and Bayesian estimation exists for a wide variety of other parametric models. Moreover, in recent years, there has been a growing interest in the use of nonparametric Bayesian estimation methods, where a (conditional) distribution is not deﬁned to be in some particular parametric class with a ﬁxed number of parameters, but rather the complexity of the representation is allowed to grow as we get more data instances. In the case of discrete variables, any CPD can be described as a table, albeit perhaps a very large one; thus a nonparametric method is less essential (although see section 19.5.2.2 for a very useful example of a nonparametric method in the discrete case). In the case of continuous variables, we do not have a “universal” parametric distribution. While Gaussians are often the default, many distributions are not well ﬁt by them, and it is often difcult to determine which parametric family (if any) will be appropriate for a given variable. In such cases, nonparametric methods ofer a useful substitute. In such methods, we use the data points themselves as the basis for a probability distribution. Many nonparametric methods have been developed; we describe one simple variant that serves to illustrate this type of approach. 
 
-Suppose we want to learn the distribution $P (X\mid U)$ from data. A reasonable assumption is that the CPD is smooth. Thus, if we observe $x, u$ in a training sample, it should increase the probability of seeing similar values of $X$ for similar values of $U$ . More precisely, we increase the density of $p (X=x+\epsilon\mid U=u+\delta)$ for small values of ϵ and $\delta$ . 
+Suppose we want to learn the distribution $P(X\mid U)$ from data. A reasonable assumption is that the CPD is smooth. Thus, if we observe $x,u$ in a training sample, it should increase the probability of seeing similar values of $X$ for similar values of $U$ . More precisely, we increase the density of $p(X=x+\epsilon\mid U=u+\delta)$ for small values of ϵ and $\delta$ . 
 
-One simple approach that captures this intuition is the use of kernel density estimation (also known as Parzen windows ). The idea is fairly simple: given the data $\mathcal{D}$ , we estimate a “local” joint density ${\tilde{p}}_{X}(X, U)$ by spreading out density around each example $x[m],\pmb{u}[m]$ . Formally, we write 
+One simple approach that captures this intuition is the use of kernel density estimation (also known as Parzen windows ). The idea is fairly simple: given the data $\mathcal{D}$ , we estimate a “local” joint density ${\tilde{p}}_{X}(X,U)$ by spreading out density around each example $x[m],\pmb{u}[m]$ . Formally, we write 
 
 $$
-\tilde{p}_{X}(\boldsymbol{x},\boldsymbol{u})=\frac{1}{M}\sum_{m}K (\boldsymbol{x},\boldsymbol{u};\boldsymbol{x}[m],\boldsymbol{u}[m],\alpha),
+\tilde{p}_{X}(\boldsymbol{x},\boldsymbol{u})=\frac{1}{M}\sum_{m}K(\boldsymbol{x},\boldsymbol{u};\boldsymbol{x}[m],\boldsymbol{u}[m],\alpha),
 $$ 
 where $K$ is $^a$ kernel density function and $\alpha$ is a parameter (or vector of parameters) controlling $K$ . A common choice of kernel is $^a$ simple round Gaussian distribution with radius $\alpha$ around $x[m],\pmb{u}[m]$ : 
 
 $$
-K (\boldsymbol{x},\boldsymbol{\mathbf{\mathit{u}}};\boldsymbol{x}[m],\boldsymbol{\mathbf{\mathit{u}}}[m],\boldsymbol{\mathbf{\mathit{a}}})=\mathcal{N}\left (\left (\begin{array}{c}{\boldsymbol{x}[m]}\\ {\boldsymbol{\mathbf{\mathit{u}}}[m]}\end{array}\right);\alpha^{2}I\right),
+K(\boldsymbol{x},\boldsymbol{\mathbf{\mathit{u}}};\boldsymbol{x}[m],\boldsymbol{\mathbf{\mathit{u}}}[m],\boldsymbol{\mathbf{\mathit{a}}})=\mathcal{N}\left(\left(\begin{array}{c}{\boldsymbol{x}[m]}\\ {\boldsymbol{\mathbf{\mathit{u}}}[m]}\end{array}\right);\alpha^{2}I\right),
 $$ 
 where $I$ is the identity matrix and $\alpha$ is the width of the window. Of course, many other choices for kernel function are possible; in fact, if $K$ deﬁnes a probability measure (nonnegative and integrates to ${\mathit{l}}),$ then $\tilde{p}_{X}(x,\pmb{u})$ is also a probability measure. Usually we choose kernel functions that are local, in that they put most of the mass in the vicinity of their argument. For such kernels, the resulting density $\tilde{p}_{X}(x,\pmb{u})$ will have high mass in regions where we have seen many data instances $(x[m],\mathbf{u}[m])$ and low mass in regions where we have seen none. 
 
 We can now reformulate this local joint distribution to produce a conditional distribution: 
 
 $$
-p (x\mid\mathbf{\boldsymbol{u}})=\frac{\sum_{m}K (x,\mathbf{\boldsymbol{u}}; x[m],\mathbf{\boldsymbol{u}}[m],\alpha)}{\sum_{m}K (\mathbf{\boldsymbol{u}};\mathbf{\boldsymbol{u}}[m],\alpha)}
+p(x\mid\mathbf{\boldsymbol{u}})=\frac{\sum_{m}K(x,\mathbf{\boldsymbol{u}};x[m],\mathbf{\boldsymbol{u}}[m],\alpha)}{\sum_{m}K(\mathbf{\boldsymbol{u}};\mathbf{\boldsymbol{u}}[m],\alpha)}
 $$ 
-where $K (\pmb{u};\pmb{u}[m],\alpha)$ is $K (x,\pmb{u}; x[m],\pmb{u}[m],\alpha)$ marginalized over $x$ . 
+where $K(\pmb{u};\pmb{u}[m],\alpha)$ is $K(x,\pmb{u};x[m],\pmb{u}[m],\alpha)$ marginalized over $x$ . 
 
 Note that this learning procedure estimates virtually no parameters: the CPD is derived directly from the training instances. The only free parameter is $\alpha$ , which is the width of the window. Importantly, this parameter cannot be estimated using maximum likelihood: The α that maximizes the likelihood of the training set is $\alpha=0$ , which gives maximum density to the training instances themselves. This, of course, will simply memorize the training instances without any generalization. Thus, this parameter is generally selected using cross-validation. 
 
@@ -10900,39 +10902,39 @@ Proposition 17.2
 Let $\mathcal{D}$ be a data set, then 
 
 $$
-\log L (\pmb\theta:\mathcal D)=M\cdot\pmb E_{\hat{P}_{\mathcal D}}[\log P (\mathcal X:\pmb\theta)].
+\log L(\pmb\theta:\mathcal D)=M\cdot\pmb E_{\hat{P}_{\mathcal D}}[\log P(\mathcal X:\pmb\theta)].
 $$ 
 
 Proof We rewrite the likelihood by combining all identical instances in our training set and then writing the likelihood in terms of the empirical probability of each entry in our joint distribution: 
 
 $$
 \begin{align}
-\log L (\pmb\theta:\mathcal{D}) &= \sum_{m} \log P (\xi[m] : \pmb\theta) \\
-&= \sum_{\xi} \left[ \sum_{m} \pmb{I}\{\xi[m] = \xi\} \right] \log P (\xi : \pmb\theta) \\
-&= \sum_{\xi} M \cdot \hat{P}_{\mathcal{D}}(\xi) \log P (\xi : \pmb\theta) \\
-&= M \cdot \mathbb{E}_{\hat{P}_{\mathcal{D}}} [\log P (\mathcal{X} : \pmb\theta)].
+\log L(\pmb\theta:\mathcal{D}) &= \sum_{m} \log P(\xi[m] : \pmb\theta) \\
+&= \sum_{\xi} \left[ \sum_{m} \pmb{I}\{\xi[m] = \xi\} \right] \log P(\xi : \pmb\theta) \\
+&= \sum_{\xi} M \cdot \hat{P}_{\mathcal{D}}(\xi) \log P(\xi : \pmb\theta) \\
+&= M \cdot \mathbb{E}_{\hat{P}_{\mathcal{D}}} [\log P(\mathcal{X} : \pmb\theta)].
 \end{align}
 $$
 
 We can now apply proposition 16.1 to the empirical distribution to conclude that 
 
 $$
-\ell (\pmb\theta:{\mathcal D})=M\left (H_{\hat{P}_{\mathcal D}}(\mathcal X)-{\cal D}(\hat{P}_{\mathcal D}(\mathcal X)\|P (\mathcal X:\pmb\theta))\right).
+\ell(\pmb\theta:{\mathcal D})=M\left(H_{\hat{P}_{\mathcal D}}(\mathcal X)-{\cal D}(\hat{P}_{\mathcal D}(\mathcal X)\|P(\mathcal X:\pmb\theta))\right).
 $$ 
 From this result, we immediately derive the following relationship between MLE and M-projections. 
 
 Theorem 17.1 The MLE θ in a parametric family relative to a data set $\mathcal{D}$ is the $M\cdot$ -projection of $\hat{P}_{\mathcal{D}}$ onto the D parametric family 
 
 $$
-\hat{\pmb\theta}=\arg\operatorname*{min}_{\pmb\theta\in\Theta}\pmb D (\hat{P}_{\mathcal{D}}\|P_{\pmb\theta}).
+\hat{\pmb\theta}=\arg\operatorname*{min}_{\pmb\theta\in\Theta}\pmb D(\hat{P}_{\mathcal{D}}\|P_{\pmb\theta}).
 $$ 
-We see that MLE ﬁnds the distribution $P (\mathcal{X}:\theta)$ that is the M-projection of $\hat{P}_{\mathcal{D}}$ onto the set D of distributions representable in our parametric family. 
+We see that MLE ﬁnds the distribution $P(\mathcal{X}:\theta)$ that is the M-projection of $\hat{P}_{\mathcal{D}}$ onto the set D of distributions representable in our parametric family. 
 
-This result allows us to call upon our detailed analysis of M-projections in order to generalize MLE to other parametric classes in the exponential family. In particular, in section 8.5.2, we discussed the general notion of sufficient statistics and showed that the M-projection of a distribution $P$ into a class of distributions $\mathcal{Q}$ was deﬁned by e parameters $\theta$ such that $E_{Q_{\theta}}[\tau (\mathcal{X})]=E_{P}[\tau (\mathcal{X})]$ X X . In our setting, we seek the parameters θ whose expected sufficient statistics match those in $\hat{P}_{\mathcal{D}}$ , that is, the sufficient statistics in $\mathcal{D}$ . 
+This result allows us to call upon our detailed analysis of M-projections in order to generalize MLE to other parametric classes in the exponential family. In particular, in section 8.5.2, we discussed the general notion of sufficient statistics and showed that the M-projection of a distribution $P$ into a class of distributions $\mathcal{Q}$ was deﬁned by e parameters $\theta$ such that $E_{Q_{\theta}}[\tau(\mathcal{X})]=E_{P}[\tau(\mathcal{X})]$ X X . In our setting, we seek the parameters θ whose expected sufficient statistics match those in $\hat{P}_{\mathcal{D}}$ , that is, the sufficient statistics in $\mathcal{D}$ . 
 
 If our CPDs are in an exponential family where the mapping ess from parameters to sufficient statistics is invertible, we can simply take the sufficient statistic vector from $\hat{P}_{\mathcal{D}}$ , and invert this D mapping to produce the MLE. Indeed, this process is precisely the one that gave rise to our MLE for multinomials and for linear Gaussians, as described earlier. However, the same process can be applied to many other classes of distributions in the exponential family. 
 
-This analysis provides us with a notion of sufficient statistics $\tau (\mathcal{X})$ and a clearly deﬁned path to deriving MLE parameters for any distribution in the exponential family. Somewhat more surprisingly, it turns out that a parametric family has a sufficient statistic only $i f$ it is in the exponential family. 
+This analysis provides us with a notion of sufficient statistics $\tau(\mathcal{X})$ and a clearly deﬁned path to deriving MLE parameters for any distribution in the exponential family. Somewhat more surprisingly, it turns out that a parametric family has a sufficient statistic only $i f$ it is in the exponential family. 
 
 ## 17.3 Bayesian Parameter Estimation 
 ### 17.3.1 The Thumbtack Example Revisited 
@@ -10944,7 +10946,7 @@ Maximum likelihood allows us to make neither of these distinctions: between a th
 >  本节介绍贝叶斯统计
 
 #### 17.3.1.1 Joint Probabilistic Model 
-In this approach, we encode our prior knowledge about $\theta$ with a probability distribution; this distribution represents how likely we are a priori to believe the different choices of parameters. Once we quantify our knowledge (or lack thereof) about possible values of $\theta$ , we can create a joint distribution over the parameter $\theta$ and the data cases that we are about to observe $X[1],\cdot\cdot\cdot, X[M]$ . This joint distribution captures our assumptions about the experiment. 
+In this approach, we encode our prior knowledge about $\theta$ with a probability distribution; this distribution represents how likely we are a priori to believe the different choices of parameters. Once we quantify our knowledge (or lack thereof) about possible values of $\theta$ , we can create a joint distribution over the parameter $\theta$ and the data cases that we are about to observe $X[1],\cdot\cdot\cdot,X[M]$ . This joint distribution captures our assumptions about the experiment. 
 >  贝叶斯统计中，我们将关于 $\theta$ 的先验知识编码为一个概率分布
 >  该分布表示了我们预先相信不同的参数选择的可能性
 >  一旦我们量化了我们关于 $\theta$ 可能取值的知识，我们就可以为参数 $\theta$ 和我们观测到的数据实例 $X[1], \dots, X[M]$ 创建一个联合分布，该联合分布反映了我们对试验的假设
@@ -10958,42 +10960,42 @@ Let us reconsider these assumptions. Recall that we assumed that tosses are inde
 
 ![[pics/PGM-Fig17.3.png]]
 
-Having determined the model structure, it remains to specify the local probability models in this network. We begin by considering the probability $P (X[m]\mid\theta)$ . Clearly, 
+Having determined the model structure, it remains to specify the local probability models in this network. We begin by considering the probability $P(X[m]\mid\theta)$ . Clearly, 
 
 $$
-P (x[m]\mid\theta)={\left\{\begin{array}{l l}{\theta}& {{\mathrm{if~}} x[m]=x^{1}}\\ {1-\theta}& {{\mathrm{if~}} x[m]=x^{0}.}\end{array}\right.}
+P(x[m]\mid\theta)={\left\{\begin{array}{l l}{\theta}&{{\mathrm{if~}}x[m]=x^{1}}\\ {1-\theta}&{{\mathrm{if~}}x[m]=x^{0}.}\end{array}\right.}
 $$
 
-Note that since we now treat $\theta$ as a random variable, we use the conditioning bar, instead of $P (x[m]:\theta)$ . 
+Note that since we now treat $\theta$ as a random variable, we use the conditioning bar, instead of $P(x[m]:\theta)$ . 
 
 >  决定好模型结构以后，我们接着为该网络指定局部概率模型
->  考虑某个样本的分布 $P (X[m]\mid \theta)$，显然在给定 $\theta$ 时，它满足由 $\theta$ 决定的二项分布
+>  考虑某个样本的分布 $P(X[m]\mid \theta)$，显然在给定 $\theta$ 时，它满足由 $\theta$ 决定的二项分布
 >  注意此时我们将 $\theta$ 视为了随机变量，因此我们使用的是条件符号 $|$，而不是冒号 $:$
 
-To ﬁnish the description of the joint distribution, we need to describe $P (\theta)$ . This is our prior distribution over the value of $\theta$ . In our case, this is a continuous density over the interval $[0,1]$ . Before we discuss particular choices for this distribution, let us consider how we use it. 
->  要完成这一联合分布，我们需要进一步描述 $P (\theta)$，也就是 $\theta$ 从属的先验分布
+To ﬁnish the description of the joint distribution, we need to describe $P(\theta)$ . This is our prior distribution over the value of $\theta$ . In our case, this is a continuous density over the interval $[0,1]$ . Before we discuss particular choices for this distribution, let us consider how we use it. 
+>  要完成这一联合分布，我们需要进一步描述 $P(\theta)$，也就是 $\theta$ 从属的先验分布
 >  本例中，它应该是一个在 $[0, 1]$ 上的连续的密度
 >  在考虑对它的特定选择之前，我们首先考虑如何使用它
 
 The network structure implies that the joint distribution of a particular data set and $\theta$ factorizes as 
 
 $$
-\begin{array}{l l l}{P (x[1],\ldots, x[M],\theta)}&{=}&{P (x[1],\ldots, x[M]\mid\theta) P (\theta)}\\ &{=}&{P (\theta)\displaystyle\prod_{m=1}^{M}P (x[m]\mid\theta)}\\ &{=}&{P (\theta)\theta^{M[1]}(1-\theta)^{M[0]},}\end{array}
+\begin{array}{l l l}{P(x[1],\ldots,x[M],\theta)}&{=}&{P(x[1],\ldots,x[M]\mid\theta)P(\theta)}\\ &{=}&{P(\theta)\displaystyle\prod_{m=1}^{M}P(x[m]\mid\theta)}\\ &{=}&{P(\theta)\theta^{M[1]}(1-\theta)^{M[0]},}\end{array}
 $$
 
-where $M[1]$ is the number of heads in the data, and $M[0]$ is the number of tails. Note that the expression $P (x[1],.\,.\,.\,, x[M]\mid\theta)$ is simply the likelihood function $L (\theta:{\mathcal{D}})$ . 
+where $M[1]$ is the number of heads in the data, and $M[0]$ is the number of tails. Note that the expression $P(x[1],.\,.\,.\,,x[M]\mid\theta)$ is simply the likelihood function $L(\theta:{\mathcal{D}})$ . 
 
->  根据网络结构，我们很容易将所有样本和 $\theta$ 的联合分布进行分解，进而将 $\prod_{m=1}^M P (x[m]\mid \theta)$ 根据数据集的实际取值替换为 $\theta^{M[1]}(1-\theta)^{M[0]}$
->  注意到后验概率 $P (x[1], \dots, x[M]\mid \theta)$ 实际上就是似然函数 $L (\theta : \mathcal D)$
+>  根据网络结构，我们很容易将所有样本和 $\theta$ 的联合分布进行分解，进而将 $\prod_{m=1}^M P(x[m]\mid \theta)$ 根据数据集的实际取值替换为 $\theta^{M[1]}(1-\theta)^{M[0]}$
+>  注意到后验概率 $P(x[1], \dots, x[M]\mid \theta)$ 实际上就是似然函数 $L(\theta : \mathcal D)$
 >  因此，联合概率实际上就是数据集似然乘上先验概率
 
-This network speciﬁes a joint probability model over parameters and data. There are several ways in which we can use this network. Most obviously, we can take an observed data set $\mathcal{D}$ of $M$ outcomes, and use it to instantiate the values of $x[1],\ldots, x[M]$ ; we can then compute the posterior distribution over $\theta$ : 
+This network speciﬁes a joint probability model over parameters and data. There are several ways in which we can use this network. Most obviously, we can take an observed data set $\mathcal{D}$ of $M$ outcomes, and use it to instantiate the values of $x[1],\ldots,x[M]$ ; we can then compute the posterior distribution over $\theta$ : 
 
 $$
-P (\theta\mid x[1],\ldots, x[M])={\frac{P (x[1],\ldots, x[M]\mid\theta) P (\theta)}{P (x[1],\ldots, x[M])}}.
+P(\theta\mid x[1],\ldots,x[M])={\frac{P(x[1],\ldots,x[M]\mid\theta)P(\theta)}{P(x[1],\ldots,x[M])}}.
 $$
 
-In this posterior, the ﬁrst term in the numerator is the likelihood, the second is the prior over parameters, and the denominator is a normalizing factor that we will not expand on right now. We see that the posterior is (proportional to) a product of the likelihood and the prior. This product is normalized so that it will be a proper density function. In fact, if the prior is a uniform distribution (that is, $P (\theta)\,=\, 1$ for all $\theta\,\in\,[0,1])$ , then the posterior is just the normalized likelihood function. 
+In this posterior, the ﬁrst term in the numerator is the likelihood, the second is the prior over parameters, and the denominator is a normalizing factor that we will not expand on right now. We see that the posterior is (proportional to) a product of the likelihood and the prior. This product is normalized so that it will be a proper density function. In fact, if the prior is a uniform distribution (that is, $P(\theta)\,=\,1$ for all $\theta\,\in\,[0,1])$ , then the posterior is just the normalized likelihood function. 
 
 >  我们还可以利用该联合分布计算 $\theta$ 在给定数据集 $\mathcal D$ 时的后验概率
 >  后验概率中，分子中的第一项是似然，第二项是参数的先验概率，分母为规范化常数
@@ -11009,33 +11011,33 @@ To derive this prediction in a principled fashion, we introduce the value of the
 
 $$
 \begin{align}
-&P (x[M+1] \mid x[1], \dots, x[M])\\
-=&\int P (x[M+1], \theta\mid x[1],\dots, x[M]) d\theta\\
-=&\int P (x[M+1]\mid \theta, x[1], \dots, x[M]) P (\theta \mid x[1], \dots, x[M]) d\theta\\
-=&\int P (x[M+1]\mid \theta) P (\theta \mid x[1], \dots, x[M]) d\theta
+&P(x[M+1] \mid x[1], \dots, x[M])\\
+=&\int P(x[M+1], \theta\mid x[1],\dots, x[M])d\theta\\
+=&\int P(x[M+1]\mid \theta, x[1], \dots, x[M])P(\theta \mid x[1], \dots, x[M])d\theta\\
+=&\int P(x[M+1]\mid \theta)P(\theta \mid x[1], \dots, x[M])d\theta
 \end{align}
 $$
 
-where we use the conditional independencies implied by the meta-network to rewrite $P (x[M+1] \mid\theta, x[1],\cdot\cdot\cdot, x[M])$ as $P (x[M+1]\mid\theta)$ . In other words, we are integrating our posterior over θ to predict the probability of heads for the next toss. 
+where we use the conditional independencies implied by the meta-network to rewrite $P(x[M+1] \mid\theta,x[1],\cdot\cdot\cdot,x[M])$ as $P(x[M+1]\mid\theta)$ . In other words, we are integrating our posterior over θ to predict the probability of heads for the next toss. 
 
 >  我们向网络中引入下一次抛掷的值 $x[M+1]$，继而计算给定前 $M$ 个观测时 $x[M+1]$ 的概率
 >  注意在模型中 $\theta$ 的值是未知的，我们需要考虑它的所有可能值
->  我们将 $P (x[M+1]\mid x[1], \dots, x[M])$ 根据模型结构改写为如上形式，可以看到，我们在 $\theta$ 的后验分布上进行积分，以得到下一次抛掷的概率
+>  我们将 $P(x[M+1]\mid x[1], \dots, x[M])$ 根据模型结构改写为如上形式，可以看到，我们在 $\theta$ 的后验分布上进行积分，以得到下一次抛掷的概率
 
-Let us go back to our thumbtack example. Assume that our prior is uniform over $\theta$ in the interval $[0,1]$ . Then $P_{\cdot}(\theta\mid x[1],\cdot\cdot\cdot, x[M])$ is proportional to the likelihood $P (x[1],\cdot\,\cdot\,\cdot\,, x[M]\mid$ $\theta)=\theta^{M[1]}(1-\theta)^{M[0]}$ . Plugging this into the integral, we need to compute 
+Let us go back to our thumbtack example. Assume that our prior is uniform over $\theta$ in the interval $[0,1]$ . Then $P_{\cdot}(\theta\mid x[1],\cdot\cdot\cdot,x[M])$ is proportional to the likelihood $P(x[1],\cdot\,\cdot\,\cdot\,,x[M]\mid$ $\theta)=\theta^{M[1]}(1-\theta)^{M[0]}$ . Plugging this into the integral, we need to compute 
 
 $$
-P (X[M+1]=x^{1}\mid x[1],\ldots, x[M])={\frac{1}{P (x[1],\ldots, x[M])}}\int\theta\cdot\theta^{M[1]}(1-\theta)^{M[0]}d\theta,
+P(X[M+1]=x^{1}\mid x[1],\ldots,x[M])={\frac{1}{P(x[1],\ldots,x[M])}}\int\theta\cdot\theta^{M[1]}(1-\theta)^{M[0]}d\theta,
 $$ 
 
->  假设 $\theta$ 的先验分布是在 $[0,1]$ 上的均匀分布，则 $\theta$ 的后验分布 $P (\theta \mid x[1], \dots, x[M])$ 就正比于似然 $P (x[1], \dots, x[M]\mid \theta) = \theta^{M[1]}(1-\theta)^{M[0]}$
->  ( $P (\theta \mid x[1], \dots, x[M])\propto P (\theta, , x[1], \dots, x[M]) = P (x[1], \dots, x[M]\mid \theta) P (\theta)$，因为先验是均匀分布，故 $P (\theta) = 1$，故 $P (\theta \mid x[1], \dots, x[M])\propto P (x[1], \dots, x[M]\mid \theta)$ )
->  我们将 $\theta$ 的后验概率替换为 $\theta^{M[1]}(1-\theta)^{M[0]}/P (x[1], \dots, x[M])$，代入原式，就得到了上式
+>  假设 $\theta$ 的先验分布是在 $[0,1]$ 上的均匀分布，则 $\theta$ 的后验分布 $P(\theta \mid x[1], \dots, x[M])$ 就正比于似然 $P(x[1], \dots, x[M]\mid \theta) = \theta^{M[1]}(1-\theta)^{M[0]}$
+>  ( $P(\theta \mid x[1], \dots, x[M])\propto P(\theta, , x[1], \dots, x[M]) = P(x[1], \dots, x[M]\mid \theta)P(\theta)$，因为先验是均匀分布，故 $P(\theta) = 1$，故 $P(\theta \mid x[1], \dots, x[M])\propto P(x[1], \dots, x[M]\mid \theta)$ )
+>  我们将 $\theta$ 的后验概率替换为 $\theta^{M[1]}(1-\theta)^{M[0]}/P(x[1], \dots, x[M])$，代入原式，就得到了上式
 
 Doing all the math (see exercise 17.6), we get (for uniform priors) 
 
 $$
-P (X[M+1]=x^{1}\mid x[1],\ldots, x[M])={\frac{M[1]+1}{M[1]+M[0]+2}}.\tag{17.10}
+P(X[M+1]=x^{1}\mid x[1],\ldots,x[M])={\frac{M[1]+1}{M[1]+M[0]+2}}.\tag{17.10}
 $$ 
 This prediction, called the Bayesian estimator, is quite similar to the MLE prediction of equation (17.1), except that it adds one “imaginary” sample to each count. Clearly, as the number of samples grows, the Bayesian estimator and the MLE estimator converge to the same value. The particular estimator that corresponds to a uniform prior is often referred to as Laplace’s correction . 
 
@@ -11053,46 +11055,46 @@ We now want to consider nonuniform priors. The challenge here is to pick a distr
 $A$ Beta distribution is parameterized by two hyperparameters $\alpha_{1},\alpha_{0}$ , which are positive reals. The distribution is deﬁned as follows: 
 
 $$
-\theta\sim\mathrm{Beta}(\alpha_{1},\alpha_{0})\quad i f\ p (\theta)=\gamma\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1}.
+\theta\sim\mathrm{Beta}(\alpha_{1},\alpha_{0})\quad i f\ p(\theta)=\gamma\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1}.
 $$ 
 The constant $\gamma$ is a normalizing constant, deﬁned as follows: 
 
 $$
-\gamma=\frac{\Gamma (\alpha_{1}+\alpha_{0})}{\Gamma (\alpha_{1})\Gamma (\alpha_{0})},
+\gamma=\frac{\Gamma(\alpha_{1}+\alpha_{0})}{\Gamma(\alpha_{1})\Gamma(\alpha_{0})},
 $$
 
-where $\gamma (x) = \int_0^{\infty} t^{x-1}e^{-t} dt$
+where $\gamma(x) = \int_0^{\infty} t^{x-1}e^{-t} dt$
 
 >  定义
 >  beta 分布由两个正实数超参数 $\alpha_1, \alpha_0$ 参数化
->  $\theta$ 服从 beta 分布时，$p (\theta) = \gamma \theta^{\alpha_1 - 1}(1-\theta)^{\alpha_0 - 1}$
+>  $\theta$ 服从 beta 分布时，$p(\theta) = \gamma \theta^{\alpha_1 - 1}(1-\theta)^{\alpha_0 - 1}$
 >  常数 $\gamma$ 是规范化常数
 
 Intuitively, the hyperparameters $\alpha_{1}$ and $\alpha_{0}$ correspond to the number of imaginary heads and tails that we have “seen” before starting the experiment. Figure 17.4 shows Beta distributions for different values of $\alpha$ . 
->  直观地说，超参数 $\alpha_{1}$ 和 $\alpha_{0}$ 对应于在开始实验之前我们“看到”的假想正面和反面的数量，图 17.4 展示了不同 $\alpha$ 值对应的 Beta 分布
+>  直观地说，超参数 $\alpha_{1}$ 和 $\alpha_{0}$ 对应于在开始实验之前我们“看到”的假想正面和反面的数量，图17.4展示了不同 $\alpha$ 值对应的 Beta 分布
 
-At ﬁrst glance, the normalizing constant for the Beta distribution might seem somewhat obscure. However, the Gamma function is actually a very natural one: it is simply a continuous generalization of factorials. More precisely, it satisﬁes the properties $\Gamma (1)=1$ and $\Gamma (x+1)=$ $x\Gamma (x)$ . As a consequence, we easily see that $\Gamma (n+1)=n!$ when $n$ is an integer. 
->  乍一看，Beta 分布的归一化常数似乎有些晦涩。然而，Gamma 函数实际上是一个非常自然的函数：它仅仅是阶乘的连续推广
->  更精确地说，Gamma 函数满足性质 $\Gamma (1)=1$ 和 $\Gamma (x+1)=x\Gamma (x)$。因此，我们可以很容易地看出，当 $n$ 是整数时，$\Gamma (n+1)=n!$。
+At ﬁrst glance, the normalizing constant for the Beta distribution might seem somewhat obscure. However, the Gamma function is actually a very natural one: it is simply a continuous generalization of factorials. More precisely, it satisﬁes the properties $\Gamma(1)=1$ and $\Gamma(x+1)=$ $x\Gamma(x)$ . As a consequence, we easily see that $\Gamma(n+1)=n!$ when $n$ is an integer. 
+>  乍一看，Beta分布的归一化常数似乎有些晦涩。然而，Gamma函数实际上是一个非常自然的函数：它仅仅是阶乘的连续推广
+>  更精确地说，Gamma函数满足性质 $\Gamma(1)=1$ 和 $\Gamma(x+1)=x\Gamma(x)$。因此，我们可以很容易地看出，当 $n$ 是整数时，$\Gamma(n+1)=n!$。
 
-Beta distributions have properties that make them particularly useful for parameter estimation. Assume our distribution $P (\theta)$ is $B e t a (\alpha_{1},\alpha_{0})$ , and consider a single coin toss $X$ . Let us compute the marginal probability over $X$ , based on $P (\theta)$ . To compute the marginal probability, we need to integrate out $\theta$ ; standard integration techniques can be used to show that: 
+Beta distributions have properties that make them particularly useful for parameter estimation. Assume our distribution $P(\theta)$ is $B e t a(\alpha_{1},\alpha_{0})$ , and consider a single coin toss $X$ . Let us compute the marginal probability over $X$ , based on $P(\theta)$ . To compute the marginal probability, we need to integrate out $\theta$ ; standard integration techniques can be used to show that: 
 
 $$
-\begin{array}{c c l} {{P(X[1]=x^{1})}} & {{=}} & {{\displaystyle\int_{0}^{1}P(X[1]=x^{1}\mid\theta)\cdot P(\theta)d\theta}} \\ {{}} & {{=}} & {{\displaystyle\int_{0}^{1}\theta\cdot P(\theta)d\theta=\frac{\alpha_{1}} {\alpha_{1}+\alpha_{0}}.}}\end{array}
+\begin{array}{c c l}{{P(X[1]=x^{1})}}&{{=}}&{{\displaystyle\int_{0}^{1}P(X[1]=x^{1}\mid\theta)\cdot P(\theta)d\theta}}\\ {{}}&{{=}}&{{\displaystyle\int_{0}^{1}\theta\cdot P(\theta)d\theta=\frac{\alpha_{1}}{\alpha_{1}+\alpha_{0}}.}}\end{array}
 $$
 
 This conclusion supports our intuition that the Beta prior indicates that we have seen $\alpha_{1}$ (imaginary) heads $\alpha_{0}$ (imaginary) tails. 
 
->  如果参数 $\theta$ 服从 $Beta (\alpha_1, \alpha_2)$，容易知道 $P (X[1] = x^1) = \alpha_1/(\alpha_1 + \alpha_0)$
+>  如果参数 $\theta$ 服从 $Beta(\alpha_1, \alpha_2)$，容易知道 $P(X[1] = x^1) = \alpha_1/(\alpha_1 + \alpha_0)$
 >  这印证了我们的直观感觉，即 beta 先验表明我们我们已经看到过 $\alpha_1$ 虚拟的 heads 和 $\alpha_0$ 个虚拟的 tails
 
 Now, let us see what happens as we get more observations. Speciﬁcally, we observe $M[1]$ heads and $M[0]$ tails. It follows easily that: 
 
 $$
-\begin{array}{l c l} {{P(\theta\mid x[1],\ldots,x[M])}} & {{\propto}} & {{P(x[1],\ldots,x[M]\mid\theta)P(\theta)}} \\ {{}} & {{\propto}} & {{\theta^{M[1]}(1-\theta)^{M[0]}\cdot\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1}} }\\ {{}} & {{=}} & {{\theta^{\alpha_{1}+M[1]-1}(1-\theta)^{\alpha_{0}+M[0]-1},}} \end{array}
+\begin{array}{l c l}{{P(\theta\mid x[1],\ldots,x[M])}}&{{\propto}}&{{P(x[1],\ldots,x[M]\mid\theta)P(\theta)}}\\ {{}}&{{\propto}}&{{\theta^{M[1]}(1-\theta)^{M[0]}\cdot\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1}}}\\ {{}}&{{=}}&{{\theta^{\alpha_{1}+M[1]-1}(1-\theta)^{\alpha_{0}+M[0]-1},}}\end{array}
 $$
 
-which is precisely $B e t a (\alpha_{1}+M[1],\alpha_{0}+M[0])$ . This result illustrates a key property of the Beta distribution: If the prior is a Beta distribution, then the posterior distribution, that is, the prior conditioned on the evidence, is also a Beta distribution. In this case, we say that the Beta distribution is conjugate to the Bernoulli likelihood function (see deﬁnition 17.4). 
+which is precisely $B e t a(\alpha_{1}+M[1],\alpha_{0}+M[0])$ . This result illustrates a key property of the Beta distribution: If the prior is a Beta distribution, then the posterior distribution, that is, the prior conditioned on the evidence, is also a Beta distribution. In this case, we say that the Beta distribution is conjugate to the Bernoulli likelihood function (see deﬁnition 17.4). 
 
 >  并且，随着观测的增加，$\theta$ 的后验分布仍然正比于 beta 分布，其参数为 $\alpha_1 + M[1], \alpha_0 + M[0]$，这是 beta 分布的关键性质
 >  也就是说，如果参数的先验是 beta 分布，则它条件于观测的后验分布也是 beta 分布
@@ -11101,17 +11103,17 @@ which is precisely $B e t a (\alpha_{1}+M[1],\alpha_{0}+M[0])$ . This result ill
 An immediate consequence is that we can compute the probabilities over the next toss: 
 
 $$
-P (X[M+1]=x^{1}\mid x[1],\ldots, x[M])={\frac{\alpha_{1}+M[1]}{\alpha+M}},
+P(X[M+1]=x^{1}\mid x[1],\ldots,x[M])={\frac{\alpha_{1}+M[1]}{\alpha+M}},
 $$
 
 where $\alpha\,=\,\alpha_{1}+\alpha_{0}$ . In this case, our posterior Beta distribution tells us that we have seen $\alpha_{1}+M[1]$ heads (imaginary and real) and $\alpha_{0}+M[0]$ tails. 
 
->  先验为 beta 分布时，经过计算，$P (X[M+1] = x^1)$ 的后验概率如上
+>  先验为 beta 分布时，经过计算，$P(X[M+1] = x^1)$ 的后验概率如上
 >  其中 $\alpha = \alpha_1 + \alpha_0$
 >  可以看到，该后验分布表示我们一共观察到了 $\alpha_1 + M[1]$ 个 head (虚拟的和真实的) 和 $\alpha_0 + M[0]$ 个 tail (虚拟的和真实的)
 
-It is interesting to examine the effect of the prior on the probability over the next coin toss. For example, the prior $B e t a (1,1)$ is very different than $B e t a (10,10)$ : Although both predict that the probability of heads in the ﬁrst toss is 0.5 , the second prior is more entrenched, and it requires more observations to deviate from the prediction 0.5 . To see this, suppose we observe 3 heads in 10 tosses. Using the ﬁrst prior, our estimate is $\begin{array}{r}{\frac{3+1}{10+2}=\frac{1}{3}\approx0.33.}\end{array}$ . On the other hand, using the second prior, our estimate is $\begin{array}{r}{\frac{3+10}{10+20}=\frac{13}{30}\approx0.{\stackrel{\ldots}{43}}}\end{array}$ . However, as we obtain more data, the effect of the prior diminishes. If we obtain $1,000$ tosses of which 300 are heads, the ﬁrst prior gives us an estimate of $\begin{array}{r}{\frac{300+1}{1,000+2}}\end{array}$ and the second an estimate of $\textstyle\frac{300+10}{1,000+20}$ , both of which are very close to 0.3 . Thus, the Bayesian framework allows us to capture both of the relevant distinctions. The distinction between the thumbtack and the coin can be captured by the strength of the prior: for a coin, we might use $\alpha_{1}=\alpha_{0}=100,$ , whereas for a thumbtack, we might use $\alpha_{1}=\alpha_{0}=1$ . The distinction between a few samples and many samples is captured by the peakedness of our posterior, which increases with the amount of data. 
->  显然，先验 $Beta (1, 1)$ 和 $Beta (10, 10)$ 也存在差异，二者预测第一个抛掷的概率都是 0.5，但后者需要更多的观测才能从 0.5 偏移
+It is interesting to examine the effect of the prior on the probability over the next coin toss. For example, the prior $B e t a(1,1)$ is very different than $B e t a(10,10)$ : Although both predict that the probability of heads in the ﬁrst toss is 0.5 , the second prior is more entrenched, and it requires more observations to deviate from the prediction 0.5 . To see this, suppose we observe 3 heads in 10 tosses. Using the ﬁrst prior, our estimate is $\begin{array}{r}{\frac{3+1}{10+2}=\frac{1}{3}\approx0.33.}\end{array}$ . On the other hand, using the second prior, our estimate is $\begin{array}{r}{\frac{3+10}{10+20}=\frac{13}{30}\approx0.{\stackrel{\ldots}{43}}}\end{array}$ . However, as we obtain more data, the effect of the prior diminishes. If we obtain $1,000$ tosses of which 300 are heads, the ﬁrst prior gives us an estimate of $\begin{array}{r}{\frac{300+1}{1,000+2}}\end{array}$ and the second an estimate of $\textstyle\frac{300+10}{1,000+20}$ , both of which are very close to 0.3 . Thus, the Bayesian framework allows us to capture both of the relevant distinctions. The distinction between the thumbtack and the coin can be captured by the strength of the prior: for a coin, we might use $\alpha_{1}=\alpha_{0}=100,$ , whereas for a thumbtack, we might use $\alpha_{1}=\alpha_{0}=1$ . The distinction between a few samples and many samples is captured by the peakedness of our posterior, which increases with the amount of data. 
+>  显然，先验 $Beta(1, 1)$ 和 $Beta(10, 10)$ 也存在差异，二者预测第一个抛掷的概率都是 0.5，但后者需要更多的观测才能从 0.5 偏移
 >  但是，注意随着我们获得的数据量增多，先验的影响逐渐减弱
 >  因此，贝叶斯框架允许我们捕捉这些相关的区别，例如，图钉和硬币之间的区别可以通过先验强度来捕获：对于硬币，我们可能会使用 $\alpha_{1}=\alpha_{0}=100$，而对于图钉，我们可能会使用 $\alpha_{1}=\alpha_{0}=1$，少量样本与大量样本之间的区别则通过后验的尖峰性来捕捉，后验的尖峰性会随着数据量的增加而增加 (也就是 $\theta$ 的后验概率越来越集中，即越来越能确定 $\theta$ 的值)
 
@@ -11119,40 +11121,40 @@ It is interesting to examine the effect of the prior on the probability over the
 We now turn to examine in more detail the Bayesian approach to dealing with unknown parameters. We start with a discussion of the general principle and deal with the case of Bayesian networks in the next section. 
 >  进一步考虑贝叶斯方法处理未知参数的细节
 
-As before , we assume a general learning problem here we observe a training set $\mathcal{D}$ that contains M IID samples of a set of random variable X from an unknown distribution $P^{*}(\mathcal{X})$ . We also assume that we ave a parametric model $P (\xi\mid\theta)$ where we can choose parameters from a parameter space Θ . 
->  假定我们观测到来自于未知分布 $P^*(\mathcal X)$ 的随机变量 $\mathcal X$ 的 $M$ 个 IID 样本，组成集合 $\mathcal D$，我们有参数化模型 $P (\xi \mid \pmb \theta)$，$\pmb \theta$ 来自于参数空间 $\Theta$
+As before , we assume a general learning problem here we observe a training set $\mathcal{D}$ that contains M IID samples of a set of random variable X from an unknown distribution $P^{*}(\mathcal{X})$ . We also assume that we ave a parametric model $P(\xi\mid\theta)$ where we can choose parameters from a parameter space Θ . 
+>  假定我们观测到来自于未知分布 $P^*(\mathcal X)$ 的随机变量 $\mathcal X$ 的 $M$ 个 IID 样本，组成集合 $\mathcal D$，我们有参数化模型 $P(\xi \mid \pmb \theta)$，$\pmb \theta$ 来自于参数空间 $\Theta$
 
 Recall that the MLE approach attempts to ﬁnd the parameters $\hat{\pmb\theta}$ in $\Theta$ that are “best” given the data. The Bayesian approach, on the other hand, does not attempt to ﬁnd such a point estimate . Instead, the underlying principle is that we should keep track of our beliefs about $\theta$ ’s values, and use these beliefs for reaching conclusions. That is, we should quantify the subjective probability we assign to different values of $\theta$ after we have seen the evidence. Note that, in representing such subjective probabilities, we now treat $\theta$ as a random variable. Thus, the Bayesian approach requires that we use probabilities to describe our initial uncertainty about the parameters $\theta$ , and then use probabilistic reasoning (that is, Bayes rule) to take into account our observations. 
 >  MLE 方法尝试找到对于给定数据最优的参数 $\hat {\pmb \theta}$
 >  贝叶斯方法不尝试进行点估计，其原则是我们应该追踪我们关于 $\pmb \theta$ 的值的信念，使用这些信念得到结论，换句话说，我们应该量化我们见到了观测之后我们赋予 $\pmb \theta$ 的取值的主观概率
 >  注意我们此时将 $\pmb \theta$ 视作随机变量，也就是贝叶斯方法要求我们用概率描述我们关于参数 $\pmb \theta$ 的不确定性，然后使用概率推理 (贝叶斯规则) 来将观测纳入考虑
 
-To perform this task, we need to describe a joint distribution $P (\mathcal{D},\theta)$ over the data and the parameters. We can easily write 
+To perform this task, we need to describe a joint distribution $P(\mathcal{D},\theta)$ over the data and the parameters. We can easily write 
 
 $$
-P (\mathcal{D},\boldsymbol{\theta})=P (\mathcal{D}\mid\boldsymbol{\theta}) P (\boldsymbol{\theta}).
+P(\mathcal{D},\boldsymbol{\theta})=P(\mathcal{D}\mid\boldsymbol{\theta})P(\boldsymbol{\theta}).
 $$
 
 The ﬁrst term is just the likelihood function we discussed earlier. The second term is the prior distribution over the possible values in $\Theta$ . This prior captures our initial uncertainty about the parameters. It can also capture our previous experience before starting the experiment. For example, if we study coin tossing, we might have prior experience that suggests that most coins are unbiased (or nearly unbiased). 
 
->  为此，我们需要描述一个关于数据和参数的联合分布 $P (\mathcal D, \pmb \theta)$
+>  为此，我们需要描述一个关于数据和参数的联合分布 $P(\mathcal D, \pmb \theta)$
 >  我们将联合分布分解为似然函数和先验分布的乘积
 >  先验捕获了我们关于参数的初始不确定性，同时捕获了在开始试验之前的先前的经验
 
 Once we have speciﬁed the likelihood function and the prior, we can use the data to derive the posterior distribution over the parameters. Since we have speciﬁed a joint distribution over all the quantities in question, the posterior is immediately derived by Bayes rule: 
 
 $$
-P (\theta\mid\mathcal{D})=\frac{P (\mathcal{D}\mid\theta) P (\theta)}{P (\mathcal{D})}.
+P(\theta\mid\mathcal{D})=\frac{P(\mathcal{D}\mid\theta)P(\theta)}{P(\mathcal{D})}.
 $$ 
-The term $P (\mathcal{D})$ is the marginal likelihood of the data 
+The term $P(\mathcal{D})$ is the marginal likelihood of the data 
 
 $$
-P (\mathcal{D})=\int_{\Theta}P (\mathcal{D}\mid\theta) P (\theta) d\theta,
+P(\mathcal{D})=\int_{\Theta}P(\mathcal{D}\mid\theta)P(\theta)d\theta,
 $$ 
 that is, the integration of the likelihood over all possible parameter assignments. This is the a priori probability of seeing this particular data set given our prior beliefs. 
 
 >  通过贝叶斯规则，我们可以得到参数条件于数据的后验分布
->  其中归一化项 $P (\mathcal D)$ 是数据的边际似然，通过似然函数在所有可能的参数选择下的积分得到，这是在给定我们的先验信念是看到该特定数据的先验概率
+>  其中归一化项 $P(\mathcal D)$ 是数据的边际似然，通过似然函数在所有可能的参数选择下的积分得到，这是在给定我们的先验信念时看到该特定数据的先验概率
 
 As we saw, for some probabilistic models, the likelihood function can be compactly described by using sufficient statistics. Can we also compactly describe the posterior distribution? In general, this depends on the form of the prior. As we saw in the thumbtack example of section 17.1.1, we can sometimes ﬁnd priors for which we have a description of the posterior. 
 >  能否紧凑表示参数的后验分布取决于先验的形式
@@ -11160,7 +11162,7 @@ As we saw, for some probabilistic models, the likelihood function can be compact
 As another example of the forms of priors and posteriors, let us examine the learning problem of example 17.3. Here we need to describe our uncertainty about the parameters of a multinomial distribution. The parameter space $\Theta$ is the space of all nonnegative vectors $\pmb{\theta}=\langle\theta_{1},.\,.\,.\,,\theta_{K}\rangle$ such that $\textstyle\sum_{k}\theta_{k}=1$ . As we saw in example 17.3, the likelihood function in this model has the form: 
 
 $$
-L (\pmb\theta:\mathcal{D})=\prod_{k}\theta_{k}^{M[k]}.
+L(\pmb\theta:\mathcal{D})=\prod_{k}\theta_{k}^{M[k]}.
 $$
 
 Since the posterior is a product of the prior and the likelihood, it seems natural to require that the prior also have a form similar to the likelihood. 
@@ -11168,36 +11170,36 @@ Since the posterior is a product of the prior and the likelihood, it seems natur
 >  考虑 Example 17.3 的例子，在该例中，似然函数的形式如上
 >  考虑到参数的后验是似然和先验的乘积 (除以规范化常数)，故为了紧凑表示后验，我们希望先验能和似然有相似的形式
 
-One such prior is the Dirichlet distribution , which generalizes the Beta distribution we dis- cussed earlier. A Dirichlet distribution is speciﬁed by a set of hyperparameters $\alpha_{1},.\cdot\cdot\,,\alpha_{K}$ , so that 
+One such prior is the Dirichlet distribution , which generalizes the Beta distribution we discussed earlier. A Dirichlet distribution is speciﬁed by a set of hyperparameters $\alpha_{1},.\cdot\cdot\,,\alpha_{K}$ , so that 
 
 $$
-\pmb\theta\sim D i r i c h l e t (\alpha_{1},.\,.\,,\alpha_{K})\ \ \mathrm{if}\ P (\pmb\theta)\propto\prod_{k}\theta_{k}^{\alpha_{k}-1}.
+\pmb\theta\sim D i r i c h l e t(\alpha_{1},.\,.\,,\alpha_{K})\ \ \mathrm{if}\ P(\pmb\theta)\propto\prod_{k}\theta_{k}^{\alpha_{k}-1}.
 $$ 
 We use $\alpha$ to denote $\textstyle\sum_{j}\alpha_{j}$ . 
 
 >  符合该形式的一个分布就是狄利特雷分布，它是 Beta 分布的推广
->  狄利特雷分布由一组超参数 $\alpha_1, \dots, \alpha_K$ 指定，若 $\pmb \theta$ 服从狄利特雷分布，则 $P (\pmb \theta)$ 正比于 $\prod_k \theta_k^{\alpha_k - 1}$
+>  狄利特雷分布由一组超参数 $\alpha_1, \dots, \alpha_K$ 指定，若 $\pmb \theta$ 服从狄利特雷分布，则 $P(\pmb \theta)$ 正比于 $\prod_k \theta_k^{\alpha_k - 1}$
 
 If we use a Dirichlet prior, then the posterior is also Dirichlet: 
 >  如果参数先验是 Dirichlet，则后验也是 Dirichlet
 
 **Proposition 17.3** 
-If $P (\theta)$ is Dirichlet $\mathopen{}\mathclose\bgroup\left (\alpha_{1},\dots,\alpha_{K}\aftergroup\egroup\right)$ then $P (\pmb{\theta}\mid\mathcal{D})$ is Dirichlet $(\alpha_{1}+M$ [1] , . . . , $\alpha_{K}+M[K])$ , where $M[k]$ is the number of occurrences of $x^{k}$ . 
+If $P(\theta)$ is Dirichlet $\mathopen{}\mathclose\bgroup\left(\alpha_{1},\dots,\alpha_{K}\aftergroup\egroup\right)$ then $P(\pmb{\theta}\mid\mathcal{D})$ is Dirichlet $(\alpha_{1}+M$ [1] , . . . , $\alpha_{K}+M[K])$ , where $M[k]$ is the number of occurrences of $x^{k}$ . 
 
 >  命题
->  如果 $P (\pmb \theta)$ 为 $Dirichlet (\alpha_1, \dots, \alpha_k)$，则 $P (\pmb \theta \mid \mathcal D)$ 为 $Dirichlet (\alpha_1 + M[1], \dots, \alpha_K + M[K])$，其中 $M[k]$ 为 $x^k$ 出现的次数
+>  如果 $P(\pmb \theta)$ 为 $Dirichlet(\alpha_1, \dots, \alpha_k)$，则 $P(\pmb \theta \mid \mathcal D)$ 为 $Dirichlet (\alpha_1 + M[1], \dots, \alpha_K + M[K])$，其中 $M[k]$ 为 $x^k$ 出现的次数
 
 Priors such as the Dirichlet are useful, since they ensure that the posterior has a nice compact description. Moreover, this description uses the same representation as the prior. This phenomenon is a general one, and one that we strive to achieve, since it makes our computation and representation much easier. 
 >  Dirichlet 保证后验的形式和先验一致，这会使得表示和计算都很精简
 
 **Deﬁnition 17.4 conjugate prior** 
-A family of priors $P (\pmb\theta:\pmb\alpha)$ is conjugate to a particular model $P (\xi\mid\theta)$ if f any possible data s t D of IID samples from $P (\xi\mid\theta)$ , and any choice of legal hyperparameters α for the prior over θ , there are hyperparameters α that describe the posterior. That is, 
+A family of priors $P(\pmb\theta:\pmb\alpha)$ is conjugate to a particular model $P(\xi\mid\theta)$ if f any possible data s t D of IID samples from $P(\xi\mid\theta)$ , and any choice of legal hyperparameters α for the prior over θ , there are hyperparameters α that describe the posterior. That is, 
 
 $$
-P (\pmb\theta:\pmb\alpha^{\prime})\propto P (\mathcal D\mid\pmb\theta) P (\pmb\theta:\pmb\alpha).
+P(\pmb\theta:\pmb\alpha^{\prime})\propto P(\mathcal D\mid\pmb\theta)P(\pmb\theta:\pmb\alpha).
 $$ 
 >  定义
->  一族先验 $P (\pmb \theta : \pmb \alpha)$ (其中 $\pmb \alpha$ 为超参数) 如果对于任意由来自于模型 $P (\xi \mid \pmb \theta)$ 的 IID 数据构成的数据集 $\mathcal D$，以及对于任意合法的超参数选择 $\pmb \alpha$，都存在某个超参数 $\pmb \alpha'$ 可以描述参数的后验分布，即似然乘上先验正比于形式和先验一致的后验，则称这族先验和该模型共轭
+>  一族先验 $P(\pmb \theta : \pmb \alpha)$ (其中 $\pmb \alpha$ 为超参数) 如果对于任意由来自于模型 $P(\xi \mid \pmb \theta)$ 的 IID 数据构成的数据集 $\mathcal D$，以及对于任意合法的超参数选择 $\pmb \alpha$，都存在某个超参数 $\pmb \alpha'$ 可以描述参数的后验分布，即似然乘上先验正比于形式和先验一致的后验，则称这族先验和该模型共轭
 
 For example, Dirichlet priors are conjugate to the multinomial model. We note that this does not preclude the possibility of other families that are also conjugate to the same model. See exercise 17.7 for an example of such a prior for the multinomial model. We can ﬁnd conjugate priors for other models as well. See exercise 17.8 and exercise 17.11 for the development of conjugate priors for the Gaussian distribution. 
 >  例如 Dirichlet 先验和多项式模型共轭
@@ -11209,7 +11211,7 @@ This discussion shows some examples where we can easily update our beliefs about
 Another use of the posterior is to predict the probability of future examples. Suppose that we are about to sample a new instance $\xi[M+1]$ . Since we already have observations over previous instances, the Bayesian estimator is the posterior distribution over a new example: 
 
 $$
-\begin{array}{c c l}{P (\xi[M+1]\mid\mathcal{D})}&{=}&{\displaystyle\int P (\xi[M+1]\mid\mathcal{D},\theta) P (\theta\mid\mathcal{D}) d\theta}\\ &{=}&{\displaystyle\int P (\xi[M+1]\mid\theta) P (\theta\mid\mathcal{D}) d\theta}\\ &{=}&{E_{P (\theta\mid\mathcal{D})}[P (\xi[M+1]\mid\theta)],}\end{array}
+\begin{array}{c c l}{P(\xi[M+1]\mid\mathcal{D})}&{=}&{\displaystyle\int P(\xi[M+1]\mid\mathcal{D},\theta)P(\theta\mid\mathcal{D})d\theta}\\ &{=}&{\displaystyle\int P(\xi[M+1]\mid\theta)P(\theta\mid\mathcal{D})d\theta}\\ &{=}&{E_{P(\theta\mid\mathcal{D})}[P(\xi[M+1]\mid\theta)],}\end{array}
 $$
 
 where, in the second step, we use the fact that instances are independent given $\theta$ . Thus, our prediction is the average over all parameters according to the posterior. 
@@ -11219,7 +11221,7 @@ where, in the second step, we use the fact that instances are independent given 
 Let us examine prediction with the Dirichlet prior. We need to compute 
 
 $$
-\begin{array}{r}{P (x[M+1]=x^{k}\mid\mathcal{D})=E_{P (\theta\mid\mathcal{D})}[\theta_{k}].}\end{array}
+\begin{array}{r}{P(x[M+1]=x^{k}\mid\mathcal{D})=E_{P(\theta\mid\mathcal{D})}[\theta_{k}].}\end{array}
 $$
 
 To compute the prediction on a new data case, we need to compute the expectation of particular parameters with respect for a Dirichlet distribution over $\theta$ . 
@@ -11228,27 +11230,27 @@ To compute the prediction on a new data case, we need to compute the expectation
 >  要计算这一概率，我们需要计算特定参数相对于某个在 $\pmb \theta$ 上的 Dirichlet 分布上的期望
 
 **Proposition 17.4** 
-Let $P (\pmb \theta)$ be a Dirichlet distribution with hyperparameters $\alpha_1, \dots, \alpha_k$, and $\alpha = \sum_j \alpha_j$, then $E_{\theta_k} = \frac {\alpha_k}{\alpha}$
+Let $P(\pmb \theta)$ be a Dirichlet distribution with hyperparameters $\alpha_1, \dots, \alpha_k$, and $\alpha = \sum_j \alpha_j$, then $E_{\theta_k} = \frac {\alpha_k}{\alpha}$
 >  命题
 >  $E_{\theta_k} = \frac {\alpha_k}{\alpha}$，即 $\theta_k$ 期望等于超参数 $\alpha_k$ 和 $\alpha$ 的比值
 
-Recall that our posterior is $\mathit{D i r i c h l e t}(\alpha_{1}+M[1],.\,.\,,\alpha_{K}+M[K])$ where $M[1],\ldots, M[K]$ are the sufficient statistics from the data. Hence, the prediction with Dirichlet priors is 
+Recall that our posterior is $\mathit{D i r i c h l e t}(\alpha_{1}+M[1],.\,.\,,\alpha_{K}+M[K])$ where $M[1],\ldots,M[K]$ are the sufficient statistics from the data. Hence, the prediction with Dirichlet priors is 
 
 $$
-P (x[M+1]=x^{k}\mid\mathcal{D})=\frac{M[k]+\alpha_{k}}{M+\alpha}.
+P(x[M+1]=x^{k}\mid\mathcal{D})=\frac{M[k]+\alpha_{k}}{M+\alpha}.
 $$
 
 This prediction is similar to prediction with the MLE parameters. The only difference is that we added the hyperparameters to our counts when making the prediction. For this reason the Dirichlet hyperparameters are often called pseudo-counts . We can think of these as the number of times we have seen the different outcomes in our prior experience before conducting our current experiment. 
 
->  我们知道后验分布 $P (\pmb \theta \mid \mathcal D)$ 为 $Dirichlet (\alpha_1 + M[1], \dots, \alpha_K + M[K])$，其中 $M[1], M[K]$ 为数据的充分统计量，因此我们可以直接依据这些参数计算期望
+>  我们知道后验分布 $P(\pmb \theta \mid \mathcal D)$ 为 $Dirichlet(\alpha_1 + M[1], \dots, \alpha_K + M[K])$，其中 $M[1], M[K]$ 为数据的充分统计量，因此我们可以直接依据这些参数计算期望
 >  可以看到该预测和 MLE 预测类似，差异仅在于我们将超参数也加入了计数中
 >  因此 Dirichlet 超参数也称为伪计数
 >  可以将它视作我们在进行当前的试验之前看到的不同结果出现的次数
 
-The total $\alpha$ of the pseudo-counts reﬂects how conﬁdent we are in our prior, and is often called the equivalent sample size . Using $\alpha$ , we can rewrite the hyperparameters as $\alpha_{k}=\alpha\theta_{k}^{\prime}$ , where $\theta^{\prime}=\{\theta_{k}^{\prime}:k=1,.\,.\,.\,, K\}$ is a distribution describing the mean prediction of our prior. We can see that the prior prediction (before observing any data) is simply $\theta^{\prime}$ . Moreover, we can rewrite the prediction given the posterior as: 
+The total $\alpha$ of the pseudo-counts reﬂects how conﬁdent we are in our prior, and is often called the equivalent sample size . Using $\alpha$ , we can rewrite the hyperparameters as $\alpha_{k}=\alpha\theta_{k}^{\prime}$ , where $\theta^{\prime}=\{\theta_{k}^{\prime}:k=1,.\,.\,.\,,K\}$ is a distribution describing the mean prediction of our prior. We can see that the prior prediction (before observing any data) is simply $\theta^{\prime}$ . Moreover, we can rewrite the prediction given the posterior as: 
 
 $$
-P (x[M+1]=x^{k}\mid\mathcal{D})=\frac{\alpha}{M+\alpha}\theta_{k}^{\prime}+\frac{M}{M+\alpha}\cdot\frac{M[k]}{M}.\tag{17.11}
+P(x[M+1]=x^{k}\mid\mathcal{D})=\frac{\alpha}{M+\alpha}\theta_{k}^{\prime}+\frac{M}{M+\alpha}\cdot\frac{M[k]}{M}.\tag{17.11}
 $$
 
 That is, the prediction is a weighted average (convex combination) of the prior mean and the MLE estimate. The combination weights are determined by the relative magnitude of $\alpha\mathrm{~-~}$ the conﬁdence of the prior (or total weight of the pseudo-counts) — and $M\mathrm{~-~}$ the number of observed samples. 
@@ -11258,11 +11260,11 @@ That is, the prediction is a weighted average (convex combination) of the prior 
 >  进而我们将之前的预测重写为 (17.11)
 >  从 (17.11) 可以看到，预测可以视作先验均值和 MLE 估计的加权平均 (凸组合)，权重由 $\alpha$ 和 $M$ 的相对大小决定，其中 $\alpha$ 为先验的信心，即全部伪计数的总权重，$M$ 为样本数量
 
-We see that the Bayesian prediction converges to the MLE estimate when $M\rightarrow\infty$ . Intuitively, when we have a very large training set the contribution of the prior is negligible, and the prediction will be dominated by the frequency of outcomes in the data. We also get convergence to th estimate when $\alpha\rightarrow0$ , so that we have only a very weak prior. Note that the case where α $\alpha=0$ is not achievable: the normalization constant for the Dirichlet prior grows to inﬁnity when the hyperparameters are close to 0 . Thus, the prior with $\alpha\,=\, 0$ (that is, $\alpha_{k}=0$ for all $k$ ) is not well deﬁned. The prior with $\alpha=0$ is often called a improper prior . The difference between the Bayesian estimate and the MLE estimate arises when $M$ is not too large, and $\alpha$ is not close to 0 . In these situations, the Bayesian estimate is “biased” toward the prior probability $\theta^{\prime}$ . 
+We see that the Bayesian prediction converges to the MLE estimate when $M\rightarrow\infty$ . Intuitively, when we have a very large training set the contribution of the prior is negligible, and the prediction will be dominated by the frequency of outcomes in the data. We also get convergence to th estimate when $\alpha\rightarrow0$ , so that we have only a very weak prior. Note that the case where α $\alpha=0$ is not achievable: the normalization constant for the Dirichlet prior grows to inﬁnity when the hyperparameters are close to 0 . Thus, the prior with $\alpha\,=\,0$ (that is, $\alpha_{k}=0$ for all $k$ ) is not well deﬁned. The prior with $\alpha=0$ is often called a improper prior . The difference between the Bayesian estimate and the MLE estimate arises when $M$ is not too large, and $\alpha$ is not close to 0 . In these situations, the Bayesian estimate is “biased” toward the prior probability $\theta^{\prime}$ . 
 >  可以看到贝叶斯预测随着 $M \rightarrow \infty$ 收敛到 MLE 估计
 >  直观上说，数据集足够大时，先验的贡献就可以忽略，预测值由数据的频率主导
 >  同时，预测也随着 $\alpha \rightarrow 0$ 而收敛，也就是先验减弱，但对于 Dirichlet 先验来说 $\alpha = 0$ 的情况未定义，$\alpha = 0$ 的先验称为不恰当先验
->  MLE 估计和贝叶斯估计的差异就在于 $M$ 不够大且 $\alpha$ 不够小的时候，此时贝叶斯估计会想先验概率 $\theta'$ 偏置
+>  MLE 估计和贝叶斯估计的差异就在于 $M$ 不够大且 $\alpha$ 不够小的时候，此时贝叶斯估计会向先验概率 $\theta'$ 偏置
 
 To gain some intuition for the interaction between these different factors, ﬁgure 17.5 shows the effect of the strength and means of the prior on our estimates. We can see that, as the amount of real data grows, our estimate converges to the true underlying distribution, regardless of the starting point. The convergence time grows both with the difference between the prior mean and the empirical mean, and with the strength of the prior. We also see that the Bayesian estimate is more stable than the MLE estimate, because with few instances, even single samples will change the MLE estimate dramatically. 
 >  随着数据量增长，估计会收敛到真实的分布，无论起始点如何
@@ -11270,7 +11272,7 @@ To gain some intuition for the interaction between these different factors, ﬁg
 >  因为存在先验，贝叶斯估计比 MLE 估计更稳定，因为样本量少时，单个样本都容易剧烈改变 MLE 估计值
 
 Example 17.7 
-Suppose we are trying to estimate the parameter associated with a coin, and we observe one head and one tail. Our MLE estimate of $\theta_{1}$ is $1/2=0.5\$ . Now, if the next observation is a head, we will change our estimate to be $2/3\approx0.66$ . On the other hand, if our next observation is a tail, we will change our te to $1/3\approx0.33$ . In contrast, consider the Bayesian estimate with a Dirichlet prior with $\alpha\,=\, 1$ and $\theta_{1}^{\prime}\,=\, 0.5$ . With this estimator, our original estimate is $1.5/3\,=\, 0.5$ . If we observe another head, we revise to $2.5/4\,=\, 0.625$ , and if observe another tail, we revise to  $1.5/4\,=\, 0.375$ . We see that the estimate changes by slightly less after the update. If $\alpha$ is larger, then the smoothing is more aggressive. For example, when $\alpha=5$ , our estimate is $4.5/8=0.5625$ after observing a head, and $3.5/8\,=\, 0.4375$ after observing a tail. We can also see this effect visually in ﬁgure 17.6, which shows our changing estimate for $P (\theta_{H})$ as we observe a particular sequence of tosses. 
+Suppose we are trying to estimate the parameter associated with a coin, and we observe one head and one tail. Our MLE estimate of $\theta_{1}$ is $1/2=0.5\$ . Now, if the next observation is a head, we will change our estimate to be $2/3\approx0.66$ . On the other hand, if our next observation is a tail, we will change our te to $1/3\approx0.33$ . In contrast, consider the Bayesian estimate with a Dirichlet prior with $\alpha\,=\,1$ and $\theta_{1}^{\prime}\,=\,0.5$ . With this estimator, our original estimate is $1.5/3\,=\,0.5$ . If we observe another head, we revise to $2.5/4\,=\,0.625$ , and if observe another tail, we revise to  $1.5/4\,=\,0.375$ . We see that the estimate changes by slightly less after the update. If $\alpha$ is larger, then the smoothing is more aggressive. For example, when $\alpha=5$ , our estimate is $4.5/8=0.5625$ after observing a head, and $3.5/8\,=\,0.4375$ after observing a tail. We can also see this effect visually in ﬁgure 17.6, which shows our changing estimate for $P(\theta_{H})$ as we observe a particular sequence of tosses. 
 
 This smoothing effect results in more robust estimates when we do not have enough data to reach deﬁnite conclusions. If we have good prior knowledge, we revert to it. Alternatively, if we do not have prior knowledge, we can use a uniform prior that will keep our estimate from taking extreme values. In general, it is a bad idea to have extreme estimates (ones where some of the parameters are close to 0 ), since these might assign too small probability to new instances we later observe. In particular, as we already discussed, probability estimates that are actually 0 are dangerous, since no amount of evidence can change them. Thus, if we are unsure about our estimates, it is better to bias them away from extreme estimates. The MLE estimate, on the other hand, often assigns probability 0 to values that were not observed in the training data. 
 >  先验的平滑效果使得我们在没有足够数据的情况下可以得到更健壮的结论
@@ -11279,3 +11281,500 @@ This smoothing effect results in more robust estimates when we do not have enoug
 >  而真实为 0 的概率估计是危险的，因为没有证据可以改变它
 >  因此，如果对估计不确定，最好将估计偏置，向极限估计远离
 >  MLE 估计常常会为训练数据中没有观测到的值赋予概率为 0
+
+## 17.4 Bayesian Parameter Estimation in Bayesian Networks 
+We now turn to Bayesian estimation in the context of a Bayesian network. Recall that the Bayesian framework requires us to specify a joint distribution over the unknown parameters and the data instances. As in the single parameter case, we can understand the joint distribution over parameters and data as a Bayesian network. 
+>  我们考虑贝叶斯网络下的贝叶斯估计
+>  回忆贝叶斯估计框架要求我们指定一个未知参数和数据实例上的分布，在参数仅有一个时，我们可以将参数和数据上的分布建模为一个贝叶斯网络
+
+### 17.4.1 Parameter Independence and Global Decomposition 
+#### 17.4.1.1 A Simple Example 
+Suppose we want to estimate parameters for a simple network with two variables $X$ and $Y$ so that $X$ is the parent of $Y$ . Our training data consist of observations $X[m],Y[m]$ for $m=$ $1,\cdot\cdot\cdot,M$ . In addition, we have unknown parameter vectors $\theta_{X}$ and $\theta_{Y\mid X}$ . The dependencies between these variables are described in the network of ﬁgure 17.7. This is the meta-network that describes our learning setup. 
+>  考虑一个简单例子，我们为网络 $X\rightarrow Y$ 估计参数
+>  训练数据由 $X[m] ,Y[m], m = 1,\dots, M$ 组成，我们还有未知参数向量 $\pmb \theta_X$ 和 $\pmb \theta_{Y\mid X}$
+>  我们将这些都视作随机变量，这些变量之间的依赖关系如 figure 17.7 的元网络所示
+
+![[pics/PGM-Fig17.7.png]]
+
+This Bayesian network structure immediately reveals several points. For example, as in our simple thumbtack example, the instances are independent given the unknown parameters. A simple examination of active trails shows that $X[m]$ and $Y[m]$ are d-separated from $X[m^{\prime}]$ and $Y[m^{\prime}]$ once we observe the parameter variables. 
+>  显然，从网络结构中，可以看到，给定参数时， $X[m]$ 和 $Y[m]$ 和 $X[m'], Y[m']$ d-separated
+
+In addition, the network structure embodies the assumption that the priors for the individual parameters variables are a priori independent. That is, we believe that knowing the value of one parameter tells us nothing about another. More precisely, we deﬁne 
+>  另外，该网络结构体现了这样的假设：各个参数的先验是相互独立的
+>  也就是说，我们知道一个参数的值不会告诉我们关于另一个参数的信息
+
+**Definition 17.5**
+Let $\mathcal G$ be a Bayesian network structure with parameters $\pmb \theta = (\pmb \theta_{X_1 \mid \text{Pa}_{X_1}}, \dots, \pmb \theta_{X_n\mid \text{Pa}_{X_n}})$. A prior $P(\pmb \theta)$ is said to satisfy global parameter independence if it has the form:
+
+$$
+P(\pmb \theta) = \prod_i P(\pmb \theta_{X_i \mid \text{Pa}_{X_i}})
+$$
+
+>  定义
+>  $\mathcal G$ 为 BN，带有参数 $\pmb \theta = (\pmb \theta_{X_i \mid \text{Pa}_{X_1}},\dots, \pmb \theta_{X_n\mid \text{Pa}_{X_n}})$，如果先验 $P(\pmb \theta)$ 满足如上完全分解的形式，则称先验满足全局参数独立性
+
+This assumption may not be suitable for all domains, and it should be considered with care. 
+>  注意该假设并不一定对所有领域都成立
+
+Example 17.8
+Consider an extension of our student example, where our student takes multiple classes. For each class, we want to learn the distribution of Grade given the student’s Intelligence and the course Difficulty. For classes taught by the same instructor, we might believe that the grade distribution is the same; for example, if two classes are both difficult, and the student is intelligent, his probability of getting an A is the same in both. However, under the global parameter independence assumption, these are two different random variables, and hence their parameters are independent. 
+
+Thus, although we use the global parameter independence in much of our discussion, it is not always appropriate, and we relax it in some of our later discussion (such as section 17.5 and section 18.6.2). 
+>  在全局参数独立性不一定成立的情况下，我们需要对其进行一定松弛
+
+If we accept global parameter independence, we can draw an important conclusion. Complete data $\mathrm{d}$ -separates the parameters for different CPDs. For example, if $x[m]$ and $y[m]$ are observed for all $m$ , then $\theta_{X}$ and $\theta_{Y\mid X}$ are d-separated. 
+>  在假定全局参数独立性成立的情况下，我们可以得到结论：完全的数据 d-separate 不同 CPDs 的参数
+>  例如，如果对于所有的 $m$，$x[m], y[m]$ 都被观测到，则 $\pmb \theta_X$ 和 $\pmb \theta_{Y\mid X}$ 就被 d-separated
+
+To see this, note that any path between the two has the form 
+
+$$
+\pmb \theta_{X}\rightarrow X[m]\rightarrow Y[m]\leftarrow\pmb \theta_{Y|X},
+$$ 
+so that the observation of $x[m]$ blocks the path. Thus, if these two parameter variables are independent a priori, they are also independent a posteriori. 
+
+>  为了证明，我们可以观察到网络中参数 $\pmb \theta_X, \pmb \theta_{Y\mid X}$ 之间的任意路径都有以上的形式
+>  因此观测 $x[m]$ 会堵塞这一路径
+>  故如果参数本身在先验中相互独立，它们在后验中也会相互独立
+
+Using the deﬁnition of conditional independence, we conclude that 
+
+$$
+P(\pmb\theta_{X},\pmb\theta_{Y\mid X}\mid\mathcal D)=P(\pmb\theta_{X}\mid\mathcal D)P(\pmb\theta_{Y\mid X}\mid\mathcal D).
+$$ 
+This decomposition has mediate practical ramiﬁcations. Given the data set $\mathcal{D}$ , we can determine the posterior over $\theta_{X}$ independently of the posterior over $\theta_{Y\mid X}$ . Once we can solve each problem separately, we can combine the results. This is the analogous result to the likelihood decomposition for MLE estimation of section 17.2.2. In the Bayesian setting this property has additional importance. It tells us the posterior can be represented in a compact factorized form. 
+
+>  根据条件独立性的定义，我们可以推导出上式，即 $\pmb \theta_X, \pmb \theta_{Y\mid X}$ 在给定数据集 $\mathcal D$ 时条件独立
+>  该分解形式具有重要的实际意义，根据该形式，给定数据集 $\mathcal D$，我们可以认为 $\pmb \theta_X$ 的后验分布独立于 $\pmb \theta_{Y\mid X}$ 的后验分布，故参数整体的后验分布存在紧凑的分解形式，我们可以独立解决各个子参数的后验分布，再将它们结合
+
+#### 17.4.1.2 General Networks 
+We can generalize this conclusion to the general case of Bayesian network learning. Suppose we are given a network structure $\mathcal{G}$ with parameters $\theta$ . In the Bayesian framework, we need to specify a prior $P(\theta)$ over all possible parameterizations of the network. The posterior distribution over parameters given the data samples $\mathcal{D}$ is simply 
+
+$$
+P(\pmb \theta\mid\mathcal{D})=\frac{P(\mathcal{D}\mid \pmb \theta)P(\pmb \theta)}{P(\mathcal{D})}.
+$$
+
+The term $P(\theta)$ is our prior distribution, $P({\mathcal{D}}\mid\theta)$ is the probability of ta given a particular parameter settings, which is simply the likelihood function. Finally, $P(\mathcal{D})$ D is the normalizing constant. As we discussed, this term is called the marginal likelihood ; it will play an important role in the next chapter. For now, however, we can ignore it, since it does not depend on $\theta$ and only serves to normalize the posterior. 
+
+>  该结论可以推广到对任意 BN 的学习，假设给定网络结构 $\mathcal G$，带有参数 $\pmb \theta$
+>  在贝叶斯学习的框架中，我们需要指定一个网络的所有可能参数化上的先验 $P(\pmb \theta)$，根据贝叶斯定理，我们将 $\pmb \theta$ 条件于 $\mathcal D$ 的后验重写如上
+>  其中 $P(\pmb \theta)$ 为先验分布，$P(\mathcal D\mid \pmb \theta)$ 为似然函数，$P(\mathcal D)$ 为规范化常数，或者说边际似然
+>  我们目前先忽略边际似然，因为它不依赖于参数 $\pmb \theta$
+
+As we discussed in section 17.2, we can decompose the likelihood into local likelihoods: 
+
+$$
+P(\mathcal{D}\mid\pmb \theta)=\prod_{i}L_{i}(\pmb \theta_{X_{i}|\mathrm{Pa}_{X_{i}}}:\mathcal{D}).
+$$
+
+Moreover, if we assume that we have global parameter independence, then 
+
+$$
+P(\pmb\theta)=\prod_{i}P(\pmb\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}).
+$$
+
+Combining these two decompositions, we see that 
+
+$$
+P(\pmb\theta\mid\mathcal D)=\frac{1}{P(\mathcal D)}\prod_{i}\Big[L_{i}(\pmb\theta_{X_{i}\mid\mathrm{Pa}_{X_{i}}}:\mathcal D)P(\pmb\theta_{X_{i}\mid\mathrm{Pa}_{X_{i}}})\Big]\,.
+$$
+
+Now each subset $\pmb \theta_{X_{i}|\mathrm{Pa}_{X_{i}}}$ of $\pmb \theta$ appears in just one term in the product. Thus, we have that the posterior can be represented as a product of local terms. 
+
+>  根据 BN 的全局分解性质，我们将似然函数分解为局部似然的乘积，同时根据参数的全局独立性假设，我们将先验也分解
+>  将二者结合，得到如上式子，此时，累乘中的每一项仅和 $\pmb \theta$ 的每个子集 $\pmb \theta_{X_i \mid \text{Pa}_{X_i}}$ 相关，因此，后验分布被我们表示为了多个局部项的乘积
+
+**Proposition 17.5** 
+Let $\mathcal{D}$ be a complete data set for $\mathcal{X}$ , let $\mathcal{G}$ be a network structure over these variables. If $P(\theta)$ satisﬁes global parameter independence, then 
+
+$$
+P(\pmb\theta\mid\mathcal D)=\prod_{i}P(\pmb\theta_{X_{i}\mid\mathrm{Pa}_{X_{i}}}\mid\mathcal D).
+$$ 
+The proof of this property follows from the steps we discussed. It can also be derived directly from the structure of the meta-Bayesian network (as in the network of ﬁgure 17.7). 
+
+>  命题
+>  $\mathcal D$ 为 $\mathcal X$ 的完整数据集，$\mathcal G$ 为变量 $\mathcal X$ 上的网络结构
+>  如果先验 $P(\pmb \theta)$ 满足全局参数独立性，则后验 $P(\pmb \theta \mid \mathcal D)$ 有如上的完全分解形式
+
+#### 17.4.1.3 Prediction 
+This decomposition of the posterior allows us to simplify various tasks. For example, suppose that, in our simple two-variable network, we want to compute the probability of another instance $x[M+1],y[M+1]$ based on our previous observations $x[1],y[1],.\;.\;.\;,x[M],y[M]$ . According to the structure of our meta-network, we need to sum out (or more precisely integrate out) the unknown parameter variables 
+
+$$
+P(x[M+1],y[M+1]\mid\mathcal{D})=\int P(x[M+1],y[M+1]\mid\mathcal{D},\pmb \theta)P(\pmb \theta\mid\mathcal{D})d\pmb \theta,
+$$ 
+where the integration is over all legal parameter values. 
+
+>  接下来我们考虑利用后验的分解形式做预测
+>  假设我们需要基于之前的观测 $x[1], y[1], \dots, x[M], y[M]$ 计算新实例 $x[M+1], y[M+1]$ 的概率
+>  为了计算该后验概率，我们需要在所有合法的参数选择上进行积分
+
+Since $\pmb \theta$ d-separates instances from each other, we have that 
+
+$$
+\begin{align}
+&{{P(x[M+1],y[M+1]\mid\mathcal{D},\pmb \theta)}}\\ {=}&{P(x[M+1],y[M+1]\mid\pmb \theta)}\\ {=}&{P(x[M+1]\mid\pmb \theta_{X})P(y[M+1]\mid x[M+1],\pmb \theta_{Y\mid X}).}\end{align}
+$$ 
+>  在元网络中，参数 $\pmb \theta$ d-sperate 各个观测实例，故给定 $\pmb \theta$，$x[M+1], y[M+1]$ 和观测数据集条件独立
+>  我们进而将后验中的 $\mathcal D$ 移去，并根据网络结构进一步分解后验，同时将 $\pmb \theta$ 拆分为 $\pmb \theta_X, \pmb \theta_{Y\mid X}$
+
+Moreover, as we just saw, the posterior probability also decomposes into a product. Thus, 
+
+$$
+\begin{align}
+&{{P(x[M+1],y[M+1]\mid\mathcal{D})}}\\ {{=}}&{{{\displaystyle\int\int}P(x[M+1]\mid\pmb \theta_{X})P(y[M+1]\mid x[M+1],\pmb \theta_{Y\mid X})}}\\ {{}}&{{{\displaystyle P(\pmb \theta_{X}\mid\mathcal{D})P(\pmb \theta_{Y\mid X}\mid\mathcal{D})d\pmb \theta_{X}d\pmb \theta_{Y\mid X}}}}\\ {{=}}&{{\left({\displaystyle\int}P(x[M+1]\mid\pmb \theta_{X})P(\pmb \theta_{X}\mid\mathcal{D})d\pmb \theta_{X}\right)}}\\ {{}}&{{~~\left({\displaystyle\int}P(y[M+1]\mid x[M+1],\pmb \theta_{Y\mid X})P(\pmb \theta_{Y\mid X}\mid\mathcal{D})d\pmb \theta_{Y\mid X}\right).}}\end{align}
+$$
+
+>  将后验的分解形式代回原有的积分，同时利用了参数的独立性质，我们得到上式
+
+In the second step, we use the fact that the double integral of two unrelated functions is the product of the integrals. That is: 
+
+$$
+\int\int f(x)g(y)d x d y=\left(\int f(x)d x\right)\left(\int g(y)d y\right).
+$$ 
+Thus, we can solve the prediction problem for the two variables $X$ and $Y$ separately. 
+
+>  在第二个等式中，我们利用的性质是两个不相关函数的乘积的二重积分是二者各自积分的乘积
+>  此时，预测问题 (后验概率的计算问题) 被划分为了分别关于变量 $X, Y$ 的子问题
+
+The same line of reasoning easily applies to the general case, and thus we can see that, in the setting of proposition 17.5, we have 
+
+$$
+\begin{array}{l}{{P(X_{1}[M+1],\ldots,X_{n}[M+1]\mid\mathcal{D})=}}\\ {{\displaystyle\prod_{i}\int P(X_{i}[M+1]\mid\mathrm{Pa}_{X_{i}}[M+1],\mathbf{\pmb \theta}_{X_{i}\mid\mathrm{Pa}_{X_{i}}})P(\pmb \theta_{X_{i}\mid\mathrm{Pa}_{X_{i}}}\mid\mathcal{D})d\mathbf{\pmb \theta}_{X_{i}\mid\mathrm{Pa}_{X_{i}}}.}}\end{array}\tag{17.12}
+$$
+
+We see that we can solve the prediction problem for each CPD independently and then combine the results. 
+
+>  对于通用结构的 BN，推导也是类似的，在命题 17.5 的背景下 (即参数的全局分解成立) ，我们可以将后验概率 $P(X_1[M+1], \dots, X_n[M+1]\mid \mathcal D)$ 按照 (17.12) 分解为多个积分的乘积，每个积分仅和一个 CPD 相关
+>  我们通过独立求解各个积分，最后将它们结合得到结果
+
+We stress that the discussion so far was based on the assumption that the priors over parameters for different CPDs are independent. We see that, when learning from complete data, this assumption alone suffices to get a decomposition of the learning problem to several “local” problems, each one involving one CPD. 
+>  注意，目前为止我们都假设各个 CPD 的参数在先验上是相互独立的
+>  当从完整数据中学习时，该假设就足够让我们将学习问题分解为多个局部问题，每个问题仅和一个 CPD 相关
+
+At this stage it might seem that the Bayesian framework introduces new complications that did not appear in the MLE setup. Note, however, that in deriving the MLE decomposition, we used the property that we can choose parameters for one CPD independently of the others. Thus, we implicitly made a similar assumption to get decomposition. The Bayesian treatment forces us to make such assumptions explicit, allowing us to more carefully evaluate their validity. We view this as a beneﬁt of the Bayesian framework. 
+>  此时，我们发现似乎贝叶斯框架相较于之前的 MLE 设定引入了新的复杂性
+>  但注意在推导之前的 MLE 分解时，我们使用了一个性质，即我们可以独立地为各个 CPD 选择参数，因此我们的 MLE 分解实际上也隐式地做了相似的假设
+>  贝叶斯框架则让我们显示地表示这一假设，允许我们更仔细确定该假设是否有效
+>  这可以认为是贝叶斯框架的优势
+
+### 17.4.2 Local Decomposition 
+Based on the preceding discussion, we now need to solve localized Bayesian estimation problems to get a global Bayesian solution. We now examine this localized estimation task for table-CPDs. The case for tree-CPDs is treated in section 17.5.2. 
+>  根据之前的讨论，我们接下来要做的就是求解局部的贝叶斯估计，最后将它们结合得到全局的贝叶斯解
+>  我们先考虑 table-CPDs 情况下的局部估计任务
+
+Consider, for example, the learning setting described in ﬁgure 17.7, where we take both $X$ and $Y$ to be binary. As we have seen, we need to represent the posterior $\pmb \theta_{X}$ and $\pmb \theta_{Y\mid X}$ given the data. We already know how to deal with the posterior over $\pmb \theta_{X}$ . If we use a Dirichlet prior over $\pmb \theta_{X}$ , then the posterior $P(\pmb \theta_{X}\mid x[1],\ldots,x[M])$ is also represent a Dirichlet distribution. 
+>  考虑 figure 17.7 的设定，其中 $X, Y$ 都是二元变量
+>  根据之前的讨论，我们的目标是表示参数 $\pmb \theta_{X}, \pmb \theta_{Y\mid X}$ 在给定数据下的后验分布，而我们知道 $\pmb \theta_X$ 的后验形式在 Dirichlet 先验的情况下也是 Dirichlet
+
+A less obvious question is how to deal with the posterior over $\pmb \theta_{Y\mid X}$ . If we are learning table-CPDs, this parameter vector contains four parameters $\theta_{y^{0}|x^{0}},\cdot\cdot\cdot,\theta_{y^{1}|x^{1}}$ . In our discussion of maximum likelihood estimation, we saw how the local likelihood over these parameters can be further decomposed into two terms, one over the parameters $\pmb \theta_{Y\mid x^{0}}$ and one over the parameters $\pmb \theta_{Y\mid x^{1}}$ . Do we have a similar phenomenon in the Bayesian setting? 
+>  考虑如何处理 $\pmb \theta_{Y\mid X}$，对于 table-CPD 和二元变量的情况，参数向量 $\pmb \theta_{Y\mid X}$ 可以分解为四个参数 $\theta_{y^0, x^0}, \dots, \theta_{y^1\mid x^1}$
+>  在 MLE 的讨论中，我们将关于参数 $\pmb \theta_{Y\mid X}$ 的局部似然进一步分解为了两个关于 $\pmb \theta_{Y\mid x^0}, \pmb \theta_{Y\mid x^1}$ 的局部似然
+>  我们考虑贝叶斯网络中是否存在相似情况
+
+We start with the prior over $\pmb \theta_{Y\mid X}$ . One obvious choice is a Dirichlet prior over $\pmb \theta_{Y\mid x^{1}}$ and another over $\pmb \theta_{Y\mid x^{0}}$ . More precisely, we have 
+
+$$
+P(\pmb\theta_{Y\mid X})=P(\pmb\theta_{Y\mid x^{1}})P(\pmb\theta_{Y\mid x^{0}}),
+$$ 
+where each of the terms on the right is a Dirichlet prior. Thus, in this case, we assume that the two groups of parameters are independent a priori. 
+
+>  先考虑 $\pmb \theta_{Y\mid X}$ 的先验，我们假设两组参数在先验上 $\pmb \theta_{Y\mid x^1}, \pmb \theta_{Y\mid x^0}$ 相互独立，并为它们各选择一个 Dirichlet 先验
+
+This independence assumption, in effect, allows us to replace the node $\theta_{Y\mid X}$ in ﬁgure 17.7 with two nodes, $\theta_{Y\mid x^{1}}$ and $\theta_{Y\mid x^{0}}$ that are both roots (see ﬁgure 17.8). What can we say about the posterior distribution of these parameter groups? At ﬁrst, it seems that the two are dependent on each other given the data. Given an observation of $y[m]$ , the path 
+
+$$
+\pmb \theta_{Y\mid x^{0}}\rightarrow Y[m]\leftarrow\pmb \theta_{Y\mid x^{1}}
+$$
+
+is active (since we observe the sink of a $\mathrm{V}\cdot$ -structure), and thus the two parameters are not d-separated. 
+
+>  在该独立性假设下，我们将 figure 17.7 的节点 $\pmb \theta_{Y\mid X}$ 替换为了两个不相连的节点 $\pmb \theta_{Y\mid x^1}, \pmb \theta_{Y\mid x^0}$
+>  注意到这两个节点在给定观测的情况下不独立，因为 v-structure，故二者并没有 d-separated
+
+![[pics/PGM-Fig17.8.png]]
+
+This, however, is not the end of the story. We get more insight if We examine how $y[m]$ depends on the two parameters. Clearly, 
+
+$$
+P(y[m]=y\mid x[m],\pmb\theta_{Y|x^{0}},\pmb\theta_{Y|x^{1}})=\left\{\begin{array}{l l}{\pmb\theta_{y|x^{0}}}&{\mathrm{if}\,\,x[m]=x^{0}}\\ {\pmb\theta_{y|x^{1}}}&{\mathrm{if}\,\,x[m]=x^{1}.}\end{array}\right.
+$$
+
+We see that $y[m]$ does not depends on the value of $\pmb \theta_{Y\mid x^{0}}$ when $x[m]=x^{1}$ . 
+
+>  考虑 $y[m]$ 对参数 $\pmb \theta_{Y\mid x^0}, \pmb \theta_{Y\mid x^1}$ 依赖，容易知道如果 $x[m] = x^0$，$y[m]$ 就不依赖于参数 $\pmb \theta_{Y\mid x^0}$
+
+This example is an instance of the same type of context speciﬁc independence that we discussed in example 3.7. As discussed in section 5.3, we can perform a more reﬁned form of $\mathrm{d}$ -separation test in such a situation by removing arcs that are ruled inactive in particular contexts. For the CPD of $y[m]$ , we see that once we observe the value of $x[m]$ , one of the two arcs into $y[m]$ is inactive. If $x[m]=x^{0}$ , then the arc $\theta_{Y\mid x^{1}}\,\to\,y[m]$ is inactive, and if $x[m]=x^{1}$ , then $\theta_{Y\mid x^{0}}\rightarrow y[m]$ is inactive. In either case, the v-structure $\theta_{Y\mid x^{0}}\rightarrow y[m]\leftarrow\theta_{Y\mid x^{1}}$ is removed. Since this removal occurs for every $m\,=\,1,\cdot\cdot\cdot,M$ , we conclude that no active path exists between $\theta_{Y\mid x^{0}}$ and $\theta_{Y\mid x^{1}}$ and thus, the two are independent given the observation of the data. In other words, we can write 
+
+$$
+P(\pmb\theta_{Y\mid X}\mid\mathcal D)=P(\pmb\theta_{Y\mid x^{1}}\mid\mathcal D)P(\pmb\theta_{Y\mid x^{0}}\mid\mathcal D).
+$$
+
+>  该例是针对上下文的独立性的一个实例，在该情况下，我们可以执行形式更精细的 d-separation 测试，即在特定上下文下移除不活跃的边
+>  对于 $y[m]$ 的 CPD，当我们观察到 $x[m]$ 的值后，朝向 $y[m]$ 的两条边中的一条将不活跃，例如当 $x[m] = x^0$ 时，边 $\pmb \theta_{Y\mid x^1} \rightarrow y[m]$ 就将不活跃
+>  此时，v-structure $\pmb \theta_{Y\mid x^0} \rightarrow y[m] \leftarrow \pmb \theta_{Y\mid x^1}$ 就会消失，这对于所有的 $m = 1 ,\dots, M$ 都成立，因此我们可以推导出 $\pmb \theta_{Y\mid x^0}$ 和 $\pmb \theta_{Y\mid x^1}$ 之间将不存在活跃路径，这两个参数在给定数据观测时条件独立
+>  因此，我们可以将参数的后验如上进行分解
+
+Suppose that $P(\pmb{\theta}_{Y\mid x^{0}})$ is a Dirichlet prior with hyperparameters $\alpha_{y^{0}\mid x^{0}}$ and $\alpha_{y^{1}\mid x^{0}}$ . As in our discussion of the local decomposition for the likelihood function in section 17.2.3, we have that the likelihood terms that involve $\pmb \theta_{Y\mid x^{0}}$ are those that measure the probability of $P(y[m]\mid x[m],\pmb \theta_{Y\mid X})$ when $x[m]=x^{0}$ . Thus, we can decompose the joint distribution over parameters and data as follows: 
+
+$$
+\begin{array}{r c l}{P(\pmb{\theta},\mathcal{D})}&{=}&{P(\pmb{\theta}_{X})L_{X}(\pmb{\theta}_{X}:\mathcal{D})}\\ &&{P(\pmb{\theta}_{Y|x^{1}})\displaystyle\prod_{m:x[m]=x^{1}}P(y[m]\mid x[m]:\pmb{\theta}_{Y|x^{1}})}\\ &&{P(\pmb{\theta}_{Y|x^{0}})\displaystyle\prod_{m:x[m]=x^{0}}P(y[m]\mid x[m]:\pmb{\theta}_{Y|x^{0}}).}\end{array}
+$$
+Thus, this joint distribution is a product of three separate joint distributions with a Dirichlet prior for some multinomial parameter and data drawn from this multinomial. 
+
+>  假设先验分布 $P(\pmb \theta_{Y\mid x^0})$ 是超参数为 $\alpha_{y^0\mid x^0}, \alpha_{y^1\mid x^1}$ 的 Dirichlet 分布，我们可以将联合分布 $P(\pmb \theta, \mathcal D)$ 分解为以上形式
+>  可以看到，联合分布实际上被表示为了三个分离的联合分布的乘积，每个联合分布都可以分解为 Dirichlet 先验和相关数据的似然的乘积
+
+>  证明
+
+$$
+\begin{align}
+P(\pmb \theta, \mathcal D) &= P(\pmb \theta )P(\mathcal D \mid \pmb \theta)\\
+&=P(\pmb \theta _X) P(\pmb \theta_{Y\mid X}) P(\mathcal D \mid \pmb \theta)\\
+&=P(\pmb \theta _X) P(\pmb \theta_{Y\mid X}) \prod_{m}P(x[m],y[m]\mid \pmb \theta)\\
+&=P(\pmb \theta _X)\prod_m P(x[m]\mid \pmb \theta) P(\pmb \theta_{Y\mid X})\prod_m P(y[m]\mid x[m]\mid \pmb \theta)\\
+&=P(\pmb \theta _X)\prod_m P(x[m]\mid \pmb \theta_X) \\
+&\quad P(\pmb \theta_{Y\mid X})\prod_m P(y[m]\mid x[m]\mid \pmb \theta)\\
+&=P(\pmb \theta _X)L_X(\pmb \theta_X:\mathcal D) \\
+&\quad P(\pmb \theta_{Y\mid X})\prod_m P(y[m]\mid x[m]\mid \pmb \theta)\\
+&=P(\pmb \theta _X)L_X(\pmb \theta_X:\mathcal D) \\
+&\quad P(\pmb \theta_{Y\mid x^1})\prod_{m:x[m] = x^1} P(y[m]\mid x[m]\mid \pmb \theta_{Y\mid X})\\
+&\quad P(\pmb\theta_{Y\mid x^0})\prod_{m:x[m] = x^0} P(y[m]\mid x[m]\mid \pmb\theta_{Y\mid X})\\
+&=P(\pmb \theta _X)L_X(\pmb \theta_X:\mathcal D) \\
+&\quad P(\pmb \theta_{Y\mid x^1})\prod_{m:x[m] = x^1} P(y[m]\mid x[m]\mid \pmb \theta_{Y\mid x^1})\\
+&\quad P(\pmb\theta_{Y\mid x^0})\prod_{m:x[m] = x^0} P(y[m]\mid x[m]\mid \pmb\theta_{Y\mid x^0})
+\end{align}
+$$
+
+>  证毕
+
+Our analysis for updating a single Dirichlet now applies, and we can conclude that the posterior $P(\pmb{\theta}_{Y\mid x^{0}}\mid\mathcal{D})$ is Dirichlet with hyperparameters $\alpha_{y^{0}|x^{0}}+M[x^{0},y^{0}]$ and $\alpha_{y^{1}|x^{0}}+M[x^{0},y^{1}]$ . 
+>  根据之前的推导，容易知道 $\pmb \theta_{Y\mid x^0}$ 的后验 $P(\pmb \theta_{Y\mid x^0}\mid \mathcal D)$ 就是超参数为 $\alpha_{y^0\mid x^0} + M[x^0, y^0], \alpha_{y^1\mid x^0} + M[x^0, y^1]$ 的 Dirichlet 分布
+
+We can generalize this discussion to arbitrary networks. 
+
+**Definition 17.6**
+Let $X$ be a variable with parents $U$ . We say that the prior $P(\pmb{\theta}_{X|U})$ satisﬁes local parameter independence if 
+
+$$
+P(\pmb\theta_{X|\pmb U})=\prod_{\pmb u}P(\pmb\theta_{X|\pmb u}).
+$$ 
+The same pattern of reasoning also applies to the general case. 
+
+>  定义
+>  $X$ 为某个变量，其父变量为 $\pmb U$
+>  如果先验分布 $P(\pmb \theta_{X\mid \pmb U})$ 可以根据 $\pmb U$ 的取值完全分解，则称该先验满足局部参数独立性
+
+**Proposition 17.6**
+Let $\mathcal{D}$ be a complete data set for $\mathcal{X}$ , let $\mathcal{G}$ be a network structure over these variables with table-CPDs. If the prior $P(\theta)$ satisﬁes global and local parameter independence, then 
+
+$$
+P(\pmb\theta\mid\mathcal D)=\prod_{i}\prod_{\mathrm{pa}_{X_{i}}}P(\pmb\theta_{X_{i}\mid\mathrm{pa}_{X_{i}}}\mid\mathcal D).
+$$ 
+>  命题
+>  $\mathcal D$ 为 $\mathcal X$ 的数据集，$\mathcal G$ 为 $\mathcal X$ 上的网络结构，CPD 形式为 table-CPDs
+>  则如果先验 $P(\pmb \theta)$ 满足全局和局部参数独立性，参数后验可以完全分解，即先按照各个变量 $X_i$ 分解，然后按照其父变量 $\text{Pa}_{X_i}$ 的取值分解
+
+Moreover, if $P(\pmb{\theta}_{X|\pmb{u}})$ is a Dirichlet prior with hyperparameters $\alpha_{x^{1}|u},\cdot\cdot\cdot,\alpha_{x^{K}|u}$ , then the $P(\pmb{\theta}_{X\mid\pmb{u}_{-}}\mid\mathcal{D})$ is a Dirichlet distribution with hyperparameters $\alpha_{x^{1}|\pmb{u}}+\dot{M}[\pmb{u},x^{1}],\dots,$ $\alpha_{x^{K}|\pmb{u}}+M[\pmb{u},x^{K}]$ . 
+>  另外，如果各个局部参数的先验 $P(\pmb \theta_{X\mid \pmb u})$ 是 Dirichlet 分布，则其后验就是经过数据集修正的 Dirichlet 分布
+
+As in the case of a single multinomial, this result induces a predictive model in which, for the next instance, we have that 
+
+$$
+P(X_{i}[M+1]=x_{i}\mid \pmb U[M+1]=\pmb{u},\mathcal{D})=\frac{\alpha_{x_{i}\mid\pmb{u}}+M[x_{i},\pmb{u}]}{\sum_{i}\alpha_{x_{i}\mid\pmb{u}}+M[x_{i},\pmb{u}]}.\tag{17.13}
+$$ 
+Plugging this result into equation (17.12), we see that for computing the probability of a new instance, we can use a single network parameterized as usual, via a set of multinomials, but ones computed as in equation (17.13). 
+
+>  此时，预测下一个实例的 $X_i$ 时，其概率分布如 (17.13) 所示
+>  对于整个实例的预测就是将 (17.13) 代入到 (17.12) 中
+
+### 17.4.3 Priors for Bayesian Network Learning 
+It remains only to address the question of assessing the set of parameter priors required for a Bayesian network. In a general Bayesian network, each node $X_{i}$ has a set of multinomial distributions $\pmb \theta_{X_{i}|\mathrm{pa}_{X_{i}}}$ , one for each instantiation $\mathrm{pa}_{X_{i}}$ of $X_{i}$ ’s parents $\operatorname{Pa}_{X_{i}}$ . Each of these parameters will have a separate Dirichlet prior, governed by hyperparameters 
+
+$$
+\begin{array}{r}{\alpha_{X_{i}\mid\mathrm{pa}_{X_{i}}}=(\alpha_{x_{i}^{1}\mid\mathrm{pa}_{X_{i}}},.\,.\,,\alpha_{x_{i}^{K_{i}}\mid\mathrm{pa}_{X_{i}}}),}\end{array}
+$$ 
+where $K_{i}$ is the number of values of $X_{i}$ . 
+
+>  我们考虑 BN 中参数的先验选择
+>  在一般的 BN 中，每个节点 $X_i$ 都有一组多项式分布 $\pmb \theta_{X_i \mid \text{pa}_{X_i}}$，其中每个多项式分布对于 $\text{Pa}_{X_i}$ 的一种取值
+>  可以令每个多项式分布的参数 $\pmb \theta_{X_i \mid \text{pa}_{X_i}}$ 服从 Dirichlet 先验，有 $K_i$ 个超参数，$K_i$ 为 $X_i$ 的取值数量
+
+We can, of course, ask our expert to assign values to each of these hyperparameters based on his or her knowledge. This task, however, is rather unwieldy. Another approach, called the K2 prior, is to use a ﬁxed prior, say $\alpha_{x_{i}^{j}|\mathrm{pa}_{X_{i}}}=1$ , for all hyperparameters in the network. As we discuss in the next chapter, this approach has consequences that are conceptually unsatisfying; see exercise 18.10. 
+>  K2 先验方法令这些超参数都为 1，该方法效果一般
+
+A common approach to addressing the speciﬁcation task uses the intuitions we described in our discussion of Dirichlet priors in section 17.3.1. As we showed, we can think of the hyperparameter $\alpha_{x^{k}}$ as an imaginary count in our prior experience. This intuition suggests the following representation for a prior over a Bayesian network. Suppose we have an imaginary data set ${\mathcal{D}}^{\prime}$ of “prior” examples. Then, we can use counts from this imaginary data set as hyperparameters. More speciﬁcally, we set 
+
+$$
+\begin{array}{r}{\alpha_{x_{i}|\mathrm{pa}_{X_{i}}}=\alpha[x_{i},\mathrm{pa}_{X_{i}}],}\end{array}
+$$ 
+where $\alpha[x_{i},\mathrm{pa}_{X_{i}}]$ is the number of times $X_{i}=x_{i}$ and $\mathrm{Pa}_{X_{i}}=\mathrm{pa}_{X_{i}}$ in ${\mathcal{D}}^{\prime}$ . We can easily see that prediction with this setting of hyperparameters is equivalent to MLE prediction from the combined data set that contains instances of both $\mathcal{D}$ and ${\mathcal{D}}^{\prime}$ . 
+
+>  利用直接介绍的直觉，我们将 Dirichlet 的超参数视作先验经验中虚拟的计数，我们根据一个虚拟数据集 $\mathcal D'$ 的计数结果设置先验
+>  显然在该设定下，我们的预测实际上等价于在数据集 $\mathcal D \cup \mathcal D'$ 上进行 MLE 估计
+
+One problem with this approach is that it requires storing a possibly large data set of pseudo-instances. Instead, we can store the size of the data set $\alpha$ and a representation $P^{\prime}(X_{1},.\,.\,.\,,X_{n})$ of the frequencies of events in this prior data set. If $P^{\prime}(X_{1},.\,.\,.\,,X_{n})$ is the distribution of events in ${\mathcal{D}}^{\prime}$ , then we get that 
+
+$$
+\alpha_{x_{i}|\mathrm{pa}_{X_{i}}}=\alpha\cdot P^{\prime}(x_{i},\mathrm{pa}_{X_{i}}).
+$$
+
+How do we represent $P^{\prime}?$ Clearly, one natural choice is via a Bayesian network. Then, we can use Bayesian network inference to efficiently compute the quantities $P^{\prime}(x_{i},\mathrm{pa}_{X_{i}})$ . Note that $P^{\prime}$ does not have to be structured in the same way as the network we learn (although it can be). It is, in fact, quite common to deﬁne $P^{\prime}$ as a set of independent marginals over the $X_{i}$ ’s. A prior that can be represented in this manner (using $\alpha$ and $P^{\prime}$ ) is called a BDe prior . Aside from being philosophically pleasing, it has some additional beneﬁts that we will discuss in the next chapter. 
+
+>  在存储时，我们不需要存储具有伪样本的先验数据集，而是存储数据集大小 $\alpha$ 和数据集中各个事件的频率，通过 $\alpha$ 乘以 $x_i, \text{pa}_{X_i}$ 的频率 $P'(x_i, \text{pa}_{X_i})$ 计算先验超参数 $\alpha_{x_i\mid \text{pa}_{X_i}}$
+>  先验分布 $P'$ 可以用 BN 表示，我们使用 BN 推理来计算 $P'(x_i, \text{pa}_{X_i})$ 
+>  先验分布甚至不必考虑各个变量的依赖关系，可以进一步直接定义为 $X_i$ 上的边际的乘积，可以被这样表示的先验称为 BDe 先验
+
+Box 17.C — Case Study: Learning the ICU-Alarm Network. To give an example of the tech- niques described in this chapter, we evaluate them on a synthetic example. Figure 17.C.1 shows the graph structure of the real-world ICU-Alarm Bayesian network, hand-constructed by an expert, for monitoring patients in an Intensive Care Unit (ICU). The network has 37 nodes and a total of 504 parameters. We want to evaluate the ability of our parameter estimation algorithms to reconstruct the network parameters from data. 
+
+We generated a training set from the network, by sampling from the distribution speciﬁed by the network. We then gave the algorithm only the (correct) network structure, and the generated data, and measured the ability of our algorithms to reconstruct the parameters. We tested the MLE approach, and several Bayesian approaches. All of the approaches used a uniform prior mean, but different prior strengths $\alpha$ . 
+
+In performing such an experiment, there are many ways of measuring the quality of the learned network. One possible measure is the diference between the original values of the model parameters and the estimated ones. A related approach measures the distance between the original CPDs and the learned ones (in the case of table-CPDs, these two approaches are the same, but not for general parameter iz at ions). These approaches place equal weights on different parameters, regardless of the extent to which they inﬂuence the overall distribution. 
+
+The approach we often take is the one described in section 16.2.1, where we measure the rel- ative entropy between the generating distribution $P^{*}$ and the learned distribution $\tilde{P}$ (see also section 8.4.2). This approach provides a global measure of the extent to which our learned distribu- tion resembles the true distribution. Figure 17.C.2 shows the results for different stages of learning. As we might expect, when more instances are available, the estimation is better. The improvement is drastic in early stages of learning, where additional instances lead to major improvements. When the number of instances in our data set is larger, additional instances lead to improvement, but $a$ smaller one. 
+
+More surprisingly, we also see that the MLE achieves the poorest results, a consequence of its extreme sensitivity to the speciﬁc training data used. The lowest error is achieved with a very weak prior — $\alpha\,=\,5$ — which is enough to provide smoothing. As the strength of the prior grows, it starts to introduce a bias, not giving the data enough importance. Thus, the error of the estimated probability increases. However, we also note that the efect of the prior, even for $\alpha=50$ , disappears reasonably soon, and all of the approaches converge to the same line. Interestingly, the different Bayesian approaches converge to this line long before the MLE approach. Thus, at least in this example, an overly strong bias provided by the prior is still a better compromise than the complete lack of smoothing of the MLE approach. 
+
+### 17.4.4 MAP Estimation\*
+MAP estimation Our discussion in this chapter has focused solely on Bayesian estimation for multinomial CPDs. Here, we have a closed form solution for the integral required for Bayesian prediction, and thus we can perform it efciently. In many other representations, the situation is not so simple. In some cases, such as the noisy-or model or the logistic CPDs of section 5.4.2, we do not have a conjugate prior or a closed-form solution for the Bayesian integral. In those cases, Bayesian prediction requires numerical solutions for high-dimensional integrals. In other settings, such as the linear Gaussian CPD, we do have a conjugate prior (the normal-Gamma distribution ), but we may prefer other priors that ofer other desirable properties (such as the sparsity-inducing Laplacian prior described in section 20.4.1). 
+
+When a full Bayesian solution is impractical, we can resort to using maximum a posteriori (MAP) estimation . Here, we search for parameters that maximize the posterior probability : 
+
+$$
+{\tilde{\theta}}=\arg\operatorname*{max}_{\theta}\log P(\theta\mid{\mathcal{D}}).
+$$ 
+
+When we have a large amount of data, the posterior is often sharply peaked around its maximum $\tilde{\theta}$ . In this case, the integral 
+
+$$
+P(X[M+1]\mid\mathcal{D})=\int P(X[M+1]\mid\theta)P(\theta\mid\mathcal{D})d\theta
+$$ 
+
+regularization will be roughly $P(X[M+1]\mid\tilde{\pmb\theta})$ . More generally, we can view the MAP estimate as a way of using the prior to provide regularization over the likelihood function: 
+
+$$
+\begin{array}{r c l}{\arg\operatorname*{max}_{\boldsymbol{\theta}}\log P(\boldsymbol{\theta}\mid\mathcal{D})}&{=}&{\arg\operatorname*{max}_{\boldsymbol{\theta}}\log\left(\displaystyle\frac{P(\boldsymbol{\theta})P(\mathcal{D}\mid\boldsymbol{\theta})}{P(\mathcal{D})}\right)}\\ &{=}&{\arg\operatorname*{max}_{\boldsymbol{\theta}}\left(\log P(\boldsymbol{\theta})+\log P(\mathcal{D}\mid\boldsymbol{\theta})\right).}\end{array}
+$$ 
+
+That is, $\tilde{\pmb{\theta}}$ is the maximum of a function that sums together the log-likelihood function and $\log{P(\theta)}$ . This latter term takes into account the prior on different parameters and therefore biases the parameter estimate away from undesirable parameter values (such as those involving conditional probabilities of 0 ) when we have few learning instances. When the number of samples is large, the efect of the prior becomes negligible, since $\ell(\pmb\theta:{\mathcal D})$ grows linearly with the number of samples whereas the prior does not change. 
+
+Because our parameter priors are generally well behaved, MAP estimation is often no harder than maximum likelihood estimation, and is therefore often applicable in practice, even in cases where Bayesian estimation is not. Importantly, however, it does not ofer all of the same beneﬁts as a full Bayesian estimation. In particular, it does not attempt to represent the shape of the posterior and thus does not differentiate between a ﬂat posterior and a sharply peaked one. As such, it does not give us a sense of our conﬁdence in different aspects of the parameters, and the predictions do not average over our uncertainty. This approach also sufers from issues regarding representation independence; see box 17.D. 
+
+Box 17.D — Concept: Representation Independence. One important property we may want of an estimator is representation independence . To understand this concept better, suppose that in our thumbtack example, we choose to use a parameter $\eta$ , so that $\textstyle P^{\prime}(X=H\mid\eta)={\frac{1}{1+e^{-\eta}}}$ . We have that $\begin{array}{r}{\eta=\log\frac{\theta}{1-\theta}}\end{array}$ wher $\theta$ is the parameter we used earlier. Thus, there is a one-to-one − correspondence between a choice θ and a choice $\eta$ . Although one choice of parameters might seem more natural to us than another, there is no formal reason why we should prefer one over the other, since both can represent exactly the same set of distributions. 
+
+More generally, a re parameter iz ation of $^a$ given family is a new set of parameter values $\eta$ in $^a$ space $\Upsilon$ and a mapping from the new parameters to the original one, that is, from $\eta$ to $\theta(\eta)$ so that $P(\cdot\mid\eta)$ in the new parameter iz ation is equal to $P(\cdot\mid\theta(\eta))$ in the original parameter iz ation. In addition, we require that the re parameter iz ation maintain the same set of distributions, that is, for each choice of $\theta$ there is $\eta$ such that $P(\cdot\mid\eta)=P(\cdot\mid\theta)$ . 
+
+This concept immediately raises the question as to whether the choice of representation can impact our estimates. While we might prefer $^a$ particular way of parameter iz ation because it is more intuitive or interpretable, we may not want this choice to bias our estimated parameters. 
+
+Fortunately, it is not difcult to see that maximum likelihood estimation is insensitive to repa- rameterization. If we have two different ways to represent the same family of the distribution, then the distributions in the family that maximize the likelihood using one parameter iz ation also maximize the likelihood with the other parameter iz ation. More precisely, if $\hat{\eta}$ is MLE, then the matching parameter values $\theta(\hat{\eta})$ are also MLE when we consider the likelihood function in the $\theta$ space. This property is a direct consequence of the fact that the likelihood function is a function of the distribution induced by the parameter values, and not of the actual parameter values. 
+
+The situation with Bayesian inference is subtler. Here, instead of identifying the maximum parameter value, we now perform integration over all possible parameter values. Naively, it seems that such an estimation is more sensitive to the parameter iz ation than MLE, which depends only on the maximum of the likelihood surface. However, a careful choice of prior can account for the representation change and thereby lead to representation independence. Intuitively, if we consider a re parameter iz ation $\eta$ with a function $\theta(\eta)$ mapping to the original parameter space, then we would like the prior on $\eta$ to maintain the probability of events. That is, 
+
+$$
+P(A)=P(\{\pmb\theta(\eta):\eta\in A\}),\;\forall A\subset\Upsilon.
+$$ 
+
+This constraint implies that the prior over different regions of parameters is maintained. Under this assumption, Bayesian prediction will be identical under the two parameter iz at ions. 
+
+We illustrate the notion of a reparameterized prior in the context of a Bernoulli distribution: 
+
+Example 17.9 Consider a Beta prior over the parameter $\theta$ of a Bernoulli distribution: 
+
+$$
+P(\theta:\alpha_{0},\alpha_{1})=c\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1},
+$$ 
+
+where $c$ is the normalizing constant described in deﬁnition 17.3. Recall (example 8.5) that the natural parameter for a Bernoulli distribution is 
+
+$$
+\eta=\log{\frac{\theta}{1-\theta}}
+$$ 
+
+with the transformation 
+
+$$
+\theta=\frac{1}{1+e^{-\eta}},\quad1-\theta=\frac{1}{1+e^{\eta}}.
+$$ 
+
+What is the prior distribution on $\eta$ ? To preserve the probability of events, we want to make sure that for every interval $[a,b]$ 
+
+$$
+\int_{a}^{b}c\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1}d\theta=\int_{\log\frac{a}{1-a}}^{\log\frac{b}{1-b}}P(\eta)d\eta.
+$$ 
+
+To do so, we need to perform a change of variables. Using the relation between $\eta$ and $\theta$ , we get 
+
+$$
+d\eta=\frac{1}{\theta(1-\theta)}d\theta.
+$$ 
+
+Plugging this into the equation, we can verify that an appropriate prior is: 
+
+$$
+P(\eta)=c\left(\frac{1}{1+e^{-\eta}}\right)^{\alpha_{1}}\left(\frac{1}{1+e^{\eta}}\right)^{\alpha_{0}},
+$$ 
+
+where $c$ is the same constant as before. This means that the prior on $\eta$ , when stated in terms of $\theta$ , is $\theta^{\alpha_{1}}(1-\theta)^{\alpha_{0}}$ , in contrast to equation (17.16). At ﬁrst this disc pancy seems like a contradiction. However, we have to remember that the transformation from θ to $\eta$ takes the region $[0,1]$ and stretches it to the whole real line. Thus, the matching prior cannot be uniform. 
+
+This example demonstrates that a uniform prior, which we consider to be unbiased or uninfor- mative, can seem very different when we consider a different parameter iz ation. 
+
+Thus, both MLE and Bayesian estimation (when carefully executed) are representation-independent. This property, unfortunately, does not carry through to MAP estimation. Here we are not interested in the integral over all parameters, but rather in the density of the prior at different values of the parameters. This quantity does change when we reparameterize the prior. 
+
+Consider the setting of example $l7.9$ and develop the MAP parameters for the priors we considered there. When we use the $\theta$ parameter iz ation, we can check that 
+
+$$
+\tilde{\pmb\theta}=\arg\operatorname*{max}_{\pmb\theta}\log P(\theta)=\frac{\alpha_{1}-1}{\alpha_{0}+\alpha_{1}-2}.
+$$ 
+
+On the other hand, 
+
+$$
+\tilde{\eta}=\arg\operatorname*{max}_{\eta}\log P(\eta)=\log\frac{\alpha_{1}}{\alpha_{0}}.
+$$ 
+
+To compare the two, we can transform $\tilde{\eta}$ to $\theta$ representation and ﬁnd 
+
+$$
+\theta(\tilde{\eta})=\frac{\alpha_{1}}{\alpha_{0}+\alpha_{1}}.
+$$ 
+
+In other words, the MAP of the $\eta$ parameterization gives the same predictions as the mean parameterization if we do the full Bayesian inference. 
+
+Thus, MAP estimation is more sensitive to choices in formalizing the likelihood and the prior than MLE or full Bayesian inference. This suggests that the MAP parameters involve, to some extent, an arbitrary choice. Indeed, we can bias the MAP toward different solutions if we construct a speciﬁc re parameterization where the density is particularly large in speciﬁc regions of the parameter space. The parameterization dependency of MAP is a serious caveat we should be aware of. 
+
+## 17.7 Summary 
+In this chapter we examined parameter estimation for Bayesian networks when the data are complete. This is the simplest learning task for Bayesian networks, and it provides the basis for the more challenging learning problems we examine in the next chapters. We discussed two approaches for estimation: MLE and Bayesian prediction. Our primary emphasis here was on table-CPDs, although the ideas generalize to other representations. We touched on a few of these. 
+>  本章讨论了在数据完整情况下对 BN 的参数估计问题，这是 BN 的最简单的学习任务，也是其他学习任务的基础
+>  本章讨论了两个估计方法：MLE 和贝叶斯预测
+>  目前讨论的主要是 table-CPD，但方法可以推广到其他表示
+
+As we saw, a central concept in both approaches is the likelihood function, which captures how the probability of the data depends on the choice of parameters. A key property of the likelihood function for Bayesian networks is that it decomposes as a product of local likelihood functions for the individual variables. If we use table-CPDs, the likelihood decomposes even further, as a product of the likelihoods for the individual multinomial distributions $P(X\mid\mathrm{pa}_{X_{i}})$ . This decomposition plays a central role in both maximum likelihood and Bayesian estimation, since it allows us to decompose the estimation problem and treat each of these CPDs or even each of the individual multinomials separately. 
+>  两种估计方法的中心概念都是似然函数，它表示了特定参数选择下数据的出现概率
+>  BN 的似然函数的关键性质是它可以分解为对应于单个变量的多个局部似然函数的乘积
+>  如果使用 table-CPD，局部似然函数还可以进一步分解为关于各个独立多项式分布 $P(X\mid \text{pa}_{X_i})$ 的似然的乘积
+
+When the local likelihood has sufficient statistics, then learning is viewed as mapping values of the statistics to parameters. For networks with discrete variables, these statistics are counts of the form $M[x_{i},\mathrm{pa}_{X_{i}}]$ . Thus, learning requires us to collect these for each combination $x_{i},\mathrm{pa}_{X_{i}}$ of a value of $X_{i}$ and an instantiation of values to its parents. We can collect all of these counts in one pass through the data using a data structure whose size is proportional to the representation of the network, since we need one counter for each CPD entry. 
+>  局部似然函数具有充分统计量时，学习问题就是将统计量的值映射到参数值
+>  对于关于离散变量的网络，这些统计量就是形式为 $M[x_i, \text{pa}_{X_i}]$ 的计数，收集这些计数仅需要对数据进行一次遍历即可
+
+Once we collect the sufficient statistics, the estimate of both methods is similar. The MLE estimate for table-CPDs has a simple closed form: 
+
+$$
+\hat{\theta}_{x_{i}\mid\mathrm{pa}_{X_{i}}}=\frac{M[x_{i},\mathrm{pa}_{X_{i}}]}{M[\mathrm{pa}_{X_{i}}]}.
+$$ 
+The Bayesian estimate is based on the use of a Dirichlet distribution, which is a conjugate prior to the multinomial distribution. In a conjugate prior, the posterior — which is proportional to the prior times the likelihood — has the same form as the prior. This property allows us to maintain posteriors in closed form. In particular, for a discrete Bayesian network with table-CPDs and a Dirichlet prior, the posterior of the local likelihood has the form 
+
+$$
+P(x_{i}\mid\mathrm{pa}_{X_{i}},D)=\frac{M[x_{i},\mathrm{pa}_{X_{i}}]+\alpha_{x_{i}\mid\mathrm{pa}_{X_{i}}}}{M[\mathrm{pa}_{X_{i}}]+\alpha_{\mathrm{pa}_{X_{i}}}}.
+$$ 
+Since all we need in order to learn are the sufficient statistics, then we can easily adapt them to learn in an online setting, where additional training examples arrive. We simply store a vector of sufficient statistics, and update it as new instances are obtained. 
+
+>  对于离散的 BN 和 Table-CPDs：
+>  MLE 估计的形式如上
+>  Dirichlet 先验下的贝叶斯估计的形式如上，Dirichlet 先验和多项式分布共轭，此时后验也是 Dirichlet 分布
+>  我们进行学习所需要的全部资源就是充分统计量，在在线学习的情况下，我们只需要存储好数据集充分统计量，当额外训练样本达到时，将其更新即可
+
+In the more advanced sections, we saw that the same type of structure applies to other parameterizations in the exponential family. Each family deﬁnes the sufficient statistics we need to accumulate and the rules for ﬁnding the MLE parameters. We developed these rules for Gaussian CPDs, where again learning can be done using a closed-form analytical formula. 
+
+We also discussed networks where some of the parameters are shared, whether between CPDs or within a single CPD. We saw that the same properties described earlier — decomposition and sufficient statistics — allow us to provide an easy analysis for this setting. The likelihood function is now deﬁned in terms of sufficient statistics that aggregate statistics from different parts of the network. Once the sufficient statistics are deﬁned, the estimation procedures, whether MLE or Bayesian, are exactly the same as in the case without shared parameters. 
+
+Finally, we examined the theoretical foundations of learning. We saw that parameter estimates are asymptotically correct in the following sense. If the data are actually generated from the given network structure, then, as the number of samples increases, both methods converge to the correct parameter setting. If not, then they converge to the distribution with the given structure that is “closest” to the distribution from which the data were generated. We further analyzed the rate at which the estimates converge. As $M$ grows, we see a concentration phenomenon ; for most samples, the empirical distribution is in a close neighborhood of the true distribution. Thus, the chances of sampling a data set in which the MLE estimates are far from the true parameters decays exponentially with $M$ . This analysis allowed us to provide a PAC-bound on the number of samples needed to obtain a distribution that is “close” to optimal. 
