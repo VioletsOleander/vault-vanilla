@@ -1,4 +1,4 @@
-# Intruduction
+# Introduction
 
 问题领域：
 Interpreting and debugging machine learning models
@@ -7,7 +7,7 @@ Interpreting and debugging machine learning models
 
 意义：
 Ensure the robustness of machine learning models
-robustness: stability, generlization 
+robustness: stability, generalization 
 文中含义是指模型对特征值离群的样本也保持良好的预测性能
 <br>
 作者提出的两个模型(算法流程)：
