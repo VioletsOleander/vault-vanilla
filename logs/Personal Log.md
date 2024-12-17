@@ -541,11 +541,64 @@ Date: 2024.12.2-2024.12.9
 
 ### Week 3
 Date: 2024.12.9-2024.12.16
+
 \[Paper\]
-- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
-    
+- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec1-Sec3
+    Sec1-Introduction
+        ONNX defines a unified format to represent DL models
+        DL hardware can be divided into three categories: 1. general-purpose 2. dedicated 3. neuromorphic
+        DL compiler aims to alleviate the burden of optimizing DL models on each DL hardware manually. DL compiler includes TVM, Tensor Comprehension, nGraph, Glow, XLA.
+        DL compiler takes model description in DL frameworks as input and output the optimized code implementation of this model for DL hardware. The optimization is specific to model specification and hardware architecture.
+        DL compiler also adopts layered design, including frontend, IR, backend, but the IR has multiple levels.
+    Sec2-Background
+        Deep Learning Frameworks
+        TensorFlow employs a dataflow graph of primitive operators extended with restricted control edges.
+        Keras is TensorFlow's frontend, written in pure Python.
+        PyTorch embeds primitives for constructing dynamic dataflow graph in Python, where the control flow is executed by the Python interpreter.
+        FastAI is PyTorch's frontend.
+        ONNX defines a scalable computation graph model.
+        Deep Learning Hardware
+        TPU includes Matrix Multiplier Unit, Unified Buffer, and Activation Unit. MXU mainly consists of a systolic array. TPU is programmable but use matrix as primitive instead of vector or scalar.
+        Hardware-specific DL Code Generator
+        FPGA lies between CPUs/GPUs and ASIC. HLS programming model provides C/C++ programming interface to program FPGA. However, the DL model is usually described by the languages of DL framework instead of bare C/C++. Thus mapping DL models to FPGA remains a complicated work.
+        The hardware-specific code generator targeting FPGA take DL model as input, output HLS or Verilog/VHDL. Based on the generated architecture of FPGA-based accelerators, the code generator can be classified as the processor architecture specific or the streaming architecture specific.
+        The processor architecture FPGA accelerator comprises of several Processing Units, which are comprised of on-chip buffer and multiple smaller Processing Engines. The DL code generator targeting this architecture adopt hardware templates to generate the accelerator design automatically. The number of PUs and the number of PEs per PU are important template parameter. Tiling size and batch size are also essential scheduling parameters about mapping DL models to PUs and PEs. All these parameters are usually determined by design space exploration.
+        The streaming architecture FPGA accelerator comprises of multiple different hardware blocks, and usually have one block for each layer of the input Dl model. All hardware block can be utilized in a pipeline manner with streaming input data.
+    Sec3-Common Design Architectures of DL Compilers
+        DL model will be translated into multi-level IRs by the DL compiler, where the high level IR resides on the frontend and the low-level IR resides on the backend. The high-level IR is associated with hardware-independent optimizations and transformations, and the low-level IR is associated with the hardware-specific optimizations and transformations.
+        The high-level IR is also known as the graph IR, which represents hardware-independent computation and control flow. It establishes the control flow and the dependency between the operators and the data. It provides an interface for graph-level optimization.
+        Low-level IR is fine-grained enough to reflect the hardware characteristics. Low-level IR should allow the usage of third-party tool-chains in compiler backends.
+        The frontend takes DL model as input and output graph IR. The optimization on graph IR can be classified into: node-level, block-level, dataflow-level. The optimized computation graph will be passed to the backend.
+        The backend takes graph IR as input and output low-level IR. The backend can directedly convert graph IR into third party toolchains' IR like LLVM IR for general purpose code generation and optimization. The backend can also use customized compilation pass to do better. The commonly-applied hardware-specific optimizations include hardware intrinsic mapping, memory allocation and fetching, memory latency hiding, parallelization, loop oriented optimization.
+        Existing backend uses auto-scheduling and auto-tuning to determine the optimal parameter setting.
+        Low-level IR can be compiler JIT or AOT.
 \[Book\]
-- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH17.4, CH19, CH20
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH17.4, CH19.1-CH19.2, CH20.1-CH20.3
+    CH17-Parameter Estimation
+        CH17.4-Bayesian Parameter Estimation in Bayesian Networks
+            Global parameter independence: each CPDs' parameter's prior is independent from each other. Thus the prior of the whole parameter has a fully decomposed form.
+            If global parameter independence holds, then complete data d-separates each CPDs' parameter, which in turn indicates that the posterior of the whole parameter had a fully decomposed form.
+            According to Bayes rule, the parameter's posterior can be rewritten as the product of the likelihood function and the prior divided by the marginal probability of the data set. The likelihood function can be decomposed into the product of local likelihoods and the prior can be decomposed into the product of local priors (with global parameter independence holds). Therefore the posterior also has a fully decomposed form. The fully decomposed form can also be directly derived from the meta-Bayesian network.
+            To do prediction, we need to integrate over all legal parameter values to calculate the posterior probability. If the data is IID, and the global parameter independence holds, then the calculation can be factorized into a product of local integration associated with each CPD.
+            Therefore, what we need to do is solve the local Bayesian estimation problem independently and combine them into the global one.
+            Local parameter independence indicates that the local prior can be further factorized according to the parent variables' assignment.
+            If the CPDs are not multinominal CPDs, we may not have a conjugate prior or a closed-form integral for the Bayesian integral. When a full Bayesian solution is impractical, we may resort to maximum a posterior estimation. If we have a large amount of data, the posterior is often sharply peaked around its maximum, therefore in this case the Bayesian integral is roughly equivalent to the MAP estimation.
+            MAP estimation can also be viewed as provide regularization over the likelihood function. The regularization term's effect will diminish with the increase of the number of samples.
+            MAP estimation can be used in practice, because we will usually choose a well formed prior.
+    CH19-Partially Observed Data
+        CH19.1-Foundations
+            To analyze the probabilistic model of the observed training set, we must consider not only the data-generation mechanism, but also the mechanism by which data are hidden. Every observation is derived by the combination of the two mechanisms.
+            If the outcome variables and the observation variables are marginally independent, then we say the data missing model is missing completely at random. In this situation, the whole likelihood can be decomposed as the product of the likelihood of the outcome variables and the likelihood of the observations variables. We can maximize the likelihood of interest independently.
+            Given the observed outcome variables, if the hidden outcome variables and the observation variables are conditionally independent, then we say the data missing model is missing at random. In this situation, we can also decompose the likelihood, and use only the observed variables to optimize the parameters of the outcome distribution.
+            However, in general, the likelihood function of the observation is a sum of likelihood function of the observation with all possible hidden assignments, each of which defines a unimodal function. Thus the likelihood function with incomplete data is a multimodal function and takes the form of "a mixture of peaks".
+            Thus the likelihood function is not decomposable again, and will be hard to optimize.
+        CH19.2-Parameter Estimation
+        CH20-Learning Undirected Models
+
+### Week 4
+Date:
+
+\[Book\]
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
 
 \[Doc\]
