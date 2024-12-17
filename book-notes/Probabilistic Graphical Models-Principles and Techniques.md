@@ -2735,7 +2735,7 @@ Factor graphs make explicit the structure of the factors in the network. For exa
 > 两个分布的 Markov 网络相同时，其因子图可以不同，可以根据其因子图确认其因子分解的形式
 
 #### 4.4.1.2 Log-Linear Models 
-Although factor graphs make certain types of structure more explicit, they still encode factors as complete tables over the scope of the factor. As in Bayesian networks, factors can also exhibit a type of context-speciﬁc structure — patterns that involve particular values of the variables. These patterns are often more easily seen in terms of an alternative parameteriz ation of the factors that converts them into log-space. 
+Although factor graphs make certain types of structure more explicit, they still encode factors as complete tables over the scope of the factor. As in Bayesian networks, factors can also exhibit a type of context-speciﬁc structure — patterns that involve particular values of the variables. These patterns are often more easily seen in terms of an alternative parameterization of the factors that converts them into log-space. 
 > 因子图依旧用表格的形式表示因子
 > 在贝叶斯网络中，我们讨论了 CPD 的特定上下文中的结构，也就是在特定变量有特定赋值时的情况
 > 在因子的另一种参数化形式：将其转化到对数空间时，这类模式也非常常见
@@ -11635,31 +11635,46 @@ The approach we often take is the one described in section 16.2.1, where we meas
 More surprisingly, we also see that the MLE achieves the poorest results, a consequence of its extreme sensitivity to the speciﬁc training data used. The lowest error is achieved with a very weak prior — $\alpha\,=\,5$ — which is enough to provide smoothing. As the strength of the prior grows, it starts to introduce a bias, not giving the data enough importance. Thus, the error of the estimated probability increases. However, we also note that the efect of the prior, even for $\alpha=50$ , disappears reasonably soon, and all of the approaches converge to the same line. Interestingly, the different Bayesian approaches converge to this line long before the MLE approach. Thus, at least in this example, an overly strong bias provided by the prior is still a better compromise than the complete lack of smoothing of the MLE approach. 
 
 ### 17.4.4 MAP Estimation\*
-MAP estimation Our discussion in this chapter has focused solely on Bayesian estimation for multinomial CPDs. Here, we have a closed form solution for the integral required for Bayesian prediction, and thus we can perform it efciently. In many other representations, the situation is not so simple. In some cases, such as the noisy-or model or the logistic CPDs of section 5.4.2, we do not have a conjugate prior or a closed-form solution for the Bayesian integral. In those cases, Bayesian prediction requires numerical solutions for high-dimensional integrals. In other settings, such as the linear Gaussian CPD, we do have a conjugate prior (the normal-Gamma distribution ), but we may prefer other priors that ofer other desirable properties (such as the sparsity-inducing Laplacian prior described in section 20.4.1). 
+Our discussion in this chapter has focused solely on Bayesian estimation for multinomial CPDs. Here, we have a closed form solution for the integral required for Bayesian prediction, and thus we can perform it effciently. In many other representations, the situation is not so simple. In some cases, such as the noisy-or model or the logistic CPDs of section 5.4.2, we do not have a conjugate prior or a closed-form solution for the Bayesian integral. In those cases, Bayesian prediction requires numerical solutions for high-dimensional integrals. In other settings, such as the linear Gaussian CPD, we do have a conjugate prior (the normal-Gamma distribution ), but we may prefer other priors that offer other desirable properties (such as the sparsity-inducing Laplacian prior described in section 20.4.1). 
+>  目前我们仅讨论了对于多项式 CPDs 的贝叶斯估计，在该情况下，我们可以求解积分的闭式解
+>  但在其他情况下，例如 noisy-or, logistic CPDs，我们的贝叶斯积分并不存在一个共轭先验或闭式解，此时的贝叶斯估计需要对高维积分求数值解
+>  还有一些情况，例如线性高斯 CPD，其贝叶斯积分存在共轭先验 (normal-Gamma 分布)，但我们可能会选择具有其他性质的其他先验 (例如拉普拉斯先验的稀疏引导性)
 
 When a full Bayesian solution is impractical, we can resort to using maximum a posteriori (MAP) estimation . Here, we search for parameters that maximize the posterior probability : 
 
 $$
-{\tilde{\theta}}=\arg\operatorname*{max}_{\theta}\log P(\theta\mid{\mathcal{D}}).
+{\tilde{\pmb \theta}}=\arg\operatorname*{max}_{\pmb \theta}\log P(\pmb \theta\mid{\mathcal{D}}).
 $$ 
+>  当不能求出完整的后验时，我们会考虑求解最大后验估计，也就是寻找能最大化参数后验概率的参数值
 
 When we have a large amount of data, the posterior is often sharply peaked around its maximum $\tilde{\theta}$ . In this case, the integral 
 
 $$
-P(X[M+1]\mid\mathcal{D})=\int P(X[M+1]\mid\theta)P(\theta\mid\mathcal{D})d\theta
-$$ 
+P(X[M+1]\mid\mathcal{D})=\int P(X[M+1]\mid\pmb \theta)P(\pmb \theta\mid\mathcal{D})d\pmb \theta
+$$
 
-regularization will be roughly $P(X[M+1]\mid\tilde{\pmb\theta})$ . More generally, we can view the MAP estimate as a way of using the prior to provide regularization over the likelihood function: 
+will be roughly $P(X[M+1]\mid\tilde{\pmb\theta})$ . 
+
+>  如果数据量很大，后验一般在其最大值 $\tilde {\pmb \theta}$ 附近具有尖峰，此时我们直接根据后验积分的结果可以粗略视为条件于最大值参数 $\tilde {\pmb \theta}$
+
+More generally, we can view the MAP estimate as a way of using the prior to provide regularization over the likelihood function: 
 
 $$
 \begin{array}{r c l}{\arg\operatorname*{max}_{\boldsymbol{\theta}}\log P(\boldsymbol{\theta}\mid\mathcal{D})}&{=}&{\arg\operatorname*{max}_{\boldsymbol{\theta}}\log\left(\displaystyle\frac{P(\boldsymbol{\theta})P(\mathcal{D}\mid\boldsymbol{\theta})}{P(\mathcal{D})}\right)}\\ &{=}&{\arg\operatorname*{max}_{\boldsymbol{\theta}}\left(\log P(\boldsymbol{\theta})+\log P(\mathcal{D}\mid\boldsymbol{\theta})\right).}\end{array}
-$$ 
+$$
 
-That is, $\tilde{\pmb{\theta}}$ is the maximum of a function that sums together the log-likelihood function and $\log{P(\theta)}$ . This latter term takes into account the prior on different parameters and therefore biases the parameter estimate away from undesirable parameter values (such as those involving conditional probabilities of 0 ) when we have few learning instances. When the number of samples is large, the efect of the prior becomes negligible, since $\ell(\pmb\theta:{\mathcal D})$ grows linearly with the number of samples whereas the prior does not change. 
+That is, $\tilde{\pmb{\theta}}$ is the maximum of a function that sums together the log-likelihood function and $\log{P(\pmb \theta)}$ . This latter term takes into account the prior on different parameters and therefore biases the parameter estimate away from undesirable parameter values (such as those involving conditional probabilities of 0 ) when we have few learning instances. When the number of samples is large, the effect of the prior becomes negligible, since $\ell(\pmb\theta:{\mathcal D})$ grows linearly with the number of samples whereas the prior does not change. 
+
+>  我们可以将极大后验估计视作使用先验为似然函数提供正则化
+>  也就是说，最优值 $\tilde {\pmb \theta}$ 是能最大化对数似然函数和 $\log P(\pmb \theta)$ 的和的参数，显然后一项就是将参数先验纳入考虑，进而在训练样本较少时将参数估计进行偏置
+>  当训练样本较大时，先验的影响就可以忽略，因为似然函数随着样本数量线性增大，而先验则不变
 
 Because our parameter priors are generally well behaved, MAP estimation is often no harder than maximum likelihood estimation, and is therefore often applicable in practice, even in cases where Bayesian estimation is not. Importantly, however, it does not ofer all of the same beneﬁts as a full Bayesian estimation. In particular, it does not attempt to represent the shape of the posterior and thus does not differentiate between a ﬂat posterior and a sharply peaked one. As such, it does not give us a sense of our conﬁdence in different aspects of the parameters, and the predictions do not average over our uncertainty. This approach also sufers from issues regarding representation independence; see box 17.D. 
+>  因为我们往往选择性质较好的先验，故极大后验估计一般不会比 MLE 估计难，故在实践中可以使用
+>  但极大后验估计并没有带来贝叶斯估计的全部好处，特别地，它并不尝试表示后验的形状，因此极大后验估计并不会带来关于在平坦的后验和尖峰的后验之间的差异信息，进而它不会告诉我们关于参数的各个值的信心
 
-Box 17.D — Concept: Representation Independence. One important property we may want of an estimator is representation independence . To understand this concept better, suppose that in our thumbtack example, we choose to use a parameter $\eta$ , so that $\textstyle P^{\prime}(X=H\mid\eta)={\frac{1}{1+e^{-\eta}}}$ . We have that $\begin{array}{r}{\eta=\log\frac{\theta}{1-\theta}}\end{array}$ wher $\theta$ is the parameter we used earlier. Thus, there is a one-to-one − correspondence between a choice θ and a choice $\eta$ . Although one choice of parameters might seem more natural to us than another, there is no formal reason why we should prefer one over the other, since both can represent exactly the same set of distributions. 
+Box 17.D — Concept: Representation Independence. 
+One important property we may want of an estimator is representation independence . To understand this concept better, suppose that in our thumbtack example, we choose to use a parameter $\eta$ , so that $\textstyle P^{\prime}(X=H\mid\eta)={\frac{1}{1+e^{-\eta}}}$ . We have that $\begin{array}{r}{\eta=\log\frac{\theta}{1-\theta}}\end{array}$ wher $\theta$ is the parameter we used earlier. Thus, there is a one-to-one − correspondence between a choice θ and a choice $\eta$ . Although one choice of parameters might seem more natural to us than another, there is no formal reason why we should prefer one over the other, since both can represent exactly the same set of distributions. 
 
 More generally, a re parameter iz ation of $^a$ given family is a new set of parameter values $\eta$ in $^a$ space $\Upsilon$ and a mapping from the new parameters to the original one, that is, from $\eta$ to $\theta(\eta)$ so that $P(\cdot\mid\eta)$ in the new parameter iz ation is equal to $P(\cdot\mid\theta(\eta))$ in the original parameter iz ation. In addition, we require that the re parameter iz ation maintain the same set of distributions, that is, for each choice of $\theta$ there is $\eta$ such that $P(\cdot\mid\eta)=P(\cdot\mid\theta)$ . 
 
@@ -11672,7 +11687,6 @@ The situation with Bayesian inference is subtler. Here, instead of identifying t
 $$
 P(A)=P(\{\pmb\theta(\eta):\eta\in A\}),\;\forall A\subset\Upsilon.
 $$ 
-
 This constraint implies that the prior over different regions of parameters is maintained. Under this assumption, Bayesian prediction will be identical under the two parameter iz at ions. 
 
 We illustrate the notion of a reparameterized prior in the context of a Bernoulli distribution: 
@@ -11682,13 +11696,11 @@ Example 17.9 Consider a Beta prior over the parameter $\theta$ of a Bernoulli di
 $$
 P(\theta:\alpha_{0},\alpha_{1})=c\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1},
 $$ 
-
 where $c$ is the normalizing constant described in deﬁnition 17.3. Recall (example 8.5) that the natural parameter for a Bernoulli distribution is 
 
 $$
 \eta=\log{\frac{\theta}{1-\theta}}
 $$ 
-
 with the transformation 
 
 $$
@@ -11700,19 +11712,16 @@ What is the prior distribution on $\eta$ ? To preserve the probability of events
 $$
 \int_{a}^{b}c\theta^{\alpha_{1}-1}(1-\theta)^{\alpha_{0}-1}d\theta=\int_{\log\frac{a}{1-a}}^{\log\frac{b}{1-b}}P(\eta)d\eta.
 $$ 
-
 To do so, we need to perform a change of variables. Using the relation between $\eta$ and $\theta$ , we get 
 
 $$
 d\eta=\frac{1}{\theta(1-\theta)}d\theta.
 $$ 
-
 Plugging this into the equation, we can verify that an appropriate prior is: 
 
 $$
 P(\eta)=c\left(\frac{1}{1+e^{-\eta}}\right)^{\alpha_{1}}\left(\frac{1}{1+e^{\eta}}\right)^{\alpha_{0}},
 $$ 
-
 where $c$ is the same constant as before. This means that the prior on $\eta$ , when stated in terms of $\theta$ , is $\theta^{\alpha_{1}}(1-\theta)^{\alpha_{0}}$ , in contrast to equation (17.16). At ﬁrst this disc pancy seems like a contradiction. However, we have to remember that the transformation from θ to $\eta$ takes the region $[0,1]$ and stretches it to the whole real line. Thus, the matching prior cannot be uniform. 
 
 This example demonstrates that a uniform prior, which we consider to be unbiased or uninfor- mative, can seem very different when we consider a different parameter iz ation. 
@@ -11724,19 +11733,16 @@ Consider the setting of example $l7.9$ and develop the MAP parameters for the pr
 $$
 \tilde{\pmb\theta}=\arg\operatorname*{max}_{\pmb\theta}\log P(\theta)=\frac{\alpha_{1}-1}{\alpha_{0}+\alpha_{1}-2}.
 $$ 
-
 On the other hand, 
 
 $$
 \tilde{\eta}=\arg\operatorname*{max}_{\eta}\log P(\eta)=\log\frac{\alpha_{1}}{\alpha_{0}}.
 $$ 
-
 To compare the two, we can transform $\tilde{\eta}$ to $\theta$ representation and ﬁnd 
 
 $$
 \theta(\tilde{\eta})=\frac{\alpha_{1}}{\alpha_{0}+\alpha_{1}}.
 $$ 
-
 In other words, the MAP of the $\eta$ parameterization gives the same predictions as the mean parameterization if we do the full Bayesian inference. 
 
 Thus, MAP estimation is more sensitive to choices in formalizing the likelihood and the prior than MLE or full Bayesian inference. This suggests that the MAP parameters involve, to some extent, an arbitrary choice. Indeed, we can bias the MAP toward different solutions if we construct a speciﬁc re parameterization where the density is particularly large in speciﬁc regions of the parameter space. The parameterization dependency of MAP is a serious caveat we should be aware of. 
@@ -11778,3 +11784,2187 @@ In the more advanced sections, we saw that the same type of structure applies to
 We also discussed networks where some of the parameters are shared, whether between CPDs or within a single CPD. We saw that the same properties described earlier — decomposition and sufficient statistics — allow us to provide an easy analysis for this setting. The likelihood function is now deﬁned in terms of sufficient statistics that aggregate statistics from different parts of the network. Once the sufficient statistics are deﬁned, the estimation procedures, whether MLE or Bayesian, are exactly the same as in the case without shared parameters. 
 
 Finally, we examined the theoretical foundations of learning. We saw that parameter estimates are asymptotically correct in the following sense. If the data are actually generated from the given network structure, then, as the number of samples increases, both methods converge to the correct parameter setting. If not, then they converge to the distribution with the given structure that is “closest” to the distribution from which the data were generated. We further analyzed the rate at which the estimates converge. As $M$ grows, we see a concentration phenomenon ; for most samples, the empirical distribution is in a close neighborhood of the true distribution. Thus, the chances of sampling a data set in which the MLE estimates are far from the true parameters decays exponentially with $M$ . This analysis allowed us to provide a PAC-bound on the number of samples needed to obtain a distribution that is “close” to optimal. 
+
+# 19 Partially Observed Data 
+Until now, our discussion of learning assumed that the training data are fully observed : each instance assigns values to all the variables in our domain. This assumption was crucial for some of the technical developments in the previous two chapters. Unfortunately, this assumption is clearly unrealistic in many settings. In some cases, data are missing by accident; for example, some ﬁelds in the data may have been omitted in the data collection process. In other cases, certain observations were simply not made; in a medical-diagnosis setting, for example, one never performs all possible tests or asks all of the possible questions. Finally, some variables are hidden , in that their values are never observed. For example, some diseases are not observed directly, but only via their symptoms. 
+>  目前为止，我们都假设训练数据是完全被观察到的，也就是作用域中每个变量的实例值都知道
+>  但存在例外情况，例如数据的某些域丢失了或没有观察到，又或者某些变量本身是因变量，是不会被观察到的 (例如一些疾病不会被直接被观测到，而是通过其症状推测)
+
+In fact, in many real-life applications of learning, the available data contain missing values. Hence, we must address the learning problem in the presence of incomplete data . As we will see, incomplete data pose both foundational problems and computational problems. The foundational problems are in formulating an appropriate learning task and determining when we can expect to learn from such data. The computational problems arise from the complications incurred by incomplete data and the construction of algorithms that address these complications. 
+
+In the ﬁrst section, we discuss some of the subtleties encountered in learning from incomplete data and in formulating an appropriate learning problem. In subsequent sections, we examine techniques for addressing various aspects of this task. We focus initially on the parameter- learning task, assuming ﬁrst that the network structure is given, and then treat the more complex structure-learning question at the end of the chapter. 
+
+## 19.1 Foundations 
+### 19.1.1 Likelihood of Data and Observation Models 
+A central concept in our discussion of learning so far was the likelihood function that measures the probability of the data induced by different choices of models and parameters. The likelihood function plays a central role both in maximum likelihood estimation and in Bayesian learning. In these developments, the likelihood function was determined by the probabilistic model we are learning. Given a choice of parameters, the model deﬁned the probability of each instance. In the case of fully observed data, we assumed that each instance $\xi[m]$ in our training set $\mathcal{D}$ is simply a random sample from the model. 
+>  之前的讨论中，似然函数是由我们要学习的概率模型所决定的，给定参数选择，该模型定义了每个实例的概率
+>  当数据是完整的时，我们假设训练集 $\mathcal D$ 中的每个实例 $\xi[m]$ 都是一个来自于我们所要学习的模型的随机样本
+
+It seems straightforward to extend this idea to incomplete data. Suppose our domain consists of two random variables $X$ and $Y$ , and in one particular instance we observed only the value of $X$ to be $x[m]$ , but not the value of $Y$ . Then, it seems natural to assign the instance the probability $P(x[m])$ . More generally, the likelihood of an incomplete instance is simply the marginal probability given our model. Indeed, the most common approach to deﬁne the likelihood of an incomplete data set is to simply marginalize over the unobserved variables. 
+>  考虑推广到不完整数据，假设定义域包含两个随机变量 $X, Y$，观测到的不完整实例仅包含了 $X$ 的值 $x[m]$，此时，一个不完整实例的出现概率可以简单认为是 $x[m]$ 的边际概率 $P(x[m])$
+
+This approach, however, embodies some rather strong assumptions about the nature of our data. To learn from incomplete data, we need to understand these assumptions and examine the situation much more carefully. Recall that when learning parameters for a model, we assume that the data were generated according to the model, so that each instance is a sample from the model. **When we have missing data, the data-generation process actually involves two steps. In the ﬁrst step, data are generated by sampling from the model. In this step, values of all the variables are selected. The next step determines which values we get to observe and which ones are hidden from us. In some cases, this process is simple; for example, some particular variable may always be hidden.** In other situations, this process might be much more complex. 
+>  该方法实际上对数据的性质做了强假设
+>  注意我们在学习模型的参数时，基本假设是数据根据模型生成，而当数据存在缺失时，数据的生成过程实际上包括了两步：第一步是从模型中采样生成数据，该步中所有变量都得到实例值；第二步是决定哪些变量的值被隐藏/没有被观测到、哪些变量的值被观测到
+
+To analyze the probabilistic model of the observed training set, we must consider not only the data-generation mechanism, but also the mechanism by which data are hidden. Consider the following two examples. 
+>  因此，根据我们观测到的训练集分析该概率模型，我们需要同时考虑两点，即数据生成机制和数据隐藏机制
+
+Example 19.1 
+We ﬂip a thumbtack onto a table, and every now and then it rolls of the table. Since a fall from the table to the ﬂoor is quite different from our desired experimental setup, we do not use results from these ﬂips (they are missing). How would that change our estimation? The simple solution is to ignore the missing values and simply use the counts from the ﬂips that we did get to observe. That is, we pretend that missing ﬂips never happened. As we will see, this strategy can be shown to be the correct one to use in this case. 
+
+Example 19.2
+Now, assume that the experiment is performed by a person who does not like “tails” (because the point that sticks up might be dangerous). So, in some cases when the thumbtack lands “tails,” the experimenter throws the thumbtack on the ﬂoor and reports a missing value. However, if the thumbtack lands “heads,” he will faithfully report it. In this case, the solution is also clear. We can use our knowledge that every missing value is “tails” and count it as such. Note that this leads to very different likelihood function (and hence estimated parameters) from the strategy that we used in the previous case. 
+
+While this example may seem contrived, many real-life scenarios have very similar properties. For example, consider a medical trial evaluating the efficacy of a drug, but one where patients can drop out of the trial, in which case their results are not recorded. If patients drop out at random, we are in the situation of example 19.1; on the other hand, if patients tend to drop out only when the drug is not effective for them, the situation is essentially analogous to the one in this example. 
+
+Note that in both examples, we observe sequences of the form $H,T,H,?,T,?,\cdot\cdot\cdot,$ but nevertheless we treat them differently. The difference between these two examples is our knowledge about the observation mechanism. As we discussed, each observation is derived as a combination of two mechanisms: the one that determines the outcome of the ﬂip, and the one that determines whether we observe the ﬂip. Thus, our training set actually consists of two variables for each ﬂip: the ﬂip outcome $X$ , and the observation variable $O_{X}$ , which tells us whether we observed the value of $X$ . 
+>  在上面两个例子中，我们观测到的序列的形式都是一致的，即存在缺失值，但我们对待它们的方式是不同的，因为这些缺失值缺失的机制不同
+>  每个观测实际上都是两个机制的结合得到的：一个机制决定了原始的结果值，另一个机制决定了我们如何观测到它
+>  因此，在抛硬币的实例中，我们的训练集中，每次试验实际上包括了两个变量：
+>  抛掷结果变量 $X$ 和观测变量  $O_X$，观测变量告诉我们 $X$ 的值
+
+**Definition 19.1**
+Let $X\,=\,\{X_{1},.\,.\,.\,,X_{n}\}$ be some set of random variables, and let ${\cal O}_{X}\,=\,\{{\cal O}_{X_{1}},.\,.\,.\,,{\cal O}_{X_{n}}\}$ be their observability variable . The observability model is a joint distribution $P_{m i s s i n g}(X,{\cal O}_{X})\,=$ $P(X)\cdot P_{\mathit{m i s s i n g}}(O_{X}\mid X)$ , so that $P(X)$ is parameterized by parameters $\theta$ , and $P_{m i s s i n g}(O_{X}\mid X)$ is parameterized by parameters ψ . We deﬁne a new set of random variables $Y=\{Y_{1},.\,.\,.\,,Y_{n}\}$ , ere $V a l(Y_{i})=V a l(X_{i})\cup\{?\}$ . The actual observation is Y , which is a deterministic function of X and $O_{X}$ , 
+
+$$
+Y_{i}=\left\{\begin{array}{l l}{X_{i}}&{\qquad\phantom{X}O_{X_{i}}=o^{1}}\\ {?}&{\qquad\phantom{X}O_{X_{i}}=o^{0}.}\end{array}\right.
+$$ 
+The variables $Y_{1},\dots,Y_{n}$ represent the values we actually observe, either an actual value or a ? that represents a missing value. 
+
+>  令 $\pmb X = \{X_1, \dots, X_n\}$ 为一组随机变量，$O_{\pmb X} = \{O_{X_1}, \dots, O_{X_n}\}$ 为其观测变量
+>  观测模型是一个联合分布 $P_{missing}(\pmb X,  O_{\pmb X})=P(\pmb X)\cdot P_{missing}(O_{\pmb X}\mid \pmb X)$，其中 $P(\pmb X)$ 由 $\pmb \theta$ 参数化，$P_{missing}(O_{\pmb X}\mid \pmb X)$ 由 $\pmb \psi$ 参数化
+>  我们定义一组随机变量 $\pmb Y = \{Y_1, \dots, Y_n\}$，它表示我们的真实观测，其中 $Val(Y_i) = Val(X_i) \cup \{?\}$
+>  显然，真实观测是关于 $\pmb X$ 和 $O_{\pmb X}$ 的确定性函数，形式如上所示，其中 $?$ 表示观测到缺失值，$X_i$ 就表示观测到真实值
+
+Thus, we observe the $Y$ variable. This observation always implies that we know the value of the $O_{X}$ variables, and whenever $Y_{i}\ \ne\ ?,$ we also observe the value of $X_{i}$ . To illustrate the deﬁnition of this concept, we consider the probability of the observed value Y $Y$ in the two preceding examples. 
+>  我们观测到的是 $\pmb Y$ 变量，该观测表明了我们总是知道 $O_{\pmb X}$ 变量的值，而当 $Y_i \ne ?$ 时，我们也知道 $X_i$ 变量的值
+
+Example 19.3 
+In the scenario of example 19.1, we have a parameter $\theta$ that describes the probability of $X=1$ (Heads), and another parameter $\psi$ that describes the probability of $O_{X}=o^{1}$ . Since we assume that the hiding mechanism is random, we can describe this scenario by the meta-network of ﬁgure 19.1a. This network describes how the probability of different instances (shown as plates) depend on the parameters. As we can see, this network consists of two independent subnetworks. The ﬁrst relates the values of $X$ in the different examples to the parameter $\theta$ , and the second relates the values of $O_{X}$ to $\psi$ . 
+
+Recall from our earlier discussion that if we can show that $\theta$ and $\psi$ are independent given the evidence, then the likelihood decomposes into a product. We can derive this decomposition as follows. Consider the three values of $Y$ and how they could be attained. We see that 
+
+$$
+\begin{array}{r c l}{P(Y=1)}&{=}&{\theta\psi}\\ {P(Y=0)}&{=}&{(1-\theta)\psi}\\ {P(Y=?)}&{=}&{(1-\psi).}\end{array}
+$$
+
+Thus, if we see a data set $\mathcal{D}$ of tosses with $M[1]$ , $M[0]$ , and $M[?]$ instances that are Heads, Tails, and ?, respectively, then the likelihood is 
+
+$$
+L(\theta,\psi:\mathcal{D})=\theta^{M[1]}(1-\theta)^{M[0]}\psi^{M[1]+M[0]}(1-\psi)^{M[\natural]}.
+$$ 
+As we expect, the likelihood function in this example is a product of two functions: a function of $\theta$ , and a function of $\psi$ . We can easily see that the maximum likelihood estimate of $\theta$ is $\begin{array}{r}{\frac{M[1]}{M[1]+M[0]}}\end{array}$ , while the maximum likelihood estimate of $\psi$ is $\begin{array}{r}{\frac{M[1]+M[0]}{M[1]+M[0]+M[?]}}\end{array}$ . 
+
+We can also reach the conclusion regarding independence using a more qualitative analysis. At ﬁrst glance, it appears that observing $Y$ activates the $\nu$ -structure between $X$ and $O_{X}$ , rendering them dependent. However, the CPD of $Y$ has a particular structure, which induces context-speciﬁc independence. In particular, we see that $X$ and $O_{X}$ are conditionally independent given both values of $Y$ : when $Y=2,$ then $O_{X}$ necessarily $o^{0}$ , in which case the edge $X\rightarrow Y$ is spurious (as in deﬁnition 5.7); if $Y\neq ?,$ then Y deterministically establishes the values of both X and $O_{X}$ , in which case they are independent. 
+
+Example 19.4 
+Now consider the scenario of example 19.2. Recall that in this example, the missing values are a consequence of an action of the experimenter after he sees the outcome of the toss. Thus, the probability of missing values depends on the value of $X$ . To deﬁne the likelihood function, suppose $\theta$ is the probability of $X\,=\,1$ . The observation parameters $\psi$ consist of two values: $\psi_{O_{X}|x^{1}}$ is probability $O_{X}=o^{1}$ when $X=1$ , and $\psi_{O_{X}|x^{0}}$ is the probability of $O_{X}=o^{1}$ when $X=0$ . 
+
+We can describe this scenario by the meta-network of ﬁgure 19.1b. In this network, $O_{X}$ depends directly on $X$ . When we get an observation $Y=2,$ we essentially observe the value of $O_{X}$ but not of $X$ . In this case, due to the direct edge between $X$ and $O_{X}$ , the context-speciﬁc independence properties of $Y$ do not help: $X$ and $O_{X}$ are correlated, and therefore so are their associated parameters. Thus, we cannot conclude that the likelihood decomposes. 
+
+Indeed, when we examine the form of the likelihood, this becomes apparent. Consider the three values of $Y$ and how they could be attained. We see that 
+
+$$
+\begin{array}{l c l}{P(Y=1)}&{=}&{\theta\psi_{O_{X}|x^{1}}}\\ {P(Y=0)}&{=}&{(1-\theta)\psi_{O_{X}|x^{0}}}\\ {P(Y=\?)}&{=}&{\theta(1-\psi_{O_{X}|x^{1}})+(1-\theta)(1-\psi_{O_{X}|x^{0}}).}\end{array}
+$$
+
+And so, if we see a data set $\mathcal{D}$ of tosses with $M$ [1] , $M[0],$ , and $M[\AA]$ instances that are Heads, Tails, and ?, respectively, then the likelihood is 
+
+$$
+\begin{array}{r l}{\lefteqn{L(\theta,\psi_{O_{X}|x^{1}},\psi_{O_{X}|x^{0}}:\mathcal{D})}}\\ &{=\phantom{\psi_{O_{X}|x^{1}},}\theta^{M[1]}(1-\theta)^{M[0]}\psi_{O_{X}|x^{1}}^{M[1]}\psi_{O_{X}|x^{0}}^{M[0]}}\\ &{\hphantom{=}(\theta(1-\psi_{O_{X}|x^{1}})+(1-\theta)(1-\psi_{O_{X}|x^{0}}))^{M[\mathcal{I}]}.}\end{array}
+$$ 
+
+As we can see, the likelihood function in this example is more complex than the one in the previous example. In particular, there is no easy way of decoupling the likelihood of $\theta$ from the likelihood of $\psi_{O_{X}|x^{1}}$ and $\psi_{O_{X}|x^{0}}$ . This makes sense, since different values of these parameters imply different possible values of $X$ when we see a missing value and so affect our estimate of $\theta$ ; see exercise 19.1. 
+
+### 19.1.2 Decoupling of Observation Mechanism 
+As we saw in the last two examples, modeling the observation variables, that is, the process that generated the missing values, can result in nontrivial modeling choices, which in some cases result in complex likelihood functions. Ideally, we would hope to avoid dealing with these issues and instead focus on the likelihood of the process that we are interested in (the actual random variables). When can we ignore the observation variables? In the simplest case, the observation mechanism is completely independent of the domain variables. This case is precisely the one we encountered in example 19.1. 
+>  将观测变量纳入考虑会使得似然函数变得复杂
+>  在以下的情况中 (观测变量独立于领域变量)，我们可以不考虑观测变量，直接建模真实的随机变量
+
+**Deﬁnition 19.2 missing completely at random** 
+A missing data model $P_{m i s s i n g}$ is missing completely at random (MCAR) if ${}^{\cdot}P_{m i s s i n g}\models(X\perp O_{X}).$
+
+>  定义
+>  缺失数据模型 $P_{missing}$ 如果满足 $P_{missing} \vDash (\pmb X \perp O_{\pmb X})$ 时，称它是完全随机缺失的
+
+In this case, the likelihood of $X$ and $O_{X}$ decomposes as a product, and we can maximize each part separately. We have seen this decomposition in the likelihood function of example 19.3. The implications of the decoupling is that we can maximize the likelihood of the parameters of the distribution of $X$ without considering the values of the parameters governing the distribution of $O_{X}$ . Since we are usually only interested in the former parameters, we can simply ignore the later parameters. 
+>  在该情况下，数据集的似然分解为关于 $\pmb X$ 和 $O_{\pmb X}$ 的似然的乘积，我们可以分别最大化它们，也就是说我们对于参数 $\pmb \theta$ 和参数 $\pmb \psi$ 的优化过程是独立的
+>  因为我们实际只关心参数 $\pmb \theta$，我们可以直接忽略参数 $\pmb \psi$
+
+The MCAR assumption is a very strong one, but it holds in certain settings. For example, momentary sensor failures in medical/scientiﬁc imaging (for example, ﬂecks of dust) are typically uncorrelated with the relevant variables being measured, and they induce MCAR observation models. Unfortunately, in many other domains the MCAR simply does not hold. For example, in medical records, the pattern of missing values owes to the tests the patient underwent. These, however, are determined by some of the relevant variables, such as the patient’s symptoms, the initial diagnosis, and so on. 
+>  MCAR（完全随机缺失）假设是一个非常强的假设，但在某些情况下确实成立。例如，在医学/科学成像中的瞬时传感器故障（比如尘埃斑点）通常与所测量的相关变量无关，这种故障会导致MCAR观察模型。不幸的是，在许多其他领域中，MCAR假设并不成立。例如，在医疗记录中，缺失值的模式取决于患者接受的检测。然而，这些检测是由一些相关变量决定的，比如患者的症状、初步诊断等。
+
+As it turns out, MCAR is sufficient but not necessary for the decomposition of the likelihood function. We can provide a more general condition where, rather than assuming marginal independence between $O_{X}$ and the values of $X$ , we assume only that the observation mechanism is conditionally independent of the underlying variables given other observations. 
+>  MCAR 实际上对于似然函数的分解是充分条件而不是必要条件
+>  把条件放宽，我们可以假设给定其他实例变量 $X_j$，$O_{X_i}$ 条件独立于 $X_i$
+
+Example 19.5 
+for the corresponding model. In this case, $P_{m i s s i n g}\models(O_{X_{2}}\ \bot\ X_{2}\ |\ X_{1})$ . In other words, the true values of both coins are independent of whether they are hidden or not, given our observations. 
+
+To understand the issue better, let us write the model and likelihood explicitly. Because we assume that the two coins are independent, we have two parameters $\theta_{X_{1}}$ and $\theta_{X_{2}}$ for the probability of the two coins. In this example, the ﬁrst coin is always observed, and the observation of the second one depends on the value of the ﬁrst. Thus, we have parameters $\psi_{O x_{2}|x_{1}^{1}}$ and $\psi_{O_{X_{2}}|x_{1}^{0}}$ that represent the probability of observing $X_{2}$ given that $X_{1}$ is heads or tails, respectively. 
+
+To derive the likelihood function, we need to consider the probability of all possible observations. There are six possible cases, which fall in two categories. 
+
+In the ﬁrst category are the four cases where we observe both coins. By way of example, consider the observation $Y_{1}\,=\,y_{1}^{1}$ and $Y_{2}\,=\,y_{2}^{0}$ . The probability of this observation is clearly $P(X_{1}=$ $x_{1}^{1},X_{2}=x_{2}^{0},O_{X_{1}}=o^{1},O_{X_{2}}=o^{1})$ ) . Using our modeling assumption, we see that this is simply the product $\theta_{X_{1}}(1-\theta_{X_{2}})\psi_{O_{X_{2}}|x_{1}^{1}}$ . 
+
+In the second category are the two cases where we observe only the ﬁrst coin. By way of example, consider the observation $Y_{1}=y_{1}^{1},Y_{2}=z.$ ?. The probability of this observation is $P(X_{1}=$ $x_{1}^{1},O_{X_{1}}=o^{1},O_{X_{2}}=o^{0})$ ) . Note that the value of $X_{2}$ does not play a role here. This probability is simply the product $\theta_{X_{1}}(1-\psi_{O_{X_{2}}|x_{1}^{1}})$ . 
+
+If we write all six possible cases and then rearrange the products, we see that we can write the likelihood function as 
+
+$$
+\begin{array}{l c l}{{{\cal L}(\pmb{\theta}:\mathcal{D})}}&{{=}}&{{\theta_{X_{1}}^{M[y_{1}^{1}]}(1-\theta_{X_{1}})^{M[y_{1}^{0}]}}}\\ {{}}&{{}}&{{\theta_{X_{2}}^{M[y_{2}^{1}]}(1-\theta_{X_{2}})^{M[y_{2}^{0}]}}}\\ {{}}&{{}}&{{\psi_{O_{X_{2}}|x_{1}^{1}}^{M[y_{1}^{1},y_{2}^{1}]+M[y_{1}^{1},y_{2}^{0}]}(1-\psi_{O_{X_{2}}|x_{1}^{1}})^{M[y_{1}^{1},y_{2}^{1}]}}}\\ {{}}&{{}}&{{\psi_{O_{X_{2}}|x_{1}^{0}}^{M[y_{1}^{0},y_{2}^{1}]+M[y_{1}^{0},y_{2}^{0}]}(1-\psi_{O_{X_{2}}|x_{1}^{0}})^{M[y_{1}^{0},y_{2}^{1}]}.}}\end{array}
+$$ 
+This likelihood is a product of four different functions, each involving just one parameter. Thus, we can estimate each parameter independently of the rest. 
+
+As we saw in the last example, conditional independence can help us decouple the estimate of parameters of $P(X)$ from these of $P(O_{X}\mid X)$ . Is this a general phenomenon? To answer this question, we start with a deﬁnition. 
+>  上例中，观测变量和原始变量之间的条件独立性也可以使得似然函数具有分解形式，进而我们将对 $P(\pmb X)$ 的参数的估计和对 $P(O_{\pmb X}\mid \pmb X)$ 的参数的估计分离
+
+**Definition 19.3**
+Let $y$ be a tuple of observations. These observations partition the variables $X$ into two sets, the observed variables $X_{\mathit{o b s}}^{y}\,=\,\{X_{i}\,:\,y_{i}\,\neq\,?\}$ { ̸ } and th hidden ones $X_{h i d d e n}^{y}\,=\,\{X_{i}\,:\,y_{i}\,=\,?\}$ . The values of the observed variables are determined by y , while the values of the hidden variables are not. 
+We say that a missing data model $P_{m i s s i n g}$ is missing at random (MAR) if for all observations $\pmb y$ with $P_{m i s s i n g}(\pmb{y})>0$ , and for all $\pmb{x}_{h i d d e n}^{\pmb{y}}\in V a l(\pmb{X}_{h i d d e n}^{\pmb{y}})$ , we have that 
+
+$$
+P_{m i s s i n g}\models(o_{\pmb X}\perp\mathbf{\it{\pmb x}}_{h i d d e n}^{y}\mid\mathbf{\it{\pmb x}}_{o b s}^{y})
+$$ 
+where $o_{\pmb X}$ are the speciﬁc values of the observation variables given $Y$ 
+
+>  定义
+>  令 $\pmb y$ 为一组观测，它将变量 $\pmb X$ 划分为两个集合：观测到的变量集合 $\pmb X_{obs}^{\pmb y} = \{X_i: y_i\ne ?\}$，和未观测到/隐藏的集合 $\pmb X_{hidden}^{\pmb y} = \{X_i: y_i = ?\}$
+>  观测到的变量的集合的值可以由 $\pmb y$ 确定，而隐藏的集合则不行
+>  如果一个缺失数据模型 $P_{missing}$ ，如果它满足对于所有的观测 $\pmb y$ ，其出现的概率都大于 0，同时此时可能的隐藏变量取值 $\pmb x_{hidden}^{\pmb y} \in Val(\pmb X_{hidden}^{\pmb y})$ 在给定观测到变量取值 $\pmb x_{obs}^{\pmb y}$ 时都条件独立于此时的观测变量的取值，则称它是随机缺失的
+
+In words, the MAR assumption requires independence between the events $_{O X}$ and $\boldsymbol{x}_{\mathrm{hidden}}^{y}$ given $\boldsymbol{x}_{\mathrm{obs}}^{y}$ . Note that this statement is written in terms of event-level conditional independence rather than conditional independence between random variables. This generality is necessary since every instance might have a different pattern of observed variables; however, if the set of observed variables is known in advance, we can state MAR as conditional independence between random variables. 
+>  换句话说，MAR 假设要求事件 $o_{\pmb X}$ 和事件 $\pmb x^{\pmb y}_{hidden}$ 在给定事件 $\pmb x^{\pmb y}_{obs}$ 下条件独立
+>  该独立性是事件级别，而不是随机变量级别，这是因为每次的实例关联的观察到变量不一定是同一组
+>  如果观察到变量是事先确定的，则可以在随机变量级别声明该条件独立性
+
+This statement implies that the observation pattern gives us no additional information about the hidden variables given the observed variables : 
+
+$$
+P_{m i s s i n g}(\pmb{x}_{\mathrm{hidden}}^{y}\mid\pmb{x}_{\mathrm{obs}}^{y},o_{\pmb X})=P_{m i s s i n g}(\pmb{x}_{\mathrm{hidden}}^{y}\mid\pmb{x}_{\mathrm{obs}}^{y}).
+$$
+
+>  MAR 表明在给定观察到的变量时，观测模式不会给出更多关于隐藏变量的信息
+
+Why should we require the MAR assumption? If $P_{m i s s i n g}$ satisﬁes this assumption, then we can write 
+
+$$
+\begin{array}{c c l}{{P_{m i s i n g}({\pmb y})}}&{{=}}&{{\displaystyle\sum_{{\pmb x}_{\mathrm{hidden}}^{y}}\left[P({\pmb x}_{\mathrm{obs}}^{y},{\pmb x}_{\mathrm{hidden}}^{y})P_{m i s i n g}(o_{\pmb X}\mid{\pmb x}_{\mathrm{hidden}}^{y},{\pmb x}_{\mathrm{obs}}^{y})\right]}}\\ {{}}&{{=}}&{{\displaystyle\sum_{{\pmb x}_{\mathrm{hidden}}^{y}}\left[P({\pmb x}_{\mathrm{obs}}^{y},{\pmb x}_{\mathrm{hidden}}^{y})P_{m i s i n g}(o_{\pmb X}\mid{\pmb x}_{\mathrm{obs}}^{y})\right]}}\\ {{}}&{{=}}&{{P_{m i s i n g}(o_{\pmb X}\mid{\pmb x}_{\mathrm{obs}}^{y})\displaystyle\sum_{{\pmb x}_{\mathrm{hidden}}^{y}}P({\pmb x}_{\mathrm{obs}}^{y},{\pmb x}_{\mathrm{hidden}}^{y})}}\\ {{}}&{{=}}&{{P_{m i s i n g}(o_{\pmb X}\mid{\pmb x}_{\mathrm{obs}}^{y})P({\pmb x}_{\mathrm{obs}}^{y}).}}\end{array}
+$$ 
+The ﬁrst term depends only on the parameters $\psi$ , and the second term depends only on the parameters $\theta$ . Since we write this product for every observed instance, we can write the likelihood as a product of two likelihoods, one for the observation process and the other for the underlying distribution. 
+
+**Theorem 19.1**
+If $P_{m i s s i n g}$ satisﬁes MAR, then $L(\theta,\psi:{\mathcal{D}})$ can be written as a product of two likelihood functions $L(\theta:{\mathcal{D}})$ and $L(\psi:{\mathcal{D}})$ . 
+>  定理
+>  如果 $P_{missing}$ 满足 MAR，则似然函数 $L(\pmb \theta, \pmb \psi: \mathcal D)$ 可以写为两个似然函数 $L(\pmb \theta: \mathcal D)$ 和 $L(\pmb \psi: \mathcal D)$ 的乘积
+
+This theorem implies that we can optimize the likelihood function in the parameters $\theta$ of the distribution $P(X)$ independently of the exact value the observation model parameters. In other words, the MAR assumption is a license to ignore the observation model while learning parameters. 
+>  因此，MAR 成立时，我们可以用数据集中的准确值直接优化 $P(\pmb X)$ 的参数 $\pmb \theta$，忽略观察模型参数
+
+The MAR assumption is applicable in a broad range of settings, but it must be considered with care. For example, consider a sensor that measures blood pressure $B$ but can fail to record a measurement when the patient is overweight. Obesity is a very relevant factor for blood pressure, so that the sensor failure itself is informative about the variable of interest. However, if we always have observations $W$ of the patient’s body weight and $H$ of the height, then $O_{B}$ is conditionally independent of $B$ given $W$ and $H$ . As another example, consider the patient description in hospital records. If the patient does not have an X-ray result $X$ , he probably does not suffer from broken bones. Thus, $O_{X}$ gives us information about the underlying domain variables. However, assume that the patient’s chart also contains a “primary complaint” variable, which was the factor used by the physician in deciding which tests to perform; in this case, the MAR assumption does hold. 
+>  MAR（随机缺失）假设适用于广泛的场景，但必须谨慎考虑。例如，考虑一个测量血压 $B$ 的传感器，但在患者超重时可能会失败而无法记录测量值。肥胖是血压的一个非常相关因素，因此传感器本身的故障实际上提供了关于感兴趣变量的信息。然而，如果我们始终有患者体重 $W$ 和身高 $H$ 的观测值，则在给定 $W$ 和 $H$ 的条件下，$O_B$（血压的观测值）与 $B$（实际血压）条件独立。
+>  再举一个例子，考虑医院记录中的患者描述。如果患者没有 X 光片结果 $X$，他很可能没有骨折。因此，$O_X$（是否有 X 光片结果）提供了关于潜在变量的信息。然而，假设患者的病历还包括一个“主诉”变量，这是医生决定进行哪些检查的因素；在这种情况下，MAR 假设确实成立。
+
+In both of these cases, we see that the MAR assumption does not hold given a limited set of observed attributes, but if we expand our set of observations, we can get the MAR assumption to hold. In fact, one can show that we can always extend our model to produce one where the MAR assumption holds (exercise 19.2). Thus, from this point onward we assume that the data satisfy the MAR assumption, and so our focus is only on the likelihood of the observed data. **However, before applying the methods described later in this chapter, we always need to consider the possible correlations between the variables and the observation variables, and possibly to expand the model so as to guarantee the MAR assumption.** 
+>  MAR 在给定有限的观察到属性时并不一定成立，但通过拓展观测，可以使得 MAR 成立
+>  我们假设 MAR 在之后都成立，因此只需要关注观察到数据的似然
+>  但注意应用之后介绍的技术时，需要考虑变量和观察变量之间的潜在联系，可能的话，拓展模型以保证 MAR 成立
+
+### 19.1.3 The Likelihood Function 
+Throughout our discussion of learning, the likelihood function has played a major role, either on its own, or with the prior in the context of Bayesian estimation. Under the assumption of MAR, we can continue to use the likelihood function in the same roles. From now on, assume we have a network $\mathcal{G}$ over a set of variables $X$ . In general, each instance has a different set of observed variables. We will denote by ${\cal O}[m]$ and $o[m]$ the observed variables and their values in the $m$ ’th instance, and by $H[m]$ the missing (or hidden) variables in the $m$ ’th instance. We use $L(\theta:{\mathcal{D}})$ to denote the probability of the observed variables in the data, marginalizing out the hidden variables, and ignoring the observability model: 
+
+$$
+L(\pmb\theta:\mathcal D)=\prod_{m=1}^{M}P(\pmb o[m]\mid\pmb\theta).
+$$ 
+As usual, we use $\ell(\pmb\theta:{\mathcal D})$ to denote the logarithm of this function. 
+
+>  假设有在变量集合 $\pmb X$ 上的网络 $\mathcal G$，一般每个实例都有一组观察到的变量，我们记作 $\pmb O[m]$，$\pmb o[m]$ 表示其值，同时我们用 $\pmb H[m]$ 实例中表示缺失的变量
+>  我们使用 $L(\pmb \theta:\mathcal D)$ 表示数据中观察到变量的概率 (边际化掉缺失变量，同时忽略观察模型)，因此该似然按照实例分解如上
+>  我们使用 $\ell(\pmb \theta: \mathcal D)$ 表示其对数
+
+With this deﬁnition, it might appear that the problem of learning with missing data does not differ substantially from the problem of learning with complete data. We simply use the likelihood function in exactly the same way. Although this intuition is true to some extent, the computational issues associated with the likelihood function are substantially more complex in this case. 
+
+To understand the complications, we consider a simple example on the network ${\mathcal{G}}_{X\to Y}$ with the edge $X\rightarrow Y$ . When we have complete data, the likelihood function for this network has the following form: 
+
+$$
+\begin{array}{r l}&{L(\pmb{\theta}_{X},\pmb{\theta}_{Y|x^{0}},\pmb{\theta}_{Y|x^{1}}:\mathcal{D})=}\\ &{\qquad\theta_{x^{1}}^{M[x^{1}]}\theta_{x^{0}}^{M[x^{0}]}\cdot\theta_{y^{1}|x^{0}}^{M[x^{0},y^{1}]}\theta_{y^{0}|x^{0}}^{M[x^{0},y^{0}]}\cdot\theta_{y^{1}|x^{1}}^{M[x^{1},y^{1}]}\theta_{y^{0}|x^{1}}^{M[x^{1},y^{0}]}.}\end{array}
+$$
+
+In the binary case, we can use the constraints to rewrite $\theta_{x^{0}}=1-\theta_{x^{1}}$ , $\theta_{y^{0}|x^{0}}=1-\theta_{y^{1}|x^{0}}$ , and $\theta_{y^{0}|x^{1}}=1-\theta_{y^{1}|x^{1}}$ . Thus, this is a function of three parameters. For example, if we have a data set with the following sufficient statistics: 
+
+$$
+\begin{array}{r l}{{}}&{{x^{1},y^{1};\ 13}}\\ {{}}&{{x^{1},y^{0}{:\ 16}}}\\ {{}}&{{x^{0},y^{1}{:\ 10}}}\\ {{}}&{{x^{0},y^{0}{:\ 4},}}\end{array}
+$$ 
+then our likelihood function has the form: 
+
+$$
+\theta_{x^{1}}^{29}(1-\theta_{x^{1}})^{14}\cdot\theta_{y^{1}|x^{0}}^{10}(1-\theta_{y^{1}|x^{0}})^{4}\cdot\theta_{y^{1}|x^{1}}^{13}(1-\theta_{y^{1}|x^{1}})^{16}.
+$$ 
+This function is well-behaved: it is log-concave, and it has a unique global maximum that has a simple analytic closed form. 
+
+Assume that the ﬁrst instance in the data set was $X[1]\,=\,x^{0},Y[1]\,=\,y^{1}$ . Now, consider a situation where, rather than observing this instance, we observed only $Y[1]\,=\,y^{1}$ . We now have to reason that this particular data instance could have arisen in two cases: one where $X[1]=x^{0}$ and one where $X[1]=x^{1}$ . In the former case, our likelihood function is as before. In the second case, we have 
+
+$$
+\theta_{x^{1}}^{30}(1-\theta_{x^{1}})^{13}\cdot\theta_{y^{1}|x^{0}}^{9}(1-\theta_{y^{1}|x^{0}})^{4}\cdot\theta_{y^{1}|x^{1}}^{14}(1-\theta_{y^{1}|x^{1}})^{16}.
+$$ 
+
+When we do not observe $X[1]$ , the likelihood is the marginal probability of the observations. That is, we need to sum over possible assignments to the unobserved variables. This implies that the likelihood function is the sum of the two complete likelihood functions of equation (19.1) and equation (19.2). Since both likelihood functions are quite similar, we can rewrite this sum as 
+
+$$
+\begin{array}{r}{\theta_{x^{1}}^{29}(1-\theta_{x^{1}})^{13}\cdot\theta_{y^{1}|x^{0}}^{9}(1-\theta_{y^{1}|x^{0}})^{4}\cdot\theta_{y^{1}|x^{1}}^{13}(1-\theta_{y^{1}|x^{1}})^{16}\left[\theta_{x^{1}}\theta_{y^{1}|x^{1}}+(1-\theta_{x^{1}})\theta_{y^{1}|x^{0}}\right].}\end{array}
+$$ 
+
+This form seems quite nice, except for the last sum, which couples the parameter θ $\theta_{x^{1}}$ with $\theta_{y^{1}|x^{1}}$ and $\theta_{y^{1}|x^{0}}$ . 
+
+If we have more missing values, there are other cases we have to worry about. For example, if $X[2]$ is also unobserved, we have to consider all possible combinations for $X[1]$ and $X[2]$ . This results in a sum over four terms similar to equation (19.1), each one with different counts. 
+
+In general, the likelihood function with incomplete data is the sum of likelihood functions, one for each possible joint assignment of the missing values. Note that the number of possible assignments is exponential in the total number of missing values. 
+>  在具有缺失数据的情况下，整体的似然函数是多个似然函数的和，和式中的每个似然函数都对应于缺失变量的一个可能联合赋值
+>  注意可能赋值的数量和缺失变量数量呈指数关系
+
+We can think of the situation using a geometric intuition. Each one of the complete data likelihood deﬁnes a unimodal function. Their sum, however, can be multimodal. In the worst case, the likelihood of each of the possible assignments to the missing values contributes to a different peak in the likelihood function. The total likelihood function can therefore be quite complex. It takes the form of a “mixture of peaks,” as illustrated pictorially in ﬁgure 19.3. 
+>  从几何上看，每个完整数据的似然定义了一个单模态函数，它们的和就是多模态的，最坏的情况下，每个缺失值的可能赋值的似然都在总体的似然函数中贡献一个峰，故总体的似然函数将十分复杂，形式为多个峰的混合
+
+To make matters even more complicated, we lose the property of parameter independence , and thereby the decomposability of the likelihood function. Again, we can understand this phenomenon either qualitatively, from the perspective of graphical models, or quantitatively, by looking at the likelihood function. Qualitatively, recall from section 17.4.2 that, in the complete data case, $\theta_{Y\mid x^{1}}$ and $\theta_{Y\mid x^{0}}$ are independent given the data, because they are independent given $Y[m]$ and $X[m]$ . But if $X[m]$ is unobserved, they are clearly dependent. This fact is clearly illustrated by the meta-network (as in ﬁgure 17.7) that represents the learning problem. For example, in a simple network over two variables $X\rightarrow Y$ , we see that missing data can couple the two parameters’ variables; see ﬁgure 19.4. 
+>  同时，整体的似然函数也失去了参数独立性，进而失去了可分解性
+>  定性上理解，参数 $\theta_{Y\mid x^1}$ 和 $\theta_{Y\mid x^0}$ 在给定数据 $X[m], Y[m]$ 的情况下条件独立，故如果 $X[m]$ 未观测到，则二者就相关
+
+We can also see this phenomenon numerically. Assume for simplicity that $\theta_{X}$ is known. Then, our likelihood is a function of two parameters $\theta_{y^{1}|x^{1}}$ and $\theta_{y^{1}|x^{0}}$ . Intuitively, if our missing $X[1]$ is $H$ , then it cannot be $T$ . Thus, the likelihood functions of the two parameters are correlated; the more missing data we have, the stronger the correlation. This phenomenon is shown in ﬁgure 19.5. 
+
+This example shows that we have lost the local decomposability property in estimating the CPD $P(Y\mid X)$ . 
+>  该例展示了缺失数据会导致我们失去估计 CPD $P(Y\mid X)$ 时的局部可分解性质
+
+What about global decomposability between different CPD ? Consider a simple model where there is one hidden variable H , and two observed variables X and Y , and edges $H\rightarrow X$ and $H\rightarrow Y$ . Thus, the probability of observing the values $x$ and $y$ is 
+>  接着考虑 CPD 之间的全局可分解性，考虑一个隐变量为 $H$ 的网络，观察到 $x, y$ 的概率如下
+
+$$
+P(x,y)=\sum_{h}P(h)P(x\mid h)P(y\mid h).
+$$
+
+The likelihood function is a product of such terms, one for each observed instance $x[m],y[m]$ , and thus has the form
+
+$$
+L(\pmb\theta:\mathcal D)=\prod_{x,y}\left(\sum_{h}P(h)P(x\mid h)P(y\mid h)\right)^{M[x,y]}.
+$$
+
+>  故似然函数形式如上
+
+When we had complete data, we rewrote the likelihood function as a product of local likelihood functions, one for each CPD. This decomposition was crucial for estimating each CPD independently of the others. In this example, we see that the likelihood is a product of sum of products of terms involving different CPDs. The interleaving of products and sums means that we cannot write the likelihood as a product of local likelihood functions. Again, this result is intuitive: Because we do not observe the variable $H$ , we cannot decouple the estimation of $P(X\mid H)$ from that of $P(Y\mid H)$ . Roughly speaking, both estimates depend on how we “reconstruct” H in each instance. 
+>  数据完整时，我们可以将全局似然重写为各个 CPD 的局部似然的乘积
+>  但上例中，因为需要对隐变量取值 $h$ 求和，我们就不能再直接分解乘积
+>  这其实很直观，因为我们无法观测 $H$，故就不能分离估计 $P(X\mid H)$ 和 $P(Y\mid H)$，因为二者都依赖于我们如何在另一个估计中 “重构” $H$
+
+We now consider the general case. Assume we have a network $\mathcal{G}$ over set of variables $X$ . In general, each instance has a different set of observed variables. We use $\mathcal D$ to denote, as before, the actual observed data values; we use $\mathcal{H}=\cup_{m}h[m]$ to denote a possible assignment to all of the missing values in the data set. Thus, the pair $(\mathcal{D},\mathcal{H})$ deﬁnes an assignment to all of the variables in all of our instances. 
+>  考虑一般的情况
+>  假设有 $\pmb X$ 上的网络 $\mathcal G$ ，每个实例有一组观察到变量，各个实例中其值的并集用 $\mathcal D$ 表示，同时用 $\mathcal H = \cup_m\pmb h[m]$ 表示对数据集缺失变量的一次可能赋值
+>  故 $(\mathcal D, \mathcal H)$ 定义了对所有实例中所有变量的一次赋值
+
+The likelihood function is 
+
+$$
+L(\pmb\theta:\mathcal D)=P(\mathcal D\mid\pmb\theta)=\sum_{\mathcal H}P(\mathcal D,\mathcal H\mid\pmb\theta).
+$$ 
+Unfortunately, the number of possible assignments in this sum is exponential in the number of missing values in the entire data set. Thus, although each of the terms $P({\mathcal{D}},{\mathcal{H}}\mid{\boldsymbol{\theta}})$ is a unimodal distribution, the sum can have, in the worst case, an exponential number of modes. 
+
+>  此时似然函数需要对 $\mathcal H$ 的所有可能取值求和，故虽然每一项 $P(\mathcal D, \mathcal H\mid \pmb \theta)$ 都是单模态分布，但和式则是指数级模态
+
+However, unimodality is not the only property we lose. Recall that our likelihood function in the complete data case was compactly represented as a product of local terms. This property was important both for the analysis of the likelihood function and for the task of evaluating the likelihood function. What about the incomplete data likelihood? If we use a straightforward representation, we get an exponential sum of terms, which is clearly not useful. Can we use additional properties of the data to help in representing the likelihood? Recall that we assume that different instances are independent of each other. This allows us to write the likelihood function as a product over the probability of each partial instance. 
+
+**Proposition 19.1** 
+Assuming IID data, the likelihood can be written as 
+
+$$
+L(\pmb\theta:\mathcal D)=\prod_{m}P(\pmb o[m]\mid\pmb\theta)=\prod_{m}\sum_{h[m]}P(\pmb o[m],\pmb h[m]\mid\pmb\theta).
+$$ 
+>  命题
+>  对于 IID 数据，似然按照各个独立的实例分解，重写为如上形式
+
+This proposition shows that, to compute the likelihood function, we need to perform inference for each instance, computing the probability of the observations. As we discussed in section 9.1, this problem can be intractable, depending on the network structure and the pattern of missing values. Thus, for some learning problems, even the task of evaluating likelihood function for a particular choice of parameters is a difficult computational problem. This observation suggests that optimizing the choice of parameters for such networks can be computationally challenging. 
+>  可以看到，为了计算似然，我们需要对每个实例执行推理，以计算观测的概率
+>  该问题不可解，且依赖于网络结构和特定的缺失值模式
+
+**To conclude, in the presence of partially observed data, we have lost all of the important properties of our likelihood function: its unimodality, its closed-form representation, and the decomposition as a product of likelihoods for the different parameters. Without these properties, the learning problem becomes substantially more complex.** 
+>  总结来说，当数据是部分观测时，我们失去了似然函数的所有重要性质：单模态性、闭式表示、可分解性，使得学习问题十分困难
+
+### 19.1.4 Identifiability 
+Another issue that arises in the context of missing data is our ability to identify uniquely a model from the data. 
+
+Example 19.6 
+Consider again our thumbtack tossing experiments. Suppose the experimenter can randomly choose to toss one of two thumbtacks (say from two different brands). Due to a mis communication between the statistician and the experimenter, only the toss outcomes were recorded, but not the brand of thumbtack used. 
+
+To model the experiment, we assume that there is a hidden variable $H$ , so that if $H\,=\,h^{1}$ , the experimenter tossed the ﬁrst thumbtack, and if $H=h^{2}$ , the experimenter tossed the second thumbtack. The parameters of our model are $\theta_{H}$ , $\theta_{X|h^{1}}$ , and $\theta_{X|h^{2}}$ , denoting the probability of choosing the ﬁrst thumbtack, and the probability of heads in each thumbtack. This setting satisﬁes MCAR (since $H$ is hidden). It is straightforward to write the likelihood function: 
+
+$$
+L(\theta:{\mathcal{D}})=P(x^{1})^{M[1]}(1-P(x^{1}))^{M[0]},
+$$
+
+where 
+
+$$
+P(x^{1})=\theta_{H}\theta_{X|h^{1}}+(1-\theta_{H})\theta_{X|h^{2}}.
+$$
+
+If we examine this term, we see that $P(x^{1})$ is the weighted average of $\theta_{X|h^{1}}$ and $\theta_{X|h^{2}}$ . There are multiple choices of these two parameters and $\theta_{H}$ that achieve the same value of $P(x^{1})$ . For example, $\theta_{H}=0.5,\!\theta_{X\mid h^{1}}=0.5,\!\theta_{X\mid h^{2}}=0.5$ leads to the same behavior as $\theta_{H}=0.5,\!\theta_{X\mid h^{1}}=$ $0.8,\!\theta_{X\mid h^{2}}=0.2$ . Because the likelihood of the data is a function only of $P(x^{1})$ , we conclude that there is a continuum of parameter choices that achieve the maximum likelihood. 
+
+This example illustrates a situation where the learning problem is under constrained: Given the observations, we cannot hope to recover a unique set of parameters. Recall that in previous sections, we showed that our estimates are consistent and thus will approach the true parameters when sufficient data are available. In this example, we cannot hope that more data will let us recover the true parameters. 
+
+Before formally treating the issue, let us examine another example that does not involve hidden variables. 
+
+Example 19.7 
+
+identiﬁability 
+
+Deﬁnition 19.4 identiﬁability 
+
+Suppose we conduct an experiment where we toss two coins $X$ and $Y$ that may be correlated with each other. After each toss, one of the coins is hidden from us using a mechanism that is totally unrelated to the outcome of the coins. Clearly, if we have sufficient observations (that is, the mechanism does not hide one of the coins consistently), then we can estimate the marginal probability of each of the coins. Can we, however, learn anything about how they depend on each other? Consider some pair of marginal probabilities $P(X)$ and $P(Y)$ ; because we never get to observe both coins together, any joint distribution that has these marginals has the same likelihood. In particular, a model where the two coins are independent achieves maximum likelihood but is not the unique point. In fact, in some cases a model where one is a deterministic function of the other also achieves the same likelihood (for example, if we have the same frequency of observed $X$ heads as of observed $Y$ heads). 
+
+These two examples show that in some learning situations we cannot resolve all aspects of the model by learning from data. This issue has been examined extensively in statistics, and is known as identiﬁability , and we brieﬂy review the relevant notions here. 
+
+Suppose w have a parametric model with parameters $\theta\in\Theta$ hat deﬁnes a distribution $P(X\mid\theta)$ over a set X of measurable variables. A choice of parameters θ is identiﬁable if there is $\pmb{\theta}^{\prime}\neq\pmb{\theta}$ such that $P(X\mid\theta)=P(X\mid\theta^{\prime})$ . A model is identiﬁable if all parameter choices θ $\theta\in\Theta$ ∈ are identiﬁable. 
+
+In other words, a model is identiﬁable if each choice of parameters implies a different distribution over the observed variables. Non ident i ability implies that there are parameter settings that are indistinguishable given the data, and therefore cannot be identiﬁed from the data. Usually this is a sign that the parameter iz ation is redundant with respect to the actual observations. For example, the model we discuss in example 19.6 is unidentiﬁable, since there are regions in the parameters space that induce the same probability on the observations. Another source of non ident i ability is hidden variables. 
+
+Example 19.8 
+Acme ( A ) and Bond ( B ). In each round, both thumbtacks are tossed and the entries are recorded. Unfortunately, due to scheduling constraints, two different experimenters participated in the ex- periment; each used a slightly different hand motion, changing the probability of heads and tails. Unfortunately, the experimenter name was not recorded, and thus we only have measurements of the outcome in each experiment. To model this situation, we have three random variables to describe each round. Suppose A denotes the outcome of the toss of the Acme thumbtack and $B$ the outcome of the toss of the Bond thumbtack. Because these outcomes depend on the experimenter, we add another (hidden) variable $H$ that denotes the name of the experimenter. We assume that the model is such that $A$ and $B$ are independent given $H$ . Thus, 
+
+$$
+P(A,B)=\sum_{h}P(h)P(A\mid h)P(B\mid h).
+$$ 
+Because we never observe $H$ , the parameters of this model can be reshufed by “renaming” the values of the hidden variable. If we exchange the roles of $h^{0}$ and $h^{1}$ , and change the corresponding entries in the CPDs, we get a model with exactly the same likelihood, but with different parameters. In this case, the likelihood surface is duplicated. For each parameter iz ation, there is an equivalent parameter iz ation by exchanging the names of the hidden variable. We conclude that this model is not identiﬁable. 
+
+This type of un ident i ability exists in any model where we have hidden variables we never observe. When we have several hidden variables, the problem is even worse, and the number of equivalent “reﬂections” of each solution is exponential in the number of hidden variables. 
+
+Although such a model is not identiﬁable due to “renaming” transformations, it is in some sense better than the model of example 19.6, where we had an entire region of equivalent parameter iz at ions. To capture this distinction, we can deﬁne a weaker version of identiﬁability. 
+
+Suppose w ave a parametric model with parameters $\theta\in\Theta$ t at deﬁnes a distribution $P(X\mid\theta)$ over a set X of measurable variables. A choice of parameters θ is locally identiﬁable if there is a constant $\epsilon>0$ such that there is no $\pmb{\theta}^{\prime}\neq\pmb{\theta}$ such that $\lVert\theta-\theta^{\prime}\rVert_{2}<\epsilon$ | | | and $P(X\mid\theta)=P(X\mid\theta^{\prime})$ . A model is locally identiﬁable if all parameter choices θ $\theta\in\Theta$ ∈ are locally identiﬁable. 
+
+In other words, a model is locally identiﬁable if each choice of parameters deﬁnes a distribu- tion that is different than the distribution of neighboring parameter iz ation in a sufficiently small neighborhood. This deﬁnition implies that, from a local perspective, the model is identiﬁable. The model of example 19.8 is locally identiﬁable, while the model of example 19.6 is not. 
+
+It is interesting to note that we have encountered similar issues before: As we discussed in chapter 18, our data do not allow us to distinguish between structures in the same I-equivalence class. This limitation did not prevent us from trying to learn a model from data, but we needed to avoid ascribing meaning to directionality of edges that are not consistent throughout the I-equivalence class. The same approach holds for un ident i ability due to missing data: A nonidentiﬁable model does not mean that we should not attempt to learn models from data. But it does mean that we should be careful not to read into the learned model more than what can be distinguished given the available data. 
+
+## 19.2 Parameter Estimation 
+As for the fully observable case, we ﬁrst consider the parameter estimation task. As with complete data, we consider two approaches to estimation, maximum likelihood estimation (MLE), and Bayesian estimation. We start with a discussion of methods for MLE estimation, and then consider the Bayesian estimation problem in the next section. 
+>  本节讨论 MLE 估计方法
+
+More precisely, suppose we are given a network structure $\mathcal{G}$ and the form of the CPDs. Thus, we only need to set the parameters θ to deﬁne a distribution $P(\mathcal{X}\mid\theta)$ . We are also given a data set $\mathcal{D}$ that consists of $M$ par $\mathcal{X}$ e want to ﬁnd the values $\hat{\pmb\theta}$ that maximize the log-likelihood function: $\hat{\pmb{\theta}}=\arg\operatorname*{max}_{\pmb{\theta}}\ell(\pmb{\theta}:\mathcal{D})$ . As we discussed, in the presence of incomplete data, the likelihood does not decompose. And so the problem requires optimizing a highly nonlinear and multimodal function over a high-dimensional space (one consisting of parameter assignments to all CPDs). There are two main classes of methods for performing this optimization: a generic nonconvex optimization algorithm, such as gradient ascent; and expectation maximization , a more specialized approach for optimizing likelihood functions. 
+>  假设给定网络结构 $\mathcal G$ 以及其 CPDs 的形式，给定参数 $\pmb \theta$ 时，它便定义了分布 $P(\mathcal X \mid \pmb \theta)$
+>  假设同时给定数据集 $\mathcal D$，包含了 $M$ 个 $\mathcal X$ 的部分实例
+>  我们的目标是找到最大化对数似然的参数值，即 $\hat {\pmb \theta} = \arg\max_{\pmb \theta} \ell(\pmb \theta: \mathcal D)$
+>  我们知道数据不完全时，似然函数无法分解，故我们需要在高维空间 (包含了对所有 CPDs 的参数赋值的空间) 中优化一个高度非线性的多模态函数
+>  执行该类优化有两类主要方法：
+>  通用的非凸优化算法，例如梯度上升
+>  期望最大值算法，这是一类用于优化似然函数更专用的算法
+
+### 19.2.1 Gradient Ascent 
+One approach to handle this optimization task is to apply some variant of gradient ascent , a standard function-optimization technique applied to the likelihood function (see appendix A.5.2). These algorithms are generic and can be applied if we can evaluate the gradient function at different parameter choices. 
+>  基于梯度的算法是通用的，只需要我们能评估目标函数相对于各个参数选择的梯度即可
+
+#### 19.2.1.1 Computing the Gradient 
+The main technical question we need to tackle is how to compute the gradient. We begin with considering the derivative relative to a single CPD entry $P(x\mid{\pmb u})$ . We can then use this result as the basis for computing derivatives relative to other parameters, which arise when we have structured CPDs. 
+>  考虑如何计算梯度
+>  我们先考虑相对于单个 CPD 项 $P(x\mid \pmb u)$ 的导数开始
+
+**Lemma 19.1** 
+Let $\mathcal{B}$ be a Bayesian network with structure $\mathcal{G}$ over $\mathcal{X}$ that induces probability distribution $P$ , let o be a tuple of observations for some of the variables, and let $X\in{\mathcal{X}}$ be some random variable. Then 
+
+$$
+\frac{\partial}{\partial P(x\mid\mathbf{}\pmb u)}P(\pmb o)=\frac{1}{P(x\mid\mathbf{}\pmb u)}P(x,\mathbf{}\pmb u,\pmb o)
+$$ 
+if $P(x\mid \pmb u) > 0$, where $x \in Val(X), \pmb u \in Val(\text{Pa}_X)$.
+
+>  引理
+>  $\mathcal B$ 为 $\mathcal X$ 上结构为 $\mathcal G$ 的 BN，它定义了分布 $P$，$\pmb o$ 为某些变量的观测，$X\in \mathcal X$ 为某个变量，则如果 $P(x\mid \pmb u)$ 大于零，$P(\pmb o)$ 相对于 $P(x\mid \pmb u)$ 的偏导等于 $P(x, \pmb u, \pmb o)$ 和 $P(x\mid \pmb u)$ 的商
+
+Proof 
+We start by considering the case where the evidence is a full assignment $\xi$ to all variables. The probability of such an assignment is a product of the relevant CPD entries. Thus, the gradient of this product with respect to the parameter $P(x\mid{\pmb u})$ is simply 
+
+$$
+\frac{\partial}{\partial P({x}\mid\mathbf{u})}P({\xi})=\left\{\begin{array}{l l}{\frac{1}{P({x}\mid\mathbf{u})}P({\xi})}&{\mathrm{if~}{\xi}\langle{X},\mathrm{Pa}_{{X}}\rangle=\langle{x},\mathbf{u}\rangle}\\ {0}&{\mathrm{otherwise}.}\end{array}\right.
+$$
+
+>  先考虑证据 $\xi$ 是对所有变量的完整赋值，则该赋值的概率可以直接分解为相关 CPD 项的乘积，故相对于 CPD 项 $P(x\mid \pmb u)$ 的导数就如上所示
+
+We now consider the general case where the evidence is a partial assignment. As usual, we can write $P(\pmb o)$ as a sum over all full assignments consistent with $P(\pmb o)$ 
+
+$$
+P(\pmb o)=\sum_{\xi:\xi\langle \pmb O\rangle=\pmb o}P(\xi).
+$$
+
+>  考虑证据是部分赋值，此时 $P(\pmb o)$ 写为所有和 $\pmb O = \pmb o$ 一致的完全赋值的和，如上
+
+Applying the differentiation formula to each of these full assignments, we get 
+
+$$
+\begin{array}{r c l}{\displaystyle\frac{\partial}{\partial P(x\mid \pmb u)}P(\pmb o)}&{=}&{\displaystyle\sum_{\xi:\xi\langle \pmb O\rangle=\pmb o}\frac{\partial}{\partial P(x\mid \pmb u)}P(\xi)}\\ &{=}&{\displaystyle\sum_{\xi:\xi\langle \pmb O\rangle=\pmb o,\xi\langle X,\mathrm{Pa}_{X}\rangle=\langle x,\pmb u\rangle}\frac{1}{P(x\mid \pmb u)}P(\xi)}\\ &{=}&{\displaystyle\frac{1}{P(x\mid \pmb u)}P(x,\pmb u,\pmb o).}\end{array}
+$$
+
+>  我们对和式中的每个完全赋值分别求导，再求和，就得到 $P(\pmb o)$ 相对于 $P(x\mid \pmb u)$ 的导数的形式如上
+
+When $o$ is inconsistent with $x$ or $\mathbfit{u}$ , then the gradient is 0 , since the probability $P(x,u,o)$ is 0 in this case. When $o$ is consistent with $x$ and $\mathbfit{u}$ , the gradient is the ratio between the probability $P(x,u,o)$ and the parameter $P(x\mid{\pmb u})$ . Intuitively, this ratio takes into account the weight of the cases where $P(x\mid{\pmb u})$ is “used” in the computation of $P(o)$ . Increasing $P(x\mid{\pmb u})$ by a small amount will increase the probability of these cases by a multiplicative factor. 
+>  当 $\pmb o$ 和 $x$ 或 $\pmb u$ 不一致，则梯度就为 0，因为此时 $P(x, \pmb u, \pmb o)$ 为 0
+>  如果 $\pmb o$ 和 $x$ 和 $\pmb u$ 一致，则梯度就是上述比值的形式
+>  直观上，该比值考虑了 $P(x\mid \pmb u)$ 被用于计算 $P(\pmb o)$ 的权重
+
+The lemma does not deal with the case where $P(x\mid u)=0$ , since we cannot divide by 0 . Note, however, that the proof shows that this division is mainly a neat manner of writing the product of all terms except $P(x\mid{\pmb u})$ . Thus, even in this extreme case we can use a similar proof to compute the gradient, although writing the term explicitly is less elegant. Since in learning we usually try to avoid extreme parameter assignments, we will continue our discussion with the assumption that $P(x\mid u)>0$ . 
+>  该引理没有解决 $P(x\mid \pmb u) = 0$ 的情况，但实际上 $P(x\mid \pmb u ) =0$ 时其梯度仍然是乘积中除了 $P(x\mid \pmb u)$ 的所有项相乘，只是此时不能用除法表示
+>  因为在学习中我们一般会尝试避免极限的参数赋值，故我们之后都假设不存在等于零的情况
+
+An immediate consequence of lemma 19.1 is the form of the gradient of the log-likelihood function. 
+
+**Theorem 19.2** 
+Let $\mathcal{G}$ be a Bayesian network structure over $\mathcal{X}$ , and let ${\mathcal D}\,=\,\{o[1],\cdot\,\cdot\,,o[M]\}$ be a partially observable data set. Let X be a variable and $U$ its parents in $\mathcal{G}$ . Then 
+
+$$
+\frac{\partial\ell(\pmb\theta:\mathcal D)}{\partial P(x\mid\pmb u)}=\frac{1}{P(x\mid\pmb u)}\sum_{m=1}^{M}P(x,\pmb u\mid\pmb o[m],\pmb\theta).
+$$
+
+The proof is left as an exercise (exercise 19.5). 
+
+>  定理
+>  $\mathcal G$ 为 $\mathcal X$ 上的 BN，$\mathcal D = \{\pmb o[1], \dots, \pmb o[M]\}$ 为部分观察到的数据集
+>  $X$ 为某个变量，$\pmb U$ 为其父变量，则对数似然相对于 $P(x\mid \pmb u)$ 的梯度如上所示
+
+This theorem provides the form of the gradient for table-CPDs. For other CPDs, such as noisy-or CPDs, we can use the chain rule of derivatives to compute the gradient. Suppose that the CPD entries of $P(X\mid \pmb U)$ are written as functions of some set of parameters $\theta$ . Then, for a speciﬁc parameter $\theta\in\pmb \theta$ , we have 
+
+$$
+\frac{\partial\boldsymbol{\ell}(\pmb\theta:\mathcal{D})}{\partial{\theta}}=\sum_{{x},\pmb{u}}\frac{\partial{\ell}(\pmb\theta:\mathcal{D})}{\partial P({x}\mid\pmb{u})}\frac{\partial P({x}\mid\pmb{u})}{\partial{\theta}},
+$$ 
+where the ﬁrst term is the derivative of the log-likelihood function when parameterized in terms of the table-CPDs induced by $\pmb \theta$ . For structured CPDs, we can use this formula to compute the gradient with respect to the CPD parameters. For some CPDs, however, this may not be the most efficient way of computing these gradients; see exercise 19.4. 
+
+>  该定理提供了 table-CPDs 的梯度形式，对于其他 CPD，我们使用链式法则基于该定理进行计算
+
+#### 19.2.1.2 An Example 
+We consider a simple example to clarify the concept. Consider the network shown in ﬁgure 19.6, and a partially speciﬁed data case $o=\langle a^{1},\,\sharp,\,\sharp,d^{\bar{0}}\rangle$ . 
+
+We want to compute the gradient of one family of parameters $P(D\mid c^{0})$ given the observation $^o$ . Using theorem 19.2, we know that 
+
+$$
+{\frac{\partial\log P({\boldsymbol{o}})}{\partial P(d^{0}\mid c^{0})}}={\frac{P(d^{0},c^{0}\mid{\boldsymbol{o}})}{P(d^{0}\mid c^{0})}},
+$$
+
+and similarly for other values of $D$ and $C$ . Assume that our current $\theta$ is: 
+
+$$
+\begin{array}{r l}{\theta_{a^{1}}}&{{}=0.3}\\ {\theta_{b^{1}}}&{{}=0.9}\\ {\theta_{c^{1}|a^{0},b^{0}}}&{{}=0.83}\\ {\theta_{c^{1}|a^{0},b^{1}}}&{{}=0.09}\\ {\theta_{c^{1}|a^{1},b^{0}}}&{{}=0.6}\\ {\theta_{c^{1}|a^{1},b^{1}}}&{{}=0.2}\\ {\theta_{d^{1}|c^{0}}}&{{}=0.1}\\ {\theta_{d^{1}|c^{1}}}&{{}=0.8.}\end{array}
+$$ 
+In this case, the probabilities of the four data cases that are consistent with $o$ are 
+
+$$
+\begin{array}{r l r}{P(\langle a^{1},b^{1},c^{1},d^{0}\rangle)}&{=}&{0.3\cdot0.9\cdot0.2\cdot0.2=0.0108}\\ {P(\langle a^{1},b^{1},c^{0},d^{0}\rangle)}&{=}&{0.3\cdot0.9\cdot0.8\cdot0.9=0.1944}\\ {P(\langle a^{1},b^{0},c^{1},d^{0}\rangle)}&{=}&{0.3\cdot0.1\cdot0.6\cdot0.2=0.0036}\\ {P(\langle a^{1},b^{0},c^{0},d^{0}\rangle)}&{=}&{0.3\cdot0.1\cdot0.4\cdot0.9=0.0108.}\end{array}
+$$ 
+To compute the posterior probability of these instances given the partial observation $o$ , we divide the probability of each instance with the total probability, which is 0.2196 , that is, 
+
+$$
+\begin{array}{l c l}{{P(\langle a^{1},b^{1},c^{1},d^{0}\rangle\mid o)}}&{{=}}&{{0.0492}}\\ {{P(\langle a^{1},b^{1},c^{0},d^{0}\rangle\mid o)}}&{{=}}&{{0.8852}}\\ {{P(\langle a^{1},b^{0},c^{1},d^{0}\rangle\mid o)}}&{{=}}&{{0.0164}}\\ {{P(\langle a^{1},b^{0},c^{0},d^{0}\rangle\mid o)}}&{{=}}&{{0.0492.}}\end{array}
+$$ 
+Using these computations, we see that 
+
+$$
+\begin{array}{r l}{\frac{\partial\log P(o)}{\partial P(d^{1}\mid c^{0})}}&{=\;\;\frac{P(d^{1},c^{0}\mid o)}{P(d^{1}\mid c^{0})}=\frac{0}{0.1}=0}\\ {\frac{\partial\log P(o)}{\partial P(d^{0}\mid c^{0})}}&{=\;\;\frac{P(d^{0},c^{0}\mid o)}{P(d^{0}\mid c^{0})}=\frac{0.8852+0.0492}{0.9}=1.0382}\\ {\frac{\partial\log P(o)}{\partial P(d^{1}\mid c^{1})}}&{=\;\;\frac{P(d^{1},c^{1}\mid o)}{P(d^{1}\mid c^{1})}=\frac{0}{0.8}=0}\\ {\frac{\partial\log P(o)}{\partial P(d^{0}\mid c^{1})}}&{=\;\;\frac{P(d^{0},c^{1}\mid o)}{P(d^{0}\mid c^{1})}=\frac{0.0492+0.0164}{0.2}=0.328.}\end{array}
+$$ 
+These computations show that we can increase the probability of the observations $o$ by either increasing $P(d^{0}\mid c^{0})$ or $P(d^{0}\mid c^{1})$ . Moreover, increasing the former parameter will lead to a bigger change in the probability of $^o$ than a similar increase in the latter parameter. 
+
+Now suppose we have an observation $o^{\prime}=\langle a^{0},\!\stackrel{\prime}{,}\!\stackrel{\prime}{,}d^{1}\rangle$ . We can repeat the same computation as before and see that 
+
+$$
+{\begin{array}{r l r l}{{\frac{\partial\log P(\,\boldsymbol{\sigma^{\prime}})}{\partial P(d^{1}\mid c^{0})}}}&{=}&{{\frac{P(d^{1},c^{0}\mid\boldsymbol{\sigma^{\prime}})}{P(d^{1}\mid c^{0})}}={\frac{0.2836}{0.1}}=2.8358}\\ {{\frac{\partial\log P(\,\boldsymbol{\sigma^{\prime}})}{\partial P(d^{0}\mid c^{0})}}}&{=}&{{\frac{P(d^{0},c^{0}\mid\boldsymbol{\sigma^{\prime}})}{P(d^{0}\mid c^{0})}}={\frac{0}{0.9}}=0}\\ {{\frac{\partial\log P(\,\boldsymbol{\sigma^{\prime}})}{\partial P(d^{1}\mid c^{1})}}}&{=}&{{\frac{P(d^{1},c^{1}\mid\boldsymbol{\sigma^{\prime}})}{P(d^{1}\mid c^{1})}}={\frac{0.7164}{0.8}}=0.8955}\\ {{\frac{\partial\log P(\,\boldsymbol{\sigma^{\prime}})}{\partial P(d^{0}\mid c^{1})}}}&{=}&{{\frac{P(d^{0},c^{1}\mid\boldsymbol{\sigma^{\prime}})}{P(d^{0}\mid c^{1})}}={\frac{0}{0.2}}=0.}\end{array}}
+$$ 
+Suppose our data set consists only of these two instances. The gradient of the log-likelihood function is the sum of the gradient with respect to the two instances. We get that 
+
+Note that all the gradients are nonnegative. Thus, increasing any of the parameters in the CPD $P(D\mid C)$ will increase the likelihood of the data. It is clear, however, that we cannot increase both $P(d^{1}\mid c^{0})$ and $P(d^{0}\mid c^{0})$ at the same time, since this will lead to an illegal conditional probability. One way of solving this is to use a single parameter $\theta_{d^{1}|c^{0}}$ and write 
+
+$$
+P(d^{1}\mid c^{0})=\theta_{d^{1}\mid c^{0}}\;\;\;\;P(d^{0}\mid c^{0})=1-\theta_{d^{1}\mid c^{0}}.
+$$ 
+
+Using the chain rule of conditional probabilities, we have that 
+
+$$
+\begin{array}{r l r}{\displaystyle\frac{\partial\ell(\pmb\theta:\mathcal{D})}{\partial\theta_{d^{1}\mid c^{0}}}}&{=}&{\displaystyle\frac{\partial P(d^{1}\mid c^{0})}{\partial\theta_{d^{1}\mid c^{0}}}\frac{\partial\ell(\pmb\theta:\mathcal{D})}{\partial P(d^{1}\mid c^{0})}+\frac{\partial P(d^{0}\mid c^{0})}{\partial\theta_{d^{1}\mid c^{0}}}\frac{\partial\ell(\pmb\theta:\mathcal{D})}{\partial P(d^{0}\mid c^{0})}}\\ &{=}&{\displaystyle\frac{\partial\ell(\pmb\theta:\mathcal{D})}{\partial P(d^{1}\mid c^{0})}-\frac{\partial\ell(\pmb\theta:\mathcal{D})}{\partial P(d^{0}\mid c^{0})}}\\ &{=}&{2.8358-1.0382=1.7976.}\end{array}
+$$ 
+
+Thus, in this case, we prefer t increase $P(d^{1}\mid c^{0})$ and decrease $P(d^{0}\mid c^{0})$ , since the resulting increase in the probability of $o^{\prime}$ will be larger than the decrease in the probability of $o$ . 
+
+#### 19.2.1.3 Gradient Ascent Algorithm 
+We now generalize these ideas to case of an arbitrary network. For now we focus on the case of table-CPDs. In this case, the gradient is given by theorem 19.2. To compute the gradient for the CPD $P(X\mid U)$ , we need to compute the joint probability of $x$ and $\mathbfit{u}$ relative to our current parameter setting θ and each observed instance $o[m]$ . In other words, we need to compute the joint distribution $P(X[m],U[m]\mid o[m],\theta)$ for each $m$ . We can do this by running an inference procedure for each data case. **Importantly, we can do all of the required inference for each data case using one clique tree calibration, since the family preservation property guarantees that $X$ and its parents $U$ will be together in some clique in the tree.** Procedure Compute-Gradient , shown in algorithm 19.1, performs these computations. 
+>  将该思想推广到任意网络
+>  我们仅考虑 table-CPDs，此时梯度直接由定理 19.2 计算，要计算 CPD $P(X\mid \pmb U)$ 的梯度，我们需要计算 $x$ 和 $\pmb u$ 相对于当前参数 $\pmb \theta$ 和每个观察实例 $\pmb o[m]$ 的联合概率，或者说我们需要为每个 $m$ 计算联合分布 $P(X[m], \pmb U[m]\mid \pmb o[m], \pmb \theta)$
+>  我们可以为每个数据实例执行一次推理过程，使用一次团树校准即可，因为族保持性质保证 $X$ 和其父变量 $\pmb U$ 会在树中的某个团中一起出现
+>  计算梯度的算法如 algorithm 19.1 所示
+
+Once we have a procedure for computing the gradient, it seems that we can simply plug it into a standard package for gradient ascent and optimize the parameters. As we have illustrated, however, there is one issue that we need to deal with. It is not hard to conﬁrm that all components of the gradient vector are nonnegative. This is natural, since increasing each of the parameters will lead to higher likelihood. Thus, a step in the gradient direction will increase all the parameters. Remember, however, that we want to ensure that our parameters describe a legal probability distribution. That is, the parameters for each conditional probability are nonnegative and sum to one. 
+>  计算得到梯度后，我们暂时不能直接依赖该梯度进行梯度上升
+>  注意到梯度向量中所有成分都是非负的，因为增大每个参数都可以带来更大的似然，因此在梯度方向前进会增大所有的参数
+>  但我们应该确保参数描述合法的分布，即每个 CPD 的参数都非负且和为 1
+
+In the preceding example, we saw one approach that works well when we have binary variables. In general networks, there are two common approaches to deal with this issue. The ﬁrst approach is to modify the gradient ascent procedure we use (for example, conjugate gradient) to respect these constraints. First, we must project each gradient vector onto the hyperplane that satisﬁes the linear constraints on the parameters; this step is fairly straightforward (see exercise 19.6). Second, we must ensure that parameters are nonnegative; this requires restricting possible steps to avoid stepping out of the allowed bounds. 
+>  该问题有两种解决方法
+>  第一种是修改我们的梯度上升过程，使该过程遵循约束，首先，我们将每个梯度向量投影到满足这些参数的线性约束的超平面，然后我们确保这些参数是非负的，这要求我们避免走到参数为负的地方
+
+The second approach is to reparametrize the problem. Suppose we introduce new parameters $\lambda_{x\mid\pmb  u}$ , and deﬁne 
+
+$$
+P(x\mid \pmb u)=\frac{e^{\lambda_{x\mid \pmb u}}}{\sum_{x^{\prime}\in V a l(X)}e^{\lambda_{x^{\prime}\mid \pmb u}}},\tag{19.3}
+$$ 
+for each $X$ and its parents $\pmb U$ . Now, any choice of values for the $\lambda$ parameters will lead to legal conditional probabilities. We can compute the gradient of the log-likelihood with respect to the $\lambda$ parameters using the chain rule of partial derivatives, and then use standard (unmodiﬁed) conjugate gradient ascent procedure. See exercise 19.7. 
+
+>  第二种方法是重参数化问题
+>  我们为每个 CPD 项引入新参数 $\lambda_{x\mid \pmb u}$，并通过 (19.3) 定义 $P(x\mid \pmb u)$
+>  此时参数 $\lambda_{x\mid\pmb u}$ 的取值将不受约束，任意取值都会定义合法的 CPD，我们使用链式法则计算对数似然相对于 $\lambda$ 参数的梯度，然后使用标准的梯度上升过程
+
+Another way of dealing with the constraints implied by conditional probabilities is to use the method of Lagrange multipliers , reviewed in appendix A.5.3. Applying this method to the optimization of the log-likelihood leads to the method we discuss in the next section, and we defer this discussion; see also exercise 19.8. 
+>  还有一种方法就是使用拉格朗日乘子
+
+Having dealt with this subtlety, we can now apply any gradient ascent procedure to ﬁnd a local maximum of the likelihood function. As discussed, in most missing value problems, the likelihood function has many local maxima. Unfortunately, gradient ascent procedures are guaranteed to achieve only a local maximum of the function. Many of the techniques we discussed earlier in the book can be used to avoid local maxima and increase our chances of ﬁnding a global maximum, or at least a better local maximum: the general-purpose methods of appendix A.4.2, such as multiple random starting points, or applying random perturbations to convergence points; and the more specialized data perturbation methods of algorithm 18.1. 
+>  确保约束遵循时，我们可以应用任意的梯度上升过程以找到似然函数的局部最大值
+>  我们知道在多数缺失值问题中，似然函数有许多局部极值，而梯度上升仅确保达到某个局部极值
+>  一些方法，例如多个随机初始点，或者为收敛点应用随机扰动可以帮助找到更优的局部极值或者全局极值
+
+### 19.2.2 Expectation Maximization (EM) 
+An alternative algorithm for optimizing a likelihood function is the expectation maximization algorithm. Unlike gradient ascent, EM is not a general-purpose algorithm for nonlinear function optimization. Rather, it is tailored speciﬁcally to optimizing likelihood functions, attempting to build on the tools we had for solving the problem with complete data. 
+>  另一种优化似然函数的算法为期望最大化算法
+>  EM 不是用于非线性函数优化的通用算法，而是专用于优化似然函数的算法
+
+#### 19.2.2.1 Intuition 
+Recall that when learning from complete data, we can collect sufficient statistics for each CPD. We can then estimate parameters that maximize the likelihood with respect to these statistics. As we saw, in the case of missing data, we do not have access to the full sufficient statistics. Thus, we cannot use the same strategy for our problem. For example, in a simple $X\,\rightarrow\,Y$ network, if we see the training instance $\langle?,y^{1}\rangle$ , then we do not know whether to count this instance toward the count $M[x^{1},y^{1}]$ or toward the count $M[x^{0},y^{1}]$ . 
+>  在数据完全时，我们为每个 CPD 收集充分统计量，然后估计可以最大化相对于这些统计量的似然函数的参数
+>  在数据缺失时，我们无法获取完整的充分统计量，例如在网络 $X\rightarrow Y$ 中，如果我们观察到实例 $\langle ?, y^1 \rangle$ ，我们不确定该样本应该计数到 $M[x^1, y^1]$ 还是 $M[x^0, y^1]$
+
+A simple approach is to “ﬁll in” the missing values arbitrarily. For example, there are strategies that ﬁll in missing values with “default values” (say false ) or by randomly choosing a value. Once we ﬁll in all the missing values, we can use standard, complete data learning procedure. Such approaches are called called data imputation methods in statistics. 
+>  一个简单的策略是任意填充缺失值，填充后，我们使用标准的完整数据下的学习过程进行优化
+>  在统计中，这类方法称为数据填补
+
+The problem with such an approach is that the procedure we use for ﬁlling in the missing values introduces a bias that will be reﬂected in the parameters we learn. For example, if we ﬁll all missing values with false , then our estimate will be skewed toward higher (conditional) probability of false . Similarly, if we use a randomized procedure for ﬁlling in values, then the probabilities we estimate will be skewed toward the distribution from which we sample missing values. This might be better than a skew toward one value, but it still presents a problem. Moreover, when we consider learning with hidden variables, it is clear that an imputation procedure will not help us. The values we ﬁll in for the hidden variable are conditionally independent from the values of the other variables, and thus, using the imputed values, we will not learn any dependencies between the hidden variable and the other variables in the network. 
+>  这种方法的问题在于，我们在填补缺失值时会引入偏差，这种偏差会在我们学到的参数中显现出来。例如，如果我们用 `false` 填补所有缺失值，那么我们的估计会偏向于 `false` 的更高（条件）概率。同样地，如果我们使用随机化的方法来填补缺失值，那么我们估算的概率会偏向于我们从中取样的分布。这可能比偏向单一值要好一些，但仍存在一个问题。
+>  此外，当我们考虑带有隐藏变量的学习时，很明显填充此时并不适用。我们为隐藏变量填充的值与其他变量的值条件独立，因此，使用这些填充值，我们无法学习到隐藏变量与网络中其他变量之间的任何依赖关系。
+
+A different approach to ﬁlling in data takes the perspective that, when learning with missing data, we are actually trying to solve two problems at once: learning the parameters, and hypothesizing values for the unobserved variables in each of the data cases. Each of these tasks is fairly easy when we have the solution to the other. Given complete data, we have the statistics, and we can estimate parameters using the MLE formulas we discussed in chapter 17. Conversely, given a choice of parameters, we can use probabilistic inference to hypothesize the likely values (or the distribution over possible values) for unobserved variables. Unfortunately, because we have neither, the problem is difficult. 
+>  另一种填充数据的方法认为，在适用缺失数据学习时，我们是在尝试同时解决两个问题：学习参数、为每个数据实例中为观测到的变量假设值
+>  对于这两个任务，如果我们对其中任意一个任务有解，另一个任务就容易解决
+>  例如给定完整数据，我们可以获取完整统计量，进而使用 MLE 估计参数；给定任意参数选择，我们可以用概率推理为未观测到的变量的可能的值做出假设，或者计算其分布
+>  而两个问题同时存在时，问题就会复杂
+
+The EM algorithm solves this “chicken and egg” problem using a bootstrap approach. We start out with some arbitrary starting point. This can be either a choice of parameters, or some initial assignment to the hidden variables; these assignments can be either random, or selected using some heuristic approach. Assuming, for concreteness, that we begin with a parameter assignment, the algorithm then repeats two steps. First, we use our current parameters to complete the data, using probabilistic inference. We then treat the completed data as if it were observed and learn a new set of parameters. 
+>  EM算法通过一种自助法（bootstrap方法）解决了这个“鸡与蛋”的问题
+>  我们从任意起点开始，例如某个参数选择，或者对隐变量的初始赋值 (随机选择或者启发式选择)，假设我们从某个参数选择开始，EM 算法反复执行两步：
+>  首先，用当前参数进行概率推理，补全数据
+>  然后，认为补全的数据是观察到的数据，基于此学习新的参数
+
+More precisely, suppose we have a guess $\theta^{0}$ about the parameters of the network. The resulting model deﬁnes a joint distribution over all the variables in the domain. Given a partial instance, we can compute the posterior (using our putative parameters) over all possible assignments to the missing values in that instance. The EM algorithm uses this probabilistic completion of the different data instances to estimate the expected value of the sufficient statistics. It then ﬁnds the parameters $\theta^{1}$ that maximize the likelihood with respect to these statistics. 
+>  更具体地说，假设从初始参数猜测 $\pmb \theta^0$ 开始，此时模型定义了所有变量的联合分布
+>  给定部分实例，我们用假定的参数计算实例中缺失值的可能赋值的后验分布
+>  然后我们基于后验分布，计算充分统计量的期望值，然后找到最大化相对于该充分统计量的似然的参数 $\pmb \theta^1$
+
+Somewhat surprisingly, this sequence of steps provably improves our parameters. In fact, as we will prove formally, unless our parameters have not changed due to these steps (such that $\pmb\theta^{0}=\pmb\theta^{\bar{1}}$ ), our new parameters $\theta^{1}$ necessarily have a higher likelihood than $\theta^{0}$ . But now we can iteratively repeat this process, using $\theta^{1}$ as our new starting point. Each of these operations can be thought of as taking an “uphill” step in our search space. More precisely, we will show (under very benign assumptions) that: each iteration is guaranteed to improve the log-likelihood function; that this process is guaranteed to converge; and that the convergence point is a ﬁxed point of the likelihood function, which is essentially always a local maximum. Thus, the guarantees of the EM algorithm are similar to those of gradient ascent. 
+>  可以证明，在该过程下，新的参数会提高似然，因此，每一轮重复可以视作在搜索空间上升，它确保会提高似然函数，故该过程保证收敛，且收敛点会是似然函数的一个固定点，因此总是一个局部极值
+
+#### 19.2.2.2 An Example
+We start with a simple example to clarify the concepts. Consider the simple network shown in ﬁgure 19.6. In the fully observable case, our maximum likelihood parameter estimate for the parameter $\hat{\theta}_{d^{1}|c^{0}}$ is: 
+
+$$
+{\hat{\theta}}_{d^{1}|c^{0}}={\frac{M[d^{1},c^{0}]}{M[c^{0}]}}={\frac{\sum_{m=1}^{M}{\bf I}\{\xi[m]\langle D,C\rangle=\langle d^{1},c^{0}\rangle\}}{\sum_{m=1}^{M}{\bf I}\{\xi[m]\langle C\rangle=c^{0}\}}},
+$$
+
+where $\xi[m]$ is the $m$ ’th training example. In the fully observable case, we knew exactly whether the indicator variables were 0 or 1. Now, however, we do not have complete data cases, so we no longer know the value of the indicator variables. 
+
+Consider a partially sp data case $o=\langle a^{1},\colon,\colon,\colon,d^{0}\rangle$ . There are four possible instantiations $B,C$ which could have given rise to this partial data case: $\langle b^{1},c^{1}\rangle$ , $\langle b^{1},c^{0}\rangle,\;\langle b^{0},c^{1}\rangle,\;\langle b^{0},c^{0}\rangle$ ⟨ ⟩ ⟨ ⟩ ⟨ ⟩ . We do not know which of them is true, or even which of them is more likely. 
+
+However, assume that we have some estimate $\theta$ of the values of the parameters in the model. In this case, we can compute how likely each of these completions is, given our distribution. That is, we can deﬁne a distribution $Q(B,C)=P(B,C\mid o,\theta)$ that induces a distribution over the four data cases. For example, if our parameters θ are: 
+
+$$
+\begin{array}{l l l}{{\pmb{\theta}_{a^{1}}}}&{{=0.3}}&{{\qquad\displaystyle{\pmb{\theta}_{b^{1}}}}}&{{=0.9}}\\ {{\pmb{\theta}_{d^{1}|c^{0}}}}&{{=0.1}}&{{\qquad\displaystyle{\pmb{\theta}_{d^{1}|c^{1}}}}}&{{=0.8}}\\ {{\pmb{\theta}_{c^{1}|a^{0},b^{0}}}}&{{=0.83}}&{{\qquad\displaystyle{\pmb{\theta}_{c^{1}|a^{1},b^{0}}}=0.6}}\\ {{\pmb{\theta}_{c^{1}|a^{0},b^{1}}}}&{{=0.09}}&{{\qquad\displaystyle{\pmb{\theta}_{c^{1}|a^{1},b^{1}}}=0.2,}}\end{array}
+$$ 
+
+then $Q(B,C)=P(B,C\mid a^{1},d^{0},\theta)$ is deﬁned as: 
+
+$Q(\langle b^{0},c^{0}\rangle)~=~0.3\cdot0.1\cdot0.4\cdot0.9/0.2196=0.0492$ 
+
+where 0 . 2196 is a normalizing f $P(a^{1},d^{0}\mid\theta)$ 
+
+If we have another example $o^{\prime}\,=\,\langle\!\,\!\mathfrak{z},b^{1},\mathfrak{z},d^{1}\rangle$ ⟨ ⟩ . Then $Q^{\prime}(A,C)\,=\,P(A,C\,\mid\,b^{1},d^{1},\theta)$ is deﬁned as: 
+
+$\begin{array}{r l}{Q^{\prime}(\langle a^{1},c^{1}\rangle)~=}&{{}0.3\cdot0.9\cdot0.2\cdot0.8/0.1675=0.2579}\end{array}$ Q ′ ( ⟨ a 1 , c 0 ⟩ ) = $0.3\cdot0.9\cdot0.8\cdot0.1/0.1675=0.1290$ $Q^{\prime}(\langle a^{0},c^{1}\rangle)~=~0.7\cdot0.9\cdot0.09\cdot0.8/0.1675=0.2708$ $Q^{\prime}(\langle a^{0},c^{0}\rangle)~=~0.7\cdot0.9\cdot0.91\cdot0.1/0.1675=0.3423.$ 
+
+Intuitively, now that we have estimates for how likely each of the cases is, we can treat these estimates as truth. That is, we view our partially observed data case $\langle a^{1},\cdot,\cdot,\cdot,d^{0}\rangle$ as consisting of four complete data cases, each of which has some weight lower than 1. The weights correspond to our estimate, based on our current parameters, on how likely is this particular completion of the partial instance. (This approach is somewhat reminiscent of the weighted particles in the likelihood weighting algorithm.) Importantly, as we will discuss, we do not usually explicitly generate these completed data cases; however, this perspective is the basis for the more sophisticated methods. 
+
+More generally, let $H[m]$ denote the variables whose values are missing in the data instance $o[m]$ . We now have a data set $\mathcal{D}^{+}$ consisting of 
+
+$$
+\cup_{m}\{\langle \pmb o[m],\pmb h[m]\rangle\ :\ \pmb h[m]\in V a l(\pmb H[m])\},
+$$ 
+where each data case $\langle \pmb o[m],\pmb h[m]\rangle$ has weight $Q(\pmb h[m])=P(\pmb h[m]\mid \pmb o[m],\pmb \theta)$ . 
+
+>  更一般地说，令 $\pmb H[m]$ 表示数据实例 $\pmb o[m]$ 中具有缺失值的变量
+>  在 EM 算法中，我们将获得数据集 $\mathcal D^+$，该数据集的样本基于原来的样本 $\pmb o[m]$ 补全得到，每个其中每个 $\pmb o[m]$ 都会和所有的可能的 $\pmb h[m]\in Val(\pmb H[m])$ 进行补全，同时会得到权重 $Q(\pmb h[m]) = P(\pmb h[m]\mid \pmb o[m], \pmb \theta)$，即 $\pmb h[m]$ 条件于 $\pmb o[m]$ 和 $\pmb \theta$ 的后验概率
+
+We can now do standard maximum likelihood estimation using these completed data cases. We compute the expected sufficient statistics : 
+
+$$
+\bar{M}_{\pmb\theta}[{\pmb y}]=\sum_{m=1}^{M}\sum_{{\pmb h}[m]\in V a l({\pmb H}[m])}Q({\pmb h}[m]){\pmb 1}\{\xi[m]\langle{\pmb Y}\rangle={\pmb y}\}.
+$$
+
+>  基于该数据集，我们计算期望充分统计量如上
+
+We then use these expected sufficient statistics as if they were real in the MLE formula. For example: 
+
+$$
+\tilde{\pmb \theta}_{d^{1}|c^{0}}={\frac{\bar{M}_{\theta}[d^{1},c^{0}]}{\bar{M}_{\theta}[c^{0}]}}.
+$$
+
+>  然后使用期望充分统计量进行 MLE 估计如上
+
+In our example, suppose the data consist of the two instances $o\;=\;\langle a^{1},\,\sharp,\,\sharp,d^{0}\rangle$ and $o^{\prime}\,=$ $\langle\mathcal{G},b^{1},\mathcal{G},d^{1}\rangle$ . Then, using the calculated $Q$ and $Q^{\prime}$ from above, we have that 
+
+$$
+\begin{array}{r c l}{{\bar{M}_{\theta}[d^{1},c^{0}]}}&{{=}}&{{Q^{\prime}(\langle a^{1},c^{0}\rangle)+Q^{\prime}(\langle a^{0},c^{0}\rangle)}}\\ {{}}&{{=}}&{{0.1290+0.3423=0.4713}}\\ {{\bar{M}_{\theta}[c^{0}]}}&{{=}}&{{Q(\langle b^{1},c^{0}\rangle)+Q(\langle b^{0},c^{0}\rangle)+Q^{\prime}(\langle a^{1},c^{0}\rangle)+Q^{\prime}(\langle a^{0},c^{0}\rangle)}}\\ {{}}&{{=}}&{{0.8852+0.0492+0.1290+0.3423=1.4057.}}\end{array}
+$$
+
+
+Thus, in this example, using these particular parameters to compute expected sufficient statistics, we get 
+
+$$
+\tilde{\pmb{\theta}}_{d^{1}|c^{0}}=\frac{0.4713}{1.4057}=0.3353.
+$$
+
+Note that this estimate is quite different from the parameter $\theta_{d^{1}|c^{0}}=0.1$ that we used in our estimate of the expected counts. The initial parameter and the estimate are different due to the incorporation of the observations in the data. 
+
+This intuition seems nice. However, it may require an unreasonable amount of computation. To compute the expected sufficient statistics, we must sum over all the completed data cases. The number of these completed data cases is much larger than the original data set. For each $o[m]$ , the number of completions is exponential in the number of missing values. Thus, if we have more than few missing values in an instances, an implementation of this approach will not be able to ﬁnish computing the expected sufficient statistics. 
+>  为了计算期望充分统计量，我们需要对于所有的完整数据实例求和，此时的完整数据实例的数量要比原数据集大很多
+>  因为对于每个 $\pmb o[m]$，其对应的补全样本的数量和缺失值的数量呈指数关系
+
+Fortunately, it turns out that there is a better approach to computing the expected sufficient statistic than simply summing over all possible completions. Let us reexamine the formula for an expected sufficient statistic, for example, $\bar{M}_{\theta}[c^{1}]$ . We have that 
+
+$$
+\bar{M}_{\pmb\theta}[c^{1}]=\sum_{m=1}^{M}\sum_{\pmb h[m]\in V a l(\pmb H[m])}Q(\pmb h[m])\pmb 1\{\xi[m]\langle C\rangle=c^{1}\}.
+$$
+
+Let us consider the internal summation, say for a data case $o\,=\,\langle a^{1},\,\sharp,\,\sharp,d^{0}\rangle$ . We have four possible completions, as before, but we are only summing over the two that are consistent with $c^{1}$ , that is, $Q(b^{1},c^{1})+Q(b^{0},c^{1})$ . This expression is equal to $Q(c^{1})\,=\,P(c^{1}\,\mid\,a^{1},d^{0},\theta)\,=$ $P(c^{1}\mid o[1],\theta)$ . This idea clearly generalizes to our other data cases. Thus, we have that 
+
+$$
+\bar{M}_{\pmb\theta}[c^{1}]=\sum_{m=1}^{M}P(c^{1}\mid\pmb o[m],\pmb\theta).
+$$
+
+Now, recall our formula for sufficient statistics in the fully observable case: 
+
+$$
+M[c^{1}]=\sum_{m=1}^{M}{\bf 1}\{\xi[m]\langle C\rangle=c^{1}\}.
+$$
+
+Our new formula is identical, except that we have substituted our indicator variable — either 0 or 1 —— with a probability that is somewhere between 0 and 1. Clearly, if in a certain data case we get to observe $C$ , the indicator variable and the probability are the same. Thus, we can view the expected sufficient statistics as ﬁlling in soft estimates for hard data when the hard data are not available. 
+
+>  但实际上，对于特定取值 (例如 $c^1$ ) 的充分统计量，在 EM 算法中，每个样本的贡献等价于 $P(c^1 \mid \pmb o[m], \pmb \theta)$，因为在对所有可能的补全求和时，我们最终仅考虑和 $c^1$ 一致的补全
+>  因此，相较于完整数据的情况 (每个样本的对充分统计量的贡献要么 0 要么 1)，EM 算法中每个样本对充分统计量的贡献是 0 到 1 之间的概率
+>  当然，如果特定的取值直接在观测 $\pmb o[m]$ 中，概率就是 1
+>  因此，期望充分统计量可以被视作为在硬数据不可观测时为硬数据填充软预测
+
+We stress that we use posterior probabilities in computing expected sufficient statistics. Thus, although our choice of $\pmb \theta$ clearly inﬂuences the result, the data also play a central role. This is in contrast to the probabilistic completion we discussed earlier that used a prior probability to ﬁll in values, regardless of the evidence on the other variables in the same instances. 
+>  注意我们使用后验概率计算期望充分统计量，因此虽然 $\pmb \theta$ 的选择会影响结果，但数据也同样会进行影响，这和我们之前讨论的朴素填充法不同
+>  之前的朴素填充法只使用先验概率进行填充，并不考虑实例中其他变量的证据值
+
+#### 19.2.2.3 The EM Algorithm for Bayesian Networks 
+We now present the basic EM algorithm and describe the guarantees that it provides. 
+
+**Networks with Table-CPDs** Consider the application of the EM algorithm to a general Bayesian network with table-CPDs. Assume that the algorithm begins with some initial parameter assignment $\theta^{0}$ , which can be chosen either randomly or using some other approach. (The case where we begin with some assignment to the missing data is analogous.) The algorithm then repeatedly executes the following phases, for $t=0,1,\ldots.$ 
+>  考虑将 EM 算法应用到带有 table-CPDs 的一般的 BN
+>  假设算法从某个初始参数赋值 $\pmb \theta^0$ 开始，算法将对 $t = 0, 1,\dots$ 反复执行以下步骤
+
+**Expectation (E-step):** The algorithm uses the current parameters $\theta^{t}$ to compute the expected sufficient statistics . 
+
+- For each data case $o[m]$ and each family $X,U$ , compute the joint distribution $P(X,U\mid$ $o[m],\pmb\theta^{t})$ .
+- Compute the expected sufficient statistics for each $x,u$ as: $\bar{M}_{\pmb\theta^{t}}[x,\pmb u]=\sum_{m}{P(x,\pmb u\mid o[m],\pmb\theta^{t})}.$ 
+
+This phase is called the $E$ -step ( expectation step ) because the counts used in the formula are the expected sufficient statistics, where the expectation is with respect to the current set of parameters. 
+
+>  E-step：使用当前参数 $\pmb \theta^t$ 计算期望充分统计量
+>  - 对于每个数据实例 $\pmb o[m]$ 和每一族 $X, \pmb U$，计算联合分布 $P(X, \pmb U \mid \pmb o[m], \pmb \theta^t)$
+>  - 为每个 $x, \pmb u$ 计算充分统计量 $\bar M_{\pmb \theta^t} = \sum_m P(x, \pmb u\mid \pmb o[m], \pmb \theta^t)$
+>  该步称为期望步，因为公式中的计数是期望充分统计量，即相对于充分统计量相对于当前参数的期望
+
+**Maximization (M-step):** Treat the expected sufficient statistics as observed, and perform maximum likelihood estimation, with respect to them, to derive a new set of parameters. In other words, set 
+
+$$
+\pmb \theta_{x|u}^{t+1}=\frac{\bar{M}_{\pmb\theta^{t}}[x,u]}{\bar{M}_{\pmb \theta^{t}}[u]}.
+$$
+
+This phase is called the $M$ -step ( maximization step ), because we are maximizing the likelihood relative to the expected sufficient statistics. 
+
+>  M-step：将期望充分统计量视作已观察到，执行 MLE，获取新的一组参数
+>  该阶段称为最大化步，我们在这一步相对于期望充分统计量最大化其似然
+
+A formal version of the algorithm is shown fully in algorithm 19.2. 
+
+The maximization step is straightforward. The more difficult step is the expectation step. How do we compute expected sufficient statistics? We must resort to Bayesian network inference over the network $\langle\mathcal{G},\pmb{\theta}^{\bar{t}}\rangle$ . Note that, as in the case of gradient ascent, the only expected sufficient statistics that we need involve a variable and its parents. Although one can use a variety of different inference methods to perform the inference task required for the E-step, we can, as in the case of gradient ascent, use the clique tree or cluster graph algorithm. Recall that the family-preservation property guarantees that $X$ and its parents $U$ will be together in some cluster in the tree or graph. Thus, once again, we can do all of the required inference for each data case using one run of message-passing calibration. 
+>  在计算期望充分统计量时，我们需要对 BN $\langle \mathcal G, \pmb \theta^t\rangle$ 执行推理
+>  注意对于梯度上升来说，我们所需要的期望充分统计量仅涉及一个变量和它的父变量，故对于梯度上升来说，可以使用团树或者簇图算法，因为族保持性质保证 $X$ 和其父变量 $\pmb U$ 会在某个簇中出现，因此我们可以使用一次消息传递校准为所有的数据实例执行推理
+
+**General Exponential Family\***
+The same idea generalizes to other distributions where the likelihood has sufficient statistics, in particular, all models in the exponential family (see deﬁnition 8.1). Recall that such families have a sufficient statistic function $\tau(\xi)$ that maps a complete instance to a vector of sufficient statistics. When learning parameters of such a model, we can summarize the data using the sufficient statistic function $\tau$ . For a complete data set $\mathcal{D}^{+}$ , we deﬁne 
+
+$$
+\tau(\mathcal{D}^{+})=\sum_{m}\tau(o[m],h[m]).
+$$
+
+We can now deﬁne the same E and M-steps described earlier for this more general case. 
+
+Expectation $^ Ḋ E Ḍ$ -step ): For each data case $o[m]$ , the algorithm uses the current parameters $\theta^{t}$ to deﬁne a model, and a posterior distribution: 
+
+$$
+Q(H[m])=P(H[m]\mid o[m],\pmb\theta^{t}).
+$$ 
+It then uses inference in this distribution to compute the expected sufficient statistics : 
+
+$$
+{\pmb E}_{Q}[\tau(\langle{\mathcal D},{\mathcal H}\rangle)]=\sum_{m}{\pmb E}_{Q}[\tau(o[m],{\pmb h}[m])].
+$$ 
+Maximization ( M-step ): As in the case of table-CPDs, once we have the expected sufficient statistics, the algorithm treats them as if they were real and uses them as the basis for maximum likelihood estimation, using the appropriate form of the ML estimator for this family. 
+
+**Convergence Results** Somewhat surprisingly, this simple algorithm can be shown to have several important properties. We now state somewhat simpliﬁed versions of the relevant results, deferring a more precise statement to the next section. 
+
+The ﬁrst result states that each iteration is guaranteed to improve the log-likelihood of the current set of parameters. 
+>  EM 算法的每一步迭代都保证提高当前参数下的对数似然
+
+**Theorem 19.3** 
+During iterations of the EM procedure of algorithm 19.2, we have
+
+$$
+\ell(\pmb\theta^{t}:\mathcal D)\leq\ell(\pmb\theta^{t+1}:\mathcal D).
+$$
+
+>  定理
+>  EM 算法中，数据集在下一次迭代的参数下的对数似然一定不小于数据集在本次迭代下的对数似然
+
+Thus, the EM procedure is constantly increasing the log-likelihood objective function. Because the objective function can be shown to be bounded (under mild assumptions), this procedure is guaranteed to converge. By itself, this result does not imply that we converge to a maximum of the objective function. Indeed, this result is only “almost true”: 
+>  因此 EM 算法将持续提高对数似然目标函数
+>  因为目标函数在一定假设下有界，故该过程保证收敛
+
+**Theorem 19.4** 
+Suppose that $\theta^{t}$ is such that ${\pmb\theta}^{t+1}={\pmb\theta}^{t}$ during EM, and $\theta^{t}$ is also an interior point of the allowed parameter space. Then $\theta^{t}$ is a stationary point of the log-likelihood function. 
+>  定理
+>  假设 EM 算法中 $\pmb \theta^{t+1} = \pmb \theta^t$，且 $\pmb \theta^t$ 是参数空间内的内点，则 $\pmb \theta^t$ 是对数似然函数的驻点
+
+This result shows that EM converges to a stationary point of the likelihood function. Recall that a stationary point can be a local maximum, local minimum, or a saddle point. Although it seems counter intuitive that by taking upward steps we reach a local minimum, it is possible to construct examples where EM converges to such a point. **However, nonmaximal convergence points can only be reached from very speciﬁc starting points, and are moreover not stable, since even small perturbations to the parameters are likely to move the algorithm away from this point. Thus, in practice, EM generally converges to a local maximum of the likelihood function.** 
+>  该定理说明 EM 会收敛到似然函数的驻点
+>  驻点可以是局部极大、局部极小或鞍点，EM 算法可能会收敛到局部极小，但实际上非局部极大的收敛点只有在非常特殊的起始点才会达到，且不稳定
+>  因此在实践中，EM 一般会收敛到似然函数的局部极大
+
+#### 19.2.2.4 Bayesian Clustering Using EM 
+One important application of learning with incomplete data, and EM in particular, is to the problem of clustering . Here, we have a set of data points in some feature space $\pmb X$ . Let us even assume that they are fully observable. We want to classify these data points into coherent categories, that is, categories of points that seem to share similar statistical properties. 
+>  考虑将 EM 用于聚类问题
+
+The Bayesian clustering paradigm views this task as a learning problem with a single hidden variable $C$ that denotes the category or class from which an instance comes. Each class is associated with a probability distribution over the features of the instances in the class. In most cases, we assume that the instances in each class $c$ come from some coherent, fairly simple, distribution. In other words, we postulate a particular form for the class-conditional distribution $P(\pmb{x}\mid c)$ . For example, in the case of real-valued data, we typically assume that the class-conditional distribution is a multivariate Gaussian (see section 7.1). In discrete settings, we typically assume that the class-conditional distribution is a naive Bayes structure (section 3.1.3), where each feature is independent of the rest given the class variable. Overall, this approach views the data as coming from a mixture distribution and attempts to use the hidden variable to separate out the mixture into its components. 
+>  贝叶斯聚类范式将聚类任务视作一个带有单个隐变量 $C$ 的学习问题，隐变量指示了一个实例的类别
+>  每个类别都和一个特征空间上的分布相关，在多数情况下，我们假设每个类别的实例都来自于一个一致、简单的分布，也就是说我们为类别条件分布 $P(\pmb x \mid c)$ 假设了特定的形式
+>  例如对于实值数据，我们假设多元高斯，对于离散数据，我们假设朴素贝叶斯 (给定类别变量后，每个特征之间相互独立)
+>  总体上看，该方法将数据视作来自于一个混合分布，并且尝试用隐变量来分离出它的混合成分
+
+Suppose we consider the case of a naive Bayes model (ﬁgure 19.7) where the hidden class variable is the single parent of all the observed feature. In this particular learning scenario, the E-step involves computing the probability of different values of the class variables for each instance. Thus, we can think of EM as performing a soft classiﬁcation of the instances, that is, each data instance belongs, to some degree, to multiple classes. 
+>  假设考虑朴素贝叶斯，此时隐变量为所有特征的父节点
+>  此时，E-step 为每个实例计算类别变量所有可能取值的概率
+>  因此，可以将 EM 视作为实例进行软分类，即每个数据实例在一定程度上属于多个类别
+
+In the M-step we compute the parameters for the CPDs in the form $P(X\mid C)$ and the prior $P(C)$ over the classes. These estimates depends on our expected sufficient statistics. These are: 
+
+$$
+\begin{array}{r c l}{{\bar{M}_{\pmb \theta}[c]}}&{{\leftarrow}}&{{\displaystyle\sum_{m}P(c\mid x_{1}[m],\ldots,x_{n}[m],\pmb \theta^{t})}}\\ {{\bar{M}_{\pmb \theta}[x_{i},c]}}&{{\leftarrow}}&{{\displaystyle\sum_{m}P(c,x_{i}\mid x_{1}[m],\ldots,x_{n}[m],\pmb \theta^{t}).}}\end{array}
+$$
+
+We see that an instance helps determine the parameters for all of the classes that it participates in (that is, ones where $P(c\mid\pmb{x}[m])$ is bigger than 0 ). Stated a bit differently, each instance “votes” about the parameters of each cluster by contributing to the statistics of the conditional distribution given that value of the cluster variable. However, the weight of this vote depends on the probability with which we assign the instance to the particular cluster. 
+
+>  M-step 中，我们基于期望充分统计量，为形式为 $P(X\mid C)$ 和先验 $P(C)$ 计算参数，期望充分统计量的形式如上
+>  我们看到，一个实例可以帮助确定它参与的所有类别（即，其中 $P(c \mid \pmb{x}[m])$ 大于0的那些类别）的参数。换句话说，每个实例通过贡献于给定聚类变量的条件分布的统计量，对每个聚类的参数进行“投票”。然而，这个“投票”的权重取决于我们将该实例分配给特定聚类的概率。
+
+Once we have computed the expected sufficient statistics, the M-step is, as usual, simple. The parameters for the class variable CPD are 
+
+$$
+\pmb \theta_{c}^{t+1}\gets\frac{\bar{M}_{\pmb \theta}[c]}{M},
+$$
+
+and for the conditional CPD are 
+
+$$
+\pmb \theta_{x_{i}|c}^{t+1}\leftarrow\frac{\bar{M}_{\pmb \theta}[x_{i},c]}{\bar{M}_{\pmb \theta}[c]}.
+$$
+
+We can develop similar formulas for the case where some of the observed variables are continuous, and we use a conditional Gaussian distribution (a special case of deﬁnition 5.15) to model the CPD $P(X_{i}\mid C)$ . The application of EM to this speciﬁc model results in a simple and efficient algorithm. 
+
+>  计算出期望充分统计量后，参数的更新如上
+>  当观察变量是连续的情况时，我们则使用条件高斯分布来建模 $P(X_i \mid C)$
+
+We can think of the clustering problem with continuous observations from a geometrical perspective, where each observed variable $X_{i}$ represents one coordinate, and instances correspond to points. The parameters in this case represent the distribution of coordinate values in each of the classes. Thus, each class corresponds to a cloud of points in the input data. In each iteration, we re-estimate the location of these clouds. In general, depending on the particular starting point, EM will proceed to assign each class to a dense cloud. 
+>  可以从几何视角思考带有连续观测的聚类问题，每个被观察到的变量 $X_i$ 表示一个坐标，整个实例表示一个点
+>  此时的参数就表示每个类别的坐标值的分布，因此每一类都对应于输入数据中的一个点云
+>  在每次迭代中，我们重新估计这些云的位置，一般情况下，基于特定的起始点，EM 会将每个类赋给一个密云
+
+The EM algorithm for clustering uses a “soft” cluster assignment, allowing each instance to contribute part of its weight to multiple clusters, proportionately to its probability of belonging to each of them. As another alternative, we can consider “hard clustering,” where each instance contributes all of its weight to the cluster to which it is most likely to belong. This variant, called hard-assignment EM proceeds by performing the following steps. 
+
+- Given parameters $\pmb \theta^{t}$ , we assign $c[m]\;=\;\arg\operatorname*{max}_{c}P(c\;\vert\;\,\pmb{x}[m],\pmb{\theta}^{t})$ for each instance $m$ . If we let $\mathcal{H}^{t}$ comprise all of the assignments $c[m]$ , this results in a complete data set $(\mathcal{D}^{+})^{t}=\langle\mathcal{D},\mathcal{H}^{t}\rangle$ .
+- Set $\begin{array}{r}{\pmb{\theta}^{t+1}=\arg\operatorname*{max}_{\pmb{\theta}}\ell(\pmb{\theta}:(\mathcal{D}^{+})^{t})}\end{array}$ . This step requires collecting sufficient statistics from $(\mathcal{D}^{+})^{t}$ , and then choosing MLE parameters based on these. 
+
+This approach is often used where the class-conditional distributions $P(\pmb X\mid c)$ are all “round” Gaussian distributions with unit variance. Thus, each class $c$ has its own mean vector $\pmb{\mu}_{c},$ but a unit covariance matrix. In this case, the most likely class for an instance ${x}$ is simply the k-means class $c$ such that the Euclidean distance between ${x}$ and $\mu_{c}$ is smallest. In other words, each point gravitates to the class to which it is “closest.” The re-estimation step is also simple. It simply selects the mean of the class to be at the center of the cloud of points that have aligned themselves with it. This process iterates until convergence. This algorithm is called $k$ -means . 
+
+>  用于聚类的 EM 算法使用的是“软”簇分配，即允许每个实例向多个簇贡献一部分权重，该权重正比于它属于这些簇的概率
+>  我们可以考虑硬聚类，即每个实例将所有权重贡献给最有可能的簇，该变体称为硬赋值 EM，它执行以下步骤
+>  - 给定参数 $\pmb \theta^t$，我们为每个实例 $m$ 赋值 $c[m] = \arg\max_c P(c\mid\pmb x[m], \pmb \theta^t)$，我们令 $\mathcal H^t$ 表示此时所有的 $c[m]$ 的集合，此时我们得到一个完整数据集 $(\mathcal D^+)^t = \langle \mathcal D, \mathcal H^t \rangle$
+> - 令参数 $\pmb \theta^{t+1} = \arg\max_{\pmb \theta} \ell(\pmb \theta: (\mathcal D^+))^t)$，这一步要求我们从 $(\mathcal D^+)^t$ 中收集充分统计量，然后基于它选择 MLE 参数
+>  该方法一般在类条件分布 $P(\pmb X \mid c)$ 都为单位方差的高斯分布时使用，此时每一类都有自己的均值向量 $\pmb \mu_c$ 和单位协方差矩阵
+>  在该情况下，实例 $\pmb x$ 最有可能属于的类就是其 k-means $c$，即 $\pmb \mu_c$ 和 $\pmb x$ 之间的欧式距离最短，重估计时，每个点云的中心被重新选择为所有点的均值，该过程会迭代直到收敛，实际上这就是 k-means 算法
+
+Although hard-assignment EM is often used for clustering, it can be deﬁned more broadly; we return to it in greater detail in section 19.2.2.6. 
+
+Box 19.A — Case Study: Discovering User Clusters. In box 18.C, we discussed the collaborative ﬁltering problem, and the use of Bayesian network structure learning to address it. A different application of Bayesian network learning to the collaborative ﬁltering data task, proposed by Breese et al. (1998), utilized a Bayesian clustering approach. Here, one can introduce a cluster variable $C$ denoting subpopulations of customers. In a simple model, the individual purchases $X_{i}$ of each user are taken to be conditionally independent given the user’s cluster assignment $C$ . Thus, we have $^a$ naive Bayes clustering model, to which we can apply the EM algorithm. (As in box $l8.C,$ items $i$ that the user did not purchase are assigned $X_{i}=x_{i}^{0}$ .) 
+
+This learned model can be used in several ways. Most obviously, we can use inference to compute the probability that the user will purchase item $i$ , given a set of purchases $S$ . Empirical studies show that this approach achieves lower performance than the structure learning approach of box 18.C, probably because the “user cluster” variable simply cannot capture the complex preference patterns over a large number of items. However, this model can provide signiﬁcant insight into the types of users present in a population, allowing, for example, a more informed design of advertising campaigns. 
+
+As one example, Bayesian clustering was applied to a data set of people browsing the MSNBC website. Each article was associated with a binary random variable $X_{i}$ , which took the value $x_{i}^{1}$ if the user followed the link to the article. Figure 19.A.1 shows the four largest clusters produced by Bayesian clustering applied to this data set. Cluster 1 appears to represent readers of commerce and technology news (a large segment of the reader population at that period, when Internet news was in its early stages). Cluster 2 are people who mostly read the top-promoted stories in the main page. Cluster 3 are readers of sports news. In all three of these cases, the user population was known in advance, and the website contained a page targeting these readers, from which the articles shown in the table were all linked. The fourth cluster was more surprising. It appears to contain readers interested in “softer” news. The articles read by this population were scattered all over the website, and users often browsed several pages to ﬁnd them. Thus, the clustering algorithm revealed an unexpected pattern in the data, one that may be useful for redesigning the website. 
+
+#### 19.2.2.5 Theoretical Foundations\*
+So far, we used an intuitive argument to derive the details of the EM algorithm. We now formally analyze this algorithm and prove the results regarding its convergence properties. 
+
+At each iteration, EM maintains the “current” set of parameters. Thus, we can view it as a local learning algorithm. Each iteration amounts to taking a step in the parameter space from 
+
+Cluster 1 (36 percent) Cluster 2 (29 percent) E-mail delivery isn’t exactly guaranteed 757 Crashes at sea Should you buy a DVD player? Israel, Palestinians agree to direct talks Price low, demand high for Nintendo Fuhrman pleads innocent to perjury Cluster 3 (19 percent) Cluster 4 (12 percent) Umps refusing to work is the right thing The truth about what things cost Cowboys are reborn in win over eagles Fuhrman pleads innocent to perjury Did Orioles spend money wisely? Real astrology 
+
+Figure 19.A.1 — Application of Bayesian clustering to collaborative ﬁltering. Four largest clusters found by Bayesian clustering applied to MSNBC news browsing data. For each cluster, the table shows the three news articles whose probability of being browsed is highest. 
+
+$\theta^{t}$ to $\pmb{\theta}^{t+1}$ . This is similar to gradient-based algorithms, except that in those algorithms we have good understanding of the nature of the step, since each step attempts to go uphill in the steepest direction. Can we ﬁnd a similar justiﬁcation for the EM iterations? 
+
+The basic outline of the analysis proceeds as follows. We will show that each iteration can be viewed as maximizing an auxiliary function , rather than the actual likelihood function. The choice of auxiliary function depends on the current parameters at the beginning of the iteration. The auxiliary function is nice in the sense that it is similar to the likelihood function in complete data problems. The crucial part of the analysis is to show how the auxiliary function relates to the likelihood function we are trying to maximize. As we will show, the relation is such that we can show that the parameters that maximize the auxiliary function in an iteration also have better likelihood than the parameters with which we started the iteration. 
+
+The Expected Log-Likelihood Function Assume we are given a data set $\mathcal{D}$ that consists of partial observations. Recall t $\mathcal{H}$ denotes a possible assignm r data set. The combination of D $\mathcal{D},\mathcal{H}$ H deﬁnes a complete data set D $\mathcal{D}^{+}=\langle\mathcal{D},\mathcal{H}\rangle=\{o[m],h[m]\}_{m}$ ⟨D H⟩ { } , where in each instance we now have a full assignment to all the variables. We denote by $\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)$ the log-likelihood of the parameters $\theta$ ith respect to this completed data set. 
+
+Suppose we are not sure abou he true value of H . Rather, we have a probabilistic timate that e denote by a distribution Q that assigns a probability to each possible value of H . Note that Q is a joint distribution over full assignments to all of the missing values in the entire data set. Thus, for example, in our earlier network, if $\mathcal{D}$ contains two instances $o[1]=\langle a^{1},\hat{\imath},\hat{\imath},d^{0}\rangle$ and $o[2]=\langle\P,b^{1},\P,d^{1}\rangle$ , then $Q$ is a joint distribution over $B[1],C[1],A[2],C[2]$ . 
+
+expected log-likelihood 
+
+In the fully observed case, our score for a set of parameters was the log-likelihood. In this case, given $Q$ , we can use it to deﬁne an average score, which takes into account the different possible completions of the data and their probabilities. Speciﬁcally, we deﬁne the expected log-likelihood as: 
+
+$$
+E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]=\sum_{\mathcal{H}}Q(\mathcal{H})\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)
+$$ 
+
+This function has appealing characteristics that are important in the derivation of EM. 
+
+The ﬁrst key property is a consequence of the linearity of expectation. Recall that when learning table-CPDs, we showed that 
+
+$$
+\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)=\sum_{i=1}^{n}\sum_{(x_{i},\mathbf{u}_{i})\in V a l(X_{i},\mathrm{Pa}_{X_{i}})}M_{\langle\mathcal D,\mathcal H\rangle}[x_{i},\pmb u_{i}]\log\theta_{x_{i}|\pmb u_{i}}.
+$$ 
+
+Because the only terms in this sum that depend on $\langle\mathcal{D},\mathcal{H}\rangle$ are the counts $M_{\langle\mathcal{D},\mathcal{H}\rangle}[x_{i},\mathbf{u}_{i}]$ , and these appear within a linear function, we can use linearity of expectations to show that 
+
+$$
+E_{Q}[\ell(\pmb\theta:\langle\mathscr{D},\mathscr{H}\rangle)]=\sum_{i=1}^{n}\sum_{(x_{i},\pmb u_{i})\in V a l(X_{i},\mathrm{Pa}_{X_{i}})}\pmb E_{Q}\big[M_{\langle\mathscr{D},\mathscr{H}\rangle}[x_{i},\pmb u_{i}]\big]\log\theta_{x_{i}|\pmb u_{i}}.
+$$ 
+
+If we now generalize our notation to deﬁne 
+
+$$
+\bar{M}_{Q}[x_{i},\mathbf{u}_{i}]=E_{\mathcal{H}\sim Q}\left[M_{\langle\mathcal{D},\mathcal{H}\rangle}[x_{i},\mathbf{u}_{i}]\right]
+$$ 
+
+we obtain 
+
+$$
+E_{Q}[\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)]=\sum_{i=1}^{n}\sum_{(x_{i},\pmb u_{i})\in V a l(X_{i},\mathrm{Pa}_{X_{i}})}\bar{M}_{Q}[x_{i},\pmb u_{i}]\log\theta_{x_{i}|\pmb u_{i}}.
+$$ 
+
+This expression has precisely the same form as the log-likelihood function in the complete data case, but using the expected counts rather than the exact full-data counts. The implication is that instead of summing over all possible completions of the data, we can evaluate the expected log-likelihood based on the expected counts. 
+
+The crucial point here is that the log-likelihood function of complete data is linear in the counts. This allows us to use linearity of expectations to write the expected likelihood as a function of the expected counts. 
+
+The same idea generalizes to any model in the exponential family, which we deﬁned in chapter 8. Recall that a model is in the exponential family if we can write: 
+
+$$
+P(\xi\mid\pmb\theta)=\frac{1}{Z(\pmb\theta)}A(\xi)\exp\left\{\langle\mathfrak t(\pmb\theta),\tau(\xi)\rangle\right\},
+$$ 
+
+where $\langle\cdot,\cdot\rangle$ is the inner product, $A(\xi),\,\mathtt{t}(\theta)$ , and $Z(\theta)$ are functions that deﬁne the family, and $\tau(\xi)$ is the sufficient statistics function that maps a complete instance to a vector of sufficient statistics. 
+
+As discussed in section 17.2.5, when learning parameters of such a model, we can summarize the data using the sufficient statistic function $\tau$ . We deﬁne 
+
+$$
+\tau(\langle\mathcal{D},\mathcal{H}\rangle)=\sum_{m}\tau(o[m],h[m]).
+$$ 
+
+Because the model is in the exponential family, we can write the log-likelihood $\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)$ as a linear function of $\tau(\langle\mathcal{D},\mathcal{H}\rangle)$ 
+
+$$
+\ell(\pmb\theta:\langle\mathscr{D},\mathcal{H}\rangle)=\langle\mathrm t(\pmb\theta),\tau(\langle\mathscr{D},\mathcal{H}\rangle)\rangle+\sum_{m}\log A(\pmb\theta[m],\pmb h[m])-M\log Z(\pmb\theta).
+$$ 
+
+Using the linearity of expectation, we see that 
+
+$$
+E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]=\langle\mathrm{t}(\pmb{\theta}),\pmb{E}_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]\rangle+\sum_{m}\pmb{E}_{Q}[\log A(o[m],\pmb{h}[m])]-M\log(m\delta).
+$$ 
+
+Because $A(o[m],h[m])$ does not depend on the choice of $\theta$ , we can ignore it. We are left with maximizing the function: 
+
+$$
+E_{Q}[\ell(\pmb\theta:\langle\mathscr{D},\mathscr{H}\rangle)]=\langle\mathfrak t(\pmb\theta),\pmb E_{Q}[\tau(\langle\mathscr{D},\mathscr{H}\rangle)]\rangle-M\log Z(\pmb\theta)+\mathrm{const}.
+$$ 
+
+In summary, the derivation here is directly analogous to the one for table-CPDs. The expected log-likelihood is a linear function of the expected sufficient statistics $E_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ . We can compute these as in equation (19.4), by aggregating their expectation in each instance in the training data. Now, maximizing the right-hand side of equation (19.6) is equivalent to maximum likelihood estimation in a complete data set where the sum of the sufficient statistics coincides with the expected sufficient statistics $E_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ . These two steps are exactly the E- step and M-step we take in each iteration of the EM procedure shown in algorithm 19.2. In the procedure, the distribution $Q$ that we are using is $P(\bar{\mathcal{H}}\mid\mathcal{D},\theta^{t})$ . Because instances are assumed to be independent given the parameters, it follows that 
+
+$$
+P(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t})=\prod_{m}P(\pmb{h}[m]\mid\pmb{o}[m],\pmb{\theta}^{t}),
+$$ 
+
+where $h[m]$ are the missing variables in the $m$ ’th data instance, and $o[m]$ are the observations in the $m$ ’th instance. Thus, we see that in the $t$ ’th iteration of the EM procedure, we choose $\pmb{\theta}^{t+1}$ to be the ones that maximize $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ with $Q(\mathcal{H})=P(\bar{\mathcal{H}}\mid\mathcal{D},\theta^{t})$ . This discussion allows us to understand a single iteration as an (implicit) optimization step of a well-deﬁned target function. 
+
+Choosing $Q$ The discussion so far has showed that we can use properties of exponential models to efciently maximize the expected log-likelihood function. Moreover, we have seen that the $t$ ’th EM iteration can be viewed as maximizing $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ where $Q$ is the conditional probability $P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ . This discussion, however, does not provide us with guidance as to why we choose this particular auxiliary distribution $Q$ . Note that each iteration uses a different $Q$ distribution, and thus we cannot relate the optimization taken in one iteration to the ones made in the subsequent one. We now show why the choice $Q(\mathcal{H})=P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta}^{t})$ allows us to prove that each EM iteration improves the likelihood function. 
+
+To do this, we will deﬁne a new function that will be the target of our optimization. Recall that our ultimate goal is to maximize the log-likelihood function. The log-likelihood is a function only of $\theta$ ; however, in intermediate steps, we also have the current choice of $Q$ . Therefore, we will deﬁne a new function that accounts for both $\theta$ and $Q$ , and view each step in the algorithm as maximizing this function. 
+
+We already encountered a similar problem in our discussion of approximate inference in chapter 11. Recall that in that setting we had a known distribution $P$ and attempted to ﬁnd an approximating distribution $Q$ . This problem is similar to the one we face, except that in learning we also change the parameters of target distribution $P$ to maximize the probability of the data. 
+
+Let us brieﬂy summarize the main idea that we used in chapter 11. Suppose that $P=\tilde{P}/Z$ is some distribution, where $\tilde{P}$ is an unnormalized part of the distribution, speciﬁed by a product energy functional of factors, and $Z$ is the partition function that ensures that $P$ sums up to one. We deﬁned the energy functional as 
+
+$$
+F[P,Q]=E_{Q}\Bigl[\log\tilde{P}\Bigr]+H_{Q}(\mathcal{X}).
+$$ 
+
+We then showed that the logarithm of the partition function can be rewritten as: 
+
+$$
+\log Z=F[P,Q]+D(Q\|P).
+$$ 
+
+How does this apply to the case of learning from missing data? We can choose 
+
+$$
+P(\mathcal{H}\mid\mathcal{D},\pmb\theta)=P(\mathcal{H},\mathcal{D}\mid\pmb\theta)/P(\mathcal{D}\mid\pmb\theta)
+$$ 
+
+as our d tion over $\mathcal{H}$ (we hold $\mathcal{D}$ and $\theta$ ﬁxed or now). With this choice, the partition func $Z(\theta)$ likelihood $P({\mathcal{D}}\mid\theta)$ and $\tilde{P}$ is the joint probability $P({\mathcal{H}},{\mathcal{D}}\mid{\boldsymbol{\theta}})$ , so that $\log\tilde{P}=\check{\ell}(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)$ ⟨D H⟩ . Rewriting the energy functional for this new setting, we obtain: 
+
+$$
+F_{\mathcal{D}}[\pmb{\theta},Q]=\pmb{E}_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]+\pmb{H}_{Q}(\mathcal{H}).
+$$ 
+
+expected log-likelihood 
+
+Corollary 19.1 Note that the ﬁrst term is precisely the expected log-likelihood relative to $Q$ . Applying our earlier analysis, we now can prove 
+
+$$
+\begin{array}{l l l}{\ell(\pmb\theta:\mathcal D)}&{=}&{F_{\mathcal D}[\pmb\theta,Q]+\pmb D(Q(\mathcal H)\|P(\mathcal H\mid\mathcal D,\pmb\theta))}\\ &{=}&{\pmb E_{Q}[\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)]+\pmb H_{Q}(\mathcal H)+\pmb D(Q(\mathcal H)\|P(\mathcal H\mid\mathcal D,\pmb\theta)).}\end{array}
+$$ 
+
+data completion Both equalities have important ramiﬁcations. Starting from the second equality, since both the entropy $H_{Q}(\mathcal{H})$ H and the relative entropy $D(Q({\mathcal{H}})\|P({\mathcal{H}}\mid{\mathcal{D}},\theta))$ H | | H | D are nonnegative, we conclude that the expected log-likelihood $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ wer bound on $\ell(\pmb\theta:\mathcal D)$ . This result is choice of distribution $Q$ . If we select $Q(\mathcal{H})$ H to be the data completion distribution $P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta})$ H | D , the relative entropy term becomes zero. In this case, the remaining term $H_{Q}({\mathcal{H}})$ H captures to a certain extent the diference between the expected log-likelihood and the real log-likelihood. Intuitively, when $Q$ is close to being deterministic, the expected value is close to the actual value. 
+
+The ﬁrst equality, for the same reasons, shows that, for any distribution $Q$ , the $F$ function is a lower bound on the log-likelihood. Moreover, this lower bound is tight for every choice of $\theta$ : if w choose $Q=P(\mathcal{H}\mid\mathcal{D},\theta)$ , the two functions have the same value. Thus, if we maximize the F function, we are bound to maximize the log-likelihood. 
+
+coordinate ascent 
+
+There many possible ways to optimize this target function. We now show that the EM procedure we described can be viewed as implicitly optimizing the EM functional $F$ using a particular optimization strategy. The strategy we are going to utilize is a coordinate ascent optimization. We start with some choice $\theta$ of parameters. We then search for $Q$ that maximizes $F_{\mathcal{D}}[\pmb{\theta},Q]$ while keeping $\theta$ ﬁxed. Next, we ﬁx $Q$ and search for parameters that maximize $F_{\mathcal{D}}[\pmb{\theta},Q]$ . We continue in this manner until convergence. We now consider each of these steps. 
+
+• Optimizing $Q$ . Suppose that $\theta$ are ﬁxed, and we are searching for arg max Q $F_{\mathcal{D}}[\pmb{\theta},Q]$ . Using corollary 19.1, we know that, if $Q^{*}=P(\mathcal{H}\mid\mathcal{D},\theta)$ , then 
+
+$$
+F_{\mathcal{D}}[\pmb{\theta},Q^{*}]=\ell(\pmb{\theta}:\mathcal{D})\geq F_{\mathcal{D}}[\pmb{\theta},Q].
+$$ 
+Thus, we maximize the EM functional by choosing the auxiliary distribution $Q^{*}$ . In other words, we can view the E-step as implicitly optimizing $Q$ by using $P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ in computing the expected sufficient statistics. 
+
+• Optimizing $\theta$ . Suppose $Q$ is ﬁxed, and that we wish to ﬁnd arg max θ $F_{\mathcal{D}}[\pmb{\theta},\mathbf{Q}]$ . Because the only term in $F$ that involves $\theta$ is $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ , the maximization is equivalent to maximizing the expected log-likelihood. As we saw, we can ﬁnd the maximum by comput- ing expected sufficient statistics and then solving the MLE given these expected sufficient statistics. 
+
+Convergence of EM The discussion so far shows that the EM procedure can be viewed as maximizing an objective function; because the objective function can be shown to be bounded, this procedure is guaranteed to converge. However, it is not clear what can be said about the convergence points of this procedure. We now analyze the convergence points of this procedure in terms of our true objective: the log-likelihood function. Intuitively, as our procedure is optimizing the energy functional, which is a tight lower bound of the log-likelihood function, each step of this optimization also improves the log-likelihood. This intuition is illustrated in ﬁgure 19.8. In more detail, the E-step is selecting, at the current set of parameters, the distribution $Q^{t}$ for which the energy functional is a tight wer bound to $\ell(\pmb\theta:{\mathcal D})$ . The energy functional, which is a well-behaved concave function in θ , can be maximized efectively via the M-step, taking us to the parameters $\pmb{\theta}^{t+1}$ . Since the energy functional is guaranteed to remain below the log-likelihood function, this step is guaranteed to improve the log-likelihood. Moreover, the improvement is guaranteed to be at least as large as the improvement in the energy functional. More formally, using corollary 19.1, we can now prove the following generalization of theorem 19.3: 
+
+$$
+\begin{array}{r}{\ell(\pmb{\theta}^{t+1}:\mathcal{D})-\ell(\pmb{\theta}^{t}:\mathcal{D})\geq\pmb{E}_{P(\mathcal{H}|\mathcal{D},\pmb{\theta}^{t})}\big[\ell(\pmb{\theta}^{t+1}:\mathcal{D},\mathcal{H})\big]-\pmb{E}_{P(\mathcal{H}|\mathcal{D},\pmb{\theta}^{t})}\big[\ell(\pmb{\theta}^{t}:\mathcal{D},\mathcal{H})\big].}\end{array}
+$$ 
+
+As a consequence, we obtain that: 
+
+$$
+\ell(\pmb\theta^{t}:\mathcal D)\leq\ell(\pmb\theta^{t+1}:\mathcal D).
+$$ 
+
+gin with the ﬁrst statement. Using corollary 19.1, with the distribution $Q^{t}({\mathcal{H}})=$ $P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ we have that 
+
+$$
+\begin{array}{r c l}{\ell(\pmb{\theta}^{t+1}:\mathscr{D})}&{=}&{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t+1}:\langle\mathscr{D},\mathscr{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathscr{H})+\pmb{D}(Q^{t}(\mathscr{H})\|P(\mathscr{H}\mid\mathscr{D},\pmb{\theta}^{t+1})}\\ {\ell(\pmb{\theta}^{t}:\mathscr{D})}&{=}&{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t}:\langle\mathscr{D},\mathscr{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathscr{H})+\pmb{D}(Q^{t}(\mathscr{H})\|P(\mathscr{H}\mid\mathscr{D},\pmb{\theta}^{t}))}\\ &{=}&{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t}:\langle\mathscr{D},\mathscr{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathscr{H}).}\end{array}
+$$ 
+
+The last step is justiﬁed by our choice of $Q^{t}(\mathcal{H})=P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ . Subtracting these two terms, we have that 
+
+$$
+\begin{array}{r l}&{\ell(\pmb{\theta}^{t+1}:\mathcal{D})-\ell(\pmb{\theta}^{t}:\mathcal{D})=}\\ &{\qquad\pmb{E}_{\boldsymbol{Q}^{t}}\big[\ell(\pmb{\theta}^{t+1}:\mathcal{D},\mathcal{H})\big]-\pmb{E}_{\boldsymbol{Q}^{t}}\big[\ell(\pmb{\theta}^{t}:\mathcal{D},\mathcal{H})\big]+\pmb{D}(\boldsymbol{Q}^{t}(\mathcal{H})\|\boldsymbol{P}(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t+1})).}\end{array}
+$$ 
+
+Because the last term is nonnegative, we get the desired inequality. 
+
+To prove the second statement of the theorem, we note that $\pmb{\theta}^{t+1}$ is the value of $\theta$ that maximizes $E_{P(\mathcal{H}|\mathcal{D},\theta^{t})}[\ell(\pmb{\theta}:\mathcal{D},\mathcal{H})]$ . Hence the value obtained for this expression for $\pmb{\theta}^{t+1}$ is at H|D least at large as the value obtained for any other set of parameters, including $\theta^{t}$ . It follows that the right-hand side of the inequality is nonnegative, which implies the second statement. 
+
+We conclude that EM performs a variant of hill climbing, in the sense that it improves the log-likelihood at each step. Moreover, the M-step can be understood as maximizing a lower-bound on the improvement in the likelihood. Thus, in a sense we can view the algorithm as searching for the largest possible improvement, when using the expected log-likelihood as a proxy for the actual log-likelihood. 
+
+For most learning problems, we know that the log-likelihood is upper bounded. For example, if we have discrete data, then the maximal likelihood we can assign to the data is 1 . Thus, the log-likelihood is bounded by 0 . If we have a continuous model, we can construct examples where the likelihood can grow unboundedly; however, we can often introduce constraints on the parameters that guarantee a bound on the likelihood (see exercise 19.10). If the log-likelihood is bounded, and the EM iterations are nondecreasing in the log-likelihood, then the sequence of log-likelihoods at successive iterations must converge. 
+
+The question is what can be said about this convergence point. Ideally, we would like to guar- antee convergence to the maximum value of our log-likelihood function. Unfortunately, as we mentioned earlier, we cannot provide this guarantee; however, we can now prove theorem 19.4, which shows convergence to a ﬁxed point of the log-likelihood function, that is, one where the gradient is zero. We restate the theorem for convenience: 
+
+We now co sider the gradient of $\ell(\pmb\theta:{\mathcal D})$ with respect to $\theta$ . Since the term $H_{Q}({\mathcal{H}})$ H does not depend on θ , we get that 
+
+$$
+\nabla_{\boldsymbol{\theta}}\boldsymbol{\ell}(\boldsymbol{\theta}:\mathcal{D})=\nabla_{\boldsymbol{\theta}}E_{\boldsymbol{Q}}[\boldsymbol{\ell}(\boldsymbol{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]+\nabla_{\boldsymbol{\theta}}\boldsymbol{\mathcal{D}}(\boldsymbol{Q}(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta})).
+$$ 
+
+This observation is true for any choice of $Q$ . Now suppose we are in an EM iteration. In this case, we set $Q=P(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t})$ and evaluate the gradient at $\theta^{t}$ 
+
+A somewhat simpliﬁed proof runs as follows. Because θ ${\boldsymbol{\theta}}\,=\,{\boldsymbol{\theta}}^{t}$ is a minimum of the KL- divergence term, we know that $\nabla_{\boldsymbol{\theta}}D(Q(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta}^{t}))$ H | | H | D is 0 . This implies that 
+
+$$
+\nabla_{\pmb\theta}\ell(\pmb\theta^{t}:\mathcal D)=\nabla_{\pmb\theta}\pmb E_{Q}\big[\ell(\pmb\theta^{t}:\langle\mathcal D,\mathcal H\rangle)\big].
+$$ 
+
+Or, in other words, $\nabla_{\boldsymbol{\theta}}\ell(\boldsymbol{\theta}^{t}:\mathcal{D})=0$ if and only if $\nabla_{\boldsymbol{\theta}}E_{Q}\left[\boldsymbol{\ell}(\boldsymbol{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\right]=0$ . 
+
+Recall that $\pmb{\theta}^{t+1}=\arg\operatorname*{max}_{\pmb{\theta}}\pmb{E}_{Q}\big[\ell(\pmb{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\big]$ ⟨D H⟩ . Hence the gradient of the expected likelihood at $\theta^{t+1}$ is 0 . Thus, we conclude that θ $\pmb\theta^{t+1}=\pmb\theta^{t}$ only if $\nabla_{\boldsymbol{\theta}}E_{Q}\left[\boldsymbol{\ell}(\boldsymbol{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\right]=0$  . And so, at this point, $\nabla_{\boldsymbol{\theta}}\ell(\boldsymbol{\theta}^{t}:\mathcal{D})=0$ . This implies that this set of parameters is a stationary point of the log-likelihood function. 
+
+The actual argument has to be somewhat more careful. Recall that the parameters must lie within some allowable set. For example, the parameters of a discrete random variable must sum up to one. Thus, we are searching within a constrained space of parameters. When we have constraints, we often do not have zero gradient. Instead, we get to a stationary point when the gradient is orthogonal to the constraints (that is, local changes within the allowed space do not improve the likelihood). The arguments we have stated apply equally well when we replace statements about equality to 0 with orthogonality to the constraints on the parameter space. 
+
+#### 19.2.2.6 Hard-Assignment EM 
+In section 19.2.2.4, we brieﬂy mentioned the idea of using a hard assignment to the hidden variables, in the context of applying EM to Bayesian clustering. We now generalize this simple idea to the case of arbitrary Bayesian networks. 
+>  我们在将 EM 应用到贝叶斯聚类的背景下讨论了对隐变量使用硬赋值
+>  本节将该思想推广到任意 BN
+
+This algorithm, called hard-assignment EM , also iterates over two steps: one in which it completes the data given the current parameters $\theta^{t}$ , and the other in which it uses the completion to estimate new parameters $\pmb{\theta}^{t+1}$ . However, rather than using a soft completion of the data, as in standard EM, it selects for each data instance $o[m]$ the single assignment $h[m]$ that maximizes $P(h\mid o[m],\theta^{t})$ . 
+>  硬赋值 EM 同样进行两步迭代：第一步基于当前参数 $\pmb \theta^t$ 补全数据，第二步使用补全的数据估计新参数 $\pmb \theta^{t+1}$
+>  差异在于，标准 EM 使用软补全，而硬赋值 EM 为每个实例 $\pmb o[m]$ 选择单个可以最大化 $P(\pmb h \mid \pmb o[m],\pmb \theta^t)$ 的赋值 $\pmb h[m]$
+
+Although hard-assignment EM is similar in outline to EM, there are important differences. In fact, hard-assignment EM can be described as optimizing a different objective function, one that involves both the learned parameters and the learned assignment to the hidden variables. This objective is to maximize the likelihood of the complete data $\langle\mathcal{D},\mathcal{H}\rangle$ , given the parameters: 
+
+$$
+\operatorname*{max}_{\pmb{\theta},\mathcal{H}}\ell(\pmb{\theta}:\mathcal{H},\mathcal{D}).
+$$
+
+See exercise 19.14. Compare this objective to the EM objective, which attempts to maximize $\ell(\pmb\theta:{\mathcal D})$ , averaging over all possible completions of the data. 
+
+>  硬赋值 EM 可以描述为优化一个不同的目标函数，该函数即涉及了学习到的参数和学习到的对隐变量的赋值
+>  该目标函数即最大化完整数据 $\langle \mathcal D, \mathcal H\rangle$ 的似然，如上所示
+>  标准 EM 目标则是最大化 $\ell(\pmb \theta: \mathcal D)$ 在所有可能数据补全上的平均
+
+Does this observation provide us insight on these two learning procedures? The intuition is that these two objectives are similar if $P(\mathcal{H}\mid\mathcal{D},\pmb \theta)$ assigns most of the probability mass to one completion of the data. In such a case, EM will effectively perform hard assignment during the E-step. However, if $P(\mathcal{H}\mid\mathcal{D},\theta)$ is diffuse, the two algorithms will lead to very different solutions. In clustering, the hard-assignment version tends to increase the contrast between different classes, since assignments have to choose between them. In contrast, EM can learn classes that are overlapping, by having many instances contributing to two or more classes. 
+>  直观上看，如果 $P(\mathcal H\mid \mathcal D, \pmb \theta)$ 将大多数概率质量赋予数据的某一个补全，则两种方法是类似的，此时的 E-step 也接近于硬赋值
+>  但如果 $P(\mathcal H \mid \mathcal D, \pmb \theta)$ 扩散，而二者差异较大
+>  聚类中，硬赋值 EM 倾向于增大不同类之间的比较差异，因为需要在它们中做出选择；而 EM 则会学习到重叠的类，因为许多样本会对多个类进行贡献
+
+Another difference between the two EM variants is in the way they progress during the learning. Note that for a given data set, at the end of an iteration, the hard-assignment EM can be in one of a ﬁnite number of parameter values. Namely, there is only one parameter assignment for each possible assignment to $\mathcal{H}$ . Thus, hard-assignment EM traverses a path in the combinatorial space of assignments to H . The soft-assignment EM, on the other hand, traverses the continuous space of parameter assignments. The intuition is that hard-assignment EM converges faster, since it makes discrete steps. In contrast, soft-assignment EM can converge very slowly to a local maximum, since close to the maximum, each iteration makes only small changes to the parameters. The ﬂip side of this argument is that soft-assignment EM can traverse paths that are infeasible to the hard-assignment EM. For example, if two clusters need to shift their means in a coordinated fashion, soft-assignment EM can progressively change their means. On the other hand, hard-assignment EM needs to make a “jump,” since it cannot simultaneously reassign multiple instances and change the class means. 
+>  另一个差异是二者在学习时的过程不同
+>  对于给定的数据集，硬赋值 EM 在每次迭代结尾都得到唯一可能的参数值，也就是每种对 $\mathcal H$ 的可能赋值仅对应一种可能的最优参数，因此硬赋值 EM 在对 $\mathcal H$ 的赋值的组合空间中进行遍历
+>  软赋值 EM 则在参数赋值的连续空间中遍历
+>  直观上，前者收敛更快，因为走离散步，但后者会缓慢收敛到局部极大，因为接近极大时，每次迭代仅对参数做出微小变化
+>  这种论点的另一面是，软分配EM可以遍历硬分配EM无法实现的路径，例如，如果两个簇需要协调地改变其均值，软分配EM可以逐步改变它们的均值，而硬分配EM 需要“跳跃”，因为它不能同时重新分配多个实例并改变类均值
+
+Box 19.B — Case Study: EM in Practice. The EM algorithm is guaranteed to monotonically im- prove the training log-likelihood at each iteration. However, there are no guarantees as to the speed of convergence or the quality of the local maxima attained. To gain a better perspective of how the algorithm behaves in practice, we consider here the application of the method to the ICU-Alarm network discussed in earlier learning chapters. 
+
+We start by considering the progress of the training data likelihood during the algorithm’s iterations. In this example, 1 , 000 samples were generated from the ICU-Alarm network. For each instance, we then independently and randomly hid 50 percent of the variables. As can be seen in ﬁgure 19.B.1a, much of the improvement over the performance of the random starting point is in the ﬁrst few iterations. However, examining the convergence of different parameters in (b), we see that some parameters change signiﬁcantly after the ﬁfth iteration, even though changes to the likelihood are relatively small. In practice, any nontrivial model will display a wide range of sensitivity to the network parameters. Given more training data, the sensitivity will, typically, overall decrease. Owing to these changes in parameters, the training likelihood continues to improve after the initial iterations, but very slowly. This behavior of fast initial improvement, followed by slow convergence, is typical of EM. 
+
+We next consider the behavior of the learned model on unseen test data. As we can see in (c), early in the process, test-data improvement correlates with training-data performance. However, after the 10 th iterations, training performance continues to improve, but test performance decreases. This phenomenon is an instance of overﬁtting to the training data. With more data or fewer unobserved values, this phenomenon will be less pronounced. With less data or hidden variables, on the other hand, explicit techniques for coping with the problem may be needed (see box 19.C). 
+
+A second key issue any type of optimization of the likelihood in the case of missing data is that of local maxima. To study this phenomenon, we consider the number of local maxima for 25 random starting points under different settings. As the sample size ( $\mathit{\check{x}}$ -axis) grows, the number of local maxima diminishes. In addition, the number of local maxima when more values are missing (dashed line) is consistently greater than the number of local maxima in the setting where more data is available (solid line). Importantly, in the case where just a single variable is hidden, the number of local maxima is large, and remains large even when the amount of training data is quite large. To see that this is not just an artifact of possible permutations of the values of the hidden variable, and to demonstrate the importance of achieving a superior local maxima, in (b) we show the training set log-likelihood of the 25 different local maxima attained. The difference between the best and worst local maxima is over 0 . 2 bit-per-instance. While this may not seem signiﬁcant, for a training set of 1 , 000 instances, this corresponds to a factor of $2^{0.2*1,000}\approx10^{60}$ in the training set likelihood. We also note that the spread of the quality in different local maxima is quite uniform, so that it is not easy to attain a good local maximum with a small number of random trials. 
+
+### 19.2.3 Comparison: Gradient Ascent versus EM 
+So far we have discussed two algorithms for parameter learning with incomplete data: gradient ascent and EM. As we will discuss (see box 19.C), there are many issues involved in the actual implementation of these algorithms: the choice of initial parameters, the stopping criteria, and so forth. However, before discussing these general points, it is worth comparing the two algorithms. 
+
+There are several points of similarity in the overall strategy of both algorithms. Both algorithms are local in nature. At each iteration they maintain a “current” set of parameters, and use these to ﬁnd the next set. Moreover, both perform some version of greedy optimization based on the current point. Gradient ascent attempts to progress in the steepest direction from the current point. EM performs a greedy step in improving its target function given the local parameters. Finally, both algorithms provide a guarantee to converge to local maxima (or, more precisely, to stationary points where the gradient is 0 ). On one hand, this is an important guarantee, in the sense that both are at least locally maximal. On the other hand, this is a weak guarantee, since many real-world problems have multimodal likelihood functions, and thus we do not know how far the learned parameters are from the global maximum (or maxima). 
+
+In terms of the actual computational steps, the two algorithms are also quite similar. For table-CPDs, the main component of either an EM iteration or a gradient step is computing the expected sufficient statistics of the data given the current parameters. This involves performing inference on each instance. Thus, both algorithms can exploit dynamic programming procedures (for example, clique tree inference) to compute all the expected sufficient statistics in an instance efciently. 
+
+In term of implementation details, the algorithms provide different beneﬁts. On one hand, gradient ascent allows to use “black box” nonlinear optimization techniques, such as conjugate gradient ascent (see appendix A.5.2). This allows the implementation to build on a rich set of existing tools. Moreover, gradient ascent can be easily applied to various CPDs by using the chain rule of derivatives. On the other hand, EM relies on maximization from complete data. Thus, it allows for a fairly straightforward use of learning procedure for complete data in the case of incomplete data. The only change is replacing the part that accumulates sufficient statistics by a procedure that computes expected sufficient statistics. As such, most people ﬁnd EM easier to implement. 
+
+A ﬁnal aspect for consideration is the convergence rate of the algorithm. Although we cannot predict in advance how many iterations are needed to learn parameters, analysis can show the general behavior of the algorithm in terms of how fast it approaches the convergence point. 
+
+Suppose we denote by $\ell_{t}=\ell(\theta^{t}:\mathcal{D})$ the likelihood of the soluti $t$ ’th iteration (of either EM or gradient ascent). The algorithm converges toward $\begin{array}{r}{\ell^{*}=\operatorname*{lim}_{t\to\infty}\ell_{t}}\end{array}$ . The error →∞ at the $t^{\prime}$ ’th iteration is 
+
+$$
+\epsilon_{t}=\ell^{*}-\ell_{t}.
+$$ 
+
+Although we do not go through the proof, one can show that EM has linear convergence rate . This means that for each domain there exists a $t_{0}$ and $\alpha<1$ such that for all $t\geq t_{0}$ 
+
+$$
+\epsilon_{t+1}\leq\alpha\epsilon_{t}.
+$$ 
+
+On the face of it, this is good news, since it shows that the error decreases at each iteration. Such convergence rate means that $\ell_{t+1}-\ell_{t}=\epsilon_{t}-\epsilon_{t+1}\geq\epsilon_{t}(1-\alpha)$ . In other words, if we know α , we can bound the error 
+
+$$
+\epsilon_{t}\leq\frac{\ell_{t+1}-\ell_{t}}{1-\alpha}.
+$$ 
+
+While this result provides a bound on the error (and also suggests a way of estimating it), it is not always a useful one. In particular, if $\alpha$ is relatively close to 1 , then even when the diference is likelihood between successive iterations is small, the error can be much larger. Moreover, the number of iterations to convergence can be very large. In practice we see this behavior quite often. The ﬁrst iterations of EM show huge improvement in the likelihood. These are then followed by many iterations that slowly increase the likelihood; see box 19.B. Conjugate gradient often has opposite behavior. The initial iterations (which are far away from the local maxima) often take longer to improve the likelihood. However, once the algorithm is in the vicinity of maximum, where the log-likelihood function is approximately quadratic, this method is much more efcient in zooming on the maximum. Finally, it is important to keep in mind that these arguments are asymptotic in the number of iterations; the actual number of iterations required for convergence may not be in the asymptotic regime. Thus, the rate of convergence of different algorithms may not be the best indicator as to which of them is likely to work most efciently in practice. 
+
+Box 19.C — Skill: Practical Considerations in Parameter Learning. There are a few practical considerations in implementing both gradient-based methods and EM for learning parameters with missing data. We now consider a few of these. We present these points mostly in the context of the EM algorithm, but most of our points apply equally to both classes of algorithms. 
+
+In a practical implementation of EM, there are two key issues that one needs to address. The ﬁrst is the presence of local maxima. As demonstrated in box 19.B, the likelihood of even relatively simple networks can have a large number of local maxima that signiﬁcantly difer in terms of their quality. There are several adaptations of these local search algorithms that aim to consistently reach beneﬁcial local maxima. These adaptations include a judicious selection of initialization, and methods for modifying the search so as to achieve a better local maximum. The second key issue involves the convergence of the algorithm: determining convergence, and improving the rate of convergence. 
+
+Local Maxima One of the main limitations of both the EM and the gradient ascent procedures is that they are only guaranteed to reach a stationary point, which is usually a local maximum. How do we improve the odds of ﬁnding a global — or at least a good local — maximum? 
+
+The ﬁrst place where we can try to address the issue of local maxima is in the initialization of the algorithm. EM and gradient ascent, as well as most other “local” algorithms, require a starting point — a set of initial parameters that the algorithm proceeds to improve. Since both algo- rithms are deterministic, this starting point (implicitly) determines which local maximum is found. In practice, different initializations can result in radically different convergence points, sometimes with very different likelihood values. Even when the likelihood values are similar, different convergence points may represent semantically different conclusions about the data. This issue is particularly severe when hidden variables are involved, where we can easily obtain very different clusterings of the data. For example, when clustering text documents by similarity (for example, using a version of the model in box 17.E where the document cluster variable is hidden), we can learn one model where the clusters correspond to document topics, or another where they correspond to the style of the publication in which the document appeared (for example, newspaper, webpage, or blog). Thus, initialization should generally be considered very seriously in these situations, especially when the amount of missing data is large or hidden variables are involved. 
+
+In general, we can initialize the algorithm either in the E-step, by picking an initial set of parameters, or in the M-step, by picking an initial assignment to the unobserved variables. In the ﬁrst type of approach, the simplest choices for starting points are either a set of parameters ﬁxed in advance or randomly chosen parameters. If we use predetermined initial parameters, we should exercise care in choosing them, since a misguided choice can lead to very poor outcomes. In particular, for some learning problems, the seemingly natural choice of uniform parameters can lead to disastrous results; see exercise 19.11. Another easy choice is applicable for parts of the network where we have only a moderate amount of missing data. Here, we can sometimes estimate parameters using only the observed data, and then use those to initialize the E-step. Of course, this approach is not always feasible, and it is inapplicable when we have a hidden variable. A different natural choice is to use the mean of our prior over parameters. On one hand, if we have good prior information, this might serve as a good starting position. Note that, although this choice does bias the learning algorithm to prefer the prior’s view of the data, the learned parameters can be drastically different in the end. On the other hand, if the prior is not too informative, this choice sufers from the same drawbacks we mentioned earlier. Finally, a common choice is to use a randomized starting point, an approach that avoids any intrinsic bias. However, there is also no reason to expect that a random choice will give rise to a good solution. For this reason, often one tries multiple random starting points, and the convergence point of highest likelihood is chosen. 
+
+The second class of methods initializes the procedure at the M-step by completing the missing data. Again, there are many choices for completing the data. For example, we can use a uniform or a random imputation method to assign values to missing observations. This procedure is particularly useful when we have different patterns of missing observations in each sample. Then, the counts from the imputed data consist of actual counts combined with imputed ones. The real data thus bias the estimated parameters to be reasonable. Another alternative is to use a simpliﬁed learning procedure to learn initial assignment to missing values. This procedure can be, for example, hard- assignment EM. As we discussed, such a procedure usually converges faster and therefore can serve as a good initialization. However, hard-assignment EM also requires a starting point, or a selection among multiple random starting points. 
+
+When learning with hidden variables, such procedures can be more problematic. For example, if we consider a naive Bayes clustering model and use random imputation, the result would be that we randomly assign instances to clusters. With a sufficiently large data set, these clusters will be very similar (since they all sample from the same population). In a smaller data set the sampling noise might distinguish the initial clusters, but nonetheless, this is not a very informed starting point. We discuss some methods for initializing a hidden variable in section 19.5.3. 
+
+Other than initialization, we can also consider modifying our search so as to reduce the risk of getting stuck at a poor local optimum. The problem of avoiding local maxima is a standard one, and we describe some of the more common solutions in appendix A.4.2. Many of these solutions are applicable in this setting as well. As we mentioned, the approach of using multiple random restarts is commonly used, often with a beam search modiﬁcation to quickly prune poor starting points. In particular, in this beam search variant, $K$ EM runs are carried out in parallel and every few iterations only the most promising ones are retained. A variant of this approach is to generate $K$ EM threads at each step by slightly perturbing the most beneﬁcial $k<K$ threads from the previous iteration. While such adaptations have no formal guarantees, they are extremely useful in practice in terms trading of quality of solution and computational requirements. 
+
+Annealing methods (appendix A.4.2) have also been used successfully in the context of the EM algorithm. In such methods, we gradually transform from an easy objective with a single local maximum to the desired EM objective, and thereby we potentially avoid many local maxima that are far away from the central basin of attraction. Such an approach can be carried out by directly smoothing the log-likelihood function and gradually reducing the level to which it is smoothed, or implicitly by gradually altering the weights of training instances. 
+
+Finally, we note that we can never determine with certainty whether the EM convergence point is truly the global maximum. In some applications this limitation is acceptable — for example, if we care only about ﬁtting the probability distribution over the training examples (say for detecting instances from a particular subpopulation). In this case, if we manage to learn parameters that assign high probability for samples in the target population, then we might be content even if these parameters are not the best ones possible. On the other hand, if we want to use the learned parameters to reveal insight about the domain, then we might care about whether the parameters are truly the optimal ones or not. In addition, if the learning procedure does not perform well, we have to decide whether the problem stems from getting trapped in a poor local maximum, or from the fact that the model is not well suited to the distribution in our particular domain. 
+
+Stopping Criteria Both algorithms we discussed have the property that they will reach a ﬁxed point once they converged on a stationary point of the likelihood surface. In practice, we never really reach the stationary point, although we can get quite close to it. This raises the question of when we stop the procedure. 
+
+The basic idea is that when solutions at successive iterations are similar to each other, additional iterations will not change the solution by much. The question is how to measure similarity of solutions. There are two main approaches. The ﬁrst is to compare the parameters from successive iterations. The second is to compare the likelihood of these choices of parameters. Somewhat surprisingly, these two criteria are quite different. In some situations small changes in parameters lead to dramatic changes in likelihood, and in others large changes in parameters lead to small changes in the likelihood. 
+
+To understand how there can be a discrepancy between changes in parameters and changes in likelihood, consider the properties of the gradient as shown in theorem 19.2. Using a Taylor expansion of the likelihood, this gradient provides us with an estimate how the likelihood will change when we change the parameters. We see that if $P(x,\pmb{u}\mid\pmb{o[m],\theta})$ is small in most data instances, then the gradient $\frac{\partial\ell(\pmb{\theta}{:}\mathcal{D})}{\partial P(\boldsymbol{x}|\pmb{u})}$ will be small. This implies that relatively large changes in | $P(x\mid\pmb{u})$ will not change the likelihood by much. This can happen for example if the event u is uncommon in the training data, and the value of $P(x\mid\pmb{u})$ is involved in the likelihood only in a few instances. On the ﬂip side, if the event $x,u$ has a large posterior in all samples, then the gradient $\frac{\partial\ell(\pmb\theta;\mathcal D)}{\partial P(x|\pmb u)}$ will be of size proportional to $M$ . In such a situation a small change in the parameter can result in a large change in the likelihood. 
+
+In general, since we are aiming to maximize the likelihood, large changes in the parameters that have negligible efect on the likelihood are of less interest. Moreover, measuring the magnitude of changes in parameters is highly dependent on our parameter iz ation. For example, if we use the re parameter iz ation of equation (19.3), the diference (say in Euclidean distance) between two sets of parameters can change dramatically. Using the likelihood for tracking convergence is thus less sensitive to these choices and more directly related to the goal of the optimization. 
+
+Even once we decide what to measure, we still need to determine when we should stop the process. Some gradient-based methods, such as conjugate gradient ascent, build an estimate of the second-order derivative of the function. Using these derivatives, they estimate the improvement we expect to have. We can then decide to stop when the expected improvement is not more than a ﬁxed amount of log-likelihood units. We can apply similar stoping criteria to EM, where again, if the change in likelihood in the last iteration is smaller than a predetermined threshold we stop the iterations. 
+
+overﬁtting 
+
+Importantly, although the training set log-likelihood is guaranteed to increase mono- tonically until convergence, there is no guarantee that the generalization performance of the model — the expected log-likelihood relative to the underlying distribution — also increases monotonically. (See section 16.3.1.) Indeed, it is often the case that, as we ap- proach convergence, the generalization performance starts to decrease, due to overﬁtting of the parameters to the speciﬁcs of the training data. 
+
+Thus, an alternative approach is to measure directly when additional improvement to the training set likelihood does not contribute to generalization. To do so we need to separate the available data into a training set and a validation set (see box 16.A). We run learning on the training set, but at the end of each iteration we evaluate the log-likelihood of the validation set (which is not seen during learning). We stop the procedure when the likelihood of the validation set does not improve. (As usual, the actual performance of the model would then need to be evaluated on a separate test set.) This method allows us to judge when the procedure stops learning the interesting phenomena and begins to overﬁt the training data. On the ﬂip side, such a procedure is both slower (since we need to evaluate likelihood on an additional data set at the end of iteration) and forces us to train on a smaller subset of data, increasing the risk of overﬁtting. Moreover, if the validation set is small, then the estimate of the generalization ability by the likelihood on this set is noisy. This noise can inﬂuence the stopping time. 
+
+Finally, we note that in EM much of the improvement is typically observed in the ﬁrst few iterations, but the ﬁnal convergence can be quite slow. Thus, in practice, it is often useful to limit the number of EM iterations or use a lenient convergence threshold. This is particularly important when EM is used as part of a higher-level algorithm (for example, structure learning) and where, in the intermediate stages of the overall learning algorithm, approximate parameter estimates are often sufficient. Moreover, early stopping can help reduce overﬁtting, as we discussed. 
+
+Accelerating Convergence There are also several strategies that can help improve the rate of convergence of EM to its local optimum. We brieﬂy list a few of them. 
+
+The ﬁrst idea is to use hybrid algorithms that mix EM and gradient methods. The basic intuition is that EM is good at rapidly moving to the general neighborhood of a local maximum in few iterations but bad at pinpointing the actual maximum. Advanced gradient methods, on the other hand, quickly converge once we are close to a maximum. This observation suggests that we should run EM for few iterations and then switch over to using a method such as conjugate gradient. Such hybrid algorithms are often much more efcient. Another alternative is to use accelerated EM methods that take even larger steps in the search than standard EM (see section 19.7). 
+
+Another class of variations comprises incremental methods . In these methods we do not perform a full $E$ -step or a full M-step. Again, the high-level intuition is that, since we view our procedure as maximizing the energy functional $F_{\mathcal{D}}[\pmb{\theta},Q]$ , we can consider steps that increase this functional but do not necessarily ﬁnd the maximum value parameters or $Q$ . For example, recall that $\theta$ consists of several subcomponents, one per CPD. Rather than maximizing all the parameters at once, we can consider a partial update where we maximize the energy functional with respect to one of the subcomponents while freezing the others; see exercise 19.16. Another type of partial update is based on writing $Q$ as a product of independent distributions — each one over the missing values in $a$ particular instance. Again, we can optimize the energy functional with respect to one of these while freezing the other; see exercise 19.17. These partial updates can provide two types of beneﬁt: they can require less computation than a full EM update, and they can propagate changes between the statistics and the parameters much faster, reducing the total number of iterations. 
+
+Box 19.D — Case Study: EM for Robot Mapping. One interesting application of the EM algo- rithm is to robotic mapping. Many variants of this applications have been proposed; we focus on one by Thrun et al. (2004) that explicitly tries to use the probabilistic model to capture the structure in the environment. 
+
+The data in this application are a point cloud representation of an indoor environment. The point cloud can be obtained by collecting a sequence of point clouds, measured along a robot’s motion trajectory. One can use a robot localization procedure to (approximately) assess the robot’s pose (position and heading) along each point in the trajectory, which allows the different measurements to be put on a common frame of reference. Although the localization process is not fully accurate, the estimates are usually reasonable for short trajectories. One can then take the points obtained over the trajectory, and ﬁt the points using polygons, to derive a 3D map of the surfaces in the robot’s environment. However, the noise in the laser measurements, combined with the errors in localization, leads adjacent polygons to have slightly different surface normals, giving rise to a very jagged representation of the environment. 
+
+The EM algorithm can be used to ﬁt a more compact representation of the environment to the data, reducing the noise and providing a smoother, more realistic output. In particular, in this example, the model consists of a set of $3D$ planes $p_{1},\dots,p_{K}$ , each characterized by two parameters $\begin{array}{r}{\alpha_{k},\beta_{k}.}\end{array}$ , where $\alpha_{k}$ is a unit-length vector in $I\!\!R^{3}$ that encodes the plane’s surface normal vector, and $\beta_{k}$ is a scalar that denotes its distance to the origin of the global coordinate system. Thus, the distance of any point $_{_{x}}$ to the plane is $d({\pmb x},p_{k})=|\alpha_{k}{\pmb x}-\beta_{k}|$ . 
+
+![](images/2283a6e3a3bdc2d2f5bf45696b760c24cc27242457cd4c15219ad72eaa66be38.jpg) 
+Figure 19.D.1 — Sample results from EM-based 3D plane mapping (a) Raw data map obtained from range ﬁnder. (b) Planes extracted from map using EM. (c) Fragment of reconstructed surface using raw data. (d) The same fragment reconstructed using planes. 
+
+correspondence variable data association 
+
+The probabilistic model also needs to specify, for each point $\pmb{x}_{m}$ in the point cloud, to which plane $\pmb{x}_{m}$ belongs. This assignment can be modeled via a set of correspondence variables $C_{m}$ such that $C_{m}=k$ if the measurement point $\pmb{x}_{m}$ was generated by the k th plane. Each assignment to the correspondence variables, which are unobserved, encodes a possible solution to the data ee box 12.D for more details.) We deﬁne $P(\mathbf{X}_{m}\mid\mathbf{\mu}C_{m}=\boldsymbol{k}:\mathbf{\theta}_{k})$ ) to be $\propto\mathcal{N}\left(d({\pmb x},p_{k})\mid0;\sigma^{2}\right)$    . In addition, we also allow an additional value $C_{m}\,=\,0$ that encodes points that are not generated by any of the planes; the distribution $P(X_{m}\mid C_{m}=0)$ is taken to be uniform over the (ﬁnite) space. 
+
+Given a probabilistic model, the EM algorithm can be applied to ﬁnd the assignment of points to planes — the correspondence variables, which are taken to be hidden; and the parameters $\alpha_{k},\beta_{k}$ that characterize the planes. Intuitively, the E-step computes the assignment to the correspondence variables by assigning the weight of each point proportionately to its distance to each of them. The M-step then recomputes the parameters of each plane to ﬁt the points assigned to it. See exer- cise 19.18 and exercise 19.19. The algorithm also contains an additional outer loop that heuristically suggests new surfaces to be added to the model, and removes surfaces that do not have enough support in the data (for example, one possible criterion can depend on the total weight that different data points assign to the surface). 
+
+The results of this algorithm are shown in ﬁgure 19.D.1. One can see that the resulting map is considerably smoother and more realistic than the results derived directly from the raw data. 
+
+### 19.2.4 Approximate Inference\* 
+The main computational cost in both gradient ascent and EM is in the computation of expected sufficient statistics. This step requires running probabilistic inference on each instance in the training data. These inference steps are needed both for computing the likelihood and for computing the posterior probability over events of the form $x,\mathrm{Da}_{X}$ for each variable and its parents. For some models, such as the naive Bayes clustering model, this inference step is almost trivial. For other models, this inference step can be extremely costly. In practice, we often want to learn parameters for models where exact inference is impractical. Formally, this happens when the tree-width of the unobserved parts of the model is large. (Note the contrast to learning from complete data, where the cost of learning the model did not depend on the complexity of inference.) In such situations the cost of inference becomes the limiting factor in our ability to learn from data. 
+
+Recall the network discussed in example 6.11 and example 19.9, where we have n students taking m classes, and the grade for each student in each class depends on both the difculty of the class and his or her intelligence. In the ground network for this example, we have a set of variables $I=\{I(s)\}$ for the $n$ students (denoting the intelligence le el of each student $S_{.}$ ), $D=\{D(c)\}$ for the m courses (denoting the difculty level of each course c ), and $G=\{G(s,c)\}$ for the grades, where each variable $G(s,c)$ has as parents $I(s)$ and $D(c)$ . Since this network is derived from $^a$ plate model, the CPDs are all shared, so we only have three CPDs that must be learned: $P(I(S))$ , $^{\dag}(D(C)),P(G(S,C)\mid I(S),D(C))$ . 
+
+Suppose we only observe the grades of the students but not their intelligence or the difculty of courses, and we want to learn this model. First, we note that there is no way to force the model to respect our desired semantics for the (hidden) variables $I$ and $D$ ; for example, a model in which we ﬂip the two values for $I$ is equally good. Nevertheless, we can hope that some value for $I$ will correspond to “high intelligence” and the other to “low intelligence,” and similarly for $D$ . 
+
+To perform EM in this model, we need to infer the expected counts of assignments to triplets of variables of the form $I(s),D(c),G(s,c)$ . Since we have parameter sharing, we will aggregate these counts and then estimate the CPD $P(G(S,C)\mid I(S),D(C))$ from the aggregate counts. The problem is that observing a variable $G(s,c)$ couples its two parents. Thus, this network induces $a$ Markov network that has a pairwise potential between any pair of $I(s)$ and $D(c)$ variables that share an observed child. If enough grade variables are observed, this network will be close to a full bipartite graph, and exact inference about the posterior probability becomes intractable. This creates a serious problem in applying either EM or gradient ascent for learning this seemingly simple model from data. 
+
+An obvious solution to this problem is to use approximate inference procedures. A simple approach is to view inference as a “black box.” Rather than invoking exact inference in the learning procedures shown in algorithm 19.1 and algorithm 19.2, we can simply invoke one of the approximate inference procedures we discussed in earlier chapters. This view is elegant because it decouples the choices made in the design of the learning procedure from the choices made in the approximate inference procedures. 
+
+However, this decoupling can obscure important efects of the approximation on our learning procedure. For example, suppose we use approximate inference for computing the gradient in a gradient ascent approach. In this case, our estimate of the gradient is generally somewhat wrong, and the errors in successive iterations are generally not consistent with each other. Such inaccuracies can confuse the gradient ascent procedure, a problem that is particularly signiﬁcant when the procedure is closer to the convergence point and the gradient is close to 0 , so that the errors can easily dominate. A key question is whether learning with approximate inference results in an approximate learning procedure; that is, whether we are guaranteed to ﬁnd a local maximum of an approximation of the likelihood function. In general, there are very few cases where we can provide any types of guarantees on the interaction between approximate inference and learning. Nevertheless, in practice, the use of approximate inference is often unavoidable, and so many applications use some form of approximate inference despite the lack of theoretical guarantees. 
+
+One class of approximation algorithms for which a unifying perspective is useful is in the combination of EM with the global approximate inference methods of chapter 11. Let us con- sider ﬁrst the structured variational methods of section 11.5, where the integration is easiest to understand. In these methods, we are attempting to ﬁnd an approximate distribution $Q$ that is close to an unnormalized distribution $\tilde{P}$ in which we are interested. We saw that algorithms in this class can be viewed as ﬁnding a distribution $Q$ in a suitable family of distributions that maximizes the energy functional: 
+
+$$
+F[\tilde{P},Q]=E_{Q}\Bigl[\log\tilde{P}\Bigr]+H_{Q}(\mathcal{X}).
+$$ 
+
+Thus, in these approximate inference procedures, we search for a distribution $Q$ that maximizes 
+
+$$
+\operatorname*{max}_{Q\in{\mathcal{Q}}}F[\tilde{P},Q].
+$$ 
+
+variational EM 
+
+We saw that we can view EM as an attempt to maximize the same energy functional, with the diference that we are also optimizing over the parameter iz ation $\theta$ of $\tilde{P}$ . We can combine both goals into a single objective by requiring that the distribution $Q$ used in the EM functional come from a particular family $\mathcal{Q}$ . Thus, we obtain the following variational $E M$ problem: 
+
+$$
+\operatorname*{max}_{\theta}\operatorname*{max}_{Q\in\mathcal{Q}}F_{\mathcal{D}}[\theta,Q],
+$$ 
+
+where $\mathcal{Q}$ is a family of approximate distributions we are considering for representing the distri- bution over the unobserved variables. 
+
+To apply the variational EM framework, we need to choose the family of distributions $\mathcal{Q}$ that will be used to approximate the distribution $P(\mathcal{H}\mid\mathcal{D},\theta)$ . Importantly, because this posterior distribution is a product of the posteriors for the different training instance, our approximation $Q$ can take the same form without incurring any error. Thus, we need only to decide how to represent the posterior $P(h[m]\mid o[m],\theta)$ for each instance $m$ . We therefore deﬁne a class $\mathcal{Q}$ that we will use to approximate $P(h[m]\mid o[m],\theta)$ . Importantly, since the evidence $o[m]$ is different for each data instance $m$ , the posterior distribution for each instance is also different, and hence we need to use a different distribution $Q[m]\in{\mathcal{Q}}$ to approximate the posterior for each data instance. In principle, using the techniques of section 11.5, we can use any class $\mathcal{Q}$ that allows tractable inference. In actice, a common solution is to use the mean ﬁeld approximation, where we assume that Q is a product of marginal distributions (one per each unobserved value). 
+
+Example 19.10 
+
+Importantly, although the prior over the variables $I(s_{1}),\ldots,I(s_{n})$ is identical, their posterior is generally different. Thus, the marginal of each of the variable has different parameters in $Q$ (and similarly for the $D(c)$ variables). 
+
+In our approximate $E$ -step, given a set of parameters $\theta$ for the model, we need to compute approximate expected sufficient statistics. We do so in two steps. First, we use iterations of the mean ﬁeld update equation equation (11.54) to ﬁnd the best choice of marginals in $Q$ to approximate $P(I(s_{1}),.\,.\,,I(s_{n}),D(c_{1}),.\,.\,,D(c_{m})\;\mid\;o,\theta)$ . We then use the distribution $Q$ to compute approximate expected sufficient statistics by ﬁnding: 
+
+$$
+\begin{array}{l l l}{{\bar{M}_{Q}[g_{(i,j)},I(s_{i}),D(c_{j})]}}&{{=}}&{{Q(I(s_{i}),D(c_{j}))I\{G(s_{i},c_{j})=g_{(i,j)}\}}}\\ {{}}&{{=}}&{{Q(I(s_{i}))Q(D(c_{j}))I\{G(s_{i},c_{j})=g_{(i,j)}\}.}}\end{array}
+$$ 
+
+Given our choice of $\mathcal{Q},$ , we can optimize the variational EM objective very similarly to the optimization of the exact EM objective, by iterating over two steps: 
+
+variational E-step • Variational E-step For each $m$ , ﬁnd 
+
+$$
+Q^{t}[m]=\arg\operatorname*{max}_{Q\in Q}F_{o[m]}[\pmb\theta,Q].
+$$ 
+
+This step is identical to our deﬁnition of variational inference in chapter 11, and it can be implemented using the algorithms we discussed there, usually involving iterations of local updates until convergence. 
+
+At the end of this step, we have an approximate distribution $\begin{array}{r}{Q^{t}=\prod_{m}Q^{t}[m]}\end{array}$ ] and can collect the expected sufficient statistics. To compute the expected sufficient statistics, we combine the observed values in the data with expected counts from the distribution $Q$ . This process requires answering queries about events in the distribution $Q$ . For some approximations, such as the mean ﬁeld approximation, we can answer such queries efciently (that is, by multiplying the marginal probabilities over each variables); see example 19.10. If we use a richer class of approximate distributions, we must perform a more elaborate inference process. Note that, because the approximation $Q$ is simpler than the original distribution $P$ , we have no guarantee that a clique tree for $Q$ will respect the family-preservation property relative to families in $P$ . Thus, in some cases, we may need to perform queries that are outside the clique tree used to perform the E-step (see section 10.3.3.2). 
+
+• M-step We ﬁnd a new set of parameters 
+
+$$
+\pmb{\theta}^{t+1}=\arg\operatorname*{max}_{\pmb{\theta}}F_{\mathcal{D}}[\pmb{\theta},Q^{t}];
+$$ 
+
+this step is identical to the M-step in standard EM. 
+
+The preceding algorithm is essentially performing coordinate-wise ascent alternating between optimization of $Q$ and $\theta$ . It opens up the way to alternative ways of maximizing the same objective function. For example, we can limit the number of iterations in the variational E-step. Since each such iteration improves the energy functional, we do not need to reach a maximum in the $Q$ dimension before making an improvement to the parameters. 
+
+Importantly, regardless of the method used to optimize the variational EM functional of equation (19.7), we can provide some guarantee regarding the properties of our optimum. Recall that we showed that 
+
+$$
+\ell(\pmb\theta:{\mathcal D})=\operatorname*{max}_{Q}F_{{\mathcal D}}[\pmb\theta,Q]\geq\operatorname*{max}_{Q\in{\mathcal Q}}F_{{\mathcal D}}[\pmb\theta,Q].
+$$
+
+Thus, maximizing the objective of equation (19.7) maximizes a lower bound of the likelihood. When we limit the choice of $Q$ to be in a particular family, we cannot necessarily get a tight bound on the likelihood. However, since we are maximizing a lower bound, we know that we do not overestimate the likelihood of parameters we are considering. If the lower bound is relatively good, this property implies that we distinguish high-likelihood regions in the parameter space from very low ones. Of course, if the lower bound is loose, this guarantee is not very meaningful. 
+
+We can try to extend these ideas to other approximation methods. For example, general- ized belief propagation section 11.3 is an attractive algorithm in this context, since it can be fairly efcient. Moreover, because the cluster graph satisﬁes the family preservation property, computation of an expected sufficient statistic can be done locally within a single cluster in the graph. The question is whether such an approximation can be understood as maximizing a clear objective. Recall that cluster-graph belief propagation can be viewed as attempting to maximize an approximation of the energy functional where we replace the term $H_{Q}(\mathcal X)$ X by approximate entropy terms. Using exactly the same arguments as before, we can then show that, if we use generalized belief propagation for computing expected sufficient statistics in the E-step, then we are effectively attempting to maximize the approximate version of the energy functional. In this case, we cannot prove that this approximation is a lower bound to the correct likelihood. Moreover, if we use a standard message passing algorithm to compute the ﬁxed points of the energy functional, we have no guarantees of convergence, and we may get oscillations both within an E-step and over several steps, which can cause signiﬁcant problems in practice. Of course, we can use other approximations of the energy functional, including ones that are guaranteed to be lower bounds of the likelihood, and algorithms that are guaranteed to be convergent. These approaches, although less commonly used at the moment, share the same beneﬁts of the structured variational approximation. 
+
+More broadly, the ability to characterize the approximate algorithm as attempting to optimize a clear objective function is important. For example, an immediate consequence is that, to monitor the progress of the algorithm, we should evaluate the approximate energy functional, since we know that, at least when all goes well, this quantity should increase until the convergence point. 
+
+## 19.6 Summary 
+In this chapter, we considered the problem of learning in the presence of incomplete data. We saw that learning from such data introduces several signiﬁcant challenges. 
+
+One set of challenges involves the statistical interpretation of the learning problem in this setting. As we saw, we need to be aware of the process that generated the missing data and the effect of nonrandom observation mechanisms on the interpretation of the data. Moreover, we also need to be mindful of the possibility of un ident i ability in the models we learn, and as a consequence, to take care when interpreting the results. 
+
+A second challenge involves computational considerations. Most of the key properties that helped make learning feasible in the fully observable case vanish in the partially observed setting. In particular, the likelihood function no longer decomposes, and is even multimodal. As a consequence, the learning task requires global optimization over a high-dimensional space, with an objective that is highly susceptible to local optima. 
+
+We presented two classes of approaches for performing parameter estimation in this setting: a generic gradient-based process, and the EM algorithm, which is speciﬁcally designed for maximizing likelihood functions. Both of these methods perform hill climbing over the parameter space, and are therefore guaranteed only to ﬁnd a local optimum (or rather, a stationary point) of the likelihood function. Moreover, each iteration in these algorithms requires that we solve an inference problem for each (partially observed) instance in our data set, a requirement that introduces a major computational burden. 
+
+In some cases, we want not only a single parameter estimate, but also some evaluation of our conﬁdence in those estimates, as would be obtained from Bayesian learning. Clearly, given the challenges we mentioned, closed-form solutions to the integration are generally impossible. However, several useful approximations have been developed and used in practice; most commonly used are the methods based on MCMC methods, and on variational approximations. 
+
+monly used are the score-based approaches, where we deﬁne the problem as one of ﬁnding a high-scoring structure. We presented several approximations to the Bayesian score; most of these are based on an asymptotic approximation, and hence should be treated with care given only a small number of samples. We then discussed the challenges of searching over the space of networks when the score is not decomposable, a setting that (in principle) forces us to apply a highly expensive evaluation procedure to every candidate that we are considering in the search. The structural EM algorithm provides one approach to reduce this cost. It uses an approximation to the score that is based on some completion of the data, allowing us to use the same efficient algorithms that we applied in the complete data case. 
+
+Finally, we brieﬂy discussed some of the important questions that arise when we consider hidden variables: Where in the model should we introduce a hidden variable? What should we select as the cardinality of such a variables? And how do we initialize a variable so as to guide the learning algorithm toward “good” regions of the space? While we brieﬂy described some ideas here, the methods are generally heuristic, and there are no guarantees. 
+
+Overall, owing to the challenges of this learning setting, the methods we discussed in this chapter are more heuristic and provide weaker guarantees than methods that we encountered in previous learning chapters. For this reason, the application of these methods is more of an art than a science, and there are often variations and alternatives that can be more effective for particular learning scenarios. This is an active area of study, and even for the simple clustering problem there is still much active research. Thus, we did not attempt to give a complete coverage and rather focused on the core methods and ideas. 
+
+However, while these complications mean that learning from incomplete data is often challenging or even impossible, there are still many real-life applications where the methods we discussed here are highly effective. Indeed, the methods that we described here are some of the most commonly used of any in the book. They simply require that we take care in their application, and generally that we employ a fair amount of hand-tuned engineering. 
+
+# 20 Learning Undirected Models 
+## 20.1 Overview 
+In previous chapters, we developed the theory and algorithms for learning Bayesian networks from data. In this chapter, we consider the task of learning Markov networks. Although many of the same concepts and principles arise, the issues and solutions turn out to be quite different. 
+>  本章考虑对 MN 的学习
+
+**Perhaps the most important reason for the differences is a key distinction between Markov networks and Bayesian networks: the use of a global normalization constant (the partition function) rather than local normalization within each CPD. This global factor couples all of the parameters across the network, preventing us from decomposing the problem and estimating local groups of parameters separately.** This global parameter coupling has signiﬁcant computational ramiﬁcations. As we will explain, in contrast to the situation for Bayesian networks, even simple (maximum-likelihood) parameter estimation with complete data cannot be solved in closed form (except for chordal Markov networks, which are therefore also Bayesian networks). Rather, we generally have to resort to iterative methods, such as gradient ascent, for optimizing over the parameter space. The good news is that the likelihood objective is concave, and so these methods are guaranteed to converge to the global optimum. The bad news is that each of the steps in the iterative algorithm requires that we run inference on the network, making even simple parameter estimation a fairly expensive, or even intractable, process. Bayesian estimation, which requires integration over the space of parameters, is even harder, since there is no closed-form expression for the parameter posterior. Thus, the integration associated with Bayesian estimation must be performed using approximate inference (such as variational methods or MCMC), a burden that is often infeasible in practice. 
+>  BN 和 MN 学习的最大差异在于全局规范化常量 (划分函数)，而不是各个 CPD 的局部规范化
+>  划分函数结合了整个网络的参数，故我们不能划分问题，独立评估各个局部的参数组
+>  因此，即便是在完整数据下的 MLE 参数估计在 MN 中也没有闭式解 (除了 chordal MN，其等价于 BN)，因此需要考虑迭代式方法，例如梯度下降
+>  似然目标函数是凹的，因此这些方法保证收敛到全局最优，但迭代式算法每一步都需要对网络执行一次推理，过于昂贵
+>  贝叶斯估计也没有闭式的参数后验，和它相关的积分必须用近似推理方法执行，例如变分和 MCMC
+
+As a consequence of these computational issues, much of the work in this area has gone into the formulation of alternative, more tractable, objectives for this estimation problem. Other work has been focused on the use of approximate inference algorithms for this learning problem and on the development of new algorithms suited to this task. 
+>  该领域的一部分工作是为参数估计问题构建一个更可解的替代目标；另一部分工作则使用近似推理算法
+
+The same issues have signiﬁcant impact on structure learning. In particular, because a Bayesian parameter posterior is intractable to compute, the use of exact Bayesian scoring for model selection is generally infeasible. In fact, scoring any model (computing the likelihood) requires that we run inference to compute the partition function, greatly increasing the cost of search over model space. Thus, here also, the focus has been on approximations and heuristics that can reduce the computational cost of this task. 
+>  MN 的结构学习同样有该问题，因为贝叶斯参数后验不可解，故不能使用精确的贝叶斯分数进行模型选择
+>  在 MN 中，对任意模型打分 (计算似然) 要求我们进行推理，计算划分函数，导致对模型空间的搜索过于昂贵
+>  故 MN 的结构学习聚焦于使用近似或启发式减少该任务的计算开销
+
+Here, however, there is some good news, arising from another key distinction between Bayesian and Markov networks: the lack of a global acyclicity constraint in undirected models. Recall (see theorem 18.5) that the acyclicity constraint couples decisions regarding the family of different variables, thereby making the structure selection problem much harder. The lack of such a global constraint in the undirected case eliminates these interactions, allowing us to choose the local structure locally in different parts of the network. In particular, it turns out that a particular variant of the structure learning task can be formulated as a continuous, convex optimization problem, a class of problems generally viewed as tractable. Thus, elimination of global acyclicity removes the main reason for the $\mathcal{N P}$ -hardness of structure learning that we saw in Bayesian networks. However, this does not make structure learning of Markov networks efficient; the convex optimization process (as for parameter estimation) still requires multiple executions of inference over the network. 
+>  MN 在结构学习的优势在于没有全局的无环约束
+>  回想一下（见定理18.5），无环约束将不同变量族的决策相互关联，从而使结构选择问题变得更加困难。在无向情况下缺少这种全局约束消除了这些交互作用，使我们能够在网络的不同部分局部选择局部结构。
+>  结果表明，结构学习任务的一个特定变体可以表述为一个连续且凸的优化问题，这一类问题通常被认为是易于处理的。因此，消除全局无环性消除了我们在贝叶斯网络中看到的导致结构学习 ${NP}$ 难度的主要原因。
+>  然而，这并没有使马尔可夫网络的结构学习变得高效；凸优化过程（与参数估计一样）仍然需要多次执行网络推理。
+
+A ﬁnal important issue that arises in the context of Markov networks is the overwhelmingly common use of these networks for settings, such as image segmentation and others, where we have a particular inference task in mind. In these settings, we often want to train a network disciminatively (see section 16.3.2), so as to provide good performance for our particular prediction task. Indeed, much of Markov network learning is currently performed for CRFs. 
+
+The remainder of this chapter is structured as follows. We begin with the analysis of the properties of the likelihood function, which, as always, forms the basis for all of our discussion of learning. We then discuss how the likelihood function can be optimized to ﬁnd the maximum likelihood parameter estimates. The ensuing sections discuss various important extensions to these basic ideas: conditional training, parameter priors for MAP estimation, structure learning, learning with missing data, and approximate learning methods that avoid the computational bottleneck of multiple iterations of network inference. These extensions are usually described as building on top of standard maximum-likelihood parameter estimation. However, it is important to keep in mind that they are largely orthogonal to each other and can be combined. Thus, for example, we can also use the approximate learning methods in the case of structure learning or of learning with missing data. Similarly, all of the methods we described can be used with maximum conditional likelihood training. We return to this issue in section 20.8. 
+
+We note that, for convenience and consistency with standard usage, we use natural logarithms throughout this chapter, including in our deﬁnitions of entropy or KL-divergence. 
+
+## 20.2 The Likelihood Function 
+As we saw in earlier chapters, the key component in most learning tasks is the likelihood function. In this section, we discuss the form of the likelihood function for Markov networks, its properties, and their computational implications. 
+>  本节讨论 MN 的似然函数
+
+### 20.2.1 An Example 
+As we suggested, the existence of a global partition function couples the different parameters in a Markov network, greatly complicating our estimation problem. To understand this issue, consider the very simple network $A{-}B{-}C$ , parameterized by two potentials $\phi_{1}(A,B)$ and $\phi_{2}(B,C)$ . Recall that the log-likelihood of an instance $\langle a,b,c\rangle$ is 
+
+$$
+\ln{\cal P}(a,b,c)=\ln\phi_{1}(a,b)+\ln\phi_{2}(b,c)-\ln Z,
+$$ 
+where $Z$ is the partition function that ensures that the distribution sums up to one. 
+
+>  考虑网络 $A-B-C$，带有两个势能 $\phi_1(A, B), \phi_2(B, C)$，实例 $a, b, c$ 的对数似然如上
+
+Now, consider the log-likelihood function for a data set $\mathcal{D}$ containing $M$ instances: 
+
+$$
+\begin{array}{l l l}{\ell(\pmb\theta:\mathcal D)}&{=}&{\displaystyle\sum_{m}\left(\ln\phi_{1}(a[m],b[m])+\ln\phi_{2}(b[m],c[m])-\ln Z(\pmb\theta)\right)}\\ &{=}&{\displaystyle\sum_{a,b}M[a,b]\ln\phi_{1}(a,b)+\sum_{b,c}M[b,c]\ln\phi_{2}(b,c)-M\ln Z(\pmb\theta).}\end{array}
+$$ 
+Thus, we have sufficient statistics that summarize the data: the joint counts of variables that appear in each potential. This is analogous to the situation in learning Bayesian networks, where we needed the joint counts of variables that appear within the same family.
+
+>  数据集的对数似然就是各个样本的对数似然求和，如上所示
+>  由此可以得到数据的充分统计量：各个势能中出现的实例的计数 (两个数据集充分统计量相同，似然函数就相同)
+
+ This likelihood consists of three terms. The ﬁrst term involves $\phi_{1}$ alone, and the second term involves $\phi_{2}$ alone. The third term, however, is the log-partition function $\ln{ Z}$ , where: 
+
+$$
+Z(\theta)=\sum_{a,b,c}\phi_{1}(a,b)\phi_{2}(b,c).
+$$ 
+Thus, $\ln Z(\theta)$ is a function of both $\phi_{1}$ and $\phi_{2}$ . As a consequence, it couples the two potentials in the likelihood function. 
+
+>  似然函数分为三项，第一项和 $\phi_1$ 相关，第二项和 $\phi_2$ 相关，第三项和 $Z$ 相关，进而和 $\phi_1, \phi_2$ 都相关
+
+Speciﬁcally, consider maximum likelihood estimation, where we aim to ﬁnd parameters that maximize the log-likelihood function. In the case of Bayesian networks, we could estimate each conditional distribution independently of the other ones. Here, however, when we change one of the potentials, say $\phi_{1}$ , the partition function changes, possibly changing the value of $\phi_{2}$ that maximizes $-\ln Z(\theta)$ . Indeed, as illustrated in ﬁgure 20.1, the log-likelihood function in our simple example shows clear dependencies between the two potentials. 
+>  考虑 MLE (找到最大化似然的参数)
+>  BN 中，我们独立估计每个 CPD 的参数；MN 中，当我们改变某个势能的参数，例如 $\phi_1$，此时划分函数 $Z$ 也会相应改变，那么就可能会改变可能最大化 $-\ln Z(\pmb \theta)$ 的 $\phi_2$
+>  因此，此时似然函数的优化不能根据各个势能独立进行，二者之间有相关性
+
+In this particular example, we can avoid this problem by noting that the network $A{-}B{-}C$ is equivalent to a Bayesian network, say $A\rightarrow B\rightarrow C$ . Therefore, we can learn the parameters of this BN, and then deﬁne $\phi_{1}(A,B)=P(A)P(B\mid A)$ and $\phi_{2}(B,C)=P(C\mid B)$ . Because the two representations have equivalent expressive power, the same maximum likelihood is achievable in both, and so the resulting parameterization for the Markov network will also be a maximum-likelihood solution. In general, however, there are Markov networks that do not have an equivalent BN structure, for example, the diamond-structured network of ﬁgure 4.13 (see section 4.5.2). In such cases, we generally cannot convert a learned BN parameterization into an equivalent MN; indeed, the optimal likelihood achievable in the two representations is generally not the same. 
+>  对于这个特定的问题，MN $A-B-C$ 实际上可以等价于一个 BN $A\rightarrow B \rightarrow C$，因此我们可以为 BN 学习参数，并且定义 $\phi_1(A, B) = P(A) P(B\mid A)$ ，$\phi_2(B, C) = P(C\mid B)$
+>  因为 CPD 的表示方法和势能的表示方法具有等价的表示能力，因此二者的极大似然解是相同的，故 BN 的 MLE 解就是 MN 的极大似然解
+>  但该方法仅限于具有等价 BN 结构的 MN
+
+### 20.2.2 Form of the Likelihood Function 
+To provide a more general description of the likelihood function, it ﬁrst helps to provide a more convenient notational basis for the parameterization of these models. For this purpose, we use the framework of log-linear models , as deﬁned in section 4.4.1.2. Given a set of features ${\mathcal F}=\{f_{i}(\pmb D_{i})\}_{i=1}^{k}$ , where $f_{i}(\pmb D_{i})$ is a feature function deﬁned over the variables in $\pmb D_{i}$ , we have: 
+
+$$
+P(X_{1},\dots ,X_{n}:\pmb \theta)={\frac{1}{Z(\pmb \theta)}}\exp\left\{\sum_{i=1}^{k} \theta_{i}f_{i}(\pmb D_{i})\right\}.\tag{20.1}
+$$ 
+As usual, we use $f_{i}(\xi)$ as shorthand for $f_{i}(\xi\langle \pmb D_{i}\rangle)$ 
+
+>  考虑使用对数线性模型，也就是将势能都设定为 $\phi_i(\pmb D_i) = \exp[w_if_i(\pmb D_i)]$ 的形式
+>  给定一组特征 $\mathcal F= \{f_i(\pmb D_i)\}_{i=1}^k$，其中 $f_i(\pmb D_i)$ 为定义在 $\pmb D_i$ 中的变量上的特征函数，则可以得到似然函数写为 (20.1) 的形式
+>  我们用 $f_i(\xi)$ 表示 $f_i(\xi\langle \pmb D_i \rangle)$ 的简写
+
+The parameters of this distribution correspond to the weight we put on each feature. When $\theta_{i}=0$ , the feature is ignored, and it has no effect on the distribution. 
+>  此时我们要优化的参数就对应于我们给每个特征函数的权重，$\theta_i = 0$ 时，特征 $f_i(\pmb D_i)$ 就会被忽略，进而对分布没有影响
+
+As discussed in chapter 4, this representation is very generic and can capture Markov networks with global structure and local structure. A special case of particular interest is when $f_{i}(D_{i})$ is a binary indicator function that returns the value 0 or 1 . With such features, we can encode a “standard” Markov network by simply having one feature per potential entry. In more general, however, we can consider arbitrary valued features. 
+>  该表示方法是十分通用的，并且可以捕获 MN 的全局结构和局部结构
+>  一个特殊情况就是特征函数为指示函数，返回 0 或 1，此时，我们可以让每个特征函数对应的系数表示一个势能项，例如 $f_{a^0, b^0}(a, b)$ 的系数 $\theta_{a^0, b^0} = \ln \phi_1(a^0, b^0)$
+
+Example 20.1 
+As a speciﬁc example, consider the simple diamond network of ﬁgure 3.10a, where we take all four variables to be binary-valued. The features that correspond to this network are sixteen indicator functions: four for each assignment of variables to each of our four clusters. For example, one such feature would be: 
+
+$$
+f_{a^{0},b^{0}}(a,b)={\bf{\cal I}}\{a=a^{0}\}{\bf{\cal I}}\{b=b^{0}\}.
+$$
+
+With this representation, the weight of each indicator feature is simply the natural logarithm of the corresponding potential entry. For example, $\theta_{a^{0},b^{0}}=\ln\phi_{1}(a^{0},b^{0})$ . 
+
+Given a model in this form, the log-likelihood function has a simple form. 
+
+**Proposition 20.1** 
+Let $\mathcal{D}$ be a data set of $M$ examples, and let ${\mathcal F}=\{f_{i}\,:\,i\,=\,1,.\,.\,.\,,k\}$ be a set of features that deﬁne a model. Then the log-likelihood is 
+
+$$
+\ell(\pmb\theta:{\mathcal D})=\sum_{i}\theta_{i}\left(\sum_{m}f_{i}(\xi[m])\right)-M\ln Z(\pmb\theta).\tag{20.2}
+$$ 
+>  命题
+>  $\mathcal D$ 为具有 $M$ 个样本的数据集，$\mathcal F = \{f_i: i = 1,\dots, k\}$ 为一组定义了模型的特征函数
+>  此时数据集的对数似然函数为 (20.2) 的形式
+
+>  证明
+
+$$
+\begin{align}
+\ell(\pmb \theta : \mathcal D) &= \ln P(\mathcal D\mid \pmb \theta)\\
+&=\ln\prod_{m=1}^M P(\xi[m]\mid \pmb \theta)\\
+&=\sum_{m=1}^M \ln P(\xi[m]\mid \pmb \theta)\\
+&=\sum_{m=1}^M \ln \frac 1 {Z(\pmb \theta)}\exp\left\{\sum_{i=1}^k \theta_if_i(\xi[m])\right\}\\
+&=\sum_{m=1}^M \left(\ln\exp\left\{\sum_{i=1}^k \theta_if_i(\xi[m])\right\} - \ln Z(\pmb \theta)\right)\\
+&=\sum_{m=1}^M \sum_{i=1}^k \theta_if_i(\xi[m]) - M\ln Z(\pmb \theta)\\
+&=\sum_{i=1}^k \theta_i\sum_{m=1}^M f_i(\xi[m]) - M\ln Z(\pmb \theta)\\
+&=\sum_{i} \theta_i\sum_{m} f_i(\xi[m]) - M\ln Z(\pmb \theta)\\
+\end{align}
+$$
+
+>  证毕
+
+The sufficient statistics of this likelihood function are the sums of the feature values in the instances in $\mathcal{D}$ . We can derive a more elegant formulation if we divide the log-likelihood by the number of samples M . 
+
+$$
+\frac{1}{M}\ell(\pmb\theta:\mathcal D)=\sum_{i}\theta_{i}\pmb E_{\mathcal D}[f_{i}(\pmb d_{i})]-\ln Z(\pmb\theta),\tag{20.3}
+$$
+
+where $\pmb{E}_{\mathcal{D}}[f_{i}(\pmb{d}_{i})]$ is the empirical expectation of $f_{i}$ , that is, its average in the data set. 
+
+>  该似然函数的充分统计量为 $\mathcal D$ 中实例的特征值的和
+>  我们进一步将 (20.2) 除以样本数量 $M$，得到 (20.3) ，其中 $E_{\mathcal D}[f_i(\pmb d_i)] = \frac 1 M\sum f_i(\xi[m])$ 为 $f_i$ 在 $\mathcal D$ 上的经验期望，也就是平均值
+
+### 20.2.3 Properties of the Likelihood Function 
+The formulation of proposition 20.1 describes the likelihood function as a sum of two functions. The ﬁrst function is linear in the parameters; increasing the parameters directly increases this linear term. Clearly, because the log-likelihood function (for a ﬁxed data set) is upper-bounded (the probability of an event is at most 1), the second term $\ln Z(\pmb \theta)$ balances the ﬁrst term. 
+>  根据命题 20.1，似然函数可以描述为两个函数的和
+>  其中第一个函数是关于参数的线性函数
+
+Let us examine this second term in more detail. Recall that the partition function is deﬁned as 
+
+$$
+\ln Z(\pmb\theta)=\ln\sum_{\xi}\exp\left\{\sum_{i}\theta_{i}f_{i}(\xi)\right\}.
+$$
+
+One important property of the partition function is that it is convex in the parameters $\pmb \theta$ . Recall that a function $f(\vec{x})$ is convex if for every $0\leq\alpha\leq1$ , 
+
+$$
+f(\alpha\vec{x}+(1-\alpha)\vec{y})\leq\alpha f(\vec{x})+(1-\alpha)f(\vec{y}).
+$$
+
+In other words, the function is bowl-like, and every interpolation between the images of two points is larger than the image of their interpolation. One way to prove formally that the function $f$ is convex is to show that the Hessian — the matrix of the function’s second derivatives — is positive semideﬁnite. Therefore, we now compute the derivatives of $Z(\pmb \theta)$ . 
+
+>  考察 $\ln Z(\pmb \theta)$，注意到划分函数 $Z(\pmb \theta)$ 的一个重要性质是它是关于 $\pmb \theta$ 的凸函数，凸函数中，任意两点的像的插值大于它们的插值的像
+>  要证明其凸性，我们可以计算其 Hessian 矩阵，即划分函数相对于 $\pmb \theta$ 的二阶导数，如果 Hessian 是半正定的，则划分函数就是关于 $\pmb \theta$ 的凸函数
+
+**Proposition 20.2** 
+Let $\mathcal F$ be a set of features. Then,
+
+$$
+\begin{array}{r c l}{{\displaystyle\frac{\partial}{\partial\theta_{i}}\ln Z(\pmb\theta)}}&{{=}}&{{\pmb E_{\pmb\theta}[f_{i}]}}\\ {{\displaystyle\frac{\partial^{2}}{\partial\theta_{i}\partial\theta_{j}}\ln Z(\pmb\theta)}}&{{=}}&{{\pmb C o v_{\pmb\theta}[f_{i};f_{j}],}}\end{array}
+$$
+
+where $E_{\pmb \theta}[f_i]$ is a short hand for $E_{P(\mathcal X : \pmb \theta)}[f_i]$.
+
+>  命题
+>  对于一组特征 $\mathcal F$，划分函数的对数相对于 $\theta_i$ 的偏导数等于特征 $f_i$ 在 $P(\mathcal X:\pmb \theta)$ 上的期望；划分函数的对数相对于 $\theta_i, \theta_j$ 的二阶偏导数等于特征 $f_i, f_j$ 在 $P(\mathcal X: \pmb \theta)$ 上的协方差
+
+Proof The ﬁrst derivatives are computed as: 
+
+$$
+\begin{align}
+\frac {\partial}{\partial \theta_i}\ln Z(\pmb \theta)&= \frac 1 {Z(\pmb \theta)}\sum_{\xi}\frac {\partial }{\partial \theta_i}\exp\left\{\sum_j \theta_j f_j(\xi)\right\}\\
+&=\frac 1 {Z(\pmb \theta)}\sum_{\xi}f_i(\xi)\exp\left\{\sum_{j}\theta_j f_j(\xi)\right\}\\
+&=\sum_{\xi}f_i(\xi)\frac {\exp\left\{\sum_{j}\theta_j f_j(\xi)\right\}}{Z(\pmb \theta)}\\
+&=E_{P(\mathcal X: \pmb \theta)}[f_i(\xi)]\\
+&=E_{\pmb \theta}[f_i]
+\end{align}
+$$
+
+We now consider the second derivative: 
+
+$$
+\begin{align}
+\frac {\partial ^2}{\partial \theta_i\partial \theta_j}\ln Z(\pmb \theta) &= \frac {\partial }{\partial \theta_j}\left[\frac {1}{Z(\pmb \theta)}\sum_{\xi}f_i(\xi)\exp\left\{\sum_k\theta_kf_k(\xi)\right\}\right]\\
+&=-\frac 1{Z(\pmb \theta)^2}\left(\frac {\partial}{\partial \theta_j}Z(\pmb\theta)\right)\sum_{\xi}f_i(\xi)\exp\left\{\sum_k\theta_kf_k(\xi)\right\}\\
+&\quad +\frac 1{Z(\pmb \theta)}\sum_{\xi}f_i(\xi)f_j(\xi)\exp\left\{\sum_k\theta_kf_k(\xi)\right\}\\
+&=-\frac 1{Z(\pmb \theta)^2}Z(\pmb \theta)\left(\frac {\partial}{\partial \theta_j}\ln Z(\pmb\theta)\right)\sum_{\xi}f_i(\xi)\exp\left\{\sum_k\theta_kf_k(\xi)\right\}\\
+&\quad +\frac 1{Z(\pmb \theta)}\sum_{\xi}f_i(\xi)f_j(\xi)\exp\left\{\sum_k\theta_kf_k(\xi)\right\}\\
+&=-\frac 1{Z(\pmb \theta)^2}Z(\pmb \theta)E_{\pmb \theta}[f_j]\sum_{\xi}f_i(\xi)\tilde P(\xi : \pmb \theta)\\
+&\quad +\frac 1{Z(\pmb \theta)}\sum_{\xi}f_i(\xi)f_j(\xi)\tilde P(\xi:\pmb \theta)\\
+&=-E_{\pmb \theta}[f_j]\sum_{\xi}f_i(\xi)P(\xi:\pmb \theta) + \sum_{\xi}f_i(\xi)f_j(\xi)P(\xi:\pmb \theta)\\
+&=E_{\pmb \theta}[f_if_j]-E_{\pmb \theta}[f_i]E_{\pmb \theta}[f_j]\\
+&=Cov_{\pmb \theta}[f_i;f_j]
+\end{align}
+$$
+
+Thus, the Hessian of $\ln Z(\theta)$ is the covariance matrix of the features, viewed as random variables distributed according to distribution deﬁned by $\theta$ . Because a covariance matrix is always positive semideﬁnite, it follows that the Hessian is positive semideﬁnite, and hence that $\ln Z(\theta)$ is a convex function of $\theta$ . 
+>  因此，$\ln Z(\pmb \theta)$ 的 Hessian 矩阵就是将特征在 $P(\mathcal X:\pmb \theta)$ 上的协方差矩阵，这里我们将特征视作了服从由 $\pmb \theta$ 定义的分布的随机变量
+>  因为协方差矩阵总是半正定，故 $\ln Z(\pmb \theta)$ 是 $\pmb \theta$ 的凸函数
+
+Because $\ln Z(\theta)$ is convex, its complement $(-\ln Z(\theta))$ is concave. The sum of a linear function and a concave function is concave, implying the following important result: 
+>  那么 $-\ln Z(\pmb \theta)$ 就是关于 $\pmb \theta$ 的凹函数
+>  线性函数和凹函数的和是凹函数，则
+
+**Corollary 20.1**
+The log-likelihood function is concave.
+>  引理
+>  对数似然函数是凹函数
+
+**This result implies that the log-likelihood is unimodal and therefore has no local optima. It does not, however, imply the uniqueness of the global optimum:** Recall that a parameterization of the Markov network can be redundant , giving rise to multiple representations of the same distribution. The standard parameterization of a set of table factors for a Markov network — a feature for every entry in the table — is always redundant. In our simple example, for instance, we have: 
+
+$$
+f_{a^{0},b^{0}}=1-f_{a^{0},b^{1}}-f_{a^{1},b^{0}}-f_{a^{1},b^{1}}.
+$$
+
+We thus have a continuum of parameterizations that all encode the same distribution, and (necessarily) give rise to the same log-likelihood. Thus, there is a unique globally optimal value for the log-likelihood function, but not necessarily a unique solution. In general, because the function is concave, we are guaranteed that there is a convex region of continuous global optima. 
+
+>  对数似然函数的凸性表明了该函数是单峰的，因此没有局部最优解，只有全局最优解
+>  但这不意味全局最优解是唯一的，MN 的参数化可以是冗余的，即相同分布可以有多种表示，也就是一系列参数化编码了同一个分布，进而它们给出的对数似然函数也是相同的
+>  因此，对数似然函数的全局最优解不一定是唯一的
+>  一般来说，由于该函数是凹的，我们保证存在一个连续的全局最优解的凸区域
+
+It is possible to eliminate the redundancy by removing some of the features. However, as we discuss in section 20.4, that turns out to be unnecessary, and even harmful, in practice. 
+>  可以通过移除一些特征来消除冗余性，但这不必要
+
+We note that we have deﬁned the likelihood function in terms of a standard log-linear parameterization, but the exact same derivation also holds for networks that use shared parameters, as in section 6.5; see exercise 20.1 and exercise 20.2. 
+
+## 20.3 Maximum (Conditional) Likelihood Parameter Estimation 
+We now move to the question of estimating the parameters of a Markov network with a ﬁxed structure, given a fully observable data set $\mathcal{D}$ . We focus in this section on the simplest variant of this task — maximum-likelihood parameter estimation, where we select parameters that maximize the log-likelihood function of equation (20.2). In later sections, we discuss alternative objectives for the parameter estimation task. 
+>  考虑为固定结构的 MN 在数据完全的情况下估计参数
+>  本节讨论 MLE，也就是选择能最大化 (20.2) 的参数
+
+### 20.3.1 Maximum Likelihood Estimation 
+As for any function, the gradient of the log-likelihood must be zero at its maximum points. For a concave function, the maxima are precisely the points at which the gradient is zero. Using proposition 20.2, we can compute the gradient of the average log-likelihood as follows: 
+
+$$
+\frac{\partial}{\partial\theta_{i}}\frac{1}{M}\ell(\pmb{\theta}:\mathcal{D})=\pmb{E_{\mathcal{D}}}[f_{i}(\mathcal{X})]-\pmb{E_{\theta}}[f_{i}].\tag{20.4}
+$$
+
+>  对数似然函数在最大点的梯度需要为 0，对于一个凹函数，梯度为 0 的点就是最大点
+>  根据命题 20.2 ，平均对数似然的梯度如上所示
+
+This analysis provides us with a precise characterization of the maximum likelihood parameters $\hat{\pmb\theta}$ : 
+>  我们进而可以准确描述极大似然参数 $\hat {\pmb \theta}$
+
+**Theorem 20.1** 
+Let $\mathcal{F}$ be a set of features. Then, $\theta$ is a maximum-likelihood parameter assignment if and only if $\pmb{E}_{\mathcal{D}}[f_{i}(\mathcal{X})]=\pmb{E}_{\hat{\theta}}[f_{i}]$ for all $i$ .
+>  定理
+>  令 $\mathcal F$ 为一组特征，则对于参数 $\hat {\pmb \theta}$，当且仅当它满足 $E_{\mathcal D}[f_i(\mathcal X)] = E_{\hat {\pmb \theta}}[f_i]$ 对于所有 $i$ 都成立，也就是说 (20.4) 等于零对于所有 $i$ 都成立
+
+In other words, at the maximal likelihood parameters $\hat{\pmb\theta}$ , the expected value of each feature relative to $P_{\hat{\theta}}$ matches its empirical expectation in $\mathcal{D}$ . In other words, we want the expected sufficient statistics in the learned distribution to match the empirical expectations. This type of equality constraint is also called moment matching . This theorem easily implies that maximum likelihood estimation is consistent in the same sense as deﬁnition 18.1: if the model is sufficiently expressive to capture the data-generating distribution, then, at the large sample limit, the optimum of the likelihood objective is the true model; see exercise 20.3. 
+>  因此，在极大似然参数 $\hat {\pmb \theta}$ 下，每个特征相对于 $P_{\hat {\pmb \theta}}$ 的期望值应该等于它在 $\mathcal D$ 中的经验期望值 (平均值)
+>  换句话说，我们希望学习到的分布中的期望充分统计量匹配其经验期望
+>  这种类型的等式约束也称为矩匹配
+>  根据该定理，我们容易推出该极大似然估计也是一致的：如果模型足够表达数据生成分布，则在大样本极限下，似然目标函数的最优解就是真实模型
+
+By itself, this criterion does not provide a constructive deﬁnition of the maximum likelihood parameters. **Unfortunately, although the function is concave, there is no analytical form for its maximum. Thus, we must resort to iterative methods that search for the global optimum. Most commonly used are the gradient ascent methods reviewed in appendix A.5.2**, which iteratively take steps in parameter space to improve the objective. At each iteration, they compute the gradient, and possibly the Hessian, at the current point $\theta$ , and use those estimates to approximate the function at the current neighborhood. They then take a step in the right direction (as dictated by the approximation) and repeat the process. Due to the convexity of the problem, this process is guaranteed to converge to a global optimum, regardless of our starting point. 
+>  但该准则本身没有提供关于 MLE 参数的构造性定义，虽然似然函数是凹函数，我们也找不到其极大值的解析形式
+>  因此我们需要使用迭代式方法搜索全局最优，其中最常用的就是梯度上升法，即在参数空间中迭代式提高目标值
+>  在每次迭代式，这些方法计算 $\pmb \theta$ 下的梯度，Hessian 矩阵，然后用它们来对目标函数进行局部近似，进而在特定的方向前进
+>  因为问题是凸的，故该过程保证收敛，无论我们起始点如何
+
+To apply these gradient-based methods, we need to compute the gradient. Fortunately, equation (20.4) provides us with an exact formula for the gradient: the difference between the feature’s empirical count in the data and its expected count relative to our current parameterization $\theta$ . For example, consider again the fully parameterized network of example 20.1. Here, the features are simply indicator functions; the empirical count for a feature such as $f_{a^{0},b^{0}}(a,b)=I\!\!\!\{a=a^{0}\}I\!\!\!\{b=b^{0}\}$ is simply e empirical frequency, in the data set $\mathcal{D}$ , of the event $a^{0},b^{0}$ . At a particular parameterization θ , the expected count is simply $P_{\theta}(a^{0},b^{0})$ . Very naturally, the gradient for the parameter associated with this feature is the difference between these two numbers. 
+>  梯度的计算参照 (20.4)，它是特征在数据集中的经验计数和它相对于当前参数 $\pmb \theta$ 的期望计数的差
+>  例如，考虑特征 $f_{a^0, b^0}(a, b) = \mathbf 1[a = a^0]\mathbf 1[b = b^0]$，其经验计数就是事件 $a^0, b^0$ 在数据集中的频率，在特定参数 $\pmb \theta$ 下，其期望计数就是 $P_{\pmb \theta}(a^0, b^0)$
+>  和该特征关联的参数的梯度就是二者之差，即要向经验计数靠近
+
+However, this discussion ignores one important aspect: the computation of the expected counts. In our example, for instance, we must compute the different probabilities of the form $P_{\theta^{t}}(a,b)$ . Clearly, this computation requires that we run inference over the network. As for the case of EM in Bayesian networks, a feature is necessarily part of a factor in the original network, and hence, due to family preservation, all of the variables involved in a feature must occur together in a cluster in a clique tree or cluster graph. Thus, a single inference pass that calibrates an entire cluster graph or tree suffices to compute all of the expected counts. **Nevertheless, a full inference step is required at every iteration of the gradient ascent procedure. Because inference is almost always costly in time and space, the computational cost of parameter estimation in Markov networks is usually high, sometimes prohibitively so.** In section 20.5 we return to this issue, considering the use of approximate methods that reduce the computational burden. 
+>  然而，这个讨论忽略了一个重要的方面：期望计数的计算。以我们的例子为例，我们必须计算各种形式的概率$P_{\theta^{t}}(a,b)$。显然，这种计算需要在网络中进行推理。就像在贝叶斯网络的EM算法情况一样，特征必然是原网络中某个因子的一部分，因此，由于族的保持，特征涉及的所有变量必须在团树或聚类图的同一簇中一起出现。
+>  因此，一次校准整个聚类图或树的推理步骤就足以计算所有期望计数。然而，在梯度上升过程的每次迭代中，都需要进行完整的推理步骤。由于推理在时间和空间上通常是昂贵的，马尔可夫网络中参数估计的计算成本通常很高，有时甚至是无法承受的。
+>  在20.5节中，我们将回到这个问题，考虑使用近似方法来减轻计算负担。
+
+Our discussion does not make a speciﬁc choice of algorithm to use for the optimization. In practice, standard gradient ascent is not a particularly good algorithm, both because of its slow convergence rate and because of its sensitivity to the step size. Much faster convergence is obtained with second-order methods, which utilize the Hessian to provide a quadratic approximation to the function. However, from proposition 20.2 we can conclude that the Hessian of the log-likelihood function has the form: 
+
+$$
+\frac{\partial}{\partial\theta_{i}\partial\theta_{j}}\ell(\pmb{\theta}:\mathcal{D})=-M\mathbb{C}o v_{\pmb{\theta}}[f_{i};f_{j}].\tag{20.5}
+$$
+
+To compute the Hessian, we must compute the joint expectation of two features, a task that is often computationally infeasible. Currently, one commonly used solution is the L-BFGS algorithm , a gradient-based algorithm that uses line search to avoid computing the Hessian (see appendix A.5.2 for some background). 
+
+>  实践中，标准的梯度上升算法并不是一个很好的选择，因为其收敛较慢，以及对步长敏感
+>  二阶方法可以达到更快的收敛速度，二阶方法即使用了 Hessian 矩阵获得多函数的二次近似
+>  根据命题 20.2，我们知道 Hessian 矩阵的计算形式为 (20.5)，为此，我们需要计算相对于两个特征的联合期望，该计算往往也是不可行的
+>  目前常用的方法是 L-BFGS 算法，它基于梯度使用线性搜索来避免计算 Hessian
+
+### 20.3.2 Conditionally Trained Models 
+As we discussed in section 16.3.2, we often want to use a Markov network to perform a particular inference task, where we have a known set of observed variables, or features, $\pmb X$ , and a predetermined set of variables, $\pmb Y$ , that we want to query. In this case, we may prefer to use discriminative training , where we train the network as a conditional random ﬁeld (CRF) that encodes a conditional distribution $P(\pmb Y\mid \pmb X)$ . 
+>  我们有时需要用 MN 执行特定的推理任务，其中有一组观察变量 $\pmb X$，和一组预定义的要查询迭代变量 $\pmb Y$
+>  此时我们偏好判别式训练，即训练一个 CRF，该 CRF 编码了条件分布 $P(\pmb Y \mid \pmb X)$
+
+More formally, in this setting, our training set consists of pairs ${\mathcal D}\,=\,\{(\pmb{y}[m],\pmb{x}[m])\}_{m=1}^{M}$ , specifying assignments to $Y,X$ . An appropriate objective function to use in this situation is the conditional likelihood or its logarithm, deﬁned in equation (16.3). In our setting, the log-conditional-likelihood has the form: 
+
+$$
+\ell_{\pmb Y\mid \pmb X}(\pmb\theta:\mathcal D)=\ln P(\pmb y[1,\dots,M]\mid\pmb x[1,\dots,M],\pmb\theta)=\sum_{m=1}^{M}\ln P(\pmb y[m]\mid\pmb x[m],\pmb\theta).
+$$ 
+In this objective, we are optimizing the likelihood of each observed assignment $\pmb{y}[m]$ given the corresponding observed assignment $\pmb{x}[m]$ . Each of the terms $\ln P(\pmb{y}[1,\dots,M]\mid\pmb{x}[1,.\,.\,,M],\pmb{\theta})$ is a log-likelihood of a Markov network model with a different set of factors — the factors in the original network, reduced by the observation ${\pmb x}[1,.\,.\,.\,,M]\ .$ — and its own partition function. Each term is thereby a concave function, and because the sum of concave functions is concave, we conclude: 
+
+>  此时的数据集形式为 $\mathcal D = \{(\pmb y[m], \pmb x[m])\}_{m=1}^M$
+>  此时合适的目标函数可以是条件似然函数及其对数，形式如上，也就是各个实例的对数条件似然 $\ln P(\pmb y[m]\mid \pmb x[m], \pmb \theta)$ 的和
+>  $\ln P(\pmb y[m]\mid \pmb x[m], \pmb \theta)$ 可以视作一个 MN 模型的对数似然，该 MN 模型来自于原来的网络基于观察 $\pmb x[m]$ 简化，因此它是一个凹函数，而凹函数的和仍然是凹函数，故
+
+**Corollary 20.1**
+The log likelihood of equation (20.6) is a concave function.
+>  引理
+>  (20.6) 的对数似然是凹函数
+
+As for corollary 20.1, this result implies that the function has a global optimum and no local optima, but not that the global optimum is unique. Here also, redundancy in the parameterization may give rise to a convex region of contiguous global optima. 
+>  这说明该函数具有全局最优，没有局部最优，但全局最优不一定唯一，因为参数化的冗余可以给出具有全局最优的连续凸区域
+
+The approaches for optimizing this objective are similar to those used for optimizing the likelihood objective in the unconditional case. The objective function is a concave function, and so a gradient ascent process is guaranteed to give rise to the unique global optimum. The form of the gradient here can be derived directly from equation (20.4). We ﬁrst observe that the gradient of a sum is the sum of the gradients of the individual terms. Here, each term is, in fact, a log-likelihood — the log-likelihood of a single data case $\pmb{y}[m]$ in the Markov network obtained by reducing our original model to the context $\pmb{x}[m]$ . A reduced Markov network is itself a Markov network, and so we can apply equation (20.4) and conclude that: 
+>  优化该目标函数的方法和之前类似
+>  目标函数是凹函数，故梯度上升保证收敛到唯一全局最优
+>  我们可以为和式中的每一项，也就是每个数据实例的条件对数似然计算梯度，然后求和
+>  每个数据实例的条件对数似然等价于 $\pmb y[m]$ 在原来的 MN 根据上下文 $\pmb x[m]$ 简化后的网络中的似然
+>  简化的 MN 仍然是 MN，故我们直接应用 (20.4)
+
+$$
+\frac{\partial}{\partial\theta_{i}}\ell_{\pmb Y\mid \pmb X}(\pmb\theta:\mathcal D)=\sum_{m=1}^{M}\left(f_{i}(\pmb y[m],\pmb x[m])-\pmb E_{\pmb\theta}[f_{i}\mid\pmb x[m]]\right).\tag{20.7}
+$$
+
+This solution looks deceptively similar to equation (20.4). Indeed, if we aggregate the ﬁrst component in each of the summands, we obtain precisely the empirical count of $f_{i}$ in the data set $\mathcal{D}$ . There is, however, one key difference. In the unreduced Markov network, the expected feature counts are computed relative to a single model; in the case of the conditional Markov network, these expected counts are computed as the summation of counts in an ensemble of models, deﬁned by the different values of the conditioning variables $\pmb{x}[m]$ . This difference has signiﬁcant computational consequences. Recall that computing these expectations involves running inference over the model. **Whereas in the unconditional case, each gradient step required only a single execution of inference, when training a CRF, we must (in general) execute inference for every single data case , conditioning on $\pmb{x}[m]$ . On the other hand, the inference is executed on a simpler model, since conditioning on evidence in a Markov network can only reduce the computational cost.** For example, the network of ﬁgure 20.2 is very densely connected, whereas the reduced network over $Y$ alone (conditioned on $X$ ) is a simple chain, allowing linear-time inference. 
+>  如果我们将 $f_i(\pmb y[m], \pmb x[m])$ 求和，我们得到的就是 $f_i$ 在数据集 $\mathcal D$ 上的经验计数
+>  但注意一点不同，在未简化的 MN 中，期望的特征计数是相对于单个模型计算，在条件 MN 中，期望计数则是一个和式，其中每一项都相对于简化于 $\pmb x[m]$ 的 MN 计算
+>  计算期望计数需要对模型进行推理，在没有条件时，每次计算梯度仅需要执行一次推理，而训练 CRF 时，我们需要为每个数据实例条件于 $\pmb x[m]$ 执行推理
+>  但另一方面来说，简化的 MN 的推理开销会减少
+
+Discriminative training can be particularly beneﬁcial in cases where the domain of $X$ is very large or even inﬁnite. For example, in our image classiﬁcation task, the partition function in the generative setting involves summation (or integration) over the space of all possible images; if we have an $N\times N$ image where each pixel can take 256 values, the resulting space has $256^{N^{2}}$ values, giving rise to a highly intractable inference problem (even using approximate inference methods). 
+>  当 $\pmb X$ 的定义域非常大甚至无穷时，判别式训练会非常有用
+
+Box 20.A — Concept: Generative and Discriminative Models for Sequence Labeling. One of the main tasks to which probabilistic graphical models have been applied is that of taking a set of interrelated instances and jointly labeling them, a process sometimes called collective classiﬁcation . We have already seen examples of this task in box 4.B and in box 4.E; many other examples exist. Here, we discuss some of the trade-offs between different models that one can apply to this task. We focus on the context of labeling instances organized in a sequence, since it is simpler and allows us to illustrate another important point. 
+
+In the sequence labeling task, we get as input a sequence of observations $X$ and need to label them with some joint label $Y$ . For example, in text analysis (box 4.E), we might have a sequence of words each of which we want to label with some label. In a task of activity recognition , we might obtain a sequence of images and want to label each frame with the activity taking place in it (for example, running, jumping, walking). We assume that we want to construct a model for this task and to train it using fully labeled training data, where both $Y$ and $X$ are observed. 
+
+Figure 20.A.1 illustrates three different types of models that have been proposed and used for sequence labeling, all of which we have seen earlier in this book (see ﬁgure 6.2 and ﬁgure 4.14). The ﬁrst model is $a$ hidden Markov model (or HMM), which is a purely generative model: the model generates both the labels $Y$ and the observations $X$ . The second is called a maximum entropy Markov model (or MEMM). This model is also directed, but it represents a conditional distribution $P(\pmb{Y}\mid\pmb{X})$ ; hence, there is no attempt to model a distribution over the $X s$ . The ﬁnal model is the conditional random ﬁeld (or CRF) of section 4.6.1. This model also encodes a conditional distribution; hence the arrows from $X$ to $Y$ . However, here the interactions between the $Y$ are modeled as undirected edges. 
+
+These different models present interesting trade-ofs in terms of their expressive power and learn- ability. First, from a computational perspective, HMMs and MEMMs are much more easily learned. As purely directed models, their parameters can be computed in closed form using either maximum- likelihood or Bayesian estimation (see chapter 17); conversely, the CRF requires that we use an iterative gradient-based approach, which is considerably more expensive (particularly here, when inference must be run separately for every training sequence; see section 20.3.2). 
+
+A second important issue relates to our ability to use a rich feature set. As we discussed in example 16.3 and in box 4.E, our success in a classiﬁcation task often depends strongly on the quality of our features. In an HMM, we must explicitly model the distribution over the features, including the interactions between them. This type of model is very hard, and often impossible, to construct correctly. The MEMM and the CRF are both discriminative models, and therefore they avoid this challenge entirely. 
+
+The third and perhaps subtler issue relates to the independence assumptions made by the model. discusse ction 4.6.1.2, the MEMM makes the independence assumption that $(Y_{i}\perp X_{j}\mid$ $X_{-j}$ ) for any j > i . Thus, an observation from later in the sequence has absolutely no efect on − the posterior probability of the current state; or, in other words, the model does not allow for any smoothing. The implications of this can be severe in many settings. For example, consider the task of activity recognition from a video sequence; here, we generally assume that activities are highly persistent: if a person is walking in one frame, she is also extremely likely to be walking in the next frame. Now, imagine that the person starts running, but our ﬁrst few observations in the sequence are ambiguous and consistent with both running and walking. The model will pick one — the one whose probability given that one frame is highest — which may well be walking. Assuming that activities are persistent, this choice of activity is likely to stay high for a large number of steps; the posterior of the initial activity will never change. In other words, the best we can expect is a prediction where the initial activity is walking, and then (perhaps) transitions to running. The model is incapable of going back and changing its prediction about the ﬁrst few frames. This problem has been called the label bias problem . 
+
+To summarize, the trade-ofs between these different models are subtle and non- deﬁnitive. In cases where we have many correlated features, discriminative models are probably better; but, if only limited data are available, the stronger bias of the generative model may dominate and allow learning with fewer samples. Among the discriminative models, MEMMs should probably be avoided in cases where many transitions are close to deterministic. In many cases, CRFs are likely to be a safer choice, but the computational cost may be prohibitive for large data sets. 
+
+### 20.3.3 Learning with Missing Data 
+We now turn to the problem of parameter estimation in the context of missing data. As we saw in section 19.1, the introduction of missing data introduces both conceptual and technical difficulties. In certain settings, we may need to model explicitly the process by which data are observed. Parameters may not be identiﬁable from the data. And the likelihood function becomes signiﬁcantly more complex: there is coupling between the likelihood’s dependence on different parameters; worse, the function is no longer concave and generally has multiple local maxima. 
+>  我们现在转向缺失数据情况下的参数估计问题。正如我们在 19.1 节中看到的，引入缺失数据带来了概念上和技术上的困难。在某些情况下，我们可能需要显式地建模数据被观测的过程。参数可能无法从数据中识别出来。而且，似然函数变得显著复杂：不同参数之间的似然函数存在耦合；更糟糕的是，函数不再凹且通常具有多个局部极大值。
+
+The same issues regarding observation processes (ones that are not missing at random) and identiﬁability arise equally in the context of Markov network learning. The issue regarding the complexity of the likelihood function is analogous, although not quite the same. In the case of Markov networks, of course, we have coupling between the parameters even in the likelihood function for complete data. However, as we discuss, in the complete data case, the log-likelihood function is concave and easily optimized using gradient methods. Once we have missing data, we lose the concavity of the function and can have multiple local maxima. Indeed, the example we used was in the context of a Bayesian network of the form $X\,\rightarrow\,Y$ , which can also be represented as a Markov network. Of course, the parameterization of the two models is not the same, and so the form of the function may differ. However, one can verify that a function that is multimodal in one parameterization will also be multimodal in the other. 
+>  同样的关于观测过程（非随机缺失）和可识别性的问题，在马尔可夫网络学习的背景下也同样出现。关于似然函数复杂性的讨论也是类似的，尽管不完全相同。在马尔可夫网络的情况下，当然，即使是在完整数据的似然函数中，参数之间也存在耦合。
+>  然而，正如我们讨论的，在完整数据的情况下，对数似然函数是凹的，并且可以使用梯度方法轻松优化。一旦我们有了缺失数据，我们会失去函数的凹性并且可能有多个局部极大值。事实上，我们使用的例子是在形式为 $X \rightarrow Y$ 的贝叶斯网络背景下，这也可以表示为马尔可夫网络。当然，这两个模型的参数化是不同的，因此函数的形式可能会有所不同。然而，可以验证，在一个参数化下多模态的函数在另一个参数化下也会是多模态的。
+
+#### 20.3.3.1 Gradient Ascent 
+As in the case of Bayesian networks, if we assume our data is missing at random, we can perform maximum-likelihood parameter estimation by using some form of gradient ascent process to optimize the likelihood function. Let us therefore begin by analyzing the form of the gradient in the case of missing data. Let $\mathcal{D}$ be a data set w some entries are missing; let $o[m]$ be the observed entries in the m th data instance and H $\mathcal{H}[m]$ be the random variables that are the missing entries n that instance, so that for any $h[m]\in V a l({\mathcal{H}}[m])$ , $(o[m],h[m])$ is a complete assignment to X . 
+>  考虑缺失数据下梯度的形式
+>  $\mathcal D$ 为数据集，$\pmb o[m]$ 为第 $m$ 个数据实例中被观测到的项，$\mathcal H[m]$ 为第 $m$ 个数据实例中数据缺失的随机变量
+>  对于任意 $\pmb h[m]\in Val(\mathcal H[m])$，$(\pmb o[m], \pmb h[m])$ 可以构成对 $\mathcal X$ 的一个完整赋值
+
+As usual, the average log-likelihood function has the form: 
+>  此时平均对数似然函数形式如下
+
+$$
+\begin{array}{r c l}{{\displaystyle\frac{1}{M}\ln P(\mathcal{D}\mid\pmb \theta)}}&{{=}}&{{\displaystyle\frac{1}{M}\sum_{m=1}^{M}\ln\left(\sum_{\pmb h[m]}P(\pmb o[m],\pmb h[m]\mid\pmb \theta)\right)}}\\ {{}}&{{}}&{{=\displaystyle\frac{1}{M}\sum_{m=1}^{M}\ln\left(\sum_{\pmb h[m]}\tilde{P}(\pmb o[m],\pmb h[m]\mid\pmb \theta)\right)-\ln Z.}}\end{array}\tag{20.8}
+$$
+
+Now, consider a single term within the summation, $\textstyle\sum_{\pmb{h}[m]}{\tilde{P}}(o[m],\pmb{h}[m]\ |\ \theta)$ . This expression has the same form as a partition function; indeed, it is precisely the partition function for the Markov network that we would obtain by reducing our original Markov network with the observation $o[m]$ , to obtain a Markov network representing the conditional distribution $\tilde{P}(\mathcal{H}[m]\mid\mathbf{o}[m])$ H | . Therefore, we can apply proposition 20.2 and conclude that: 
+
+$$
+\frac{\partial}{\partial\theta_{i}}\ln\sum_{\pmb h[m]}\tilde{P}(\pmb o[m],\pmb h[m]\mid\pmb \theta)\quad=\quad E_{\pmb h[m]\sim P(\mathcal{H}[m]\mid \pmb o[m],\pmb \theta)}[f_{i}],
+$$
+
+that is, the gradient of this term is simply the conditional expectation of the feature, given the observations in this instance. 
+
+>  考虑和式中的一项 $\sum_{\pmb h[m]}\tilde P(\pmb o[m], \pmb h[m]\mid \pmb \theta)$，其形式和划分函数一致，可以发现他就是我们将原 MN 根据 $\pmb o[m]$ 化简的得到的 MN 的划分函数
+>  因此我们应用命题 20.2，得到其梯度，就是特征在给定实例中的管测下的的条件期望
+
+Putting this together with previous computations, we obtain the following: 
+>  再将 $\ln Z$ 替换为特征的期望，我们就得到如下命题
+
+**Proposition 20.3** 
+For a data set $\mathcal{D}$ 
+
+$$
+\frac{\partial}{\partial\theta_{i}}\frac{1}{M}\ell(\pmb{\theta}:\mathcal{D})=\frac{1}{M}\left[\sum_{m=1}^{M}\pmb{E}_{\pmb h[m]\sim P(\mathcal{H}[m]|\pmb{o}[m],\pmb{\theta})}[f_{i}]\right]-\pmb{E}_{\pmb{\theta}}[f_{i}].\tag{20.9}
+$$ 
+
+In other words, the gradient for feature $f_{i}$ in the case of missing data is the difference between two expectations — the feature expectation over the data and the hidden variables minus the feature expectation over all of the variables. 
+>  可以看到，此时特征 $f_i$ 的梯度是两个期望的差：在数据上和隐变量上的期望减去所有变量上的期望
+
+It is instructive to compare the cost of this computation to that of computing the gradient in equation (20.4). For the latter, to compute the second term in the derivative, we need to run inference once, to compute the expected feature counts relative to our current distribution $P(\mathcal{X}\mid\theta)$ . The ﬁrst term is computed by simply aggregating the feature over the data. By comparison, to compute the derivative here, we actually need to run inference separately for every instance $m$ , conditioning on $o[m]$ . Although inference in the reduced network may be simpler (since reduced factors are simpler), the cost of this computation is still much higher than learning without missing data. Indeed, not surprisingly, the cost here is comparable to the cost of a single iteration of gradient descent or EM in Bayesian network learning. 
+>  将这个计算的成本与计算方程（20.4）中的梯度的成本进行比较是有启发性的。对于后者，为了计算导数中的第二项，我们需要运行一次推理，以计算相对于我们当前分布$P(\mathcal{X} \mid \theta)$ 的期望特征计数。第一项则通过对数据进行特征聚合来计算。
+>  相比之下，为了计算这里的导数，我们实际上需要为每个实例 $m$ 分别运行推理，并且条件化于 $\pmb o[m]$。虽然简化网络中的推理可能更简单（因为简化的因子更简单），但这种计算的成本仍然远高于没有缺失数据的学习成本。
+>  实际上，不出所料，这里的成本与贝叶斯网络学习中梯度下降或EM单次迭代的成本相当。
+
+#### 20.3.3.2 Expectation Maximization
+As for any other probabilistic model, an alternative method for parameter estimation in context of missing data is via the expectation maximization algorithm. In the case of Bayesian network learning, EM seemed to have signiﬁcant advantages. Can we deﬁne a variant of EM for Markov networks? And does it have the same beneﬁts? 
+
+The answer to the ﬁrst question is clearly yes. We can perform an E-step by using our current parameters $\pmb{\theta}^{(t)}$ to compute the expected sufficient statistics, in this case, the expected feature counts. That is, at iteration $t$ of the EM algorithm, we compute, for each feature $f_{i}$ , the expected sufficient statistic: 
+
+$$
+\bar{M}_{\pmb\theta^{(t)}}[f_{i}]=\frac{1}{M}\left[\sum_{m=1}^{M}\pmb E_{\pmb h[m]\sim P(\mathcal{H}[m]|\pmb o[m],\pmb\theta)}[f_{i}]\right].
+$$
+
+With these expected feature counts, we can perform an M-step by doing maximum likelihood parameter estimation. The proofs of convergence and other properties of the algorithm go through unchanged. 
+
+>  EM 算法仍可以在 MN 中使用，E-step 中，我们用当前参数 $\pmb \theta^{(t)}$ 计算期望充分统计量，本例中，就是期望特征计数，公式如上
+>  M-step 中，我们用期望充分统计量执行 MLE
+>  EM 算法的收敛性证明和其他性质都不变
+
+Here, however, there is one critical difference. Recall that, in the case of directed models, given the expected sufficient statistics, we can perform the M-step efficiently, in closed form. By contrast, the M-step for Markov networks requires that we run inference multiple times, once for each iteration of whatever gradient ascent procedure we are using. At step $k$ of this “inner-loop” optimization, we now have a gradient of the form: 
+>  差异在于 MN 中 M-step 相较 BN 更为低效，需要执行多次推理
+
+$$
+\bar{M}_{\pmb\theta^{(t)}}[f_{i}]-\pmb E_{\pmb\theta^{(t,k)}}[f_{i}].
+$$
+
+The trade-offs between the two algorithms are now more subtle than in the case of Bayesian networks. For the joint gradient ascent procedure of the previous section, we need to run inference $M+1$ times in each gradient step: once without evidence, and once for each data case. If we use EM, we run inference $M$ times to compute the expected sufficient statistics in the E-step, and then once for each gradient step, to compute the second term in the gradient. Clearly, there is a computational savings here. However, each of these gradient steps now uses an “out-of-date” set of expected sufficient statistics, making it increasingly less relevant as our optimization proceeds. 
+>  这两种算法之间的权衡现在比在贝叶斯网络的情况下更为微妙。对于前一节中的联合梯度上升过程，我们需要在每个梯度步中运行 $M+1$ 次推理：一次没有证据，一次针对每个数据实例。如果我们使用EM算法，我们需要在E步中运行 $M$ 次推理来计算期望的充分统计量，然后在每个梯度步中再运行一次推理，以计算梯度中的第二项。显然，这里存在计算节约。然而，现在每次梯度步都使用了一组“过时”的期望充分统计量，随着我们的优化过程推进，这使得它们越来越不相关。
+
+In fact, we can view the EM algorithm, in this case, as a form of caching of the ﬁrst term in the derivative: Rather than compute the expected counts in each iteration, we compute them every few iterations, take a number of gradient steps, and then recompute the expected counts. There is no need to run the “inner-loop” optimization until convergence; indeed, that strategy is often not optimal in practice.
+>  事实上，我们可以将EM算法视为导数中第一项的缓存形式：而不是在每次迭代中计算期望计数，我们每隔几次迭代计算一次期望计数，然后进行若干次梯度步，之后再重新计算期望计数。
+>  没有必要将“内循环”优化运行到收敛；实际上，这种策略在实践中往往并不是最优的。
+
+### 20.3.4 Maximum Entropy and Maximum Likelihood\*
+We now return to the case of basic maximum likelihood estimation, in order to derive an alternative formulation that provides signiﬁcant insight. In particular, we now use theorem 20.1 to relate maximum likelihood estimation in log-linear models to another important class or problems examined in statistics: the problem of ﬁnding the distribution of maximum entropy subject to a set of constraints. 
+
+To motivate this alternative formulation, consider a situation where we are given some summary statistics of an empirical distribution, such as those that may be published in a census report. These statistics may include the marginal distributions of single variables, of certain pairs, and perhaps of other events that the researcher summarizing the data happened to con- sider of interest. As another example, we might know the average ﬁnal grade of students in the class and the correlation of their ﬁnal grade with their homework scores. However, we do not have access to the full data set. While these two numbers constrain the space of possible distributions over the domain, they do not specify it uniquely. Nevertheless, we might want to construct a “typical” distribution that satisﬁes the constraints and use it to answer other queries. 
+
+maximum entropy 
+
+expectation constraints 
+
+One compelling intuition is that we should select a distribution that satisﬁes the given con- straints but has no additional “structure” or “information.” There are many ways of making this intuition precise. One that has received quite a bit of attention is based on the intuition that entropy is the inverse of information, so that we should search for the distribution of highest entropy. (There are more formal justiﬁcations for this intuition, but these are beyond the scope of this book.) More formally, in maximum entropy estimation, we solve the following problem: 
+
+Maximum-Entropy : Find $\begin{array}{r c l}{{}}&{{}}&{{\mathcal{Q}(\mathcal{X})}}\\ {{}}&{{}}&{{H_{Q}(\mathcal{X})}}\\ {{}}&{{}}&{{}}\\ {{}}&{{}}&{{E_{Q}[f_{i}]=E_{\mathcal{D}}[f_{i}]\quad i=1,\ldots,k.}}\end{array}$ maximizing subject to 
+
+The constraints of equation (20.10) are called expectation constraints , since they constrain us to the set of distributions that have a particular set of expectations. We know that this set is non-empty, since we have one example of a distribution that satisﬁes these constraints — the empirical distribution. 
+
+Somewhat surprisingly, the solution to this problem is a Gibbs distribution over the features $\mathcal{F}$ that matches the given expectations. 
+
+The distribution $Q^{*}$ is the maximum entropy distribution satisfying equation (20.10) if and only if $Q^{*}=P_{\hat{\theta}}$ , where 
+
+$$
+P_{\hat{\theta}}(\mathcal{X})=\frac{1}{Z(\hat{\theta})}\exp\left\{\sum_{i}\hat{\theta}_{i}f_{i}(\mathcal{X})\right\}
+$$ 
+
+and $\hat{\pmb\theta}$ is the maximum likelihood parameter iz ation relative to $\mathcal{D}$ . 
+
+Proof For notational simplicity, let ${\cal P}\,=\,{\cal P}_{\hat{\theta}}$ . From theorem 20.1, it follows that $\pmb{E}_{P}[f_{i}]\;=\;$ $E_{D}[f_{i}(\mathcal{X})]$ X for $i\:=\:1,\ldots,k$ , and hence that $P$ satisﬁes the constraints of equation (20.10). D Therefore, to prove that $P\,=\,Q^{*}$ , we need only show that $H_{P}(\mathcal{X})\;\geq\;H_{Q}(\mathcal{X})$ X ≥ X for all other distributions $Q$ that satisfy these constraints. Consider any such distribution $Q$ . 
+
+From proposition 8.1, it follows that: 
+
+$$
+H_{P}(\mathcal{X})=-\sum_{i}\hat{\theta}_{i}\pmb{E}_{P}[f_{i}]+\ln Z(\theta).
+$$ 
+
+Thus, 
+
+$$
+\begin{array}{r c l}{H_{P}(\mathcal{X})-H_{Q}(\mathcal{X})}&{=}&{-\displaystyle\left[\sum_{i}\hat{\theta}_{i}\pmb{E}_{P}[f_{i}(\mathcal{X})]\right]+\ln Z_{P}-\pmb{E}_{Q}[-\ln Q(\mathcal{X})]}\\ {(i)}&{=}&{-\displaystyle\left[\sum_{i}\hat{\theta}_{i}\pmb{E}_{Q}[f_{i}(\mathcal{X})]\right]+\ln Z_{P}+\pmb{E}_{Q}[\ln Q(\mathcal{X})]}\\ &{=}&{\pmb{E}_{Q}[-\ln P(\mathcal{X})]+\pmb{E}_{Q}[\ln Q(\mathcal{X})]}\\ &{=}&{\pmb{D}(Q\|P)\geq0,}\end{array}
+$$ 
+
+where (i) follows from the fact that both $P_{\hat{\theta}}$ and $Q$ satisfy the constraints, so that $E_{P_{\hat{\theta}}}[f_{i}]\,=$ $E_{Q}[f_{i}]$ for all $i$ . 
+
+We conclude that $H_{P_{\hat{\theta}}}(\mathcal{X})\;\geq\;H_{Q}(\mathcal{X})$ with equality if and only if $P_{\hat{\theta}}\,=\,Q$ . Thus, the maximum entropy distribution $Q^{*}$ is necessarily equal to $P_{\hat{\theta}}$ , proving the result. 
+
+duality 
+
+One can also provide an alternative proof of this result based on the concept of duality discussed in appendix A.5.4. Using this alternative derivation, one can show that the two prob- lems, maximizing the entropy given expectation constraints and maximizing the likelihood given structural constraints on the distribution, are convex duals of each other. (See exercise 20.5.) 
+
+Both derivations show that these objective functions provide bounds on each other, and are identical at their convergence point. That is, for the maximum likelihood parameters $\hat{\pmb\theta}$ , 
+
+$$
+H_{P_{\hat{\theta}}}(\mathcal{X})=-\frac{1}{M}\ell(\hat{\pmb{\theta}}:\mathcal{D}).
+$$ 
+
+As a consequence, we see that for any set of parameters $\theta$ and for any distribution $Q$ that satisfy the expectation constraints equation (20.10), we have that 
+
+$$
+H_{Q}(\mathcal{X})\leq H_{P_{\hat{\theta}}}(\mathcal{X})=-\frac{1}{M}\ell(\hat{\pmb{\theta}}:\mathcal{D})\leq-\frac{1}{M}\ell(\pmb{\theta}:\mathcal{D})
+$$ 
+
+with equality if and only if $Q\,=\,\mathcal{P}_{\theta}$ . We note that, while we provided a proof for this result from ﬁrst principles, it also follows directly from the theory of convex duality. 
+
+Our discussion has shown an entropy dual only for likelihood. A similar connection can be shown between conditional likelihood and conditional entropy; see exercise 20.6. 
+
+## 20.7 Structure Learning 
+We now move to the problem of model selection : learning a network structure from data. As usual, there are two types of solution to this problem: the constraint-based approaches, which search for a graph structure satisfying the independence assumptions that we observe in the empirical distribution; and the score-based approaches, which deﬁne an objective function for different models, and then search for a high-scoring model. 
+
+From one perspective, the constraint-based approaches appear relatively more advantageous here than they did in the case of Bayesian network learning. First, the independencies associated with separation in a Markov network are much simpler than those associated with d-separation in a Bayesian network; therefore, the algorithms for inferring the structure are much simpler here. Second, recall that all of our scoring functions were based on the likelihood function; here, unlike in the case of Bayesian networks, even evaluating the likelihood function is a computationally expensive procedure, and often an intractable one. 
+
+On the other side, the disadvantage of the constraint-based approaches remains: their lack of robustness to statistical noise in the empirical distribution, which can give rise to incorrect independence assumptions. We also note that the constraint based approaches produce only a structure, and not a fully speciﬁed model of a distribution. To obtain such a distribution, we need to perform parameter estimation, so that we eventually encounter the computational costs associated with the likelihood function. Finally, in the context of Markov network learning, it is not clear that learning the global independence structure is necessarily the appropriate problem. In the context of learning Bayesian networks we distinguished between learning the global structure (the directed graph) and local structure (the form of each CPD). In learning undirected models we can similarly consider both the problem of learning the undirected graph structure and the particular set of factors or features that represent the parameter iz ation of the graph. Here, however, it is quite common to ﬁnd distributions that have a compact factorization yet have a complex graph structure. One extreme example is the fully connected network with pairwise potentials. Thus, in many domains we want to learn the factorization of the joint distribution, which often cannot be deduced from the global independence assumptions. 
+
+We will review both types of approach, but we will focus most of the discussion on score- based approaches, since these have received more attention. 
+
+### 20.7.1 Structure Learning Using Independence Tests 
+constraint-based structure learning independence tests 
+
+We ﬁrst consider the idea of constraint-based structure learning . Recall that the structure of a Markov network speciﬁes a set of independence assertions. We now show how we can use independence tests to reconstruct the Markov network structure. For this discussion, assume that the generating distr tion $P^{*}$ is positive and can be represented as a Markov netw $\mathcal{H}^{*}$ that is a perfect map of $P^{*}$ . Thus, we want to perform a set of independence tests on P $P^{*}$ and recover ${\mathcal{H}}^{*}$ To make the problem tractable, we further assume that the degree of nodes in $\mathcal{H}^{*}$ is at most d $d^{*}$ ∗ . 
+
+Recall that in section 4.3.2 we considered three set sets of independencies that characterize a Markov network: global independencies that include all consequences of separation in the graph; Markov independencies that describe the independence of each variable $X$ from the rest of the variables given its Markov blanket; and pairwise independencies that describe the independence of each nonadjacent pair of variables $X,Y$ given all other variables. We showed there that these three deﬁnitions are equivalent in positive distributions. 
+
+local Markov independencies 
+
+pairwise independencies 
+
+Can we use any of these concepts to recover the structure of $\mathcal{H}^{\ast2}$ Intuitively, we would prefer to examine a smaller set of independencies, since they would require fewer independence tests. Thus, we should focus either on the local Markov independencies or pairwise independencies. Recall that local Markov independencies are of the form 
+
+$(X\perp{\mathcal{X}}-\{X\}-{\mathrm{MB}}_{{\mathcal{H}}^{*}}(X)\mid{\mathrm{MB}}_{{\mathcal{H}}^{*}}(X))\quad\forall X$ and pairwise independencies are of the form $(X\bot Y\mid{\mathcal{X}}-\{X,Y\})\;\;\forall(X{-}Y)\not\in{\mathcal{H}}.$ 
+
+Unfortunately, as written, neither of these sets of independencies can be checked tractably, since both involve the entire set of variables $\mathcal{X}$ and hence require measuring the probability of exponentially many events. The computational infeasibility of this requirement is obvious. But equally problematic are the statistical issues: these independence assertions are evaluated not on the true distribution, but on the empirical distribution. Independencies that involve many variables lead to fragmentation of the data, and are much harder to evaluate without error. To estimate the distribution sufficiently well as to evaluate these independencies reliably, we would need exponentially many data points. 
+
+Thus, we need to consider alternative sets of independencies that involve only smaller subsets of variables. Several such approaches have been proposed; we review only one, as an example. Consider the network $\mathcal{H}^{*}$ . Clearly, if $X$ and $Y$ are not neighbors in $\mathcal{H}^{*}$ , then they are se rated by the Markov blanket $\mathrm{MB}_{{\mathcal{H}}^{*}}(X)$ and also by $\mathrm{MB}_{{\mathcal{H}}^{*}}(Y)$ . Thus, we can ﬁnd a set Z with $|Z|\leq\operatorname*{min}(|\mathrm{MB}_{{\mathcal{H}}^{\ast}}(X)|,|\mathrm{MB}_{{\mathcal{H}}^{\ast}}(Y)|)$ so that $s e p_{\mathcal{H}^{\ast}}(X;Y\mid Z)$ holds. O he other hand, if $X$ d $Y$ are neighbors in H ${\mathcal{H}}^{*}$ , then we cannot ﬁnd such a set Z . Because H $\mathcal{H}^{*}$ is a perfect map of $P^{*}$ , we can show that 
+
+$$
+X{\mathrm{-}}Y\notin{\mathcal{H}}^{*}\;{\mathrm{~if~and~only~if~}}\;\exists Z,|z|\leq d^{*}\&P^{*}=(X\perp Y\;|\;Z).
+$$ 
+
+Thus, we can determine whether $X{-}Y$ is $\mathcal{H}^{*}$ using ${\textstyle\sum_{k=0}^{d^{*}}{\binom{n-2}{k}}}$ P    independence tests. Each of these independence tests involves only d $d^{*}+2$ variables, which, for low values of $d^{*}$ , can be tractable. We have already encountered this test in section 3.4.3.1, as part of our Bayesian network construction procedure. If fact, it is not hard to show that, given our assumptions and perfect independence tests, the Build-PMap-Skeleton procedure of algorithm 3.3 reconstructs the correct Markov structure $\mathcal{H}^{*}$ (exercise 20.15). 
+
+This procedure uses a polynomial number of tests. Thus, the procedure runs in polynomial time. Moreover, if the probability of a false answer in any single independence test is at most ϵ , then the probability th n one of the independence tests fails is at most ${\textstyle\sum_{k=0}^{d^{*}}{\binom{n-2}{k}}}\epsilon$    . Therefore, for sufficiently small ϵ , we can use this analysis to prove that we can reconstruct the correct network structure $\mathcal{H}^{*}$ with high probability. 
+
+While this result is satisfying at some level, there are signiﬁcant limitations. First, the number of samples required to obtain correct answers for all of the independence tests can be very large in practice. Second, the correctness of the algorithm is based on several important assumptions: that there is a Markov network that is a perfect map of $P^{*}$ ; that this network has a bounded degree; and that we have enough data to obtain reliable answers to the independence tests. When these assumptions are violated, this algorithm can learn incorrect network structures. 
+
+Example 20.4 Assume that the underlying distribution $P^{*}$ is a Bayesian network with a v-structure $X\rightarrow Z\leftarrow Y$ . We showed in section 3.4.3 that, assuming perfect independence tests, Build-PMap-Skeleton learns the skeleton of $\mathcal{G}^{\ast}$ . However, the Markov network ${\mathcal{H}}^{*}$ that is an I-map for $P^{*}$ is the moralized network, which contains, in addition to the skeleton edges, edges between parents of a joint child. These edges will not be learned correctly by this procedure. In particular, have at $(X\perp Y\mid\emptyset)$ holds, and so the algorithm will allow us to remove the edge between X and Y , even though it exists in the true network ${\mathcal{H}}^{*}$ . 
+
+The failure in this example results from the fact that the distribution $P^{*}$ does not have a perfect map that is a Markov network. Because many real-life distributions do not have a perfect map that is a compact graph, the applicability of this approach can be limited. 
+
+Moreover, as we discussed, this approach focuses solely on reconstructing the network struc- ture and does not attempt to learn the the structure of the factorization, or to estimate the parameters. In particular, we may not have enough data to reliably estimate parameters for the structure learned by this procedure, limiting its usability in practice. Nevertheless, as in the case of Bayesian network structure learning, constraint-based approaches can be a useful tool for obtaining qualitative insight into the global structure of the distribution, and as a starting point for the search in the score-based methods. 
+
+### 20.7.2 Score-Based Learning: Hypothesis Spaces 
+hypothesis space We now move to the score-based structure learning approach. As we discussed earlier, this approach formulates structure learning as an optimization problem: We deﬁne a hypothesis space consisting of a set of possible networks; we also deﬁne an objective function, which is used to score different candidate networks; and then we construct a search algorithm that attempts to identify a high-scoring network in the hypothesis space. We begin in this section by discussing the choice of hypothesis space for learning Markov networks. We discuss objective functions and the search strategy in subsequent sections. 
+
+There are several ways of formulating the search space for Markov networks, which vary in terms of the granularity at which they consider the network parameter iz ation. At the coarsest- grained, we can pose the hypothesis space as the space of different structures of the Markov network itself and measure the model complexity in terms of the size of the cliques in the network. At the next level, we can consider parameter iz at ions at the level of the factor graph, and measure complexity in terms of the sizes of the factors in this graph. At the ﬁnest level of granularity, we can consider a search space at the level of individual features in a log-linear model, and measure sparsity at the level of features included in the model. 
+
+The more ﬁne-grained our hypothesis space, the better it allows us to select a parameter iz ation that matches the properties of our distribution without overﬁtting. For example, the factor-graph approach allows us to distinguish between a single large factor over $k$ variables and a set of $\textstyle{\binom{k}{2}}$  pairwise factors over the same variables, requiring far fewer parameters. The feature-based approach also allows us to distinguish between a full factor over $k$ variables and a single log-linear feature over the same set of variables. 
+
+Conversely, the ﬁner-grained spaces can obscure the connection to the network structure, in that sparsity in the space of features selected does not correspond directly to sparsity in the model structure. For example, introducing even a single feature $f(d)$ into the model has the structural efect of introducing edges between all of the variables in $^d$ . Thus, even models with a fairly small number of features can give rise to dense connectivity in the induced network. While this is not a problem from the statistical perspective of reliably estimating the model parameters from limited data, it can give rise to signiﬁcant problems from the perspective of performing inference in the model. Moreover, a ﬁner-grained hypothesis space also means that search algorithms take smaller steps in the space, potentially increasing the cost of our learning procedure. We will return to some of these issues. 
+
+We focus our presentation on the formulation of the search space in terms of log-linear models. Here, we have a set of features $\Omega$ , which are those that can potentially have nonzero weight. Our task is to select a log-linear model structur $\mathcal{M}$ , which is deﬁned by some subset $\Phi[\mathcal{M}]\subseteq\Omega$ . Let $\Theta[\mathcal{M}]$ be the s rameterizations θ that are compatible with the model structure: that is, those where θ $\theta_{i}\,\neq\,0$ ̸ only if $f_{i}\ \in\ \Phi[{\mathcal{M}}]$ . A structure and a compatible parameter iz ation deﬁne a log-linear distribution via: 
+
+$$
+P(\mathcal{X}\mid\mathcal{M},\pmb\theta)=\frac{1}{Z}\exp\left\{\sum_{i\in\Phi[\mathcal{M}]}\theta_{i}f_{i}(\boldsymbol\xi)\right\}=\frac{1}{Z}\exp\left\{\pmb f^{T}\pmb\theta\right\},
+$$ 
+
+where, because of the compatibility of $\theta$ with $\mathcal{M}$ , a feature not in $\Phi[\mathcal{M}]$ does not inﬂuence in the ﬁnal vector product, since it is multiplied by a parameter that is 0 . 
+
+bounded tree-width 
+
+Regardless of the formulation chosen, we may sometimes wish to impose structural con- straints that restrict the set of graph structures that can be selected, in order to ensure that we learn a network with certain sparsity properties. In particular, one choice that has received some attention is to restrict the class of networks learned to those that have a certain bound on the tree-width . By placing a tight bound on the tree-width, we prevent an overly dense network from being selected, and thereby reduce the chance of overﬁtting. Moreover, because models of low tree-width allow exact inference to be performed efciently (to some extent), this restriction also allows the computational steps required for evaluating the objective during the search to be performed efciently. However, this approach also has limitations. First, it turns out to be non- trivial to implement, since computing the tree-width of a graph is itself an intractable problem (see theorem 9.7); even keeping the graph under the required width is not simple. Moreover, many of the distributions that arise in real-world applications cannot be well represented by networks of low tree-width. 
+
+### 20.7.3 Objective Functions 
+We now move to considering the objective function that we aim to optimize in the score-based approach. We note that our discussion in this section uses the likelihood function as the basis for the objectives we consider; however, we can also consider similar objectives based on various approximations to the likelihood (see section 20.6); most notably, the pseudo likelihood has been used efectively as a substitute for the likelihood in the context of structure learning, and most of our discussion carries over without change to that setting. 
+
+#### 20.7.3.1 Likelihood Function 
+The most straightforward objective function is the likelihood of the training data. As before, we take the score to be the log-likelihood, deﬁning: 
+
+$$
+\mathrm{score}_{L}\big(\mathcal{M}\ :\ \mathcal{D}\big)=\operatorname*{max}_{\theta\in\Theta[\mathcal{M}]}\ln P\big(\mathcal{D}\mid\mathcal{M},\theta\big)=\ell\big(\langle\mathcal{M},\hat{\theta}_{\mathcal{M}}\rangle:\mathcal{D}\big),
+$$ 
+
+where $\widehat{\pmb{\theta}}_{\mathcal{M}}$ are the maximum likelihood parameters compatible with $\mathcal{M}$ . 
+
+The likelihood score measures the ﬁtness of the model to the data. However, for the same reason discussed in chapter 18, it prefers more complex models. In particular, if $\Phi[\mathcal{M}_{1}]\subset$ $\Phi[\mathcal{M}_{2}]$ then $\mathrm{score}_{L}(\mathcal{M}_{1}\ :\ \mathcal{D})\leq\mathrm{score}_{L}(\mathcal{M}_{2}\ :\ \mathcal{D})$ . Typically, this inequality is strict, due to the ability of the richer model to capture noise in the data. 
+
+Therefore, the likelihood score can be used only with very strict constraints on the expressive model of the model class that we are considering. Examples include bounds on the structure of the Markov network (for example, networks with low tree-width) or on the number of features used. A second option, which also provides some regularization of parameter values, is to use an alternative objective that penalizes the likelihood in order to avoid overﬁtting. 
+
+#### 20.7.3.2 Bayesian Scores 
+
+Bayesian score 
+
+BIC score 
+
+Recall that, for Bayesian networks, we used a Bayesian score , whose primary term is a marginal likelihood that integrates the likelihood over all possible network parameter iz at ions: $\textstyle\int P(\mathcal{D}\mid$ D | ${\mathcal{M}},{\boldsymbol{\theta}})P({\boldsymbol{\theta}}\mid{\mathcal{M}})d{\boldsymbol{\theta}}$ . This score accounts for our uncertainty over parameters using a Bayesian prior; it avoided overﬁtting by preventing overly optimistic assessments of the model ﬁt to the training data. In the case of Bayesian networks, we could efciently evaluate the marginal likelihood. In contrast, in the case of undirected models, this quantity is difcult to evaluate, even using approximate inference methods. 
+
+Instead, we can use asymptotic approximations of the marginal likelihood. The simplest approximation is the BIC score : 
+
+$$
+\mathrm{score}_{B I C}(\mathcal{M}\ :\ \mathcal{D})=\ell(\langle\mathcal{M},\hat{\theta}_{\mathcal{M}}\rangle:\mathcal{D})-\frac{\dim(\mathcal{M})}{2}\ln M,
+$$ 
+
+model dimension 
+
+Laplace approximation 
+
+where $\mathrm{dim}(\mathcal{M})$ is the dimension of the model and $M$ the number of instances in $\mathcal{D}$ . This quantity measures the degrees of freedom of our parameter space. When the model has nonredundant features, $\mathrm{dim}(\mathcal{M})$ is exactly the number of features. When there is redundancy, the dimension is smaller than the number of features. Formally, it is the rank of the matrix whose rows are complete assignments $\xi_{i}$ to $\mathcal{X}$ , whose columns are features $f_{j}$ , and whose entries are $f_{j}(\xi_{i})$ . This matrix, however, is exponential in the number of variables, and therefore its rank cannot be computed efciently. Nonetheless, we can often estimate the number of nonredundant parameters in the model. As a very coarse upper bound, we note that the number of nonredundant features is always upper-bounded by the size of the full table representation of the Markov network, which is the total number of entries in the factors. 
+
+The BIC approximation penalizes each degree of freedom (that is, free parameter) by a ﬁxed amount, which may not be the most appropriate penalty. Several more reﬁned alternatives have been proposed. One common choice is the Laplace approximation , which provides a more explicit approximation to the marginal likelihood: 
+
+$$
+\mathrm{core}_{L a p l a c e}(\mathcal{M}\ :\ \mathcal{D})=\ell(\langle\mathcal{M},\tilde{\theta}_{\mathcal{M}}\rangle:\mathcal{D})+\ln P(\tilde{\theta}_{\mathcal{M}}\ |\ \mathcal{M})+\frac{\mathrm{dim}(\mathcal{M})}{2}\ln(2\pi)-\mathrm{~i~n~}\langle\tilde{\theta}_{\mathcal{M}},\tilde{\theta}_{\mathcal{M}}\rangle
+$$ 
+
+MAP estimation 
+
+Hessian 
+
+where $\tilde{\pmb{\theta}}_{\mathcal{M}}$ are the parameters for $\mathcal{M}$ obtained from MAP estimation : 
+
+$$
+\tilde{{\boldsymbol{\theta}}}_{\mathcal{M}}=\arg\operatorname*{max}_{{\boldsymbol{\theta}}}P(\mathcal{D}\mid{\boldsymbol{\theta}},\mathcal{M})P({\boldsymbol{\theta}}\mid\mathcal{M}),
+$$ 
+
+and $A$ is the negative Hessian matrix: 
+
+$$
+A_{i,j}=-\frac{\partial}{\partial\theta_{i}\partial\theta_{j}}\left(\boldsymbol{\ell}(\left<\mathcal{M},\boldsymbol{\theta}\right>:\mathcal{D})+\ln P(\boldsymbol{\theta}\mid\mathcal{M})\right),
+$$ 
+
+evaluated at the point $\tilde{\pmb{\theta}}_{\mathcal{M}}$ . 
+
+As we discussed in section 19.4.1.1, the Laplace score also takes into account the local shape of the posterior distribution around the MAP parameters. It therefore provides a better approxi- mation than the BIC score. However, as we saw in equation (20.5), to compute the Hessian, we need to evaluate the pairwise covariance of every feature pair given the model, a computation that may be intractable in many cases. 
+
+#### 20.7.3.3 Parameter Penalty Scores 
+An alternative to approximations of the marginal likelihood are methods that simply evaluate the maximum posterior probability 
+
+$$
+\mathrm{score}_{M A P}(\mathcal{M}\ :\ \mathcal{D})=\operatorname*{max}_{\theta\in\Theta[\mathcal{M}]}\ell(\langle\mathcal{M},\tilde{\theta}_{\mathcal{M}}\rangle:\mathcal{D})+\ln P(\tilde{\theta}_{\mathcal{M}}\mid\mathcal{M}),
+$$ 
+
+MAP score where $\tilde{\pmb{\theta}}_{\mathcal{M}}$ M are the MAP parameters for $\mathcal{M}$ , as deﬁned in equation (20.28). One intuition for this type of MAP score is that the prior “regularizes” the likelihood, moving it away from the maximum likelihood values. If the likelihood of these parameters is still high, it implies that the model is not too sensitive to particular choice of maximum likelihood parameters, and thus it is more likely to generalize. 
+
+Although the regularized parameters may achieve generalization, this approach achieves model selection only for certain types of prior. To understand why, note that the MAP score is based on a distribution not over structures, but over parameters. We can view any parameter iz ation $\theta_{\mathcal{M}}$ as a parameter iz ation to the “universal” model deﬁned over our entire set of features $\Omega$ : one where features not in $\Phi[\mathcal{M}]$ receive weight 0 . Assuming that our parameter prior simply ignores zero weights, we can view our score as simply evaluating different choices of parameter iz at ions $\theta_{\Omega}$ to this universal model. 
+
+$L_{2}$ -regularization 
+
+$L_{1}$ -regularization 
+
+$L_{1}$ -MAP score 
+
+block- $L_{1}$ - regularization 
+
+We have already discussed several parameter priors and their efect on the learned parameters. Most parameter priors are associated with the magnitude of the parameters, rather than the complexity of the graph as a discrete data structure. In particular, as we discussed, although $L_{2}$ -regularization will tend to drive the parameters toward zero, few will actually hit zero, and so structural sparsity will not be achieved. Thus, like the likelihood score, the $L_{2}$ -regularized MAP objective will generally give rise to a fully connected structure. Therefore, this approach is generally not used in the context of model selection (at least not in isolation). 
+
+A more appropriate approach for this task is $L_{1}$ -regularization , which does have the efect of driving model parameters toward zero, and thus can give rise to a sparse set of features. In other words, the structure that optimizes the $L_{1}$ -MAP score is not, in general, the universal structure $\Omega$ . Indeed, as we will discuss, an $L_{1}$ prior has other useful properties when used as the basis for a structure selection objective. 
+
+However, as we have discussed, feature-level sparsity does not necessarily induce sparsity in the network. An alternative that does tend to have this property is the block- $\cdot L_{1}$ -regularization . Here, we partition all the pa meters into groups $\theta_{i}=\{\theta_{i,1},.\,.\,.\,,\theta_{i,k_{i}}\}$ (for $i=1,\dots,l)$ . We now deﬁne a variant of the $L_{1}$ penalty that tends to make each parameter group either go to zero together, or not: 
+
+$$
+-\sum_{i=1}^{l}\left\lvert\sqrt{\sum_{j=1}^{k_{i}}\theta_{i,j}^{2}}\right\rvert.
+$$ 
+
+To understand the behavior of this penalty term, let us consider its derivative for the simple case where we have two parameters in the same group, so that our expression takes the form $\sqrt{\theta_{1}^{2}+\theta_{2}^{2}}$ . We now have that: 
+
+$$
+\frac{\partial}{\partial\theta_{1}}\left[-\sqrt{\theta_{1}^{2}+\theta_{2}^{2}}\right]=-\frac{\theta_{1}}{\sqrt{\theta_{1}^{2}+\theta_{2}^{2}}}.
+$$ 
+
+We therefore see that, when $\theta_{2}$ is large, the derivative relative to $\theta_{1}$ is fairly small, so that there is no pressure on $\theta_{1}$ to go to 0 . Conversely, when $\theta_{2}$ is small, the derivative relative to $\theta_{1}$ tends to $-1$ , which essentially gives the same behavior as $L_{1}$ regularization. Thus, this prior tends to have the following behavior: if the overall magnitude of the parameters in the group is small, all of them will be forced toward zero; if the overall magnitude is large, there is little downward pressure on any of them. 
+
+In our setting, we can naturally apply this prior to give rise to sparsity in network structure. Assume that we are willing to consider, within our network, factors over scopes $Y_{1},\dots,Y_{l}$ . For each $Y_{i}$ , let $f_{i,j}$ , for $j=1,\ldots,k_{i}$ , be all of the features whose scope is $Y_{i}$ . We now deﬁne a block- $\cdot L_{1}$ prior where we have a block for each set of parameters $\theta_{i1},\ldots,\theta_{i k_{i}}$ . The result of this prior would be to select together nonzero parameters for an entire set of features associated with a particular scope. 
+
+Finally, we note that one can also use multiple penalty terms on the likelihood function. For example, a combination of a parameter penalty and a structure penalty can often provide both regularization of the parameters and a greater bias toward sparse structures. 
+
+### 20.7.4 Optimization Task 
+Having selected an objective function for our model structure, it remains to address the optimization problem. 
+
+#### 20.7.4.1 Greedy Structure Search 
+As in the approach used for structure learning of general Bayesian networks (section 18.4.3), the external search over structures is generally implemented by a form of local search . Indeed, the general form of the algorithms in appendix A.4.2 applies to our feature-based view of Markov network learning. The general template is shown in algorithm 20.1. Roughly speaking, the algorithm maintains a current structure, deﬁned in terms of a set of features $\mathcal{F}$ in our log-linear model. At each point in the search, the algorithm optimizes the model parameters relative to the current feature set and the structure score. Using the current structure and parameters, it estimates the improvement of different structure modiﬁcation steps. It then selects some subset of modiﬁcations to implement, and returns to the parameter optimization step, initializing from the current parameter setting. This process is repeated until a termination condition is reached. This general template can be instantiated in many ways, including the use of different hypothesis spaces (as in section 20.7.2) and different scoring functions (as described in section 20.7.3). 
+
+#### 20.7.4.2 Successor Evaluation 
+Although this approach is straightforward at a high level, there are signiﬁcant issues with its implementation. Importantly, the reasons that made this approach efcient in the context of Bayesian networks do not apply here. In the case of Bayesian networks, evaluating the score of a candidate structure is a very easy task, which can be executed in closed form, at very low computation cost. Moreover, the Bayesian network score satisﬁes an important property: it decomposes according to the structure of the network. As we discussed, this property has two major implications. First, a local modiﬁcation to the structure involves changing only a single term in the score (proposition 18.5); second, the change in score incurred by a particular change (for example, adding an edge) remains unchanged after modiﬁcations to other parts of the network (proposition 18.6). These properties allowed us to design efcient search procedure that does not need to reevaluate all possible candidates after every step, and that can cache intermediate computations to evaluate candidates in the search space quickly. 
+
+Unfortunately, none of these properties hold for Markov networks. For concreteness, consider the likelihood score, which is comparable across both network classes. First, as we discussed, even computing the likelihood of a fully speciﬁed model — structure as well as parameters — requires that we run inference for every instance in our training set. Second, to score a structure, we need to estimate the parameters for it, a problem for which there is no closed-form solution. Finally, none of the decomposition properties hold in the case of undirected models. By adding a new feature (or a set of features, for example, a factor), we change the weight $(\sum_{i}\theta_{i}f_{i}(\boldsymbol{\xi}))$ associated with different instances. This change can be decomposed, since it is a linear function of the different features. However, this change also afects the partition function, and, as we saw in the context of parameter estimation, the partition function couples the efects of changes in one parameter on the other. We can clearly see this phenomenon in ﬁgure 20.1, where the efect on the likelihood of modifying $f_{1}(b^{1},c^{1})$ clearly depends on the current value of the parameter for $f_{2}(a^{1},b^{1})$ . 
+
+As a consequence, a local search procedure is considerably more expensive in the context of Markov networks. At each stage of the search, we need to evaluate the score for all of the candidates we wish to examine at that point in the search. This evaluation requires that we estimate the parameters for the structure, a process that itself requires multiple iterations of a numerical optimization algorithm, each involving inference over all of the instances in our training set. We can reduce somewhat the computational cost of the algorithm by using the observation that a single change to the structure of the network often does not result in drastic changes to the model. Thus, if we begin our optimization process from the current set of parameters, a reasonably small number of iterations often sufces to achieve convergence to the new set of parameters. Importantly, because all of the parameter objectives described are convex (when we have fully observable data), the initialization has no efect, and convergence to the global optimum remains guaranteed. Thus, this approach simply provides a way of speeding up the convergence to the optimal answer. (We note, however, that this statement holds only when we use exact inference; the choice of initialization can afect the accuracy of some approximate inference algorithms, and therefore the answers that we get.) 
+
+Unfortunately, although this observation does reduce the cost, the number of candidate hy- potheses at each step is generally quite large. The cost of running inference on each of the candidate successors is prohibitive, especially in cases where, to ﬁt our target dis- tribution well, we need to consider nontrivial structures. Thus, much of the work on the problem of structure learning for Markov networks has been devoted to reducing the computational cost of evaluating the score of different candidates during the search. In particular, when evaluating different structure-modiﬁcation operators in line 11, most algorithms use some heuristic to rank different candidates, rather than computing the exact delta-score of each operator. These heuristic estimates can be used either as the basis for the ﬁnal selection, or as a way of pruning the set of possible successors, where the high-ranking candidates are then evaluated exactly. This design decision is a trade-of between the quality of our operator selection and the computational cost. 
+
+Even with the use of heuristics, the cost of taking a step in the search can be prohibitive, since it requires a reestimation of the network parameters and a reevaluation of the (approximate) delta-score for all of the operators. This suggests that it may be beneﬁcial to select, at each structure modiﬁcation step (line 12), not a single operator but a subset $\mathcal{O}$ of operators. This approach can greatly reduce the computational cost, but at a cost: our (heuristic) estimate of each operator can deteriorate signiﬁcantly if we fail to take into account interactions between the efects of different operators. Again, this is a trade-of between the quality and cost of the operator selection. 
+
+As we mentioned, the rough template of algorithm 20.1 can be applied to any objective function. However, the choice of objective function has signiﬁcant implications on our ability to efectively optimize it. Let us consider several of the choices discussed earlier. 
+
+We ﬁrst recall that both the log-likelihood objective and the $L_{2}$ -regularized log-likelihood generally give nonzero values to all parameters. In other words, if we allow the model to consider a set of atures $\mathcal{F}$ , an optimal model (maximum-likelihood or maximum $L_{2}$ -regularized likelihood) over F will give a nonzero value to the parameters for all of these features. In other words, we cannot rely on these objectives to induce sparsity in the model structure. Thus, if we simply want to optimize these objectives, we should simply choose the richest model available in our hypothesis space and then optimize its parameters relative to the chosen objective. 
+
+One approach for deriving more compact models is to restrict the class of models to ones with a certain bound on the complexity (for example, networks of bounded tree-width, or with a bound on the number of edges or features allowed). However, these constraints generally introduce nontrivial combinatorial trade-ofs between features, giving rise to a search space with multiple local optima, and making it generally intractable to ﬁnd a globally optimal solution. A second approach is simply to halt the search when the improvement in score (or an approxi- mation to it) obtained by a single step does not exceed a certain threshold. This heuristic is not unreasonable, since good features are generally introduced earlier, and so there is a general trend of diminishing returns. However, there is no guarantee that the solution we obtain is even close to the optimum, since there is no bound on how much the score would improve if we continue to optimize beyond the current step. 
+
+Scoring functions that explicitly penalize structure complexity — such as the BIC score or Laplace approximation — also avoid this degeneracy. Here, as in the case of Bayesian networks, we can consider a large hypothesis space and attempt to ﬁnd the model in this space that optimizes the score. However, due to the discrete nature of the structure penalty, the score is discontinuous and therefore nonconcave. Thus, there is generally no guarantee of convergence to the global optimum. Of course, this limitation was also the case when learning Bayesian networks; as there, it can be somewhat alleviated by methods that avoid local maxima (such as tabu search, random restarts, or data perturbation). 
+
+However, in the case of Markov networks, we have another solution available to us, one that avoids the prospect of combinatorial search spaces and the ensuing problem of local optima. This solution is the use of $L_{1}$ -regularized likelihood. As we discussed, the $L_{1}$ -regularized likelihood is a concave function that has a unique global optimum. Moreover, this objective function naturally gives rise to sparse models, in that, at the optimum, many parameters have value 0 , corresponding to the elimination of features from the model. We discuss this approach in more detail in the next section. 
+
+#### 20.7.4.4 $L_{1}$ -Regularization for Structure Learning 
+Recall that the $L_{1}$ -regularized likelihood is simply the instantiation of equation (20.29) to the case of an $L_{1}$ -prior: 
+
+$$
+\begin{array}{r}{\mathrm{score}_{L_{1}}(\pmb\theta\ :\ \mathcal{D})=\ell(\langle\mathcal{M},\pmb\theta\rangle:\mathcal{D})-\|\pmb\theta\|_{1}.}\end{array}
+$$ 
+
+Somewhat surprisingly, the $L_{1}$ -regularized likelihood can be optimized in a way that guar- antees convergence to the globally optimal solution. To understand why, recall that the task of optimizing the $L_{1}$ -regularized log-likelihood is a convex optimization problem that has no local optima. Indeed, in theory, we can entirely avoid the combinatorial search component when using this objective. We can simply introduce all of the possible features into the model and optimize the resulting parameter vector $\theta$ relative to our objective. The sparsifying efect of the $L_{1}$ penalty will drive some of the parameters to zero. The parameters that, at convergence, have zero values correspond to features that are absent from the log-linear model. In this approach, we are efectively making a structure selection decision as part of our parameter optimization procedure. Although appealing, this approach is not generally feasible. In most cases, the num- ber of potential features we may consider for inclusion in the model is quite large. Including all of them in the model simultaneously gives rise to an intractable structure for the inference that we use as part of the computation of the gradient. 
+
+Therefore, even in the context of the $L_{1}$ -regularized likelihood, we generally implement the optimization as a double-loop algorithm where we separately consider the structure and param- eters. However, there are several beneﬁts to the $L_{1}$ -regularized objective: 
+
+• We do not need to consider feature deletion steps in our combinatorial search.
+
+ • We can consider feature introduction steps in any (reasonable) order, and yet achieve conver- gence to the global optimum.
+
+ • We have a simple and efcient test for determining convergence.
+
+ • We can prove a PAC-learnability generalization bound for this type of learning. 
+
+We now discuss each of these points. 
+
+For the purpose of this discussion, assume that we currently have a model over a set of features $\mathcal{F}$ , and assume that $\theta^{l}$ optimizes our $L_{1}$ -regularized objective, subject to the constraint that $\theta_{k}^{l}$ can be nonzero only if $f_{k}\in\mathcal{F}$ . convergence poin ny feature deletion step cannot improve the score: Consider any $f_{k}\,\in\,\mathcal{F}$ ∈F ; the case where $f_{k}$ is de s already in the class of models that was considered when we optimized the choice of $\theta^{l}\mathrm{~-~}$ — it is simply the model where $\theta_{k}^{l}\,=\,0$ . Indeed, the algorithm already discards features whose parameter was zeroed by the continuous optimization procedure (line 7 of algorithm 20.1). If our current optimized model $\theta^{l}$ has $\theta_{k}^{l}\neq0$ , it follows that setting $\theta_{k}$ to 0 is suboptimal, and so deleting $f_{k}$ can only reduce the score. Thus, there is no value to considering discrete feature deletion steps: features that should be deleted will have their parameters set to 0 by the continuous optimization procedure. We note that this property also holds, in principle, for other smooth objectives, such as the likelihood or the $L_{2}$ -regularized likelihood; the diference is that for those objectives, parameters will generally not be set to 0 , whereas the $L_{1}$ objective does tend to induce sparsity. 
+
+The second beneﬁt arises directly from the fact that optimizing the $L_{1}$ -regularized objective is a convex optimization problem. In such problems, any sequence of steps that continues to improve the objective (when possible) is guaranteed to converge to the global optimum. The restriction imposed by the set $\mathcal{F}$ induces a coordinate ascent approach: at each step, we are optimizing only the features in F , leaving at 0 those parameters $\theta_{k}$ for $f_{k}\notin\mathcal{F}$ . As long as each step continues to improve the objective, we are making progress toward the global optimum. At each point in the search, we consider the steps that we can take. If some step leads to an improvement in the score, we can take that step and continue with our search. If none of the steps lead to an improvement in the score, we are guaranteed that we have reached convergence to the global optimum. Thus, the decision on which operators to consider at each point in the algorithm (line 12 of algorithm 20.1) is not relevant to the convergence of the algorithm to the true global optimum: As long as we repeatedly consider each operator until convergence, we are guaranteed that the global optimum is reached regardless of the order in which the operators are applied. 
+
+While this guarantee is an important one, we should interpret it with care. First, when we add features to the model, the underlying network becomes more complex, raising the cost of infer- ence. Because inference is executed many times during the algorithm, adding many irrelevant features, even if they were eventually eliminated, can greatly degrade the computational perfor- mance time of the algorithm. Even more problematic is the efect when we utilize approximate inference, as is often the case. As we discussed, for many approximate inference algorithms, not only the running time but also the accuracy tend to degrade as the network becomes more complex. Because inference is used to compute the gradient for the continuous optimization, the degradation of inference quality can lead to models that are suboptimal. Moreover, because the resulting model is generally also used to estimate the beneﬁt of adding new features, any inaccuracy can propagate further, causing yet more suboptimal features to be introduced into the model. Hence, especially when the quality of approximate inference is a concern, it is worthwhile to select with care the features to be introduced into the model rather than blithely relying on the “guaranteed” convergence to a global optimum. 
+
+Another important issue to be addressed is the problem of determining convergence in line 14 of Greedy-MN-Structure-Search . In other words, how do we test that none of the search operators we currently have available can improve the score? A priori, this task appears daunting, since we certainly do not want to try all possible feature addition/deletion steps, reoptimize the parameters for each of them, and then check whether the score has improved. Fortunately, there is a much more tractable solution. Speciﬁcally, we can show the following proposition: 
+
+Let $\Delta_{L}^{\mathrm{grad}}(\theta_{k}\ :\ \theta^{l},\mathcal{D})$ denote the gradient of the l elihood relative to $\theta_{k}$ , evaluated at $\theta^{l}$ . Let $\beta$ be the hyperparameter deﬁning the $L_{1}$ prior. Let θ $\theta^{l}$ be a parameter assignment for which the following conditions hold: 
+
+$$
+\Delta_{L}^{\mathrm{grad}}(\theta_{k}\,:\,\theta^{l},\mathcal{D})-\frac{1}{\beta}\mathrm{sign}(\theta_{k}^{l})=0.
+$$ 
+
+• For any $k$ for which $\theta_{k}^{l}=0$ we have that 
+
+$$
+|\Delta_{L}^{\mathrm{grad}}(\theta_{k}\ :\ \theta^{l},\mathcal{D})|<\frac{1}{2\beta}.
+$$ 
+
+Then $\theta^{l}$ is $a$ global optimum of the $L_{1}$ -regularized log-likelihood function: 
+
+$$
+\frac{1}{M}\ell(\pmb\theta:\mathcal D)-\frac{1}{\beta}\sum_{i=1}^{k}|\theta_{i}|.
+$$ 
+
+Proof We provide a rough sketch of the proof. The ﬁrst condition guarantees that the gradient relative to any parameter for which $\theta_{k}^{l}\neq0$ is zero, and hence the objective f cannot be improved by changing its value. The second condition deals with parameters $\theta_{k}^{l}=0$ , for which the gradient is discontinuous at the convergence point. However, consider a point $\theta^{\prime}$ in the nearby vicinity of $\theta$ , so that $\theta_{k}^{\prime}\neq0$ . At $\theta^{\prime}$ , the gradient of the function relative to $\theta_{k}$ is very close to 
+
+$$
+\Delta_{L}^{\mathrm{grad}}(\theta_{k}\ :\ \pmb\theta^{l},\mathcal{D})-\frac{1}{\beta}\mathrm{sign}(\theta_{k}^{\prime}).
+$$ 
+
+The value of this expression is positive if $\theta_{k}^{\prime}<0$ and negative if $\theta_{k}^{\prime}\,>\,0$ . Thus, $\theta^{l}$ is a local optimum of the $L_{1}$ -regularized objective function. Because the function has only global optima, $\bar{\theta^{l}}$ must be a global optimum. 
+
+Thus, we can test convergence easily as a direct by-product of the continuous parameter optimization procedure executed at each step. We note that we still have to consider every feature that is not included in the model and compute the relevant gradient; but we do not have to go through the (much more expensive) process of trying to introduce the feature, optimizing the resulting model, and evaluating its score. 
+
+L-BFGS algorithm 
+
+PAC-bound 
+
+Theorem 20.4 
+
+So far, we have avoided the discussion of optimizing this objective. As we mentioned in section 20.3.1, a commonly used method for optimizing the likelihood is the L-BFGS algorithm , which uses gradient descent combined with line search (see appendix A.5.2). The problem with applying this method to the $L_{1}$ -regularized likelihood is that the regularization term is not continuously differentiable: the gradient relative to any parameter $\theta_{i}$ changes at $\theta_{i}=0$ from $+1$ to $-1$ . Perhaps the simplest solution to t s problem is to adjust the l e-search procedure to avoid changing the sign of any parameter θ $\theta_{i}$ i : If, during our line search, $\theta_{i}$ crosses from positive to negative (or vice versa), we simply ﬁx it to be 0 , and continue with the line search for the remaining parameters. Note that this decision corresponds to taking $f_{i}$ out of the set of active features in this iteration. If the optimal parameter assignment has a nonzero value for $\theta_{i}$ , we are guaranteed that $f_{i}$ will be introduced again in a later stage in the search, as we have discussed. Finally, as we mentioned, we can prove a useful theoretical guarantee for the results of $L_{1}$ -regularized Markov network learning. Speciﬁcally, we can show the following PAC-bound : 
+
+$\mathcal{X}$ a set variables such that $|\mathit{V a l}(X_{i})|\;\leq\;d$ for all $i$ . Let $P^{*}$ be a tion, and
+
+ $\delta,\epsilon,B>0$ . Let F be a set of all indicator features over all subsets of variables $X\subset{\mathcal{X}}$ ⊂X such that
+
+ $|X|\leq c_{!}$ , and let 
+
+$$
+\begin{array}{r}{\Theta_{c,B}=\{\pmb{\theta}\in\Theta[\mathcal{F}]\ :\ \lVert\pmb{\theta}\rVert_{1}\leq B\}}\end{array}
+$$ 
+
+be all parameter iz at ions of $\mathcal{F}$ whose $L_{1}$ -norm is at most $B$ . Let $\beta=\sqrt{c\ln(2n d/\delta)/(2M)}$ . Let 
+
+$$
+\pmb{\theta}_{c,B}^{*}=\arg\operatorname*{max}_{\pmb{\theta}\in\Theta_{c,B}}D(P^{*}\|P_{\pmb{\theta}})
+$$ 
+
+be the best parameter iz ation achievable within the class $\Theta_{c,B}$ . For any data set $\mathcal{D}$ , let 
+
+$$
+\hat{\pmb\theta}=\arg\operatorname*{max}_{\pmb\theta\in\Theta[\mathcal{F}]}\mathrm{score}_{L_{1}}(\pmb\theta\ :\ \mathcal{D}).
+$$ 
+
+Then, for 
+
+$$
+M\geq\frac{2c B^{2}}{\epsilon^{2}}\ln\left(\frac{2n d}{\delta}\right),
+$$ 
+
+with probability at least $1-\delta$ , 
+
+$$
+D(P^{*}\|P_{\hat{\theta}})\leq D(P^{*}\|P_{{\theta}^{*}c,B})+\epsilon.
+$$ 
+
+In other w s, this theorem states that, with high probability over ata sets $\mathcal{D}$ , the relative entropy to $P^{*}$ achieved by the best $L_{1}$ -regularized model is at most ϵ worse than the relative entropy achieved by the best model within the class of limited-degree Markov networks. This guarantee is achievable with a number of samples that is polynomial in $\epsilon,\textit{c,}$ and $B$ , and logarithmic in $\delta$ and $d.$ . The logarithmic dependence on $n$ may feel promising, but we note that $B$ is a sum of the absolute values of all network parameters; assuming we bound the magnitude of individual parameters, this terms grows linearly with the total number of network parameters. Thus, $L_{1}$ -regularized learning provides us with a model that is close to optimal (within the class $\Theta_{c,B})$ , using a polynomial number of samples. 
+
+#### 20.7.5 Evaluating Changes to the Model 
+We now consider in more detail the candidate evaluation step that takes place in line 11 of Greedy-MN-Structure-Search . As we discussed, the standard way to reduce the cost of the candidate evaluation step is simply to avoid computing the exact score of each of the candidate successors, and rather to select among them using simpler heuristics. Many approximations are possible, ranging from ones that are very simple and heuristic to ones that are much more elaborate and provide certain guarantees. 
+
+Most simply, we can examine statistics of the data to determine features that may be worth including. For example, if two variables $X_{i}$ and $X_{j}$ are strongly correlated in the data, it may be worthwhile to consider introducing a factor over $X_{i},X_{j}$ (or a pairwise feature over one or more combinations of their values). The limitation of this approach is that it does not take into account the features that have already been introduced into the model and the extent to which they already explain the observed correlation. 
+
+grafting 
+
+gradient heuristic 
+
+A somewhat more reﬁned approach, called grafting , estimates the beneﬁt of introducing a feature $f_{k}$ by compute the gradient of the likelihood relative to $\theta_{k}$ , evaluated at the current model. More precisely, assume tha our current model is $(\mathcal{F},\boldsymbol{\theta}^{0})$ . The gradient heuristic estimate to the delta-score (for score X ) obtained by adding $f_{k}\notin\mathcal{F}$ is deﬁned as: 
+
+$$
+\Delta_{X}^{\mathrm{grad}}(\theta_{k}\ :\ \pmb\theta^{0},\mathcal{D})=\frac{\partial}{\partial\theta_{k}}\mathrm{score}_{X}(\pmb\theta\ :\ \mathcal{D}),
+$$ 
+
+evaluated at the current parameters $\theta^{0}$ 
+
+The gradient heuristic does account for the parameters already selected; thus, for example, it can avoid introducing features that are not relevant given the parameters already introduced. Intuitively, features that have a high gradient can induce a signiﬁcant immediate improvement in the score, and therefore they are good candidates for introduction into the model. Indeed, we are guaranteed that, if $\theta_{k}$ has a positive gradient, introducing $f_{k}$ into $\mathcal{F}$ will result in some improvement to the score. The problem with this approach is that it does not attempt to evaluate how large this improvement can be. Perhaps we can increase $\theta_{k}$ only by a small amount before further changes stop improving the score. 
+
+An even more precise approximation is to evaluate a change to the model by computing the score obtained in a model where we keep all other parameters ﬁxed. Consider a step where gain heuristic we introduce or delete a single feature $f_{k}$ in our model. We can obtain an approximation to the score by evaluating the change in score when we change only the parameter $\theta_{k}$ associated with $f_{k}$ , keeping all other parameters unchanged. To formalize this idea, let $(\mathcal{F},\theta^{0})$ be our current model, and consider changes involving $f_{k}$ . We deﬁne the gain heuristic estimate to be the change in the score of the model for different values for $\theta_{k}$ , assuming the other parameters are kept ﬁxed: 
+
+$$
+\Delta_{X}^{\mathrm{gain}}(\boldsymbol{\theta}_{k}~:~\boldsymbol{\theta}^{0},\mathcal{D})=\mathrm{score}_{X}((\boldsymbol{\theta}_{k},\boldsymbol{\theta}_{-k}^{0})~:~\mathcal{D})-\mathrm{score}_{X}(\boldsymbol{\theta}^{0}~:~\mathcal{D}),
+$$ 
+
+where $\theta_{-k}^{0}$ is the vector of all parameters other than $\theta_{k}^{0}$ . As we discussed, due to the nonde- − composability of the likelihood, when we change $\theta_{k}$ , the current assignment $\theta_{-k}^{0}$ to the other − parameters is generally no longer optimal. However, it is still reasonable to use this function as a heuristic to rank different steps: Parameters that give rise to a larger improvement in the objective by themselves often also induce a larger improvement when other parameters are optimized. Indeed, changing those other parameters to optimize the score can only improve it further. Thus, the change in score that we obtain when we “freeze” the other parameters and change only $\theta_{k}$ is a lower bound on the change in the score. 
+
+The gain function can be used to provide a lower bound on the improvement in score derived from the deletion of a feature $f_{k}$ currently in the model: we simply evaluate the gain function setting $\theta_{k}=0$ . We can also obtain a lower bound on the value of a step where we introduce into the model a new feature $f_{k}$ (that is, one for which the current parameter $\theta_{k}^{0}=0$ ). The improvement we can get if we freeze all parameters but one is clearly a lower bound on the improvement we can get if we optimize over all of the parameters. Thus, the value of $\Delta_{X}^{\mathrm{gain}}({\dot{\theta}}_{k}~:~{\theta}^{0},{\mathcal{D}})$ D is a lower bound on the improvement in the objective that can be gained by setting $\theta_{k}$ to its chosen value and optimizing all other parameters. To compute the best lower bound, we must maximize the function relative to different possible values of $\theta_{k}$ , giving us the score of the best possible model when all parameters other than $\theta_{k}$ are frozen. In particular, we can deﬁne: 
+
+$$
+{\mathrm{Gain}}_{X}(\pmb\theta^{0}\ :\ f_{k},{\mathcal D})=\operatorname*{max}_{\theta_{k}}\Delta_{X}^{\mathrm{gain}}(\theta_{k}\ :\ \pmb\theta^{0},{\mathcal D}).
+$$ 
+
+This is a lower bound on the change in the objective obtained from introducing a $f_{k}\notin\mathcal{F}$ . 
+
+In principle, lower bounds are more useful than simple approximations. If our lower bound of the candidate’s score is higher than that of our current best model, then we deﬁnitely want to evaluate that candidate; this will result in a better current candidate and allow us to prune additional candidates and focus on the ones that seem more promising for evaluation. Upper bounds are useful as well. If we have a candidate model and obtain an upper bound on its score, then we can remove it from consideration once we evaluate another candidate with higher score; thus, upper bounds help us prune models for which we would never want to evaluate the true score. In practice, however, fully evaluating the score for all but a tiny handful of candidate structures is usually too expensive a proposition. Thus, the gain is generally used simply as an approximation rather than a lower bound. 
+
+How do we evaluate the gain function efciently, or ﬁnd its optimal value? The gain function is a univariate function of $\theta_{k}$ , which is a projection of the score function onto this single dimension. Importantly, all of our scoring functions — including any of the penalized likelihood functions we described — are concave (for a given set of active features). The projection of a concave function onto a single dimension is also concave, so that this single-parameter delta-score is also concave and therefore has a global optimum. 
+
+Nevertheless, given the complexity of the likelihood function, it is not clear how this global optimum can be efciently found. We now show how the diference between two log-likelihood terms can be considerably simpliﬁed, even allowing a closed-form solution in certain important cases. Recall from equation (20.3) that 
+
+$$
+\frac{1}{M}\ell(\pmb\theta:{\mathcal D})=\sum_{k}\theta_{k}\pmb E_{\mathcal D}[f_{k}]-\ln Z(\pmb\theta).
+$$ 
+
+Because parameters other than $\theta_{k}$ are the same in the two models, we have that: 
+
+$$
+\frac{1}{M}[\ell((\theta_{k},\theta_{-k}^{0}):\mathcal{D})-\ell(\theta^{0}:\mathcal{D})]=(\theta_{k}-\theta_{k}^{0})E_{\mathcal{D}}[f_{k}]-\left[\ln Z(\theta_{k},\theta_{-k}^{0})-\ln Z(\theta_{-k}^{0})\right]=0,
+$$ 
+
+The ﬁrst term is a linear function in $\theta_{k}$ , whose coefcient is the empirical expectation of $f_{k}$ in the data. For the second term, we have: 
+
+$$
+\begin{array}{r c l}{{\ln\displaystyle\frac{Z(\theta_{k},\theta_{-k}^{0})}{Z(\theta^{0})}}}&{{=}}&{{\ln\displaystyle\left[\frac{1}{Z(\theta^{0})}\sum_{\xi}\exp\left\{\sum_{j}\theta_{j}^{0}f_{j}(\xi)+(\theta_{k}-\theta_{k}^{0})f_{k}(\xi)\right\}\right]}}\\ {{}}&{{=}}&{{\ln\displaystyle\sum_{\xi}\frac{\tilde{P}_{\theta^{0}}(\xi)}{Z(\theta^{0})}\left[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(\xi)\right\}\right]}}\\ {{}}&{{=}}&{{\ln E_{\theta^{0}}\Big[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(d_{k})\right\}\Big].}}\end{array}
+$$ 
+
+Thus, the diference of these two log-partition functions can be rewritten as a log-expectation relative to our original distribution. We can convert this expression into a univariate function of $\theta_{k}$ by computing (via inference in our current model $\theta^{0}$ ) the marginal distribution over the variables $d_{k}$ . Altogether, we obtain that: 
+
+$$
+\begin{array}{l}{\displaystyle\frac{1}{M}[\ell((\theta_{k},\theta_{-k}^{0}):\mathcal{D})-\ell(\theta^{0}:\mathcal{D})]=\ }\\ {\displaystyle\ \ \ \ \ \ (\theta_{k}-\theta_{k}^{0})E_{\mathcal{D}}[f_{k}]-\ln\sum_{d_{k}}P_{\theta^{0}}(d_{k})\left[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(d_{k})\right\}\right].}\end{array}
+$$ 
+
+We can incorporate this simpliﬁed form into equation (20.33) for any penalized-likelihood scoring function. We can now easily provide our lower-bound estimates for feature deletions. For introducing a feature $f_{k}$ , the optimal lower bound can be computed by optimizing the univariate function deﬁned by equation (20.33) over the parameter $\theta_{k}$ . Because this function is concave, it can be optimized using a variety of univariate numerical optimization algorithms. For example, to compute the lower bound for an $L_{2}$ -regularized likelihood, we would compute: 
+
+$$
+\operatorname*{max}_{\theta_{k}}\left\{\theta_{k}E_{\mathcal{D}}[f_{k}]-\ln\sum_{d_{k}}P_{\theta^{0}}(\boldsymbol{d}_{k})\left[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(\boldsymbol{d}_{k})\right\}\right]-\frac{\theta_{k}^{2}}{2\sigma^{2}}\right\}.
+$$ 
+
+However, in certain special cases, we can actually provide a closed-form solution for this optimization problem. We note that this derivation applies only in restricted cases: only in the case of generative training (that is, not for CRFs); only for the likelihood or $L_{1}$ -penalized objective; and only for binary-valued features. 
+
+Proposition 20.6 
+Let $f_{k}$ be a binary-valued feature and let $\theta^{0}$ be a current setting of parameters for a log-linear model. Let $\hat{p}_{k}\,=\,E_{D}[f_{k}]$ be the empirical probability of $f_{k}$ in $\mathcal{D}$ , and $p_{k}^{0}\,=\,P_{\theta}(f_{k})$ be its D probability relative to the current model. Then: 
+
+$$
+\operatorname*{max}_{\theta_{k}}\big[\mathrm{score}_{L}\big((\theta_{k},\pmb{\theta}_{-k}^{0})\ :\ \mathcal{D}\big)-\mathrm{score}_{L}\big(\pmb{\theta}^{0}\ :\ \mathcal{D}\big)\big]=\pmb{D}\big(\hat{p}_{k}\|p_{k}^{0}\big),
+$$ 
+
+where the KL-divergence is the relative entropy between the two Bernoulli distributions parameter- ized by $\hat{p}_{k}$ and $p_{k}^{0}$ respectively. 
+
+The proof is left as an exercise (exercise 20.16). 
+
+To see why this result is intuitive, recall that when we maximize the likelihood relative to some log-linear model, we obtain a model where the expected counts match the empirical counts. In the case of a binary-valued feature, in the optimized model we have that the ﬁnal probability of $f_{k}$ would be the same as the empirical probability $\hat{p}_{k}$ . Thus, it is reasonable that the amount of improvement we obtain from this optimization is a function of the discrepancy between the empirical probability of the feature and its probability given the current model. The bigger the discrepancy, the bigger the improvement in the likelihood. 
+
+A similar analysis applies when we consider several binary-valued features $f_{1},\ldots,f_{k}$ , as long as they are mutually exclusive and exhaustive; that is, as long as there are no assignments for which both $f_{i^{\downarrow}}(\xi)=1$ and $f_{j}(\boldsymbol{\xi})=1$ . In particular, we can show the following: 
+
+Proposition 20.7 
+
+Let $\theta^{0}$ be a current setting of parameters for a log-linear model, and consider introducing into the model a complete factor $\phi$ over scope $^{d,}$ , parameterized with $\theta_{k}$ that correspond to the different assignments to $^d$ . Then 
+
+$$
+\operatorname*{max}_{\theta_{k}}\left[\mathrm{score}_{L}((\theta_{k},\theta_{-k}^{0})\ :\ \mathcal{D})-\mathrm{score}_{L}(\theta^{0}\ :\ \mathcal{D})\right]=D(\hat{P}(d)\|P_{\theta}(d)).
+$$ 
+
+The proof is left as an exercise (exercise 20.17). 
+
+Although the derivations here were performed for the likelihood function, a similar closed- form solution, in the same class of cases, can also be performed for the $L_{1}$ -regularized likelihood (see exercise 20.18), but not for the $L_{2}$ -regularized likelihood. Intuitively, the penalty in the $L_{1}$ - regularized likelihood is a linear function in each $\theta_{k}$ , and therefore it does not complicate the form of equation (20.34), which already contains such a term. However, the $L_{2}$ penalty is quadratic, and introducing a quadratic term into the function prevents an analytic solution. 
+
+One issue that we did not address is the task of computing the expressions in equation (20.34), or even the closed-form expressions in proposition 20.6 and proposition 20.7. All of these expressions involve expectations over the scope $D_{k}$ of $f_{k}$ , where $f_{k}$ is the feature that we want to eliminate from or introduce into the model. Let us consider ﬁrst the case where $f_{k}$ is already in the model. In this case, if we use a belief propagation algorithm (whether a clique tree or a loopy cluster graph), the family preservation property guarantees that the feature’s scope $D_{k}$ is necessarily a subset of some cluster in our inference data structure. Thus, we can easily compute the necessary expectations. However, for a feature not currently in the model, we would not generally expect its scope to be included in any cluster. If not, we must somehow compute expectations of sets of variables that are not together in the same cluster. In the case of clique trees, we can use the out-of-clique inference methods described in section 10.3.3.2. For the case of loopy cluster graphs, this problem is more challenging (see exercise 11.22). 
+
+## 20.8 Summary 
+In this chapter, we discussed the problem of learning undirected graphical models from data. The key challenge in learning these models is that the global partition function couples the parameters, with signiﬁcant consequences: There is no closed-form solution for the optimal parameters; moreover, we can no longer optimize each of the parameters independently of the others. Thus, even simple maximum-likelihood parameter estimation is no longer trivial. For the same reason, full Bayesian estimation is computationally intractable, and even approximations are expensive and not often used in practice. 
+
+Following these pieces of bad news, there are some good ones: the likelihood function is concave, and hence it has no local optima and can be optimized using efcient gradient-based methods over the space of possible parameter iz at ions. We can also extend this method to MAP estimation when we are given a prior over the parameters, which allows us to reduce the overﬁtting to which maximum likelihood is prone. 
+
+The gradient of the likelihood at a point $\theta$ has a particularly compelling form: the gradient relative to the parameter $\theta_{i}$ corresponding to the feature $f_{i}$ is the diference between the empirical expectation of $f_{i}$ in the data and its expectation relative to the distribution $P_{\theta}$ . While very intuitive and simple in principle, the form of the gradient immediately gives rise to some bad news: to compute the gradient at the point $\theta$ , we need to run inference over the model $P_{\theta}$ , a costly procedure to execute at every gradient step. 
+
+This complexity motivates the use of myriad alternative approaches: ones involving the use of approximate inference for computing the gradient; and ones that utilize a different objective than the likelihood. Methods in the ﬁrst class included using message passing algorithms such as belief propagation, and methods based on sampling. We also showed that many of the methods that use approximate inference for optimizing the likelihood can be reformulated as exactly optimizing an approximate objective. This perspective can ofer signiﬁcant insight. For example, we showed that learning with belief propagation can be reformulated as optimizing a joint objective that involves both inference and learning; this alternative formulation is more general and allows the use of alternative optimization methods that are more stable and convergent than using BP to estimate the gradient. 
+
+Methods that use an approximate objective include pseudo likelihood, contrastive divergence, and maximum-margin (which is speciﬁcally geared for discriminative training of conditional models). Importantly, both likelihood and these objectives can be viewed as trying to increase the distance between the log-probability of assignments in our data and those of some set other assignments. This “contrastive” view provides a different view of these objectives, and it suggests that they are only representatives of a much more general class of approximations. 
+
+The same analysis that we performed for optimizing the likelihood can also be extended to other cases. In particular, we showed a very similar derivation for conditional training, where the objective is to maximize the likelihood of a set of target variables $Y$ given some set of observed feature variables $X$ . 
+
+We also showed that similar approaches can be applied to learning with missing data. Here, the optimization task is no longer convex, but the gradient has a very similar form and can be optimized using the same gradient-ascent methods. However, as in the case of Bayesian network learning with missing data, the likelihood function is generally multimodal, and so the gradient ascent algorithm can get stuck in local optima. Thus, we may need to resort to techniques such as data perturbation or random restarts. 
+
+We also discussed the problem of structure learning of undirected models. Here again, we can use both constraint-based and score-based methods. Owing to the difculties arising from the form of the likelihood function, full Bayesian scoring, where we score a model by integrating over all of the parameters, is intractable, and even approximations are generally impractical. Thus, we generally use a simpler scoring function, which combines a likelihood term (measuring ﬁt to data) with some penalty term. We then search over some space of structures for ones that optimize this objective. For most objectives, the resulting optimization problem is combinatorial with multiple local optima, so that we must resort to heuristic search. One notable exception is the use of an $L_{1}$ -regularized likelihood, where the penalty on the absolute value of the parameters tends to drive many of the parameters to zero, and hence often results in sparse models. This objective allows the structure learning task to be formulated as a convex optimization problem over the space of parameters, allowing the optimization to be performed efciently and with guaranteed convergence to a global optimum. Of course, even here inference is still an unavoidable component in the inner loop of the learning algorithm, with all of the ensuing difculties. 
+
+As we mentioned, the case of discriminative training is a setting where undirected models are particularly suited, and are very commonly used. However, it is important to carefully weigh the trade-ofs of generative versus discriminative training. As we discussed, there are signiﬁcant diferences in the computational cost of the different forms of training, and the trade-of can go either way. More importantly, as we discussed in section 16.3.2, generative models incorporate a higher bias by making assumptions — ones that are often only approximately correct — about the underlying distribution. Discriminative models make fewer assumptions, and therefore tend to require more data to train; generative models, due to the stronger bias, often perform better in the sparse-data regime. But incorrect modeling assumptions also hurt performance; therefore, as the amount of training data grows, the discriminative model, which makes fewer assumptions, often performs better. This diference between the two classes of models is particularly signiﬁcant when we have complex features whose correlations are hard to model. However, it is important to remember that models trained disc rim i natively to predict $Y$ given $X$ will perform well primarily in this setting, and even slight changes may lead to a degradation in performance. For example, a model for predicting $P(Y\mid X_{1},X_{2})$ would not be useful for predicting $P(Y\mid X_{1})$ in situations where $X_{2}$ is not observed. In general, discriminative models are much less ﬂexible in their ability to handle missing data. 
+
+We focused most of our discussion of learning on the problem of learning log-linear models deﬁned in terms of a set of features. Log-linear models are a ﬁner-grained representation than a Markov network structure or a set of factors. Thus, they can make better trade-ofs between model complexity and ﬁt to data. However, sparse log-linear models (with few features) do not directly correspond to sparse Markov network structures, so that we might easily end up learning a model that does not lend itself to tractable inference. It would be useful to consider the development of Markov network structure learning algorithms that more easily support efcient inference. Indeed, some work has been done on learning Markov networks of bounded tree-width, but networks of low tree-width are often poor approximations to the target distribution. Thus, it would be interesting to explore alternative approaches that aim at structures that support approximate inference. 
+
+This chapter is structured as a core idea with a set of distinct extensions that build on it: The core idea is the use of the likelihood function and the analysis of its properties. The extensions include conditional likelihood, learning with missing data, the use of parameter priors, approximate inference and/or approximate objectives, and even structure learning. In many cases, these extensions are orthogonal, and we can easily combine them in various useful ways. For example, we can use parameter priors with conditional likelihood or in the case of missing data; we can also use them with approximate methods such as pseudo likelihood, contrastive divergence or in the objective of equation (20.15). Perhaps more surprising is that we can easily perform structure learning with missing data by adding an $L_{1}$ -regularization term to the likelihood function of equation (20.8) and then using the same ideas as in section 20.7.4.4. In other cases, the combination of the different extensions is more involved. For example, as we discussed, structure learning requires that we be able to evaluate the expected counts for variables that are not in the same family; this task is not so easy if we use an approximate algorithm such as belief propagation. As another example, it is not immediately obvious how we can extend the pseudo likelihood objective to deal with missing data. These combinations provide useful directions for future work. 
