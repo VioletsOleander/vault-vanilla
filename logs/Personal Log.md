@@ -600,7 +600,7 @@ Date: 2024.
 
 \[Book\]
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
-- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH7
 
 \[Doc\]
 - [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
