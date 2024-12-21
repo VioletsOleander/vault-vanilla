@@ -1624,8 +1624,8 @@ $$
 {\mathcal{I}}({\mathcal{G}})=\{(X\perp Y\mid Z)\;:\;{\mathrm{d-sep}}_{\mathcal{G}}(X; Y\mid Z)\}.
 $$ 
 > 定义：
-> 令 $X, Y, Z$ 是 $\mathcal G$ 中的三个节点集，如果给定 $Z$ 时，对于任意节点 $x \in X$ 和 $y \in Y$ 之间都不存在活跃的迹，则我们称 $X, Y$ 在给定 $Z$ 时是 d-seperation 的，记作 $\text{d-sep}_{\mathcal G}(X; Y\mid Z)$
-> 因为不存在活跃的迹，故节点之间就是条件独立的，因此 $\mathcal I (\mathcal G)$ 实际上就是将图 $\mathcal G$ 中所有的 d-seperation 的节点表示为 $\perp$
+> 令 $X, Y, Z$ 是 $\mathcal G$ 中的三个节点集，如果给定 $Z$ 时，对于任意节点 $x \in X$ 和 $y \in Y$ 之间都不存在活跃的迹，则我们称 $X, Y$ 在给定 $Z$ 时是 d-separation 的，记作 $\text{d-sep}_{\mathcal G}(X; Y\mid Z)$
+> 因为不存在活跃的迹，故节点之间就是条件独立的，因此 $\mathcal I (\mathcal G)$ 实际上就是将图 $\mathcal G$ 中所有的 d-separation 的节点表示为 $\perp$
 
 This set is also called the set of global Markov independencies . The similarity between the nota- tion $\mathcal{Z}(\mathcal{G})$ and our notation $\mathcal{Z}(P)$ is not coincidental: As we discuss later, the in pendencies in $\mathcal{Z}(\mathcal{G})$ are precisely those that are guaranteed to hold for every distribution over G . 
 > 集合 $\mathcal I (\mathcal G)$ 也称为全局的 Markov 独立集合
@@ -1633,37 +1633,37 @@ This set is also called the set of global Markov independencies . The similarity
 So far, our deﬁnition of d-separation has been based on our intuitions regarding ﬂow of inﬂuence, and on our one example. As yet, we have no guarantee that this analysis is “correct.” Perhaps there is a distribution over the BN where $X$ can inﬂuence $Y$ despite the fact that all trails between them are blocked. 
 
 Hence, the ﬁrst property we want to ensure for $\mathrm{d}$ -separation as a method for determining independence is soundness : if we ﬁnd that two nodes $X$ and $Y$ are d-separated given some $Z$ , then we are guaranteed that they are, in fact, conditionally independent given $Z$ . 
-> 我们首先需要保证 d-seperation 这个概念的可靠性：如果我们在给定 $Z$ 的情况下找到两个节点 $X, Y$ 时 d-seperation 的，则我们可以保证这两个节点在给定 $Z$ 的情况下是条件独立的
+> 我们首先需要保证 d-separation 这个概念的可靠性：如果我们在给定 $Z$ 的情况下找到两个节点 $X, Y$ 时 d-separation 的，则我们可以保证这两个节点在给定 $Z$ 的情况下是条件独立的
 
 **Theroem 3.3**
 If a distribution $P$  factorizes according to $\mathcal G$, then $\mathcal I (\mathcal G)\subseteq \mathcal I (\mathcal P)$
 > 定理：
 > 如果一个分布 $P$ 根据 $\mathcal G$ 分解，则 $\mathcal I (\mathcal G)\subseteq \mathcal I (\mathcal P)$
 
-In other words, any independence reported by $\mathrm{d}$ -separation is satisﬁed by the underlying dis- tribution. The proof of this theorem requires some additional machinery that we introduce in chapter 4, so we defer the proof to that chapter (see section 4.5.1.1). 
-> 换句话说，任意由 d-seperation 表示的独立性都会被 underlying 的分布满足
+In other words, any independence reported by $\mathrm{d}$ -separation is satisﬁed by the underlying distribution. The proof of this theorem requires some additional machinery that we introduce in chapter 4, so we defer the proof to that chapter (see section 4.5.1.1). 
+> 换句话说，任意由 d-separation 表示的独立性都会被 underlying 的分布满足
 
-A second desirable property is the complementary one — completeness : d-separation detects all possible independencies. More precisely, if we have that two variables $X$ and $Y$ are indepen- dent given $Z$ , then they are d-separated. A careful examination of the completeness property reveals that it is ill deﬁned, inasmuch as it does not specify the distribution in which $X$ and $Y$ are independent. 
-> 我们还需要保证 d-seperation 这个概念的完整性：d-sepration 检测到所有可能的独立性，也就是说，如果两个节点 XY 在给定 Z 时条件独立，则它们一定是 d-seperation 的
+A second desirable property is the complementary one — completeness : d-separation detects all possible independencies. More precisely, if we have that two variables $X$ and $Y$ are independent given $Z$ , then they are d-separated. A careful examination of the completeness property reveals that it is ill deﬁned, inasmuch as it does not specify the distribution in which $X$ and $Y$ are independent. 
+> 我们还需要保证 d-separation 这个概念的完整性：d-sepration 检测到所有可能的独立性，也就是说，如果两个节点 XY 在给定 Z 时条件独立，则它们一定是 d-separation 的
 
 To formalize this property, we ﬁrst deﬁne the following notion: 
 
 **Deﬁnition 3.8** faithful 
 A distribution $P$ is faithful to $\mathcal{G}$ i whenever $(X\perp Y\mid Z)\in{\mathcal{Z}}(P)$ , then $\operatorname{d-sep}_{\mathcal{G}}(X; Y\mid Z)$ . In other words, any independence in P is reﬂected in the d-separation properties of the graph. 
 > 定义：
-> 对于分布 P，只要 $(X\perp Y\mid Z) \in \mathcal I (P)$，就有 $\text{d-sep}_{\mathcal G}(X; Y\mid Z)$，则我们称分布 P 是忠实于图 $\mathcal G$ 的，换句话说，$P$ 中的任意独立性都在图 $\mathcal G$ 中的 d-sepration 中得到反映，也就是图中的条件独立性包含了 $P$ 中的条件独立性
+> 对于分布 P，只要 $(X\perp Y\mid Z) \in \mathcal I (P)$，就有 $\text{d-sep}_{\mathcal G}(X; Y\mid Z)$，则我们称分布 P 是忠实于图 $\mathcal G$ 的，换句话说，$P$ 中的任意独立性都在图 $\mathcal G$ 中的 d-separation 中得到反映，也就是图中的条件独立性包含了 $P$ 中的条件独立性
 
 We can now provide one candidate formalization of the completeness property is as follows: 
 
-- For y distrib tion $P$ that fact zes ver $\mathcal{G}$ , e hav that $P$ is faithful to $\mathcal{G}$ ; that is, if $X$ and $Y$ are not d-se arated given Z in G , then X and $Y$ are dependent in all distributions P that factorize over G . 
+- For y distribution $P$ that fact zes ver $\mathcal{G}$ , e hav that $P$ is faithful to $\mathcal{G}$ ; that is, if $X$ and $Y$ are not d-se arated given Z in G , then X and $Y$ are dependent in all distributions P that factorize over G . 
 
-> 我们现在将 d-seperation 的完整性描述如下：
+> 我们现在将 d-separation 的完整性描述如下：
 > 对于任意根据 $\mathcal G$ 分解的分布 P，P 都忠实于 $\mathcal G$
-> 也就是说，如果 XY 在给定 $\mathcal G$ 中的 Z 时不是 d-seperation 的，因为所有根据 $\mathcal G$ 分解的分布 $P$ 都忠实于 $\mathcal G$，则对于所有根据 $\mathcal G$ 分解的分布 $P$，都不存在 $(X\perp Y\mid Z)$，也就是 $X, Y$ 是相关的
+> 也就是说，如果 XY 在给定 $\mathcal G$ 中的 Z 时不是 d-separation 的，因为所有根据 $\mathcal G$ 分解的分布 $P$ 都忠实于 $\mathcal G$，则对于所有根据 $\mathcal G$ 分解的分布 $P$，都不存在 $(X\perp Y\mid Z)$，也就是 $X, Y$ 是相关的
 
 This property is the obvious converse to our notion of soundness: If true, the two together would imply that, for any $P$ that factorizes over $\mathcal{G}$ , we have that $\mathcal{Z}(P)=\mathcal{Z}(\mathcal{G})$ . Unfortunately, this highly desirable property is easily shown to be false: Even if a distribution factorizes over $\mathcal{G}$ , it can still contain additional independencies that are not reﬂected in the structure. 
 > 可靠性：$\mathcal G$ 中有 d-seperatoin，则根据 $\mathcal G$ 分解的 $P$ 中有对应的条件独立性
-> 完整性：根据 $\mathcal G$ 分解的 $P$ 中存在条件独立性，则 $\mathcal G$ 中有对应的 d-seperation
+> 完整性：根据 $\mathcal G$ 分解的 $P$ 中存在条件独立性，则 $\mathcal G$ 中有对应的 d-separation
 > 可靠性和完整性同时成立时，就表示对于任意在 $\mathcal G$ 上分解的 $P$，有 $\mathcal I (P) = \mathcal I (\mathcal G)$，但这个性质往往不容易成立，往往在根据 $\mathcal G$ 分解的 $P$ 中会存在额外的独立性条件
 
 Example 3.3 Consider a distribution $P$ over two variables $A$ and $B$ , where $A$ and $B$ are independent. One possible I-map for $P$ is the network $A\rightarrow B$ . For example, we can set the CPD for B to be 
@@ -1687,11 +1687,11 @@ Let $\mathcal{G}$ be a BN s cture. If $X$ and $Y$ not d-separated gi en $Z$ in $
 > 证明：构造一个 $X, Y$ 相关的，且根据 $\mathcal G$ 分解的分布 $P$
 
 We can view the completeness result as telling us that our deﬁniti n of $\mathcal{Z}(\mathcal{G})$ is the maximal one. For any independence assertion that not a consequence f d-separation in $\mathcal{G}$ , we can always ﬁnd a counterexample distribution P that factorizes over G . In fact, this result can be strengthened signiﬁcantly: 
-> 我们认为完整性告诉了我们 $\mathcal I (\mathcal G)$ 的定义是最大的，也就是对于任意不是 $\mathcal G$ 中的 d-seperation 的结果的独立性断言，我们都可以找到一个根据 $\mathcal G$ 分解的反例 $P$ ($P$ 中不存在不满足 d-seperation 结果的独立性断言)
+> 我们认为完整性告诉了我们 $\mathcal I (\mathcal G)$ 的定义是最大的，也就是对于任意不是 $\mathcal G$ 中的 d-separation 的结果的独立性断言，我们都可以找到一个根据 $\mathcal G$ 分解的反例 $P$ ($P$ 中不存在不满足 d-separation 结果的独立性断言)
 > 我们可以强化这一结果
 
 **Theorem 3.5** 
-For almost all distributions $P$ that factorize over $\mathcal{G}$ , that is, for all distributions except for a set of measure zero in the space of CPD parameter iz at ions, we have that $\mathcal{Z}(P)=\mathcal{Z}(\mathcal{G})$ . 
+For almost all distributions $P$ that factorize over $\mathcal{G}$ , that is, for all distributions except for a set of measure zero in the space of CPD parameterizations, we have that $\mathcal{Z}(P)=\mathcal{Z}(\mathcal{G})$ . 
 > 定理：
 > 对于根据 $\mathcal G$ 分解的*几乎全部*分布 $P$（也就是除了 CPD 参数化空间中测度为零的集合），我们有 $\mathcal I (\mathcal G) = \mathcal I (P)$
 
@@ -1705,12 +1705,13 @@ This result strengthens theorem 3.4 in two distinct ways: First, whereas theorem
 > 因此除了测度为零的分布以外，都有 $\mathcal I (\mathcal G) = \mathcal I (P)$
 
 **These results state that for almost all parameter iz at ions $P$ of the graph $\mathcal{G}$ (that is, for almost all possible choices of CPDs for the variables), the d-separation test precisely characterizes the independencies that hold for $P$ .** In other words, even if we have a dis bution $P$ that satisﬁes more independencies than $\mathcal{Z}(\mathcal{G})$ , a slight perturbation of the CPDs of P will almost always eliminate these “extra” independencies. This guarantee seems to state that such independencies are always accidental, and we will never encounter them in practice. However, as we illustrate in example 3.7, there are cases where our CPDs have certain local structure that is not accidental, and that implies these additional independencies that are not detected by $\mathrm{d}$ -separation. 
-> 这个结果说明了对于几乎所有 $\mathcal G$ 参数化的 $P$ (对于 $\mathcal G$ 中的变量的几乎所有可能条件概率分布的选择)，d-seperation 测试可以精确地表征 $P$ 中存在的独立性
+> 这个结果说明了对于几乎所有 $\mathcal G$ 参数化的 $P$ (对于 $\mathcal G$ 中的变量的几乎所有可能条件概率分布的选择)，d-separation 测试可以精确地表征 $P$ 中存在的独立性
 > 换句话说，即便我们有满足比 $\mathcal I (\mathcal G)$ 中更多独立性的分布 $P$，一个对 $P$ 中的条件概率分布的轻微扰动会几乎总是消除这些“额外”的福利性
+
 ### 3.3.3 An Algorithm for d-Separation 
-The notion of $\mathrm{d}$ -separation allows us to infer independence properties of a distribution $P$ that factorizes over $\mathcal{G}$ simply by examining the connectivity of $\mathcal{G}$ . However, in order to be useful, we need to be able to determine d-separation efectively. Our deﬁnition gives us a constructive solution, but a very inefcient one: We can enumerate all trails between $X$ and $Y$ , and check each one to see whether it is active. The running time of this algorithm depends on the number of trails in the graph, which can be exponential in the size of the graph. 
-> 要知道根据 $\mathcal G$ 分解的 $P$ 中存在的独立性，我们需要知道 $\mathcal G$ 中存在的 d-seperation
-> 目前，我们只知道通过列举出 $X, Y$ 中所有的路径，然后检查二者之间是否存在活跃的路径，以确定二者是否为 d-seperation，该算法的时间依赖于图中的路径数量，往往和图的大小成指数比
+The notion of $\mathrm{d}$ -separation allows us to infer independence properties of a distribution $P$ that factorizes over $\mathcal{G}$ simply by examining the connectivity of $\mathcal{G}$ . However, in order to be useful, we need to be able to determine d-separation effectively. Our deﬁnition gives us a constructive solution, but a very inefficient one: We can enumerate all trails between $X$ and $Y$ , and check each one to see whether it is active. The running time of this algorithm depends on the number of trails in the graph, which can be exponential in the size of the graph. 
+> 要知道根据 $\mathcal G$ 分解的 $P$ 中存在的独立性，我们需要知道 $\mathcal G$ 中存在的 d-separation
+> 目前，我们只知道通过列举出 $X, Y$ 中所有的路径，然后检查二者之间是否存在活跃的路径，以确定二者是否为 d-separation，该算法的时间依赖于图中的路径数量，往往和图的大小成指数比
 
 Fortunately, there is a much more efcient algorithm that requires only linear time in the size of the graph. The algorithm has two phases. We begin by traversing the graph bottom up, from the leaves to the roots, marking all nodes that are in $Z$ or that have descendants in $Z$ . Intuitively, these nodes will serve to enable v-structures. In the second phase, we traverse breadth-ﬁrst from $X$ to $Y$ , stopping the traversal along a trail when we get to a blocked node. A node is blocked if: (a) it is the “middle” node in a v-structure and unmarked in phase I, or (b) is not such a node and is in $Z$ . If our breadth-ﬁrst search gets us from $X$ to $Y$ , then there is an active trail between them. 
 > 存在时间和图大小成线性关系的算法，算法分两阶段：
@@ -1809,7 +1810,7 @@ The proof of this theorem is left as an exercise (exercise 3.18).
 ## 3.4 From Distributions to Graphs 
 In the previous sections, we showed at, if $P$ factorizes ove $\mathcal{G}$ , we can derive a rich set of independence assertions that hold for P by simply examining G . This result immediately leads to the idea that we can use a graph as a way of revealing the structure in a distribution. In particular, we can test for independencies in $P$ by constructing a graph $\mathcal{G}$ that represents $P$ and testing d-separation in $\mathcal{G}$ . As we will see, having a graph that reveals the structure in P has other important consequences, in terms of reducing the number of parameters required to specify or learn the distribution, and in terms of the complexity of performing inference on the network. 
 > 之前的部分中，我们展示了如果 $P$ 在 $\mathcal G$ 上分解，我们可以通过检查 $\mathcal G$ 就得到在 $P$ 中成立的一系列独立性断言，故我们可以用图表示分布的结构
-> 特别地，我们可以通过构造一个表示 $P$ 的图，然后测试图中的 d-seperation 来揭示 $P$ 中的独立性
+> 特别地，我们可以通过构造一个表示 $P$ 的图，然后测试图中的 d-separation 来揭示 $P$ 中的独立性
 > 使用图表示分布可以帮助减少学习分布所需的参数，以及减少推理的复杂度
 
 In this section, we examine the following question: Given a distribution $P$ , to what extent can we construct a graph $\mathcal{G}$ whose independencies are a reasonable surrogate for the independencies in $P\Lsh$ It is important to emphasize that we will never actually take a fully speciﬁed distribution $P$ and construct a graph $\mathcal{G}$ for it: As we discussed, a full joint distribution is much too large to represent explicitly. However, answering this question is an important conceptual exercise, which will help us later on when we try to understand the process of constructing a Bayesian network that represents our model of the world, whether manually or by learning from data. 
@@ -1875,10 +1876,10 @@ We aim to ﬁnd a graph $\mathcal{G}$ that precisely captures the independencies
 We say that a graph $\mathcal{K}$ $a$ perfect map (P-m ) for a set of independencies $\mathcal{T}$ if we have that $\mathcal{Z}(\mathcal{K})=\mathcal{Z}$ . We say that K is a perfect map for $P$ if $\mathcal{Z}(\mathcal{K})=\mathcal{Z}(P)$ .
 > 如果我们有 $\mathcal I (\mathcal K) = \mathcal I$ ，则称图 $\mathcal K$ 是独立性集合 $\mathcal I$ 的完美 I-map，或者称为 p-map
 
-If we obtain a grap $\mathcal{G}$ that is a P-m p for a distribution $P$ , then we can ( nition) read the independencies in P directly from G . By construction, our original graph $G_{s t u d e n t}$ is a P-map for $P_{\mathcal{B}^{s t u d e n t}}$ . 
+If we obtain a graph $\mathcal{G}$ that is a P-m p for a distribution $P$ , then we can ( nition) read the independencies in P directly from G . By construction, our original graph $G_{s t u d e n t}$ is a P-map for $P_{\mathcal{B}^{s t u d e n t}}$ . 
 > 如果我们得到一个分布 $P$ 的一个 p-map $\mathcal G$，则我们可以从 $\mathcal G$ 中读出 $P$ 中的所有的独立性
 
-If our goal is to ﬁnd a perfect map for a distribution, an immediate question is whether every distribution has a perfect map. Unfortunately, the answer is no, and for several reasons. The ﬁrst type of counterexample involves regularity in the parameter iz ation of the distribution that cannot be captured in the graph structure. 
+If our goal is to ﬁnd a perfect map for a distribution, an immediate question is whether every distribution has a perfect map. Unfortunately, the answer is no, and for several reasons. The ﬁrst type of counterexample involves regularity in the parameterization of the distribution that cannot be captured in the graph structure. 
 > 并不是每个分布都有 p-map，一个例子就是分布的参数化中的 regularity 有时不能被图结构捕获
 
 Example 3.6 
@@ -1887,7 +1888,7 @@ Consider a joint distribution $P$ over 3 random variables $X, Y, Z$ such that:
 $$
 P (x, y, z)=\left\{\begin{array}{l l}{{1/12\qquad}}&{{x\oplus y\oplus z=f a l s e}}\\ {{1/6\qquad}}&{{x\oplus y\oplus z=t r u e}}\end{array}\right.
 $$ 
-where $\oplus$ the XOR (exclusive OR unctio A sim e calc tion shows that $(X\bot Y)\in{\mathcal{Z}}(P)$ , and that Z is not independent of X given Y $Y$ or of $Y$ given X . Hence, one minimal $I_{\cdot}$ -map for this distribution is the network $X\rightarrow Z\leftarrow Y$ , using a deterministic XOR for the CPD of $Z$ . However, this network is not a perfect map; a preci ly analogous calculation shows that $(X\perp Z)\in{\mathcal{Z}}(P)$ , but this conclusion is not supported by a d-separation analysis. 
+where $\oplus$ the XOR (exclusive OR unctio A sim e calc tion shows that $(X\bot Y)\in{\mathcal{Z}}(P)$ , and that Z is not independent of X given Y $Y$ or of $Y$ given X . Hence, one minimal $I_{\cdot}$ -map for this distribution is the network $X\rightarrow Z\leftarrow Y$ , using a deterministic XOR for the CPD of $Z$ . However, this network is not a perfect map; a precisely analogous calculation shows that $(X\perp Z)\in{\mathcal{Z}}(P)$ , but this conclusion is not supported by a d-separation analysis. 
 
 Thus, we see that deterministic relationships can lead to distributions that do not have a P-map. Additional examples arise as a consequence of other regularities in the CPD. 
 > 确定性关系会让分布不存在 p-map
@@ -1906,20 +1907,20 @@ Consider a scenario where we have four students who get together in pairs to wor
 
 In this example, the professor accidentally misspoke in class, giving rise to a possible miscon- ception among the students in the class. Each of the students in the class may subsequently have ﬁgured out the problem, perhaps by thinking about the issue or reading the textbook. In subsequent study pairs, he or she may transmit this newfound understanding to his or her study partners. We therefore have four binary random variables, representing whether the student has the misconcep- tion or not. We assume tha or each $X\,\in\,\{A, B, C, D\}$ , $x^{1}$ denotes the case where the student has the misconception, and x $x^{0}$ denotes the case where he or she does not. 
 
-Because Alice and Charles never speak to each other directly, we have that $A$ and $C$ are con- ditionally independent given $B$ and $D$ . Similarly, $B$ and $D$ are conditionally independent given $A$ and $C$ . Can we represent this distribution (with these independence properties) using a BN? One attempt is shown in ﬁgure 3.10b. Indeed, it encodes the independence assumption that $(A\ \perp\ C\ |\ \{B, D\})$ . However, it also implies that $B$ and $D$ are independent given only $A$ , but dependent given both $A$ and $C$ . Hence, it fails to provide a perfect map for our target dis- tribution. A second attempt, shown in ﬁgure 3.10c, is equally unsuccessful. It also implies that $(A\perp C\mid\{B, D\})$ , but it also implies that $B$ and $D$ are marginally independent. It is clear that all other candidate BN structures are also ﬂawed, so that this distribution does not have a perfect map. 
+Because Alice and Charles never speak to each other directly, we have that $A$ and $C$ are conditionally independent given $B$ and $D$ . Similarly, $B$ and $D$ are conditionally independent given $A$ and $C$ . Can we represent this distribution (with these independence properties) using a BN? One attempt is shown in ﬁgure 3.10b. Indeed, it encodes the independence assumption that $(A\ \perp\ C\ |\ \{B, D\})$ . However, it also implies that $B$ and $D$ are independent given only $A$ , but dependent given both $A$ and $C$ . Hence, it fails to provide a perfect map for our target distribution. A second attempt, shown in ﬁgure 3.10c, is equally unsuccessful. It also implies that $(A\perp C\mid\{B, D\})$ , but it also implies that $B$ and $D$ are marginally independent. It is clear that all other candidate BN structures are also ﬂawed, so that this distribution does not have a perfect map. 
+
 ### 3.4.3 Finding Perfect Maps\*
 Earlier we discussed an algorithm for ﬁnding minimal I-maps. We now consider an algorithm for ﬁnding a perfect map (P-map) of a distribution. Because the requirements from a P-map are stronger than the ones we require from an I-map, the algorithm will be more involved. 
 
 Throughout the discussion in this section, we assume that $P$ has a P-map. In other words, there is an unknown DAG $\mathcal{G}^{*}$ that is map of $P$ . Since $\mathcal{G}^{*}$ is a P-map, we will interchangeably refer to independencies in P and in G $\mathcal{G}^{*}$ (since these are the same). We note that the algorithms we describe do fail when they are given a distribution that does not have a P-map. We discuss this issue in more detail later. 
 
-Thus, our goal is to identify $\mathcal{G}^{\ast}$ from $P$ . One obvious difculty hat arises when we consider this goal is that $\mathcal{G}^{*}$ is, in general, not uniquely identiﬁable from P . A P-map of a distribution, if one exists, is generally not unique: As we saw, for example, in ﬁgure 3.5, multiple graphs can encode precisely the same independence assumptions. However, the P-map of a distribution is unique up to I-equivalence between networks. That is, a distribution $P$ can have many P-maps, but all of them are I-equivalent. 
+Thus, our goal is to identify $\mathcal{G}^{\ast}$ from $P$ . One obvious difficulty hat arises when we consider this goal is that $\mathcal{G}^{*}$ is, in general, not uniquely identiﬁable from P . A P-map of a distribution, if one exists, is generally not unique: As we saw, for example, in ﬁgure 3.5, multiple graphs can encode precisely the same independence assumptions. However, the P-map of a distribution is unique up to I-equivalence between networks. That is, a distribution $P$ can have many P-maps, but all of them are I-equivalent. 
 
 If we require that a P-map construction algorithm return a single network, the output we get may be some arbitrary member of the I-equivalence class of $\mathcal{G}^{\ast}$ . A more correct answer would be to return the entire equivalence class, thus avoiding an arbitrary commitment to a possibly incorrect structure. Of course, we do not want our algorithm to return a (possibly very large) set of distinct networks as output. Thus, one of our tasks in this section is to develop a compact representation of an entire equivalence class of DAGs. As we will see later in the book, this representation plays a useful role in other contexts as well. 
 
 This formulation of the problem points us toward a solution. Recall that, according to theorem 3.8, two DAGs are I-equivalent if they share the same skeleton and the same set of immoralities. Thus, we can construct the I-equivalence class for $\mathcal{G}^{\ast}$ by determi ng its skeleton and its immoralities from the independence properties of the given distribution P . We then use both of these components to build a representation of the equivalence class. 
 
 #### 3.4.3.1 Identifying the Undirected Skeleton 
-
 At this stage we want to construct an undirected graph $S$ that contains an edge $X{-}Y$ if $X$ and $Y$ are adjacent in $\mathcal{G}^{\ast}$ ; that is, if either $X\rightarrow Y$ or $Y\rightarrow X$ is an edge in $\mathcal{G}^{\ast}$ . 
 
 The basic ea is to use independence queries of the form $(X\perp Y\mid U)$ for difer sets of variables U . This idea is based on the observation that if X and Y are adjacent in G $\mathcal{G}^{\ast}$ , we cannot separate them with any set of variables. 
@@ -2069,8 +2070,8 @@ The construction is simple. We start with the chain component that contains $X{-
 ## 3.5 Summary 
 In this chapter, we discussed the issue of specifying a high-dimensional joint distribution com- pactly by exploiting its independence properties. We provided two complementary deﬁnitions of a Bayesian network. The ﬁrst is as a directed graph $\mathcal{G}$ , annotated with a set of conditional probability distributions $P (X_{i}\mid\mathrm{Pa}_{X_{i}})$ . The network together with the PDs deﬁne a di ribu- tion via the chain rule for Bayesian networks. In this case, we say that P factorizes over G . We also deﬁned the independence assumptions associated with the graph: the local independencies, the set of basic independence assumptions induced by the network structure; and the larger set of global independencies that are derived from the d-separation criterion. We showed the equivalence of these three f ndamental notions: $P$ facto es over $\mathcal{G}$ if and only if $P$ satisﬁes the local independencies of G , which holds if and only if P satisﬁes the global independencies derived from d-separation. This result shows the equivalence of our two views of a Bayesian network: as a scafolding for factoring a probability distribution $P$ , and as a representation of a set of independence assumptions that hold for $P$ . We also showed that the set of independen- cies derived from d-separation is a complete characterization of the independence properties that are implied by the graph structure alone, rather than by properties of a speciﬁc distribution over $\mathcal{G}$ . 
 > 本章讨论了利用独立性质表示高维度联合分布的问题
-> 我们提供了两个关于贝叶斯网络的互补定义，一个是有向图 $\mathcal G$ 和一系列条件概率分布 $P (X_i \mid \text{Pa}_{X_i})$，另一个是和网络相关的一系列独立性假设：局部独立性，即直接由网络结构推出的独立性假设集合；全局独立性，即由网络的 d-seperation 条件推出的独立性集合
-> 我们说明了三个基本概念的等价：$P$ 根据 $\mathcal G$ 分解当且仅当 $P$ 满足 $\mathcal G$ 的局部独立性，which holds if and only if $P$ 满足从 d-seperation 中推导出的全局独立性
+> 我们提供了两个关于贝叶斯网络的互补定义，一个是有向图 $\mathcal G$ 和一系列条件概率分布 $P (X_i \mid \text{Pa}_{X_i})$，另一个是和网络相关的一系列独立性假设：局部独立性，即直接由网络结构推出的独立性假设集合；全局独立性，即由网络的 d-separation 条件推出的独立性集合
+> 我们说明了三个基本概念的等价：$P$ 根据 $\mathcal G$ 分解当且仅当 $P$ 满足 $\mathcal G$ 的局部独立性，which holds if and only if $P$ 满足从 d-separation 中推导出的全局独立性
 > 因此贝叶斯网络的两个定义是等价的：作为分解 $P$ 的 scaffolding 和作为 $P$ 中保持的一系列独立性假设的表示
 
 We deﬁned a set of basic notions that use the characterization of a graph as a set of indepen- dencies. We deﬁned the notion of a minimal I-map and showed that almost every distribution has multiple minimal I-maps, but that a minimal I-map for $P$ does not necessarily capture all of the independence properties in $P$ . We then deﬁned a more stringent notion of a perfect map , and showed that not every distribution has a perfect map. We deﬁned $I^{,}$ -equivalence , which captures an independence-equivalence relationship between two graphs, one where they specify precisely the same set of independencies. 
@@ -2371,7 +2372,7 @@ Let $\mathcal{H}$ be a Markov network stru $X_{1}\!-\!\ldots\!-\!X_{k}$ a path i
 > 定义：
 > $\mathcal H$ 为 Markov 网络，$X_1-\dots-X_k$ 为 $\mathcal H$ 中的路径，令 $\pmb Z\subseteq \mathcal X$ 为观察到的变量，给定 $\pmb Z$，如果 $X_i, i=1,\dots, k$ 都不在 $\pmb Z$ 中，则路径 $X_1-\dots-X_k$ 是活跃的
 
-Using this notion, we define a notion of seperation in the graph.
+Using this notion, we define a notion of separation in the graph.
 
 **Deﬁnition 4.9** separation
 We say that a set of nodes $Z$ s $X$ $Y$ in $\mathcal{H}$ , noted $\mathrm{sep}_{\mathcal{H}}(X;Y\mid Z).$ , if there is no active path betw n any node $X\in X$ and $Y\in Y$  given Z . We deﬁne the global independencies associated with H to be: 
@@ -2450,7 +2451,7 @@ The preceding discussion shows the soundness of the separation condition as a cr
 > 本节讨论该准则的完备性
 
 As for Bayesian networks, the strong version of completeness does not hold in this setting. In other words, it is not the case that ery pair of nodes $X$ d $Y$ that are not separated in $\mathcal{H}$ are dependent in every distribution $P$ which factorizes over H . However, as in theorem 3.3, we can use a weaker deﬁnition of completeness that does hold: 
-> 对于贝叶斯网络，强完备性成立，也就是说，$\mathcal G$ 没有被分离 (d-seperation) 的两个节点 $X, Y$ 在分解于 $\mathcal G$ 上的分布 $P$ 中一定是依赖的，也就是图中的分离可以检测到分布中所有的独立性
+> 对于贝叶斯网络，强完备性成立，也就是说，$\mathcal G$ 没有被分离 (d-separation) 的两个节点 $X, Y$ 在分解于 $\mathcal G$ 上的分布 $P$ 中一定是依赖的，也就是图中的分离可以检测到分布中所有的独立性
 > （完备性：图中不分离 --> 分布中不独立，对于任意分解于图的分布成立）
 > 但 Markov 网络中，强完备性不成立，也就是说，$\mathcal H$ 中没有被分离的两个节点 $X, Y$ 在分解于 $\mathcal H$ 上的分布 $P$ 中不一定是依赖的，可能是独立的，也就是图中的分离不能检测出分布中所有的独立性
 > Markov 网络中，我们可以定义一种较弱的完备性
@@ -2492,7 +2493,7 @@ Once again, we can view this result as telling us that our deﬁnition of $\math
 When characterizing the independencies in a Bayesian network, we provided two deﬁnitions: the local independencies (each node is independent of its nondescendants given its parents), and the global independencies induced by d-separation. As we showed, these two sets of independencies are equivalent, in that one implies the other. 
 > Bayesian 网络中的独立性被我们分为了两类：
 > - 局部独立性：给定父变量，变量和所有非后继条件独立
-> - 全局独立性：由 d-seperation 推导出的独立性
+> - 全局独立性：由 d-separation 推导出的独立性
 > 这两类独立性实际上等价，也就是可以根据局部独立性的定义推导出网络中的全局独立性，也可以根据全局独立性的定义推导出网络中的局部独立性
 
 So far, our discussion for Markov networks provides only a global criterion. While the global criterion characterizes the entire set of independencies induced by the network structure, a local criterion is also valuable, since it allows us to focus on a smaller set of properties when examining the distribution, signiﬁcantly simplifying the process of ﬁnding an I-map for a distribution $P$ . 
@@ -2593,7 +2594,7 @@ Because $P$ is positive, we can apply the intersection property (equation (2.11)
 > 当 $\pmb X \cup \pmb Z \cup \pmb Y = \mathcal X$，因为 $|\pmb Z | <n-2$，故 $|\pmb X | \ge 2$ 或 $|\pmb Y| \ge 2$
 > 假设 $|\pmb Y | \ge 2$，令 $A\in \pmb Y$，$\pmb Y' = \pmb Y - \{A\}$，
 > 因为 $sep_{\mathcal H}(\pmb X; \pmb Y \mid \pmb Z)$，故显然 $sep_{\mathcal H}(\pmb X; \pmb Y' \mid \pmb Z)$ 和 $sep_{\mathcal H}(\pmb X; A\mid \pmb Z)$ 也成立
-> 因为 seperation 是单调的，故显然 $sep_{\mathcal H}(\pmb X; \pmb Y' \mid \pmb Z\cup \{A\})$ 和 $sep_{\mathcal H}(\pmb X; A\mid \pmb Z\cup \pmb Y')$ 也成立
+> 因为 separation 是单调的，故显然 $sep_{\mathcal H}(\pmb X; \pmb Y' \mid \pmb Z\cup \{A\})$ 和 $sep_{\mathcal H}(\pmb X; A\mid \pmb Z\cup \pmb Y')$ 也成立
 > 而其中的分离集合 $\pmb Z \cup \{A\}$ 和 $\pmb Z \cup \pmb Y$ 的大小都至少是 $|\pmb Z| + 1 =k$，故式4.1成立，也就是  $P\vDash(\pmb X\perp \pmb Y' \mid \pmb Z\cup \{A\})$ 和 $P\vDash(\pmb X\perp A\mid \pmb Z\cup \pmb Y')$ 成立
 > 根据正分布的 intersection 性质，我们可以得到
 > $P\vDash (\pmb X\perp \pmb Y' \cup \{A\} \mid \pmb Z)$，也就是 $P\vDash (\pmb X\perp \pmb Y \mid \pmb Z)$
@@ -3263,17 +3264,17 @@ We note, however, that very few directed graphs are moral. For example, assume t
 
 #### 4.5.1.1 Soundness of d-Separation 
 The connection between Bayesian networks and Markov networks provides us with the tools for proving the soundness of the d-separation criterion in Bayesian networks. 
-> 本节证明贝叶斯网络中 d-seperation 准则的可靠性
+> 本节证明贝叶斯网络中 d-separation 准则的可靠性
 
 The idea behind the proof is to leverage the soundness of separation in undirected graphs, a result which (as we showed) is much easier to prove. Thus, we want to construct an undirected graph $\mathcal{H}$ such that active paths in $\mathcal{H}$ correspond to active paths in $\mathcal{G}$ . A moment of thought shows that the moralized graph is not the right construct, because there are paths in the undirected graph that orr ructu s in $\mathcal{G}$ that may or may not be active. For exa le, if our graph G is $X\rightarrow Z\leftarrow Y$ and Z is ot observed, d-separation tells us that $X$ and $Y$ are independent; but the moralized graph for G is the complete undirected graph, which does not have the same independence. 
-> 证明的思路是利用无向图中 seperation 准则的可靠性
+> 证明的思路是利用无向图中 separation 准则的可靠性
 > 我们希望构造一个无向图 $\mathcal H$，使得 $\mathcal H$ 中的活跃路径和 $\mathcal G$ 中的活跃路径对应
-> 直接使用 moralized graph $\mathcal M[\mathcal G]$ 并不合适，它无法建模 $\mathcal G$ 中的 v-structure $X\rightarrow Z \leftarrow Y$ 中 $Z$ 未被观察到时 $X, Y$ 的边际独立性 (该独立性是可以被 d-seperation 检测到的)
+> 直接使用 moralized graph $\mathcal M[\mathcal G]$ 并不合适，它无法建模 $\mathcal G$ 中的 v-structure $X\rightarrow Z \leftarrow Y$ 中 $Z$ 未被观察到时 $X, Y$ 的边际独立性 (该独立性是可以被 d-separation 检测到的)
 
 Therefore, to show the result, we ﬁrst want to eliminate v-structures that are not active, so as to remove such cases. To do so, we ﬁrst construct a subgraph where remove all barren nodes from the graph, thereby also removing all v-structures that do not have an observed descendant. The elimination of the barren nodes does not change the independence properties of the distribution over the remaining variables, but does eliminate paths in the graph involving v-structures that are not active. If we now consider only the subgraph, we can reduce d-separation to separation and utilize the soundness of separation to show the desired result. 
 >我们首先希望消除那些不活跃的 v-structure
 >为此，我们首先构建一个子图，该子图移除了所有空节点，这也会移除所有没有观测到的后代的 v-structure，移除空节点不会改变剩余变量上的分布的独立性质，但会消除涉及不活跃 v-structure 的路径
->现在只考虑这个子图，我们可以将有向图中的 d-seperation 简化为无向图中的 seperation 并利用 seperation 的可靠性来证明 d-seperation 的可靠性
+>现在只考虑这个子图，我们可以将有向图中的 d-separation 简化为无向图中的 separation 并利用 separation 的可靠性来证明 d-separation 的可靠性
 
 >[!barren node]
 >   
@@ -3289,7 +3290,7 @@ Therefore, to show the result, we ﬁrst want to eliminate v-structures that are
 >移除 barren node 不会对其他节点的分布产生影响，因为 barren node 本身就不影响任何其他节点
 
 We ﬁrst use these intuitions to provide an alternative formulation for d-separation. Recall that in deﬁnition 2.14 we deﬁned the upward closure of a set of nodes $U$ in a graph to be $U\cup$ Ancestors U . Letting $U^{*}$ be the closure of a s $U$ , we can de the network induced over $U^{*}$ ; importantly, as all parents of every node in $U^{*}$ are also in U $U^{*}$ , we have all the variables mentioned in every CPD, so that the induced graph deﬁnes a coherent probability distribution. We let ${\mathcal{G}}^{+}[U]$ be the induced Bayesian network over $U$ and its ancestors. 
-> 首先考虑为 d-seperation 提供另一种表述方式
+> 首先考虑为 d-separation 提供另一种表述方式
 > 在 definition 2.14 中，我们将节点集 $\pmb U$ 的上闭包定义为 $\pmb U \cup Ancestors_{\pmb U}$，我们将其记作 $\pmb U^*$
 > 随后，我们定义在 $\pmb U^*$ 导出的贝叶斯网络，记作 $\mathcal G^+[\pmb U]$ 
 > 因为 $\pmb U^*$ 中的任意节点的所有父节点都在 $\pmb U^*$ 中，因此导出的贝叶斯网络中任意 CPD 相关的变量都在 $\pmb U^*$ 中，导出的贝叶斯网络 $\mathcal G^+[\pmb U]$ 定义了一个一致的概率分布
@@ -3298,11 +3299,11 @@ We ﬁrst use these intuitions to provide an alternative formulation for d-separ
 Let $X,Y,Z$ three disjoint sets of nodes in a Bayesia twork $\mathcal{G}$ . Let $U=X\cup Y\cup Z,$ , and let G $\mathcal{G}^{\prime}=\mathcal{G}^{+}[\boldsymbol{U}]$ G be the induced Bayesian network over $U\cup$ ∪ Ancestors $U$ . Let H be the moralized graph $\mathcal{M}[\mathcal{G}^{\prime}]$ . Then $\operatorname{d-sep}_{\mathcal{G}}(X;Y\mid Z)$ if and only if $\mathrm{sep}_{\mathcal{H}}(X;Y\mid Z)$ . 
 > 命题：
 > $\pmb X, \pmb Y, \pmb Z$ 为 $\mathcal G$ 中三个不相交的节点集，记 $\pmb U = \pmb X \cup \pmb Y \cup \pmb Z$，记 $\pmb U$ 导出的贝叶斯网络为 $\mathcal G' = \mathcal G^+[\pmb U]$，记导出贝叶斯网络的 moral graph 为 $\mathcal H = \mathcal M[\mathcal G']$，则 $\text{d-sep}_{\mathcal G}(\pmb X; \pmb Y\mid \pmb Z)$ 存在当且仅当 $\text{sep}_{\mathcal H}(\pmb X; \pmb Y\mid \pmb Z)$ 存在
-> 也就是贝叶斯网络 $\mathcal G$ 中的 d-seperation 和对应的导出的贝叶斯网络的 moral graph 的 seperation 等价
+> 也就是贝叶斯网络 $\mathcal G$ 中的 d-separation 和对应的导出的贝叶斯网络的 moral graph 的 separation 等价
 
 > 该思想类似于分类讨论
-> 我们不能直接将 $\mathcal G$ 中的 d-seperation 和 $\mathcal M[\mathcal G]$ 中的 seperation 等价，因为 $\mathcal G$ 中的 v-structure 在不给定子节点时编码了条件独立，而 $\mathcal M[\mathcal G]$ 不能表示这一点，因为 $\mathcal M[\mathcal G]$ 无论子节点给定不给定都会将 v-structure 的父节点相连
-> 因此，我们针对每个具体的 d-seperation 定义导出的网络 $\mathcal G'$，如果某个 v-structure 的子节点不给定，则 $\mathcal G'$ 中不会包含该子节点，也就是直接消除了 v-structure，故 $\mathcal M[\mathcal G']$ 自然对应编码了边际独立性
+> 我们不能直接将 $\mathcal G$ 中的 d-separation 和 $\mathcal M[\mathcal G]$ 中的 separation 等价，因为 $\mathcal G$ 中的 v-structure 在不给定子节点时编码了条件独立，而 $\mathcal M[\mathcal G]$ 不能表示这一点，因为 $\mathcal M[\mathcal G]$ 无论子节点给定不给定都会将 v-structure 的父节点相连
+> 因此，我们针对每个具体的 d-separation 定义导出的网络 $\mathcal G'$，如果某个 v-structure 的子节点不给定，则 $\mathcal G'$ 中不会包含该子节点，也就是直接消除了 v-structure，故 $\mathcal M[\mathcal G']$ 自然对应编码了边际独立性
 
 ![[Probabilistic Graph Theory-Fig4.12.png]]
 
@@ -3316,7 +3317,7 @@ With this result, the soundness of $\mathrm{d}$ -separation follows easily. We r
 If a distribution $P_{\mathcal{B}}$ factorizes according to $\mathcal{G}$ , then $\mathcal{G}$ is an $I\cdot$ -map for $P$ . 
 > 定理：
 > 如果分布 $P_{\mathcal B}$ 根据 $\mathcal G$ 分解，则 $\mathcal G$ 是 $P$ 的 I-map
->(可靠性：$\mathcal G$ 中 d-seperation 导出的独立性在 $P$ 中一定存在)
+>(可靠性：$\mathcal G$ 中 d-separation 导出的独立性在 $P$ 中一定存在)
 
 Proof As in proposition 4.1 t $U=X\cup Y\cup Z$ , let $U^{*}=U\cup A n c e s t o r s_{U}$ , let $\mathcal{G}_{U^{\ast}}=\mathcal{G}^{+}[U]$ be the induced graph over $U^{*}$ , and let H be the moralized graph $\mathcal{M}[\mathcal{G}_{U^{*}}]$ . Let $P_{U^{*}}$ be the Ba an network distrib tion deﬁn ver ${\mathcal{G}}_{U^{*}}$ in the obvious way: the CPD for any variable in $U^{*}$ is the same as in B . Because $U^{*}$ is upwardly closed, all variables used in these CPDs are in $U^{*}$ . 
 
@@ -3324,7 +3325,7 @@ Now, consider an independence assertion $(X\,\perp\,Y\,\mid\,Z)\,\in\,{\mathcal{
 > 证明：
 > 令 $\pmb U = \pmb X \cup \pmb Y \cup \pmb Z$，记 $\pmb U^* = \pmb U \cup Ancestors_{\pmb U}$ ，记 $\mathcal G_{\pmb U^*} = \mathcal G^+[\pmb U]$，记 $\mathcal H = \mathcal M[\mathcal G_{\pmb U^*}]$，记 $P_{\pmb U^*}$ 为 $\mathcal G_{\pmb U^*}$ 上定义的分布，定义方式就是 $\mathcal G_{\pmb U^*}$ 中的 CPD 相乘得到，注意 $\mathcal G_{\pmb U^*}$ 中的 CPD 和 $\mathcal B$ 中的对应 CPD 都是一致的 ($\pmb U^*$ 向上封闭，因此包含了所有 CPD 相关的变量)
 > 考虑独立性 $(\pmb X \perp \pmb Y \mid \pmb Z)\in \mathcal I (\mathcal G)$，我们要证明 $P_{\mathcal B}\vDash(\pmb X \perp \pmb Y \mid \pmb Z)$
-> 根据 defintion 3.7，$(\pmb X \perp \pmb Y \mid \pmb Z)\in \mathcal I (\mathcal G)$ 等价于 $\text{d-sep}_{\mathcal G}(\pmb X; \pmb Y \mid \pmb Z)$ ，进而等价于 $\text{sep}_{\mathcal H}(\pmb X; \pmb Y \mid \pmb Z)$，进而等价于 $(\pmb X \perp \pmb Y \mid \pmb Z)\in \mathcal I (\mathcal H)$；而 $P_{\pmb U^*}$ 可以视作分解于 $\mathcal H$ 上的 Gibbs 分布，根据 Markov 网络的 seperation 的可靠性，有 $P_{\pmb U^*}\vDash (\pmb X \perp \pmb Y \mid \pmb Z)$，by exercise 3.8，导出网络中定义的联合分布和原网络中的联合分布是相同的，也就是 $P_{\pmb U^*}(\pmb U^*) = P_{\mathcal B}(\pmb U^*)$，因此 $P_{\pmb U^*}$ 中成立的独立性显然在 $P_{\mathcal B}$ 中也成立，即 $P_{\mathcal B}\vDash(\pmb X \perp \pmb Y \mid \pmb Z)$
+> 根据 defintion 3.7，$(\pmb X \perp \pmb Y \mid \pmb Z)\in \mathcal I (\mathcal G)$ 等价于 $\text{d-sep}_{\mathcal G}(\pmb X; \pmb Y \mid \pmb Z)$ ，进而等价于 $\text{sep}_{\mathcal H}(\pmb X; \pmb Y \mid \pmb Z)$，进而等价于 $(\pmb X \perp \pmb Y \mid \pmb Z)\in \mathcal I (\mathcal H)$；而 $P_{\pmb U^*}$ 可以视作分解于 $\mathcal H$ 上的 Gibbs 分布，根据 Markov 网络的 separation 的可靠性，有 $P_{\pmb U^*}\vDash (\pmb X \perp \pmb Y \mid \pmb Z)$，by exercise 3.8，导出网络中定义的联合分布和原网络中的联合分布是相同的，也就是 $P_{\pmb U^*}(\pmb U^*) = P_{\mathcal B}(\pmb U^*)$，因此 $P_{\pmb U^*}$ 中成立的独立性显然在 $P_{\mathcal B}$ 中也成立，即 $P_{\mathcal B}\vDash(\pmb X \perp \pmb Y \mid \pmb Z)$
 
 > 该证明的思路：独立性在 $\mathcal G$ 中成立 -> 独立性在 $\mathcal H = \mathcal M[\mathcal G^+[\pmb U]]$ 中成立 -> 独立性在 $P_{\pmb U^*}$ 中成立 -> 独立性在 $P_{\mathcal B}$ 中成立
 
@@ -3797,10 +3798,10 @@ But when $A$ and $B$ are observed, then the value of $C$ is also known with cert
 ![[Probabilistic Graph Theory-Algorithm5.1.png]]
 
 In other examples, however, we might need to continue this process. For example, if we had another variable $F$ that was a deterministic function of $C$ , then $F$ is also de facto observed when $C$ is observed, and hence when $A$ and $B$ are observed. Thus, $F$ should also be introduced into $Z$ . Thus, we have to extend $Z$ iteratively to contain all the variables that are determined by it. This discussion suggests the simple procedure shown in algorithm 5.1. 
-> 我们可以稍微修改我们的 d-seperation 算法，例如 $F$ 是 $C$ 的确定性函数时，在 $C$ 被观测到时，$F$ 也应该认为被观测到，因此需要被加入被观测到的变量集合 $\pmb Z$，那么 d-seperation 算法就可以在存在确定性函数的情况下也可以检测到变量之间的条件独立性了
+> 我们可以稍微修改我们的 d-separation 算法，例如 $F$ 是 $C$ 的确定性函数时，在 $C$ 被观测到时，$F$ 也应该认为被观测到，因此需要被加入被观测到的变量集合 $\pmb Z$，那么 d-separation 算法就可以在存在确定性函数的情况下也可以检测到变量之间的条件独立性了
 
 This algorithm provides a procedural deﬁnition for *deterministic separation* of $X$ from $Y$ given $Z$ . This deﬁnition is sound, in the same sense that d-separation is sound. 
-> 该算法提供了 $\pmb X, \pmb Y$ 在给定 $\pmb Z$ 的情况下的 deterministic seperation 的一个过程定义，这个定义是可靠的，和 d-seperation 的可靠性含义一样，也就是 deterministic seperated 的变量保证是条件独立的
+> 该算法提供了 $\pmb X, \pmb Y$ 在给定 $\pmb Z$ 的情况下的 deterministic separation 的一个过程定义，这个定义是可靠的，和 d-separation 的可靠性含义一样，也就是 deterministic seperated 的变量保证是条件独立的
 
 **Theorem 5.1** 
 Let $\mathcal{G}$ be a net k stru re, and let $D,X,Y,Z$ les. If $X$ is deterministica separated $Y$ en Z (as deﬁned by $\cdot_{\mathrm{SEP}}(\mathcal{G},D,X,Y,Z))$ ), then for all distributions P such that $P\vDash\mathcal{Z}_{\ell}(\mathcal{G})$ | I G and where, for each $X\in D$ ∈ , $P(X\mid\mathrm{Pa}_{X})$ | is a deterministic CPD, we have that $P\models(X\bot Y\mid Z)$ ⊥ | . 
@@ -4388,7 +4389,7 @@ $P(Y\mid X_{1},.\,.\,,X_{k})$ be a noisy-or CPD. Then for each $i\neq j$ , $X_{i
 > 对于噪声或 CPD $P (Y\mid X_1,\dots, X_k)$，当 $i\ne j$，$X_i$ 在给定 $Y = y^0$ 的情况下就独立于 $X_j$
 
 The proof is left as an exercise (exercise 5.11). Note that this independence is not derived from the network structure via d-separation: Instantiating $Y$ enables the v-structure between $X_{i}$ and $X_{j}$ , and hence potentially renders them correlated. Furthermore, this independence is context- speciﬁc: it holds only for the speciﬁc value $Y=y^{0}$ . Other deterministic functions are associated with other context-speciﬁc independencies. 
-> 该独立性不能从 d-seperation 中推导出来，而是和上下文 $Y = y^0$ 相关的
+> 该独立性不能从 d-separation 中推导出来，而是和上下文 $Y = y^0$ 相关的
 ## 5.5 Continuous Variables 
 So far, we have restricted attention to discrete variables with ﬁnitely many values. In many situations, some variables are best modeled as taking values in some continuous space. Examples include variables such as position, velocity, temperature, and pressure. Clearly, we cannot use a table representation in this case. One common solution is to circumvent the entire issue by discretizing all continuous variables. Unfortunately, this solution can be problematic in many cases. In order to get a reasonably accurate model, we often have to use a fairly ﬁne discretization, with tens or even hundreds of values. For example, when applying probabilistic models to a robot navigation task, a typical discretization granularity might be 15 centimeters for the $x$ and $y$ coordinates of the robot location. For a reasonably sized environment, each of these variables might have more than a thousand values, leading to more than a million discretized values for the robot’s position. CPDs of this magnitude are outside the range of most systems. 
 
@@ -11669,7 +11670,7 @@ That is, $\tilde{\pmb{\theta}}$ is the maximum of a function that sums together 
 >  也就是说，最优值 $\tilde {\pmb \theta}$ 是能最大化对数似然函数和 $\log P(\pmb \theta)$ 的和的参数，显然后一项就是将参数先验纳入考虑，进而在训练样本较少时将参数估计进行偏置
 >  当训练样本较大时，先验的影响就可以忽略，因为似然函数随着样本数量线性增大，而先验则不变
 
-Because our parameter priors are generally well behaved, MAP estimation is often no harder than maximum likelihood estimation, and is therefore often applicable in practice, even in cases where Bayesian estimation is not. Importantly, however, it does not ofer all of the same beneﬁts as a full Bayesian estimation. In particular, it does not attempt to represent the shape of the posterior and thus does not differentiate between a ﬂat posterior and a sharply peaked one. As such, it does not give us a sense of our conﬁdence in different aspects of the parameters, and the predictions do not average over our uncertainty. This approach also sufers from issues regarding representation independence; see box 17.D. 
+Because our parameter priors are generally well behaved, MAP estimation is often no harder than maximum likelihood estimation, and is therefore often applicable in practice, even in cases where Bayesian estimation is not. Importantly, however, it does not offer all of the same beneﬁts as a full Bayesian estimation. In particular, it does not attempt to represent the shape of the posterior and thus does not differentiate between a ﬂat posterior and a sharply peaked one. As such, it does not give us a sense of our conﬁdence in different aspects of the parameters, and the predictions do not average over our uncertainty. This approach also suffers from issues regarding representation independence; see box 17.D. 
 >  因为我们往往选择性质较好的先验，故极大后验估计一般不会比 MLE 估计难，故在实践中可以使用
 >  但极大后验估计并没有带来贝叶斯估计的全部好处，特别地，它并不尝试表示后验的形状，因此极大后验估计并不会带来关于在平坦的后验和尖峰的后验之间的差异信息，进而它不会告诉我们关于参数的各个值的信心
 
@@ -11785,6 +11786,1303 @@ We also discussed networks where some of the parameters are shared, whether betw
 
 Finally, we examined the theoretical foundations of learning. We saw that parameter estimates are asymptotically correct in the following sense. If the data are actually generated from the given network structure, then, as the number of samples increases, both methods converge to the correct parameter setting. If not, then they converge to the distribution with the given structure that is “closest” to the distribution from which the data were generated. We further analyzed the rate at which the estimates converge. As $M$ grows, we see a concentration phenomenon ; for most samples, the empirical distribution is in a close neighborhood of the true distribution. Thus, the chances of sampling a data set in which the MLE estimates are far from the true parameters decays exponentially with $M$ . This analysis allowed us to provide a PAC-bound on the number of samples needed to obtain a distribution that is “close” to optimal. 
 
+# 18 Structure Learning in Bayesian Networks 
+## 18.1 Introduction 
+### 18.1.1 Problem Deﬁnition 
+In the previous chapter, we examined how to learn the parameters of Bayesian networks. We made a strong assumption that we know in advance the network structure, or at least we decide on one regardless of whether it is correct or not. In this chapter, we consider the task of learning in situations where do not know the structure of the Bayesian network in advance. Throughout this chapter, we continue with the (very) strong assumption that our data set is fully observed, deferring the discussion of learning with partially observed data to the next chapter. 
+>  本章讨论网络结构未知情况下的学习问题
+>  本章仍假设数据是完全观察到的
+
+As in our ion so far, we assume that the data $\mathcal{D}$ are generated IID from an underly distrtion $P^{*}(\mathcal{X})$ . Here, we also assume that $P^{*}$ is induced by som ayesian network $\mathcal{G}^{\ast}$ over X . We begin by considering the extent to which independencies in $\mathcal{G}^{*}$ manifest in D . 
+>  我们假设数据 $\mathcal D$ 从 $P^*(\mathcal X)$ 中 IID 生成， $P^*$ 由某个 $\mathcal X$ 上的 BN $\mathcal G^*$ 导出
+>  我们考虑 $\mathcal G^*$ 中的独立性在 $\mathcal D$ 中展现到何种程度
+
+Example 18.1 
+Consider an experiment where we toss two standard coins $X$ and $Y$ independently. We are given a data set with 100 instances of this experiment. We would like to learn a model for this scenario. A “typical” data set may have 27 head/head, 22 head/tail, 25 tail/head, and 26 tail/tail entries. In the empirical distribution, the two coins are not independent. This may seem reasonable, since the probability of tossing 100 pairs of fair coins and getting exactly 25 outcomes in each category is quite small (approximately $1/1,000)$ . Thus, even if the two coins are independent, we do not expect the observed empirical distribution to satisfy independence. 
+
+Now suppose we get the same results in a very different situation. Say we scan the sports section of our local newspaper for 100 days and choose an article at random each day. We mark $X=x^{1}$ if the word “rain” appears in the article and $X=x^{0}$ otherwise. Similarly, $Y$ denotes whether the word “football” appears in the article. Here our intuitions as to whether the two random variables are independent are unclear. If we get the same empirical counts as in the coins described before, we might suspect that there is some weak connection. In other words, it is hard to be sure whether the true underlying model has an edge between $X$ and $Y$ or not. 
+
+The importance of correctly reconstructing the network structure depends on our learning goal. As we discussed in chapter 16, there are different reasons for learning the model structure. One is for knowledge discovery : by examining the dependencies in the learned network, we can learn the dependency structure relating variables in our domain. Of course, there are other methods that reveal correlations between variables, for example, simple statistical independence tests . A Bayesian network structure, however, reveals much ﬁner structure. For instance, it can potentially distinguish between direct and indirect dependencies, both of which lead to correlations in the resulting distribution. 
+>  正确重构网络结构的重要性取决于我们的学习目标
+>  学习模型结构的一个原因是知识发现，通过检查学习到的网络中的独立性以了解变量之间的独立性
+>  当然统计独立性检验也可以用于学习变量之间的独立性
+
+If our goal is to understand the domain structure, then, clearly, the best answer we can aspire to is recovering $\mathcal{G}^{*}$ . Even here, must be careful. Recall that there can be many perfect maps for a distribution $P^{*}$ : all of th etworks in the same I-equivalence class as $\mathcal{G}^{\ast}$ . All of these are equally good structures for $P^{*}$ , and therefore we cannot distinguish between them based only on the data $D$ . **In other words, $\mathcal{G}^{\ast}$ is not identiﬁable from the data. Thus, the best we can hope for is an algorithm that, asymptotically, recovers $\mathcal{G}^{\ast}\mathbf{\ddot{s}}$ uivalence class.** 
+>  如果目标是理解领域结构，则我们希望恢复 $\mathcal G^*$
+>  注意分布 $P^*$ 的 perfect map 不止一个，和 $\mathcal G^*$ 是 I-euivalence 的都是，它们对于 $P^*$ 都是一样好的结构，故基于数据我们无法区分它们
+>  换句话说，$\mathcal G^*$ 对于数据是不可识别的，故我们的算法只是希望能渐进地恢复 $\mathcal G^*$ 的等价类
+
+Unfortunately, as our example indicate the goal of learning $\mathcal{G}^{*}$ (or an equivalent network) is hard to achieve. The data sampled from $P^{*}$ are noisy and do not reconstruct this distribution perfectly. We cannot detect with complete reliability which independencies are present in the underlying distribution. **Therefore, we must generally make a decision about our willingness to include in our learned model edges about which we are less sure. If we include more of these edges, we will often learn a model that contains spurious edges. If we include fewer edges, we may miss dependencies. Both compromises lead to inaccurate structures that do not reveal the correct underlying structure. The decision of whether it is better to have spurious correlations or spurious independencies depends on the application.** 
+>  从 $P^*$ 的样本是带有噪声的，且不能完美重构分布，我们不能从样本中 100% 确定分布中存在哪些独立性
+>  如果我们在模型中添加了太多边，很可能有些边是虚假的，即添加了额外的相关性，如果太少，则会遗漏独立性
+
+The second and more common reason to learn a network structure is in an attempt to perform density estimation — that is, to estimate a statistical model of the underlying distribution. As we discussed, our goal is to use this model for reasoning about instances that were not in our training data. In other words, we want our network model to generalize to new instances. It seems intuitively reasonable that because $\mathcal{G}^{\ast}$ captures the true dependencies and independencies in the domain, the best generalization will be obtained if we recover the the structure $\mathcal{G}^{*}$ . Moreover, it seems that if we do make mistakes in the structure, it is better to have too many rather than too few edges. With an overly complex structure, we can still capture $P^{*}$ , and thereby represent the true distribution. 
+>  另一个学习网络结构的原因是执行密度估计，即为潜在的分布估计一个统计模型
+>  我们的目标是使用该统计模型为没有在训练集中的实例进行推理，也就是该模型要泛化到新的实例
+>  因为 $\mathcal G^*$ 捕获了领域内的真实独立性和依赖性，故我们获得 $\mathcal G^*$ 就会得到最优的泛化性
+>  另外，相较于边太少，边更多较优，因为模型过于复杂的情况下，仍然有机会捕获 $P^*$，以表示正确的分布，模型过于简单则不然
+
+Unfortunately, the situation is somewhat more complex. Let us go back to our coin example and assume that we had 20 data cases with the following frequencies: 3 head/head, 6 head/tail, 5 tail/head, and 6 tail/tail. We can introduce a spurious correlation between $X$ and $Y$ , which would give us, using maximum likelihood estimation, the parameters $P(X\;=\;H)\;=\;0.45$ , $P(Y\,=\,H\mid\,X\,=\,H)\,=\,1/3$ , and $P(Y\,=\,H\mid\,X\,=\,T)\,=\,5/11$ . On the ot r hand, in the independent structure (with no edge between X and Y ), the parameter of $Y$ would be $P(Y=H)=0.4.$ . All of these parameter estimates are imperfect, of course, but the ones in the more complex model are signiﬁcantly more likely to be skewed, because each is estimated from a much smaller data set. In particular, $P(Y\,=\,H\mid\,X\,=\,H)$ is estimated from a data set of 9 instances, as opposed to 20 for the estimation of $P(Y=H)$ . Recall that the standard deviation of the maximum likelihood estimate behaves as $1/\sqrt{M}$ . Thus, if the coins are fair, the standard deviation of the MLE estimate from 20 samples is approximately 0.11 , while the standard deviation from 9 samples is approximately 0.17 . This example is simply an instance of the *data fragmentation* issue that we discussed in section 17.2.3 in the previous chapter. As we discussed, when we add more parents to the variable $Y$ , the data used to estimate the CPD fragment into more bins, leaving fewer instances in each bin to estimate the parameters and reducing the quality of the estimated parameters. In a table-CPD, the number of bins grows exponentially with the number of parents, so the (statistical) cost of adding a parent can be very large; moreover, because of the exponential growth, the incremental cost of adding a parent grows with the number of parents already there. 
+>  但引入过多的边，所需要学习的参数就多，每个参数一般仅从一个更小的数据集估计，进而参数估计就会更偏斜
+>  注意 MLE 估计的标准差为 $1/\sqrt M$，和样本数量成反比
+>  该例也就是**数据划分**的一个实例，我们之前讨论过，对变量 $Y$ 添加的父变量越多，用于估计其 CPD fragment 的数据就划分得越细，估计的参数的质量进而下降，对于 table-CPD，划分数量是随着父变量数量指数增长的，因此添加一个父变量的统计上开销是非常大的
+
+**Thus, when doing density estimation from limited data, it is often better to prefer a sparser structure. The surprising fact is that this observation applies not only to networks that include spurious edges relative to $\mathcal{G}^{\ast}$ , but also to edges in $\mathcal{G}^{*}$ . That is, we can sometimes learn a better model in term of generalization by learning a structure with fewer edges, even if this structure is incapable of representing the true underlying distribution.** 
+>  因此，从数量受限的数据中估计密度时，反而需要偏好更稀疏的模型
+>  该结论不仅适用于包含了相对于最优网络 $\mathcal G^*$ 多出了虚拟边的网络，还适用于 $\mathcal G^*$ 本身中的边，换句话说，在数据受限的情况下，即便在不拥有最优网络结构 $\mathcal G^*$ 中所有边的情况下，我们反而可以学习到更具泛化能力的模型，即便该模型的结构是没有能力表示真实的潜在分布的
+
+### 18.1.2 Overview of Methods 
+Roughly speaking, there are three approaches to learning without a prespeciﬁed structure. 
+>  无结构下，学习方法有三种
+
+One approach utilizes *constraint-based structure learning* . These approaches view a Bayesian network as a representation of independencies. They try to test for conditional dependence and independence in the data and then to ﬁnd a network (or more precisely an equivalence class of networks) that best explains these dependencies and independencies. Constraint-based methods are quite intuitive: they decouple the problem of ﬁnding structure from the notion of independence, and they follow more closely the deﬁnition of Bayesian network: we have a distribution that satisﬁes a set of independencies, and our goal is to ﬁnd an I-map for this distribution. Unfortunately, these methods can be sensitive to failures in individual independence tests. It suffices that one of these tests return a wrong answer to mislead the network construction procedure. 
+>  一种方法是基于约束的结构学习，该方法将 BN 视作独立性的表示，通过测试护具中的条件依赖和条件独立以寻找能最好解释这些依赖和独立性的网络
+>  基于约束的方法将寻找结构的问题从独立性的概念上分解，且遵循 BN 的定义：分布满足特定独立性，目标是为分布找到 I-map
+>  但这类方法对于独立性测试的失败敏感，一个独立性测试返回错误结果就会误导网络构建过程
+
+The second approach is score-based structure learning . Score-based methods view a Bayesian network as specifying a statistical model and then address learning as a model selection problem. These all operate on the same principle: We deﬁne a hypothesis space of potential models — the set of possible network structures we are willing to consider — and a scoring function that measures how well the model ﬁts the observed data. Our computational task is then to ﬁnd the highest-scoring network structure. The space of Bayesian networks is a combinatorial space, consisting of a super exponential number of structures $-\;2^{O(n^{2})}$ . Therefore, even with a scoring function, it is not clear how one can ﬁnd the highest-scoring network. As we will see, there are very special cases where we can ﬁnd the optimal network. In general, however, the problem is (as usual) $\mathcal{N P}$ -hard, and we resort to heuristic search techniques. Score-based methods consider the whole structure at once; they are therefore less sensitive to individual failures and better at making compromises between the extent to which variables are dependent in the data and the “cost” of adding the edge. The disadvantage of the score-based approaches is that they pose a search problem that may not have an elegant and efficient solution. 
+>  第二种方法是基于分数的结构学习，该方法将 BN 视作指定了一个统计模型，然后用学习解决模型选择问题
+>  该方法基于的原则是：定义潜在模型构成的假设空间和一个评分函数，评分函数度量了模型拟合数据的良好程度，学习任务就是找到分数最高的网络结构
+>  BN 的空间是组合空间，结构的量级是超指数级别 $2^{O(n^2)}$，因此该问题是 NP-hard，需要使用启发式搜索技术
+>  基于分数的方法直接考虑整个结构，因此更不敏感于单个独立性检查的失败，该方法在变量依赖于数据的程度和添加边的开销之间达到平衡，其劣势在于搜索问题难以解决
+
+Finally, the third approach does not attempt to learn a single structure; instead, it generates an ensemble of possible structures. These Bayesian model averaging methods extend the Bayesian reasoning we encountered in the previous chapter and try to average the prediction of all possible structures. Since the number of structures is immense, performing this task seems impossible. For some classes of models this can be done efficiently, and for others we need to resort to approximations. 
+>  第三种方法不学习单个结构，而是生成可能结构的集成，预测时将可能结构的预测平均
+
+## 18.2 Constraint-Based Approaches 
+### 18.2.1 General Framework 
+In constraint-based approaches, we attempt to reconstruct a network structure that best captures the independencies in the domain. In other words, we attempt to ﬁnd the best minimal I-map for the domain. 
+>  基于约束的方法目标是重构能最好地捕获领域中独立性的网络，即找到领域的最优极小 I-map
+
+Recall that in chapter 3 we discussed algorithms for building I-maps and P-maps that assume that we can test for independence statements in the distribution. The algorithms for constraint-based learning are essentially variants of these algorithms. The main technical question is how to answer independence queries. For now, assume that we have some procedure that can answer such queries. That is, for a given distribution $P$ , the learning algorithm can pose a question, such as “Does $P$ satisfy $(X_{1}\;\perp\;X_{2},X_{3}\;\mid\;X_{4})^{*}$ ?” and receive a yes/no answer. The task of the algorithm is to carry out some algorithm that interacts with this procedure and results in a network structure that is the minimal I-map of $P$ . 
+>  第三章中我们讨论了通过测试分布中的独立性声明来构造分布的 I-map 和 P-map，基于约束的方法就是这些方法的变体
+>  其主要问题首先是如何回答独立性查询
+>  假设我们有可以回答对于给定分布的独立性查询的程序，则我们的算法流程就是和该程序交互，得到作为 $P$ 的极小 I-map 的网络
+
+We have already seen such an algorithm in chapter 3: Build-Minimal-I-Map constructs a minimal $I^{,}$ -map given a ﬁxed ordering. For each variable $X_{i}.$ , it then searches for the minimal subset of $X_{1},\dots,X_{i-1}$ that render $X_{i}$ independent of the others. This algorithm was useful in illustrating the deﬁnition of an I-map, but it suffers from several drawbacks in the context of learning. First, the input order over variables can have a serious impact on the complexity of the network we ﬁnd. Second, in learning the parents of $X_{i}$ , this algorithm poses independence queries of the form $(X_{i}\perp\{X_{1},.\,.\,.\,,X_{i-1}\}-U\mid U)$ . These conditional independence statements involve a large number of variables. Although we do not assume much about the independence testing procedure, we do realize that independence statements with many variables are much more problematic to resolve from empirical data. Finally, Build-Minimal-I-Map performs a large number of queries. For determining the parents of $X_{i}$ , it must, in principle, examine all the $2^{i-1}$ possible subsets of $X_{1},\dots,X_{i-1}$ . 
+>  第三章的 Build-Minimal-I-Map 算法接受给定的顺序，构造极小 I-map，对于每个变量 $X_i$，该算法搜索使得 $X_i$ 独立于所有其他变量的 $X_1, \dots, X_{i-1}$ 的极小子集
+>  该算法的缺陷为：输入顺序会影响构造的网络的复杂度；在学习 $X_i$ 的父变量是什么时，该该算法需要对分布进行形式为 $(X_i \perp \{X_1, \dots, X_{i-1}\} - \pmb U \mid \pmb U)$ 的独立性查询，该查询涉及的变量较多；该算法需要执行的查询数量过多，例如在决定 $X_i$ 的夫变量是什么时，原则上需要检查 $\{X_1, \dots, X_{i-1}\}$ 的全部 $2^{i-1}$ 个子集
+
+To avoid these problems, we learn an I-equivalence class rather than a single network, and we use a class PDAG to represent this class. The algorithm that we use is a variant of the Build-PDAG procedure of algorithm 3.5. As we discuss, this algorithm reconstructs the network that best matches the domain without a prespeciﬁed order and uses only a polynomial number of independence tests that involve a bounded number of variables. 
+>  要避免这些问题，我们学习一个 I-equivalence 类而不是单个网络，该类用 PDAG 表示，我们得到变体算法 Build-PDAG
+>  该算法不需要接受预先指定的顺序，且对于某个变量仅执行多项式次数的独立性检测，独立性检测涉及的变量数量也是有界的
+
+To achieve these performance guarantees, we must make some assumptions: 
+
+- The network $\mathcal{G}^{*}$ has bounded indegree, that is, for all $i$ , $|\mathrm{Pa}_{X_{i}}^{\mathcal{G}^{\ast}}|\leq d$ for some constant $d$ .
+- The independence procedure can perfectly answer any independence query that involves up to $2d+2$ variables.
+- The underlying distribution $P^{*}$ is faithful to $\mathcal{G}^{*}$ , as in deﬁnition 3.8. 
+
+>  为此，该算法需要以上三个假设成立
+>  - $\mathcal G^*$ 的入度有限，也就是网络中任意变量的父变量数量都小于某个常数 $d$
+>  - 算法调用的独立性查询过程可以完美回答涉及 $2d+2$ 个变量 (或以下) 的任意独立性查询
+>  - $P^*$ 忠于 $\mathcal G^*$ ($P^*$ 中的任意独立性都在 $\mathcal G^*$ 中的 d-separation 中得到反映，也就是 $\mathcal G^*$ 中的 d-separation 满足完整性)
+
+The ﬁrst assumption states the boundaries of when we expect the algorithm to work. If the network is simple in this sense, the algorithm will be able to learn it from the data. If the network is more complex, then we cannot hope to learn it with “small” independence queries that involve only a few variables. 
+>  第一个假设约束了网络复杂度，过于复杂的网络难以从仅涉及 “少量” 变量的独立性查询中学习
+
+The second assumption is stronger, since it requires that the oracle can deal with queries up to a certain size. The learning algorithm does not depend on how the these queries are answered. They might be answered by performing a statistical test for conditional dependence on a training data, or by an active mechanism that gathers more samples until it can reach a signiﬁcant conclusion about this relations. We discuss how to construct such an oracle in more detail later in this chapter. Note that the oracle can also be a human expert who helps in constructing a model of the network. 
+>  第二个假设要求独立性查询程序能处理特定大小的查询
+>  学习算法不依赖于独立性查询程序如何执行独立性查询，程序可以为训练数据中的条件独立性执行统计测试，或收集更多样本直到获取关于某个关联性的显著性结论，或者是人类专家
+
+The third assumption is the strongest. It is required to ensure that the algorithm is not misled by spurious independencies that are not an artifact of the oracle but rather exist in the domain. By requiring that $\mathcal{G}^{*}$ is a perfect map of $P^{*}$ , we rule out quite a few situations, for example, the (noisy) XOR example of example 3.6, and various cases where additional independencies arise from structure in the CPDs. 
+
+Once we make these assumptions, the setting is precisely the one we tackled in section 3.4.3. Thus, given an oracle that can answer independence statements perfectly, we can now simply apply Build-PMap-Skeleton . Of course, determining independencies from the data is not a trivial problem, and the answers are rarely guaranteed to be perfect in practice. We will return to these important questions. For the moment, we focus on analyzing the number of independence queries that we need to answer, and thereby the complexity of the algorithm. 
+>  在满足这些假设且具有能够完美回答独立性声明的程序时，Build-PMap-Skeleton 算法就可以构造网络
+
+Recall that, in the construction of perfect maps, we perform independence queries only in the Build-PMAP-Skeleton procedure, when we search for a witness to the separation between every pair of variables. These witnesses are also used within Mark-Immoralities to determine whether the two parents in a v-structure are conditionally independent. According to lemma 3.2, if $X$ and $Y$ are not adjacent i $\mathcal{G}^{\ast}$ , then either $\mathrm{Pa}_{X}^{\mathcal{G}^{\ast}}$ or $\mathrm{Pa}_{Y}^{\mathcal{G}^{\ast}}$ is a witness set. If we assume that $\mathcal{G}^{\ast}$ has indegree of at most d , we can therefore limit our attention to witness sets of size at most $d$ . Thus, the number of independence queries in this step is polynomial in $n$ , the number of variables. Of course, this number is exponential in $d$ , but we assume that $d$ is a ﬁxed constant throughout the analysis. 
+
+Thus, given our assumptions, we can perform a variant of Build-PDAG that performs a polynomial number of independence tests. We can also check all other operations; that is, applying the edge orientation rules, we can also require a polynomial number of steps. Thus, the procedure is polynomial in the number of variables. 
+
+### 18.2.2 Independence Tests 
+The only remaining question is how to answer queries about conditional independencies between variables in the data. As one might expect, this question has been extensively studied in the statistics literature. We brieﬂy touch on some of the issues and outline one commonly-used methodology to answer this question. 
+>  接下来的问题就是如何回答关于数据的条件独立性查询
+
+The basic query of this type is to determine whether two variables are independent. As in the example in the introduction to this chapter, we are given joint samples of two variables $X$ and $Y$ , and we want to determine whether $X$ and $Y$ are independent. This basic question is often referred to as hypothesis testing . 
+>  最基础的查询是决定两个变量是否独立，这是一个假设检验问题
+
+#### 18.2.2.1 Single-Sided Hypothesis Tests 
+In hypothesis testing, we have a base hypothesis that is usually denoted by $H_{0}$ and is referred to as the null hypothesis . In the particular case of the independence test, the null hypothesis is “the data were sampled from a distribution $P^{*}(X,Y)\,=\,P^{*}(X)P^{*}(Y)$ .” Note that this assumption states that the data were sampled from a particular distribution in which $X$ and $Y$ are independent. In real life, we do not have access to $P^{*}(X)$ and $P^{*}(Y)$ . As a substitute, we use $\hat{P}(\dot{X})$ and ${\hat{P}}(Y)$ as our best approximation for this distribution. Thus, we usually form $H_{0}$ as the assumption that $P^{*}(X,Y)\stackrel{\cdot\cdot}{=}\hat{P}(X)\hat{P}(Y)$ . 
+>  假设检验中，零假设记作 $H_0$ 
+>  查询独立性时，零假设一般为 “数据是从分布 $P^*(X, Y) = P^*(X) P^*(Y)$ 中采样的”
+>  实践中一般无法获得真实分布 $P^*$，故使用 $\hat P(X), \hat P(Y)$ 表示我们对真实分布的最优近似，此时零假设一般为 “数据是从分布 "$\hat P(X, Y)  = \hat P(X) \hat P(Y)$ 中采样得到的"
+
+We want to test whether the data conform to this hypothesis. More precisely, we want to ﬁnd a procedure that we will call a decision rule that will take as input a data set $\mathcal{D}$ , and return a verdict, either Accept or Reject. We will denote the function the procedure computes to be $R(\mathcal{D})$ . If $R(\mathcal D)=\mathrm{Accept}$ , then we consider that the data satisfy e hypothesis. In our case, that would mean that we believe that the data were sampled from $P^{*}$ and that the two variables are independent. Otherwise, we decide to reject the hypothesis, which in our case would imply that the variables are dependent. 
+>  我们要检验数据是否服从该假设
+
+The question is then, of course, how to choose a “good” decision rule. A liberal decision rule that accepts many data sets runs the risk of accepting ones that do not satisfy the hypothesis. A conservative rule that rejects many data sets runs the risk of rejecting many that satisfy the hypothesis. The common approach to evaluating a decision rule is analyze the probability of false rejection. Suppose we have access to the distribution $P(\mathcal{D}:H_{0},M)$ of data sets of $M$ instances given the null hypothesis. That is, we can evaluate the probability of seeing each particular data set if the hypothesis happens to be correct. In our case, since the hypothesis speciﬁes the distribution $P^{*}$ , this distribution is just the probability of sampling the particular instances in the data set (we assume that the size of the data set is known in advance). 
+>  因此我们需要考虑如何决策和判定数据是否服从假设
+>  评估一个决策 $R(\mathcal D)$ 的常用方法是分析其错误拒绝概率
+
+If we have access to this distribution, we can compute the probability of false rejection: 
+
+$$
+P(\{\mathcal{D}:R(\mathcal{D})=\mathrm{Re}\mathrm{ject}\}\mid H_{0},M).
+$$
+
+Then we can say that a decision rule $R$ has a probability of false rejection $p$ . We often refer to $1-p$ as the conﬁdence in the decision to reject an hypothesis. 
+
+>  假设零假设 $H_0$ 成立的情况下，采集得到的 $M$ 个样本集合 $\mathcal D$ 上的分布中，决策 $R(\mathcal D)$ 的结果是 Reject (即拒绝零假设成立) 的概率就是错误该决策的错误拒绝率 (错误地拒绝了零假设，即决策犯错)
+>  此时称决策规则 $R$ 有 $p$ 的错误拒绝概率，我们称 $1-p$ 为决策拒绝假设的信心
+
+At this point we cannot evaluate the probability of false acceptances. Since we are not willing to assume a concrete distribution on data sets that violate $H_{0}$ , we cannot quantify this probability. For this reason, the decision is not symmetric. That is, rejecting the hypothesis $^{\circ}X$ and $Y$ are independent” is not the same as accepting the hypothesis $^(X$ and $Y$ are dependent.” In particular, to deﬁne the latter hypothesis we need to specify a distribution over data sets. 
+>  我们在不考虑零假设不成立条件下的分布时，无法评估决策的错误接受概率
+>  故决策不是对称的，也就是拒绝假设 "$X$ 和 $Y$ 独立" 不等价于接受假设 "$X$ 和 $Y$ 依赖"
+
+#### 18.2.2.2 Deviance Measures 
+The preceding discussion suggests how to evaluate decision rules. Yet, it leaves open the question of how to design such a rule. A standard framework for this question is to deﬁne a measure of deviance from the null hypothesis. Such a measure $d$ is a function from possible data sets to the real line. Intuitively, large value of $d(\mathcal{D})$ implies that $\mathcal{D}$ is far away from the null hypothesis. 
+>  上一节讨论了如何评估决策规则
+>  本节讨论如何涉及决策规则
+>  一个标准框架是定义衡量从零假设偏移程度的度量 $d$，$d$ 是衡量可能数据集和真实情况的距离的函数，直观上，如果 $d(\mathcal D)$ 很大，则表明 $\mathcal D$ 离零假设很远
+
+To consider a concrete example, suppose we have discrete-valued, independent random variables $X$ and $Y$ . Typically, we expect that the counts $M[x,y]$ in the data are close to $M\cdot\hat{P}(x)\cdot\hat{P}(y)$ · (where $M$ is the number of samples). This is the expected value of the count, and, as we know, deviances from this value are improbable for large $M$ . Based on this intuition, we can measure the deviance of the data from $H_{0}$ in terms of these distances. A common measure of this type is the $\chi^{2}$ statistic : 
+
+$$
+d_{\chi^{2}}(\mathcal{D})=\sum_{x,y}\frac{(M[x,y]-M\cdot\hat{P}(x)\cdot\hat{P}(y))^{2}}{M\cdot\hat{P}(x)\cdot\hat{P}(y)}.
+$$ 
+A data set that perfectly ﬁts the independence assumption has $d_{\chi^{2}}(\mathcal{D})=0$ , and a data set where the empirical and expected counts diverge signiﬁcantly has a larger value. 
+
+>  卡方统计量衡量了经验计数和期望计数的偏差
+>  对于大的 $M$，能满足 $X, Y$ 的独立性假设的数据集的卡方统计量将为零，因为其经验计数 $M[x, y]$ 将匹配期望计数 $M\cdot \hat P(x)\cdot \hat P(y)$
+>  如果数据集的经验计数不匹配期望计数，则卡方统计量就会很大
+
+Another potential deviance measure for the same hypothesis is the mutual information $I_{\hat{P}_{\mathsf{D}}}(X;Y)$ in the empirical distribution deﬁned by the data set $\mathcal{D}$ . In terms of counts, this can be written as 
+
+$$
+d_{I}\!\left(\mathcal{D}\right)=I_{\hat{P}_{\mathsf{D}}}(X;Y)=\sum_{x,y}\frac{M[x,y]}{M}\log\frac{M[x,y]/M}{M[x]/M\cdot M[y]/M}.
+$$ 
+In fact, these two deviance measures are closely related to each other; see exercise 18.1. 
+
+>  数据集 $\mathcal D$ 定义的经验分布上，$X, Y$ 的互信息也可以用于度量和假设的偏差
+
+Once we agree on a deviance measure $d$ (say the $\chi^{2}$ statistic or the empirical mutual information), we can devise a rule for testing whether we want to accept the hypothesis 
+
+$$
+R_{d,t}(\mathcal{D})=\left\{\begin{array}{l l}{\mathrm{accept}}&{d(\mathcal{D})\leq t}\\ {\mathrm{Reject}}&{d(\mathcal{D})>t.}\end{array}\right.
+$$ 
+This rule accepts the hypothesis if the deviance is small (less than the predetermined threshold $t)$ and rejects the hypothesis if the deviance is large. 
+
+>  我们基于偏差度量设计决策规则，以阈值 $t$ 为界，当偏差度量小于阈值，就接受假设，否则拒绝假设
+
+The choice of threshold $t$ determines the false rejection probability of the decision rule. The computational problem is to compute the false rejection probability for different values of $t$ . This value is called the $p$ -value of $t$ : 
+
+$$
+\operatorname{p-value}(t)=P(\{{\mathcal{D}}:d({\mathcal{D}})>t\}\mid H_{0},M).
+$$ 
+>  阈值 $t$ 的选择决定了该决策规则的错误拒绝概率，决策规则的错误拒绝概率就是观察数据的偏差大于阈值 $t$ 的概率，此时该决策规则的错误拒绝概率也称为 $t$ 的 p-value
+
+#### 18.2.2.3 Testing for Independence 
+Using the tools we developed so far, we can reexamine the independence test. The basic tool we use is a test to reject the null hypothesis that distribution of $X$ and $Y$ is the one we would estimate if we assume that they are independent. The typical signiﬁcance level we use is 95 percent. That is, we reject the null hypothesis if the deviance in the observed data has $\mathrm{p}$ -value of 0.05 or less. 
+>  至此，考虑执行假设检验
+>  我们选择显著性水平为 95% 显著，即如果观察数据的偏差大于阈值的概率 (p-value) 小于 0.05
+
+If we want to test the independence of discrete categorical variables, we usually use the $\chi^{2}$ statistic or the mutual information. The null hypothesis is that $P^{*}(X,Y)=\hat{P}(X)\hat{P}(Y)$ . 
+>  测试离散类别变量的独立性时，一般使用卡方统计量或互信息，零假设为二者独立
+
+We start by considering how to perform an exact test . The deﬁnition of $p$ -value requires summing over all possible data sets. In fact, since we care only about the sufficient statistics of $X$ and $Y$ in the data set, we can sum over the smaller space of different sufficient statistics vectors. Sup se w have $M$ samples; we deﬁne the space $\mathcal{C}_{X,Y}^{M}$ to be the set of all empirical counts over X and Y $Y$ , we might observe in a data set with M samples. Then we write 
+
+$$
+\mathrm{p-value}(t)=\sum_{C[X,Y]\in{\mathcal{C}}_{\times,\mathbb{Y}}^{\mathbb{M}}}{\mathbf{I}}\{d(C[X,Y])>t\}P(C[X,Y]\mid H_{0},M),
+$$
+
+where $d(C[X,Y])$ is the deviance measure (that is, $\chi^{2}$ or mutual information) computed with the counts $C[X,Y]$ , and 
+
+$$
+P(C[X,Y]\mid H_{0},M)=M!\prod_{x,y}{\frac{1}{C[x,y]!}}P(x,y\mid H_{0})^{C[x,y]}
+$$ 
+is the probability of seeing a data set with these counts given $H_{0}$ ; see exercise 18.2. 
+
+This exact approach enumerates through all data sets. This is clearly infeasible except for small values of $M$ . A more common approach is to examine the asymptotic distribution of $M[x,y]$ under the null hypothesis. Since this count is a sum of binary indicator variables, its distribution is approximately normal when $M$ is large enough. Statistical theory develops the asymptotic distribution of the deviance measure under the null hypothesis. For the $\chi^{2}$ statistic, this distribution is called the $\chi^{2}$ distribution . We can use the tail probability of this distribution to approximate $p$ -values for independence tests. Numerical procedures for such computations are part of most standard statistical packages. 
+
+A natural extension of this test exists for testing conditional independence. Suppose we want to test whether $X$ and $Y$ are independent given $Z$ . Then, $H_{0}$ is that $P^{*}(X,Y,Z)\,=$ ${\hat{P}}(Z){\hat{P}}(X\mid Z){\hat{P}}(Y\mid Z)$ | | , and the $\chi^{2}$ statistic is 
+
+$$
+d_{\chi^{2}}(\mathcal{D})=\sum_{x,y,z}\frac{(M[x,y,z]-M\cdot\hat{P}(z)\hat{P}(x\mid z)\hat{P}(y\mid z))^{2}}{M\cdot\hat{P}(z)\hat{P}(x\mid z)\hat{P}(y\mid z)}.
+$$
+
+This formula extends easily to conditioning on a set of variables $Z$ . 
+
+#### 18.2.2.4 Building Networks 
+We now return to the problem of learning network structure. With the methods we just discussed, we can evaluate independence queries in the Build-PDAG procedure, so that whenever the test rejects the null hypothesis we treat the variables as dependent. One must realize, however, that these tests are not perfect. Thus, we run the risk of making wrong decisions on some of the queries. In particular, if we use signiﬁcance level of 95 percent, then we expect that on average 1 in 20 rejections is wrong. When testing a large number of hypotheses, a scenario called multiple hypothesis testing , the number of incorrect conclusions can grow large, reducing our ability to reconstruct the correct network. We can try to reduce this number by taking stricter signiﬁcance levels (see exercise 18.3). This, however, runs the risk of making more errors of the opposite type. 
+
+In conclusion, we have to be aware that some of the independence tests results can be wrong. The procedure Build-PDAG can be sensitive to such errors. In particular, one misleading independence test result can produce multiple errors in the resulting PDAG (see exercise 18.4). When we have relatively few variables and large sample size (and “strong” dependencies among variables), the reconstruction algorithm we described here is efficient and often manages to ﬁnd a structure that is quite close to the correct structure. When the independence test results are less pronounced, the constraint-based approach can run into trouble. 
+
+## 18.3 Structure Scores 
+As discussed earlier, score-based methods approach the problem of structure learning as an optimization problem. We deﬁne a score function that can score each candidate structure with respect to the training data, and then search for a high-scoring structure. As can be expected, one of the most important decisions we must make in this framework is the choice of scoring function. In this section, we discuss two of the most obvious choices. 
+>  基于分数的方法将结构学习表示为优化问题
+>  我们定义评分函数，相对于训练数据，为每个候选结构打分
+>  本节讨论两种评分函数的选择
+
+### 18.3.1 Likelihood Scores 
+#### 18.3.1.1 Maximum Likelihood Parameters 
+A natural choice for scoring function is the likelihood function, which we used for parameter estimation. Recall that this function measures the probability of the data given a model. Thus, it seems intuitive to ﬁnd a model that would make the data as probable as possible. 
+>  似然函数度量了给定模型数据的出现可能性，直观上，适合用于找到使得观察数据出现可能性最大的模型
+
+Assume that we want to maximize the likelihood of the model. In this case, our model is a pair $\langle\mathcal{G},\theta_{\mathcal{G}}\rangle$ . Our goal is to ﬁnd both a graph $\mathcal{G}$ and parameters $\theta_{\mathcal{G}}$ that maximize the likelihood. 
+>  考虑极大化模型的似然，此时模型实际上是结构和参数对 $\langle \mathcal G, \pmb \theta_{\mathcal G} \rangle$，我们的目标是找到极大化数据集似然的图 $\mathcal G$，和参数 $\pmb \theta_{\mathcal G}$
+
+In the previous chapter, we determined how to maximize the likelihood for a given structure $\mathcal{G}$ . We simply use the maximum likelihood parameters $\hat{\boldsymbol{\theta}}_{\mathcal{G}}$ for that graph. A simple analysis now shows that: 
+
+$$
+\begin{array}{r c l}{\underset{\mathcal{G},\theta_{\mathcal{G}}}{\operatorname*{max}}\,L(\langle\mathcal{G},\theta_{\mathcal{G}}\rangle:\mathcal{D})}&{=}&{\underset{\mathcal{G}}{\operatorname*{max}}[\underset{\theta_{\mathcal{G}}}{\operatorname*{max}}\,L(\langle\mathcal{G},\theta_{\mathcal{G}}\rangle:\mathcal{D})]}\\ &{=}&{\underset{\mathcal{G}}{\operatorname*{max}}[L(\langle\mathcal{G},\hat{\theta}_{\mathcal{G}}\rangle:\mathcal{D})].}\end{array}
+$$ 
+In other words, to ﬁnd the maximum likelihood $({\mathcal{G}},{\boldsymbol{\theta}}_{\mathcal{G}})$ pair, we should ﬁnd the graph structure $\mathcal{G}$ that achieves the highest likelihood when we use the MLE parameters for $\mathcal{G}$ . We deﬁne: 
+
+$$
+\begin{array}{r}{\mathrm{score}_{L}(\mathcal{G}\ :\ \mathcal{D})=\ell(\hat{\pmb{\theta}}_{\mathcal{G}}:\mathcal{D}),}\end{array}
+$$ 
+where $\ell(\hat{\pmb{\theta}}_{\mathcal{G}}:\mathcal{D})$ is the logarithm of the likelihood function and $\hat{\boldsymbol{\theta}}_{\mathcal{G}}$ are the maximum likelihood parameters for $\mathcal{G}$ . (As usual, it will be easier to deal with the logarithm of the likelihood.) 
+
+>  对于一个给定的 $\mathcal G$ ，能最大化似然的参数就是其 MLE 估计 $\hat {\pmb \theta}_{\mathcal G}$
+>  故我们应该找到一个 $\mathcal G$，能够在其 MLE 参数 $\hat {\pmb \theta}_{\mathcal G}$ 下极大化数据集似然
+>  我们定义 $\mathcal G$ 相对于数据集 $\mathcal D$ 的似然分数为数据集相对于它的极大似然参数 $\hat {\pmb \theta}_{\mathcal G}$ 的对数似然
+
+#### 18.3.1.2 Information-Theoretic Interpretation 
+To get a better intuition of the likelihood score, let us consider the scenario of example 18.1. Consider the model $\mathcal{G}_{0}$ where $X$ and $Y$ are independent. In this case, we get 
+
+$$
+\mathrm{score}_{L}({\mathcal{G}}_{0}\ :\ {\mathcal{D}})=\sum_{m}\log{\hat{\theta}}_{x[m]}+\log{\hat{\theta}}_{y[m]}.
+$$ 
+On the other hand, we can consider the model $G_{1}$ where there is an arc $X~\rightarrow~Y$ . The log-likelihood for this model is 
+
+$$
+\mathrm{score}_{L}(\mathcal{G}_{1}\ :\ \mathcal{D})=\sum_{m}\log\hat{\theta}_{x[m]}+\log\hat{\theta}_{y[m]|x[m]},
+$$
+
+where $\hat{\theta}_{x}$ is again the maximum likelihood estimate for $P(x)$ , and ${\hat{\theta}}_{y\mid x}$ is the maximum likelihood estimate for $P(y\mid x)$ . 
+
+>  考虑两个简单的模型结构：$X, Y$ 独立和 $X\rightarrow Y$，它们的似然评分如上所示
+
+We see that the score of two models share a common component (the terms of the form $\log{\hat{\theta}_{x}})$ ). Thus, we can write the difference between the two scores as 
+
+$$
+\mathrm{score}_{L}(\mathcal G_{1}\ :\ \mathcal D)-\mathrm{score}_{L}(\mathcal G_{0}\ :\ \mathcal D)=\sum_{m}\log\hat{\theta}_{y[m]|x[m]}-\log\hat{\theta}_{y[m]}.
+$$
+
+By counting how many times each conditional probability parameter appears in this term, we can write this sum as: 
+
+$$
+\mathrm{score}_{L}(\mathcal G_{1}\ :\ \mathcal D)-\mathrm{score}_{L}(\mathcal G_{0}\ :\ \mathcal D)=\sum_{x,y}M[x,y]\log\widehat{\theta}_{y|x}-\sum_{y}M[y]\log\widehat{\theta}_{y}.
+$$ 
+>  二者的差消去了共同项 $\log \hat \theta_x$
+>  我们根据 $x, y$ 的具体取值重写和式如上
+
+Let $\hat{P}$ be the empirical distribution observed in the data; that is, $\hat{P}(x,y)$ is simply the empirical frequency of $x,y$ in $D$ . Then, we can write $M[x,y]\,=\,M\cdot\hat{P}(x,y)$ , and $\bar{M}[y]\,=\,\bar{M}\hat{P}(y)$ . Moreover, it is easy to check that ${\hat{\theta}}_{y\mid x}={\hat{P}}(y\mid x)$ , and that $\hat{\theta}_{y}=\hat{P}(y)$ . We get:
+
+$$
+\mathrm{score}_{L}(\mathcal G_{1}\ :\ \mathcal D)-\mathrm{score}_{L}(\mathcal G_{0}\ :\ \mathcal D)=M\sum_{x,y}\hat{P}(x,y)\log\frac{\hat{P}(y\mid x)}{\hat{P}(y)}=M\cdot\pmb{I}_{\hat{P}}(X;Y).
+$$ 
+where $I_{\hat{P}}(X;Y)$ is the mutual information between $X$ and $Y$ in the distribution $\hat{P}$ . 
+
+>  令 $\hat P$ 为数据集定义的经验分布，将和式中的各项替换为和 $\hat P$ 相关的项，将原始写为了 $\hat P$ 中 $X, Y$ 的互信息的形式
+
+We see that the likelihood of the model $\mathcal{G}_{1}$ depends on the mutual information between $X$ and Y . Recall that higher mutual information implies stronger dependency. Thus, stronger dependency implies stronger preference for the model where $X$ and $Y$ depend on each other. 
+>  因此，模型 $\mathcal G_1$ 的似然分数依赖于 $X, Y$ 之间的互信息
+>  互信息越高表示了越强的相关性，故更强的依赖性就表示了对于 $X, Y$ 互相依赖的模型的偏好 (数据集中，依赖性强，互信息就高，进而 $X, Y$ 相互依赖的模型的似然分数就高)
+
+Can we generalize this information-theoretic formulation of the maximum likelihood score to general network structures? Going through a similar arithmetic transformations, we can prove the following result. 
+
+**Proposition 18.1** 
+The likelihood score decomposes as follows: 
+
+$$
+\mathrm{score}_{L}(\mathcal G\ :\ \mathcal D)=M\sum_{i=1}^{n}I_{\hat{P}}(X_{i};\mathrm{Pa}_{X_{i}}^{\mathcal G})-M\sum_{i=1}^{n}H_{\hat{P}}(X_{i}).\tag{18.4}
+$$
+
+>  命题
+>  模型的似然分数如上分解
+>  可以发现它和 $X_i$ 和模型中 $X_i$ 的父变量在 $\hat P$ 中的互信息和 $X_i$ 在 $\hat P$ 中的熵的差相关
+
+Proof We have already seen that by combining all the occurrences of each parameter $\theta_{x_{i}\mid u}$ , we can rewrite the log-likelihood function as 
+
+$$
+\ell(\hat{\pmb\theta}_{\mathcal{G}}:\mathcal{D})=\sum_{i=1}^{n}\left[\sum_{\pmb{u}_{i}\in V a l(\mathrm{Pa}_{X_{i}}^{\mathcal{G}})}\sum_{x_{i}}M[x_{i},\pmb{u}_{i}]\log\hat{\theta}_{x_{i}|\pmb{u}_{i}}\right].
+$$ 
+>  证明
+>  我们首先将对数似然函数按照 CPD 和 CPD 父变量的取值分解，外部的求和是关于变量 $X_i$ 的求和，内部的求和是关于 $X_i$ 的父变量取值 $\pmb u_i$ 和 $X_i$ 的取值 $x_i$ 的求和
+
+Consider one of the terms in the square brackets, and let $\pmb U_{i}=\mathrm{Pa}_{X_{i}}$ 
+
+$$
+\begin{align}&{\displaystyle\frac{1}{M}\displaystyle\sum_{u_{i}}\sum_{x_{i}}M[x_{i},{\mathbf{u}}_{i}]\log\hat{\theta}_{x_{i}|{\mathbf{u}}_{i}}}\\ {=}&{\displaystyle\sum_{u_{i}}\sum_{x_{i}}\hat{P}(x_{i},{\mathbf{u}}_{i})\log\hat{P}(x_{i}\mid{\mathbf{u}}_{i})}\\ {=}&{\displaystyle\sum_{u_{i}}\sum_{x_{i}}\hat{P}(x_{i},{\mathbf{u}}_{i})\log\left(\frac{\hat{P}(x_{i},{\mathbf{u}}_{i})}{\hat{P}(u_{i})}\frac{\hat{P}(x_{i})}{\hat{P}(x_{i})}\right)}\\ {=}&{\displaystyle\sum_{u_{i}}\sum_{x_{i}}\hat{P}(x_{i},{\mathbf{u}}_{i})\log\frac{\hat{P}(x_{i},{\mathbf{u}}_{i})}{\hat{P}(u_{i})\hat{P}(x_{i})}+\displaystyle\sum_{x_{i}}\left(\sum_{u_{i}}\hat{P}(x_{i},{\mathbf{u}}_{i})\right)\log\hat{P}(x_{i})}\\ {=}&{I_{P}(X_{i};U_{i})-\displaystyle\sum_{x_{i}}\hat{P}(x_{i})\log\frac{1}{\hat{P}(x_{i})}}\\ {=}&{I_{P}(X_{i};\pmb U_{i})-I_{P}(X_{i}),}\end{align}
+$$ 
+where (as implied by the deﬁnition) the mutual information $I_{\hat{P}}(X_{i};\mathrm{Pa}_{X_{i}})$ is $0$ if $\mathrm{Pa}_{X_{i}}=\varnothing$ . 
+
+>  考虑单个变量 $X_i$ 相关的项
+>  将项中的计数相关和估计参数都替换为 $\hat P$ 相关的量
+>  经过化简，可以得到结果为 $X_i$ 和 $\pmb U_i$ 在 $\hat P$ 中的互信息减去 $X_i$ 在 $\hat P$ 中的熵
+>  $X_i$ 和 $\pmb U_i$ 的互信息为零当且仅当 $\pmb U_i$ 为空集
+
+Note that the second sum in equation (18.4) does not depend on the network structure, and thus we can ignore it when we compare two structures with respect to the same data set. 
+>  注意 (18.4) 中，后一项 $X_i$ 在 $\hat P$ 中的熵不依赖于网络结构，因此在同一数据集上比较结构时，可以忽略它
+
+Recall that we can interpret $I_{P}(X;Y)$ as the strength of the dependence between $X$ and $Y$ in $P$ . **Thus, the likelihood of a network measures the strength of the dependencies between variables and their parents. In other words, we prefer networks where the parents of each variable are informative about it.** 
+>  两个变量的互信息表示了二者在 $P$ 中的依赖程度，故网络的似然度量了该网络架构中，各个变量和其父变量之间的依赖程度
+>  因此，我们偏好每个变量的父变量能为它提供更多信息的网络结构
+
+**Corollary 18.1**
+This result can also be interpreted in a complementary manner. 
+
+$$
+{\frac{1}{M}}\mathrm{score}_{L}({\mathcal{G}}\ :\ {\mathcal{D}})=H_{{\hat{P}}}(X_{1},\ldots,X_{n})-\sum_{i=1}^{n}I_{\hat{P}}(X_{i};\{X_{1},\ldots X_{i-1}\}-\mathrm{{Pa}}_{X_{i}}^{{\mathcal{G}}}\ |\ \mathrm{{Pa}}_{X_{i-1}}^{{\mathcal{G}}}),
+$$
+
+For proof, see exercise 18.5. 
+
+>  引理
+>  互补的另一种表示形式如上
+
+Again, this second reformulation of the likelihood has a term that does not depend on the structure, and one that does. This latter term involves conditional mutual-information expressions of the form $\pmb{I}_{\hat{P}}(X_{i};\{X_{1},.\,.\,.\,X_{i-1}\}-\mathrm{Pa}_{X_{i}}^{\mathcal{G}}\mid\mathrm{Pa}_{X_{i}}^{\mathcal{G}})$ ) . That is, the information between $X_{i}$ and the preceding variables in the order given $X_{i}$ ’s parents. Smaller conditional mutual- information terms imply higher scores. Recall that conditional independence is equivalent to having zero conditional mutual information. Thus, we can interpret this formulation as measuring to what extent the Markov properties implied by $\mathcal{G}$ are violated in the data. The smaller the violations of the Markov property, the larger the score. 
+>  该式的第一项不依赖于网络结构，第二项为 $X_i$ 和其前导变量在给定其父变量下的条件互信息，条件互信息小则分数高
+>  注意条件独立意味着条件互信息为 0
+>  因此该式可以理解为 $\mathcal G$ 表示的 Markov 独立性质被观察数据违反的程度如何，违反的程度越大，分数越低
+
+These two interpretations are complementary, one measuring the strength of dependence between $X_{i}$ and its parents $\mathrm{Pa}_{X_{i}}^{\mathcal{G}}$ , and the other measuring the extent of the independence of $X_{i}$ from its predecessors given $\mathrm{Pa}_{X_{i}}^{\mathcal{G}}$ . 
+>  这两种表示是互补的，其一度量了 $X_i$ 和其父变量 $\pmb U_i$ 的依赖强度，另一个度量了 $X_i$ 在给定 $\pmb U_i$ 的情况下和其前导变量的独立程度
+
+The process of choosing a network structure is often subject to constraints. Some constraints are a consequence of the acyclicity requirement, others may be due to a preference for simpler structures. Our previous analysis shows that the likelihood score provides valuable guidance in selecting between different candidate networks. 
+>  选择网络结构的过程通常会受到约束
+>  一些约束是由于无环性要求的结果，而另一些约束可能是出于对更简单结构的偏好
+>  我们之前的分析表明，似然得分在选择不同候选网络之间提供了有价值的指导
+
+#### 18.3.1.3 Limitations of the Maximum Likelihood Score 
+Based on the developments in the previous chapter and the preceding analysis, we see that the likelihood score is a good measure of the ﬁt of the estimated Bayesian network and the training data. In learning structure, however, we are also concerned about the performance of the learned network on new instances sampled from the same underlying distribution $P^{*}$ . Unfortunately, in this respect, the likelihood score can run into problems. 
+>  根据上一节，似然分数度量了 BN 对训练数据的拟合程度
+>  我们还关心学习到的网络在从 $P^*$ 中采样得到的新实例上的表现，此时似然分数存在问题
+
+To see is, consider exa le 18.1. Let $\mathcal{G}_{\varnothing}$ be e network where $X$ and $Y$ are independent, and G ${\mathcal{G}}_{X\to Y}$ the one where X is the parent of Y . As we have seen, $\mathrm{score}_{L}({\mathcal{G}}_{X\to Y}\ :\ {\mathcal{D}})-$ D − → $\mathrm{score}_{L}({\mathcal{G}}_{\varnothing}\ :\ {\mathcal{D}})=M\cdot I_{\hat{P}}(X;Y)$ . Recall that the mutual information between two variables is nonnegative. Thus, $\mathrm{score}_{L}({\mathcal{G}}_{X\to Y}\ :\ {\mathcal{D}})\geq\mathrm{score}_{L}({\mathcal{G}}_{\varnothing}\ :\ {\mathcal{D}})$ for any data set $D$ . This implies that the maximum likelihood score never prefers the simpler network over the more complex one. And it assigns both networks the same score only in these rare situations when $X$ and $Y$ are truly independent in the training data. 
+>  $\mathcal G_{X\rightarrow Y}$ 和 $\mathcal G_{\emptyset}$ 的似然分数之差为 $X, Y$ 的互信息，因为互信息非负，故前者的似然分数在任意数据集上都大于后者
+>  这意味着极大似然分数永远不偏好更简单的网络，对于复杂的网络和简单的网络，极大似然分数仅在 $X, Y$ 在训练数据集中完全独立的情况下才赋予二者相同分数
+
+As explained in the introduction to this chapter, there are situations where we should prefer to learn the simpler network (for example, when $X$ and $Y$ are nearly independent in the training data). We see that the maximum likelihood score would never lead us to make that choice. 
+>  MLE 分布即便在 $X, Y$ 在训练数据中接近独立也不会偏好更简单的选择
+
+This observation applies to more complex networks as well. It is easy to show that adding an edge to a network structure can never decrease the maximum likelihood score. Furthermore, the more complex network will have a higher score in all but a vanishingly small fraction of cases. One approach to proving this follows directly from the notion of likelihood; see exercise 18.6. Another uses the fact that, for any $X,Y,Z$ and any distribution $P$ , we have that: 
+
+$$
+I_{P}(X;Y\cup Z)\geq I_{P}(X;Y),
+$$
+
+with equality holding only if $Z$ is conditionally independent of $X$ given $Y$ , see exercise 2.20. This inequality is fairly intuitive: if $Y$ gives us a certain amount of information about $X$ , adding $Z$ can only give us more information. Thus, the mutual information between a variable and its parents can only go up if we add another parent, and it will go up except in those few cases where we get a conditional independence assertion holding exactly in the empirical distribution . It follows that **the maximum likelihood network will exhibit a conditional independence only when that independence happens to hold exactly in the empirical distribution. Due to statistical noise, exact independence almost never occurs, and therefore, in almost all cases, the maximum likelihood network will be a fully connected one. In other words, the likelihood score overﬁts the training data (see section 16.3.1), learning a model that precisely ﬁts the speciﬁcs of the empirical distribution in our training set. This model therefore fails to generalize well to new data cases: these are sampled from the underlying distribution, which is not identical to the empirical distribution in our training set.** 
+
+>  向网络中添加边永远不会减少极大似然分数，且越复杂的网络在极大多数情况下的 MLE 分数都更高
+>  要证明，考虑任意分布的 $X, Y, Z$，容易知道 $X$ 和 $Y\cup Z$ 之间的互信息一定大于 $X$ 和 $Y$ 之间的互信息，等式当仅当 $Z$ 在给定 $X$ 和 $Y$ 条件独立成立
+>  因此，一个变量和其父变量之间的互信息在添加额外父变量时只会增大，除非经验分布完全满足二者之间的条件独立，因为统计噪声的存在，这在实践中基本不可能
+>  因此，大多数情况下，极大似然网络都是全连接网络，也就是说，极大似然分数会过拟合训练数据，模型会精确描述经验分布，故相较于精确分布一定存在距离，进而泛化性降低
+
+We note that the discussion of the maximum likelihood score was in the context of networks with table-CPDs. However, the same observations also apply to learning networks with other forms of CPDs (for example, tree-CPDs, noisy-ors, or Gaussians). In these cases, the information-theoretic analysis is somewhat more elaborate, but the general conclusions about the trade-offs between models and about overﬁtting apply. 
+>  极大似然分布的讨论基于 table-CPDs，但对于其他形式的 CPDs，同样的现象依然存在
+
+Since the likelihood score does not provide us with tools to avoid overﬁtting, we have to be careful when using it. It is reasonable to use the maximum likelihood score when there are additional mechanisms that disallow overly complicated structures. For example, we will discuss learning networks with a ﬁxed indegree. Such a limitation can constrain the tendency to overﬁt when using the maximum likelihood score. 
+>  似然分数无法避免过拟合
+>  进而考虑使用似然分数 + 额外机制避免结构复杂，例如约束网络在固定的入度下
+
+### 18.3.2 Bayesian Score 
+We now examine an alternative scoring function that is based on a Bayesian perspective; this approach extends ideas that we described in the context of parameter estimation in the previous chapter. We will start by deriving the score from the Bayesian perspective, and then we will try to understand how it avoids overﬁtting. 
+
+Recall that the main principle of the Bayesian approach was that whenever we have uncertainty over anything, we should place a distribution over it. In this case, we have uncertainty both over structure and over parameters. We therefore deﬁne a structure $P(\mathcal G)$ that puts a prior probability on different graph structures, and a parameter prior $P(\theta_{\mathcal{G}}\mid\mathcal{G})$ , that puts a probability on different choice of parameters once the graph is given. By Bayes rule, we have 
+
+$$
+P(\mathcal{G}\mid\mathcal{D})=\frac{P(\mathcal{D}\mid\mathcal{G})P(\mathcal{G})}{P(\mathcal{D})},
+$$ 
+>  贝叶斯方法的原则是当不确定某事时，用一个分布表示它
+>  本例中，结构和参数都具有不确定性，故我们定义分布 $P(\mathcal G)$ 表示各个图结构的先验概率，以及给定图结构下的参数先验 $P(\pmb \theta_{\mathcal G}\mid \mathcal G)$ 
+>  根据贝叶斯规则，图结构的条件概率正比于图结构的先验概率和数据集的后验概率的乘积，其分母对于区分不同图结构没用，我们进而不考虑
+
+Bayesian score where, as usual, the denominator is simply a normalizing factor that does not help distinguish between different structures. Thus, we deﬁne the Bayesian score as: 
+
+$$
+\begin{array}{r}{\mathrm{score}_{B}(\mathcal{G}\ :\ \mathcal{D})=\log P(\mathcal{D}\mid\mathcal{G})+\log P(\mathcal{G}).}\end{array}
+$$ 
+>  我们进而将图结构 $\mathcal G$ 在 $\mathcal D$ 上的贝叶斯分数定义为其先验和数据集后验乘积取对数，它正比于结构 $\mathcal G$ 的对数后验概率
+
+The ability to ascribe a prior over structures gives us a way of preferring some structures over others. For example, we can penalize dense structures more than sparse ones. It turns out, however, that the structure-prior term in the score is almost irrelevant compared to the ﬁrst term. This term, $P({\mathcal{D}}\mid{\mathcal{G}})$ , takes into consideration our uncertainty over the parameters: 
+
+$$
+P(\mathcal{D}\mid\mathcal{G})=\int_{\Theta_{\mathcal{G}}}P(\mathcal{D}\mid\pmb{\theta}_{\mathcal{G}},\mathcal{G})P(\pmb{\theta}_{\mathcal{G}}\mid\mathcal{G})d\pmb{\theta}_{\mathcal{G}},\tag{18.7}
+$$ 
+where $P({\mathcal{D}}\mid\theta_{\mathcal{G}},\mathcal{G})$ is the likelihood of the data given the network $\langle\mathcal{G},\theta_{\mathcal{G}}\rangle$ and $P(\theta_{\mathcal{G}}\mid\mathcal{G})$ is our prior distribution over different parameter values for the network G . Recall from section 17.4 that $P({\mathcal{D}}\mid{\mathcal{G}})$ is called the marginal likelihood of the data given the structure, since we marginalize out the unknown parameters. 
+
+>  指定先验可以帮助我们对某些结构产生偏好，例如稀疏的结构
+>  贝叶斯分数中的结构先验实际上和数据集的后验几乎完全无关
+>  数据集后验的计算需要考虑参数不确定性，故需要在结构 $\mathcal G$ 关联的参数空间上积分，如上所示
+>  积分中，$P(\mathcal D \mid \pmb \theta_{\mathcal G})$ 为给定 $\langle \mathcal G, \pmb \theta_{\mathcal G}\rangle$ 的数据似然，$P(\pmb \theta_{\mathcal G}\mid \mathcal G)$ 为参数先验
+>  故 $P(\mathcal D \mid \mathcal G)$ 可以称为数据集给定结构的边际似然 (边际化未知参数)
+
+It is important to realize that the marginal likelihood is quite different from the maximum likelihood score. Both terms examine the likelihood of the data given the structure. The maximum likelihood score returns the maximum of this function. In contrast, the marginal likelihood is the average value of this function, where we average based on the prior measure $P(\theta_{\mathcal{G}}\mid\mathcal{G})$ . This difference will become apparent when we analyze the marginal likelihood term. 
+>  注意边际似然和极大似然分布不同，二者都检验给定结构下数据的似然
+>  但极大似然分数基于结构的极大似然参数，故它返回的是极大值
+>  边际似然则对所有可能参数边际化，故返回的是平均值 (基于先验 $P(\pmb \theta_{\mathcal G}\mid \mathcal G)$ 平均)
+
+One explanation of why the Bayesian score avoids overﬁtting examines the sensitivity of the likelihood to the particular choice of parameters. As we discussed, the maximal likelihood is overly “optimistic” in its evaluation of the score: It evaluates the likelihood of the training data using the best parameter values for the given data. This estimate is realistic only if these parameters are also reﬂective of the data in general, a situation that never occurs. 
+>  贝叶斯分数避免了对特定参数选择的敏感性
+>  极大似然对于其分数的评估过于乐观，它使用基于给定数据最优的参数评估训练数据的似然，这一乐观估计仅在这些 MLE 参数估计在整体上也是接近准确时才实际，而这一情况很少发生
+
+The Bayesian approach tells us that, although the choice of parameter $\hat{\pmb\theta}$ is the most likely given the training set $D$ , it is not the only choice. The posterior over parameters provides us with a range of choices, along with a measure of how likely each of them is. By integrating $P({\mathcal{D}}\mid\theta_{{\mathcal{G}}},{\mathcal{G}})$ over the different choices of parameters $\theta_{\mathcal{G}}$ , we are measuring the expected likelihood, averaged over different possible choices of $\theta_{\mathcal{G}}$ . Thus, we are being more conservative in our estimate of the “goodness” of the model. 
+>  贝叶斯方法不将极大似然参数视作唯一选择，参数基于结构的后验提供了选择范围，后验概率度量了选择的可能性
+>  因此我们实际度量了 $P(\mathcal D \mid \pmb \theta_{\mathcal G}, \mathcal G)$ 的期望似然，也就是对于我们的参数估计更加保守
+
+Another motivation can be derived from the holdout testing methods discussed in box 16.A. Here, we consider different network structures, parameterized by the training set, and test their predictiveness (likelihood) on the validation set. When we ﬁnd a network that best generalizes to the validation set (that is, has the best likelihood on this set), we have some reason to hope that it will also generalize to other unseen instances. As we discussed, the holdout method is sensitive to the particular split into training and test sets, both in terms of the relative sizes of the sets and in terms of which instances fall into which set. Moreover, it does not use all the available data in learning the structure, a potentially serious problem when we have limited amounts of data to learn from. 
+>  也可以从留出测试法的角度解释贝叶斯分数
+>  执行留出测试时，我们考虑训练集参数化的不同结构，在留出验证集上验证其泛化能力/预测能力 (似然)
+>  留出测试敏感于特定的训练/验证划分方式，包括了相对大小和具体的哪些样例，且它没有利用所有可用样例用于训练
+
+It turns out that the Bayesian approach can be viewed as performing a similar evaluation without explicitly splitting the data into two parts. Using the chain rule for probabilities, we can rewrite the marginal likelihood as 
+
+$$
+P(\mathcal{D}\mid\mathcal{G})=\prod_{m=1}^{M}P(\xi[m]\mid\xi[1],.\,.\,,\xi[m-1],\mathcal{G}).
+$$ 
+Eac of the terms in this product $-\ P(\xi[m]\ |\ \xi[1],.\,.\,,\xi[m-1],{\mathcal G})\ -$ is the probability of the m ’th instance using the parameters learned from the ﬁrst $m-1$ − instances (using Bayesian estimation). We see that in this term we are using the $m$ ’th instance as a test case, since we are computing its probability using what we learned from previous instances. Thus, it provides us with one data point for testing the ability of our model to predict a new data instance, based on the model learned from the previous ones. This type of analysis is called a prequential analysis . 
+
+>  贝叶斯方法可以视作执行类似的评估，但不显式划分数据
+>  我们将似然 $P(\mathcal D \mid \mathcal G)$ 按照链式规则分解如上，乘积中的每一项 $P(\xi[m]\mid \xi[1], \dots, \xi[m-1], \mathcal G)$ 是基于前 $m-1$ 个样本学习到的参数下第 $m$ 个样本的概率，我们可以认为使用前 $m-1$ 个样本训练，使用第 $m$ 个样本测试
+>  这类分析称为前序分析
+
+However, unlike the holdout approach, we are not holding out any data. Each instance is evaluated in incremental order, and contributes both to our evaluation of the model and to our ﬁnal model score. Moreover, the Bayesian score does not depend on the order of instances. Using the chain law of probabilities, we can generate a similar expansion for any ordering of the instances. Each one of these will give the same result (since these are different ways of expanding the term $P({\mathcal{D}}\mid{\mathcal{G}}))$ . 
+>  我们没有留出数据，每个样本按照增序被评估，进而贡献对模型的评估和模型的分数
+>  贝叶斯分数也不依赖于样本顺序，链式规则可以按照任意顺序展开，结果是一样的
+
+This intuition suggests that 
+
+$$
+{\frac{1}{M}}\log P({\mathcal{D}}\mid{\mathcal{G}})\approx E_{P^{*}}[\log P({\mathcal{X}}\mid{\mathcal{G}},{\mathcal{D}})]\tag{18.8}
+$$
+
+> 推导
+
+$$
+\begin{align}
+&\frac {1}{M}\log P(\mathcal D \mid \mathcal G)\\
+=&\frac 1M \sum_{m=1}^M \log  P(\xi[m]\mid \xi[1], \dots, \xi[m-1],\mathcal G)\\
+\approx& \frac 1 M\sum_{m=1}^M \log P(\xi[m]\mid \mathcal D, \mathcal G)\\
+\approx&E_{P^*}[\log P(\mathcal X \mid \mathcal D, \mathcal G)]
+\end{align}
+$$
+
+is an estimator for the average log-likelihood of a new sample from the distribution $P^{*}$ . In practice, it turns out that for reasonable sample sizes this is indeed a fairly good estimator of the ability of a model to generalize to unseen data. Figure 18.1 demonstrates this property empirically for data sets sampled from the ICU-Alarm network. We generated a collection of network structures by sampling from the posterior distribution over structures given different data sets (see section 18.5). For each structure we evaluated the two sides of the preceding approximation: the average log-likelihood per sample, and the expected likelihood of new samples from the underlying distribution. As we can see, there is a general agreement between the estimate using the training data and the actual generalization error of each network structure. In particular, the difference in scores of two structures correlates with the differences in generalization error. This phenomenon is particularly noticeable in the larger training set. 
+
+>  这一直观解释表明 $\frac 1 M \log P(\mathcal D \mid \mathcal G)$ 是对 $P^*$ 中采样的新样本的平均对数似然的估计
+>  在实践中，对于较大的样本集大小，该估计器对于模型的泛化能力估计是较优的，因此，训练数据的边际似然可以作为模型在潜在分布上的期望似然的估计器
+>  特别地，两个模型在贝叶斯分数上的差异和二者在泛化误差上的差异相关，在大训练集下尤为显著
+
+We note that the Bayesian score is not the only way of providing “test set” performance using each instance. See exercise 18.12 for an alternative score with similar properties. 
+
+### 18.3.3 Marginal Likelihood for a Single Variable 
+We now examine how to compute the marginal likelihood for simple cases, and then in the next section treat the case of Bayesian networks. 
+
+Consider a single binary random variable $X$ , and assume that we have a prior distribution Dirichlet $;\!\left(\alpha_{1},\alpha_{0}\right)$ over $X$ . 
+> 考虑单个随机二元随机变量 $X$，服从 Dirichlet 先验  
+> 因为只有单个变量，故图结构也不存在其他选择
+
+Consider data set $\mathcal{D}$ that has $M[1]$ heads and $M[0]$ tails. Then, the maximum likelihood value given D is 
+
+$$
+P(\mathcal{D}\mid\hat{\theta})=\left(\frac{M[1]}{M}\right)^{M[1]}\cdot\left(\frac{M[0]}{M}\right)^{M[0]}.
+$$ 
+>  给定 MLE 参数，数据集的似然如上
+
+Now, consider the marginal likelihood. Here, we are not conditioning on the parameter. Instead, we need to compute the probability $P(X[1],\ldots,X[M])$ of the data given our prior. One approach to computing this term is to evaluate the integral equation (18.7). An alternative approach uses the chain rule 
+
+$$
+P(x[1],\ldots,x[M])=P(x[1])\cdot P(x[2]\mid x[1])\cdot\ldots\cdot P(x[M]\mid x[1],\ldots,x[M-1])
+$$ 
+>  考虑使用链式分解来计算边际，此时边际是逐个样本的预测概率的乘积
+
+Recall that if we use a Beta prior, then 
+
+$$
+P(x[m+1]=H\mid x[1],\ldots,x[m])={\frac{M^{m}[1]+\alpha_{1}}{m+\alpha}},
+$$ 
+>  对于 Dirichlet/Beta 先验，预测概率就是先验 + 样本修正，如上所示
+
+where $M^{m}[1]$ is the number of heads in the ﬁrst $m$ examples. For example, if $\mathcal{D}=\left<H,T,T,H,H\right>$ , 
+
+$$
+\begin{array}{l c l}{P(x[1],\ldots,x[5])}&{=}&{\displaystyle\frac{\alpha_{1}}{\alpha}\cdot\frac{\alpha_{0}}{\alpha+1}\cdot\frac{\alpha_{0}+1}{\alpha+2}\cdot\frac{\alpha_{1}+1}{\alpha+3}\cdot\frac{\alpha_{1}+2}{\alpha+4}}\\ &{=}&{\displaystyle\frac{[\alpha_{1}(\alpha_{1}+1)(\alpha_{1}+2)][\alpha_{0}(\alpha_{0}+1)]}{\alpha\cdot\cdot(\alpha+4)}.}\end{array}
+$$ 
+Picking $\alpha_{1}=\alpha_{0}=1$ , so that $\alpha=\alpha_{1}+\alpha_{0}=2$ , we get 
+
+$$
+\frac{[1\cdot2\cdot3]\cdot[1\cdot2]}{2\cdot3\cdot4\cdot5\cdot6}=\frac{12}{720}=0.017
+$$ 
+(see ﬁgure 18.2), which is signiﬁcantly lower than the likelihood 
+
+$$
+\left({\frac{3}{5}}\right)^{3}\cdot\left({\frac{2}{5}}\right)^{2}={\frac{108}{3125}}\approx0.035.
+$$ 
+Thus, a model using maximum-likelihood parameters ascribes a much higher probability to this sequence than does the marginal likelihood. The reason is that the log-likelihood is making an overly optimistic assessment, based on a parameter that was designed with full retrospective knowledge to be an optimal ﬁt to the entire sequence. 
+
+>  上例说明了，这样计算的似然要显著小于使用 MLE 参数计算的似然，因为 MLE 参数是基于全面的关于数据集的知识计算得到的，它对于训练数据就是最优的拟合
+
+In general, for a binomial distribution with a Beta prior, we have 
+
+$$
+P(x[1],\ldots,x[M])=\frac{[\alpha_{1}\cdot\cdot\cdot(\alpha_{1}+M[1]-1)][\alpha_{0}\cdot\cdot\cdot(\alpha_{0}+M[0]-1)]}{\alpha\cdot\cdot\cdot(\alpha+M-1)}.
+$$ 
+Each of the terms in square brackets is a product of a sequence of numbers such as $\alpha\cdot(\alpha+$ $1)\cdot\cdot\cdot(\alpha+M-1)$ . If $\alpha$ is an integer, we can write this product as $\textstyle{\frac{(\alpha+M-1)!}{(\alpha-1)!}}$ . However, we do-not necessarily know that $\alpha$ is an integer. It turns out that we can use a generalization of the factorial function for this purpose. 
+
+>  在 Beta 先验下，数据集的边际似然简写为以上形式
+
+Recall that the Gamma function is such that $\Gamma(m)=(m\!-\!1)!$ and $\Gamma(x+1)=x\cdot\Gamma(x)$ · . Using the latter property, we can rewrite 
+
+$$
+\alpha(\alpha+1)\cdot\cdot\cdot(\alpha+M-1)=\frac{\Gamma(\alpha+M)}{\Gamma(\alpha)}.
+$$ 
+Hence, 
+
+$$
+P(x[1],\cdot\,.\,,x[M])=\frac{\Gamma(\alpha)}{\Gamma(\alpha+M)}\cdot\frac{\Gamma(\alpha_{1}+M[1])}{\Gamma(\alpha_{1})}\cdot\frac{\Gamma(\alpha_{0}+M[0])}{\Gamma(\alpha_{0})}.
+$$ 
+>  使用 Gamma 函数简写为以上形式
+
+A similar formula holds for a multinomial distribution over the space $x^{1},\cdot\cdot\cdot,x^{k}$ , with a Dirichlet prior with hyperparameters $\alpha_{1},.\,.\,.\,,\alpha_{k}$ : 
+
+$$
+P(x[1],\ldots,x[M])=\frac{\Gamma(\alpha)}{\Gamma(\alpha+M)}\cdot\prod_{i=1}^{k}\frac{\Gamma(\alpha_{i}+M[x^{i}])}{\Gamma(\alpha_{i})}.\tag{18.9}
+$$ 
+>  对于 Dirichlet 先验的多项式分布数据集也有类似的结论
+
+Note that the ﬁnal expression for the marginal likelihood is invariant to the order we selected in the expansion via the chain rule. In particular, any other order results in exactly the same ﬁnal expression. This property is reassuring, because the IID assumption tells us that the speciﬁc order in which we get data cases is insigniﬁcant. Also note that the marginal likelihood can be computed directly from the same sufficient statistics used in the computation of the likelihood function — the counts of the different values of the variable in the data. This observation will continue to hold in the general case of Bayesian networks. 
+>  显然，从以上的表达式可以看出边际似然对于链式规则的展开顺序是无关的，样本的 IID 性质同样可以保证这一点
+>  同样注意到边际似然可以直接从数据集的充分统计量中计算得到
+
+### 18.3.4 Bayesian Score for Bayesian Networks 
+We now generalize the discussion of the Bayesian score to more general Bayesian networks. Consider two possible structures over two binary random variables $X$ and $Y$ . $\mathcal{G}_{\varnothing}$ is the graph with no edges. Here, we have: 
+
+$$
+P(\mathcal{D}\mid\mathcal{G}_{\emptyset})=\int_{\Theta_{X}\times\Theta_{Y}}P(\theta_{X},\theta_{Y}\mid\mathcal{G}_{\emptyset})P(\mathcal{D}\mid\theta_{X},\theta_{Y},\mathcal{G}_{\emptyset})d[\theta_{X},\theta_{Y}].
+$$ 
+>  考虑包含两个变量，没有边的 BN
+>  此时数据集的边际似然需要在参数空间 $\Theta_X \times \Theta_Y$ 上积分
+
+We know that likelihood term $P({\mathcal{D}}\mid\theta_{X},\theta_{Y},{\mathcal{G}}_{\varnothing})$ can be written as a product of terms, one involving $\theta_{X}$ and the observations of X in the data, and the other involving $\theta_{Y}$ and the observations of $Y$ in the data. If we also assume parameter independence , that is, that $P(\theta_{X},\theta_{Y}\mid\mathcal{G}_{\varnothing})$ decomposes as a product $P(\theta_{X}\mid\mathcal{G}_{\varnothing})P(\theta_{Y}\mid\mathcal{G}_{\varnothing})$ , then we can simplify the integral 
+
+$$
+\begin{array}{r c l}{P(\mathcal{D}\mid\mathcal{G}_{\emptyset})}&{=}&{\displaystyle\left(\int_{\Theta_{X}}P(\theta_{X}\mid\mathcal{G}_{\emptyset})\prod_{m}P(x[m]\mid\theta_{X},\mathcal{G}_{\emptyset})d\theta_{X}\right)}\\ &&{\displaystyle\left(\int_{\Theta_{Y}}P(\theta_{Y}\mid\mathcal{G}_{\emptyset})\prod_{m}P(y[m]\mid\theta_{Y},\mathcal{G}_{\emptyset})d\theta_{Y}\right),}\end{array}
+$$ 
+where we used the fact that the integral of a product of independent functions is the product of integrals. 
+
+>  其中数据集在同时给定参数和结构的似然项可以分解，如果我们假定了参数独立性，则其中的参数先验也可以分解，我们进而将积分简化为两个独立积分的积
+
+Now notice that each of the two integrals is the marginal likelihood of a single variable. Thus, if $X$ and $Y$ are multinomials, and each has a Dirichlet prior, then we can write each integral using the closed form of equation (18.9). 
+
+>  注意到每个独立积分对应的就是单个变量的边际似然
+>  因此，如果 $X, Y$ 服从多项式分布，且有 Dirichlet 先验，我们可以用 (18.9) 直接写出其边际似然
+
+Now consider the network ${\mathcal{G}}_{X\to Y}\;=\;(X\;\to\;Y)$ . Once again, if we assume parameter independence, we can decompose this integral into a product of three integrals, each over a single parameter family. 
+
+$$
+\begin{align}
+P(\mathcal D \mid \mathcal G_{X\rightarrow Y}) &= \left(\int_{\Theta_X} P(\theta_X \mid G_{X\rightarrow Y})\prod_m P(x[m]\mid \theta_X, \mathcal G_{X\rightarrow Y})d\theta_X\right)\\
+&\left(\int_{\Theta_{Y\mid x^0}} P(\theta_{Y\mid x^0} \mid \mathcal G_{X\rightarrow Y})\prod_{m:x[m] = x^0} P(y[m]\mid \theta_{Y\mid x^0}, \mathcal G_{X\rightarrow Y})d\theta_{Y\mid x^0}\right)\\
+&\left(\int_{\Theta_{Y\mid x^1}} P(\theta_{Y\mid x^1} \mid \mathcal G_{X\rightarrow Y})\prod_{m:x[m] = x^1} P(y[m]\mid \theta_{Y\mid x^0}, \mathcal G_{X\rightarrow Y})d\theta_{Y\mid x^1}\right)\\
+\end{align}
+$$
+
+Again, each of these can be written using the closed form solution of equation (18.9). 
+
+>  再考虑结构 $X\rightarrow Y$，在参数独立性成立的前提下，边际似然同样可以分解为三个独立积分的乘积，每个独立积分就是对应参数族下的边际似然
+
+Comparing the marginal likelihood of the two structures, we see that the term that corresponds to $X$ is similar in both. In fact, the terms $P(x[m]\mid\theta_{X},\mathcal{G}_{\varnothing})$ and $P(x[m]\mid\theta_{X},\mathcal{G}_{X\rightarrow Y})$ are identical (both make the same predictions given the parameter values). Thus, if we choose the prior $P(\Theta_{X}\mid\mathcal{G}_{\varnothing})$ to be the same as $P(\Theta_{X}\mid\mathcal{G}_{X\rightarrow Y})$ , we have that the ﬁrst term in the marginal likelihood of both structures is identical. 
+>  以上两个结构在 $X$ 的边际似然项上是相同的 (如果先验相同)
+
+Thus, given this assumption about the prior, the difference between the marginal likelihood of $\mathcal{G}_{\varnothing}$ and ${\mathcal{G}}_{X\to Y}$ is due to the difference between the marginal likelihood of all the observations of $Y$ and the marginal likelihoods of the observations of $Y$ when we partition our examples based on the observed value of $X$ . Intuitively, if $Y$ has a different distribution in these two cases, then the latter term will have better marginal likelihood. On the other hand, if $Y$ is distributed in roughly the same manner in both subsets, then the simpler network will have better marginal likelihood. 
+>  因此差异在于 $Y$ 的边际似然项上
+>  直观上，如果 $Y$ 有不同的分布，则第二个结构的边际似然会更高，如果 $Y$ 对于 $X$ 的取值下分布大致没有不同，则第一个结构的边际似然会更高
+
+To see this behavior, we consider an idealized experiment where the empirical distribution is such that $P(x^{1})=0.5$ , and $P(y^{1}\mid x^{1})=0.5+p$ and $P(y^{1}\mid x^{0})=0.5-{\bar{p}},$ where $p$ is a free parameter. Larger values of $p$ imply stronger dependence between X and Y . Note, however, that the marginal distributions of $X$ and $Y$ are the same regardless of the value of $p$ . Thus, the score of empty structure $\mathcal{G}_{\varnothing}$ does not depend on $p$ . On the other hand, the score of the structure ${\mathcal{G}}_{X\to Y}$ depends on $p$ . Figure 18.3 illustrates how these scores change as functions of the number of training samples. The graph compares the average score per instance (of equation (18.8)) for both structures for different values of $p$ . 
+>  考虑一个具体的实例如上，$p$ 为参数，$p$ 越大说明 $X, Y$ 之间关联越大
+>  注意 $X, Y$ 的边际和 $p$ 无关，因此空结构 $\mathcal G_{\emptyset}$ 的分数不依赖于 $p$，而结构 $\mathcal G_{X\rightarrow Y}$ 则依赖于 $p$
+
+We c see that, as we get more data, the Bayesian score prefers the structure ${\mathcal{G}}_{X\to Y}$ where $X$ and Y are dependent. When the dependency between them is strong, this preference arises very quickly. But as the dependency becomes weaker, more data are required in order to justify this selection. Thus, if the two variables are independent, small ﬂuctuations in the data, due to sampling noise, are unlikely to cause a preference for the more complex structure. By contrast, any ﬂuctuation from pure independence in the empirical distribution will cause the likelihood score to select the more complex structure. 
+>  我们可以看到，随着数据量的增加，贝叶斯评分更倾向于结构 ${\mathcal{G}}_{X\to Y}$，其中 $X$ 和 $Y$ 是相关的。当它们之间的依赖性很强时，这种偏好会很快出现。但随着依赖性变弱，则需要更多的数据才能证明这种选择是合理的。
+>  因此，如果两个变量是独立的，由于抽样噪声导致的小波动不太可能引起对更复杂结构的偏好。
+>  相反，经验分布中任何从纯粹独立性的波动都会使似然评分选择更复杂的结构。
+
+We now return to consider the general case. As we can expect, the same arguments we applied to the two-variable networks apply to any network structure. 
+>  以上对于简单网络的分析对更复杂的网络也是成立的
+
+**Proposition 18.2**
+Let $\mathcal{G}$ be a network structure, and let $P(\pmb{\theta}_{\mathcal{G}}\mid\mathcal{G})$ be a parameter prior satisfying global parameter independence. Then, 
+
+$$
+P(\mathcal{D}\mid\mathcal{G})=\prod_{i}\int_{\Theta_{X_{i}|\mathrm{Pa}_{X_{i}}}}\prod_{m}P(x_{i}[m]\mid\mathrm{pa}_{X_{i}}[m],\pmb \theta_{X_{i}|\mathrm{Pa}_{X_{i}}},\mathcal{G})P(\pmb\theta_{X_{i}|\mathrm{Pa}_{X_{i}}}\mid\mathcal{G})d\pmb{\theta}_{X_{i}\mid \text{Pa}_{X_i}}
+$$ 
+Moreover, if $P(\pmb{\theta}_{\mathcal{G}})$ also satisﬁes local parameter independence, then 
+
+$$
+P(\mathcal D\mid\mathcal{G})=\prod_{i}\prod_{\substack{\pmb{ u}_{i}\in V a l(\mathrm{Pe}_{X_{i}}^{\mathcal{G}})}}\int_{\Theta_{X_i\mid \pmb u_i}}\prod_{\substack{m,\pmb u_{i}[m]=\pmb u_{i}}}P(X_{i}[m]\mid\pmb{u}_{i},\mathbf{\boldsymbol{\theta}}_{X_{i}\mid \pmb u_{i}},\mathcal{G})P(\mathbf{\boldsymbol{\theta}}_{X_{i}\mid \pmb u_{i}}\mid\mathcal{G})d\mathbf{\boldsymbol{\theta}}_{X_{i}\mid \pmb u_{i}}
+$$ 
+>  命题
+>  参数先验 $P(\pmb \theta_{\mathcal G}\mid \mathcal G)$ 满足全局参数独立性时，先验似然 $P(\mathcal D \mid \mathcal G)$ 可以按照变量 $X_i$ 分解
+>  如果参数还满足局部参数独立性，$X_i$ 的似然还可以进一步按照 $\text{Pa}_{X_i} = \pmb U_i$ 的取值分解
+
+Using this proposition and the results about the marginal likelihood of Dirichlet priors, we conclude the following result: If we consider a network with Dirichlet priors where $P(\pmb{\theta}_{X_{i}\mid\mathrm{pa}_{X_{i}}}\mid$ $\mathcal{G}$ ) has hyperparameters $\{\alpha_{x_{i}^{j}|\pmb u_{i}}^{\mathcal{G}}:j=1,.\,.\,.\,,|X_{i}|\}$ then 
+
+$$
+P(\mathcal D\mid\mathcal{G})=\prod_{i}\prod_{\substack{\pmb {u}_{i}\in V a l(\mathrm{Pe}_{X_{i}}^{\mathcal{G}})}}\frac{\Gamma(\alpha_{X_{i}|\pmb {u}_{i}}^{\mathcal{G}})}{\Gamma(\alpha_{X_{i}|\pmb{u}_{i}}^{\mathcal{G}}+M[\pmb{u}_{i}])}\prod_{x_{i}^{j}\in V a l(X_{i})}\left[\frac{\Gamma(\alpha_{x_{i}^{j}|\pmb{u}_{i}}^{\mathcal{G}}+M[x_{i}^{j},\pmb{u}_{i}])}{\Gamma(\alpha_{x_{i}^{j}|\pmb{u}_{i}}^{\mathcal{G}})}\right]
+$$ 
+
+where $\begin{array}{r}{\alpha_{X_{i}|\pmb u_{i}}^{\mathcal{G}}=\sum_{j}\alpha_{x_{i}^{j}|\pmb u_{i}}^{\mathcal{G}}}\end{array}$ . In practice, we use the logarithm of this formula, which is more manageable to compute numerically. 
+
+>  如果各个 CPD 的参数服从 Dirichlet 先验，那么将各个变量的似然替换为 (18.9)，就得到以上式子
+
+### 18.3.5 Understanding the Bayesian Score 
+As we have just seen, **the Bayesian score seems to be biased toward simpler structures, but as it gets more data, it is willing to recognize that a more complex structure is necessary. In other words, it appears to trade off ﬁt to data with model complexity, thereby reducing the extent of overﬁtting .** To understand this behavior, it is useful to consider an approximation to the Bayesian score that better exposes its fundamental properties. 
+>  正如我们刚才所见，贝叶斯评分似乎偏向于较简单的结构，但随着数据量的增加，它愿意承认更复杂的结构是必要的。换句话说，它似乎在数据拟合与模型复杂度之间进行权衡，从而减少了过度拟合的程度。
+>  要理解这种行为，考虑贝叶斯评分的一个近似形式会更有帮助，这能更好地揭示其基本特性。
+ 
+**Theorem 18.1**
+If we use a Dirichlet parameter prior for all parameters in our network, then, when $M\rightarrow\infty$ , we have that: 
+
+$$
+\log P(\mathcal{D}\mid\mathcal{G})=\ell(\hat{\pmb{\theta}}_{\mathcal{G}}:\mathcal{D})-\frac{\log M}{2}\mathrm{Dim}[\mathcal{G}]+O(1),
+$$ 
+where $\mathrm{Dim}[\mathcal{G}]$ is the model dimension , or the number of independent parameters in $\mathcal{G}$ . 
+
+>  定理
+>  如果网络中参数都满足 Dirichlet 先验，当 $M\rightarrow \infty$，数据集边际似然的对数满足以上式子，它等于似然分数减去一个模型复杂度的度量再加上一个常数
+>  其中 $\text{Dim}[\mathcal G]$ 为模型维度，或者指 $\mathcal G$ 中的独立参数数量
+
+See exercise 18.7 for the proof. 
+
+Thus, we see that the Bayesian score tends to trade off the likelihood — ﬁt to data — on one hand and some notion of model complexity on the other hand.
+>  因此，我们看到贝叶斯分数倾向于在似然 (数据拟合) 和某种意义上的模型复杂度之间进行权衡 (贝叶斯分数要搞，似然需要高，同时模型复杂度不能太高)
+
+This approximation is called the BIC score (for Bayesian information criterion): 
+
+$$
+\mathrm{score}_{B I C}(\mathcal{G}\ :\ \mathcal{D})=\ell(\hat{\pmb{\theta}}_{\mathcal{G}}:\mathcal{D})-\frac{\log M}{2}\mathrm{min}[\mathcal{G}].
+$$ 
+>  定理 18.1 给出的 $M\to \infty$ 时数据集边际似然的对数的形式在去掉常数项后，得到的就是贝叶斯信息准则分数，即 BIC 分数
+
+We note that the negation of this quantity can be viewed as the number of bits required to encode both the model $\log M/2$ bits per model parameter, a derivation whose details we omit) and the data given the model (as per our discussion in section A.1.3). Thus, this objective is also known as minimum description length . 
+>  我们注意到，这个量的否定可以看作是编码模型所需的位数（每个模型参数需要 $\log M/2$ 位，具体的推导细节省略）以及在给定模型的情况下编码数据所需的位数（根据我们在A.1.3节中的讨论，即熵）
+>  因此，这个目标也被称为最小描述长度
+
+We can decompose this score even further using our analysis from equation (18.4): 
+
+$$
+\mathrm{score}_{B I C}(\mathcal{G}\ :\ \mathcal{D})=M\sum_{i=1}^{n}I_{\hat{P}}(X_{i};\mathrm{Pa}_{X_{i}})-M\sum_{i=1}^{n}H_{\hat{P}}(X_{i})-\frac{\log M}{2}\mathrm{dim}[\mathcal{G}].
+$$
+>  根据 (18.4) ，我们还可以将其中的似然分数分解，得到以上形式
+
+We can observe several things about the behavior of this score function. First, the entropy terms do not depend on the graph, so they do not inﬂuence the choice of structure and can be ignored. The score exhibits a trade-off between ﬁt to data and model complexity: the stronger the dependence of a variable on its parents, the higher the score; the more complex the network, the lower the score. However, the mutual information term grows linearly in $M$ , whereas the complexity term grows logarithmically. Therefore, the larger $M$ is, the more emphasis will be given to the ﬁt to data. 
+>  观察以上形式
+>  首先，其中的各个变量的熵和图结构无关，因此不影响结构选择，可以忽略
+>  该分数展现了在拟合数据和模型复杂度之间的权衡：变量和其父变量的依赖越强，分数越高、模型复杂度越高，分数越低
+>  同时注意到互信息项随着 $M$ 线性增加，而复杂性项则随着 $M$ 对数增加，因此 $M$ 越大，对数据拟合的强调越高
+
+Figure 18.4 illustrates this theorem empirically. It shows the Bayesian score of three structures on a data set generated by the ICU-Alarm network. One of these structures is the correct one, and the other two are simpliﬁcations of it. We can see that, for small $M$ , the simpler structures have the highest scores. This is compatible with our analysis: for small data sets, the penalty term outweighs the likelihood term. But as $M$ grows, the score begins to exhibit an increasing preference for the more complex structures. With enough data, the true model is preferred. 
+>  图18.4通过实证数据展示了这一定理。该图显示了ICU-Alarm网络生成的数据集中三个结构的贝叶斯评分。其中一个结构是正确的，另外两个是对它的简化。
+>  我们可以看到，对于较小的 $M$，较简单的结构具有最高的评分。这与我们的分析一致：对于小数据集，惩罚项超过了似然项。但随着 $M$ 的增长，评分开始表现出对更复杂结构的偏好增加。有了足够的数据，真正的模型会被优选。
+
+This last statement is a general observation about the BIC and Bayesian scores: Asymptotically, these scores will prefer a structure that exactly ﬁts the dependencies in the data. To make this statement precise, we introduce the following deﬁnition: 
+>  BIC 和贝叶斯分数会渐进地偏好准确地拟合数据中的依赖性的结构
+
+**Deﬁnition 18.1** consistent score 
+Assume that our data are generated by some distribution $P^{*}$ for which the network $\mathcal{G}^{\ast}$ is a perfect map. We say that a scoring function is consistent if the following properties hold as the amount of data $M\rightarrow\infty$ , with probability that approaches 1 (over possible choices of data set $D$ ): 
+
+- The structure $\mathcal{G}^{*}$ will maximize the score.
+- All structures $\mathcal{G}$ that are not $I\cdot$ -equivalent to $\mathcal{G}^{\ast}$ will have strictly lower score. 
+
+>  定义
+>  假设数据从 $P^*$ 中生成，其 perfect-map 是 $\mathcal G^*$
+>  一个评分函数如果满足随着 $M\to \infty$ —— 最优结构 $\mathcal G^*$ 将最大化该分数，以及所有不是最优结构 $\mathcal G^*$ 的 I-equivalence 的结构 $\mathcal G$ 将具有严格更低的分数 —— 这两个事件的概率在所有可能数据集选择上接近于 1，称该评分是一致的
+
+**Theorem 18.2** 
+The BIC score is consistent
+>  定理
+>  BIC 分数是一致的
+
+Proof Our goal is to prove that for sufficiently large $M$ , if the graph that maximizes the BIC score is $\mathcal{G}$ , then $\mathcal{G}$ is I-equivalent to $\mathcal{G}^{*}$ . We brieﬂy sketch this proof. 
+>  证明思路是对于足够大的 $M$，如果能够最大化 BIC 的结构是 $\mathcal G$，则 $\mathcal G$ 是最优结构 $\mathcal G^*$ 的 I-equivalence
+
+Con der some graph G that implies an independence assumption that $\mathcal{G}^{\ast}$ do s not support. Then G cannot be an I-map of the true underlying distribute $P$ . Hence, G cannot be a maximum likelihood model with respect to the true distribution $P^{*}$ , so that we must have: 
+
+$$
+\sum_{i}\mathbf{I}_{P^{*}}(X_{i};\mathrm{Pa}_{X_{i}}^{\mathcal{G}^{*}})>\sum_{i}\mathbf{I}_{P^{*}}(X_{i};\mathrm{Pa}_{X_{i}}^{\mathcal{G}}).
+$$ 
+>  假定 $\mathcal G$ 比 $\mathcal G^*$ 多了 $\mathcal G^*$ 没有的独立性假设 ($\mathcal G$ 比 $\mathcal G^*$ 简单)，则 $\mathcal G$ 不能是 $P^*$ 的 I-map，其相对于 $P^*$ 的似然分数将低于 $\mathcal G^*$ 的似然分数
+
+As $M\rightarrow\infty$ , our empirical distribution $\hat{P}$ will converge to $P^{*}$ with probability 1. Therefore, for large M , 
+
+$$
+\mathrm{score}_{L}(\mathcal G^{*}\ :\ \mathcal D)-\mathrm{score}_{L}(\mathcal G\ :\ \mathcal D)\approx\Delta\cdot M,
+$$ 
+where $\begin{array}{r}{\Delta=\sum_{i}\mathbf{I}_{P^{*}}(X_{i};\mathrm{Pa}_{X_{i}}^{\mathcal{G}^{*}})-\sum_{i}\mathbf{I}_{P^{*}}(X_{i};\mathrm{Pa}_{X_{i}}^{\mathcal{G}})}\end{array}$ . 
+
+>  $M$ 足够大时，经验分布以概率 1 收敛到真实分布 $P^*$，因此二者的似然分数之差就越为二者的 (相对于 $P^*$ 的) 互信息项之差乘以 $M$
+
+Therefore, asymptotically we have that 
+
+$$
+\mathrm{score}_{B I C}(\mathcal{G}^{*}\ :\ \mathcal{D})-\mathrm{score}_{B I C}(\mathcal{G}\ :\ \mathcal{D})\approx\Delta M+\frac{1}{2}(\mathrm{dim}[\mathcal{G}]-\mathrm{dim}[\mathcal{G}^{*}])\log M
+$$ 
+The ﬁrst term grows much faster than the second, so that eventually its effect will dominate, and the score of $\mathcal{G}^{*}$ will be better. 
+
+>  因此二者的 BIC 分数之差的渐进形式如上，第一项增长比第二项快，故最终第一项占主导，$\mathcal G^*$ 的分数将更高
+
+Now, assume that G implies all the independence assumptions in $\mathcal{G}^{\ast}$ , but th $\mathcal{G}^{*}$ implies an dependence assumption that G dose not. (In other words, G is a superset $\mathcal{G}^{*}$ .) this case, G represent any distribution that $\mathcal{G}^{\ast}$ can. In particular, it can represent $P^{*}$ . As $\hat{P}$ converges to $P^{*}$ , we will have that: 
+
+$$
+\mathrm{score}_{L}({\mathcal{G}}^{*}\ :\ {\mathcal{D}})-\mathrm{score}_{L}({\mathcal{G}}\ :\ {\mathcal{D}})\to0.
+$$ 
+Therefore, asymptotically we have that for 
+
+$$
+\mathrm{score}_{B I C}(\mathcal{G}^{*}\ :\ \mathcal{D})-\mathrm{score}_{B I C}(\mathcal{G}\ :\ \mathcal{D})\approx\frac{1}{2}(\mathrm{dim}[\mathcal{G}]-\mathrm{dim}[\mathcal{G}^{*}])\log M.
+$$ 
+Now, since $\mathcal{G}$ makes fewer independence assumptions than $\mathcal{G}^{*}$ , it must be parametrized by a larger set of parameters. Thus, $\mathrm{dim}[\mathcal{G}]>\mathrm{dim}[\mathcal{G}^{*}]$ , so that G $\mathcal{G}^{*}$ will be preferred to G . 
+
+>  再假设 $\mathcal G$ 比 $\mathcal G^*$ 复杂，此时 $\mathcal G$ 的表示能力高于 $\mathcal G^*$，故 $\mathcal G$ 可以表示任何 $\mathcal G^*$ 能表示的分布，故二者的似然分数之差会渐进趋于 0
+>  因此 BIC 分数之差就约和二者的复杂度之差相关，因为 $\mathcal G$ 比 $\mathcal G^*$ 复杂，故 $\mathcal G$ 还是会被偏好
+
+>  这个证明的思路就是，BIC 分数中，似然项的增长速度大于复杂度项的增长速度
+>  如果模型比最优结构简单，那么它在复杂度项胜出，但是在似然项更低，由于似然项随 $M$ 增长快，故渐进地该模型地 BIC 分数将比最优结构的 BIC 分数低
+>  如果模型比最优结构复杂，那么它在似然项胜出，在复杂度项劣势，随着数据增长，经验分布收敛到真实分布，二者在似然项都完美拟合真实分布，在似然项就没有差异，此时最优结构因为更简单而 BIC 分数更高
+
+As the Bayesian score is asymptotically identical to BIC (the remaining $O(1)$ terms do not grow with $M$ ), we get: 
+>  因为贝叶斯分数随着 $M$ 增长会渐进地趋近于 BIC 分数 (BIC 分数的定义如此)，故
+
+**Corollary 18.2** 
+The Bayesian score is consistent. 
+>  引理
+>  贝叶斯分数是一致的
+
+Note that consistency is an asymptotic property, and thus it does not imply much about the properties of networks learned with limited amounts of data. Nonetheless, the proof illustrates the trade-offs that are playing a role in the deﬁnition of score. 
+>  一致性是渐进性质，在数据受限时没有直到意义
+
+### 18.3.6 Priors 
+Until now we did not specify the actual choice of priors we use. We now discuss possible choices of priors and their effect on the score. 
+>  本节讨论先验的选择和它们对分数的影响
+
+#### 18.3.6.1 Structure Priors 
+We begin with the prior over network structures, $P(\mathcal G)$ . Note that although this term seems to describe our bias for certain structure, in fact, it plays a relatively minor role. As we can see in theorem 18.1, the logarithm of the marginal likelihood grows linearly with the number of examples, while the prior over structures remains constant. Thus, the structure prior does not play an important role in asymptotic analysis as long as it does not rule out (that is, assign probability 0) any structure. 
+>  先考虑结构先验 $P(\mathcal G)$
+>  结构先验和样本数量 $M$ 无关，根据定理 18.1，似然项随着样本数量线性增大，因此在渐进分析中结构先验的作用不太重要，除非它给某个结构赋予概率 0
+
+For this reason, we often use a uniform prior over structures. Nonetheless, the structure prior can make some difference when we consider small samples. Thus, we might want to encode some of our preferences in this prior. For example, we might penalize edges in the graph, and use a prior $\dot{P}(\mathcal G)\propto c^{|\mathcal G|}$ , where $c$ is some constant smaller than 1 , and $|\mathcal{G}|$ is the number of edges in the graph. 
+>  因为结构先验在渐进分析中作用不大，我们常简单使用均匀结构先验
+>  但注意数据有限的情况下，结构先验将引导偏好，例如，需要惩罚网络的边数量时，可以采用 $P(\mathcal G) \propto c^{|\mathcal G|}$ 的结构先验，其中 $c < 1$，$|\mathcal G|$ 为边数量
+
+Note that in both these choices (the uniform and the penalty per edge) it suffices to use a value that is proportional to the prior, since the normalizing constant is the same for all choice of $\mathcal{G}$ and hence can be ignored. For this reason, we do not need to worry about the exact number of possible network structures in order to use these priors. 
+>  使用先验不一定要求使用确切的概率，因为所有结构都会除以规范化常数得到其先验，该常数是共享的，在结构比较中可以忽略
+
+As we will immediately see, it will be mathematically convenient to assume that the structure prior satisﬁes structure modularity . This condition requires that the prior $P(\mathcal G)$ be proportional to a product of terms, where each term relates to one family. Formally, 
+
+$$
+P(\mathcal{G})\propto\prod_{i}P(\mathrm{Pa}_{X_{i}}=\mathrm{Pa}_{X_{i}}^{\mathcal{G}}),
+$$
+
+where $P(\mathrm{Pa}_{X_{i}}=\mathrm{Pa}_{X_{i}}^{\mathcal{G}})$ denotes the prior probability we assign to choosing the speciﬁc set of parents for $X_{i}$ . Structure priors that satisfy this property do not penalize for global properties of the graph (such as its depth) but only for local properties (such as the indegrees of variables). This is clearly the case for both priors we discuss here. 
+
+>  结构先验满足结构模块性的形式如上，即结构的先验概率可以分解为为每个变量 $X_i$ 选择特定的父变量结合的概率的乘积
+>  满足结构模块性的先验不惩罚结构的全局性质 (例如深度)，因为分解过后，每一项是和变量 $X_i$ 有关，注意所有结构都基于同一作用域；仅惩罚局部性质 (例如变量入度)
+>  之前讨论的两类先验都满足这一性质
+
+In addition, it also seems reasonable to require that I-equivalent network structures are assigned the same prior. Again, this means that when two networks are equivalent, we do not distinguish between them by subjective preferences. 
+>  另外，先验应该为 I-equivalence 赋予同一概率
+
+#### 18.3.6.2 Parameter Priors and Score Decomposability 
+In order to use Bayesian scores, we also need to have parameter priors for the parameterization corresponding to every possible structure. Before we discuss how to represent such priors, we consider the desired properties from these priors. 
+>  确定了结构先验，还需要为每个可能结构确定参数先验
+>  我们考虑参数应该有的性质
+
+Proposition 18.2 shows that the Bayesian score of a network structure $\mathcal{G}$ decomposes into a product of terms, one for each family. This is a consequence of the global parameter independence assumption. In the case of parameter learning, this assumption was crucial for decomposing the learning problem into independent subproblems. Can we exploit a similar phenomenon in the case of structure learning? 
+>  命题 18.2 的证明利用了似然分数的分解性质，这要求参数先验满足全局独立性
+>  全局参数在参数学习问题中也很重要，它便于我们将学习问题分解为多个独立子问题
+
+In the simple example we considered in the previous section, we compared the score of two networks $\mathcal{G}_{\varnothing}$ and ${\mathcal{G}}_{X\to Y}$ . We saw that if w choose the priors $P(\Theta_{X}\mid\mathcal{G}_{\varnothing})$ and $P(\Theta_{X}\mid\mathcal{G}_{X\rightarrow Y})$ to be identical, the score associated with X is the same in both graphs. Thus, not only does the score of both structures have a product form, but in the case where the same variable has the same parents in both structures, the term associated with it also has the same value in both scores. 
+>  在上一节中我们考虑的简单例子中，比较了两个网络 $\mathcal{G}_{\varnothing}$ 和 ${\mathcal{G}}_{X\to Y}$ 的得分。
+>  我们发现，如果我们选择先验 $P(\Theta_{X}\mid\mathcal{G}_{\varnothing})$ 和 $P(\Theta_{X}\mid\mathcal{G}_{X\rightarrow Y})$ 相同，那么变量 $X$ 在这两个图中的得分是相同的。因此，不仅这两种结构的得分具有乘积形式，而且在同一个变量在两种结构中有相同父节点的情况下，与之关联的项在两个得分中也有相同的值。
+
+Considering more general structures, if $\mathrm{Pa}_{X_{i}}^{\mathcal{G}}=\mathrm{Pa}_{X_{i}}^{\mathcal{G}^{\prime}}$ then it would seem natural that the term that measures the score of $X_{i}$ given its parents in $\mathcal{G}$ wo be identical to the one in ${\mathcal{G}}^{\prime}$ . This seems reasonable. Recall that the score associated with $X_{i}$ measures how well it can be predicted given its parents. Thus, if $X_{i}$ has the same set of parents in both structures, this term should have the same value. 
+>  考虑到更一般的结构，如果 $\mathrm{Pa}_{X_{i}}^{\mathcal{G}} = \mathrm{Pa}_{X_{i}}^{\mathcal{G}'}$，那么似乎很自然地，衡量 $X_{i}$ 在 $\mathcal{G}$ 中给定其父节点的得分的项应该与在 ${\mathcal{G}}'$ 中的该项相同。
+>  这看起来是合理的。回想一下，与 $X_{i}$ 关联的得分衡量的是在给定其父节点的情况下预测它的效果。因此，如果 $X_{i}$ 在两个结构中具有相同的父节点集合，那么这个项的值也应该相同。
+
+**Deﬁnition 18.2** decomposable score 
+A structure score $\operatorname{score}(\mathcal G\ :\ \mathcal D)$ is decomposable if the score of a structure $\mathcal{G}$ can be written as 
+
+$$
+\mathrm{score}(\mathcal G\ :\ \mathcal D)=\sum_{i}\mathrm{FamScore}(X_{i}\ |\ \mathrm{Pa}_{X_{i}}^{\mathcal G}\ :\ \mathcal D),
+$$
+
+ere the family score $\operatorname{FamScore}(X\mid U\ :\ {\mathcal{D}})$ is a score measuring how well a set of variables $U$ serves as parents of X in the data set . 
+
+>  定义
+>  结构分数 $score(\mathcal G: \mathcal D)$ 如果可以按照变量分解为 $FamScore(X_i \mid \text{Pa}_{X_i}^{\mathcal G} : \mathcal D)$ 的和，则该分数是可分解的
+>  其中 $FamScore(X \mid U: \mathcal D)$ 描述了在数据集 $\mathcal D$ 中，变量集合 $U$ 作为 $X$ 的父变量的效果如何
+
+As an example, the likelihood score is decomposable. Using proposition 18.1, we see that in this decomposition 
+
+$$
+\operatorname{FamScore}_{L}(X\mid U\;:\;{\mathcal{D}})=M\cdot\left[I_{\hat{P}}(X;U)-H_{\hat{P}}(X)\right].
+$$
+
+>  容易知道似然分数是可分解的，其 $FamScore$ 就是 $X$ 和 $U$ 的互信息减去 $X$ 的熵
+
+Score decomposability has important ramiﬁcations when we search for structures that maximize the scores. The high-level intuition is that if we have a decomposable score, then a local change in the structure (such as adding an edge) does not change the score of other parts of the structure that remained the same. As we will see, the search algorithms we consider can exploit decomposability to reduce dramatically the computational overhead of evaluating different structures during search. 
+>  如果分数满足可分解性，则某个局部结构的改变不会影响其他局部结构的分数，因此结构搜索算法可以利用这一性质指数级减少搜索开销
+
+Under what conditions is the Bayesian score decomposable? It turns out that a natural restriction on the prior suffices. 
+>  对参数先验给予一定约束，贝叶斯分数就是可分解的
+
+**Deﬁnition 18.3** parameter modularity 
+Let $\{P(\pmb \theta_{\mathcal G}\mid \mathcal G \in \pmb {\mathcal G})\}$ be a set of parameter priors that satisfy the global parameter independence. The prior satisfy parameter modularity if for each $\mathcal G', \mathcal G$ such that $\text{Pa}_{X_i}^{\mathcal G} = \text{Pa}_{X_i}^{\mathcal G'} = \pmb U$, then $P(\pmb \theta_{X_i \mid \pmb U}\mid \mathcal G) = P(\pmb \theta_{X_i\mid \pmb U}\mid \mathcal G')$
+
+>  定义
+>  参数先验如果满足两个图的局部结构相同时，其局部参数的先验概率就相同，则参数先验就满足参数模块性
+
+Parameter modularity states that the prior over the CPD of $X_{i}$ depends only on the local structure of the network (that is, the set of parents of $X_{i}$ ), and not on other parts of the network. It is straightforward to see that parameter modularity implies that the score is decomposable. 
+>  参数模块性表明 $X_i$ 的 CPD 的先验参数仅依赖于网络的局部结构，即 $X_i$ 的父变量，而不是网络其他部分
+
+**Proposition 18.3** 
+Let $\mathcal{G}$ work structure, let $P(\mathcal G)$ be a structure prior satisfying structure modularity, and let $P(\theta_{\mathcal{G}}\mid\mathcal{G})$ be a parameter prior satisfying global parameter independence and parameter G modularity. Then, the Bayesian score over network structures is decomposable. 
+>  命题
+>  如果结构先验 $P(\mathcal G)$ 满足结构模块性，且参数先验 $P(\pmb \theta_{\mathcal G}\mid \mathcal G)$ 满足全局参数独立性和参数模块性，则 $\mathcal G$ 的贝叶斯分数是可分解的
+
+#### 18.3.6.3 Representing Parameter Priors 
+How do we represent our parameter priors? The number of possible structures is super exponential, which makes it difficult to elicit separate parameters for each one. How do we elicit priors for all these networks? If we require parameter modularity, the number of different priors we need is somewhat smaller, since we need a prior for each choice of parents for each variable. This number, however, is still exponential. 
+
+A simple minded approach is simply to take some ﬁxed Dirichlet distribution, for example, Dirichlet $(\alpha, \dots, \alpha)$, for every parameter, where $\alpha$ is a predetermined constant. A typical choice is $\alpha\,=\,1$ . This prior is often referred to as the $K2$ prior , referring to the name of the software system where it was ﬁrst used. 
+>  参数先验可以选择为 Dirichlet 先验
+>  K2 先验即超参数都为 1 的 Dirichlet 先验
+
+The K2 prior is simple to represent and efficient to use. However, it is somewhat inconsistent. Consider a structure where the binary variable $Y$ has no parents. If we take $\mathit{D i r i c h l e t}(1,1)$ for $\theta_{Y}$ , we are in effect stating that our imaginary sample size is two. But now, consider a different structure where $Y$ has the parent $X$ , which has 4 values. If we take $\,D i r i c h l e t(1,1)$ as our prior for all parameters $\theta_{Y\mid x^{i}}$ , we are effectively stating that we have seen two imaginary samples in each context $x^{i}$ , for a total of eight. It seems that the number of imaginary samples we have seen for different events is a basic concept that should not vary with different candidate structures. 
+>  K2先验表示简单且使用高效。然而，它在某种程度上不够一致。
+>  考虑一个结构，其中二元变量 $Y$ 没有父节点 (故仅有一个参数 $\theta_Y$)。如果我们为 $\theta_{Y}$ 选取 $\mathit{Dirichlet}(1,1)$，实际上我们是在说明我们的虚拟样本大小为二。
+>  但现在，考虑另一个结构，其中 $Y$ 有一个父节点 $X$，并且 $X$ 有 4 个取值。如果我们为所有参数 $\theta_{Y\mid x^{i}}$ 选取 $\mathit{Dirichlet}(1,1)$ 作为先验，实际上是说明在每种情况下 $x^{i}$ 我们都看到了两个虚拟样本，总共八个。
+>  看来，我们对于不同事件所看到的虚拟样本数量是一个基本概念，不应随不同的候选结构而变化。
+
+A more elegant approach is one we already saw in the context of parameter estimation: the BDe prior . We elicit a prior distribution $P^{\prime}$ over the entire probability space and an equivalent sample size $\alpha$ for the set of imaginary samples. We then set the parameters as follows: 
+
+$$
+\alpha_{x_{i}|\mathrm{pa}_{X_{i}}}=\alpha\cdot P^{\prime}(x_{i},\mathrm{pa}_{X_{i}}).
+$$ 
+This choice will avoid the inconsistencies we just discussed. If we consider the prior over $\theta_{Y\mid x^{i}}$ in our example, then 
+
+$$
+\alpha_{y}=\alpha\cdot P^{\prime}(y)=\sum_{x^{i}}\alpha\cdot P^{\prime}(y,x^{i})=\sum_{x^{i}}\alpha_{y|x^{i}}.
+$$ 
+Thus, the number of imaginary samples for the different choices of parents for $Y$ will be identical. 
+
+>  BDe 先验事先定义好虚拟样本总量，根据另一个先验 $P'$ 确定特定结构下某个 CPD 的参数的 Dirichlet 先验的超参数
+>  这样，$Y$ 不论选择多少个父变量，其虚拟样本总量都是一致的
+
+As we discussed, we can represent $P^{\prime}$ as a Bayesian network whose structure can represent our prior about the domain structure. Most simply, when we have no prior knowledge, we set $P^{\prime}$ to be the uniform distribution, that is, the empty Bayesian network with a uniform marginal distribution for each variable. In any case, it is important to note that the network structure is used only to provide parameter priors. It is not used to guide the structure search directly. 
+>  正如我们所讨论的，我们可以将 $P^{\prime}$ 表示为一个贝叶斯网络，其结构可以表示我们对领域结构的先验知识。最简单的情况是，当我们没有任何先验知识时，我们将 $P^{\prime}$ 设为均匀分布，即每个变量具有均匀边缘分布的空贝叶斯网络。
+>  无论如何，重要的是要注意，网络结构仅用于提供参数先验。它不会直接用于指导结构搜索。
+
+### 18.3.7 Score Equivalence\*
+The BDe score turns out to satisfy an important property. Recall that two networks are I- equivalent if they encode the same set of independence statements. Hence, based on observed independencies, we cannot distinguish between I-equivalent networks. This suggests that based on observing data cases, we do not expect to distinguish between equivalent networks. 
+
+Deﬁnition 18.4 score equivalence 
+Let $\mathrm{score}(\mathcal G\mathrm{~\,~:~\,~}\mathcal D)$ D som scoring rule. We say that it satisﬁes score equivalence if all I-equivalent networks G and G ${\mathcal{G}}^{\prime}$ we have score $\cdot({\mathcal{G}}\ :\ {\mathcal{D}})=\operatorname{score}({\mathcal{G}}^{\prime}\ :\ {\mathcal{D}})$ for all data sets D . 
+
+In other words, score equivalence implies that all networks in the same equivalence class have the same score. In general, if we view I-equivalent networks as equally good at describing the same probability distributions, then we want to have score equivalence. We do not want the score to introduce artiﬁcial distinctions when we choose networks. Do the scores discussed so far satisfy this condition? 
+
+Theorem 18.3 
+
+The likelihood score and the BIC score satisfy score equivalence. 
+
+For a proof, see exercise 18.8 and exercise 18.9 What about the Bayesian score? It turns out that the simpleminded K2 prior we discussed is not score-equivalent; see exercise 18.10. The BDe score, on the other hand, is score-equivalent. In fact, something stronger can be said. 
+
+Theorem 18.4 
+
+Let $P(\mathcal G)$ be a structure prior that assigns I-equivalent networks identical prior. Let $P(\theta_{\mathcal{G}}\mid\mathcal{G})$ be a prior over parameters for networks with table-CPDs that satisﬁes global and local parameter independence and where for each $X_{i}$ and $\mathbf{\mathit{u}}_{i}\ \in\ \mathit{V a l}(\mathrm{Pa}_{X_{i}}^{\mathcal{G}})$ , we have that $P(\pmb{\theta}_{X_{i}\mid\mathbf{u}_{i}}\mid\mathcal{G})$ is $^a$ Dirichlet prior. The Bayesian score with this prior satisﬁes score equivalence if and only if the prior is a BDe prior for some choice of $\alpha$ and $P^{\prime}$ . 
+
+We do not prove this theorem here. See exercise 18.11 for a proof that the BDe score in this case satisﬁes score equivalence. 
+
+In other words, if we insist on using Dirichlet priors and also want the decomposition property, then to satisfy score equivalence, we must use a BDe prior. 
+
+## 18.4 Structure Search 
+In the previous section, we discussed scores for evaluating the quality of different candidate Bayesian network structures. These included the likelihood score, the Bayesian score, and the BIC score (which is an asymptotic approximation of the Bayesian score). 
+
+We now examine how to ﬁnd a structure with a high score. We now have a well-deﬁned optimization problem. Our input is:
+
+ - training set $\mathcal{D}$ ;
+ - scoring function (including priors, if needed);
+ - a set $\pmb {\mathcal G}$ of possible network structures (incorporating any prior knowledge). 
+
+Our desired output is a network structure (from the set of possible structures) that maximizes the score. 
+
+>  根据之前的讨论，目前我们已经定义好了一个优化问题
+>  输入为训练集 $\mathcal D$，结构评分函数，一组可能的结构
+>  输出应该是最大化评分的结构
+
+It turns out that, for this discussion, we can ignore the speciﬁc choice of score. Our search algorithms will apply unchanged to all three of these scores. 
+>  搜索算法可以定义为和分数的特定选择无关
+
+As we will discuss, the main property of the scores that affect the search is their decomposability . That is, we assume we can write the score of a network structure $\mathcal{G}$ : 
+
+$$
+\mathrm{score}(\mathcal G\ :\ \mathcal D)=\sum_{i}\mathrm{FamScore}(X_{i}\ |\ \mathrm{Pa}_{X_{i}}^{\mathcal G}\ :\ \mathcal D).
+$$ 
+Another property that is shared by all these scores is score equivalence : if $\mathcal{G}$ is I-equivalent to ${\mathcal{G}}^{\prime}$ then $\mathrm{score}(\mathcal G\ :\ \mathcal D)=\mathrm{score}(\mathcal G^{\prime}\ :\ \mathcal D)$ . This property is less crucial for search, but, as we will see, it can simplify several points. 
+
+>  影响搜索的分数性质即可分解性
+>  可分解的分数可以分解为多个 FamScore 的和
+>  分数的等价性描述为，如果 $\mathcal G, \mathcal G'$ 为 I-equivalence，则二者分数相同，分数的等价性也可以简化搜索
+
+### 18.4.1 Learning Tree-Structured Networks 
+We begin with the simplest variant of the structure learning task — the task of learning a tree-structured network . More precisely: 
+
+**Deﬁnition 18.5** tree network 
+A network structure $\mathcal{G}$ is called tree-structured if each variable $X$ has at most one parent in $\mathcal{G}$ , that is, $\mid\mathrm{Pa}_{X}^{\mathcal{G}}\mid\leq1$ . 
+>  定义
+>  树结构的网络即每个变量最多只有一个父变量
+
+Strictly speaking, the notion of tree-structured networks covers a broader class of graphs than those comprising a single tree; it also covers graphs composed of a set of disconnected trees, that is, a forest. In particular, the network of independent variables (no edges) also satisﬁes this deﬁnition. However, as the basic structure of these networks is still a collection of trees, we continue to use the term tree-structure. 
+>  该定义中，森林也属于树结构的网络，以及完全没有边的网络也属于树结构的网络，我们可以认为这些网络的基本结构仍然是由一组树组成的
+
+Note that the class of trees is narrower than the class of polytrees that we discussed in chapter 9. A polytree can have variables with multiple parents, whereas a tree cannot. In other words, a tree-structured network cannot have v-structures. In fact, the problem of learning polytree-structured networks has very different computational properties than that of learning trees (see section 18.8). 
+>  该定义不包含多树，多树种，一个变量可以有多个父变量
+>  显然，树结构的网络不存在 v-structure
+
+Why do we care about learning trees? Most importantly, because unlike richer classes of structures, they can be learned efficiently — in polynomial time. But learning trees can also be useful in themselves. They are sparse, and therefore they avoid most of the overﬁtting problems associated with more complex structures. They also capture the most important dependencies in the distribution, and they can therefore provide some insight into the domain. They can also provide a better baseline for approximating the distribution than the set of independent marginals of the different variables (another commonly used simple approximation). They are thus often used as a starting point for learning a more complex structure, or even on their own in cases where we cannot afford signiﬁcant computational resources. 
+>  树结构可以在多项式时间内被高效学习
+>  树结构是稀疏的，因此可以避免大多数结构相关的过拟合问题
+>  树结构也可以捕获分布中最为重要的依赖性
+>  树结构和完全空的结构都是常用于近似复杂结构的基础结构
+>  树结构也常用于学习更复杂结构的起始点
+
+The key properties we are going to use for learning trees are the decomposability of the score on one hand and the restriction on the number of parents on the other hand. We start by examining the score of a network and performing slight manipulations. Instead of maximizing the score of a tree structure $\mathcal{G}$ , we will try to maximize the difference between its score and the score of the empty structure $\mathcal{G}_{\varnothing}$ . We deﬁne 
+
+$$
+\Delta(\mathcal{G})=\mathrm{score}(\mathcal{G}\ :\ \mathcal{D})-\mathrm{score}(\mathcal{G}_{\varnothing}\ :\ \mathcal{D}).
+$$ 
+>  考虑最大化一个结构的分数等价于最大化该结构和空结构的分数差
+
+We know that $\mathrm{score}(\mathcal{G}_{\varnothing}\ :\ \mathcal{D})$ is simply a sum of terms FamScore $\left(X_{i}\ :\ \mathcal{D}\right)$ for each $X_{i}$ . That is the score of $X_{i}$ if it does not have any parents. 
+>  空结构的分数即每个 $X_i$ 的 FamScore 的和
+
+The score $\operatorname{score}(\mathcal G\ :\ \mathcal D)$ consists of terms FamScore $(X_{i}\ |\ \mathrm{Pa}_{X_{i}}^{\mathcal{G}}\ :\ \mathcal{D})$ . Now, there are two cases. If $\mathrm{Pa}_{X_{i}}^{\mathcal{G}}=\mathring{\varnothing}$ , then the term for $X_{i}$ in both scores cancel out. If $\mathrm{Pa}_{X_{i}}^{\mathcal{G}}\,=\,X_{j}$ , then we are left with the difference between the two terms. Thus, we conclude that 
+
+$$
+\Delta(\mathcal{G})=\sum_{i,\mathrm{Pa}_{X_{i}}^{\mathcal{G}}\neq\emptyset}\left(\mathrm{FamScore}(X_{i}\ |\ \mathrm{Pa}_{X_{i}}^{\mathcal{G}}\ :\ \mathcal{D})-\mathrm{FamScore}(X_{i}\ :\ \mathcal{D})\right).
+$$ 
+>  对于树结构，如果 $X_i$ 没有父节点，则它空结构的分数消去，分数差简化如上
+
+If we deﬁne the weight 
+
+$$
+w_{j\rightarrow i}=\operatorname{FamScore}(X_{i}\mid X_{j}\ :\ \mathcal{D})-\operatorname{FamScore}(X_{i}\ :\ \mathcal{D}),
+$$ 
+then we see that $\Delta(\mathcal{G})$ is the sum of weights on pairs $X_{i},X_{j}$ such that $X_{j}\rightarrow X_{i}$ in $\mathcal{G}$ 
+
+$$
+\Delta(\mathcal{G})=\sum_{X_{j}\rightarrow X_{i}\in\mathcal{G}}w_{j\rightarrow i}.
+$$ 
+>  定义权重 $w_{j\to i}$，进而将分数差简写为权重之和如上
+
+We have transformed our problem to one of ﬁnding a maximum weight spanning forest in a directed weighted graph. Deﬁne a fully connected directed graph, where each vertex is labeled by a random variable in $\mathcal{X}$ , and the weight of the edge from vertex $X_{j}$ to vertex $X_{i}$ is $w_{j\rightarrow i}$ , and then search for a maximum-weight-spanning forest. Clearly, the sum of edge weights in a forest is exactly $\Delta(\mathcal{G})$ of the structure $\mathcal{G}$ with the corresponding set of edges. The graph structure that corresponds to that maximum-weight forest maximizes $\Delta(\mathcal{G})$ . 
+>  此时，最大化分数差的问题转化为在完全有向加权图中找到权重最大的生成森林
+>  完全有向加权图中，$X_j$ 到 $X_i$ 的边权重就是 $w_{j\to i}$
+
+How hard is the problem of ﬁnding a maximal-weighted directed spanning tree? It turns out that this problem has a polynomial-time algorithm. This algorithm is efficient but not simple. 
+>  找到最大权重生成森林的算法有多项式时间的算法
+
+The task becomes simpler if the score satisﬁes score equivalence. In this case, we can show (see exercise 18.13) that $w_{i\to j}\,=\,w_{j\to i}$ . Thus, we can examine an undirected spanning tree (forest) problem, where we choose which edges participate in the forest, and only afterward determine their direction. (This can be done by choosing an arbitrary root and directing all edges away from it.) Finding a maximum spanning tree in undirected graph is an easy problem. One algorithm for solving it is shown in algorithm A.2; an efficient implementation of this algorithm requires time complexity of $O(n^{2}\log{n})$ , where $n$ is the number of vertices in the graph. 
+>  如果评分分数满足分数等价性，任务将更简单，因为此时可以证明 $w_{j\to i} = w_{i \to j}$
+>  故问题转化为无向的生成森林问题，我们先通过该问题选择边，然后再决定方向
+
+Using this reduction, we end up with an algorithm whose complexity is $O(n^{2}\cdot M+n^{2}\log n)$ where $n$ is the number of variables in X and M is the number of data cases. This complexity is a result of two stages. In the ﬁrst stage we perform a pass over the data to collect the sufficient statistics of each of the $O(n^{2})$ edges. This step takes $O(n^{2}\cdot M)$ time. The spanning tree computation requires $O(n^{2}\log{n})$ using standard data structures, but it can be reduced to $O(n^{2}+n\log n)=O(n^{2})$ using more sophisticated approaches. We see that the ﬁrst stage dominates the complexity of the algorithm. 
+
+### 18.4.2 Known Order 
+We now consider a special case that also turns out to be easier than the general case. Suppose we restrict attention to structures that are consistent with some predetermined variable ordering $\prec$ $\mathcal{X}$ . In other words, we restrict attention to structures $\mathcal{G}$ where, if $X_{i}\,\in\,\mathrm{Pa}_{X_{j}}^{\mathcal{G}}$ , then $X_{i}\prec X_{j}$ . 
+>  考虑仅和预定义的变量顺序 $\prec$ 一致的结构，即如果 $\mathcal G$ 中 $X_j$ 为 $X_i$ 的父变量，则二者需要满足 $X_i \prec X_j$
+
+This assumption was a standard one in the early work on learning Bayesian networks from data. In some domains the ordering is indeed known in advance. For example, if there is a clear temporal order by which the variables are assigned values, then it is natural to try to learn a network that is consistent with the temporal ﬂow. 
+
+Before we proceed, we stress that choosing an ordering in advance may be problematic. As we have seen in the discussion of minimal I-maps in section 3.4, a wrong choice of order can result in unnecessarily complicated I-map. Although learning does not recover an exact I-map, the same reasoning applies. Thus, a bad choice of order can result in poor learning result. 
+>  要注意的是预先的顺序选择会影响学习结果
+
+With this caveat in mind assume that we select an ordering $\prec;$ ; without loss of generality, assume that our order $X_{1}\prec X_{2}\prec.\,.\,.\prec X_{n}$ . We want to learn a structure that maximizes the score, but so that $\operatorname{Pa}_{X_{i}}\subseteq\{X_{1},.\,.\,.\,,X_{i-1}\}$ . 
+>  假设预先给定顺序 $X_1 \prec X_2 \prec \dots, \prec X_n$，我们需要学习最大化分数的结构，该结构满足 $\text{Pa}_{X_i} \subseteq \{X_1, \dots, X_{i-1}\}$
+
+The ﬁrst observation we make is the following. We need to ﬁnd the network that maximizes the score. This score is a sum of local scores, one per variable. Note that the choice of parents for one variable, say $X_{i}$ , does not restrict the choice of parents of another variable, say $X_{j}$ . Since we obey the ordering, none of our choices can create a cycle. Thus, in this scenario, learning the parents of each variable is independent of the other variables. 
+>  分数可分解的情况下，分数表示为多个局部分数的和
+>  注意此时某个变量 $X_i$ 的父变量选择不会影响其他变量的父变量选择，因为我们遵循顺序，故对于任意一个变量，不管怎么选都不会创建环 
+>  因此每个变量对其父变量的学习都是独立的
+
+Stated more formally: 
+**Proposition 18.4**
+$L e t\prec$ be an ordering over $\mathcal{X}$ , and let score $(\mathcal{G}\ :\ \mathcal{D})$ be a decomposable score. If we choose $\mathcal{G}$ to be the network where 
+
+$$
+\mathrm{Pa}_{X_{i}}^{\mathcal{G}}=\arg\operatorname*{max}_{U_{i}\subseteq\{X_{j}:X_{j}\prec X_{i}\}}\mathrm{FamScore}(X_{i}\mid U_{i}\;:\;{\mathcal{D}})
+$$ 
+for each $i$ , then $\mathcal{G}$ maximizes the score among the structures consistent with $\prec$ 
+
+>  命题
+>  $\prec$ 为 $\mathcal X$ 上的顺序，$score(\mathcal G: \mathcal D)$ 可分解，则我们按照能够最大化每个 $X_i$ 的 FamScore 选择父变量得到的网络 $\mathcal G$ 就是能够最大化分数且和 $\prec$ 一致的网络
+
+Based on this observation, we can learn the parents for each variable independently from the parents of other variables. In other words, we now face $n$ small learning problems. 
+>  此时，每个变量的父变量学习都是独立的，学习问题分解为 n 个小问题
+
+Let us consider these learning problems. Clearly, we are forced to make $X_{1}$ a root. In the case of $X_{2}$ we have a choice. We can either have the edge $X_{1}\rightarrow X_{2}$ or not. In this case, we can evaluate the difference in score between these two options, and choose the best one. Note that this difference is exactly the weight $w_{1\rightarrow2}$ we deﬁned when learned tree networks. If $w_{1\rightarrow2}>0$ , we add the edge $X_{1}\rightarrow X_{2}$ ; otherwise we do not. 
+
+Now consider $X_{3}$ . Now we have four options, corresponding to whether we add the edge $X_{1}\rightarrow X_{3}$ , and whether we add the edge $X_{2}\rightarrow X_{3}$ . A roach to making these choices is to he decision whether to ad edge $X_{1}\rightarrow X_{3}$ from the decision about the edge $X_{2}\rightarrow X_{3}$ → . Thus, we might evaluate $w_{1\rightarrow3}$ and $w_{2\rightarrow3}$ and based on these two numbers → → try to decide what is the best choice of parents. 
+
+Unfortunately, this approach is flawed In general, the score $\operatorname{FamScore}(X_{3}\mid X_{1},X_{2}\ :\ {\mathcal{D}})$ is not a function of FamScore $(X_{3}\mid X_{1}\ :\ {\mathcal{D}})$ and FamScore $(X_{3}\mid X_{2}\ :\ {\mathcal{D}})$ . An extreme example is an XOR-like CPD where $X_{3}$ is a probabilistic function of the XOR of $X_{1}$ and $X_{2}$ . FamScore ($X_3\mid X_1 : \mathcal D$)  will be small (and potentially smaller than $\operatorname{FamScore}(X_{3}\mid:\mathbf{\mathcal{D}})$ since the two variables are independent ), yet FamScore $(X_{3}\mid X_{1},X_{2}\ :$ D ) will be large. By choosing the particular dependence of $X_{3}$ on the XOR of $X_{1}$ and $X_{2}$ , we can change the magnitude of the latter term. 
+
+We conclude that we need to consider all four possible parent sets before we choose the parents of $X_{3}$ . This does not seem that bad. However, when we examine $X_{4}$ we need to consider eight parent sets, and so on. For learning the parents of $X_{n};$ , we need to consider $2^{n-1}$ parent sets, which is clearly too expensive for any realistic number of variables. 
+>  为某个变量选择父变量时，需要考虑所有可能的集合，对于 $X_n$，选择就有 $2^{n-1}$ 种
+
+In practice, we do not want to learn networks with a large number of parents. Such networks are expensive to represent, most often are inefficient to perform inference with, and, most important, are prone to overﬁtting. So, we may ﬁnd it reasonable to restrict our attention to networks the indegree of each variable is at most $d$ . 
+
+If we make this restriction, our situation is somewhat more reasonable. The number of possible parent sets for $X_{n}$ is $1+{\binom{n-1}{1}}+.\,.\,.+{\binom{n-1}{d}}=O(d{\binom{n-1}{d}})$ (when $d<n/2)$ ). Since the number of choices for all other variables is less than the number of choices for $X_{n}$ , the procedure has to evaluate $O(d n{\binom{n-1}{d}})\;=\;O(d{\binom{n}{d}})$ candidate parent sets. This number is polynomial in $n$ (for a ﬁxed $d)$. 
+
+>  但一般我们不希望父变量数量过多，这会让网络不易推理、表示过于昂贵、且容易过拟合
+>  我们一般约束入度为 $d$ 以下
+>  此时对于固定的 $d$，评估变量 $X_n$ 的开销就是 $n$ 的多项式
+
+We conclude that learning given a ﬁxed order and a bound on the indegree is computationally tractable. However, the computational cost is exponential in $d$ . Hence, the exhaustive algorithm that checks all parent sets of size $\leq d$ is impractical for values of $d$ larger than 3 or 4. When a larger d is required, we can use heuristic methods such as those described in the next section. 
+>  但开销和 $d$ 成指数关系，因此 d 大于 4 时，一般就需要使用启发式算法
+
+### 18.4.3 General Graphs 
+What happens when we consider the most general problem, where we do not have an ordering over the variables? Even if we restrict our attention to networks with small indegree, other problems arise. Suppo hat adding the edge $X_{1}\rightarrow X_{2}$ is beneﬁcial, for example, if the score of $X_{1}$ as a parent of $X_{2}$ is higher than all other alternatives. If we decide to add this edge, we cannot add other edges — for example, $X_{2}\rightarrow X_{1}$ — since this would introduce a cycle. The restriction on the immediate reverse of the edge we add might not seem so problematic. However adding this edge also forbids us from adding together pairs of edges, such as $X_{2}\rightarrow X_{3}$ and $X_{3}\,\rightarrow\,X_{1}$ . Thus, the decision on whether to add $X_{1}\rightarrow X_{2}$ is not simple, since it has ramiﬁcations for other choices we make for parents of all the other variables. 
+>  考虑最一般的情况
+>  此时，在添加一个边时，需要额外考虑添加该边之后是否会导致环，添加了某个边之后，同时也会导致其他某些边不再可能被加入
+>  此时对于某个变量的父变量选择的决策会影响对于其他变量的父变量选择的决策
+
+This discussion suggests that the problem of ﬁnding the maximum-score network might be more complex than in the two cases we examined. If fact, we can make this statement more precise. Let $d$ be an integer, we deﬁne $\pmb{\mathcal{G}}_{d}=\{\mathcal{G}:\forall i,|\mathrm{Pa}_{X_{i}}^{\mathcal{G}}|\leq d\}$ . 
+
+**Theorem 18.5**
+The following problem is NP-hard for any $d\ge 2$.
+
+Given a data set $\mathcal{D}$ and a decomposable score function score , ﬁnd 
+
+$$
+{\mathcal G}^{*}=\arg\operatorname*{max}_{{\mathcal G}\in{\pmb{\mathcal G}}_{d}}\operatorname{score}({\mathcal G}\ :\ {\mathcal D}).
+$$
+
+The proof of this theorem is quite elaborate, and so we do not provide it here. 
+
+>  定理
+>  给定数据集 $\mathcal D$ 和可分解的评分函数 $\text{score}$ ，在 $\pmb {\mathcal G}_d$ 中找到最大化 $\text{score}$ 的结构 $\mathcal G^*$ 在 $d\ge 2$ 时就是 NP-hard 问题
+
+Given this result, we realize that it is unlikely that there is an efficient algorithm that constructs the highest-scoring network structure for all input data sets. Unlike the situation in inference, for example, the known intermediate situations where the problem is easier are not the ones we usually encounter in practice; see exercise 18.14. 
+
+As with many intractable problems, this is not the end of the story. Instead of aiming for an algorithm that will always ﬁnd the highest-scoring network, we resort to heuristic algorithms that attempt to ﬁnd the best network but are not guaranteed to do so. In our case, we are local search faced with a combinatorial optimization problem; we need to search the space of graphs (with bounded indegree) and return a high-scoring one. We solve this problem using a local search approach. To do so, we deﬁne three components: a search space, which deﬁnes the set of candidate network structures; a scoring function that we aim to maximize (for example, the BDe score given the data and priors); and the search procedure that explores the search space without necessarily seeing all of it (since it is super exponential in size). 
+>  考虑采用启发式算法进行搜索，在完整的图空间上搜索是 NP-hard 的，但可以考虑局部搜索
+>  我们定义三个成分：
+>  搜索空间，它定义了一组候选网络结构
+>  评分函数，需要最大化的函数
+>  搜索程序
+
+#### 18.4.3.1 The Search Space 
+We start by considering the search space . As discussed in appendix A.4.2, we can think of a search space as a graph over candidate solutions, connected by possible operators that the search procedure can perform to move between different solutions. In the simplest setting, we consider the search space where each search state denotes a complete network structure $\mathcal{G}$ over $\mathcal{X}$ . This is the search space we discuss for most of this chapter. However, we will see other formulations for search spaces. 
+>  我们可以将搜索空间视作在候选解上的一张图，该图中，候选解由搜索程序可能用于在候选解之间移动的算子连接
+>  最简单的情况下，我们将搜索空间的每个搜索状态都视作 $\mathcal X$ 上的完整网络结构 $\mathcal G$
+
+A crucial design choice that has large impact on the success of heuristic search is how the space is interconnected. If each state has few neighbors, then the search procedure has to consider only a few options at each point of the search. Thus, it can afford to evaluate each of these options. However, this comes at a price. Paths from the initial solution to a good one might be long and complex. On the other hand, if each state has many neighbors, we may be able to move quickly from the initial state to a good state, but it may be difficult to determine which step to take at each point in the search. A good trade-off for this problem chooses reasonably few neighbors for each state but ensures that the “diameter” of the search space remains small. A natural choice for the neighbors of a state representing a network structure is a set of structures that are identical to it except for small “local” modiﬁcations. 
+>  考虑搜索空间如何连接
+>  如果各个状态的邻居数较少，则搜索开销较少，但从初始状态在较优状态的路径一般会比较长且复杂
+>  如果各个状态的邻居数较多，则每一步的决策更为复杂，但更容易地快速从初始状态移动到一个较优状态
+>  较好的 trade-off 是为每个状态选择尽量少的邻居，但同时确保搜索空间的直径较小
+>  对于邻居的选择，一般是和当前结构大致相同，仅在部分局部存在修改的网络结构
+
+Thus, we deﬁne the connectivity of our search space in terms of operators such as: 
+
+- edge addition
+- edge deletion
+- edge reversal
+
+In other words, the states adjacent to a state $\mathcal{G}$ are those where we change one edge, either by adding one, deleting one, or reversing the orientation of one. Note that we only consider operations that result in legal networks. That is, acyclic networks that satisfy the constraints we put in advance (such as indegree constraints). 
+
+>  因此，我们考虑依据算子：加入边、删除边、倒转边，来定义搜索空间的连接性
+>  也就是说，和状态 $\mathcal G$ 相连的状态的差异仅在一条边，可以是添加、删除或者倒转一条边
+>  注意应用算子得到的应该是合法的网络，即无环网络，且满足我们的入度限制
+
+This deﬁnition of search space is quite natural and has several desirable properties. First, notice that the diameter of the search space is at most $n^{2}$ . That is, there is a relatively short path between any two networks we choose. To see this, note that if we consider traversing a path from $\mathcal{G}_{1}$ to $\mathcal{G}_{2}$ , we can start by deleting all ed s in $\mathcal{G}_{1}$ that do not appear in $\mathcal{G}_{2}$ , and then we can add the edges that are in G $\mathcal{G}_{2}$ and not in $\mathcal{G}_{1}$ Clearly, the number of steps we take is bounded by the total number of edges we can have, $n^{2}$ . 
+>  在该定义下，搜索空间的直径最多为 $n^2$
+>  例如，考虑从 $\mathcal G_1$ 到 $\mathcal G_2$ 路径，我们删除 $\mathcal G_1$ 中 $\mathcal G_2$ 没有的边，然后再添加 $\mathcal G_2$ 中 $\mathcal G_1$ 中没有的边，显然算子执行的次数的上界就是我们可以拥有的总的边数 $n^2$
+
+Second, recall that the score of a network $\mathcal{G}$ is a sum of local scores. The operations we consider result in changing only one local score term (in the case of addition or deletion of an edge) or two (in the case of edge reversal). Thus, they result in a local change in the score; most components in the score remain the same. This implies that there is some sense of “continuity” in the score of neighboring networks. 
+>  该顶一下，邻居之间仅在一个局部分数项 (添加或删除一条边) 或两个局部分数项 (倒转一条边) 存在差异
+>  因此，分数的改变也是局部的，分数的大多数成分不变
+>  这暗示了网络中邻居之间的分数之间的某种 “连续性”
+
+The choice of the three particular operations we consider also needs some justiﬁcation. For example, if we always start the search from the empty graph $\mathcal{G}_{\varnothing}$ , we may wonder why we include the option to delete an edge. We can reach every network by adding the appropriate arcs to the empty network. In general, however, we want the search space to allow us to reverse our choices. As we will see, this is an important property in escaping local maxima (see appendix A.4.2). 
+
+However, the ability to delete edges is important even if we perform only “greedy” operations that lead to improvement. To see this, consider the following example. Suppose the original network is the one shown in ﬁgure 18.5a, and that $A$ is highly informative about both $C$ and $B$ . S rom an empty network and adding edges greedily, we m the edges $A\rightarrow B$ and $A\,\rightarrow\,C$ → . How er, in some data sets, we ght a the edge $A\,\rightarrow\,D$ . To see why, we need to realize that A is informative about both B and C , and since these are the two parents of $D$ , also about $D$ . Now $B$ and $C$ are also informative about $D$ . However, each of them provides part of the information, and thus neither $B$ nor $C$ by itself is the best parent of $D$ . At this stage, we thus end up with the network ﬁgure 18.5b. Continuing the search, we consider different operators, adding the edge $B\,\rightarrow\,D$ and $C\,\rightarrow\,D$ . Since $B$ is a rent of $D$ in the original network, it will improve the prediction of D when combined with A . Thus, the score of $A$ and $B$ together as parents of $D$ can be larger than the score of $A$ alone. Similarly, if there are enough data to support adding parameters, we will also add the edge $C\,\rightarrow\,D$ , and reach the structure shown in ﬁgure 18.5c. This is the correct structure, except for the redundant edge $A\,\rightarrow\,D$ the original distribution $B$ and C together separate $A$ from $D$ , we expect that choosing $B,C$ as the parents of D will have higher score than choosing $A,B,C$ . To see this, note that $A$ cannot provide additional information on top of what $B$ and $C$ convey, and having it as an additional parent results in a penalty. After we delete the edge $A\rightarrow D$ we get the original structure. 
+>  删除边的算子在我们仅执行贪心搜索时可以帮助脱离局部极大值
+>  考虑 figure 18.5 的例子，在原始分布中 $A\to B, A\to C, B\to D, C\to D$，我们从空网络开始，$A$ 可以为 $B, C$ 提供信息，我们自然会添加边 $A\to B, A\to C$，而在原始分布中，$A$ 通过 $B, C$ 为 $D$ 提供信息，因此边 $A\to D$ 的添加也很自然
+>  之后，$B, C$ 也会为 $D$ 提供信息，则边 $B\to D, C\to D$ 也自然添加
+>  此时，我们构造的网络多了冗余边 $A\to D$，因为给定  $B, C$ 之后，$A$ 的信息对 $D$ 就没有用了，如果允许删除边，此时根据网络复杂度的惩罚项，我们会删除 $A\to D$，最后得到正确的网络
+
+A similar question can be raised about the edge reversal operator. Clearly, we can achieve the effect of reve edge $X\rightarrow Y$ in two steps, ﬁrst deleting the ed $X\rightarrow Y$ and then adding the edge $Y\rightarrow X$ . The problem is that when we delete the edge $X\rightarrow Y$ , we usually reduce the score (assuming that there is some dependency between X and $Y$ ). Thus, these two operations require us to go “downhill” in the ﬁrst step in order to get to a better structure in the next step. The reverse operation allows us to realize the trade-off between a worse parent set for $Y$ and a better one for $X$ . 
+>  类似地，逆转边可以通过一次删除和一次添加实现，但它仍然是必要的
+>  因为即便逆转可以提高分数，删除和添加走的路则是先下坡再上坡，在贪心的情况下，我们不会选择到删除这一步
+>  逆转操作用于选择两个相关变量间更适合的一个作为父变量
+
+To see the utility of the edge reversal operator, consider the following simple example. Suppose the real network generating the data has the v-structure shown in ﬁgure 18.6a. Suppose that the dependency between $A$ and $C$ is stronger than that between $B$ and $C$ . Thus, a ﬁrst step in a greedy-search procedure would add an edge between $A$ and $C$ . Note, however, that score equivalence implies that network with the edge $A\rightarrow C$ has exactly the same score as the network with the edge $C\rightarrow A$ . At this stage, we cannot distinguish between the two choices. Thus, the decision between them is arbitrary (or, in some implementations, randomized). It is thus conceivable that at this stage we have the network shown in ﬁgure $18.6\mathrm{b}$ . The greedy procedure proceeds, and it decides to add the edge $B\ \rightarrow\ C$ , result in e network of ﬁgure 18.6c. No we ar n the position to realize that reversing the edge $C\rightarrow A$ can improve the score (since A and B together should make the best predictions of C ). However, if we do not have a reverse operator, a greedy procedure would not delete the edge $C\rightarrow A$ , since that would deﬁnitely hurt the score. 
+>  为了理解边缘反转算子的效用，考虑以下简单的例子。假设生成数据的真实网络具有图 18.6a 所示的 v-结构。假设 $A$ 和 $C$ 之间的依赖性比 $B$ 和 $C$ 之间的依赖性更强。因此，在贪婪搜索过程的第一步中，会在 $A$ 和 $C$ 之间添加一条边。然而，注意到得分等价性意味着具有边缘 $A\rightarrow C$ 的网络与具有边缘 $C\rightarrow A$ 的网络具有完全相同的得分。在这个阶段，我们无法区分这两种选择。因此，这种选择是任意的（或者，在某些实现中是随机的）。因此，在这个阶段，我们可能会得到图 18.6b 所示的网络。贪婪过程继续进行，并决定添加边缘 $B\rightarrow C$，从而形成图 18.6c 所示的网络。现在我们可以意识到，反转边缘 $C\rightarrow A$ 可以提高得分（因为 $A$ 和 $B$ 一起应该能够更好地预测 $C$）。然而，如果没有一个反转算子，贪婪过程不会删除边缘 $C\rightarrow A$，因为那样肯定会损害得分。
+
+In this example, note that when we do not perform the edge reversal, we might end up with the network shown in ﬁgure $18.6\mathrm{d}$ . To realize why, recall that although $A$ and $B$ are marginally independent, they are dependent given $C$ . Thus, $B$ and $C$ together make better predictions of $A$ than $C$ alone. 
+
+#### 18.4.3.2 The Search Procedure 
+Once we deﬁne the search space, we need to design a procedure to explore it and search for high-scoring states. There is a wide literature on heuristic search. The vast majority of the search methods used in structure learning are local search procedures such as greedy hill climbing, as described in appendix A.4.2. In the structure-learning setting, we pick an initial network structure $\mathcal{G}$ as a starting point; this network can be the empty one, a random choice, the best tree, or a network obtained from some prior knowledge. We compute its score. We then consider all of the neighbors of $\mathcal{G}$ in the space — all of the legal networks obtained by applying a single operator to $\mathcal{G}$ — and compute the score for each of them. We then apply the change that leads to the best improvement in the score. We continue this process until no modiﬁcation improves the score. 
+>  完成搜索空间的定义后，需要设计程序搜索空间中分数最高的状态
+>  结构学习中，常用的局部搜索方法之一是贪心爬坡，我们从初始状态开始，考虑它的所有邻居中分数最高的一个，然后转移到该邻居，该过程重复直到转移不会再提高分数
+
+There are two questions we can ask. First, how expensive is this process, and second, what can we say about the ﬁnal network it returns? 
+
+**Computational Cost** We start by brieﬂy considering the time complexity of the procedure. At each iteration, the procedure applies $|\mathcal O|$ operators and evaluates the resulting network. Recall that the space of operators we consider is quadratic in the number of variables. Thus, if we perform $K$ steps before convergence, then we perform $O(K\cdot n^{2})$ operator applications. Each operator application involves two steps. First, we need to check that the network is acyclic. This check can be done in time linear in the number of edges. If we are considering networks with indegree bounded by $d$ , then there are at most nd edges. Second, if the network is legal, we need to evaluate it. For this, we need to collect sufcient statistics from the data. These might be different for each network and require $O(M)$ steps, and so our rough time estimate is $O(K\cdot n^{2}\cdot(M+n d))$ . The number of iterations, $K$ , varies and depends on the starting netw and on how different the ﬁnal network is. However, we expect it not to be much larger than $n^{2}$ (since this is the diameter of the search space). We emphasize that this is a rough estimate, and not a formal statement. As we will show, we can make this process faster by using properties of the score that allow for smart caching. 
+
+When $n$ is large, considering $O(n^{2})$ neighbors at each iteration may be too costly. How- ever, most operators attempt to perform a rather bad change to the network. So can we skip evaluating them? One way of avoiding this cost is to use search procedures that replace the exhaustive enumeration in line 5 of Greedy-Local-Search (algorithm A.5) by a randomized choice of operators. This ﬁrst-ascent hill climbing procedure samples operators from $\mathcal{O}$ and evaluates them one by one. Once it ﬁnds one that leads to a better-scoring network, it applies it without considering other operators. In the initial stages of the search, this procedure requires relatively few random trials before it ﬁnds such an operator. As we get closer to the local maximum, most operators hurt the score, and more trials are needed before an upward step is found (if any). 
+
+
+**Local Maxima** What can we say about the network returned by a greedy hill-climbing search procedure? Clearly, the resulting network cannot be improved by applying a single operator (that is, changing one edge). This implies that we are in one of two situations. We might have reached a local maximum from which all changes are score-reducing. The other option is that we have reached a plateau : a large set of neighboring networks that have the same score. By design, the greedy hill-climbing procedure cannot “navigate” through a plateau, since it relies on improvement in score to guide it to better structures. 
+
+Upon reﬂection, we realize that greedy hill climbing will encounter plateaus quite often. Recall that we consider scores that satisfy score equivalence. Thus, all networks in an I-equivalence class will have the same score. Moreover, as shown in theorem 3.9, the set of I-equivalent networks forms a contiguous region in the space, which we can traverse using a set of covered edge-reversal operations. Thus, any I-equivalence class necessarily forms a plateau in the search space. 
+
+Recall that equivalence classes can potentially be exponentially large. Ongoing work stud- ies the average size of an equivalence class (when considering all networks) and the actual distributions of sizes encountered in realistic situations, such as during structure search. 
+
+It is clear, however, that most networks we encounter have at least a few equivalent networks. Thus, we conclude that most often, greedy hill climbing will converge to an equivalence class. There are two possible situations: Either there is another network in this equivalence class from which we can continue the upward climb, or the whole equivalence class is a local maximum. Greedy hill climbing cannot deal with either situation, since it cannot explore without upward indications. 
+
+As we discussed in appendix A.4.2, there are several strategies to improve on the network $\mathcal{G}$ returned by a greedy search algorithm. One approach that deals with plateaus induced by equivalence classes is to enumerate explicitly all the network structures that are I-equivalent to $\mathcal{G}$ , and for each one to examine whether it has neighbors with higher score. This enumeration, however, can be expensive when the equivalence class is large. An alternative solution, described in section 18.4.4, is to search directly over the space of equivalence classes. However, both of these approaches save us from only some of the plateaus, and not from local maxima. 
+
+Appendix A.4.2 describes other methods that help address problem of local maxima. For example, basin ﬂooding keeps track of all previous networks and considers any operator leading from one of them to a structure that we have not yet visited. A key problem with this approach is that storing the list of networks we visited in the recent past can be expensive (recall that greedy hill climbing stores just one copy of the network). Moreover, we do not necessarily want to explore the whole region surrounding a local maximum, since it contains many variants of the same network. To see why, suppose that three different edges in a local maximum network can be removed with very little change in score. This means that all seven networks that contain at least one deletion will be explored before a more interesting change will be considered. 
+
+A method that solves both problems is the tabu search of algorithm A.6. Recall that this procedure keeps a list of recent operators we applied, and in each step we do not consider operators that reverse the efect of recently applied operators. Thus, once the search decides to dd an edge, say $X\rightarrow Y$ , it cannot delete this edge in the next $L$ steps (for some prechosen $L$ ). Similarly, once an arc is reversed, it cannot be reversed again. As for the basin-ﬂooding approach, tabu search cannot use the termination criteria of greedy hill climbing. Since we want the search to proceed after reaching the local maxima, we do not want to stop when the score of the current candidate is smaller than the previous one. Instead, we continue the search with the hope of reaching a better structure. If this does not happen after a prespeciﬁed number of steps, we decide to abandon the search and select the best network encountered at any time during the search. 
+
+Finally, as we discussed, one can also use randomization to increase our chances of escaping local maxima. In the case of structure learning, these methods do help. In particular, simulated annealing was reported to outperform greedy hill-climbing search. However, in typical example domains (such as the ICU-Alarm domain) it appears that simple methods such as tabu search with random restarts ﬁnd higher-scoring networks much faster. 
+
+data perturbation Data Perturbation Methods So far, we have discussed only the application of general-purpose local search methods to the speciﬁc problem of structure search. We now discuss one class of methods — data-perturbation methods — that are more speciﬁc to the learning task. The idea is similar to random restarts: We want to perturb the search in a way that will allow it to overcome local obstacles and make progress toward the global maxima. Random restart methods achieve this perturbation by changing the network. Data perturbation methods, on the other hand, change the training data. 
+
+To understand the idea, consider a perturbation that duplicates some instances (say by random choice) and removes others (again randomly). If we do a reasonable number of these mo ﬁcations, the resulting data set ${\mathcal{D}}^{\prime}$ has most of the characteristics of the original data set . For example, the value of sufcient statistics in the perturbed data are close to the values in the original data. Thus, we expect that big diferences between networks are preserved. That is, if $\begin{array}{r l}{\mathrm{score}(\mathcal{G}_{X\to Y}}&{:\quad\mathcal{D})\;\gg\;\mathrm{score}(\mathcal{G}_{2}\quad:\quad\mathcal{D})}\end{array}$ D ≫ G D , then we expect that score $(\mathcal{G}_{X\to Y}~:~\mathcal{D}^{\prime})\gg\mathrm{score}(\mathcal{G}_{2}~:~\mathcal{D}^{\prime})$ D ≫ G D . On the other hand, the perturbation does change comparison between networks that are simila The basic intuition is that the score using D ${\mathcal{D}}^{\prime}$ has the same broad outline as t e score using D , yet might have different ﬁne-grained pology. This suggests that a structure G tha s a local maximum when using the score on D is no longer a local maximum when using D ${\mathcal{D}}^{\prime}$ . The magnitude of perturbation determines the level of details that are preserved after the perturbation. 
+
+We note that instead of duplicating and removing instances, we can achieve perturbation by weighting data instances. Much of the discussion on scoring networks and related topics applies without change if we assign weight to each instance. Formally, the only diference is the computation of sufcient statistics. If we have weights $w[m]$ for the $m$ ’th instance, then the sufcient statistics are redeﬁned as: 
+
+$$
+M[z]=\sum_{m}I\{Z[m]=z\}\cdot w[m].
+$$ 
+Note that when $w[m]=1$ , this reduces to the standard deﬁnition of sufcient statistics. Instance duplication and deletion lead to integer weights. However, we can easily consider perturbation that results in fractional weights. This leads to a continuous spectrum of data perturbations that range from small changes to weights to drastic ones. 
+
+The actual search procedure is shown in algorithm 18.1. The heart of the procedure is the Perturb function. This procedure can implemented in different ways. A simple approach is to sample each $w[m]$ for a distribution whose variance is dictated by $t_{j}$ , for example, using a Gamma distribution, with mean 1 and variance $t$ . (Note that we need to use a distribution that attains nonnegative values. Thus, the Gamma distribution is more suitable than a Gaussian distribution.) 
+
+#### 18.4.3.3 Score Decomposition and Search 
+The discussion so far has examined how generic ideas in heuristic search apply to structure learning. We now examine how the particulars of the problem impact the search. 
+
+The dominant factor in the cost of the search algorithm is the evaluation of neighboring networks at each stage. As discussed earlier, the number of such networks is approximately $n^{2}$ . To evaluate each of these network structures, we need to score them. This process requires that we traverse all the different data cases, computing sufficient statistics relative to our new structure. This computation can get quite expensive, and it is the dominant cost in any structure learning algorithm. 
+
+This key task is where the score decomposability property turns out to be useful. Recall that the scores we examine decompose into a sum of terms, one for each variable $X_{i}$ . Each of these family scores is computed relative only to the variables in the family of $X_{i}$ . A local change — adding, deleting, or reversing an edge — leaves almost all of the families in the network unchanged. (Adding and deleting changes one family, and reversing changes two.) For families whose composition does not change, the associated component of the score also does not change. To understand the importance of this observation, assume that our current candidate network is $\mathcal{G}$ . For each operator, we compute the improvement in the score that would result in making that change. We deﬁne the delta score 
+
+$$
+\delta(\mathcal{G}~:~o)=\mathrm{score}(o(\mathcal{G})~:~\mathcal{D})-\mathrm{score}(\mathcal{G}~:~\mathcal{D})
+$$ 
+
+to be the change of score associated with applying $O$ on $\mathcal{G}$ . Using score decomposition, we can compute this quantity relatively efficiently. 
+
+Proposition 18.5 
+
+Let $\mathcal{G}$ be a network structure and score be a decomposable score. 
+
+$$
+\delta(\mathcal{G}\ :\ o)=\mathrm{FastScone}(Y,\mathrm{Pa}_{Y}^{\mathcal{G}}\cup\{X\}\ :\ \mathcal{D})-\mathrm{FastScone}(Y,\mathrm{Pa}_{Y}^{\mathcal{G}}\ :\ \mathcal{D}).
+$$ 
+
+$$
+\delta(\mathcal{G}\ :\ o)=\mathrm{FastScone}(Y,\mathrm{Pa}_{Y}^{\mathcal{G}}-\{X\}\ :\ \mathcal{D})-\mathrm{FastScone}(Y,\mathrm{Pa}_{Y}^{\mathcal{G}}\ :\ \mathcal{D}).
+$$ 
+
+$$
+\begin{array}{r c l}{\delta(\mathcal{G}\ :\ o)}&{=}&{\mathrm{Famscover}(X,\mathrm{Pa}_{X}^{\mathcal{G}}\cup\{Y\}\ :\ \mathcal{D})+\mathrm{Famscover}(Y,\mathrm{Pa}_{Y}^{\mathcal{G}}-\{X\}\ :\ \mathcal{D})}\\ &&{-\mathrm{Famscover}(X,\mathrm{Pa}_{X}^{\mathcal{G}}\ :\ \mathcal{D})-\mathrm{Famscover}(Y,\mathrm{Pa}_{Y}^{\mathcal{G}}\ :\ \mathcal{D}).}\end{array}
+$$ 
+
+See exercise 18.18. 
+
+Note that these computations involve only the sufficient statistics for the particular family that changed. This requires a pass over only the appropriate columns in the table describing the training data. 
+
+Now, assume that we have an operator $O$ , say “Add $X\rightarrow Y$ ,” and instead of applying this edge addition, we have decided to apply another operator o $o^{\prime}$ that changes the family of some variable $Z$ (for $Z\neq Y)$ ), producing a new graph ${\mathcal{G}}^{\prime}$ . The key observation is that $\delta(\mathcal{G}^{\prime}\,\,\,\,:\,\,\,\,o)$ remains unch nged — we d not need to recompute it. We need only to recompute $\delta(\mathcal{G}^{\prime}~:~o^{\prime})$ for operators o $o^{\prime}$ that involve $Y$ . 
+
+• If o is either “Add $X\rightarrow Y$ ” or “Delete $X\rightarrow Y^{\astrosun}$ and $\mathrm{Pa}_{Y}^{\mathcal{G}}=\mathrm{Pa}_{Y}^{\mathcal{G}^{\prime}}$ , then $\delta({\mathcal{G}}\ :\ o)=\delta({\mathcal{G}}^{\prime}\ :$ $O$ ) . • If o is “Reverse $X\rightarrow Y$ ,” $\mathrm{Pa}_{Y}^{\mathcal{G}}=\mathrm{Pa}_{Y}^{\mathcal{G}^{\prime}}$ , and $\mathrm{Pa}_{X}^{\mathcal{G}}=\mathrm{Pa}_{X}^{\mathcal{G}^{\prime}}$ , then $\delta({\mathcal{G}}\ :\ o)=\delta({\mathcal{G}}^{\prime}\ :\ o)$ . 
+
+See exercise 18.19. 
+
+
+This shows that we can cache the computed $\delta(\mathcal{G}\quad:\quad o)$ for different operators and then reuse most of them in later search steps. The basic idea is to maintain a data structure that records for each operator $O$ the value of $\delta(\mathcal{G}\ \ :\ \ o)$ with respect to the current network $\mathcal{G}$ . After we apply a step in the search, we have a new current network, and we need to update this data structure. Using proposition 18.6 we see that most of the computed values do not need to be changed. We need to recompute $\delta(\mathcal{G}^{\prime}\,\,\,\,:\,\,\,\,o)$ only for operators that modify one of the families that we modiﬁed in the recent step. By careful data-structure design, this cache can save us a lot of computational time; see box 18.A for details. Overall, the decomposability of the scoring function provides signiﬁcant reduction in the amount of computation that we need to perform during the search. This observation is critical to making structure search feasible for high-dimensional spaces. 
+
+Box 18.A — Skill: Practical Collection of Sufcient Statistics. The passes over the training data required to compute sufcient statistics generally turn out to be the most computationally intensive part of structure learning. It is therefore crucial to take advantage of properties of the score in order to ensure efcient computations as well as use straightforward organizational tricks. 
+
+One important source of computational savings derives from proposition 18.6. As we discussed, this proposition allows us to avoid recomputing many of the delta-scores after taking a step in the search. We can exploit this observation in a variety of ways. For example, if we are performing greedy hill climbing, we know that the search will necessarily examine all operators. Thus, after each step we can update the evaluation of all the operators that were “damaged” by the last move. The number of such operators is $O(n)$ , and so this requires $O(n\cdot M)$ time (since we need to collect sufcient statistics from data). Moreover, if we keep the score of different operators in a heap, we spend $O(n\log{n})$ steps to update the heap but then can retrieve the best operator in constant time. Thus, although the cost of a single step in the greedy hill-climbing procedure seems to involve quadratic number of operations of $O(n^{2}\cdot M)$ , we can perform it in time $O(n\cdot M+n\log n)$ . 
+
+We can further reduce the time consumed by the collection of sufcient statistics by considering additional levels of caching. For example, if we use table-CPDs, then the counts needed for evaluating $X$ as a parent of $Y$ and the counts needed to evaluate $Y$ as a parent of $X$ are the same. Thus, we can save time by caching previously computed counts, and also by marginalizing counts such as $M[x,y]$ to compute $M[x]$ . A more elaborate but potentially very efective approach is one where we plan the collection of the entire set of sufcient statistics needed. In this case, we can use efcient algorithms for the set cover problem to choose a smaller set of sufcient statistics that covers all the needed computations. There are also efcient data structures (such as AD-trees for discrete spaces and KD-trees or metric trees for continuous data) that are designed explicitly for maintaining and retrieving sufcient statistics; these data structures can signiﬁcantly improve the performance of the algorithm, particularly when we are willing to approximate sufcient statistics in favor of dramatic speed improvements. 
+
+One cannot overemphasize the importance of these seemingly trivial caching tricks. In practice, learning the structure of a network without making use of such tricks is infeasible even for a modest number of variables. 
+
+#### 18.4.3.4 Empirical Evaluation 
+In practice, relatively cheap and simple algorithms, such as tabu search, work quite well. Figure 18.7 shows the results of learning a network from data generated from the ICU-Alarm network. The graph shows the KL-divergence to the true network and compares two learning tasks: learn- ing the parameters only, using a correct network structure, and learning both parameters and structure. Although the graph does show that it is harder to recover both the structure and the parameters, the diference in the performance achieved on the two tasks is surprisingly small. We see that structure learning is not necessarily a harder task than parameter estimation, although computationally, of course, it is more expensive. We note, however, that even the computational cost is not prohibitive. Using simple optimization techniques (such as tabu search with random restarts), learning a network with a hundred variables takes a few minutes on a standard machine. 
+
+We stress that the networks learned for different sample sizes in ﬁgure 18.7 are not the same as the original networks. They are usually simpler (with fewer edges). As the graph shows, they perform quite similarly to the real network. This means that for the given data, these networks seem to provide a better score, which means a good trade-of between complexity and ﬁt to the data. As the graph suggests, this estimate (based on training data) is quite reasonable. 
+
+### 18.4.4 Learning with Equivalence Classes\*
+The preceding discussion examined different search procedures that attempt to escape local maxima and plateaus in the search space. An alternative approach to avoid some of these pitfalls is to change the search space. In particular, as discussed, many of the plateaus we encounter during the search are a consequence of score equivalence — equivalent networks have equivalent scores. This observation suggests that we can avoid these plateaus if we consider searching over equivalence classes of networks. 
+
+class PDAG 
+
+To carry out this idea, we need to examine carefully how to construct the search space. Recall that an equivalence class of networks can be exponential in size. Thus, we need a compact representation of states (equivalence classes) in our search space. Fortunately, we already encountered such a representation. Recall that a class PDAG is a partially directed graph that corresponds to an equivalence class of networks. This representation is relatively compact, and thus, we can consider the search space over all possible class PDAGs. 
+
+Next, we need to answer the question how to score a given class PDAG. The scores we discussed are deﬁned for over network structures (DAGs) and not over PDAGs. Thus, to score a class PDAG $\mathcal{K}$ , we need to build a network $\mathcal{G}$ in the equivalence class represented by $\mathcal{K}$ and then score it. As we saw in section 3.4.3.3, this is a fairly straightforward procedure. 
+
+Finally, we need to decide on our search algorithm. Once again, we generally resort to a hill-climbing search using local graph operations. Here, we need to deﬁne appropriate search operations on the space of PDAGs. One approach is to use operations at the level of PDAGs. In this case, we need operations that add, remove, and reverse edges; moreover, since PDAGs contain both directed edges and undirected ones, we may wish to consider operations such as adding an undirected edge, orienting an undirected edge, and replacing a directed edge by an undirected one. An alternative approach is to use operators in DAG space that are guaranteed to change the equivalence class. In particular, consider an equivalence c $\mathcal{E}$ (represented as a class PDAG). We can deﬁne as our operat s any step that takes a DAG G ∈E , adds or etes edge from $\mathcal{G}$ to produce a new DAG G ${\mathcal{G}}^{\prime}$ , and then constructs the equivalence class E $\mathcal{E}^{\prime}$ for ${\mathcal{G}}^{\prime}$ G (represented again as a class DAG). nce both edge addition and edge deletion change the skeleton, we are guaranteed that E and E $\mathcal{E}^{\prime}$ are distinct equivalence classes. 
+
+GES algorithm 
+
+One algorithm based on this last approach is called the GES algorithm , for greedy equivalence search . GES starts out with the equivalence class for the empty graph and then takes greedy edge-addition steps until no additional edge-addition steps improve the score. It then executes the reverse procedure, removing edges one at a time until no additional edge-removal steps improve the score. 
+
+consistent score 
+
+When used with a consistent score (as in deﬁnition 18.1), this simple two-pass algorithm has me satisfying guarantees. Assume that our distribution $P^{*}$ is fait l for the graph $\mathcal{G}^{*}$ over $\mathcal{X}$ X ; thus, as in section 18.2, there are no spurious independencies in P $P^{*}$ . Moreover, assume that we have (essentially) inﬁnite data. Under these assumptions, our (consistent) scoring function gives only the correct equivalence class — the equivalence class of $\mathcal{G}^{*}$ — the highest s e. For this setting, one can show that GES is guaranteed to produce the equivalence class of G $\mathcal{G}^{\ast}$ as its output. 
+
+Although the assumptions here are fairly strong, this result is still important and satisfying. Moreover, empirical results suggest that GES works reasonably well even when some of its assumptions are violated (to an extent). Thus, it also provides a reasonable alternative in practice. 
+
+Although simple in principle, there are two signiﬁcant computational issues associated with GES and other algorithms that work in the space of equivalence classes. The ﬁrst is the cost of generating the equivalence classes that result from the local search operators discussed before. The second is the cost of evaluating their scores while reusing (to the extent possible) the sufcient statistics from our current graph. Although nontrivial (and outside the scope of this book), local operations that address both of these tasks have been constructed, making this algorithm a computationally feasible alternative to search over DAG space. 
+
+dependency networks 
+
+Box 18.B — Concept: Dependency Networks. An alternative formalism for parameterizing a Markov network is by associating with each variable $X_{i}$ a conditional probability distribution (CPD) $P_{i}(X_{i}\mid\mathcal{X}-\{X_{i}\})\,=\,P_{i}(X_{i}\mid\mathrm{MB}_{\mathcal{H}}(X_{i}))$ . Networks parameterized in this way are sometimes called dependency networks and are drawn as a cyclic directed graph, with edges to each variable from all of the variables in its Markov blanket. 
+
+This representation ofers certain trade-ofs over other representations. In terms of semantics, $a$ key limitation of this parameter iz ation is that a set of Ds $\{P_{i}(X_{i}\ |\ \mathrm{MB}_{\mathcal{H}}(X_{i}))\ :\ X_{i}\in\mathcal{X}\}$ may not be consistent with any probability distribution P ; that is, there may not be a distribution $P$ h that $P_{i}(X_{i}\mid\mathrm{MB}_{\mathcal{H}}(X_{i}))=P(X_{i}\mid\mathrm{MB}_{\mathcal{H}}(X_{i}))$ for all $i$ (hence the use of the subscrip $i$ on $P_{i}$ ). Moreover, determining whether such a set of CPDs is consistent with some distribution P is a computationally difcult problem. Thus, eliciting or learning a consistent dependency network can be quite difcult, and the semantics of an inconsistent network is unclear. 
+
+However, in a noncausal domain, dependency networks arguably provide a more appropriate representation of the dependencies in the distribution than a Bayesian network. Certainly, for a lay user, understanding the notion of a Markov blanket in a Bayesian network is not trivial. On the other hand, in comparison to Markov networks, the CPD parameter iz ation is much more natural and easy to understand. (As we discussed, there is no natural interpretation for a Markov network factor in isolation.) 
+
+From the perspective of inference, dependency networks provide a very easy mechanism for answering queries where all the variables except for a single query variable are observed (see box 18.C). However, answering other queries is not as obvious. The representation lends itself very nicely to Gibbs sampling, which requires precisely the distribution of individual variables given their Markov blanket. However, exact inference requires that we transform the network to a standard  parameterization, a task that requires a numerical optimization process. 
+
+The biggest advantage arises in the learning setting. If we are willing to relax the consistency requirement, the problem of learning such networks from data becomes quite simple: we simply have to learn a CPD independently for each variable, a task to which we can apply a wide variety of standard supervised learning algorithms. In this case, however, it is arguable whether the resulting network can be considered a uniﬁed probabilistic model, rather than a set of stand-alone predictors for individual variables. 
+
+collaborative ﬁltering 
+
+Box 18.C — Case Study: Bayesian Networks for Collaborative Filtering. In many marketing settings, we want to provide to a user a recommendation of an item that he might like, based on previous items that he has bought or liked. For example, a bookseller might want to recommend books that John might like to buy, using John’s previous book purchases. Because we rarely have enough data for any single user to determine his or her preferences, the standard solution is an approach called collaborative ﬁltering , which uses the observed preferences of other users to try to determine the preferences for any other user. There are many possible approaches to this problem, including ones that explicitly try to infer key aspects of a user’s preference model. 
+
+One approach is to learn the dependency structure between different purchases, as observed in the population. We treat each item $i$ as a variable $X_{i}$ in a joint distribution, and each user as an instance. Most simply, we view a purchase of an item $i$ (or some other indication of preference) as one value for the variable $X_{i}$ , and the lack of a purchase as a different value. (In certain settings, we may get explicit ratings from the user, which can be used instead.) We can then use structure learning to obtain a Bayesian network model over this set of random variables. Dependency networks (see box 18.B) have also been used for this task; these arguably provide a more intuitive visualization of the dependency model to a lay user. 
+
+Both models can be used to address the collaborative ﬁltering task. Given a set of purchases for a set of items $S$ , we can compute the probability that the user would like a new item i . In general, this question is reduced to a probabilistic inference task where all purchases other than $S$ and $i$ are set to false; thus, all variables other than the query variable $X_{i}$ are taken to be observed. In a Bayesian network, this query can be computed easily by simply looking at the Markov blanket of $X_{i}$ . In a dependency network, the process is even simpler, since we need only consider the CPD for $X_{i}$ . Bayesian networks and Markov networks ofer different trade-ofs. For example, the learning and prediction process for dependency networks is somewhat easier, and the models are arguably more understandable. However, Bayesian networks allow answering a broader range of queries — for example, queries where we distinguish between items that the user has viewed and chosen not to purchase and items that the user simply has not viewed (whose variables arguably should be taken to be unobserved). 
+
+Heckerman et al. (2000) applied this approach to a range of different collaborative ﬁltering data sets. For example, ﬁgure 18.C.1 shows a fragment of a Bayesian network for TV-watching habits learned from Nielsen viewing data. They show that both the Bayesian network and the dependency network methods performed signiﬁcantly better than previous approaches proposed for this task. The performance of the two methods in terms of predictive accuracy is roughly comparable, and both were ﬁelded successfully as part of Microsoft’s E-Commerce software system. 
+
+## 18.7 Summary and Discussion
+In this chapter, we considered the problem of structure learning from data. As we have seen, there are two main issues that we need to deal with: the statistical principles that guide the choice between network structures, and the computational problem of applying these principles.
+
+The statistical problem is easy to state. Not all dependencies we can see in the data are real. Some of them are artifacts of the finite sample we have at our disposal. Thus, to learn (that is, generalize to new examples), we must apply caution in deciding which dependencies to model in the learned network.
+
+We discussed two approaches to address this problem. The first is the constraint-based approach. This approach performs statistical tests of independence to collect a set of depen- dencies that are strongly supported by the data. Then it searches for the network structure that “explains” these dependencies and no other dependencies. The second is the score-based approach. This approach scores whole network structures against the data and searches for a network structure that maximize the score.
+
+What is the diference between these two approaches? Although at the outset they seem quite diferent, there are some similarities. In particular, if we consider a choice between the two possible networks over two variables, then both approaches use a similar decision rule to make the choice; see exercise 18.27.
+
+When we consider more than two variables, the comparison is less direct. At some level, we can view the score-based approach as performing a test that is similar to a hypothesis test. However, instead of testing each pair of variables locally, it evaluates a function that is somewhat like testing the complete network structure against the null hypothesis of the empty network. Thus, the score-based approach takes a more global perspective, which allows it to trade of approximations in diferent part of the network.
+
+The second issue we considered was the computational issue. Here there are clear diferences. In the constraint-based approach, once we collect the independence tests, the construction of the network is an efcient (low-order polynomial) procedure. On the other hand, we saw that the optimization problem in the score-based approach is NP-hard. Thus, we discussed various approaches for heuristic search.
+
+When discussing this computation issue, one has to remember how to interpret the theoretical results. In particular, the NP-hardness of score-based optimization does not mean that the problem is hopeless. When we have a lot of data, the problem actually becomes easier , since one structure stands out from the rest. In fact, recent results indicates that there might be search procedures that when applied to sufciently large data sets are guaranteed to reach the global optimum. This suggests that the hard cases might be the ones where the diferences between the maximal scoring network and that other local maxima might not be that dramatic. This is a rough intuition, and it is an open problem to characterize formally the trade-of between quality of solution and hardness of the score-based learning problem.
+
+Another open direction of research attempts to combine the best of both worlds. Can we use the efcient procedures developed for constraint-based learning to find high-scoring network structure? The high-level motivation that the Build-PDAG we discussed uses knowledge about Bayesian networks to direct its actions. On the other hand, the search procedures we discussed so far are fairly uninformed about the problem. A simpleminded combination of these two approaches uses a constraint-based method to find starting point for the heuristic search. More elaborate strategies attempt to use the insight from constraint-based learning to reformulate the search space — for example, to avoid exploring structures that are clearly not going to score well, or to consider global operators.
+
+Another issue that we touched on is estimating the confidence in the structures we learned. We discussed MCMC approaches for answering questions about the posterior. This gives us a measure of our confidence in the structures we learned. In particular, we can see whether a part of the learned network is “crucial” in the sense that it has high posterior probability, or closer to arbitrary when it has low posterior probability. Such an evaluation, however, compares structures only within the class of models we are willing to learn. It is possible that the data do not match any of these structures. In such situations, the posterior may not be informative about the problem. The statistical literature addresses such questions under the name of goodness of fit tests, which we brieﬂy described in box 16.A. These tests attempt to evaluate whether a given model would have data such as the one we observed. This topic is still underdeveloped for models such as Bayesian networks.
+
 # 19 Partially Observed Data 
 Until now, our discussion of learning assumed that the training data are fully observed : each instance assigns values to all the variables in our domain. This assumption was crucial for some of the technical developments in the previous two chapters. Unfortunately, this assumption is clearly unrealistic in many settings. In some cases, data are missing by accident; for example, some ﬁelds in the data may have been omitted in the data collection process. In other cases, certain observations were simply not made; in a medical-diagnosis setting, for example, one never performs all possible tests or asks all of the possible questions. Finally, some variables are hidden , in that their values are never observed. For example, some diseases are not observed directly, but only via their symptoms. 
 >  目前为止，我们都假设训练数据是完全被观察到的，也就是作用域中每个变量的实例值都知道
@@ -11873,7 +13171,7 @@ And so, if we see a data set $\mathcal{D}$ of tosses with $M$ [1] , $M[0],$ , an
 
 $$
 \begin{array}{r l}{\lefteqn{L(\theta,\psi_{O_{X}|x^{1}},\psi_{O_{X}|x^{0}}:\mathcal{D})}}\\ &{=\phantom{\psi_{O_{X}|x^{1}},}\theta^{M[1]}(1-\theta)^{M[0]}\psi_{O_{X}|x^{1}}^{M[1]}\psi_{O_{X}|x^{0}}^{M[0]}}\\ &{\hphantom{=}(\theta(1-\psi_{O_{X}|x^{1}})+(1-\theta)(1-\psi_{O_{X}|x^{0}}))^{M[\mathcal{I}]}.}\end{array}
-$$ 
+$$
 
 As we can see, the likelihood function in this example is more complex than the one in the previous example. In particular, there is no easy way of decoupling the likelihood of $\theta$ from the likelihood of $\psi_{O_{X}|x^{1}}$ and $\psi_{O_{X}|x^{0}}$ . This makes sense, since different values of these parameters imply different possible values of $X$ when we see a missing value and so affect our estimate of $\theta$ ; see exercise 19.1. 
 
@@ -11921,12 +13219,13 @@ As we saw in the last example, conditional independence can help us decouple the
 >  上例中，观测变量和原始变量之间的条件独立性也可以使得似然函数具有分解形式，进而我们将对 $P(\pmb X)$ 的参数的估计和对 $P(O_{\pmb X}\mid \pmb X)$ 的参数的估计分离
 
 **Definition 19.3**
-Let $y$ be a tuple of observations. These observations partition the variables $X$ into two sets, the observed variables $X_{\mathit{o b s}}^{y}\,=\,\{X_{i}\,:\,y_{i}\,\neq\,?\}$ { ̸ } and th hidden ones $X_{h i d d e n}^{y}\,=\,\{X_{i}\,:\,y_{i}\,=\,?\}$ . The values of the observed variables are determined by y , while the values of the hidden variables are not. 
+Let $y$ be a tuple of observations. These observations partition the variables $X$ into two sets, the observed variables $X_{\mathit{o b s}}^{y}\,=\,\{X_{i}\,:\,y_{i}\,\neq\,?\}$ and the hidden ones $X_{h i d d e n}^{y}\,=\,\{X_{i}\,:\,y_{i}\,=\,?\}$ . The values of the observed variables are determined by y , while the values of the hidden variables are not. 
 We say that a missing data model $P_{m i s s i n g}$ is missing at random (MAR) if for all observations $\pmb y$ with $P_{m i s s i n g}(\pmb{y})>0$ , and for all $\pmb{x}_{h i d d e n}^{\pmb{y}}\in V a l(\pmb{X}_{h i d d e n}^{\pmb{y}})$ , we have that 
 
 $$
 P_{m i s s i n g}\models(o_{\pmb X}\perp\mathbf{\it{\pmb x}}_{h i d d e n}^{y}\mid\mathbf{\it{\pmb x}}_{o b s}^{y})
-$$ 
+$$
+
 where $o_{\pmb X}$ are the speciﬁc values of the observation variables given $Y$ 
 
 >  定义
@@ -13897,13 +15196,13 @@ $$
 \frac{1}{M}[\ell((\theta_{k},\theta_{-k}^{0}):\mathcal{D})-\ell(\theta^{0}:\mathcal{D})]=(\theta_{k}-\theta_{k}^{0})E_{\mathcal{D}}[f_{k}]-\left[\ln Z(\theta_{k},\theta_{-k}^{0})-\ln Z(\theta_{-k}^{0})\right]=0,
 $$ 
 
-The ﬁrst term is a linear function in $\theta_{k}$ , whose coefcient is the empirical expectation of $f_{k}$ in the data. For the second term, we have: 
+The ﬁrst term is a linear function in $\theta_{k}$ , whose coefficient is the empirical expectation of $f_{k}$ in the data. For the second term, we have: 
 
 $$
 \begin{array}{r c l}{{\ln\displaystyle\frac{Z(\theta_{k},\theta_{-k}^{0})}{Z(\theta^{0})}}}&{{=}}&{{\ln\displaystyle\left[\frac{1}{Z(\theta^{0})}\sum_{\xi}\exp\left\{\sum_{j}\theta_{j}^{0}f_{j}(\xi)+(\theta_{k}-\theta_{k}^{0})f_{k}(\xi)\right\}\right]}}\\ {{}}&{{=}}&{{\ln\displaystyle\sum_{\xi}\frac{\tilde{P}_{\theta^{0}}(\xi)}{Z(\theta^{0})}\left[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(\xi)\right\}\right]}}\\ {{}}&{{=}}&{{\ln E_{\theta^{0}}\Big[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(d_{k})\right\}\Big].}}\end{array}
 $$ 
 
-Thus, the diference of these two log-partition functions can be rewritten as a log-expectation relative to our original distribution. We can convert this expression into a univariate function of $\theta_{k}$ by computing (via inference in our current model $\theta^{0}$ ) the marginal distribution over the variables $d_{k}$ . Altogether, we obtain that: 
+Thus, the difference of these two log-partition functions can be rewritten as a log-expectation relative to our original distribution. We can convert this expression into a univariate function of $\theta_{k}$ by computing (via inference in our current model $\theta^{0}$ ) the marginal distribution over the variables $d_{k}$ . Altogether, we obtain that: 
 
 $$
 \begin{array}{l}{\displaystyle\frac{1}{M}[\ell((\theta_{k},\theta_{-k}^{0}):\mathcal{D})-\ell(\theta^{0}:\mathcal{D})]=\ }\\ {\displaystyle\ \ \ \ \ \ (\theta_{k}-\theta_{k}^{0})E_{\mathcal{D}}[f_{k}]-\ln\sum_{d_{k}}P_{\theta^{0}}(d_{k})\left[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(d_{k})\right\}\right].}\end{array}
@@ -13914,7 +15213,6 @@ We can incorporate this simpliﬁed form into equation (20.33) for any penalized
 $$
 \operatorname*{max}_{\theta_{k}}\left\{\theta_{k}E_{\mathcal{D}}[f_{k}]-\ln\sum_{d_{k}}P_{\theta^{0}}(\boldsymbol{d}_{k})\left[\exp\left\{(\theta_{k}-\theta_{k}^{0})f_{k}(\boldsymbol{d}_{k})\right\}\right]-\frac{\theta_{k}^{2}}{2\sigma^{2}}\right\}.
 $$ 
-
 However, in certain special cases, we can actually provide a closed-form solution for this optimization problem. We note that this derivation applies only in restricted cases: only in the case of generative training (that is, not for CRFs); only for the likelihood or $L_{1}$ -penalized objective; and only for binary-valued features. 
 
 Proposition 20.6 
