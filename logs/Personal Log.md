@@ -596,7 +596,7 @@ Date: 2024.12.9-2024.12.16
         CH20-Learning Undirected Models
 
 ### Week 4
-Date: 2024.
+Date: 2024.12.16=
 
 \[Book\]
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
