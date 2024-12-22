@@ -598,6 +598,9 @@ Date: 2024.12.9-2024.12.16
 ### Week 4
 Date: 2024.12.16=
 
+\[Paper\]
+- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
+
 \[Book\]
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH7
