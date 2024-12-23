@@ -596,7 +596,7 @@ Date: 2024.12.9-2024.12.16
         CH20-Learning Undirected Models
 
 ### Week 4
-Date: 2024.12.16=
+Date: 2024.12.16-2024.12.23
 
 \[Paper\]
 - [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
