@@ -1,5 +1,6 @@
 ---
 completed: true
+version: 11.0.0
 ---
 # Overview
 The **Python Imaging Library** adds image processing capabilities to your Python interpreter.

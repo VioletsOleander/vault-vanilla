@@ -1,3 +1,6 @@
+---
+completed: true
+---
 author: Larry Hastings
 
 # Abstract

@@ -1,3 +1,7 @@
+---
+completed: true
+version: 75.1.0
+---
 # 1 User guide
 ## 1.1 Quickstart
 ### Installation

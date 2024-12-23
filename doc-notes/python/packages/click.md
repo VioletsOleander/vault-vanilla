@@ -1,3 +1,7 @@
+---
+completed: true
+version: 8.1.7
+---
 # Quickstart
 You can get the library directly from PyPI:
 

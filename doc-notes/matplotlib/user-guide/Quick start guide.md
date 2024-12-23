@@ -319,51 +319,65 @@ Legends in Matplotlib are quite flexible in layout, placement, and what Artists 
 
 ## Axis scales and ticks
 Each Axes has two (or three) [`Axis`](https://matplotlib.org/stable/api/axis_api.html#matplotlib.axis.Axis "matplotlib. axis. Axis") objects representing the x- and y-axis. These control the _scale_ of the Axis, the tick _locators_ and the tick _formatters_. Additional Axes can be attached to display further Axis objects.
+>  每个 `Axes` 都有两个或者三个 `Axis` 对象，表示其 x 或 y 轴
+>  `Axis` 对象用于控制坐标轴的尺度、刻度 locator、刻度 formatter
 
 ### Scales
 In addition to the linear scale, Matplotlib supplies non-linear scales, such as a log-scale. Since log-scales are used so much there are also direct methods like [`loglog`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.loglog.html#matplotlib.axes.Axes.loglog "matplotlib. axes. Axes. loglog"), [`semilogx`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.semilogx.html#matplotlib.axes.Axes.semilogx "matplotlib. axes. Axes. semilogx"), and [`semilogy`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.semilogy.html#matplotlib.axes.Axes.semilogy "matplotlib. axes. Axes. semilogy"). There are a number of scales (see [Scales](https://matplotlib.org/stable/gallery/scales/scales.html) for other examples). Here we set the scale manually:
 
-[fig](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure "matplotlib. figure. Figure"), [axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = [plt. subplots](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots "matplotlib. pyplot. subplots")(1, 2, figsize=(5, 2.7), layout='constrained')
-[xdata](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = [np. arange](https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange "numpy. arange")(len ([data1](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")))  # make an ordinal for this
-[data](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = 10**[data1](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0]. plot ([xdata](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [data](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))
+>  Matplotlib 支持非线性坐标轴尺度，例如对数尺度
+>  Matplotlib 还为对数尺度提供了直接的方法例如 `loglog, semilogx, semilogy`
 
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1]. set_yscale ('log')
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1]. plot ([xdata](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [data](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))
+```python
+fig, axs = plt.subplots(1, 2, figsize=(5, 2.7), layout='constrained')
+xdata = np.arange(len(data1))  # make an ordinal for this
+data = 10**data1
+axs[0].plot(xdata, data)
+
+axs[1].set_yscale('log')
+axs[1].plot(xdata, data)
+```
 
 ![quick start](https://matplotlib.org/stable/_images/sphx_glr_quick_start_012.png)
 
 The scale sets the mapping from data values to spacing along the Axis. This happens in both directions, and gets combined into a _transform_, which is the way that Matplotlib maps from data coordinates to Axes, Figure, or screen coordinates. See [Transformations Tutorial](https://matplotlib.org/stable/users/explain/artists/transforms_tutorial.html#transforms-tutorial).
 
-### Tick locators and formatters[](https://matplotlib.org/stable/users/explain/quick_start.html#tick-locators-and-formatters "Link to this heading")
+>  尺度定义了坐标轴上数据值到间隔的映射，尺度实际上定义了一个 transform
+>  Matplotlib 将数据坐标映射到轴坐标、图坐标、屏幕坐标的方式都是 transform
 
+### Tick locators and formatters
 Each Axis has a tick _locator_ and _formatter_ that choose where along the Axis objects to put tick marks. A simple interface to this is [`set_xticks`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_xticks.html#matplotlib.axes.Axes.set_xticks "matplotlib. axes. Axes. set_xticks"):
+>  每个轴都有一个刻度 locator 和刻度 formatter，它们负责选择在 Axis 对象上的哪些地方防止坐标记号
 
-[fig](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure "matplotlib. figure. Figure"), [axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = [plt. subplots](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots "matplotlib. pyplot. subplots")(2, 1, layout='constrained')
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0]. plot ([xdata](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [data1](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0]. set_title ('Automatic ticks')
+```python
+fig, axs = plt.subplots(2, 1, layout='constrained')
+axs[0].plot(xdata, data1)
+axs[0].set_title('Automatic ticks')
 
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1]. plot ([xdata](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [data1](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1]. set_xticks ([np. arange](https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange "numpy. arange")(0, 100, 30), ['zero', '30', 'sixty', '90'])
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1]. set_yticks ([-1.5, 0, 1.5])  # note that we don't need to specify labels
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1]. set_title ('Manual ticks')
+axs[1].plot(xdata, data1)
+axs[1].set_xticks(np.arange(0, 100, 30), ['zero', '30', 'sixty', '90'])
+axs[1].set_yticks([-1.5, 0, 1.5])  # note that we don't need to specify labels
+axs[1].set_title('Manual ticks')
+```
 
 ![Automatic ticks, Manual ticks](https://matplotlib.org/stable/_images/sphx_glr_quick_start_013.png)
 
 Different scales can have different locators and formatters; for instance the log-scale above uses [`LogLocator`](https://matplotlib.org/stable/api/ticker_api.html#matplotlib.ticker.LogLocator "matplotlib. ticker. LogLocator") and [`LogFormatter`](https://matplotlib.org/stable/api/ticker_api.html#matplotlib.ticker.LogFormatter "matplotlib. ticker. LogFormatter"). See [Tick locators](https://matplotlib.org/stable/gallery/ticks/tick-locators.html) and [Tick formatters](https://matplotlib.org/stable/gallery/ticks/tick-formatters.html) for other formatters and locators and information for writing your own.
+>  不同的尺度可以有不同的 locator 和 formatter，例如对数尺度使用 `LogLocator, LogFormatter`
 
-### Plotting dates and strings[](https://matplotlib.org/stable/users/explain/quick_start.html#plotting-dates-and-strings "Link to this heading")
-
+### Plotting dates and strings
 Matplotlib can handle plotting arrays of dates and arrays of strings, as well as floating point numbers. These get special locators and formatters as appropriate. For dates:
+>  Matplotlib 对于日期数组、字符串数组、浮点数数组有特殊的 locator 和 formatter
 
-from matplotlib. dates import [ConciseDateFormatter](https://matplotlib.org/stable/api/dates_api.html#matplotlib.dates.ConciseDateFormatter "matplotlib. dates. ConciseDateFormatter")
+```python
+from matplotlib.dates import ConciseDateFormatter
 
-[fig](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure "matplotlib. figure. Figure"), [ax](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes") = [plt. subplots](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots "matplotlib. pyplot. subplots")(figsize=(5, 2.7), layout='constrained')
-[dates](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = [np. arange](https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange "numpy. arange")([np. datetime64](https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.datetime64 "numpy. datetime64")('2021-11-15'), [np. datetime64](https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.datetime64 "numpy. datetime64")('2021-12-25'),
-                  [np. timedelta64](https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.timedelta64 "numpy. timedelta64")(1, 'h'))
-[data](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = [np. cumsum](https://numpy.org/doc/stable/reference/generated/numpy.cumsum.html#numpy.cumsum "numpy. cumsum")([np. random. randn](https://numpy.org/doc/stable/reference/random/generated/numpy.random.randn.html#numpy.random.randn "numpy. random. randn")(len ([dates](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))))
-[ax. plot](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html#matplotlib.axes.Axes.plot "matplotlib. axes. Axes. plot")([dates](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [data](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))
-[ax. xaxis. set_major_formatter](https://matplotlib.org/stable/api/_as_gen/matplotlib.axis.Axis.set_major_formatter.html#matplotlib.axis.Axis.set_major_formatter "matplotlib. axis. Axis. set_major_formatter")([ConciseDateFormatter](https://matplotlib.org/stable/api/dates_api.html#matplotlib.dates.ConciseDateFormatter "matplotlib. dates. ConciseDateFormatter")([ax. xaxis. get_major_locator](https://matplotlib.org/stable/api/_as_gen/matplotlib.axis.Axis.get_major_locator.html#matplotlib.axis.Axis.get_major_locator "matplotlib. axis. Axis. get_major_locator")()))
+fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+dates = np.arange(np.datetime64('2021-11-15'), np.datetime64('2021-12-25'), np.timedelta64(1, 'h'))
+data = np.cumsum(np.random.randn(len(dates)))
+ax.plot(dates, data)
+ax.xaxis.set_major_formatter(ConciseDateFormatter(ax.xaxis.get_major_locator()))
+```
 
 ![quick start](https://matplotlib.org/stable/_images/sphx_glr_quick_start_014.png)
 
@@ -371,98 +385,96 @@ For more information see the date examples (e.g. [Date tick labels](https://mat
 
 For strings, we get categorical plotting (see: [Plotting categorical variables](https://matplotlib.org/stable/gallery/lines_bars_and_markers/categorical_variables.html)).
 
-[fig](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure "matplotlib. figure. Figure"), [ax](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes") = [plt. subplots](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots "matplotlib. pyplot. subplots")(figsize=(5, 2.7), layout='constrained')
-[categories](https://docs.python.org/3/library/stdtypes.html#list "builtins. list") = ['turnips', 'rutabaga', 'cucumber', 'pumpkins']
+```python
+fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+categories = ['turnips', 'rutabaga', 'cucumber', 'pumpkins']
 
-[ax. bar](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.bar.html#matplotlib.axes.Axes.bar "matplotlib. axes. Axes. bar")([categories](https://docs.python.org/3/library/stdtypes.html#list "builtins. list"), [np. random. rand](https://numpy.org/doc/stable/reference/random/generated/numpy.random.rand.html#numpy.random.rand "numpy. random. rand")(len ([categories](https://docs.python.org/3/library/stdtypes.html#list "builtins. list"))))
+ax.bar(categories, np.random.rand(len(categories)))
+```
 
 ![quick start](https://matplotlib.org/stable/_images/sphx_glr_quick_start_015.png)
 
 One caveat about categorical plotting is that some methods of parsing text files return a list of strings, even if the strings all represent numbers or dates. If you pass 1000 strings, Matplotlib will think you meant 1000 categories and will add 1000 ticks to your plot!
+>  关于类别刻度的一个注意事项是，一些解析文本文件的方法会返回一个字符串列表，即使这些字符串都代表数字或日期
+>  如果你传递了1000个字符串，Matplotlib 会认为你有1000个类别，并会在你的图表中添加1000个刻度！
 
-### Additional Axis objects[](https://matplotlib.org/stable/users/explain/quick_start.html#additional-axis-objects "Link to this heading")
-
+### Additional Axis objects
 Plotting data of different magnitude in one chart may require an additional y-axis. Such an Axis can be created by using [`twinx`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.twinx.html#matplotlib.axes.Axes.twinx "matplotlib. axes. Axes. twinx") to add a new Axes with an invisible x-axis and a y-axis positioned at the right (analogously for [`twiny`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.twiny.html#matplotlib.axes.Axes.twiny "matplotlib. axes. Axes. twiny")). See [Plots with different scales](https://matplotlib.org/stable/gallery/subplots_axes_and_figures/two_scales.html) for another example.
+>  要在一张图中画出不同尺度的数据需要一个额外的 y 轴，它可以通过 `twinx` 创建，该方法会添加一个新的 `Axes` 对象，它有一个不可见的 x 轴和一个在右边的 y 轴 (`twiny` 同理)
 
 Similarly, you can add a [`secondary_xaxis`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.secondary_xaxis.html#matplotlib.axes.Axes.secondary_xaxis "matplotlib. axes. Axes. secondary_xaxis") or [`secondary_yaxis`](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.secondary_yaxis.html#matplotlib.axes.Axes.secondary_yaxis "matplotlib. axes. Axes. secondary_yaxis") having a different scale than the main Axis to represent the data in different scales or units. See [Secondary Axis](https://matplotlib.org/stable/gallery/subplots_axes_and_figures/secondary_axis.html) for further examples.
+>  我们也可以为 Axes 添加尺度和主轴不同的的 `secondary_xaxis, secondary_yaxis` 
 
-[fig](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure "matplotlib. figure. Figure"), ([ax1](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes"), [ax3](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes")) = [plt. subplots](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots "matplotlib. pyplot. subplots")(1, 2, figsize=(7, 2.7), layout='constrained')
-[l1](https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D "matplotlib. lines. Line2D"), = [ax1. plot](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html#matplotlib.axes.Axes.plot "matplotlib. axes. Axes. plot")([t](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [s](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))
-[ax2](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes") = [ax1. twinx](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.twinx.html#matplotlib.axes.Axes.twinx "matplotlib. axes. Axes. twinx")()
-[l2](https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D "matplotlib. lines. Line2D"), = [ax2. plot](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html#matplotlib.axes.Axes.plot "matplotlib. axes. Axes. plot")([t](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), range (len ([t](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))), 'C1')
-[ax2. legend](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend "matplotlib. axes. Axes. legend")([[l1](https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D "matplotlib. lines. Line2D"), [l2](https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D "matplotlib. lines. Line2D")], ['Sine (left)', 'Straight (right)'])
+```python
+fig, (ax1, ax3) = plt.subplots(1, 2, figsize=(7, 2.7), layout='constrained')
+l1, = ax1.plot(t, s)
+ax2 = ax1.twinx()
+l2, = ax2.plot(t, range(len(t)), 'C1')
+ax2.legend([l1, l2], ['Sine (left)', 'Straight (right)'])
 
-[ax3. plot](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html#matplotlib.axes.Axes.plot "matplotlib. axes. Axes. plot")([t](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [s](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"))
-[ax3. set_xlabel](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_xlabel.html#matplotlib.axes.Axes.set_xlabel "matplotlib. axes. Axes. set_xlabel")('Angle [rad]')
-ax4 = [ax3. secondary_xaxis](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.secondary_xaxis.html#matplotlib.axes.Axes.secondary_xaxis "matplotlib. axes. Axes. secondary_xaxis")('top', functions=([np. rad2deg](https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc "numpy. ufunc"), [np. deg2rad](https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc "numpy. ufunc")))
-ax4. set_xlabel ('Angle [°]')
+ax3.plot(t, s)
+ax3.set_xlabel('Angle [rad]')
+ax4 = ax3.secondary_xaxis('top', functions=(np.rad2deg, np.deg2rad))
+ax4.set_xlabel('Angle [°]')
+```
 
 ![quick start](https://matplotlib.org/stable/_images/sphx_glr_quick_start_016.png)
 
-## Color mapped data[](https://matplotlib.org/stable/users/explain/quick_start.html#color-mapped-data "Link to this heading")
-
+## Color mapped data
 Often we want to have a third dimension in a plot represented by colors in a colormap. Matplotlib has a number of plot types that do this:
+>  一个 Axes 可以有一个第三的维度，该维度由颜色图中的颜色表示
 
-from matplotlib. colors import [LogNorm](https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.LogNorm.html#matplotlib.colors.LogNorm "matplotlib. colors. LogNorm")
+```python
+from matplotlib.colors import LogNorm
 
-[X](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [Y](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = [np. meshgrid](https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html#numpy.meshgrid "numpy. meshgrid")([np. linspace](https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace "numpy. linspace")(-3, 3, 128), [np. linspace](https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace "numpy. linspace")(-3, 3, 128))
-[Z](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = (1 - [X](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")/2 + [X](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")**5 + [Y](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")**3) * [np. exp](https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc "numpy. ufunc")(-[X](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")**2 - [Y](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")**2)
+X, Y = np.meshgrid(np.linspace(-3, 3, 128), np.linspace(-3, 3, 128))
+Z = (1 - X/2 + X**5 + Y**3) * np.exp(-X**2 - Y**2)
 
-[fig](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure "matplotlib. figure. Figure"), [axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray") = [plt. subplots](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots "matplotlib. pyplot. subplots")(2, 2, layout='constrained')
-[pc](https://matplotlib.org/stable/api/collections_api.html#matplotlib.collections.PathCollection "matplotlib. collections. PathCollection") = [axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0, 0]. pcolormesh ([X](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [Y](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [Z](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), vmin=-1, vmax=1, cmap='RdBu_r')
-[fig. colorbar](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.colorbar.html#matplotlib.figure.Figure.colorbar "matplotlib. figure. Figure. colorbar")([pc](https://matplotlib.org/stable/api/collections_api.html#matplotlib.collections.PathCollection "matplotlib. collections. PathCollection"), [ax](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes")=[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0, 0])
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0, 0]. set_title ('pcolormesh ()')
+fig, axs = plt.subplots(2, 2, layout='constrained')
+pc = axs[0, 0].pcolormesh(X, Y, Z, vmin=-1, vmax=1, cmap='RdBu_r')
+fig.colorbar(pc, ax=axs[0, 0])
+axs[0, 0].set_title('pcolormesh()')
 
-[co](https://matplotlib.org/stable/api/contour_api.html#matplotlib.contour.QuadContourSet "matplotlib. contour. QuadContourSet") = [axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0, 1]. contourf ([X](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [Y](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [Z](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), levels=[np. linspace](https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace "numpy. linspace")(-1.25, 1.25, 11))
-[fig. colorbar](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.colorbar.html#matplotlib.figure.Figure.colorbar "matplotlib. figure. Figure. colorbar")([co](https://matplotlib.org/stable/api/contour_api.html#matplotlib.contour.QuadContourSet "matplotlib. contour. QuadContourSet"), [ax](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes")=[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0, 1])
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[0, 1]. set_title ('contourf ()')
+co = axs[0, 1].contourf(X, Y, Z, levels=np.linspace(-1.25, 1.25, 11))
+fig.colorbar(co, ax=axs[0, 1])
+axs[0, 1].set_title('contourf()')
 
-[pc](https://matplotlib.org/stable/api/collections_api.html#matplotlib.collections.PathCollection "matplotlib. collections. PathCollection") = [axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1, 0]. imshow ([Z](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")**2 * 100, cmap='plasma', norm=[LogNorm](https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.LogNorm.html#matplotlib.colors.LogNorm "matplotlib. colors. LogNorm")(vmin=0.01, vmax=100))
-[fig. colorbar](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.colorbar.html#matplotlib.figure.Figure.colorbar "matplotlib. figure. Figure. colorbar")([pc](https://matplotlib.org/stable/api/collections_api.html#matplotlib.collections.PathCollection "matplotlib. collections. PathCollection"), [ax](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes")=[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1, 0], extend='both')
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1, 0]. set_title ('imshow () with LogNorm ()')
+pc = axs[1, 0].imshow(Z**2 * 100, cmap='plasma', norm=LogNorm(vmin=0.01, vmax=100))
+fig.colorbar(pc, ax=axs[1, 0], extend='both')
+axs[1, 0].set_title('imshow() with LogNorm()')
 
-[pc](https://matplotlib.org/stable/api/collections_api.html#matplotlib.collections.PathCollection "matplotlib. collections. PathCollection") = [axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1, 1]. scatter ([data1](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), [data2](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), c=[data3](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray"), cmap='RdBu_r')
-[fig. colorbar](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.colorbar.html#matplotlib.figure.Figure.colorbar "matplotlib. figure. Figure. colorbar")([pc](https://matplotlib.org/stable/api/collections_api.html#matplotlib.collections.PathCollection "matplotlib. collections. PathCollection"), [ax](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes "matplotlib. axes. Axes")=[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1, 1], extend='both')
-[axs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray "numpy. ndarray")[1, 1]. set_title ('scatter ()')
+pc = axs[1, 1].scatter(data1, data2, c=data3, cmap='RdBu_r')
+fig.colorbar(pc, ax=axs[1, 1], extend='both')
+axs[1, 1].set_title('scatter()')
+```
 
 ![pcolormesh(), contourf(), imshow() with LogNorm(), scatter()](https://matplotlib.org/stable/_images/sphx_glr_quick_start_017.png)
 
-### Colormaps[](https://matplotlib.org/stable/users/explain/quick_start.html#colormaps "Link to this heading")
-
+### Colormaps
 These are all examples of Artists that derive from [`ScalarMappable`](https://matplotlib.org/stable/api/cm_api.html#matplotlib.cm.ScalarMappable "matplotlib. cm. ScalarMappable") objects. They all can set a linear mapping between _vmin_ and _vmax_ into the colormap specified by _cmap_. Matplotlib has many colormaps to choose from ([Choosing Colormaps in Matplotlib](https://matplotlib.org/stable/users/explain/colors/colormaps.html#colormaps)) you can make your own ([Creating Colormaps in Matplotlib](https://matplotlib.org/stable/users/explain/colors/colormap-manipulation.html#colormap-manipulation)) or download as [third-party packages](https://matplotlib.org/mpl-third-party/#colormaps-and-styles).
 
-### Normalizations[](https://matplotlib.org/stable/users/explain/quick_start.html#normalizations "Link to this heading")
-
+### Normalizations
 Sometimes we want a non-linear mapping of the data to the colormap, as in the `LogNorm` example above. We do this by supplying the ScalarMappable with the _norm_ argument instead of _vmin_ and _vmax_. More normalizations are shown at [Colormap normalization](https://matplotlib.org/stable/users/explain/colors/colormapnorms.html#colormapnorms).
 
-### Colorbars[](https://matplotlib.org/stable/users/explain/quick_start.html#colorbars "Link to this heading")
-
+### Colorbars
 Adding a [`colorbar`](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.colorbar.html#matplotlib.figure.Figure.colorbar "matplotlib. figure. Figure. colorbar") gives a key to relate the color back to the underlying data. Colorbars are figure-level Artists, and are attached to a ScalarMappable (where they get their information about the norm and colormap) and usually steal space from a parent Axes. Placement of colorbars can be complex: see [Placing colorbars](https://matplotlib.org/stable/users/explain/axes/colorbar_placement.html#colorbar-placement) for details. You can also change the appearance of colorbars with the _extend_ keyword to add arrows to the ends, and _shrink_ and _aspect_ to control the size. Finally, the colorbar will have default locators and formatters appropriate to the norm. These can be changed as for other Axis objects.
 
-## Working with multiple Figures and Axes[](https://matplotlib.org/stable/users/explain/quick_start.html#working-with-multiple-figures-and-axes "Link to this heading")
-
+## Working with multiple Figures and Axes
 You can open multiple Figures with multiple calls to `fig = plt.figure()` or `fig2, ax = plt.subplots()`. By keeping the object references you can add Artists to either Figure.
 
 Multiple Axes can be added a number of ways, but the most basic is `plt.subplots()` as used above. One can achieve more complex layouts, with Axes objects spanning columns or rows, using [`subplot_mosaic`](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot_mosaic.html#matplotlib.pyplot.subplot_mosaic "matplotlib. pyplot. subplot_mosaic").
 
-[fig](https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure "matplotlib. figure. Figure"), [axd](https://docs.python.org/3/library/stdtypes.html#dict "builtins. dict") = [plt. subplot_mosaic](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot_mosaic.html#matplotlib.pyplot.subplot_mosaic "matplotlib. pyplot. subplot_mosaic")([['upleft', 'right'],
+```python
+fig, axd = plt.subplot_mosaic([['upleft', 'right'],
                                ['lowleft', 'right']], layout='constrained')
-[axd](https://docs.python.org/3/library/stdtypes.html#dict "builtins. dict")['upleft']. set_title ('upleft')
-[axd](https://docs.python.org/3/library/stdtypes.html#dict "builtins. dict")['lowleft']. set_title ('lowleft')
-[axd](https://docs.python.org/3/library/stdtypes.html#dict "builtins. dict")['right']. set_title ('right')
+axd['upleft'].set_title('upleft')
+axd['lowleft'].set_title('lowleft')
+axd['right'].set_title('right')
+```
 
 ![upleft, right, lowleft](https://matplotlib.org/stable/_images/sphx_glr_quick_start_018.png)
 
 Matplotlib has quite sophisticated tools for arranging Axes: See [Arranging multiple Axes in a Figure](https://matplotlib.org/stable/users/explain/axes/arranging_axes.html#arranging-axes) and [Complex and semantic figure composition (subplot_mosaic)](https://matplotlib.org/stable/users/explain/axes/mosaic.html#mosaic).
 
-## More reading[](https://matplotlib.org/stable/users/explain/quick_start.html#more-reading "Link to this heading")
-
+## More reading
 For more plot types see [Plot types](https://matplotlib.org/stable/plot_types/index.html) and the [API reference](https://matplotlib.org/stable/api/index.html), in particular the [Axes API](https://matplotlib.org/stable/api/axes_api.html).
-
-**Total running time of the script:** (0 minutes 6.666 seconds)
-
-[`Download Jupyter notebook: quick_start.ipynb`](https://matplotlib.org/stable/_downloads/19637872c4a7dbe872e23f74038df260/quick_start.ipynb)
-
-[`Download Python source code: quick_start.py`](https://matplotlib.org/stable/_downloads/43dac8ab08924b9b18dd7e7874d69d6c/quick_start.py)
-
-[`Download zipped: quick_start.zip`](https://matplotlib.org/stable/_downloads/780c8d7b1587e6267d615cfc1adb0408/quick_start.zip)

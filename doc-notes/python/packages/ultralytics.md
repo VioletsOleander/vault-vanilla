@@ -1,3 +1,7 @@
+---
+completed: true
+version: 8.3.6
+---
 # Quickstart
 ## Install Ultralytics
 
