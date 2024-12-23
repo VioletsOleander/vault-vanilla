@@ -2,29 +2,29 @@
 Transformers are slow and memory-hungry on long sequences, since the time and memory complexity of self-attention are quadratic in sequence length. 
 >Transformers在长序列上运行缓慢且占用大量内存，因为自注意力的时间和内存复杂度与序列长度呈二次方关系
 
-Approximate attention methods have attempted to address this problem by trading oﬀmodel quality to reduce the compute complexity, but often do not achieve wall-clock speedup. We argue that a missing principle is making attention algorithms $I O-$ aware —accounting for reads and writes between levels of GPU memory. 
+Approximate attention methods have attempted to address this problem by trading oﬀ model quality to reduce the compute complexity, but often do not achieve wall-clock speedup. We argue that a missing principle is making attention algorithms $I O-$ aware —accounting for reads and writes between levels of GPU memory. 
 > 近似注意力方法试图通过牺牲模型质量来降低计算复杂度，但通常无法实现实际速度提升 (wall-clock speedup)，我们认为一个缺失的原则是使注意力算法具有 IO 意识——考虑 GPU 内存层次之间的读写操作
 
 We propose FlashAttention , an IO-aware exact attention algorithm that uses tiling to reduce the number of memory reads/writes between GPU high bandwidth memory (HBM) and GPU on-chip SRAM. We analyze the IO complexity of FlashAttention , showing that it requires fewer HBM accesses than standard attention, and is optimal for a range of SRAM sizes. 
 >我们提出 FlashAttention，这是一种 IO 意识的精确注意力算法，它使用 tiling 减少 GPU HBM 和 GPU 片上 SRAM 之间的内存读写次数
->我们分析了FlashAttention的IO复杂度，表明它比标准注意力需要更少的HBM访问，并且其 IO 复杂度对于一系列SRAM大小都是最优的
+>我们分析了 FlashAttention 的 IO 复杂度，表明它比标准注意力需要更少的 HBM 访问，并且其 IO 复杂度对于一系列 SRAM 大小都是最优的
 
 We also extend FlashAttention to block-sparse attention, yielding an approximate attention algorithm that is faster than any existing approximate attention method.
->我们还将FlashAttention拓展到块稀疏注意力，得到了一种比任何现有近似注意力方法都快的近似注意力算法
+>我们还将 FlashAttention 拓展到块稀疏注意力，得到了一种比任何现有近似注意力方法都快的近似注意力算法
 
  FlashAttention trains Transformers faster than existing baselines: $15\%$ end-to-end wall-clock speedup on BERT-large (seq. length compared to the MLPerf 1.1 training speed record, $3\times$ speedup on GPT-2 (seq. length 1K), and 2.4 × speedup on long-range arena (seq. length 1K-4K). 
->FlashAttention训练Transformer的速度比现有基线更快：
->与MLPerf 1.1训练速度记录相比，在BERT-large(序列长度512)上实现了15%的端到端实际速度提升(end-to-end wall-clock speedup)；
->GPT-2(序列长度1K)的速度提升了3倍，long-range arena(序列长度1K-4K)的速度提升了2.4倍
+>FlashAttention 训练 Transformer 的速度比现有基线更快：
+>与 MLPerf 1.1 训练速度记录相比，在 BERT-large (序列长度 512) 上实现了 15%的端到端实际速度提升 (end-to-end wall-clock speedup)；
+>GPT-2 (序列长度 1K) 的速度提升了 3 倍，long-range arena (序列长度 1K-4K) 的速度提升了 2.4 倍
 
 FlashAttention and block-sparse FlashAttention enable longer context in Transformers, yielding higher quality models (0.7 better perplexity on GPT-2 and 6.4 points of lift on long-document classification) and entirely new capabilities: the first Transformers to achieve better-than-chance performance on the Path-X challenge (seq. length 16K, $61.4\%$ accuracy) and Path-256 (seq. length 64K, $63.1\%$ accuracy). 
->FlashAttention和块稀疏FlashAttention使Transformer能够处理更长的上下文，从而产生更高质量的模型(GPT-2上的困惑度提高了0.7，长文档分类提高了6.4个百分点)和全新的能力：首次实现在Path-X挑战(序列长度16K，准确率61.4%)和Path-256(序列长度64K，准确率63.1%)上实现比随机猜测更好的性能的Transformer
+>FlashAttention 和块稀疏 FlashAttention 使 Transformer 能够处理更长的上下文，从而产生更高质量的模型 (GPT-2 上的困惑度提高了 0.7，长文档分类提高了 6.4 个百分点) 和全新的能力：首次实现在 Path-X 挑战 (序列长度 16K，准确率 61.4%) 和 Path-256 (序列长度 64K，准确率 63.1%) 上实现比随机猜测更好的性能的 Transformer
 
 # 1 Introduction 
 ![[FlashAttention-Fig1.png]]
 
 Transformer models [ 82 ] have emerged as the most widely used architecture in applications such as natural language processing and image classification. Transformers have grown larger [ 5 ] and deeper [ 83 ], but equipping them with longer context remains difficult [ 80 ], since the self-attention module at their heart has time and memory complexity quadratic in sequence length. 
-> Transformer模型[82]已成为自然语言处理和图像分类等应用中最广泛使用的架构，Transformer已经变得更大[5]和更深[83]，但是让它们具有更长的上下文(longer context)仍然很困难[80]，因为它们核心的自注意力模块在序列长度上具有二次时间和内存复杂度
+> Transformer 模型[82]已成为自然语言处理和图像分类等应用中最广泛使用的架构，Transformer 已经变得更大[5]和更深[83]，但是让它们具有更长的上下文 (longer context) 仍然很困难[80]，因为它们核心的自注意力模块在序列长度上具有二次时间和内存复杂度
 
 An important question is whether making attention faster and more memory-efficient can help Transformer models address their runtime and memory challenges for long sequences. Many approximate attention methods have aimed to reduce the compute and memory requirements of attention. These methods range from sparse-approximation [ 51 , 74 ] to low-rank approximation [ 12 , 50 , 84 ], and their combinations [ 3 , 9 , 92 ]. Although these methods reduce the compute requirements to linear or near-linear in sequence length, many of them do not display wall-clock speedup against standard attention and have not gained wide adoption. One main reason is that they focus on FLOP reduction (which may not correlate with wall-clock speed) and tend to ignore overheads from memory access (IO). 
 >一个重要的问题是，使注意力更快、更节省内存是否可以帮助Transformer模型解决长序列的运行时间和内存挑战
@@ -39,37 +39,37 @@ On modern GPUs, compute speed has out-paced memory speed [ 61 , 62 , 63 ], and m
 > 当读写数据可以占据大部分的运行时间时——例如数据库连接 (database joins)[71]、图像处理 (image processing)[70]、数值线性代数[4]等[40,85]，IO 感知算法对于类似的受内存限制的运算就是至关重要的，然而，像 PyTorch 和 Tensorflow 这样的常见 Python 深度学习接口不允许对内存访问进行细粒度控制
 
 We propose FlashAttention , a new attention algorithm that computes exact attention with far fewer memory accesses. Our main goal is to avoid reading and writing the attention matrix to and from HBM. This requires (i) computing the softmax reduction without access to the whole input (ii) not storing the large intermediate attention matrix for the backward pass.  
->我们提出了FlashAttention，这是一种新的注意力算法，它使用更少的内存访问进行精确的注意力计算，我们的主要目标是避免读写注意力矩阵到HBM中，这需要：
+>我们提出了 FlashAttention，这是一种新的注意力算法，它使用更少的内存访问进行精确的注意力计算，我们的主要目标是避免读写注意力矩阵到 HBM 中，这需要：
 >1. 在不访问整个输入的情况下计算softmax归约
 >2. 不为反向传播存储大型中间注意力矩阵
 
 We apply two well-established techniques to address these challenges. (i) We restructure the attention computation to split the input into blocks and make several passes over input blocks, thus incrementally performing the softmax reduction (also known as tiling ). (ii) We store the softmax normalization factor from the forward pass to quickly recompute attention on-chip in the backward pass, which is faster than the standard approach of reading the intermediate attention matrix from HBM.
 >我们应用两种成熟的技术来解决这些挑战：
->1. 我们重新组织注意力计算，将输入分成块，并在输入块上进行多次传递(make several passes over input blocks)，从而逐步执行softmax归约(该技术也称为平铺 tiling)
->2. 我们存储前向传播中的softmax归一化因子，以便在反向传播中快速在片上重新计算注意力，这比从HBM读取中间注意力矩阵的标准方法更快
+>1. 我们重新组织注意力计算，将输入分成块，并在输入块上进行多次传递 (make several passes over input blocks)，从而逐步执行 softmax 归约 (该技术也称为平铺 tiling)
+>2. 我们存储前向传播中的 softmax 归一化因子，以便在反向传播中快速在片上重新计算注意力，这比从 HBM 读取中间注意力矩阵的标准方法更快
 
 We implement FlashAttention in CUDA to achieve fine-grained control over memory access and fuse all the attention operations into one GPU kernel. Even with the increased FLOPs due to recomputation, our algorithm both runs faster (up to 7.6x on GPT-2 [ 67 ], Figure 1 right) and uses less memory —linear in sequence length—than standard attention, thanks to the massively reduced amount of HBM access.
->我们在CUDA中实现了FlashAttention，以实现对内存访问的细粒度控制，并将所有注意力操作融合到一个GPU内核中，即使由于重复计算(recomputation)而增加了FLOPs，我们的算法相较于标准注意力在运行速度上更快(在GPT-2[67]上高达7.6倍，如Figure 1 right所示)并且使用更少的内存——线性于序列长度(linear in sqeuence length)，这要归功于大大减少的HBM访问量
+>我们在 CUDA 中实现了 FlashAttention，以实现对内存访问的细粒度控制，并将所有注意力操作融合到一个 GPU 内核中，即使由于重复计算 (recomputation) 而增加了 FLOPs，我们的算法相较于标准注意力在运行速度上更快 (在 GPT-2[67]上高达 7.6 倍，如 Figure 1 right 所示) 并且使用更少的内存——线性于序列长度 (linear in sqeuence length)，这要归功于大大减少的 HBM 访问量
 
 We analyze the IO complexity [ 1 ] of FlashAttention , proving that it requires $O(N^{2}d^{2}M^{-1})$ HBM accesses where 𝑑 is the head dimension and 𝑀 is the size of SRAM, as compared to $\Omega(N d+N^{2})$ of standard attention. For typical values of $d$ and $M$ , FlashAttention requires many times fewer HBM accesses compared to standard attention (up to $9\times$ fewer, as shown in Fig. 2). Moreover, we provide a lower bound, showing that no exact attention algorithm can asymptotically improve on the number of HBM accesses over all SRAM sizes. 
->我们分析了FlashAttention的IO复杂度[1]，证明它需要 $O(N^2d^2M^{-1})$ HBM访问，其中 $d$ 是头维度，$M$ 是SRAM的大小，而标准注意力则需要 $\Omega(Nd+N^2)$
->对于典型的 $d$ 和 $M$ 值，FlashAttention需要比标准注意力少得多的HBM访问(高达9倍，如Figure 2所示)
->此外，我们提供了一个下界，表明没有精确的注意力算法可以在所有SRAM大小上渐近地改进HBM访问次数
+>我们分析了 FlashAttention 的 IO 复杂度[1]，证明它需要 $O(N^2d^2M^{-1})$ HBM 访问，其中 $d$ 是头维度，$M$ 是 SRAM 的大小，而标准注意力则需要 $\Omega(Nd+N^2)$
+>对于典型的 $d$ 和 $M$ 值，FlashAttention 需要比标准注意力少得多的 HBM 访问 (高达 9 倍，如 Figure 2 所示)
+>此外，我们提供了一个下界，表明没有精确的注意力算法可以在所有 SRAM 大小上渐近地改进 HBM 访问次数
 
 We also show that FlashAttention can serve as a useful primitive for realizing the potential of approximate attention algorithms by overcoming their issues with memory access overhead. As a proof of concept, we implement block-sparse FlashAttention , a sparse attention algorithm that is 2-4 × faster than even FlashAttention , scaling up to sequence length of 64k. We prove that block-sparse FlashAttention has better IO complexity than FlashAttention by a factor proportional to the sparsity ratio. 
->我们还展示了FlashAttention通过克服潜在的近似注意力算法的内存访问开销的问题，可以作为实现它们的有用原语(primitive)
->作为一个概念验证，我们实现了块稀疏 FlashAttention，这是一种稀疏注意力算法，比FlashAttention快2-4倍，可扩展到64k的序列长度，我们证明了块稀疏FlashAttention的IO复杂度比FlashAttention好一个与稀疏比成比例的因素
+>我们还展示了 FlashAttention 通过克服潜在的近似注意力算法的内存访问开销的问题，可以作为实现它们的有用原语 (primitive)
+>作为一个概念验证，我们实现了块稀疏 FlashAttention，这是一种稀疏注意力算法，比 FlashAttention 快 2-4 倍，可扩展到 64k 的序列长度，我们证明了块稀疏 FlashAttention 的 IO 复杂度比 FlashAttention 好一个与稀疏比成比例的因素
 
 We discuss further extensions to other operations (attention on multi-GPU, kernel regression, block-sparse matrix multiply) in Section 5. We open-source FlashAttention to make it easier to build on this primitive. 
->我们在第5节中讨论了对其他运算(多GPU上的注意力、核回归、块稀疏矩阵乘法)的进一步扩展
+>我们在第 5 节中讨论了对其他运算 (多 GPU 上的注意力、核回归、块稀疏矩阵乘法) 的进一步扩展
 
 We empirically validate that FlashAttention speeds up model training and improves model quality by modeling longer context. We also benchmark the runtime and memory footprint of FlashAttention and block-sparse FlashAttention compared to prior attention implementations. 
 >我们经验上地验证了 FlashAttention 加速了模型训练并通过建模更长的上下文提高了模型质量，我们还对FlashAttention和块稀疏FlashAttention的运行时间和内存占用(memory footprint)与以前的注意力实现进行了基准测试和比较
 
 - Faster Model Training. FlashAttention trains Transformer models faster in wall-clock time. We train BERT-large (seq. length 512) $15\%$ faster than the training speed record in MLPerf 1.1 [ 58 ], GPT2 (seq. length 1K) $3\times$ faster than baseline implementations from HuggingFace [ 87 ] and Megatron-LM [ 77 ], and long-range arena (seq. length 1K-4K) 2.4 × faster than baselines. 
 >更快的模型训练
->FlashAttention在实时时间中可以更快训练Transformer模型
->我们训练BERT-large(序列长度512)比在MLPerf 1.1[58]中的训练速度记录快15%，训练GPT2(序列长度1K)比在HuggingFace[87]和Megatron-LM[77]中的基线实现快3倍，长距离竞技场(序列长度1K-4K)比基线快2.4倍
+>FlashAttention 在实时时间中可以更快训练 Transformer 模型
+>我们训练 BERT-large (序列长度 512) 比在 MLPerf 1.1[58]中的训练速度记录快 15%，训练 GPT2 (序列长度 1K) 比在 HuggingFace[87]和 Megatron-LM[77]中的基线实现快 3 倍，长距离竞技场 (序列长度 1K-4K) 比基线快 2.4 倍
 
 - Higher Quality Models. FlashAttention scales Transformers to longer sequences, which improves their quality and enables new capabilities. We observe a 0.7 improvement in perplexity on GPT-2 and 6.4 points of lift from modeling longer sequences on long-document classification [13]. FlashAttention enables the first Transformer that can achieve better-than-chance performance on the Path-X [ 80 ] challenge, solely from using a longer sequence length (16K). Block-sparse FlashAttention enables a Transformer to scale to even longer sequences (64K), resulting in the first model that can achieve better-than-chance performance on Path-256. 
 >更高质量的模型
@@ -78,8 +78,8 @@ We empirically validate that FlashAttention speeds up model training and improve
 
 - Benchmarking Attention. FlashAttention is up to $3\times$ faster than the standard attention implemen- tation across common sequence lengths from 128 to 2K and scales up to 64K. Up to sequence length of 512, FlashAttention is both faster and more memory-efficient than any existing attention method, whereas for sequence length beyond 1K, some approximate attention methods (e.g., Linformer) start to become faster. On the other hand, block-sparse FlashAttention is faster than all existing approximate attention methods that we know of. 
 >基准测试注意力计算
->FlashAttention在从128到2K的常见序列长度上比标准注意力实现快3倍，并且可以扩展到64K
->在序列长度小于512时，FlashAttention在速度和内存效率方面都比任何现有的注意力方法更快，而对于超过1K的序列长度，一些近似注意力方法(例如，Linformer)开始变得更快，另一方面，块稀疏FlashAttention比我们所知道的所有现有近似注意力方法都快
+>FlashAttention 在从 128 到 2K 的常见序列长度上比标准注意力实现快 3 倍，并且可以扩展到 64K
+>在序列长度小于 512 时，FlashAttention 在速度和内存效率方面都比任何现有的注意力方法更快，而对于超过 1K 的序列长度，一些近似注意力方法 (例如，Linformer) 开始变得更快，另一方面，块稀疏 FlashAttention 比我们所知道的所有现有近似注意力方法都快
 
 # 2 Background 
 We provide some background on the performance characteristics of common deep learning operations on modern hardware (GPUs). We also describe the standard implementation of attention. 

@@ -7007,7 +7007,7 @@ To prove the “only if” direction, we note that each of the terms $\beta_{i}(
 > 因此，我们可以将团树视为联合度量的另一种表示，它直接揭示了团的边际分布
 
 ## 10.3 Message Passing: Belief Update 
-The previous section showed one approach to message passing in clique trees, based on the same ideas of variable elimination that we discussed in chapter 9. In this section, we present a related approach, but one that is based on very diferent intuitions. We begin by describing an alternative message passing scheme that is diferent from but mathematically equivalent to that of the previous section. We then show how this new approach can be viewed as operations on the reparameterization of the distribution in terms of the clique and sepset beliefs $\{\beta_{i}(C_{i})\}_{i\in\mathcal{V}_{\mathcal{T}}}$ and $\{\mu_{i,j}(S_{i,j})\}_{(i-j)\in\mathcal{E}_{T}}$ . Each message passing step will change this representation while leaving it a re parameterization of $\tilde{P}_{\Phi}$ . 
+The previous section showed one approach to message passing in clique trees, based on the same ideas of variable elimination that we discussed in chapter 9. In this section, we present a related approach, but one that is based on very different intuitions. We begin by describing an alternative message passing scheme that is different from but mathematically equivalent to that of the previous section. We then show how this new approach can be viewed as operations on the reparameterization of the distribution in terms of the clique and sepset beliefs $\{\beta_{i}(C_{i})\}_{i\in\mathcal{V}_{\mathcal{T}}}$ and $\{\mu_{i,j}(S_{i,j})\}_{(i-j)\in\mathcal{E}_{T}}$ . Each message passing step will change this representation while leaving it a re parameterization of $\tilde{P}_{\Phi}$ . 
 > 上一节展示了一种基于变量消去思想的团树中的消息传递方法
 > 在本节中，我们将介绍一种相关的但基于非常不同的直觉的方法
 > 我们首先描述另一种与前一节的方法不同但数学上等价的消息传递方案，然后展示如何将这种方法视为对在团和分离集信念 $\{\beta_{i}(C_{i})\}_{i\in\mathcal{V}_{\mathcal{T}}}$ 和 $\{\mu_{i,j}(S_{i,j})\}_{(i-j)\in\mathcal{E}_{T}}$ 的分布进行重新参数化的操作，每次消息传递步骤都会改变它的表示形式，但同时仍保持其为 $\tilde{P}_{\Phi}$ 的重新参数化
@@ -7028,7 +7028,7 @@ As we discussed, this ﬁnal potential is not used in computing the message to $
 > 但信念并不会用于计算 $\pmb C_i$ 向 $\pmb C_j$ 回传的消息，因为信念已经包含了 $\pmb C_j$ 到 $\pmb C_i$ 的消息，如果我们在这个消息计算过程中使用它，就会导致信息的重复计数
 > 从 $\pmb C_i$ 发往 $\pmb C_j$ 的消息的计算需要忽略来自 $\pmb C_j$ 的信息，也就是将 $\pmb C_i$ 的初始势函数与除了来自 $\pmb C_j$ 的消息之外的所有消息相乘，然后对分离集进行边际化 (求和消去所有分离集之外的变量)
 
-A diferent approach to computing the same expression is to multiply in all of the messages, and then divide the resulting factor by $\delta_{j\rightarrow i}$ . To make this notion precise, we must deﬁne a factor-division operation: 
+A different approach to computing the same expression is to multiply in all of the messages, and then divide the resulting factor by $\delta_{j\rightarrow i}$ . To make this notion precise, we must deﬁne a factor-division operation: 
 > 另一种方法是将所有的传入消息都乘进来，然后将得到的因子除去 $\delta_{j\rightarrow i}$
 
 **Deﬁnition 10.7** factor division 
@@ -7168,11 +7168,11 @@ Consider a situation where, at some point in time, we have a certain set of obse
 > 考虑一个情况：开始有一组观察，我们用于 condition 我们的分布，获得结论，之后又获得了新的观察，需要对应更新我们的结论
 > 这类情况下需要执行增量更新
 
-The most naive approach to dealing with this task is simply to condition the initial factors (for example, the CPDs) on all of the evidence, and then redo the calibration process from the beginning, starting from these factors. A somewhat more efcient approach is based on the view of the clique tree as representing the distribution $\tilde{P}_{\Phi}$ . 
+The most naive approach to dealing with this task is simply to condition the initial factors (for example, the CPDs) on all of the evidence, and then redo the calibration process from the beginning, starting from these factors. A somewhat more efficient approach is based on the view of the clique tree as representing the distribution $\tilde{P}_{\Phi}$ . 
 > 朴素方法是将所有初始因子 (例如 CPDs) 在 condition 于所有观察，然后重新执行校准过程
 > 存在更高效的办法，这基于我们将团树视为分布 $\tilde P_\Phi$ 的表示
 
-Assume that our initial distribution $\tilde{P}_{\Phi}$ (prior to the new information) is represented via a set of factors $\Phi$ , as in equation (10.1). Given some evidence $Z=z$ , we can obtain $\tilde{P}_{\Phi}(\mathcal{X},Z=z)$ X by zeroing out the entries in the unnormalized distribution that are inconsistent with the evidence $Z=z$ . We can accomplish this efect by multiplying $\tilde{P}_{\Phi}$ with an additional factor which is the indicator function $I\{Z=z\}$ . 
+Assume that our initial distribution $\tilde{P}_{\Phi}$ (prior to the new information) is represented via a set of factors $\Phi$ , as in equation (10.1). Given some evidence $Z=z$ , we can obtain $\tilde{P}_{\Phi}(\mathcal{X},Z=z)$ X by zeroing out the entries in the unnormalized distribution that are inconsistent with the evidence $Z=z$ . We can accomplish this effect by multiplying $\tilde{P}_{\Phi}$ with an additional factor which is the indicator function $I\{Z=z\}$ . 
 > 假设我们有分布 $\tilde P_\Phi$，给定观察 $Z = z$，我们可以通过将所有和 $Z = z$ 不一致的项归零得到 $\tilde P_\Phi(\mathcal X, Z = z)$
 > 通过将 $\tilde P_\Phi$ 乘上指示函数 $\mathbf 1\{ Z = z\}$ (将它视为一个额外的因子)，可以达到相同的效果
 
