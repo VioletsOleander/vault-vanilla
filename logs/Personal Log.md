@@ -148,7 +148,7 @@
     CH4-CH4.3.1: Markov Network's parameterization: the idea was derived from statictical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of paticular configuration; seperation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
 
 \[Doc\]
-- [[ultralytics v8.3.6]] : Quickstart, Usage(Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
+- [[doc-notes/python/packages/ultralytics]] : Quickstart, Usage(Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
     Brief Introduction to YOLO model's python API, which is pretty simple
 
 ### Week 3
@@ -207,7 +207,7 @@
 
 \[Doc\]
 - [[Learn the Basics|pytorch/tutorial/beginner/Learn the Basics]] 
-- [[python/packages/pillow v11.0.0]] : Overview, Tutorial, Concepts
+- [[doc-notes/python/packages/pillow]] : Overview, Tutorial, Concepts
 - [[Repositories|huggingface/hub/Repositories]]: Sec1-Sec4
 - [[doc-notes/triton/Getting Started|triton/Getting Started]]:  Tutorials/Matrix Multiply
 - [[Argparse Tutorial|python/how/general/Argparse Tutorial]] 
@@ -598,6 +598,8 @@ Date: 2024.12.9-2024.12.16
 ### Week 4
 Date: 2024.12.16-2024.12.23
 
+Delay to next week
+
 \[Paper\]
 - [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
 
@@ -608,3 +610,7 @@ Date: 2024.12.16-2024.12.23
 \[Doc\]
 - [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
 - [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
+# 2025
+## January
+### Week 1
+
