@@ -593,23 +593,96 @@ Date: 2024.12.9-2024.12.16
             However, in general, the likelihood function of the observation is a sum of likelihood function of the observation with all possible hidden assignments, each of which defines a unimodal function. Thus the likelihood function with incomplete data is a multimodal function and takes the form of "a mixture of peaks".
             Thus the likelihood function is not decomposable again, and will be hard to optimize.
         CH19.2-Parameter Estimation
+            Because the likelihood function is multimodal thus hard to optimize, when doing MLE, we have to maximize a highly nonlinear in a high dimensional space. There are two main classes of methods for performing this optimization: generic nonconvex optimization algorithm (gradient ascent), more specialized method for optimizing likelihood functions (EM).
+            The gradient of the log-likelihood function with respect to a single CPD entry $P(x\mid \pmb u)$ is stated in Theorem 19.2. This theorem provides the form of the gradient of table-CPDs. For other CPDs, we can use the chain rule the derivatives to compute the gradient.
+            To compute the gradient, we need to compute the joint distribution $P(X[m], \pmb U[m], \mid \pmb o[m], \pmb \theta)$ for each $m$, therefore we need to do inference for each data case using one clique tree calibration.
+            After computing the gradient, there is a issue that all components of the gradient vector is nonnegative (since increasing each of the parameters will lead to higher likelihood). Thus, a step in the gradient direction will increase all parameters, leading to an illegal probability distribution.
+            There are two common approaches to solve this issue. 
+            The first one is to modify the gradient ascent procedure to respect these constraints. We project the gradient vector to the hyperplane that satisfies the linear constraints of the parameters, and ensure the gradient stepping do not step out of bounds so that the parameters will be nonnegative. 
+            The second one is to reparametrize the problem, introduce new parameters $\lambda_{x\mid \pmb u}$ to define $P(x\mid \pmb u)$. Now the value of $\lambda$ is not under constraint. We can use standard gradient ascent procedure to update $\lambda$ s.
+            Another way is to use Lagrange multipliers.
+            The gradient ascent will only guarantee we converge to a local maximum. Therefore some methods like choosing random starting points, applying random perturbations to converge points can be used for help.
+            EM algorithm is an alternative way to optimize a likelihood function. The intuition is to fill in the missing value, and then  use standard, complete data learning procedure. Such approaches are called data imputation methods in statistics.
+            When learning with missing data, we are actually trying to solve two problems at once: learning the parameters, and hypothesizing values for unobserved variables in each data cases. Each of these task is fairly easy when we have the solution to the other.
+            EM algorithm iteratively solve one of the two problems. We start from random initial point, and iteratively do the following two steps: 1. infer the expected sufficient statistics for the unobserved variables (E-step) 2. infer the parameter based on the complete data (M-step)
+            This sequence of steps provably improve our parameters, which means the likelihood will be non-decreasing. Therefore, this algorithm is guaranteed to converge to a local maximum.
+            Note that we use posterior probabilities to compute the expected sufficient, therefore we consider both the observed data (evidence) and the current parameter.
+            In practice, EM generally converges to a local maximum of the likelihood function.
+            Apply EM in clustering, we are viewing the data as coming from a mixture distribution and attempts to use the hidden variable to separate out the mixture into its components. If we use hard-assignment EM, we get k-means.
+            Hard-assignment version tends to increase the contrast between different classes, since assignments have to choose between them. Soft-assignment can learn classes that are overlapping, since many instances contribute to two or more classes.
+            Hard-assignment traverses the combinatorial space of assignments to the hidden variables $\mathcal H$. Soft-assignment traverses the continuous space of parameter assignments. The former makes discrete steps, and will converge faster. The latter can take paths that are infeasible to the former, and can shift two clusters' mean in a coordinated way, while the former can only "jump", since it cannot simultaneously reassign multiple instances and change the class means.
         CH20-Learning Undirected Models
+            CH20.1-Overview
+                The biggest difference between MN and BN is the partition function. This global factor couples all of the parameters  across the network, preventing us from decomposing the problem and estimating local groups of parameters separately.
+                Therefore, even MLE estimation in the complete data case cannot be solved in a closed form (except for chordal MN, which is equivalent to BN).
+                To learn MN, we generally resort to iterative methods, and each iteration step of it requires us to run inference in the network.
+                Bayesian estimation for MN also has no closed-form solution. Thus the integration associated it must be performed using approximate inference (variational methods or MCMC).
+                In this area, part of the work focuses on the formulation of alternative, more tractable objectives of this estimation problem. Another part of the work focuses on the approximate inference algorithms.
+                Structure learning for MN also need approximation methods for similar reason. The advantage of MN's structure learning over BN's structure learning is the lack of acyclicity constraint. The acyclicity constraint will couple decisions regarding the family of different variables. 
+            CH20.2-The Likelihood Function
+                For MN which has equivalent structure to BN, we can use BN's CPDs to represent MN's potentials. The BN's MLE solution is exactly the MN's MLE solution.
+                We use log-linear format to represent the Gibbs distribution. Thus the parameters to learn corresponds to the weight we put on each feature. In this setting, the sufficient statistics of the likelihood function are the sums of the feature values in the instances in $\mathcal D$.
+                In this setting, the likelihood function can be described as a sum of two functions, the first one is linear in the parameters. 
+                We can prove that $\ln Z(\pmb \theta)$ is convex with respect the $\pmb \theta$ (It has semi-positive Hessian). The first derivative of $\ln Z(\pmb \theta)$ with respect to $\theta_i$ is $E_{\pmb \theta}[f_i]$. The second derivative of $\ln Z(\pmb \theta)$ with respect to $\theta_i, \theta_j$ is $Cov_{\pmb \theta}[f_i; f_j]$.
+                Therefore, $-\ln Z(\pmb \theta)$ is concave in $\pmb \theta$, the sum of a linear function and a concave function is concave. Thus the log-likelihood function is concave. Therefore the log-likelihood function has no local maximum. (only has multiple equivalent global maximum)
+            CH20.3-Maximum (Conditional) Likelihood Parameter Estimation
+                For a concave function, its maxima are precisely the points at which the gradient is zero. Thus we can precisely characterize the maximum likelihood parameters $\hat {\pmb \theta}$.
+                At the maximal likelihood parameter $\hat {\pmb \theta}$, the expected value of each feature relative to $P_{\hat {\pmb \theta}}$ matches its empirical expectation in $\mathcal D$. In other words, we want the expected sufficient statistics in the learned distribution to match the empirical expectations. This type of equality constraint is called moment matching. Therefore, the MLE estimation is consistent: if the model if sufficiently expressive to capture the data-generating distribution, then, at the large sample limit, the optimum of the likelihood objective is the true model.
+                Although the likelihood function is concave, there is no analytical form of its maximum. Thus we have to use iterative methods to search for the global optimum.
+                The gradient can be computed according to (20.4), it is the difference between the feature's empirical count in the data and the expected count relative to the current parameterization $\pmb \theta$.
+                To compute the expected count, we have to compute the different probabilities of the form $P_{\pmb \theta}(a, b)$, which needs us to do inference at each iteration. To reduce the computational cost, we may use approximate methods.
+                In practice, standard gradient ascent converges slowly and is sensitive to the step size. Mush faster convergence can be obtained with second-order methods, which utilize the Hessian to provide the quadratic approximation to the function. The computation of Hessian is illustrated in (20.5), which may also need approximation.
+                If we only need the model to do inference, we can train a discriminative model. In other words, we train a CRF that encodes a conditional distribution $P(\pmb Y\mid \pmb X)$.
+                Now the objective is the conditional likelihood and its log. The objective can be proved to be concave. Each data instance $\pmb y[m]$ 's log-likelihood is the log-likelihood of the data case in the MN reduced to the context $\pmb x[m]$.
+                In unconditional case, each gradient step requires only a single execution of inference. When training a CRF, we must execute inference for each data case (in the reduced, simpler MN). If the domain of $\pmb X$ is very large, the reduction will be more beneficial. Thus in this case training a discriminative network will be more economical.
+                In the missing data case, the likelihood function will be multiple modal, thus losing its concavity.
+                In this case, according to (20.9), the gradient of feature $f_i$ is the difference between two expectations - the feature expectation over the data and the hidden variables minus the feature expectation over all the variables.
+                Applying EM in MN is similar to BN. The difference is in M-step, where MN needs run inference to get gradient.
+                The trade-off between gradient method and EM method is more subtle in MN.
 
 ### Week 4
 Date: 2024.12.16-2024.12.23
-
-Delay to next week
 
 \[Paper\]
 - [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
 
 \[Book\]
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH18.1-CH18.3
+    18.1-Introduction
+        In structure learning, we aims to recover $\mathcal G^*$ or its I-equivalence based on data. $\mathcal G^*$ is $P^*$ 's perfect map.
+        The more edges our structure have, the more parameters we need to learn. Because of data fragmentation, the quality of estimated parameter will decrease if the number of samples is fixed. (Note that the standard deviation of MLE estimate if $1/\sqrt M$)
+        Thus when doing density estimation from limited data, we prefer sparse structure even if the true structure $\mathcal G^*$ is more dense. Because we need to avoid overfitting.
+        There are three methods for structure learning. 
+        The first one is constraint-based structure learning, which tests the independence in data and find a network that best explains these independencies. This type of method is sensitive to failures in individual independencies test. If one of these tests return a wrong answer, the network construction will be misled.
+        The second one is score-based structure learning. This method defines a hypothesis space of potential models and a score function that measures how well the model fits the observation. The task is to search the model that maximize the score in the hypothesis space. Score-based method consider the whole structure at once, thus is less sensitive to individual failures.
+        The third method does not learn a single model but an ensemble of multiple possible structures.
+    18.2-Constraint-Based Approaches
+        Determining whether two variables are independent is often referred to as hypothesis testing.
+    18.3-Structure Scores
+        Score-based methods approach the problem of structure learning as an optimization problem.
+        Intuitively, we need to find a model that would make the data as probable as possible. In this case, our model is pair $\langle \mathcal G,\pmb \theta_{\mathcal G}\rangle$. The likelihood score directly defines $\pmb \theta_{\mathcal G}$ to be its the MLE estimation $\hat {\pmb \theta}_{\mathcal G}$, and tries to find structure $\mathcal G$ that maximize $score_{L}(\mathcal G:\mathcal D) = \ell(\hat {\pmb \theta}_{\mathcal G}:\mathcal G)$.
+        The likelihood score can decompose according to (18.4). We can observe that the likelihood measures the strength of the dependencies between variables and their parents. 
+        For BN, the process of choosing a network structure is often subject to constraints. Some constraints are a consequence of the acyclicity requirement, others may be due to a preference for simpler structures.
+        Because the property of mutual information, adding edge to a network will never decrease its likelihood score. Thus likelihood score will result in fully connected network in most cases. Therefore, the likelihood score can not avoid overfitting.
+        The Bayesian method put a distribution on possible structures $\mathcal G$ and is proportional to the posterior $P(\mathcal G\mid \mathcal D)$. The Bayesian score is defined as $score_B(\mathcal G: \mathcal D) = \log P(\mathcal D\mid \mathcal G) + \log P(\mathcal G)$.
+        The calculation of marginal likelihood $P(\mathcal D\mid \mathcal G)$ need us to integrate the whole parameter space $\Theta_{\mathcal G}$. Therefore, we are measuring the expected likelihood, averaged over different possible choices of $\pmb \theta_{\mathcal G}$ decreasing the sensitivity of the likelihood to the particular choice of parameters. 
+        Another perspective to explain the Bayesian score is derived from the holdout testing methods. The Bayesian score can be viewed as a form of prequential analysis, where each instance is evaluated in incremental order, and contributes both to our evaluation of the model and to our final model score. The sequence order can be arbitrary. According to (18.8), the marginal likelihood can be approximately viewed as the estimation of the model' expected likelihood in the underlying distribution.
+        If the parameter's priors are in conjugate case, the marginal likelihood of a single variable's form can be easily written. As a consequence, the marginal likelihood of the dataset can be further written simpler according to (18.9).
+        The Bayesian score for BN cane be decomposed under the assumption of parameter independence. The the local independence is also satisfied, (18.9) can be applied to substitute the local terms of the factorized Bayesian score.
+        If $M\to \infty$, the $\log P(\mathcal D\mid \mathcal G)$ can be represented as Theorem 18.1. We can observe that the Bayesian score tends to trade off the likelihood (fit the data) and the model complexity. Omitting the constant term, we get the BIC score.
+        The log-likelihood term increase linear to $M$, and the model complexity term increase log to $M$, therefore the emphasis on data fitting will increase as $M$.
+        BIC score and the Bayesian score are consistent, which means with adequate data, the score will select $\mathcal G^*$. or its I-equivalence.
+        Consistency is an asymptotic property, and thus it does not imply much about the properties of networks learned with limited amounts of data.
+        We call the prior satisfies parameter modularity if two structure's local structure are the same, their prior will be the same
+        Under parameter modularity, Bayesian score will be decomposable, and thus the searching can be done locally and separately.
+        The likelihood score is naturally decomposable.
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH7
 
 \[Doc\]
 - [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
 - [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
+
 # 2025
 ## January
 ### Week 1
