@@ -123,7 +123,7 @@ where softmax is applied row-wise.
 
 Sta attention impleme materi he matrices $\mathbf{S}$ and $\mathbf{P}$ to HBM, which takes $O(N^{2})$ memory. Often $N\gg d$ (e.g., for GPT2, $N=1024$ = and $d=64$ ). We describe the standard attention implementation in Algorithm 0. As some or most of the operations are memory-bound (e.g., softmax), the large number of memory accesses translates to slow wall-clock time. 
 > 标准注意力实现将矩阵 $S$ 和 $P$ 存储 (materialize) 到 HBM 中，这需要 $O(N^2)$ 的内存，通常来说 $N\gg d$ (例如，对于 GPT2，$N=1024$，$d=64$)
-> 我们在Algorithm 0中描述了标准注意力实现，对于标准的注意力实现，由于一些或全部操作是内存受限的(例如，softmax)，大量的内存访问会导致慢的实际运行时间
+> 我们在 Algorithm 0 中描述了标准注意力实现，对于标准的注意力实现，由于一些或全部操作是内存受限的(例如，softmax)，大量的内存访问会导致慢的实际运行时间
 
 This problem is exacerbated by other elementwise operations applied to the attention matrix, such as masking applied to S or dropout applied to $\mathbf{P}$ . As a result, there have been many attempts to fuse several elementwise operations, such as fusing masking with softmax [77]. 
 >而这个问题还会被应用于注意力矩阵的其他逐元素操作而加剧，例如应用于 $S$ 的掩码(masking)或应用于 $P$ 的dropout，因此，已经有许多工作尝试融合几个逐元素操作，例如将掩码与softmax融合[77]
@@ -148,7 +148,7 @@ We focus here on the forward pass for ease of exposition; Appendix B contains de
 
 ## 3.1 An Efficient Attention Algorithm With Tiling and Recomputation 
 Given the inputs $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM, we aim to compute the attention output $\mathbf{O}\in\mathbb{R}^{N\times d}$ and write it to HBM. Our goal is to reduce the amount of HBM accesses (to sub-quadratic in $N$ ). 
->给定在HBM中的输入 $Q,K,V \in R^{N×d}$，我们需要计算注意力输出 $O \in \mathbb R^{N\times d}$ 并将其写入HBM，我们的目标是减少HBM访问次数(使其在 $N$ 的次方下为次线性 sub-quadratic in $N$)
+>给定在HBM中的输入 $Q,K,V \in R^{N×d}$，我们需要计算注意力输出 $O \in \mathbb R^{N\times d}$ 并将其写入HBM，我们的目标是减少 HBM 访问次数(使其在 $N$ 的次方下为次线性 sub-quadratic in $N$)
 
 We apply two established techniques (tiling, recomputation) to overcome the technical challenge of computing exact attention in sub-quadratic HBM accesses. We describe this in Algorithm 1. The main idea is that we split the inputs $\mathbf{Q},\mathbf{K},\mathbf{V}$ into blocks, load them from slow HBM to fast SRAM, then compute the attention output with respect to those blocks. By scaling the output of each block by the right normalization factor before adding them up, we get the correct result at the end. 
 >我们应用两种成熟的技术(平铺 tiling、重计算 recomputation)来克服在次线性HBM访问中计算精确注意力的技术挑战，见 Algorithm 1
@@ -205,7 +205,7 @@ $f(x) = [e^{m(x^{(1)})- m(x)}f(x^{(1)})\ e^{m(x^{(2)})- m(x)}f(x^{(2)})]$，因�
 $\mathscr l(x) =  \mathscr l([x^{(1)}\ x^{(2)}]) = e^{-m(x)}\sum_i e^{x_i} = \sum_i e^{x_i-m(x)}$，因为$x_i - m(x)\le 0(i=1,\dots,2B)$，故$0\le e^{x_i-m(x)} \le 1$，故满足$0 \le \mathscr l(x) \le 2B$ )
 
 Therefore if we keep track of some extra statistics $(m(x),\ell(x))$ , we can compute softmax one block at a time. We thus split the inputs $\mathbf{Q},\mathbf{K},\mathbf{V}$ into blocks (Algorithm 1 line 3), compute the softmax values along with extra statistics (Algorithm 1 line 10), and combine the results (Algorithm 1 line 12). 
->因此，如果我们跟踪一些额外的统计数据 $(m(x), \mathscr l(x))$，我们可以一次计算一个块的softmax
+>因此，如果我们跟踪一些额外的统计数据 $(m(x), \mathscr l(x))$，我们可以一次计算一个块的 softmax
 >因此，我们将输入 $Q,K,V$ 分成块(Algorithm 1 line 3)，计算softmax值以及额外的统计数据(Algorithm 1 line 10)，并组合结果(Algorithm 1 line 12)
 
 ![[FlashAttention-Fig2.png]]
