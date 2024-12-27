@@ -644,7 +644,43 @@ Date: 2024.12.9-2024.12.16
 Date: 2024.12.16-2024.12.23
 
 \[Paper\]
-- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]
+- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec4-Sec7
+    Sec4-Key Components of DL Compilers
+        Sec-4.1-High-level IR
+            High-level IR is also known as graph IR.
+            4.1.1 Representation of Graph IR
+            The representation of graph IR can be categorized into two classes: DAG-based IR, Let-binding-based IR.
+            In DAG-based IR, the node represents atomic DL operator, the edge represents tensor.
+            In DAG-based IR, the graph is acyclic without loops, therefore differs from the data dependency graph of generic compilers.
+            There are already plenty of optimizations on DDG, like Common Subexpression Elimination, Dead Code Elimination. These algorithm can be combined with DL domain knowledge to optimize the DAG computation graph.
+            DAG-based IR is simple, but may cause semantic ambiguity because of missing the definition of the computation scope.
+            Let-binding offers let-expression to certain functions with restricted scope in high-level language to solve semantic ambiguity. 
+            When using `let` keyword to define expression, a let node will be generated which points to the operator and the variable in the expression, instead of just building the computational relation between variables in DAG.
+            In DAG-based compiler, to get the return value of certain expression, the corresponding node will the accessed and the related nodes will be searched. It is known as recursive descent technique.
+            The let-binding based compiler will compute the results of all variables in a let expression, and builds a variable map. The compiler looks up this map to decide the value of the expression.
+            TVM and Relay IR adopts both.
+            The ways graph IR to represent tensor computation can be categorized into three classes: Function-based, Lambda expression, Einstein notation
+            Glow, nGraph, XLA's IR (XLA's IR is HLO) use function-based representation to represent tensor computation. The function-based representation only provides encapsulated operators.
+            Lambda expression uses variable binding and substitution to represent calculation. TVM uses tensor expression to represent tensor computation, in which the computational operator are defined by the output tensor's shape and the lambda expression of computing rules.
+            Einstein notation is used to expression summation, in which the indexes for temporary variables do not need to be defined. The actual expression can be deduced from the Einstein notation. In Einstein notation, the operators should be associative and commutive, and thus the reduction operators can be executed by any order.
+            4.1.2 Implementation of Graph IR
+            Data representation
+            Tensor can be represented by placeholder which only carries the shape information of the tensor. It helps separate the computation definition and actual computing. To support dynamic shape/dynamic model, placeholder should support unknown dimension size. Also, the bound inference and dimension checking should be relaxed, and extra mechanism is needed to guarantee memory validity.
+            Data layout describes tensor's organization in memory, which is usually a mapping from logical indices to memory indices. The data layout includes the sequence of dimensions, tilling, padding, striding, etc.
+            Bound inference is used to determine the bound of iterators when compiling DL models. The bound inference is often performed iteratively of recursively according to the computation graph and placeholders.
+            Operators supported
+            Operators supported by DL compilers will be the node in the computation graph.
+            4.1.3 Discussion
+            The data and operators designed in high-level IR are flexible and extensible enough to support diverse DL models. The high-level IRs are hardware-independent.
+        4.2-Low-level IR
+            Low-level IR provides interface to tune the computation and memory access. The common implementation of low-level IR can be classified into 3 categories: Halide-based IR, polyhedral-based IR, other unique IR.
+            Halide-based IR
+            Halide's philosophy is to separate computation and schedule. Compilers adopting Halide try various possible schedules and choose the best one. TVM improved Halide-IR to independent symbolic IR.
+            Polyhedral-based IR
+            Different from Halide, the boundaries of memory bounds and loop nests can be polyhedrons with any shapes in the polyhedral model. The polyhedral-based IR makes it easy to apply polyhedral transformations (fusion, tiling, sinking, mapping).
+            Other unique IR
+            
+            
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH18.1-CH18.3
@@ -676,16 +712,16 @@ Date: 2024.12.16-2024.12.23
         We call the prior satisfies parameter modularity if two structure's local structure are the same, their prior will be the same
         Under parameter modularity, Bayesian score will be decomposable, and thus the searching can be done locally and separately.
         The likelihood score is naturally decomposable.
-- [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH7
-
-\[Doc\]
-- [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
-- [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
 
 # 2025
 ## January
 ### Week 1
 
+- [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
 
 
+
+\[Doc\]
+- [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
+- [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
