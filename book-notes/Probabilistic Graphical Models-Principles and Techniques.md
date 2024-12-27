@@ -11793,7 +11793,7 @@ In the previous chapter, we examined how to learn the parameters of Bayesian net
 >  本章讨论网络结构未知情况下的学习问题
 >  本章仍假设数据是完全观察到的
 
-As in our ion so far, we assume that the data $\mathcal{D}$ are generated IID from an underly distrtion $P^{*}(\mathcal{X})$ . Here, we also assume that $P^{*}$ is induced by som ayesian network $\mathcal{G}^{\ast}$ over X . We begin by considering the extent to which independencies in $\mathcal{G}^{*}$ manifest in D . 
+As in our ion so far, we assume that the data $\mathcal{D}$ are generated IID from an underly distribution $P^{*}(\mathcal{X})$ . Here, we also assume that $P^{*}$ is induced by some Bayesian network $\mathcal{G}^{\ast}$ over X . We begin by considering the extent to which independencies in $\mathcal{G}^{*}$ manifest in D . 
 >  我们假设数据 $\mathcal D$ 从 $P^*(\mathcal X)$ 中 IID 生成， $P^*$ 由某个 $\mathcal X$ 上的 BN $\mathcal G^*$ 导出
 >  我们考虑 $\mathcal G^*$ 中的独立性在 $\mathcal D$ 中展现到何种程度
 
@@ -11807,9 +11807,9 @@ The importance of correctly reconstructing the network structure depends on our 
 >  学习模型结构的一个原因是知识发现，通过检查学习到的网络中的独立性以了解变量之间的独立性
 >  当然统计独立性检验也可以用于学习变量之间的独立性
 
-If our goal is to understand the domain structure, then, clearly, the best answer we can aspire to is recovering $\mathcal{G}^{*}$ . Even here, must be careful. Recall that there can be many perfect maps for a distribution $P^{*}$ : all of th etworks in the same I-equivalence class as $\mathcal{G}^{\ast}$ . All of these are equally good structures for $P^{*}$ , and therefore we cannot distinguish between them based only on the data $D$ . **In other words, $\mathcal{G}^{\ast}$ is not identiﬁable from the data. Thus, the best we can hope for is an algorithm that, asymptotically, recovers $\mathcal{G}^{\ast}\mathbf{\ddot{s}}$ uivalence class.** 
+If our goal is to understand the domain structure, then, clearly, the best answer we can aspire to is recovering $\mathcal{G}^{*}$ . Even here, must be careful. Recall that there can be many perfect maps for a distribution $P^{*}$ : all of th etworks in the same I-equivalence class as $\mathcal{G}^{\ast}$ . All of these are equally good structures for $P^{*}$ , and therefore we cannot distinguish between them based only on the data $D$ . **In other words, $\mathcal{G}^{\ast}$ is not identiﬁable from the data. Thus, the best we can hope for is an algorithm that, asymptotically, recovers $\mathcal{G}^{\ast}\mathbf{\ddot{s}}$ equivalence class.** 
 >  如果目标是理解领域结构，则我们希望恢复 $\mathcal G^*$
->  注意分布 $P^*$ 的 perfect map 不止一个，和 $\mathcal G^*$ 是 I-euivalence 的都是，它们对于 $P^*$ 都是一样好的结构，故基于数据我们无法区分它们
+>  注意分布 $P^*$ 的 perfect map 不止一个，和 $\mathcal G^*$ 是 I-equivalence 的都是，它们对于 $P^*$ 都是一样好的结构，故基于数据我们无法区分它们
 >  换句话说，$\mathcal G^*$ 对于数据是不可识别的，故我们的算法只是希望能渐进地恢复 $\mathcal G^*$ 的等价类
 
 Unfortunately, as our example indicate the goal of learning $\mathcal{G}^{*}$ (or an equivalent network) is hard to achieve. The data sampled from $P^{*}$ are noisy and do not reconstruct this distribution perfectly. We cannot detect with complete reliability which independencies are present in the underlying distribution. **Therefore, we must generally make a decision about our willingness to include in our learned model edges about which we are less sure. If we include more of these edges, we will often learn a model that contains spurious edges. If we include fewer edges, we may miss dependencies. Both compromises lead to inaccurate structures that do not reveal the correct underlying structure. The decision of whether it is better to have spurious correlations or spurious independencies depends on the application.** 
@@ -12019,7 +12019,7 @@ A natural choice for scoring function is the likelihood function, which we used 
 >  似然函数度量了给定模型数据的出现可能性，直观上，适合用于找到使得观察数据出现可能性最大的模型
 
 Assume that we want to maximize the likelihood of the model. In this case, our model is a pair $\langle\mathcal{G},\theta_{\mathcal{G}}\rangle$ . Our goal is to ﬁnd both a graph $\mathcal{G}$ and parameters $\theta_{\mathcal{G}}$ that maximize the likelihood. 
->  考虑极大化模型的似然，此时模型实际上是结构和参数对 $\langle \mathcal G, \pmb \theta_{\mathcal G} \rangle$，我们的目标是找到极大化数据集似然的图 $\mathcal G$，和参数 $\pmb \theta_{\mathcal G}$
+>  考虑极大化模型的似然，此时模型实际上是结构和参数对 $\langle \mathcal G, \pmb \theta_{\mathcal G} \rangle$，我们的目标是找到极大化数据集似然的图 $\mathcal G$ 和参数 $\pmb \theta_{\mathcal G}$
 
 In the previous chapter, we determined how to maximize the likelihood for a given structure $\mathcal{G}$ . We simply use the maximum likelihood parameters $\hat{\boldsymbol{\theta}}_{\mathcal{G}}$ for that graph. A simple analysis now shows that: 
 
@@ -12150,7 +12150,7 @@ Based on the developments in the previous chapter and the preceding analysis, we
 >  根据上一节，似然分数度量了 BN 对训练数据的拟合程度
 >  我们还关心学习到的网络在从 $P^*$ 中采样得到的新实例上的表现，此时似然分数存在问题
 
-To see is, consider exa le 18.1. Let $\mathcal{G}_{\varnothing}$ be e network where $X$ and $Y$ are independent, and G ${\mathcal{G}}_{X\to Y}$ the one where X is the parent of Y . As we have seen, $\mathrm{score}_{L}({\mathcal{G}}_{X\to Y}\ :\ {\mathcal{D}})-$ D − → $\mathrm{score}_{L}({\mathcal{G}}_{\varnothing}\ :\ {\mathcal{D}})=M\cdot I_{\hat{P}}(X;Y)$ . Recall that the mutual information between two variables is nonnegative. Thus, $\mathrm{score}_{L}({\mathcal{G}}_{X\to Y}\ :\ {\mathcal{D}})\geq\mathrm{score}_{L}({\mathcal{G}}_{\varnothing}\ :\ {\mathcal{D}})$ for any data set $D$ . This implies that the maximum likelihood score never prefers the simpler network over the more complex one. And it assigns both networks the same score only in these rare situations when $X$ and $Y$ are truly independent in the training data. 
+To see is, consider example 18.1. Let $\mathcal{G}_{\varnothing}$ be e network where $X$ and $Y$ are independent, and G ${\mathcal{G}}_{X\to Y}$ the one where X is the parent of Y . As we have seen, $\mathrm{score}_{L}({\mathcal{G}}_{X\to Y}\ :\ {\mathcal{D}})-$ $\mathrm{score}_{L}({\mathcal{G}}_{\varnothing}\ :\ {\mathcal{D}})=M\cdot I_{\hat{P}}(X;Y)$ . Recall that the mutual information between two variables is nonnegative. Thus, $\mathrm{score}_{L}({\mathcal{G}}_{X\to Y}\ :\ {\mathcal{D}})\geq\mathrm{score}_{L}({\mathcal{G}}_{\varnothing}\ :\ {\mathcal{D}})$ for any data set $D$ . This implies that the maximum likelihood score never prefers the simpler network over the more complex one. And it assigns both networks the same score only in these rare situations when $X$ and $Y$ are truly independent in the training data. 
 >  $\mathcal G_{X\rightarrow Y}$ 和 $\mathcal G_{\emptyset}$ 的似然分数之差为 $X, Y$ 的互信息，因为互信息非负，故前者的似然分数在任意数据集上都大于后者
 >  这意味着极大似然分数永远不偏好更简单的网络，对于复杂的网络和简单的网络，极大似然分数仅在 $X, Y$ 在训练数据集中完全独立的情况下才赋予二者相同分数
 
@@ -12232,7 +12232,7 @@ It turns out that the Bayesian approach can be viewed as performing a similar ev
 $$
 P(\mathcal{D}\mid\mathcal{G})=\prod_{m=1}^{M}P(\xi[m]\mid\xi[1],.\,.\,,\xi[m-1],\mathcal{G}).
 $$ 
-Eac of the terms in this product $-\ P(\xi[m]\ |\ \xi[1],.\,.\,,\xi[m-1],{\mathcal G})\ -$ is the probability of the m ’th instance using the parameters learned from the ﬁrst $m-1$ − instances (using Bayesian estimation). We see that in this term we are using the $m$ ’th instance as a test case, since we are computing its probability using what we learned from previous instances. Thus, it provides us with one data point for testing the ability of our model to predict a new data instance, based on the model learned from the previous ones. This type of analysis is called a prequential analysis . 
+Eac of the terms in this product $-\ P(\xi[m]\ |\ \xi[1],.\,.\,,\xi[m-1],{\mathcal G})\ -$ is the probability of the m ’th instance using the parameters learned from the ﬁrst $m-1$ instances (using Bayesian estimation). We see that in this term we are using the $m$ ’th instance as a test case, since we are computing its probability using what we learned from previous instances. Thus, it provides us with one data point for testing the ability of our model to predict a new data instance, based on the model learned from the previous ones. This type of analysis is called a prequential analysis . 
 
 >  贝叶斯方法可以视作执行类似的评估，但不显式划分数据
 >  我们将似然 $P(\mathcal D \mid \mathcal G)$ 按照链式规则分解如上，乘积中的每一项 $P(\xi[m]\mid \xi[1], \dots, \xi[m-1], \mathcal G)$ 是基于前 $m-1$ 个样本学习到的参数下第 $m$ 个样本的概率，我们可以认为使用前 $m-1$ 个样本训练，使用第 $m$ 个样本测试
@@ -12327,7 +12327,8 @@ Recall that the Gamma function is such that $\Gamma(m)=(m\!-\!1)!$ and $\Gamma(x
 
 $$
 \alpha(\alpha+1)\cdot\cdot\cdot(\alpha+M-1)=\frac{\Gamma(\alpha+M)}{\Gamma(\alpha)}.
-$$ 
+$$
+
 Hence, 
 
 $$
@@ -12339,7 +12340,8 @@ A similar formula holds for a multinomial distribution over the space $x^{1},\cd
 
 $$
 P(x[1],\ldots,x[M])=\frac{\Gamma(\alpha)}{\Gamma(\alpha+M)}\cdot\prod_{i=1}^{k}\frac{\Gamma(\alpha_{i}+M[x^{i}])}{\Gamma(\alpha_{i})}.\tag{18.9}
-$$ 
+$$
+
 >  对于 Dirichlet 先验的多项式分布数据集也有类似的结论
 
 Note that the ﬁnal expression for the marginal likelihood is invariant to the order we selected in the expansion via the chain rule. In particular, any other order results in exactly the same ﬁnal expression. This property is reassuring, because the IID assumption tells us that the speciﬁc order in which we get data cases is insigniﬁcant. Also note that the marginal likelihood can be computed directly from the same sufficient statistics used in the computation of the likelihood function — the counts of the different values of the variable in the data. This observation will continue to hold in the general case of Bayesian networks. 
@@ -12394,7 +12396,7 @@ To see this behavior, we consider an idealized experiment where the empirical di
 >  考虑一个具体的实例如上，$p$ 为参数，$p$ 越大说明 $X, Y$ 之间关联越大
 >  注意 $X, Y$ 的边际和 $p$ 无关，因此空结构 $\mathcal G_{\emptyset}$ 的分数不依赖于 $p$，而结构 $\mathcal G_{X\rightarrow Y}$ 则依赖于 $p$
 
-We c see that, as we get more data, the Bayesian score prefers the structure ${\mathcal{G}}_{X\to Y}$ where $X$ and Y are dependent. When the dependency between them is strong, this preference arises very quickly. But as the dependency becomes weaker, more data are required in order to justify this selection. Thus, if the two variables are independent, small ﬂuctuations in the data, due to sampling noise, are unlikely to cause a preference for the more complex structure. By contrast, any ﬂuctuation from pure independence in the empirical distribution will cause the likelihood score to select the more complex structure. 
+We can see that, as we get more data, the Bayesian score prefers the structure ${\mathcal{G}}_{X\to Y}$ where $X$ and Y are dependent. When the dependency between them is strong, this preference arises very quickly. But as the dependency becomes weaker, more data are required in order to justify this selection. Thus, if the two variables are independent, small ﬂuctuations in the data, due to sampling noise, are unlikely to cause a preference for the more complex structure. By contrast, any ﬂuctuation from pure independence in the empirical distribution will cause the likelihood score to select the more complex structure. 
 >  我们可以看到，随着数据量的增加，贝叶斯评分更倾向于结构 ${\mathcal{G}}_{X\to Y}$，其中 $X$ 和 $Y$ 是相关的。当它们之间的依赖性很强时，这种偏好会很快出现。但随着依赖性变弱，则需要更多的数据才能证明这种选择是合理的。
 >  因此，如果两个变量是独立的，由于抽样噪声导致的小波动不太可能引起对更复杂结构的偏好。
 >  相反，经验分布中任何从纯粹独立性的波动都会使似然评分选择更复杂的结构。
@@ -12452,7 +12454,7 @@ Thus, we see that the Bayesian score tends to trade off the likelihood — ﬁt 
 This approximation is called the BIC score (for Bayesian information criterion): 
 
 $$
-\mathrm{score}_{B I C}(\mathcal{G}\ :\ \mathcal{D})=\ell(\hat{\pmb{\theta}}_{\mathcal{G}}:\mathcal{D})-\frac{\log M}{2}\mathrm{min}[\mathcal{G}].
+\mathrm{score}_{B I C}(\mathcal{G}\ :\ \mathcal{D})=\ell(\hat{\pmb{\theta}}_{\mathcal{G}}:\mathcal{D})-\frac{\log M}{2}\mathrm{din}[\mathcal{G}].
 $$ 
 >  定理 18.1 给出的 $M\to \infty$ 时数据集边际似然的对数的形式在去掉常数项后，得到的就是贝叶斯信息准则分数，即 BIC 分数
 
@@ -12498,7 +12500,7 @@ The BIC score is consistent
 Proof Our goal is to prove that for sufficiently large $M$ , if the graph that maximizes the BIC score is $\mathcal{G}$ , then $\mathcal{G}$ is I-equivalent to $\mathcal{G}^{*}$ . We brieﬂy sketch this proof. 
 >  证明思路是对于足够大的 $M$，如果能够最大化 BIC 的结构是 $\mathcal G$，则 $\mathcal G$ 是最优结构 $\mathcal G^*$ 的 I-equivalence
 
-Con der some graph G that implies an independence assumption that $\mathcal{G}^{\ast}$ do s not support. Then G cannot be an I-map of the true underlying distribute $P$ . Hence, G cannot be a maximum likelihood model with respect to the true distribution $P^{*}$ , so that we must have: 
+Consider some graph G that implies an independence assumption that $\mathcal{G}^{\ast}$ do s not support. Then G cannot be an I-map of the true underlying distribute $P$ . Hence, G cannot be a maximum likelihood model with respect to the true distribution $P^{*}$ , so that we must have: 
 
 $$
 \sum_{i}\mathbf{I}_{P^{*}}(X_{i};\mathrm{Pa}_{X_{i}}^{\mathcal{G}^{*}})>\sum_{i}\mathbf{I}_{P^{*}}(X_{i};\mathrm{Pa}_{X_{i}}^{\mathcal{G}}).
@@ -13430,7 +13432,7 @@ Acme ( A ) and Bond ( B ). In each round, both thumbtacks are tossed and the ent
 $$
 P(A,B)=\sum_{h}P(h)P(A\mid h)P(B\mid h).
 $$ 
-Because we never observe $H$ , the parameters of this model can be reshufed by “renaming” the values of the hidden variable. If we exchange the roles of $h^{0}$ and $h^{1}$ , and change the corresponding entries in the CPDs, we get a model with exactly the same likelihood, but with different parameters. In this case, the likelihood surface is duplicated. For each parameter iz ation, there is an equivalent parameter iz ation by exchanging the names of the hidden variable. We conclude that this model is not identiﬁable. 
+Because we never observe $H$ , the parameters of this model can be reshufed by “renaming” the values of the hidden variable. If we exchange the roles of $h^{0}$ and $h^{1}$ , and change the corresponding entries in the CPDs, we get a model with exactly the same likelihood, but with different parameters. In this case, the likelihood surface is duplicated. For each parameterization, there is an equivalent parameter iz ation by exchanging the names of the hidden variable. We conclude that this model is not identiﬁable. 
 
 This type of un ident i ability exists in any model where we have hidden variables we never observe. When we have several hidden variables, the problem is even worse, and the number of equivalent “reﬂections” of each solution is exponential in the number of hidden variables. 
 
@@ -13639,7 +13641,7 @@ The problem with such an approach is that the procedure we use for ﬁlling in t
 >  此外，当我们考虑带有隐藏变量的学习时，很明显填充此时并不适用。我们为隐藏变量填充的值与其他变量的值条件独立，因此，使用这些填充值，我们无法学习到隐藏变量与网络中其他变量之间的任何依赖关系。
 
 A different approach to ﬁlling in data takes the perspective that, when learning with missing data, we are actually trying to solve two problems at once: learning the parameters, and hypothesizing values for the unobserved variables in each of the data cases. Each of these tasks is fairly easy when we have the solution to the other. Given complete data, we have the statistics, and we can estimate parameters using the MLE formulas we discussed in chapter 17. Conversely, given a choice of parameters, we can use probabilistic inference to hypothesize the likely values (or the distribution over possible values) for unobserved variables. Unfortunately, because we have neither, the problem is difficult. 
->  另一种填充数据的方法认为，在适用缺失数据学习时，我们是在尝试同时解决两个问题：学习参数、为每个数据实例中为观测到的变量假设值
+>  另一种填充数据的方法认为，在使用缺失数据学习时，我们是在尝试同时解决两个问题：学习参数、为每个数据实例中为观测到的变量假设值
 >  对于这两个任务，如果我们对其中任意一个任务有解，另一个任务就容易解决
 >  例如给定完整数据，我们可以获取完整统计量，进而使用 MLE 估计参数；给定任意参数选择，我们可以用概率推理为未观测到的变量的可能的值做出假设，或者计算其分布
 >  而两个问题同时存在时，问题就会复杂
@@ -13879,7 +13881,7 @@ $$
 \pmb \theta_{c}^{t+1}\gets\frac{\bar{M}_{\pmb \theta}[c]}{M},
 $$
 
-and for the conditional CPD are 
+and for the conditional CPD are
 
 $$
 \pmb \theta_{x_{i}|c}^{t+1}\leftarrow\frac{\bar{M}_{\pmb \theta}[x_{i},c]}{\bar{M}_{\pmb \theta}[c]}.
@@ -14248,7 +14250,7 @@ Figure 19.D.1 — Sample results from EM-based 3D plane mapping (a) Raw data map
 
 correspondence variable data association 
 
-The probabilistic model also needs to specify, for each point $\pmb{x}_{m}$ in the point cloud, to which plane $\pmb{x}_{m}$ belongs. This assignment can be modeled via a set of correspondence variables $C_{m}$ such that $C_{m}=k$ if the measurement point $\pmb{x}_{m}$ was generated by the k th plane. Each assignment to the correspondence variables, which are unobserved, encodes a possible solution to the data ee box 12.D for more details.) We deﬁne $P(\mathbf{X}_{m}\mid\mathbf{\mu}C_{m}=\boldsymbol{k}:\mathbf{\theta}_{k})$ ) to be $\propto\mathcal{N}\left(d({\pmb x},p_{k})\mid0;\sigma^{2}\right)$    . In addition, we also allow an additional value $C_{m}\,=\,0$ that encodes points that are not generated by any of the planes; the distribution $P(X_{m}\mid C_{m}=0)$ is taken to be uniform over the (ﬁnite) space. 
+The probabilistic model also needs to specify, for each point $\pmb{x}_{m}$ in the point cloud, to which plane $\pmb{x}_{m}$ belongs. This assignment can be modeled via a set of correspondence variables $C_{m}$ such that $C_{m}=k$ if the measurement point $\pmb{x}_{m}$ was generated by the k th plane. Each assignment to the correspondence variables, which are unobserved, encodes a possible solution to the data ee box 12.D for more details.) We deﬁne $P(\mathbf{X}_{m}\mid\mathbf{\mu}C_{m}=\boldsymbol{k}:\mathbf{\theta}_{k})$ ) to be $\propto\mathcal{N}\left(d({\pmb x},p_{k})\mid0;\sigma^{2}\right)$ . In addition, we also allow an additional value $C_{m}\,=\,0$ that encodes points that are not generated by any of the planes; the distribution $P(X_{m}\mid C_{m}=0)$ is taken to be uniform over the (ﬁnite) space. 
 
 Given a probabilistic model, the EM algorithm can be applied to ﬁnd the assignment of points to planes — the correspondence variables, which are taken to be hidden; and the parameters $\alpha_{k},\beta_{k}$ that characterize the planes. Intuitively, the E-step computes the assignment to the correspondence variables by assigning the weight of each point proportionately to its distance to each of them. The M-step then recomputes the parameters of each plane to ﬁt the points assigned to it. See exer- cise 19.18 and exercise 19.19. The algorithm also contains an additional outer loop that heuristically suggests new surfaces to be added to the model, and removes surfaces that do not have enough support in the data (for example, one possible criterion can depend on the total weight that different data points assign to the surface). 
 
@@ -14337,16 +14339,22 @@ More broadly, the ability to characterize the approximate algorithm as attemptin
 
 ## 19.6 Summary 
 In this chapter, we considered the problem of learning in the presence of incomplete data. We saw that learning from such data introduces several signiﬁcant challenges. 
+>  本章考虑了不完整数据下的学习问题
 
 One set of challenges involves the statistical interpretation of the learning problem in this setting. As we saw, we need to be aware of the process that generated the missing data and the effect of nonrandom observation mechanisms on the interpretation of the data. Moreover, we also need to be mindful of the possibility of un ident i ability in the models we learn, and as a consequence, to take care when interpreting the results. 
+>  此时一个挑战是对学习问题的统计解释
+>  我们需要意识到存在生成数据和缺失数据的过程
 
 A second challenge involves computational considerations. Most of the key properties that helped make learning feasible in the fully observable case vanish in the partially observed setting. In particular, the likelihood function no longer decomposes, and is even multimodal. As a consequence, the learning task requires global optimization over a high-dimensional space, with an objective that is highly susceptible to local optima. 
+>  另一个挑战是计算上的考虑
+>  此时似然函数不可分解，并且是多模态的，因此学习任务是高维空间的全局优化，目标函数容易收敛到局部最优
 
 We presented two classes of approaches for performing parameter estimation in this setting: a generic gradient-based process, and the EM algorithm, which is speciﬁcally designed for maximizing likelihood functions. Both of these methods perform hill climbing over the parameter space, and are therefore guaranteed only to ﬁnd a local optimum (or rather, a stationary point) of the likelihood function. Moreover, each iteration in these algorithms requires that we solve an inference problem for each (partially observed) instance in our data set, a requirement that introduces a major computational burden. 
+>  此时执行参数估计有两类方法：常规的基于梯度方法、EM 算法
+>  二者都在参数空间爬坡，保证收敛到似然函数的局部最优或驻点
+>  另外二者的每次迭代都需要基于观察数据进行推理
 
-In some cases, we want not only a single parameter estimate, but also some evaluation of our conﬁdence in those estimates, as would be obtained from Bayesian learning. Clearly, given the challenges we mentioned, closed-form solutions to the integration are generally impossible. However, several useful approximations have been developed and used in practice; most commonly used are the methods based on MCMC methods, and on variational approximations. 
-
-monly used are the score-based approaches, where we deﬁne the problem as one of ﬁnding a high-scoring structure. We presented several approximations to the Bayesian score; most of these are based on an asymptotic approximation, and hence should be treated with care given only a small number of samples. We then discussed the challenges of searching over the space of networks when the score is not decomposable, a setting that (in principle) forces us to apply a highly expensive evaluation procedure to every candidate that we are considering in the search. The structural EM algorithm provides one approach to reduce this cost. It uses an approximation to the score that is based on some completion of the data, allowing us to use the same efficient algorithms that we applied in the complete data case. 
+In some cases, we want not only a single parameter estimate, but also some evaluation of our conﬁdence in those estimates, as would be obtained from Bayesian learning. Clearly, given the challenges we mentioned, closed-form solutions to the integration are generally impossible. However, several useful approximations have been developed and used in practice; most commonly used are the methods based on MCMC methods, and on variational approximations. Most commonly used are the score-based approaches, where we deﬁne the problem as one of ﬁnding a high-scoring structure. We presented several approximations to the Bayesian score; most of these are based on an asymptotic approximation, and hence should be treated with care given only a small number of samples. We then discussed the challenges of searching over the space of networks when the score is not decomposable, a setting that (in principle) forces us to apply a highly expensive evaluation procedure to every candidate that we are considering in the search. The structural EM algorithm provides one approach to reduce this cost. It uses an approximation to the score that is based on some completion of the data, allowing us to use the same efficient algorithms that we applied in the complete data case. 
 
 Finally, we brieﬂy discussed some of the important questions that arise when we consider hidden variables: Where in the model should we introduce a hidden variable? What should we select as the cardinality of such a variables? And how do we initialize a variable so as to guide the learning algorithm toward “good” regions of the space? While we brieﬂy described some ideas here, the methods are generally heuristic, and there are no guarantees. 
 
@@ -14716,7 +14724,7 @@ The same issues regarding observation processes (ones that are not missing at ra
 >  然而，正如我们讨论的，在完整数据的情况下，对数似然函数是凹的，并且可以使用梯度方法轻松优化。一旦我们有了缺失数据，我们会失去函数的凹性并且可能有多个局部极大值。事实上，我们使用的例子是在形式为 $X \rightarrow Y$ 的贝叶斯网络背景下，这也可以表示为马尔可夫网络。当然，这两个模型的参数化是不同的，因此函数的形式可能会有所不同。然而，可以验证，在一个参数化下多模态的函数在另一个参数化下也会是多模态的。
 
 #### 20.3.3.1 Gradient Ascent 
-As in the case of Bayesian networks, if we assume our data is missing at random, we can perform maximum-likelihood parameter estimation by using some form of gradient ascent process to optimize the likelihood function. Let us therefore begin by analyzing the form of the gradient in the case of missing data. Let $\mathcal{D}$ be a data set w some entries are missing; let $o[m]$ be the observed entries in the m th data instance and H $\mathcal{H}[m]$ be the random variables that are the missing entries n that instance, so that for any $h[m]\in V a l({\mathcal{H}}[m])$ , $(o[m],h[m])$ is a complete assignment to X . 
+As in the case of Bayesian networks, if we assume our data is missing at random, we can perform maximum-likelihood parameter estimation by using some form of gradient ascent process to optimize the likelihood function. Let us therefore begin by analyzing the form of the gradient in the case of missing data. Let $\mathcal{D}$ be a data set w some entries are missing; let $o[m]$ be the observed entries in the m-th data instance and H $\mathcal{H}[m]$ be the random variables that are the missing entries n that instance, so that for any $h[m]\in V a l({\mathcal{H}}[m])$ , $(o[m],h[m])$ is a complete assignment to X . 
 >  考虑缺失数据下梯度的形式
 >  $\mathcal D$ 为数据集，$\pmb o[m]$ 为第 $m$ 个数据实例中被观测到的项，$\mathcal H[m]$ 为第 $m$ 个数据实例中数据缺失的随机变量
 >  对于任意 $\pmb h[m]\in Val(\mathcal H[m])$，$(\pmb o[m], \pmb h[m])$ 可以构成对 $\mathcal X$ 的一个完整赋值
@@ -14728,7 +14736,7 @@ $$
 \begin{array}{r c l}{{\displaystyle\frac{1}{M}\ln P(\mathcal{D}\mid\pmb \theta)}}&{{=}}&{{\displaystyle\frac{1}{M}\sum_{m=1}^{M}\ln\left(\sum_{\pmb h[m]}P(\pmb o[m],\pmb h[m]\mid\pmb \theta)\right)}}\\ {{}}&{{}}&{{=\displaystyle\frac{1}{M}\sum_{m=1}^{M}\ln\left(\sum_{\pmb h[m]}\tilde{P}(\pmb o[m],\pmb h[m]\mid\pmb \theta)\right)-\ln Z.}}\end{array}\tag{20.8}
 $$
 
-Now, consider a single term within the summation, $\textstyle\sum_{\pmb{h}[m]}{\tilde{P}}(o[m],\pmb{h}[m]\ |\ \theta)$ . This expression has the same form as a partition function; indeed, it is precisely the partition function for the Markov network that we would obtain by reducing our original Markov network with the observation $o[m]$ , to obtain a Markov network representing the conditional distribution $\tilde{P}(\mathcal{H}[m]\mid\mathbf{o}[m])$ H | . Therefore, we can apply proposition 20.2 and conclude that: 
+Now, consider a single term within the summation, $\textstyle\sum_{\pmb{h}[m]}{\tilde{P}}(o[m],\pmb{h}[m]\ |\ \theta)$ . This expression has the same form as a partition function; indeed, it is precisely the partition function for the Markov network that we would obtain by reducing our original Markov network with the observation $o[m]$ , to obtain a Markov network representing the conditional distribution $\tilde{P}(\mathcal{H}[m]\mid\mathbf{o}[m])$ . Therefore, we can apply proposition 20.2 and conclude that: 
 
 $$
 \frac{\partial}{\partial\theta_{i}}\ln\sum_{\pmb h[m]}\tilde{P}(\pmb o[m],\pmb h[m]\mid\pmb \theta)\quad=\quad E_{\pmb h[m]\sim P(\mathcal{H}[m]\mid \pmb o[m],\pmb \theta)}[f_{i}],
@@ -14737,7 +14745,7 @@ $$
 that is, the gradient of this term is simply the conditional expectation of the feature, given the observations in this instance. 
 
 >  考虑和式中的一项 $\sum_{\pmb h[m]}\tilde P(\pmb o[m], \pmb h[m]\mid \pmb \theta)$，其形式和划分函数一致，可以发现他就是我们将原 MN 根据 $\pmb o[m]$ 化简的得到的 MN 的划分函数
->  因此我们应用命题 20.2，得到其梯度，就是特征在给定实例中的管测下的的条件期望
+>  因此我们应用命题 20.2，得到其梯度，就是特征在给定实例中的观测下的的条件期望
 
 Putting this together with previous computations, we obtain the following: 
 >  再将 $\ln Z$ 替换为特征的期望，我们就得到如下命题
@@ -14753,7 +14761,7 @@ In other words, the gradient for feature $f_{i}$ in the case of missing data is 
 >  可以看到，此时特征 $f_i$ 的梯度是两个期望的差：在数据上和隐变量上的期望减去所有变量上的期望
 
 It is instructive to compare the cost of this computation to that of computing the gradient in equation (20.4). For the latter, to compute the second term in the derivative, we need to run inference once, to compute the expected feature counts relative to our current distribution $P(\mathcal{X}\mid\theta)$ . The ﬁrst term is computed by simply aggregating the feature over the data. By comparison, to compute the derivative here, we actually need to run inference separately for every instance $m$ , conditioning on $o[m]$ . Although inference in the reduced network may be simpler (since reduced factors are simpler), the cost of this computation is still much higher than learning without missing data. Indeed, not surprisingly, the cost here is comparable to the cost of a single iteration of gradient descent or EM in Bayesian network learning. 
->  将这个计算的成本与计算方程（20.4）中的梯度的成本进行比较是有启发性的。对于后者，为了计算导数中的第二项，我们需要运行一次推理，以计算相对于我们当前分布$P(\mathcal{X} \mid \theta)$ 的期望特征计数。第一项则通过对数据进行特征聚合来计算。
+>  将这个计算的成本与计算方程（20.4）中的梯度的成本进行比较是有启发性的。对于后者，为了计算导数中的第二项，我们需要运行一次推理，以计算相对于我们当前分布 $P(\mathcal{X} \mid \theta)$ 的期望特征计数。第一项则通过对数据进行特征聚合来计算。
 >  相比之下，为了计算这里的导数，我们实际上需要为每个实例 $m$ 分别运行推理，并且条件化于 $\pmb o[m]$。虽然简化网络中的推理可能更简单（因为简化的因子更简单），但这种计算的成本仍然远高于没有缺失数据的学习成本。
 >  实际上，不出所料，这里的成本与贝叶斯网络学习中梯度下降或EM单次迭代的成本相当。
 
@@ -14881,9 +14889,9 @@ $$
 X{\mathrm{-}}Y\notin{\mathcal{H}}^{*}\;{\mathrm{~if~and~only~if~}}\;\exists Z,|z|\leq d^{*}\&P^{*}=(X\perp Y\;|\;Z).
 $$ 
 
-Thus, we can determine whether $X{-}Y$ is $\mathcal{H}^{*}$ using ${\textstyle\sum_{k=0}^{d^{*}}{\binom{n-2}{k}}}$ P    independence tests. Each of these independence tests involves only d $d^{*}+2$ variables, which, for low values of $d^{*}$ , can be tractable. We have already encountered this test in section 3.4.3.1, as part of our Bayesian network construction procedure. If fact, it is not hard to show that, given our assumptions and perfect independence tests, the Build-PMap-Skeleton procedure of algorithm 3.3 reconstructs the correct Markov structure $\mathcal{H}^{*}$ (exercise 20.15). 
+Thus, we can determine whether $X{-}Y$ is $\mathcal{H}^{*}$ using ${\textstyle\sum_{k=0}^{d^{*}}{\binom{n-2}{k}}}$ independence tests. Each of these independence tests involves only d $d^{*}+2$ variables, which, for low values of $d^{*}$ , can be tractable. We have already encountered this test in section 3.4.3.1, as part of our Bayesian network construction procedure. If fact, it is not hard to show that, given our assumptions and perfect independence tests, the Build-PMap-Skeleton procedure of algorithm 3.3 reconstructs the correct Markov structure $\mathcal{H}^{*}$ (exercise 20.15). 
 
-This procedure uses a polynomial number of tests. Thus, the procedure runs in polynomial time. Moreover, if the probability of a false answer in any single independence test is at most ϵ , then the probability th n one of the independence tests fails is at most ${\textstyle\sum_{k=0}^{d^{*}}{\binom{n-2}{k}}}\epsilon$    . Therefore, for sufficiently small ϵ , we can use this analysis to prove that we can reconstruct the correct network structure $\mathcal{H}^{*}$ with high probability. 
+This procedure uses a polynomial number of tests. Thus, the procedure runs in polynomial time. Moreover, if the probability of a false answer in any single independence test is at most ϵ , then the probability th n one of the independence tests fails is at most ${\textstyle\sum_{k=0}^{d^{*}}{\binom{n-2}{k}}}\epsilon$ . Therefore, for sufficiently small ϵ , we can use this analysis to prove that we can reconstruct the correct network structure $\mathcal{H}^{*}$ with high probability. 
 
 While this result is satisfying at some level, there are signiﬁcant limitations. First, the number of samples required to obtain correct answers for all of the independence tests can be very large in practice. Second, the correctness of the algorithm is based on several important assumptions: that there is a Markov network that is a perfect map of $P^{*}$ ; that this network has a bounded degree; and that we have enough data to obtain reliable answers to the independence tests. When these assumptions are violated, this algorithm can learn incorrect network structures. 
 
@@ -14896,9 +14904,9 @@ Moreover, as we discussed, this approach focuses solely on reconstructing the ne
 ### 20.7.2 Score-Based Learning: Hypothesis Spaces 
 hypothesis space We now move to the score-based structure learning approach. As we discussed earlier, this approach formulates structure learning as an optimization problem: We deﬁne a hypothesis space consisting of a set of possible networks; we also deﬁne an objective function, which is used to score different candidate networks; and then we construct a search algorithm that attempts to identify a high-scoring network in the hypothesis space. We begin in this section by discussing the choice of hypothesis space for learning Markov networks. We discuss objective functions and the search strategy in subsequent sections. 
 
-There are several ways of formulating the search space for Markov networks, which vary in terms of the granularity at which they consider the network parameter iz ation. At the coarsest- grained, we can pose the hypothesis space as the space of different structures of the Markov network itself and measure the model complexity in terms of the size of the cliques in the network. At the next level, we can consider parameter iz at ions at the level of the factor graph, and measure complexity in terms of the sizes of the factors in this graph. At the ﬁnest level of granularity, we can consider a search space at the level of individual features in a log-linear model, and measure sparsity at the level of features included in the model. 
+There are several ways of formulating the search space for Markov networks, which vary in terms of the granularity at which they consider the network parameterization. At the coarsest- grained, we can pose the hypothesis space as the space of different structures of the Markov network itself and measure the model complexity in terms of the size of the cliques in the network. At the next level, we can consider parameter iz at ions at the level of the factor graph, and measure complexity in terms of the sizes of the factors in this graph. At the ﬁnest level of granularity, we can consider a search space at the level of individual features in a log-linear model, and measure sparsity at the level of features included in the model. 
 
-The more ﬁne-grained our hypothesis space, the better it allows us to select a parameter iz ation that matches the properties of our distribution without overﬁtting. For example, the factor-graph approach allows us to distinguish between a single large factor over $k$ variables and a set of $\textstyle{\binom{k}{2}}$  pairwise factors over the same variables, requiring far fewer parameters. The feature-based approach also allows us to distinguish between a full factor over $k$ variables and a single log-linear feature over the same set of variables. 
+The more ﬁne-grained our hypothesis space, the better it allows us to select a parameterization that matches the properties of our distribution without overﬁtting. For example, the factor-graph approach allows us to distinguish between a single large factor over $k$ variables and a set of $\textstyle{\binom{k}{2}}$ pairwise factors over the same variables, requiring far fewer parameters. The feature-based approach also allows us to distinguish between a full factor over $k$ variables and a single log-linear feature over the same set of variables. 
 
 Conversely, the ﬁner-grained spaces can obscure the connection to the network structure, in that sparsity in the space of features selected does not correspond directly to sparsity in the model structure. For example, introducing even a single feature $f(d)$ into the model has the structural efect of introducing edges between all of the variables in $^d$ . Thus, even models with a fairly small number of features can give rise to dense connectivity in the induced network. While this is not a problem from the statistical perspective of reliably estimating the model parameters from limited data, it can give rise to signiﬁcant problems from the perspective of performing inference in the model. Moreover, a ﬁner-grained hypothesis space also means that search algorithms take smaller steps in the space, potentially increasing the cost of our learning procedure. We will return to some of these issues. 
 
