@@ -646,7 +646,7 @@ Date: 2024.12.16-2024.12.23
 \[Paper\]
 - [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec4-Sec7
     Sec4-Key Components of DL Compilers
-        Sec-4.1-High-level IR
+        Sec4.1-High-level IR
             High-level IR is also known as graph IR.
             4.1.1 Representation of Graph IR
             The representation of graph IR can be categorized into two classes: DAG-based IR, Let-binding-based IR.
@@ -672,15 +672,52 @@ Date: 2024.12.16-2024.12.23
             Operators supported by DL compilers will be the node in the computation graph.
             4.1.3 Discussion
             The data and operators designed in high-level IR are flexible and extensible enough to support diverse DL models. The high-level IRs are hardware-independent.
-        4.2-Low-level IR
+        Sec4.2-Low-level IR
             Low-level IR provides interface to tune the computation and memory access. The common implementation of low-level IR can be classified into 3 categories: Halide-based IR, polyhedral-based IR, other unique IR.
             Halide-based IR
             Halide's philosophy is to separate computation and schedule. Compilers adopting Halide try various possible schedules and choose the best one. TVM improved Halide-IR to independent symbolic IR.
             Polyhedral-based IR
             Different from Halide, the boundaries of memory bounds and loop nests can be polyhedrons with any shapes in the polyhedral model. The polyhedral-based IR makes it easy to apply polyhedral transformations (fusion, tiling, sinking, mapping).
             Other unique IR
-            
-            
+            MLIR has a flexible type system and allows multiple abstraction levels. It induces dialects to represent multiple levels of abstraction. Each dialect consists of a set of defined immutable operations. Current dialects includes TensorFlow IR, XLA HLO IR, experimental polyhedral IR, LLVM IR, TensorFlow Lite.
+            Most DL compiler's low-level IR will eventually lowered to LLVM IR to use LLVM's optimizer and code generator. LLVM also supports custom instruction set for specialized accelerator.
+            DL compiler adopts two approaches to achieve hardware-dependent optimization: 1. perform target-specific loop transformation in the upper IR of LLVM 2. provide additional information about the hardware target for optimization passes.
+        Sec4.3-Frontend optimizations
+            Frontend optimizations are shared by different backends.
+            The frontend optimizations are defined by passes. The passes traverse the graph's nodes and perform graph transformation. (rewrite the graph for optimization)
+            Passes can be pre-defined or customized by developers. Most DL compliers can capture shape information in computation graph to do optimization.
+            The frontend optimization can be classified into three categories: 1. node-level 2. block-level (local) 3. dataflow-level (global)
+            Node-level optimizations
+            The nodes of computation are coarse enough to enable optimizations inside a node.
+            Node elimination: eliminate unnecessary nodes (e.g. operations lacking adequate inputs, zero-dim-tensor elimination)
+            Node replacement: use lower-cost nodes
+            Block-level optimizations
+            Algebraic simplification: optimization in computation order, optimization in node combination, optimization of ReduceMean nodes
+            Operator fusion: 
+            Operator sinking: make similar operations closer in order to create opportunities for algebraic simplification 
+            Dataflow-level optimizations
+            CSE: use previously computed sub-expression's value to substitute other occurrences of that sub-expression in the graph
+            DCE: a set of code is dead if it's computation result or side-effect are not used; DCE includes dead store elimination (remove never used tensor's storage operation)
+            Static memory planning: done offline, aims to reuse memory as much as possible; in-place memory sharing: allocate only one copy for operation, for sharing between the input and output; standard memory sharing: reuse previous operations' memory without overlapping.
+            Layout transformation: aims to find the best data layout for tensors in the computation and insert layout transformation node into the computation graph. The actual layout transformation is preformed by the backend. To find the best data layout, the hardware details are required, like cache line size, vectorization unit size, memory access pattern etc.
+        Sec4.4-Backend optimizations
+            Hardware-specific optimization
+            includes: 
+            1. hardware intrinsic mapping: transform a certain set of low-level IR instructions to highly optimized kernels in target hardware.
+            2. memory allocation and fetching: 
+            3. memory latency hiding: reorder the execution pipeline
+            4. loop oriented optimizations: includes 1) loop fusion to fuse loops with the same boundaries 2) sliding windows 3) tiling: the tiling patter and size can be determined by auto-tuning 4) loop reordering (loop permutation): changes the order of iterations in a nested loop to increase spatial locality. It requires the loop is free of data-flow dependency between iterations 5) loop unrolling: usually applied in combination with loop split: first split the loop into two nested loops and unroll the inner loop
+            5. Parallelization: utilizes accelerator's multi-thread and SIMD parallelism.
+            Auto-tuning
+            four key components:
+            1. parameterization: the data parameter describes the data's specification; the target parameter describes hardware-specific characteristics (e.g.  shared memory and register size) and constraints
+            2. cost model: 1) black-box model: only considers the final execution time 2) ML-based cost model: e.g. GBDT 3) pre-defined cost model
+            3. searching technique: 
+            4. acceleration: 1) parallelization 2) configuration reuse
+            Optimized kernel libraries 
+    Sec5-Taxonomy of DL Compilers
+    Sec6-Evaluation
+    Sec7-Conclusion and Future Directions
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH18.1-CH18.3
@@ -719,7 +756,6 @@ Date: 2024.12.16-2024.12.23
 ### Week 1
 
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
-
 
 
 \[Doc\]

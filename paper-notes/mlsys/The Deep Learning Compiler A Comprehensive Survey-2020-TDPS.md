@@ -603,7 +603,7 @@ Fig. 4. Overview of hardware-specific optimizations applied in DL compilers.
 >  注意在迭代之间存在顺序依赖时，循环重排序是不安全的
 
 5. **Loop unrolling**: Loop unrolling can unroll a specific loop to a fixed number of copies of loop bodies, which allows the compilers to apply aggressive instruction-level parallelism. Usually, loop unrolling is applied in combination with loop split, which first splits the loop into two nested loops and then unrolls the inner loop completely.
->  循环展开讲特定的循环展开为固定数量的循环体拷贝，以允许编译器应用激进的指令级别并行
+>  循环展开将特定的循环展开为固定数量的循环体拷贝，以允许编译器应用激进的指令级别并行
 >  循环展开一般和循环划分一起使用，即首先将循环划分为两个嵌套循环，然后再完全展开内层循环
 
 **Parallelization** - As modern processors generally support multi-threading and SIMD parallelism, the compiler backend needs to exploit parallelism to maximize hardware utilization for high performance. Halide uses a schedule primitive called parallel to specify the parallelized dimension of the loop for thread-level parallelization and supports GPU parallelization by mapping loop dimensions tagged as parallel with annotation of block and thread . And it replaces a loop of size $n$ with a n-wide vector statement, which can be mapped to hardware-specific SIMD opcodes through hardware intrinsic mapping.
