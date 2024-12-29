@@ -641,7 +641,7 @@ Date: 2024.12.9-2024.12.16
                 The trade-off between gradient method and EM method is more subtle in MN.
 
 ### Week 4
-Date: 2024.12.16-2024.12.23
+Date: 2024.12.16-2024.12.23-2024.12.30
 
 \[Paper\]
 - [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec4-Sec7
@@ -718,6 +718,7 @@ Date: 2024.12.16-2024.12.23
     Sec5-Taxonomy of DL Compilers
     Sec6-Evaluation
     Sec7-Conclusion and Future Directions
+- [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH18.1-CH18.3
@@ -755,8 +756,8 @@ Date: 2024.12.16-2024.12.23
 ## January
 ### Week 1
 
+\[Book\]
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
-
 
 \[Doc\]
 - [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
