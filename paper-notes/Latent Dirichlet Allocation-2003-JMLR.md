@@ -117,7 +117,7 @@ Several simplifying assumptions are made in this basic model, some of which we r
 A $k$ -dimensional Dirichlet random variable $\theta$ can take values in the $(k-1)$ -simplex (a $k$ -vector $\theta$ lies in the $(k-1)$ -simplex if $\theta_{i}\geq0$ , $\textstyle\sum_{i=1}^{k}\theta_{i}=1)$ , and has the following probability density on this simplex: 
 
 $$
-p(\Theta\!\mid\!\alpha)=\frac{\Gamma\left(\sum_{i=1}^{k}\alpha_{i}\right)}{\prod_{i=1}^{k}\Gamma(\alpha_{i})}\Theta_{1}^{\alpha_{1}-1}\cdot\cdot\cdot\Theta_{k}^{\alpha_{k}-1},\tag{1}
+p(\theta\!\mid\!\alpha)=\frac{\Gamma\left(\sum_{i=1}^{k}\alpha_{i}\right)}{\prod_{i=1}^{k}\Gamma(\alpha_{i})}\theta_{1}^{\alpha_{1}-1}\cdot\cdot\cdot\theta_{k}^{\alpha_{k}-1},\tag{1}
 $$ 
 where the parameter $\alpha$ is a $k$ -vector with components $\alpha_{i}>0$ , and where $\Gamma(x)$ is the Gamma function.
 
@@ -513,7 +513,7 @@ In particular, we show in Appendix A.3 that by computing the derivatives of the 
 $$
 \begin{align}
 \phi_{ni}&\propto \beta_{iw_n}\exp\{\mathrm E_q[\log (\theta_i)\mid \gamma]\}\tag{6}\\
-\gamma_i &=\alpha_1  +\sum_{n=1}^N \phi_{ni}\tag{7}
+\gamma_i &=\alpha_i  +\sum_{n=1}^N \phi_{ni}\tag{7}
 \end{align}
 $$
 
@@ -552,28 +552,35 @@ We summarize the variational inference procedure in Figure 6, with appropriate s
 ![[pics/LDA-Figure6.png]]
 
 ## 5.3 Parameter estimation 
-In this section we present an empirical Bayes method for parameter estimation in the LDA model
- (see Section 5.4 for a fuller Bayesian approach). In particular, given a corpus of documents $D=$ $\left\{\mathbf{w}_{1},\mathbf{w}_{2},\ldots,\mathbf{w}_{M}\right\}$ , we wish to find parameters $\alpha$ and $\beta$ that maximize the (marginal) log likelihood of the data: 
+In this section we present an empirical Bayes method for parameter estimation in the LDA model (see Section 5.4 for a fuller Bayesian approach). In particular, given a corpus of documents $\pmb D=$ $\left\{\mathbf{w}_{1},\mathbf{w}_{2},\ldots,\mathbf{w}_{M}\right\}$ , we wish to find parameters $\alpha$ and $\beta$ that maximize the (marginal) log likelihood of the data: 
  
 $$
 \ell(\alpha,\beta)=\sum_{d=1}^{M}\log p(\mathbf{w}_{d}\,|\,\alpha,\beta).
 $$ 
-As we have described above, the quantity $p(\mathbf{w}\,|\,\alpha,\beta)$ cannot be computed tractably. However, variational inference provides us with a tractable lower bound on the log likelihood, a bound which we can maximize with respect to $\alpha$ and $\beta$ . We can thus find approximate empirical Bayes estimates for the LDA model via an alternating variational $E M$ procedure that maximizes a lower bound with respect to the variational parameters $\gamma$ and $\Phi$ , and then, for fixed values of the variational parameters, maximizes the lower bound with respect to the model parameters $\alpha$ and $\beta$ . 
+>  本节讨论对 LDA 模型进行参数估计的方法
+>  具体地说，给定文档语料库 $\pmb D = \{\mathbf w_1, \dots, \mathbf w_M\}$，我们希望找到最大化数据边际对数似然的参数 $\alpha, \beta$，边际对数似然如上所示
+
+As we have described above, the quantity $p(\mathbf{w}\,|\,\alpha,\beta)$ cannot be computed tractably. However, variational inference provides us with a tractable lower bound on the log likelihood, a bound which we can maximize with respect to $\alpha$ and $\beta$ . We can thus find approximate empirical Bayes estimates for the LDA model via an alternating variational EM procedure that maximizes a lower bound with respect to the variational parameters $\gamma$ and $\phi$ , and then, for fixed values of the variational parameters, maximizes the lower bound with respect to the model parameters $\alpha$ and $\beta$ . 
+>  因为边际概率 $p(\mathbf w\mid \alpha, \beta)$ 是不可计算的，故数据边际似然也是不可计算的
+>  故我们需要借助变分推理，得到对数似然的可计算的下界，我们相对于该下界优化 $\alpha, \beta$
+>  因此，我们需要通过交替的变分 EM 过程寻找 LDA 模型的近似经验贝叶斯估计
+>  EM 过程中，我们先通过变分方法，找到最大化下界的变分参数 $\gamma, \phi$，然后固定变分参数，找到最大化下界的模型参数 $\alpha, \beta$
+>  (根据 Eq (13) ，给定 $\alpha, \beta$，最大化对数似然下界的变分参数 $\gamma, \phi$ 定义的就是最小化和真实后验之间的 KL 散度的近似变分后验
+>  )
 
 We provide a detailed derivation of the variational EM algorithm for LDA in Appendix A.4. The derivation yields the following iterative algorithm: 
-1. (E-step) For each document, find the optimizing values of the variational parameters $\{\Upsilon_{d}^{*},\Phi_{d}^{*}:$ : $d\in D\}$ . This is done as described in the previous section. 
+
+1. (E-step) For each document, find the optimizing values of the variational parameters $\{\gamma_{d}^{*},\phi_{d}^{*}:$ : $d\in D\}$ . This is done as described in the previous section. 
 2. (M-step) Maximize the resulting lower bound on the log likelihood with respect to the model parameters $\alpha$ and $\beta$ . This corresponds to finding maximum likelihood estimates with expected sufficient statistics for each document under the approximate posterior which is computed in the E-step. 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/d461d1839a39111601962193bbaa72398f9190d131fb3359ab48ec9f360ec5cd.jpg) 
-Figure 7: Graphical model representation of the smoothed LDA model. 
-These two steps are repeated until the lower bound on the log likelihood converges. 
 
 In Appendix A.4, we show that the M-step update for the conditional multinomial parameter $\beta$ can be written out analytically: 
+
 $$
-\beta_{i j}\propto\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\upphi_{d n i}^{*}w_{d n}^{j}.
+\beta_{i j}\propto\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\phi_{d n i}^{*}w_{d n}^{j}.
 $$ 
 We further show that the M-step update for Dirichlet parameter $\alpha$ can be implemented using an efficient Newton-Raphson method in which the Hessian is inverted in linear time. 
 
-# 5.4 Smoothing 
+## 5.4 Smoothing 
 The large vocabulary size that is characteristic of many document corpora creates serious problems of sparsity. A new document is very likely to contain words that did not appear in any of the documents in a training corpus. Maximum likelihood estimates of the multinomial parameters assign zero probability to such words, and thus zero probability to new documents. The standard approach to coping with this problem is to “smooth” the multinomial parameters, assigning positive probability to all vocabulary items whether or not they are observed in the training set (Jelinek, 1997). Laplace smoothing is commonly used; this essentially yields the mean of the posterior distribution under a uniform Dirichlet prior on the multinomial parameters. 
 Unfortunately, in the mixture model setting, simple Laplace smoothing is no longer justified as a maximum a posteriori method (although it is often implemented in practice; cf. Nigam et al., 1999). In fact, by placing a Dirichlet prior on the multinomial parameter we obtain an intractable posterior in the mixture model setting, for much the same reason that one obtains an intractable posterior in the basic LDA model. Our proposed solution to this problem is to simply apply variational inference methods to the extended model that includes Dirichlet smoothing on the multinomial parameter. 
 In the LDA setting, we obtain the extended graphical model shown in Figure 7. We treat $\beta$ as a $k\times V$ random matrix (one row for each mixture component), where we assume that each row is independently drawn from an exchangeable Dirichlet distribution. We now extend our inference procedures to treat the $\beta_{i}$ as random variables that are endowed with a posterior distribution, conditioned on the data. Thus we move beyond the empirical Bayes procedure of Section 5.3 and consider a fuller Bayesian approach to LDA. 
@@ -747,13 +754,13 @@ $$
 
 $$
 \begin{align}
-\log p(\mathbf w\mid \alpha, \beta)&=\mathrm E_q[\log p(\theta, \mathbf z, \mathbf w\mid \alpha, \beta)] - \mathrm E_q[\log q(\theta, \mathbf z)]\\
-&=\mathrm E_q\left[\log \frac { p(\theta, \mathbf z, \mathbf w\mid \alpha, \beta)}{q(\theta, \mathbf z)}\right]\\
-&=\mathrm E_q\left[\log \frac { p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta)p(\mathbf w\mid \alpha, \beta)}{q(\theta, \mathbf z)}\right]\\
-&=\mathrm E_q\left[\log \frac { p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta)p(\mathbf w\mid \alpha, \beta)}{q(\theta, \mathbf z)}\right]\\
-&=\mathrm E_q\left[\log \frac {p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta)}{q(\theta, \mathbf z)} + \log p(\mathbf w\mid \alpha, \beta)\right]\\
-&=\log p(\mathbf w\mid \alpha, \beta) + \mathrm E_q\left[\log \frac {p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta)}{q(\theta, \mathbf z)} \right]\\
-&=L(\gamma, \phi;\alpha, \beta) + D(q(\theta, \mathbf z)\parallel p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta))
+&L(\gamma,\phi;\alpha, \beta) + D(q(\theta, \mathbf z\mid \gamma,\phi)\parallel p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta))\\
+=&\mathrm E_q\left[\log p(\theta, \mathbf z, \mathbf w\mid \alpha, \beta)\right] - \mathrm E_q[\log q(\theta, \mathbf z\mid \gamma,\phi)] + D(q(\theta, \mathbf z\mid \gamma, \phi)\parallel p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta))\\
+=&\mathrm E_q\left[\log\frac {p(\theta, \mathbf z,\mathbf w\mid \alpha, \beta)}{q(\theta, \mathbf z\mid\gamma,\phi)}\right] + \mathrm E_q\left[\log\frac {q(\theta, \mathbf z\mid \gamma,\phi)}{p(\theta, \mathbf z\mid \mathbf w,\alpha, \beta)}\right]\\
+=&\mathrm E_q\left[\log\frac {p(\theta, \mathbf z, \mathbf w\mid \alpha, \beta)}{p(\theta, \mathbf z\mid \mathbf w,\alpha, \beta)}\right]\\
+=&\mathrm E_q\left[\log\frac {p(\theta, \mathbf z\mid \mathbf w,\alpha, \beta)p(\mathbf w\mid \alpha, \beta)}{p(\theta, \mathbf z\mid \mathbf w,\alpha, \beta)}\right]\\
+=&\mathrm E_q\left[\log p(\mathbf w\mid \alpha, \beta)\right]\\
+=&\log p(\mathbf w\mid \alpha, \beta)
 \end{align}
 $$
 
@@ -769,12 +776,11 @@ $$
 \begin{align}
 L(\gamma, \phi;\alpha, \beta) 
 &=\mathrm E_q[\log p(\theta\mid \alpha)]+ \mathrm E_q[\log p( \mathbf z\mid \theta)]+\mathrm E_q[\log p(\mathbf w\mid \mathbf z,\beta)]\\
-&\ - \mathrm E_q[\log q(\theta)]+\mathrm E_q[\log q(\mathbf z)]\tag{14}\\
+&\ - \mathrm E_q[\log q(\theta)]-\mathrm E_q[\log q(\mathbf z)]\tag{14}\\
 \end{align}
 $$
 
 >  我们根据 $p$ 和 $q$ 的分解将该下界展开
-
 
 >  推导
 
@@ -785,7 +791,7 @@ L(\gamma, \phi;\alpha, \beta)
 &=\mathrm E_q[\log p(\theta\mid \alpha)p( \mathbf z\mid \theta)p(\mathbf w\mid \mathbf z,\beta)] - \mathrm E_q[\log q(\theta)q(\mathbf z)]\\
 &=\mathrm E_q[\log p(\theta\mid \alpha)+\log p( \mathbf z\mid \theta)+\log p(\mathbf w\mid \mathbf z,\beta)] - \mathrm E_q[\log q(\theta)+\log q(\mathbf z)]\\
 &=\mathrm E_q[\log p(\theta\mid \alpha)]+ \mathrm E_q[\log p( \mathbf z\mid \theta)]+\mathrm E_q[\log p(\mathbf w\mid \mathbf z,\beta)]\\
-&\ - \mathrm E_q[\log q(\theta)]+\mathrm E_q[\log q(\mathbf z)]\\\tag{14}
+&\ - \mathrm E_q[\log q(\theta)]-\mathrm E_q[\log q(\mathbf z)]\\\tag{14}
 \end{align}
 $$
 
@@ -793,12 +799,28 @@ $$
 
 Finally, we expand Eq. (14) in terms of the model parameters $(\alpha,\beta)$ and the variational parameters $(\gamma,\phi)$ . Each of the five lines below expands one of the five terms in the bound: 
 
->  证明
+$$
+\begin{align}
+L(\gamma, \phi;\alpha, \beta) &= \log \Gamma(\sum_{j=1}^k\alpha_j) - \sum_{i=1}^k\log\Gamma(\alpha_i)+\sum_{i=1}^k(\alpha_i-1)\left(\Psi(\gamma_i)-\Psi\left(\sum_{j=1}^k\gamma_j\right)\right)\\
+&+\sum_{n=1}^N\sum_{i=1}^k \phi_{ni} \left(\Psi(\gamma_i)-\Psi\left(\sum_{j=1}^k\gamma_j\right)\right)\\
+&+\sum_{n=1}^N\sum_{i=1}^k\sum_{j=1}^V \phi_{ni}w_{n}^j\log \beta_{ij}\\
+&-\log \Gamma(\sum_{j=1}^k\gamma_j) + \sum_{i=1}^k\log\Gamma(\gamma_i)-\sum_{i=1}^k(\gamma_i-1)\left(\Psi(\gamma_i)-\Psi\left(\sum_{j=1}^k\gamma_j\right)\right)\\
+&-\sum_{n=1}^N\sum_{i=1}^k \phi_{ni} \log\phi_{ni}
+\end{align}
+$$
+
+where we have made use of Eq. (8). 
+
+>  我们进一步将 (14) 中每个期望展开为关于模型参数 $(\alpha, \beta)$ 和变分参数 $(\gamma, \phi)$ 的形式，得到 Eq (15)，如上所示
+>  其中关于 $\theta$ 的期望计算利用了 Eq (8)
+
+
+>  推导
 >  第一个期望为
 
 $$
 \begin{align}
-\mathrm E_q[\log p(\theta\mid \alpha)]&= \mathrm E_q\left[\log\frac {\Gamma(\sum_{i=1}^k\alpha_j)}{\prod_{i=1}^k\Gamma(\alpha_i)}\prod_{i=1}^k \theta_i^{\alpha_i-1}\right]\\
+\mathrm E_q[\log p(\theta\mid \alpha)]&= \mathrm E_q\left[\log\frac {\Gamma(\sum_{i=1}^k\alpha_i)}{\prod_{i=1}^k\Gamma(\alpha_i)}\prod_{i=1}^k \theta_i^{\alpha_i-1}\right]\\
 &=\log \Gamma(\sum_{j=1}^k\alpha_j) - \sum_{i=1}^k\log\Gamma(\alpha_i)+\mathrm E_q\left[\sum_{i=1}^k(\alpha_i-1)\log\theta_i\right]\\
 &=\log \Gamma(\sum_{j=1}^k\alpha_j) - \sum_{i=1}^k\log\Gamma(\alpha_i)+\sum_{i=1}^k(\alpha_i-1)\mathrm E_q\left[\log\theta_i\right]\\
 &=\log \Gamma(\sum_{j=1}^k\alpha_j) - \sum_{i=1}^k\log\Gamma(\alpha_i)+\sum_{i=1}^k(\alpha_i-1)\left(\Psi(\gamma_i)-\Psi\left(\sum_{j=1}^k\gamma_j\right)\right)\\
@@ -811,15 +833,18 @@ $$
 $$
 \begin{align}
 \mathrm E_q[\log p(\mathbf z\mid \theta)]
-&=\mathrm E_q\left[\log\theta_1^{z_1}\cdots \theta_k^{z_k}\right]\\
-&=\mathrm E_q\left[\sum_{i=1}^kz_i\log \theta_i\right]\\
-&=\sum_{i=1}^k \mathrm E_q[z_i\log \theta_i]\\
-&=\sum_{i=1}^k \mathrm E_q[z_i] \mathrm E_q[\log \theta_i]\\
-&=\sum_{i=1}^k \sum_{n=1}^N\phi_{ni} \left(\Psi(\gamma_i)-\Psi\left(\sum_{j=1}^k\gamma_j\right)\right)\\
+&=\mathrm E_q[\log\prod_{n=1}^N p(z_n\mid \theta)]\\
+&=\mathrm E_q[\sum_{n=1}^N\log p(z_n\mid \theta)]\\
+&=\sum_{n=1}^N\mathrm E_q[\log p(z_n\mid \theta)]\\
+&=\sum_{n=1}^N\mathrm E_q[\log\theta_1^{z_n^1}\cdots\theta_k^{z_n^k}]\\
+&=\sum_{n=1}^N\mathrm E_q[\sum_{i=1}^k z_n^{i}\log\theta_i]\\
+&=\sum_{n=1}^N\sum_{i=1}^k\mathrm E_q[ z_n^{i}\log\theta_i]\\
+&=\sum_{n=1}^N\sum_{i=1}^k\mathrm E_q[ z_n^{i}]\mathrm E_q[\log\theta_i]\\
 &=\sum_{n=1}^N\sum_{i=1}^k \phi_{ni} \left(\Psi(\gamma_i)-\Psi\left(\sum_{j=1}^k\gamma_j\right)\right)\\
 \end{align}
 $$
 
+>  其中 $z_n^i$ 表示的是 $z_n$ 的第 $i$ 个成分
 >  第三个期望为
 
 $$
@@ -832,70 +857,155 @@ $$
 \end{align}
 $$
 
+>  第四个期望为
+
 $$
-\begin{array}{r l}&{L\left(\boldsymbol{\gamma},\boldsymbol{\upphi};\boldsymbol{\alpha},\boldsymbol{\beta}\right)=\log\Gamma\left(\sum_{j=1}^{k}\alpha_{j}\right)-\displaystyle\sum_{i=1}^{k}\log\Gamma(\alpha_{i})+\displaystyle\sum_{i=1}^{k}(\alpha_{i}-1)\left(\Psi(\boldsymbol{\gamma}_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)}\\ &{\quad\quad\quad\quad+\displaystyle\sum_{n=1}^{N}\sum_{i=1}^{k}\upphi_{\hat{\boldsymbol{\alpha}}n}\big(\Psi(\boldsymbol{\gamma}_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\big)}\\ &{\quad\quad\quad\quad+\displaystyle\sum_{n=1}^{N}\sum_{i=1}^{k}\sum_{j=1}^{k}\upphi_{n i}\gamma_{n}^{j}\log\beta_{i j}}\\ &{\quad\quad\quad\quad-\log\Gamma\left(\sum_{j=1}^{k}\gamma_{j}\right)+\displaystyle\sum_{i=1}^{k}\log\Gamma(\gamma_{i})-\displaystyle\sum_{i=1}^{k}(\gamma_{i}-1)\left(\Psi(\boldsymbol{\gamma}_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)}\\ &{\quad\quad\quad-\displaystyle\sum_{i=1}^{N}\sum_{j=1}^{k}\upphi_{n i}\log\phi_{n i},}\end{array}
-$$ 
-where we have made use of Eq. (8). 
-In the following two sections, we show how to maximize this lower bound with respect to the variational parameters $\Phi$ and $\gamma.$ 
+\begin{align}
+\mathrm E_q[\log q(\theta)]&= \mathrm E_q\left[\log\frac {\Gamma(\sum_{i=1}^k\gamma_i)}{\prod_{i=1}^k\Gamma(\gamma_i)}\prod_{i=1}^k \theta_i^{\gamma_i-1}\right]\\
+&=\log \Gamma(\sum_{j=1}^k\gamma_j) - \sum_{i=1}^k\log\Gamma(\gamma_i)+\mathrm E_q\left[\sum_{i=1}^k(\gamma_i-1)\log\theta_i\right]\\
+&=\log \Gamma(\sum_{j=1}^k\gamma_j) - \sum_{i=1}^k\log\Gamma(\gamma_i)+\sum_{i=1}^k(\gamma_i-1)\mathrm E_q\left[\log\theta_i\right]\\
+&=\log \Gamma(\sum_{j=1}^k\gamma_j) - \sum_{i=1}^k\log\Gamma(\gamma_i)+\sum_{i=1}^k(\gamma_i-1)\left(\Psi(\gamma_i)-\Psi\left(\sum_{j=1}^k\gamma_j\right)\right)\\
+\end{align}
+$$
+
+>  第五个期望为
+
+$$
+\begin{align}
+\mathrm E_q[\log q(\mathbf z)]
+&=\mathrm E_q[\log\prod_{n=1}^N q(z_n)]\\
+&=\mathrm E_q[\sum_{n=1}^N\log q(z_n)]\\
+&=\sum_{n=1}^N\mathrm E_q[\log q(z_n)]\\
+&=\sum_{n=1}^N\mathrm E_q[\log\phi_{n1}^{z_n^1}\cdots\phi_{nk}^{z_n^k}]\\
+&=\sum_{n=1}^N\mathrm E_q[\sum_{i=1}^k z_n^{i}\log\phi_{ni}]\\
+&=\sum_{n=1}^N\sum_{i=1}^k\mathrm E_q[ z_n^{i}\log\phi_{ni}]\\
+&=\sum_{n=1}^N\sum_{i=1}^k\mathrm E_q[ z_n^{i}]\mathrm E_q[\log\phi_{ni}]\\
+&=\sum_{n=1}^N\sum_{i=1}^k \phi_{ni} \log\phi_{ni}\\
+\end{align}
+$$
+
+>  其中 $\mathrm E_q[\log \phi_{ni}] = \log \phi_{ni}$ 是因为参数 $\phi_{ni}$ 在变分分布中是给定的，不属于随机变量
+
+In the following two sections, we show how to maximize this lower bound with respect to the variational parameters $\phi$ and $\gamma.$ 
+>  之后，我们将讨论如何相对于变分参数 $\phi, \gamma$ 最大化该下界
 
 ### A.3.1 Variational Multinomial 
-We first maximize Eq. (15) with respect to $\Phi_{n i}$ , the probability that the n th word is generated by latent topic $i$ . Observe that this is a constrained maximization since $\begin{array}{r}{\sum_{i=1}^{k}\phi_{n i}=1}\end{array}$ 
-We form the Lagrangian by isolating the terms which contain $\Phi_{n i}$ and adding the appropriate Lagrange multipliers. Let $\beta_{i\upnu}$ be $p(w_{n}^{\nu}=1\,|\,z^{i}=1)$ | for the appropriate $\nu$ . (Recall that each $w_{n}$ is a vector of size $V$ with exactly one component equal to one; we can select the unique $\nu$ such that $w_{n}^{\nu}=1$ 1): 
+We first maximize Eq. (15) with respect to $\phi_{n i}$ , the probability that the n-th word is generated by latent topic $i$ . Observe that this is a constrained maximization since $\begin{array}{r}{\sum_{i=1}^{k}\phi_{n i}=1}\end{array}$ 
+>  首先考虑相对于 $\phi_{ni}$ 最大化 Eq (15)
+>  $\phi_{ni}$ 表示了第 $n$ 个单词是由第 $i$ 个隐主题生成的
+>  注意此时的最大化问题是一个约束最大化问题，约束为 $\sum_{i=1}^k \phi_{ni} = 1$
+
+We form the Lagrangian by isolating the terms which contain $\phi_{n i}$ and adding the appropriate Lagrange multipliers. 
+
+Let $\beta_{iv}$ be $p(w_{n}^{\nu}=1\,|\,z^{i}=1)$ for the appropriate $v$ . (Recall that each $w_{n}$ is a vector of size $V$ with exactly one component equal to one; we can select the unique $v$ such that $w_{n}^{}=1$ ): 
+
 $$
-\begin{array}{r}{L_{[\phi_{n i}]}=\phi_{n i}\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)+\phi_{n i}\log\beta_{i\nu}-\phi_{n i}\log\phi_{n i}+\lambda_{n}\left(\sum_{j=1}^{k}\phi_{n i}-1\right),}\end{array}
+\begin{array}{r}{L_{[\phi_{n i}]}=\phi_{n i}\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)+\phi_{n i}\log\beta_{iv}-\phi_{n i}\log\phi_{n i}+\lambda_{n}\left(\sum_{j=1}^{k}\phi_{n j}-1\right),}\end{array}
 $$
  
-where we have dropped the arguments of $L$ for simplicity, and where the subscript $\Phi_{n i}$ denotes that we have retained only those terms in $L$ that are a function of $\Phi_{n i}$ . Taking derivatives with respect to $\Phi_{n i}$ , we obtain: 
-$$
-\frac{\partial L}{\partial\phi_{n i}}=\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)+\log\beta_{i\nu}-\log\phi_{n i}-1+\lambda.
-$$ 
-Setting this derivative to zero yields the maximizing value of the variational parameter $\Phi_{n i}$ (cf. Eq. 6): 
-$$
-\begin{array}{r}{\Phi_{n i}\propto\beta_{i\nu}\exp\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right).}\end{array}
-$$
-      
-# A.3.2 V ARIATIONAL D IRICHLET 
-Next, we maximize Eq. (15) with respect to $\gamma_{i}$ , the i th component of the posterior Dirichlet parameter. The terms containing $\gamma_{i}$ are: 
-$$
-\begin{array}{r}{L_{[\gamma]}=\displaystyle\sum_{i=1}^{k}(\alpha_{i}-1)\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)+\sum_{n=1}^{N}\upphi_{n i}\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)}\\ {-\log\Gamma\left(\sum_{j=1}^{k}\gamma_{j}\right)+\log\Gamma(\gamma_{i})-\displaystyle\sum_{i=1}^{k}(\gamma_{i}-1)\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right).}\end{array}
-$$ 
-This simplifies to: 
-$$
-L_{[\gamma]}=\sum_{i=1}^{k}\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)\left(\alpha_{i}+\sum_{n=1}^{N}\upphi_{n i}-\gamma_{i}\right)-\log\Gamma\left(\sum_{j=1}^{k}\gamma_{j}\right)+\log\Gamma(\gamma_{i}).
-$$ 
-We take the derivative with respect to $\gamma_{i}$ : 
-$$
-\frac{\partial L}{\partial\gamma_{i}}=\Psi^{\prime}(\gamma_{i})\left(\alpha_{i}+\sum_{n=1}^{N}\upphi_{n i}-\gamma_{i}\right)-\Psi^{\prime}\left(\sum_{j=1}^{k}\gamma_{j}\right)\sum_{j=1}^{k}\left(\alpha_{j}+\sum_{n=1}^{N}\upphi_{n j}-\gamma_{j}\right).
-$$ 
-Setting this equation to zero yields a maximum at: 
-$$
-\begin{array}{r}{\gamma_{i}=\alpha_{i}+\sum_{n=1}^{N}\Phi_{n i}.}\end{array}
-$$ 
-Since Eq. (17) depends on the variational multinomial $\Phi$ , full variational inference requires alternating between Eqs. (16) and (17) until the bound converges. 
+where we have dropped the arguments of $L$ for simplicity, and where the subscript $\phi_{n i}$ denotes that we have retained only those terms in $L$ that are a function of $\phi_{n i}$ . 
 
-# A.4 Parameter estimation 
-In this final section, we consider the problem of obtaining empirical Bayes estimates of the model parameters $\alpha$ and $\beta$ . We solve this problem by using the variational lower bound as a surrogate for the (intractable) marginal log likelihood, with the variational parameters $\Phi$ and $\gamma$ fixed to the values found by variational inference. We then obtain (approximate) empirical Bayes estimates by maximizing this lower bound with respect to the model parameters. 
+>  我们从 Eq (15) 中选择出和 $\phi_{ni}$ 相关的项，并添加拉格朗日乘子，以得到拉格朗日函数，如上所示
+
+Taking derivatives with respect to $\phi_{n i}$ , we obtain: 
+
+$$
+\frac{\partial L}{\partial\phi_{n i}}=\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)+\log\beta_{iv}-\log\phi_{n i}-1+\lambda.
+$$ 
+>  将拉格朗日函数对 $\phi_{ni}$ 求导，得到上式
+
+Setting this derivative to zero yields the maximizing value of the variational parameter $\phi_{n i}$ (cf. Eq. 6): 
+
+$$
+\begin{array}{r}{\phi_{n i}\propto\beta_{iv}\exp\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right).}\end{array}\tag{16}
+$$
+
+>  令导数等于零，得到变分参数的最优值如上
+
+>  推导
+>  令导数等于零
+
+$$
+\begin{align}
+0 &= \Psi(\gamma_i) - \Psi\left(\sum_{j=1}^k \gamma_j\right) + \log \beta_{iv} - \log \phi_{ni} - 1 + \lambda\\
+\log \phi_{ni} &=\Psi(\gamma_i) - \Psi\left(\sum_{j=1}^k\gamma_j\right) + \log \beta_{iv} - 1 + \lambda\\
+\phi_{ni}&=\exp\left\{\Psi(\gamma_i) - \Psi\left(\sum_{j=1}^k\gamma_j\right) + \log \beta_{iv} - 1 + \lambda\right\}\\
+\phi_{ni}&=\beta_{iv}\exp\left\{\Psi(\gamma_i) - \Psi\left(\sum_{j=1}^k\gamma_j\right)\right\}\cdot\exp\{ - 1 + \lambda\}\\
+\phi_{ni}&\propto\beta_{iv}\exp\left\{\Psi(\gamma_i) - \Psi\left(\sum_{j=1}^k\gamma_j\right)\right\}\\
+\end{align}
+$$
+
+>  推导完毕
+
+### A.3.2 Variational Dirichlet
+Next, we maximize Eq. (15) with respect to $\gamma_{i}$ , the i-th component of the posterior Dirichlet parameter. 
+>  我们考虑相对于 $\gamma_i$ 最大化 Eq (15)
+>  $\gamma_i$ 表示 Dirichlet 分布的第 $i$ 个参数
+
+The terms containing $\gamma_{i}$ are: 
+
+$$
+\begin{array}{r}{L_{[\gamma_i]}=\displaystyle\sum_{i=1}^{k}(\alpha_{i}-1)\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)+\sum_{n=1}^{N}\phi_{n i}\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)}\\ {-\log\Gamma\left(\sum_{j=1}^{k}\gamma_{j}\right)+\log\Gamma(\gamma_{i})-\displaystyle\sum_{i=1}^{k}(\gamma_{i}-1)\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right).}\end{array}
+$$
+
+>  Eq (15) 中涉及 $\gamma_i$ 的项如上所示
+
+This simplifies to: 
+
+$$
+L_{[\gamma_i]}=\sum_{i=1}^{k}\left(\Psi(\gamma_{i})-\Psi\left(\sum_{j=1}^{k}\gamma_{j}\right)\right)\left(\alpha_{i}+\sum_{n=1}^{N}\phi_{n i}-\gamma_{i}\right)-\log\Gamma\left(\sum_{j=1}^{k}\gamma_{j}\right)+\log\Gamma(\gamma_{i}).
+$$ 
+>  化简，得到上式
+
+We take the derivative with respect to $\gamma_{i}$ : 
+
+$$
+\frac{\partial L}{\partial\gamma_{i}}=\Psi^{\prime}(\gamma_{i})\left(\alpha_{i}+\sum_{n=1}^{N}\phi_{n i}-\gamma_{i}\right)-\Psi^{\prime}\left(\sum_{j=1}^{k}\gamma_{j}\right)\sum_{j=1}^{k}\left(\alpha_{j}+\sum_{n=1}^{N}\phi_{n j}-\gamma_{j}\right).
+$$ 
+
+>  计算得到 $L$ 相对于 $\gamma_i$ 的偏导数如上
+>  $L$ 相对于 $\gamma$ 的梯度就是成分为 $\frac {\partial L}{\partial \gamma_i}$ 的向量
+
+Setting this equation to zero yields a maximum at: 
+
+$$
+\begin{array}{r}{\gamma_{i}=\alpha_{i}+\sum_{n=1}^{N}\phi_{n i}.}\end{array}\tag{17}
+$$ 
+Since Eq. (17) depends on the variational multinomial $\phi$ , full variational inference requires alternating between Eqs. (16) and (17) until the bound converges. 
+
+>  可以知道 $\gamma_i$ 满足 Eq (17) 时，梯度为零
+>  因为 Eq (17) 依赖于变分多项式参数 $\phi$，故完整的变分推断需要迭代根据 Eq (16) 和 Eq (17) 更新，直到下界收敛
+
+## A.4 Parameter estimation 
+In this final section, we consider the problem of obtaining empirical Bayes estimates of the model parameters $\alpha$ and $\beta$ . We solve this problem by using the variational lower bound as a surrogate for the (intractable) marginal log likelihood, with the variational parameters $\phi$ and $\gamma$ fixed to the values found by variational inference. We then obtain (approximate) empirical Bayes estimates by maximizing this lower bound with respect to the model parameters. 
+
 We have thus far considered the log likelihood for a single document. Given our assumption of exchange ability for the documents, the overall log likelihood of a corpus $D=\left\{\mathbf{w}_{1},\mathbf{w}_{2},\ldots,\mathbf{w}_{M}\right\}$ is the sum of the log likelihoods for individual documents; moreover, the overall variational lower bound is the sum of the individual variational bounds. In the remainder of this section, we abuse notation by using $L$ for the total variational bound, indexing the document-specific terms in the individual bounds by $d$ , and summing over all the documents. 
+
 Recall from Section 5.3 that our overall approach to finding empirical Bayes estimates is based on a variational EM procedure. In the variational E-step, discussed in Appendix A.3, we maximize the bound $L(\gamma,\upphi;\alpha,\beta)$ with respect to the variational parameters $\gamma$ and $\Phi$ . In the M-step, which we describe in this section, we maximize the bound with respect to the model parameters $\alpha$ and $\beta$ . The overall procedure can thus be viewed as coordinate ascent in $L$ . 
-A.4.1 C ONDITIONAL multinomialS 
+
+A.4.1 C ONDITIONAL multinomial
 To maximize with respect to $\beta$ , we isolate terms and add Lagrange multipliers: 
+
 $$
 L_{[\beta]}=\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\sum_{i=1}^{k}\sum_{j=1}^{V}\upphi_{d n i}w_{d n}^{j}\log\beta_{i j}+\sum_{i=1}^{k}\uplambda_{i}\left(\sum_{j=1}^{V}\beta_{i j}-1\right).
 $$ 
 We take the derivative with respect to ${\beta}_{i j}$ , set it to zero, and find: 
+
 $$
 \beta_{i j}\propto\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\upphi_{d n i}w_{d n}^{j}.
 $$ 
 A.4.2 D IRICHLET 
 The terms which contain $\alpha$ are: 
+
 $$
 L_{[\alpha]}=\sum_{d=1}^{M}\left(\log\Gamma\left(\sum_{j=1}^{k}\alpha_{j}\right)-\sum_{i=1}^{k}\log\Gamma(\alpha_{i})+\sum_{i=1}^{k}\left((\alpha_{i}-1)\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\Upsilon_{d j}\right)\right)\right)\right)
 $$ 
 Taking the derivative with respect to $\alpha_{i}$ gives: 
+
 $$
 \frac{\partial L}{\partial\alpha_{i}}=M\left(\Psi\left(\sum_{j=1}^{k}\alpha_{j}\right)-\Psi(\alpha_{i})\right)+\sum_{d=1}^{M}\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\gamma_{d j}\right)\right)
 $$ 
-This derivati depends on $\alpha_{j}$ , where $j\neq i$ , and we therefore must use an iterative method to find the maximal α . In particular, the Hessian is in the form found in Eq. (10): 
+This derivative depends on $\alpha_{j}$ , where $j\neq i$ , and we therefore must use an iterative method to find the maximal α . In particular, the Hessian is in the form found in Eq. (10): 
 $$
 \frac{\partial L}{\partial\alpha_{i}\alpha_{j}}=\updelta(i,j)M\Psi^{\prime}(\alpha_{i})-\Psi^{\prime}\left(\sum_{j=1}^{k}\alpha_{j}\right),
 $$ 
