@@ -750,7 +750,7 @@ Date: 2024.12.16-2024.12.23-2024.12.30
         We call the prior satisfies parameter modularity if two structure's local structure are the same, their prior will be the same
         Under parameter modularity, Bayesian score will be decomposable, and thus the searching can be done locally and separately.
         The likelihood score is naturally decomposable.
-- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH7
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH1, CH7
 
 # 2025
 ## January
