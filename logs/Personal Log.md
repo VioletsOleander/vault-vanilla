@@ -83,14 +83,17 @@
 ### Week 2
 \[Paper\]
 -  [[A Survey of Large Language Models v13-2023|A Survey of Large Language Models]]: CH6-CH7
-    CH6: Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
+    CH6-Utilization
+        Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
 -  [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|Are Emergent Abilities of Large Language Models a Mirage?]]
 
 \[Book\]
 - [[Introductory Combinactorics-2009|Introductory Combinactorics]]: CH1
-    CH1: Combinactorics: existence, enumeration, analysis, optmization of discrete/finite structures
+    CH1-What is Combinatorics
+        Combinatorics: existence, enumeration, analysis, optimization of discrete/finite structures
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH2
-    CH2: Basic knowledges: Conditional Independence, MAP query, Condisional density function, graphs
+    CH2-Foundations
+        Basic knowledges: Conditional Independence, MAP query, Conditional density function, graphs
 
 \[Doc\]
 - [[Intel NPU Acceleration Library Documentation v1.3.0]]
@@ -99,28 +102,34 @@
 ### Week 3
 \[Book\]
 - [[Introductory Combinactorics-2009|Introductory Combinactorics]]: CH2
-    CH2-Permutations and Combinations: Permutation/Combination of Sets (combination = permutation + division), Permutation/Combination of Multisets (permutation of sets + division/solutions of linear equation) , classical probability
+    CH2-Permutations and Combinations
+        Permutation/Combination of Sets (combination = permutation + division), Permutation/Combination of Multisets (permutation of sets + division/solutions of linear equation) , classical probability
 - [[book-notes/Convex Optimization|Convex Optimization]]: CH2-CH2.5
-    CH2-CH2.5-Convex Sets: Lots of definitions: convex combination, affine combination, some typical convex sets, operations that preserve convexity, supporting/seperating hyperplane
+    CH2-Convex Sets
+        Lots of definitions: convex combination, affine combination, some typical convex sets, operations that preserve convexity, supporting/separating hyperplane
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH3-CH3.3
-    CH3-CH3.3-The Baysian Network Representation: Baysian Network: Express conditional indepdencies in joint probability in a graph semantics, factorizing the joint probability into a product of CPDs according to the graph structure
+    CH3-The Bayesian Network Representation
+        Bayesian Network: Express conditional independencies in joint probability in a graph semantics, factorizing the joint probability into a product of CPDs according to the graph structure
 - [[A Tour of C++]]: CH1-CH1.7
 
 ### Week 4
 \[Paper\]
 - [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: CH7
-    CH7-Capacity and Evaluation: LLM abilities: 1. basic ability: language generation (including code), knowledge utilization (e.g. knowledge-intensive QA) , complex reasoning (e.g. math) ; 2. advanced ability: human alignment, interaction with external environment (e.g. generate proper action plan for embodied AI), tool manipulate (e.g. call proper API according to tasks); introduction to some benchmarks
+    CH7-Capacity and Evaluation
+        LLM abilities: 1. basic ability: language generation (including code), knowledge utilization (e.g. knowledge-intensive QA) , complex reasoning (e.g. math) ; 2. advanced ability: human alignment, interaction with external environment (e.g. generate proper action plan for embodied AI), tool manipulate (e.g. call proper API according to tasks); introduction to some benchmarks
 
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH5
-    CH5-Local Probabilistic Models: Compact CPD representation: Utilize context-specific independence to compactly represent CPD; Independent causal influence model: noisy-or model, BN2O model, generalized linear model (scores are linear to all parent variables), conditional linear gaussian model ( induces a joint distribution that has the form of a mixture of Gaussians)
+    CH5-Local Probabilistic Models
+        Compact CPD representation: Utilize context-specific independence to compactly represent CPD; Independent causal influence model: noisy-or model, BN2O model, generalized linear model (scores are linear to all parent variables), conditional linear gaussian model ( induces a joint distribution that has the form of a mixture of Gaussians)
 - [[A Tour of C++]]: CH1.7-CH3.5
 
 ## October
 ### Week 1
 \[Paper\]
 - [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: CH8-CH9
-    CH8-Applicatoin: LLM application in various tasks
+    CH8-Applicatoin
+        LLM application in various tasks
     CH9-Conclusion and future directions
 - [[Importance Sampling A Review-2010|Importance Sampling: A Review]]
     IS is all about variance reduction for Monte Carlo approximation;
@@ -130,20 +139,24 @@
 
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH6-CH6.2
-    CH6-Template-based Representations: temporal models; Markov assumption + 2-TBN = DBN; DBN usually be modeled as state-observation model (the state and observation are considered seperately; observation doesn't affect the state), two examples: HMM, linear dynamic system (all the dependencies are linear Gaussian)
+    CH6-Template-based Representations
+        temporal models; Markov assumption + 2-TBN = DBN; DBN usually be modeled as state-observation model (the state and observation are considered separately; observation doesn't affect the state), two examples: HMM, linear dynamic system (all the dependencies are linear Gaussian)
 - [[面向计算机科学的组合数学]]: CH1.7
-    CH1.7-生成全排列: 中介数和排列之间的一一对应关系
+    CH1-排列组合
+        CH1.7-生成全排列
+            中介数和排列之间的一一对应关系
 - [[A Tour of C++]]: CH3.5-CH5
 
 ### Week 2
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: CH0-CH3.1
-    CH0-CH3.1: Abstract, Background, Algorithm 1; Algorithm 1 is basically a tiled implementation of attention calculation. What makes algorithm 1 looks not so intuitive is the repetitive rescaling of softmax factor, whose aim is to stabilize the computation. In algorithm 1, each query's attention result is accumlated gradually by the outer loop, and the already accumlated partial attention result's weights for the corresponing value is dynamically updated/changed by the outer loop.
+    CH0-CH3.1: Abstract, Background, Algorithm 1; Algorithm 1 is basically a tiled implementation of attention calculation. What makes algorithm 1 looks not so intuitive is the repetitive rescaling of softmax factor, whose aim is to stabilize the computation. In algorithm 1, each query's attention result is accumulated gradually by the outer loop, and the already accumulated partial attention result's weights for the corresponding value is dynamically updated/changed by the outer loop.
 
 \[Book\]
 - [[A Tour of C++]]: CH5
 - [[面向计算机科学的组合数学]]: CH2.1-CH2.3
-    CH2-鸽巢原理: 鸽巢原理仅解决存在性问题
+    CH2-鸽巢原理
+        鸽巢原理仅解决存在性问题
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH4-CH4.3.1
     CH4-CH4.3.1: Markov Network's parameterization: the idea was derived from statictical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of paticular configuration; seperation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
 
@@ -154,40 +167,50 @@
 ### Week 3
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec3.1-Sec5
-    Sec3.1-IO Analysis: The IO complexity of FlashAttention is $\Theta(N^2d^2M^{-1})$ while the IO compexity of the standard attention computation is $\Theta (Nd + N^2)$. The main difference is in $M$ and $N^2$. Standard attention computation does not use SRAM at all, all memory accesses are global memory access, in which the process of fetching "weight matrix" $P\in \mathbb R^{N\times N}$ contributes most of the IO complesity. FlashAttention utilized SRAM, and do not store "weight matrix" into DRAM, but keep a block of it on chip the entire time, thus effectively reduced the IO complexity.
-    Sec3.2-Block sparse Flash-Attention: The main difference between FlashAttention is that the range of "attention" is restricted, thereby the computation and memory accesses is reduced by skipping the masked entries.
-    Sec4-Experiments: FlashAttention trains faster; FlashAttention trains more memory-efficient (linear), thus allowing longer context window in training. The reason for that is FlashAttention do not compute the entire "weight matrix" $P\in \mathbb R^{N\times N}$ one time, but do a two level loop, compute one row of $P$ each time. The FLOP is actually increased, but the memory usage is restricted to $O (N)$ instead of $O (N^2)$ and the additional computation time brought by the increased FLOP is eliminated by the time reduced by less DRAM accesses.
+    Sec3.1-IO Analysis
+        The IO complexity of FlashAttention is $\Theta(N^2d^2M^{-1})$ while the IO complexity of the standard attention computation is $\Theta (Nd + N^2)$. The main difference is in $M$ and $N^2$. Standard attention computation does not use SRAM at all, all memory accesses are global memory access, in which the process of fetching "weight matrix" $P\in \mathbb R^{N\times N}$ contributes most of the IO complexity. FlashAttention utilized SRAM, and do not store "weight matrix" into DRAM, but keep a block of it on chip the entire time, thus effectively reduced the IO complexity.
+    Sec3.2-Block sparse Flash-Attention
+        The main difference between FlashAttention is that the range of "attention" is restricted, thereby the computation and memory accesses is reduced by skipping the masked entries.
+    Sec4-Experiments
+        FlashAttention trains faster; FlashAttention trains more memory-efficient (linear), thus allowing longer context window in training. The reason for that is FlashAttention do not compute the entire "weight matrix" $P\in \mathbb R^{N\times N}$ one time, but do a two level loop, compute one row of $P$ each time. The FLOP is actually increased, but the memory usage is restricted to $O (N)$ instead of $O (N^2)$ and the additional computation time brought by the increased FLOP is eliminated by the time reduced by less DRAM accesses.
 - [[Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec0-Sec2
-    Sec0-Summary: This paper proposed an alternative proof of HC theorem, thereby reinforcing the importance of conditional probability models over joint probability models for modeling spatial interaction.
-    Sec1-Sec2: For positive distribution, conditional probability can be used to deduce the overall joint probability. This is made possible by HC theorem.
+    Sec0-Summary
+        This paper proposed an alternative proof of HC theorem, thereby reinforcing the importance of conditional probability models over joint probability models for modeling spatial interaction.
+    Sec1-Sec2
+        For positive distribution, conditional probability can be used to deduce the overall joint probability. This is made possible by HC theorem.
 
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.3.1-CH4.4.2
-    CH4.3.1-CH4.4.2: Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-seperation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
+    CH4.3.1-CH4.4.2: Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-separation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
 - [[面向计算机科学的组合数学]]: CH3-CH3.3
-    母函数：使用幂级数表示数列（数列由幂级数的系数构造）
+    CH3-母函数
+        使用幂级数表示数列（数列由幂级数的系数构造）
 - [[A Tour of C++]]: CH6
 
 \[Doc\]
 - [[Pytorch 2.x]]: CH0
     CH0-General Introduction: `torch.compile` : TorchDynamo --> FX Graph in Torch IR --> AOTAutograd --> FX graph in Aten/Prims IR --> TorchInductor --> Triton code/OpenMP code...
 - [[doc-notes/triton/Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
-    Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapasulates all the compilcated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
+    Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapsulates all the complicated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
 
 ### Week 4
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
     SecA-Related Work
-    SecB-Algorithm Details: Memory-efficient forward/backward pass: using for-loop to avoid storing $O(N^2)$ intermediate matrix; FlashAttention backward pass: In implementation, the backward algorithm of FlashAttention is actually simpler than the forward algorithm, because it's just about tiled matrix multiplication without bothering softmax rescaling
-    SecC-Proofs: just counting, nothing special
-    SecE-Extension Details: block-sparse implementation is just skipping masked block, nothing special
+    SecB-Algorithm Details
+        Memory-efficient forward/backward pass: using for-loop to avoid storing $O(N^2)$ intermediate matrix; FlashAttention backward pass: In implementation, the backward algorithm of FlashAttention is actually simpler than the forward algorithm, because it's just about tiled matrix multiplication without bothering softmax rescaling
+    SecC-Proofs
+        just counting, nothing special
+    SecE-Extension Details
+        block-sparse implementation is just skipping masked block, nothing special
     SecF-Full Experimental Results
 - [[Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec3
-    Sec3-Markov Fields and the Harmmersly-Clifford Theorem: define ground state -> define Q function -> expand Q function -> proof the terms in Q function (G function) are only not null when their relating variables form a clique
+    Sec3-Markov Fields and the Hammersley-Clifford Theorem: define ground state -> define Q function -> expand Q function -> proof the terms in Q function (G function) are only not null when their relating variables form a clique
 
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.5
-    CH4.5-Bayesian Networks and Markov Networks: chordal graph can be represented by either sturcture without loss of information 
+    CH4.5-Bayesian Networks and Markov Networks
+        chordal graph can be represented by either structure without loss of information 
 
 ## November
 ### Week 1
@@ -201,7 +224,8 @@
 
 \[Book\]
 - [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
-    CH4.6.1-Conditional Random Fields: CRF models conditional distribution by partially directed graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditional distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict expandability, because the parameters learned has less semantics on their own.
+    CH4.6.1-Conditional Random Fields
+        CRF models conditional distribution by partially directed graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditional distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict expandability, because the parameters learned has less semantics on their own.
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
     Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
@@ -718,7 +742,6 @@ Date: 2024.12.16-2024.12.23-2024.12.30
     Sec5-Taxonomy of DL Compilers
     Sec6-Evaluation
     Sec7-Conclusion and Future Directions
-- [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH18.1-CH18.3
@@ -750,11 +773,48 @@ Date: 2024.12.16-2024.12.23-2024.12.30
         We call the prior satisfies parameter modularity if two structure's local structure are the same, their prior will be the same
         Under parameter modularity, Bayesian score will be decomposable, and thus the searching can be done locally and separately.
         The likelihood score is naturally decomposable.
-- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH1, CH7
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH1.1-CH1.6, CH2.1-CH2.2, CH3.1-CH3.2, CH7
+    CH1-排列组合
+    CH2-鸽巢原理
+    CH3-母函数
+    CH7-Polya 计数理论
+
+\[Doc\]
+- [[doc-notes/mlir/Toy Tutorial|mlir/Toy Tutorial]]: CH1-CH2
+    CH1-Toy Language and AST
+        unranked tensor parameter: the dimension is unknown, and will be specialized at call sites
+    CH2-Emitting Basic MLIR
+        There is no closed set of attributes, operations, types in MLIR.
+        MLIR's extensibility is supported by dialects, which groups operations, attributes, types under the the same abstraction level.
+        MLIR's core computation and abstraction unit are operations, which can be used to represent all core IR structures in LLVM like instructions, globals, modules.
+        Operation's results and arguments are SSA values.
+        Operation's name is prefixed with dialect's name.
+        Operation can have zero or multiple attributes.
+        Concepts to model an operation includes: name, SSA arguments, attributes, result values' types, source location, successor blocks, regions.
+        Note that every operation has an associated mandatory source location. The debug info in MLIR is core requirement.
+        All IR elements (refer to the concepts that model an operation) can be customized in MLIR.
+        In C++, a dialect is implemented as a derived class of `mlir::Dialect`. It's attributes, operations, types are registered by an initializer method called by the constructor.
+        Using tablegen to declaratively define a dialect is more simple.
+        `MLIRContext` only loads builtin dialects by default. Customized dialect should be passed to template method `loadDialect` to be explicitly loaded.
+        In C++, an operation is defined as a derived class of `mlir::Op` using CRTP. CRTP means that `mlir::Op` is a template class, whose template argument is the operation class (its derived class). By CRTP, `mlir::Op` can know its derived class in compilation, and thus can safely use `static_cast` to invoke derived class's method to achieve polymorphism in compilation.
+        `mlir::Op` can take optional traits as template arguments to represent operation's properties and invariants.
+        Operation class can also define its method to provide additional verification beyond the attached traits.
+        Operation class should define static `build` method in order to be invoked by the `bulider` class to generate this operation's instance from a set of input values.
+        Operation's `build` method should populate a `mlir::OperationState` with its possible discrete elements.
+        After defining the operation class, we can invoke `addOperation` with its template argument being the operation class to register this operation into the dialect.
+        `Operation` class is used to generally model all operations, and it does not describe the properties and types of a particular operation. Thus it is used as a generic API.
+        Each specific operation is a derived class of `Op` .
+        `Op` act as a smart pointer wrapper of `Operation*` . All the data of an operation is stored in the referenced `Operation` class. The `Op` class is an interface/wrapper to interact with `Op`, and thus is usually passed by-value.
+        A `Operation*` can be `dyn_cast` to the corresponding `Op` . 
+        Operations can also be defined by tablegen. 
 
 # 2025
 ## January
 ### Week 1
+Date:
+
+\[Paper\]
+- [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
 
 \[Book\]
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
