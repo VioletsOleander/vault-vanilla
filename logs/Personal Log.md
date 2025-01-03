@@ -1,8 +1,10 @@
 # 2024
 ## July
 ### Week 4
+Date: 2024.7.29-2024.8.5
+
 \[Book\]
--  [[Programming Massively Parallel Processors A Hands-on Approach-2023|Programming Massively Parallel Processor A Hands-on-Approach]]: CH2-CH6.3, CH10
+- [[Programming Massively Parallel Processors A Hands-on Approach-2023|Programming Massively Parallel Processor A Hands-on-Approach]]: CH2-CH6.3, CH10
     Derived Ideas:
         1. Tiling: 搬运数据 from Global Memory to Shared Memory
         2. Coalescing: 利用 DRAM burst 优化 Tiling 过程中对 Global Memory 的访问次数 
@@ -16,32 +18,34 @@
 - [[Managing Projects with GNU Make-2011|Managing Projects with GNU Make]]: CH1-CH2.7
 
 \[Doc\]
--  [[NVIDIA Nsight Compute]]: CH2
+- [[NVIDIA Nsight Compute]]: CH2
 
 \[Blog\]
--  [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
+- [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
     Derived Ideas:
         1. Thread Tile: 改变 Thread Tile 内矩阵的运算顺序，利用 Register 减少对 global memory 的访问次数；其中 Thread tile 的长宽 $M_{frag},N_{frag}$ 的选取与线程内 FFMA 指令对非 FFMA 指令如 LDS 指令的延迟覆盖是相关的
 ## August
 ### Week 1
+Date: 2024.8.5-2024.8.12
+
 \[Book\]
--  [[Parallel Thread Execution ISA v8.5-2024|PTX ISA v8.5]]
+- [[Parallel Thread Execution ISA v8.5-2024|PTX ISA v8.5]]: All
 
 \[Doc\]
--  [[CUDA-GDB v12.6]]: CH1-CH8
+- [[CUDA-GDB v12.6]]: CH1-CH8
 
 \[Blog\] 
--  [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
+- [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
     Derived Ideas:
         1. Arithmetic Intensity: 通过衡量计算方式的算数密度，将其乘上相应带宽，可以得到理论的 FLOPS 上限
         2. Thread Block Tile: 减少 Global Memory 读取
         3. Thread Tile & Warp Tile: 改变矩阵乘法顺序，调整 Tile 形状，提高 Arithmetic Intensity，使 FMA 可以掩盖 LDS 的延迟
         4. Pipeline: 由于改变矩阵乘法顺序增大了单线程的寄存器使用量，导致 Warp 数量降低，进一步导致 Occupancy 降低，因此考虑流水并行 Global Memory to Shared Memory、Shared Memory to Register、Computation in Register 这三个操作，提高 Warp 的指令并行度，以提高硬件占用率
--  [CUDA 矩阵乘法终极优化指南](https://zhuanlan.zhihu.com/p/410278370)
+- [CUDA 矩阵乘法终极优化指南](https://zhuanlan.zhihu.com/p/410278370): All
     Derived Ideas:
         1. Coarsening: 一个线程计算 $4\times 4$ 的结果，提高线程的算数密度
         2. `LDS.128`: 读取 `float4` 向量类型，减少 Shared Memory 访问
--  [cuda 入门的正确姿势：how-to-optimize-gemm](https://zhuanlan.zhihu.com/p/478846788)
+- [cuda 入门的正确姿势：how-to-optimize-gemm](https://zhuanlan.zhihu.com/p/478846788)
     Derived Ideas:
         1. Align: 令 Shared Memory 内数据地址对齐
 - [CUDA SGEMM矩阵乘法优化笔记——从入门到cublas](https://zhuanlan.zhihu.com/p/518857175)
@@ -51,6 +55,8 @@
     `matmul_v0.cu` : naive implementation
 
 ### Week 2
+Date: 2024.8.12-2024.8.19
+
 \[Code\]
 - CUDA GEMM Optimization Project
     `matmul_v1.cu` - `matmul_v7.cu`
@@ -62,12 +68,16 @@
         `matmul_t_v2.cu` : bank conflict partially solved implementation
 
 ### Week 3
+Date: 2024.8.19-2024.8.26
+
 \[Code\]
 - CUDA GEMM Optimization Project
     `matmul_t_v3.cu` - `matmul_t_v4.cu`
         `matmul_t_v3.cu` : swizzled implementation
         `matmul_t_v4.cu` : adjusted the tile size
 ### Week 4
+Date: 2024.8.26-2024.9.9
+
 \[Paper\]
 - [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: Sec1-Sec5
 
@@ -77,21 +87,25 @@
 
 ## September
 ### Week 1
+Date: 2024.9.2-2024.9.9
+
 \[Book\] 
--  [[Mastering CMake]]: CH8-CH13、CH14 (Cmake Tutorial)
+- [[Mastering CMake]]: CH8-CH13、CH14 (CMake Tutorial)
 
 ### Week 2
+Date: 2024.9.9-2024.9.16
+
 \[Paper\]
--  [[A Survey of Large Language Models v13-2023|A Survey of Large Language Models]]: CH6-CH7
+- [[A Survey of Large Language Models v13-2023|A Survey of Large Language Models]]: CH6-CH7
     CH6-Utilization
         Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
--  [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|Are Emergent Abilities of Large Language Models a Mirage?]]
+- [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|Are Emergent Abilities of Large Language Models a Mirage?]]: All
 
 \[Book\]
-- [[Introductory Combinactorics-2009|Introductory Combinactorics]]: CH1
+- [[book-notes/Introductory Combinatorics-2009|Introductory Combinactorics]]: CH1
     CH1-What is Combinatorics
         Combinatorics: existence, enumeration, analysis, optimization of discrete/finite structures
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH2
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH2
     CH2-Foundations
         Basic knowledges: Conditional Independence, MAP query, Conditional density function, graphs
 
@@ -100,45 +114,51 @@
 - [[The Python Tutorial]]: CH1-CH16
 
 ### Week 3
+Date: 2024.9.16-2024.9.23
+
 \[Book\]
-- [[Introductory Combinactorics-2009|Introductory Combinactorics]]: CH2
+- [[book-notes/Introductory Combinatorics-2009|Introductory Combinactorics]]: CH2
     CH2-Permutations and Combinations
         Permutation/Combination of Sets (combination = permutation + division), Permutation/Combination of Multisets (permutation of sets + division/solutions of linear equation) , classical probability
 - [[book-notes/Convex Optimization|Convex Optimization]]: CH2-CH2.5
     CH2-Convex Sets
         Lots of definitions: convex combination, affine combination, some typical convex sets, operations that preserve convexity, supporting/separating hyperplane
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH3-CH3.3
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH3-CH3.3
     CH3-The Bayesian Network Representation
         Bayesian Network: Express conditional independencies in joint probability in a graph semantics, factorizing the joint probability into a product of CPDs according to the graph structure
 - [[A Tour of C++]]: CH1-CH1.7
 
 ### Week 4
+Date: 2024.9.23-2024.9.30
+
 \[Paper\]
 - [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: CH7
     CH7-Capacity and Evaluation
         LLM abilities: 1. basic ability: language generation (including code), knowledge utilization (e.g. knowledge-intensive QA) , complex reasoning (e.g. math) ; 2. advanced ability: human alignment, interaction with external environment (e.g. generate proper action plan for embodied AI), tool manipulate (e.g. call proper API according to tasks); introduction to some benchmarks
 
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH5
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH5
     CH5-Local Probabilistic Models
         Compact CPD representation: Utilize context-specific independence to compactly represent CPD; Independent causal influence model: noisy-or model, BN2O model, generalized linear model (scores are linear to all parent variables), conditional linear gaussian model ( induces a joint distribution that has the form of a mixture of Gaussians)
 - [[A Tour of C++]]: CH1.7-CH3.5
 
 ## October
 ### Week 1
+Date: 2024.9.30-2024.10.7
+
 \[Paper\]
 - [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: CH8-CH9
     CH8-Applicatoin
         LLM application in various tasks
     CH9-Conclusion and future directions
-- [[Importance Sampling A Review-2010|Importance Sampling: A Review]]
+- [[Importance Sampling A Review-2010|Importance Sampling: A Review]]: All
     IS is all about variance reduction for Monte Carlo approximation;
     Adaptive parametric Importance Sampling: $q (x)$ be defined as a multivariate normal or student distribution, then optimizing a variation correlated metric to derive an optimal parameter setting for that distribution;
     Sequential Importance Sampling: Chain decompose $p (x)$, and chain construct $q (x)$;
     Anneal Importance Sampling: Sequentially approximate $p (x)$, much like diffusion;
 
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH6-CH6.2
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH6-CH6.2
     CH6-Template-based Representations
         temporal models; Markov assumption + 2-TBN = DBN; DBN usually be modeled as state-observation model (the state and observation are considered separately; observation doesn't affect the state), two examples: HMM, linear dynamic system (all the dependencies are linear Gaussian)
 - [[面向计算机科学的组合数学]]: CH1.7
@@ -148,6 +168,8 @@
 - [[A Tour of C++]]: CH3.5-CH5
 
 ### Week 2
+Date: 2024.10.7-2024.10.14
+
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: CH0-CH3.1
     CH0-CH3.1: Abstract, Background, Algorithm 1; Algorithm 1 is basically a tiled implementation of attention calculation. What makes algorithm 1 looks not so intuitive is the repetitive rescaling of softmax factor, whose aim is to stabilize the computation. In algorithm 1, each query's attention result is accumulated gradually by the outer loop, and the already accumulated partial attention result's weights for the corresponding value is dynamically updated/changed by the outer loop.
@@ -157,14 +179,16 @@
 - [[面向计算机科学的组合数学]]: CH2.1-CH2.3
     CH2-鸽巢原理
         鸽巢原理仅解决存在性问题
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH4-CH4.3.1
-    CH4-CH4.3.1: Markov Network's parameterization: the idea was derived from statictical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of paticular configuration; seperation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4-CH4.3.1
+    CH4-CH4.3.1: Markov Network's parameterization: the idea was derived from statistical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of particular configuration; separation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
 
 \[Doc\]
 - [[doc-notes/python/packages/ultralytics]] : Quickstart, Usage(Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
     Brief Introduction to YOLO model's python API, which is pretty simple
 
 ### Week 3
+Date: 2024.10.14-2024.10.21
+
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec3.1-Sec5
     Sec3.1-IO Analysis
@@ -180,7 +204,7 @@
         For positive distribution, conditional probability can be used to deduce the overall joint probability. This is made possible by HC theorem.
 
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.3.1-CH4.4.2
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.3.1-CH4.4.2
     CH4.3.1-CH4.4.2: Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-separation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
 - [[面向计算机科学的组合数学]]: CH3-CH3.3
     CH3-母函数
@@ -194,6 +218,8 @@
     Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapsulates all the complicated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
 
 ### Week 4
+Date: 2024.10.21-2024.10.28
+
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
     SecA-Related Work
@@ -208,12 +234,14 @@
     Sec3-Markov Fields and the Hammersley-Clifford Theorem: define ground state -> define Q function -> expand Q function -> proof the terms in Q function (G function) are only not null when their relating variables form a clique
 
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.5
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.5
     CH4.5-Bayesian Networks and Markov Networks
         chordal graph can be represented by either structure without loss of information 
 
 ## November
 ### Week 1
+Date: 2024.10.28-2024.11.4
+
 \[Paper\]
 - [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]
     FlashAttention-2: 
@@ -223,7 +251,7 @@
     FlashAttention-2 also uses thread blocks to load KV cache in parallel for iterative decoding
 
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
     CH4.6.1-Conditional Random Fields
         CRF models conditional distribution by partially directed graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditional distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict expandability, because the parameters learned has less semantics on their own.
 - [[面向计算机科学的组合数学]]: CH4-CH4.4.1
@@ -238,6 +266,8 @@
 - [[nvidia/CUDA C++ Programming Guide v12.6]]: CH1
 
 ### Week 2
+Date: 2024.11.4-2024.11.11
+
 \[Paper\]
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec0-Sec4.5
     Sec0-Abstract
@@ -253,7 +283,7 @@
         The memory utilization for KV cache storage space is inefficient, due to the inefficient continous memory allocation startegy.
 
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH7, CH9.2-CH9.3
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH7, CH9.2-CH9.3
     CH7.1-Multivariate Gaussians: 
         Two parameterization: Standard, Information Matrix
         Marginal and Conditional density of Joint Gaussian is Gaussian, and the Conditional density is also linear Gaussian model
@@ -281,6 +311,8 @@
 - [[huggingface/hub/Repositories]]: Sec4-Sec10
 
 ### Week 3
+Date: 2024.11.11-2024.11.18
+
 \[Paper\]
 - [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec4.6-Sec10
     Sec4-Method: 
@@ -353,7 +385,6 @@
 - [[面向计算机科学的组合数学]]: CH4.4.1-CH4.5.2
     Write characteristic polynominal directly from the recurrence relation, and slove the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
 
-
 \[Doc\]
 - [[nvidia/CUDA C++ Programming Guide v12.6]]: CH2
     CH2-Programming Model:
@@ -399,8 +430,10 @@
         Use `FROM <image-name> AS <stage-name>` to define stage. Use `--from=<stage-name>` in `COPY` to copy previous stages artifacts.
 
 ### Week 4
+Date: 2024.11.18-2024.11.25
+
 \[Book\]
-- [[Probabilistic Graphical Models-Principles and Techniques]]: CH10.1-CH10.3, CH11.1-CH11.3.4
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH10.1-CH10.3, CH11.1-CH11.3.4
     CH10-Exect Inference: Clique Trees
         CH10.1-Variable Elimination and Clique Trees
             We consider a factor $\psi_i$ to be a computational data structure, which takes a message $\tau_j$ generated by factor $\psi_j$ and send message $\tau_i$ to another factor.
@@ -508,6 +541,7 @@ Date: 2024.11.25-2024.12.2
         LaTeX 将空格和 Tab 视作空白字符，连续的空白视作一个空白，行首的空白会被忽略
         连续两个换行符生成一个空行，将文字分段 (等价于 `\par` )，连续空行视作一个空行
         LaTeX 会自动在合适位置断行断页，也可以手动用命令控制
+
 \[Doc\]
 - [[doc-notes/python/pep/PEP 257-Docstring Conventions|python/pep/PEP 257–Docstring Conventions]]
 
@@ -596,6 +630,7 @@ Date: 2024.12.9-2024.12.16
         The backend takes graph IR as input and output low-level IR. The backend can directedly convert graph IR into third party toolchains' IR like LLVM IR for general purpose code generation and optimization. The backend can also use customized compilation pass to do better. The commonly-applied hardware-specific optimizations include hardware intrinsic mapping, memory allocation and fetching, memory latency hiding, parallelization, loop oriented optimization.
         Existing backend uses auto-scheduling and auto-tuning to determine the optimal parameter setting.
         Low-level IR can be compiler JIT or AOT.
+
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH17.4, CH19.1-CH19.2, CH20.1-CH20.3
     CH17-Parameter Estimation
@@ -813,7 +848,6 @@ Date: 2024.12.16-2024.12.23-2024.12.30
 ### Week 1
 Date: 2024.12.30-2025.1.6
 
-
 \[Paper\]
 - [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
 
@@ -823,3 +857,4 @@ Date: 2024.12.30-2025.1.6
 \[Doc\]
 - [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
 - [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
+
