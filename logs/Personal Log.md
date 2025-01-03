@@ -813,6 +813,7 @@ Date: 2024.12.16-2024.12.23-2024.12.30
 ### Week 1
 Date: 2024.12.30-2025.1.6
 
+
 \[Paper\]
 - [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
 
