@@ -698,7 +698,7 @@ Identifiers used in the standard library must be ASCII compatible as described i
 
 ### Package and Module Names
 Modules should have short, all-lowercase names. Underscores can be used in the module name if it improves readability. Python packages should also have short, all-lowercase names, although the use of underscores is discouraged.
->模块名应该有简短且全小写，如果下划线能提高可读性，可以在模块名中使用下划线
+> 模块名应该简短且全小写，如果下划线能提高可读性，可以在模块名中使用下划线
 >尽管不鼓励使用下划线，但 Python 包也应该有简短且全小写的名字
 
 When an extension module written in C or C++ has an accompanying Python module that provides a higher level (e.g. more object oriented) interface, the C/C++ module has a leading underscore (e.g. `_socket`).
