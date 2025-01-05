@@ -1278,7 +1278,7 @@ Parameters following the `/` may be _positional-or-keyword_ or _keyword-onl
 
 #### 4.8.3.3. Keyword-Only Arguments
 To mark parameters as _keyword-only_, indicating the parameters must be passed by keyword argument, place an `*` in the arguments list just before the first _keyword-only_ parameter.
-> `*` 之后的参数只能通过位置传入
+> `*` 之后的参数只能通过关键字传入
 
 #### 4.8.3.4. Function Examples
 Consider the following example function definitions paying close attention to the markers `/` and `*`:
