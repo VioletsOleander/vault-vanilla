@@ -8375,7 +8375,7 @@ where $\mathcal{Q}$ is a given family of distributions. In these methods, we are
 >  我们意在解决以上优化问题，其中 $\mathcal Q$ 是给定的一族分布
 >  我们使用满足定理 11.2 的精确能量函数，因此最大化能量泛函直接对应于在 $D(Q||P_\Phi)$ 的维度上获得对 $P_\Phi$ 的在 $\mathcal Q$ 中的最优近似 $Q$
 
-The main parameter in this maximization problem is the choice of family Q . This choice induces a trade-of. On one hand, families that are “simpler,” that is, that can be described by a Bayesian network or a Markov network with small tree-width, allow more efcient inference. As we will see, simpler families also allow us to solve the maximization problem efciently. On the other hand, if the fa y $\mathcal{Q}$ is too restrictive, then it cannot r resent distributions that are good approximations of $P_{\Phi}$ , giving rise to a poor approximation Q . In either case, this family is generally chosen to have enough structure that allows inference to be tractable, giving rise to the name structured variational approximation. 
+The main parameter in this maximization problem is the choice of family Q . This choice induces a trade-of. On one hand, families that are “simpler,” that is, that can be described by a Bayesian network or a Markov network with small tree-width, allow more efficient inference. As we will see, simpler families also allow us to solve the maximization problem efficiently. On the other hand, if the fa y $\mathcal{Q}$ is too restrictive, then it cannot r resent distributions that are good approximations of $P_{\Phi}$ , giving rise to a poor approximation Q . In either case, this family is generally chosen to have enough structure that allows inference to be tractable, giving rise to the name structured variational approximation. 
 >  对于分布族 $\mathcal Q$ 的选择是该最大化问题的主要参数，该选择存在 trade-off
 >  更简单的分布可以在其中高效推理，同时求解最大化问题也更快，但表示性更弱
 >  但在这类方法中，我们应该保证 $\mathcal Q$ 的结构性充足使得在其中推理是可解的，因此这类方法被称为结构化变分近似
@@ -13800,25 +13800,37 @@ The maximization step is straightforward. The more difficult step is the expecta
 >  注意对于梯度上升来说，我们所需要的期望充分统计量仅涉及一个变量和它的父变量，故对于梯度上升来说，可以使用团树或者簇图算法，因为族保持性质保证 $X$ 和其父变量 $\pmb U$ 会在某个簇中出现，因此我们可以使用一次消息传递校准为所有的数据实例执行推理
 
 **General Exponential Family\***
-The same idea generalizes to other distributions where the likelihood has sufficient statistics, in particular, all models in the exponential family (see deﬁnition 8.1). Recall that such families have a sufficient statistic function $\tau(\xi)$ that maps a complete instance to a vector of sufficient statistics. When learning parameters of such a model, we can summarize the data using the sufficient statistic function $\tau$ . For a complete data set $\mathcal{D}^{+}$ , we deﬁne 
+The same idea generalizes to other distributions where the likelihood has sufficient statistics, in particular, all models in the exponential family (see deﬁnition 8.1). Recall that such families have a sufficient statistic function $\tau(\xi)$ that maps a complete instance to a vector of sufficient statistics. When learning parameters of such a model, we can summarize the data using the sufficient statistic function $\tau$ . 
+>  EM 算法适用于全部的指数族模型
+
+For a complete data set $\mathcal{D}^{+}$ , we deﬁne 
 
 $$
-\tau(\mathcal{D}^{+})=\sum_{m}\tau(o[m],h[m]).
+\tau(\mathcal{D}^{+})=\sum_{m}\tau(\pmb o[m],\pmb h[m]).
 $$
+
+>  定义完整数据集 $\mathcal D^+$ 的充分统计量是数据集实例的充分统计量之和
 
 We can now deﬁne the same E and M-steps described earlier for this more general case. 
 
-Expectation $^ Ḋ E Ḍ$ -step ): For each data case $o[m]$ , the algorithm uses the current parameters $\theta^{t}$ to deﬁne a model, and a posterior distribution: 
+**Expectation (E-step):** 
+For each data case $\pmb o[m]$ , the algorithm uses the current parameters $\pmb \theta^{t}$ to deﬁne a model, and a posterior distribution: 
 
 $$
-Q(H[m])=P(H[m]\mid o[m],\pmb\theta^{t}).
+Q(\pmb H[m])=P(\pmb H[m]\mid \pmb o[m],\pmb\theta^{t}).
 $$ 
 It then uses inference in this distribution to compute the expected sufficient statistics : 
 
 $$
-{\pmb E}_{Q}[\tau(\langle{\mathcal D},{\mathcal H}\rangle)]=\sum_{m}{\pmb E}_{Q}[\tau(o[m],{\pmb h}[m])].
+{\pmb E}_{Q}[\tau(\langle{\mathcal D},{\mathcal H}\rangle)]=\sum_{m}{\pmb E}_{Q}[\tau(\pmb o[m],{\pmb h}[m])].\tag{19.4}
 $$ 
-Maximization ( M-step ): As in the case of table-CPDs, once we have the expected sufficient statistics, the algorithm treats them as if they were real and uses them as the basis for maximum likelihood estimation, using the appropriate form of the ML estimator for this family. 
+>  E-step
+>  我们为每个数据实例 $\pmb o[m]$ 定义分布 $Q$ 为给定数据实例 $\pmb o[m]$ 和当前参数时，未观测值 $\pmb H[m]$ 的后验分布
+>  在 E 步，我们根据分布 $Q$ 计算完整数据集的期望充分统计量，也就是每个数据实例相对于 $Q$ 的期望充分统计量求和
+
+**Maximization (M-step):** As in the case of table-CPDs, once we have the expected sufficient statistics, the algorithm treats them as if they were real and uses them as the basis for maximum likelihood estimation, using the appropriate form of the ML estimator for this family. 
+>  M-step
+>  使用充分统计量计算极大似然估计
 
 **Convergence Results** Somewhat surprisingly, this simple algorithm can be shown to have several important properties. We now state somewhat simpliﬁed versions of the relevant results, deferring a more precise statement to the next section. 
 
@@ -13922,206 +13934,332 @@ As one example, Bayesian clustering was applied to a data set of people browsing
 #### 19.2.2.5 Theoretical Foundations\*
 So far, we used an intuitive argument to derive the details of the EM algorithm. We now formally analyze this algorithm and prove the results regarding its convergence properties. 
 
-At each iteration, EM maintains the “current” set of parameters. Thus, we can view it as a local learning algorithm. Each iteration amounts to taking a step in the parameter space from 
-
-Cluster 1 (36 percent) Cluster 2 (29 percent) E-mail delivery isn’t exactly guaranteed 757 Crashes at sea Should you buy a DVD player? Israel, Palestinians agree to direct talks Price low, demand high for Nintendo Fuhrman pleads innocent to perjury Cluster 3 (19 percent) Cluster 4 (12 percent) Umps refusing to work is the right thing The truth about what things cost Cowboys are reborn in win over eagles Fuhrman pleads innocent to perjury Did Orioles spend money wisely? Real astrology 
-
-Figure 19.A.1 — Application of Bayesian clustering to collaborative ﬁltering. Four largest clusters found by Bayesian clustering applied to MSNBC news browsing data. For each cluster, the table shows the three news articles whose probability of being browsed is highest. 
-
-$\theta^{t}$ to $\pmb{\theta}^{t+1}$ . This is similar to gradient-based algorithms, except that in those algorithms we have good understanding of the nature of the step, since each step attempts to go uphill in the steepest direction. Can we ﬁnd a similar justiﬁcation for the EM iterations? 
+At each iteration, EM maintains the “current” set of parameters. Thus, we can view it as a local learning algorithm. Each iteration amounts to taking a step in the parameter space from $\pmb \theta^{t}$ to $\pmb{\theta}^{t+1}$ . This is similar to gradient-based algorithms, except that in those algorithms we have good understanding of the nature of the step, since each step attempts to go uphill in the steepest direction. Can we ﬁnd a similar justiﬁcation for the EM iterations? 
+>  EM 在每次迭代维护“当前”的一组参数，故 EM 也可以视作局部学习算法，它在每次迭代从参数 $\pmb \theta^t$ 前进一步到参数 $\pmb \theta^{t+1}$，这和基于梯度的方法是类似的
+>  基于梯度的方法在每一步更新时选择最为陡峭的方向，以增大似然，我们考虑 EM 的更新是否有类似的性质
 
 The basic outline of the analysis proceeds as follows. We will show that each iteration can be viewed as maximizing an auxiliary function , rather than the actual likelihood function. The choice of auxiliary function depends on the current parameters at the beginning of the iteration. The auxiliary function is nice in the sense that it is similar to the likelihood function in complete data problems. The crucial part of the analysis is to show how the auxiliary function relates to the likelihood function we are trying to maximize. As we will show, the relation is such that we can show that the parameters that maximize the auxiliary function in an iteration also have better likelihood than the parameters with which we started the iteration. 
+>  实质上，EM 的每一步可以视作最大化一个辅助函数 (而非真实似然函数)，辅助函数的选择取决于当前参数
+>  每次迭代中，能够最大化辅助函数的参数将得到更高的似然
 
-The Expected Log-Likelihood Function Assume we are given a data set $\mathcal{D}$ that consists of partial observations. Recall t $\mathcal{H}$ denotes a possible assignm r data set. The combination of D $\mathcal{D},\mathcal{H}$ H deﬁnes a complete data set D $\mathcal{D}^{+}=\langle\mathcal{D},\mathcal{H}\rangle=\{o[m],h[m]\}_{m}$ ⟨D H⟩ { } , where in each instance we now have a full assignment to all the variables. We denote by $\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)$ the log-likelihood of the parameters $\theta$ ith respect to this completed data set. 
+**The Expected Log-Likelihood Function** 
+Assume we are given a data set $\mathcal{D}$ that consists of partial observations. Recall that $\mathcal{H}$ denotes a possible assignment to all the missing values in our data set. The combination of $\mathcal{D},\mathcal{H}$ deﬁnes a complete data set $\mathcal{D}^{+}=\langle\mathcal{D},\mathcal{H}\rangle=\{o[m],h[m]\}_{m}$ , where in each instance we now have a full assignment to all the variables. We denote by $\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)$ the log-likelihood of the parameters $\theta$ with respect to this completed data set. 
+>  假设给定部分观测 $\mathcal D$，同时用 $\mathcal H$ 表示缺失值的可能赋值
+>  此时完整数据集记作 $\mathcal D^+ = \langle \mathcal D, \mathcal H \rangle$
+>  记 $\ell(\pmb \theta:\langle \mathcal D, \mathcal H\rangle)$ 为参数 $\pmb \theta$ 相对于完整数据集的对数似然
 
-Suppose we are not sure abou he true value of H . Rather, we have a probabilistic timate that e denote by a distribution Q that assigns a probability to each possible value of H . Note that Q is a joint distribution over full assignments to all of the missing values in the entire data set. Thus, for example, in our earlier network, if $\mathcal{D}$ contains two instances $o[1]=\langle a^{1},\hat{\imath},\hat{\imath},d^{0}\rangle$ and $o[2]=\langle\P,b^{1},\P,d^{1}\rangle$ , then $Q$ is a joint distribution over $B[1],C[1],A[2],C[2]$ . 
-
-expected log-likelihood 
+Suppose we are not sure about he true value of H . Rather, we have a probabilistic estimate that e denote by a distribution Q that assigns a probability to each possible value of H . Note that Q is a joint distribution over full assignments to all of the missing values in the entire data set. Thus, for example, in our earlier network, if $\mathcal{D}$ contains two instances $o[1]=\langle a^{1},\hat{\imath},\hat{\imath},d^{0}\rangle$ and $o[2]=\langle\P,b^{1},\P,d^{1}\rangle$ , then $Q$ is a joint distribution over $B[1],C[1],A[2],C[2]$ . 
+>  假设我们有分布 $Q$，$Q$ 是一个在完全赋值上的联合分布，$Q$ 为 $\mathcal H$ 的每个可能值赋予概率
 
 In the fully observed case, our score for a set of parameters was the log-likelihood. In this case, given $Q$ , we can use it to deﬁne an average score, which takes into account the different possible completions of the data and their probabilities. Speciﬁcally, we deﬁne the expected log-likelihood as: 
 
 $$
 E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]=\sum_{\mathcal{H}}Q(\mathcal{H})\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)
 $$ 
-
 This function has appealing characteristics that are important in the derivation of EM. 
 
-The ﬁrst key property is a consequence of the linearity of expectation. Recall that when learning table-CPDs, we showed that 
+>  给定 $Q$，我们可以考虑部分观测数据 $\mathcal D$ 的所有可能补全，进而计算完整数据的期望对数似然如上
+
+The ﬁrst key property is a consequence of the linearity of expectation. 
+>  该期望的第一个关键性质是线性性质
+
+Recall that when learning table-CPDs, we showed that 
 
 $$
 \ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)=\sum_{i=1}^{n}\sum_{(x_{i},\mathbf{u}_{i})\in V a l(X_{i},\mathrm{Pa}_{X_{i}})}M_{\langle\mathcal D,\mathcal H\rangle}[x_{i},\pmb u_{i}]\log\theta_{x_{i}|\pmb u_{i}}.
 $$ 
+>  学习 table-CPDs 时，我们知道对数似然函数可以分解为以上形式
+>  其中第二个求和是对数据实例的所有 CPD 求和，求和内是该 CPD 的多项式参数的对数乘上特定实例 $[x_i,\pmb u_i]$ 在补全数据集 $\langle \mathcal D, \mathcal H\rangle$ 的出现次数
 
 Because the only terms in this sum that depend on $\langle\mathcal{D},\mathcal{H}\rangle$ are the counts $M_{\langle\mathcal{D},\mathcal{H}\rangle}[x_{i},\mathbf{u}_{i}]$ , and these appear within a linear function, we can use linearity of expectations to show that 
 
 $$
-E_{Q}[\ell(\pmb\theta:\langle\mathscr{D},\mathscr{H}\rangle)]=\sum_{i=1}^{n}\sum_{(x_{i},\pmb u_{i})\in V a l(X_{i},\mathrm{Pa}_{X_{i}})}\pmb E_{Q}\big[M_{\langle\mathscr{D},\mathscr{H}\rangle}[x_{i},\pmb u_{i}]\big]\log\theta_{x_{i}|\pmb u_{i}}.
+E_{Q}[\ell(\pmb\theta:\langle\mathcal{D},\mathcal{H}\rangle)]=\sum_{i=1}^{n}\sum_{(x_{i},\pmb u_{i})\in V a l(X_{i},\mathrm{Pa}_{X_{i}})}\pmb E_{Q}\big[M_{\langle\mathcal{D},\mathcal{H}\rangle}[x_{i},\pmb u_{i}]\big]\log\theta_{x_{i}|\pmb u_{i}}.
 $$ 
+>  显然，对数似然中依赖于补全数据集 $\langle D, \mathcal H\rangle$ 的项就是计数值 $M_{\langle \mathcal D, \mathcal H\rangle}[x_i, \pmb u_i]$ (充分统计量)
+>  因此对数似然对 $Q$ 取期望时，只需要对该计数值对 $Q$ 取期望
 
 If we now generalize our notation to deﬁne 
 
 $$
-\bar{M}_{Q}[x_{i},\mathbf{u}_{i}]=E_{\mathcal{H}\sim Q}\left[M_{\langle\mathcal{D},\mathcal{H}\rangle}[x_{i},\mathbf{u}_{i}]\right]
+\bar{M}_{Q}[x_{i},\pmb{u}_{i}]=E_{\mathcal{H}\sim Q}\left[M_{\langle\mathcal{D},\mathcal{H}\rangle}[x_{i},\pmb{u}_{i}]\right]\tag{19.5}
 $$ 
-
 we obtain 
 
 $$
 E_{Q}[\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)]=\sum_{i=1}^{n}\sum_{(x_{i},\pmb u_{i})\in V a l(X_{i},\mathrm{Pa}_{X_{i}})}\bar{M}_{Q}[x_{i},\pmb u_{i}]\log\theta_{x_{i}|\pmb u_{i}}.
 $$ 
+>  我们将该 $[x_i, \pmb u_i]$ 的计数值对 $Q$ 的期望记作 $\bar M_Q[x_i, \pmb u_i]$
+>  进而将期望对数似然记作上式
 
 This expression has precisely the same form as the log-likelihood function in the complete data case, but using the expected counts rather than the exact full-data counts. The implication is that instead of summing over all possible completions of the data, we can evaluate the expected log-likelihood based on the expected counts. 
+>  显然该形式和对数似然函数的形式是完全一致的，差异仅在于对数似然函数使用的是精确计数，而该形式使用的是期望计数
+>  根据该形式，要计算期望对数似然函数，我们需要先计算的是期望计数值 
+>  (而不是计算每个可能计数的对数似然，再求期望，这样会过于麻烦)
 
 The crucial point here is that the log-likelihood function of complete data is linear in the counts. This allows us to use linearity of expectations to write the expected likelihood as a function of the expected counts. 
+>  这里推导的关键就在于对数似然是计数 (充分统计量) 的线性函数，因此期望对数似然可以写为期望计数 (期望充分统计量) 的线性函数
 
 The same idea generalizes to any model in the exponential family, which we deﬁned in chapter 8. Recall that a model is in the exponential family if we can write: 
 
 $$
 P(\xi\mid\pmb\theta)=\frac{1}{Z(\pmb\theta)}A(\xi)\exp\left\{\langle\mathfrak t(\pmb\theta),\tau(\xi)\rangle\right\},
 $$ 
+where $\langle\cdot,\cdot\rangle$ is the inner product, $A(\xi),\,\mathtt{t}(\pmb \theta)$ , and $Z(\pmb \theta)$ are functions that deﬁne the family, and $\tau(\xi)$ is the sufficient statistics function that maps a complete instance to a vector of sufficient statistics. 
 
-where $\langle\cdot,\cdot\rangle$ is the inner product, $A(\xi),\,\mathtt{t}(\theta)$ , and $Z(\theta)$ are functions that deﬁne the family, and $\tau(\xi)$ is the sufficient statistics function that maps a complete instance to a vector of sufficient statistics. 
+>  对于指数族的模型，有类似结论
+>  指数族模型形式如上
+>  其中 $\tau(\xi)$ 是充分统计量函数，它将完整的数据实例映射到充分统计量向量
 
 As discussed in section 17.2.5, when learning parameters of such a model, we can summarize the data using the sufficient statistic function $\tau$ . We deﬁne 
 
 $$
-\tau(\langle\mathcal{D},\mathcal{H}\rangle)=\sum_{m}\tau(o[m],h[m]).
+\tau(\langle\mathcal{D},\mathcal{H}\rangle)=\sum_{m}\tau(\pmb o[m],\pmb h[m]).
 $$ 
+>  我们定义数据集 $\tau(\langle \mathcal D, \mathcal H \rangle)$ 的充分统计量为数据集中所有实例的充分统计量求和
 
 Because the model is in the exponential family, we can write the log-likelihood $\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)$ as a linear function of $\tau(\langle\mathcal{D},\mathcal{H}\rangle)$ 
 
 $$
-\ell(\pmb\theta:\langle\mathscr{D},\mathcal{H}\rangle)=\langle\mathrm t(\pmb\theta),\tau(\langle\mathscr{D},\mathcal{H}\rangle)\rangle+\sum_{m}\log A(\pmb\theta[m],\pmb h[m])-M\log Z(\pmb\theta).
-$$ 
+\ell(\pmb\theta:\langle\mathcal{D},\mathcal{H}\rangle)=\langle\mathrm t(\pmb\theta),\tau(\langle\mathcal{D},\mathcal{H}\rangle)\rangle+\sum_{m}\log A(\pmb o[m],\pmb h[m])-M\log Z(\pmb\theta).
+$$
+>  对数指数族模型，其对数似然函数可以写作 $\tau(\langle \mathcal D, \mathcal H\rangle)$ 的线性函数
+>  (这来源于 $\sum_{m} \langle \mathrm{t}(\pmb \theta), \tau(\pmb o[m], \pmb h[m]\rangle = \langle \mathrm{t}(\pmb \theta), \sum_{m}\tau(\pmb o[m], \pmb h[m]\rangle = \langle \mathrm t(\pmb \theta), \tau(\langle \mathcal D, \mathcal H\rangle)$)
 
 Using the linearity of expectation, we see that 
 
 $$
-E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]=\langle\mathrm{t}(\pmb{\theta}),\pmb{E}_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]\rangle+\sum_{m}\pmb{E}_{Q}[\log A(o[m],\pmb{h}[m])]-M\log(m\delta).
-$$ 
+E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]=\langle\mathrm{t}(\pmb{\theta}),\pmb{E}_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]\rangle+\sum_{m}\pmb{E}_{Q}[\log A(\pmb o[m],\pmb{h}[m])]-M\log(\pmb \theta).
+$$
 
-Because $A(o[m],h[m])$ does not depend on the choice of $\theta$ , we can ignore it. We are left with maximizing the function: 
+>  进一步，对数似然相对于 $Q$ 的期望形式如上
+
+Because $A(\pmb o[m],\pmb h[m])$ does not depend on the choice of $\pmb \theta$ , we can ignore it. We are left with maximizing the function: 
 
 $$
-E_{Q}[\ell(\pmb\theta:\langle\mathscr{D},\mathscr{H}\rangle)]=\langle\mathfrak t(\pmb\theta),\pmb E_{Q}[\tau(\langle\mathscr{D},\mathscr{H}\rangle)]\rangle-M\log Z(\pmb\theta)+\mathrm{const}.
-$$ 
+E_{Q}[\ell(\pmb\theta:\langle\mathcal{D},\mathcal{H}\rangle)]=\langle\mathfrak t(\pmb\theta),\pmb E_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]\rangle-M\log Z(\pmb\theta)+\mathrm{const}.\tag{19.6}
+$$
 
-In summary, the derivation here is directly analogous to the one for table-CPDs. The expected log-likelihood is a linear function of the expected sufficient statistics $E_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ . We can compute these as in equation (19.4), by aggregating their expectation in each instance in the training data. Now, maximizing the right-hand side of equation (19.6) is equivalent to maximum likelihood estimation in a complete data set where the sum of the sufficient statistics coincides with the expected sufficient statistics $E_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ . These two steps are exactly the E- step and M-step we take in each iteration of the EM procedure shown in algorithm 19.2. In the procedure, the distribution $Q$ that we are using is $P(\bar{\mathcal{H}}\mid\mathcal{D},\theta^{t})$ . Because instances are assumed to be independent given the parameters, it follows that 
+>  忽略其中和参数 $\pmb \theta$ 无关的项，相对于参数最大化期望对数似然等价于最大化 (19.6)
+
+In summary, the derivation here is directly analogous to the one for table-CPDs. The expected log-likelihood is a linear function of the expected sufficient statistics $E_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]$ . 
+>  可以看到，对于指数族模型，我们得到了和 table-CPD 相同的结论，即期望对数似然是期望充分统计量 $E_Q[\tau(\langle \mathcal D, \mathcal H \rangle)]$ 的线性函数
+
+We can compute these as in equation (19.4), by aggregating their expectation in each instance in the training data. 
+>  数据集的期望充分统计量 $E_Q[\tau(\langle \mathcal D, \mathcal H \rangle)]$ 的计算依据 (19.4)，也就是为每个数据实例 $\pmb o[m]$ 定义后验分布，计算该数据实例相对于后验分布的期望充分统计量，然后求和
+
+Now, maximizing the right-hand side of equation (19.6) is equivalent to maximum likelihood estimation in a complete data set where the sum of the sufficient statistics coincides with the expected sufficient statistics $E_{Q}[\tau(\langle\mathcal{D},\mathcal{H}\rangle)]$ . 
+>  得到期望充分统计量后，我们根据期望充分统计量计算最大化 (19.6) 的参数，就得到了最大化期望对数似然的参数
+
+These two steps are exactly the E- step and M-step we take in each iteration of the EM procedure shown in algorithm 19.2. In the procedure, the distribution $Q$ that we are using is $P({\mathcal{H}}\mid\mathcal{D},\theta^{t})$ . Because instances are assumed to be independent given the parameters, it follows that 
 
 $$
 P(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t})=\prod_{m}P(\pmb{h}[m]\mid\pmb{o}[m],\pmb{\theta}^{t}),
 $$ 
+where $\pmb h[m]$ are the missing variables in the $m$ ’th data instance, and $\pmb o[m]$ are the observations in the $m$ ’th instance. Thus, we see that in the $t$ ’th iteration of the EM procedure, we choose $\pmb{\theta}^{t+1}$ to be the ones that maximize $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ with $Q(\mathcal{H})=P({\mathcal{H}}\mid\mathcal{D},\pmb \theta^{t})$ . This discussion allows us to understand a single iteration as an (implicit) optimization step of a well-deﬁned target function. 
 
-where $h[m]$ are the missing variables in the $m$ ’th data instance, and $o[m]$ are the observations in the $m$ ’th instance. Thus, we see that in the $t$ ’th iteration of the EM procedure, we choose $\pmb{\theta}^{t+1}$ to be the ones that maximize $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ with $Q(\mathcal{H})=P(\bar{\mathcal{H}}\mid\mathcal{D},\theta^{t})$ . This discussion allows us to understand a single iteration as an (implicit) optimization step of a well-deﬁned target function. 
+>  分布 $Q$ 定义为给定观测和当前参数，隐变量的后验分布，因为我们假设给定参数时，各个数据实例相互独立，故分布 $Q$ 可以按照数据实例分解
+>  那么，在 EM 算法的第 $i$ 次迭代，我们就是在选择能够最大化 $E_Q[\ell (\pmb \theta: \langle \mathcal D, \mathcal H \rangle)]$ 的参数 $\pmb \theta^{t+1}$，其中后验分布 $Q$ 定义为 $P(\mathcal H \mid \mathcal D, \pmb \theta^{t+1})$
 
-Choosing $Q$ The discussion so far has showed that we can use properties of exponential models to efciently maximize the expected log-likelihood function. Moreover, we have seen that the $t$ ’th EM iteration can be viewed as maximizing $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ where $Q$ is the conditional probability $P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ . This discussion, however, does not provide us with guidance as to why we choose this particular auxiliary distribution $Q$ . Note that each iteration uses a different $Q$ distribution, and thus we cannot relate the optimization taken in one iteration to the ones made in the subsequent one. We now show why the choice $Q(\mathcal{H})=P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta}^{t})$ allows us to prove that each EM iteration improves the likelihood function. 
+**Choosing $Q$** The discussion so far has showed that we can use properties of exponential models to efficiently maximize the expected log-likelihood function. Moreover, we have seen that the $t$ ’th EM iteration can be viewed as maximizing $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ where $Q$ is the conditional probability $P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ . This discussion, however, does not provide us with guidance as to why we choose this particular auxiliary distribution $Q$ . Note that each iteration uses a different $Q$ distribution, and thus we cannot relate the optimization taken in one iteration to the ones made in the subsequent one. We now show why the choice $Q(\mathcal{H})=P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta}^{t})$ allows us to prove that each EM iteration improves the likelihood function. 
+>  我们开始证明，将 $Q(\mathcal H)$ 定义为 $P(\mathcal H \mid \mathcal D, \pmb \theta^{t+1})$ 将保证每次 EM 迭代都提高似然函数
 
-To do this, we will deﬁne a new function that will be the target of our optimization. Recall that our ultimate goal is to maximize the log-likelihood function. The log-likelihood is a function only of $\theta$ ; however, in intermediate steps, we also have the current choice of $Q$ . Therefore, we will deﬁne a new function that accounts for both $\theta$ and $Q$ , and view each step in the algorithm as maximizing this function. 
+To do this, we will deﬁne a new function that will be the target of our optimization. Recall that our ultimate goal is to maximize the log-likelihood function. The log-likelihood is a function only of $\pmb \theta$ ; however, in intermediate steps, we also have the current choice of $Q$ . Therefore, we will deﬁne a new function that accounts for both $\pmb \theta$ and $Q$ , and view each step in the algorithm as maximizing this function. 
+>  在 EM 的每一次迭代，我们实际上是在最大化一个和 $\pmb \theta$ 和 $Q$ 相关的函数，我们需要先给出该函数的定义
 
 We already encountered a similar problem in our discussion of approximate inference in chapter 11. Recall that in that setting we had a known distribution $P$ and attempted to ﬁnd an approximating distribution $Q$ . This problem is similar to the one we face, except that in learning we also change the parameters of target distribution $P$ to maximize the probability of the data. 
+>  这和近似推理的情况类似，近似推理尝试找到 $P$ 的最优近似 $Q$
+>  在学习的情况下，我们需要同时优化 $P$ 的参数也最大化数据似然
 
 Let us brieﬂy summarize the main idea that we used in chapter 11. Suppose that $P=\tilde{P}/Z$ is some distribution, where $\tilde{P}$ is an unnormalized part of the distribution, speciﬁed by a product energy functional of factors, and $Z$ is the partition function that ensures that $P$ sums up to one. We deﬁned the energy functional as 
 
 $$
 F[P,Q]=E_{Q}\Bigl[\log\tilde{P}\Bigr]+H_{Q}(\mathcal{X}).
 $$ 
+>  我们有分布 $\tilde P$，可以表示为多个因子的能量泛函的乘积，$Z$ 是 $\tilde P$ 的划分函数
+>  我们将关于 $P$ 和 $Q$ 的能量泛函定义如上
 
 We then showed that the logarithm of the partition function can be rewritten as: 
 
 $$
 \log Z=F[P,Q]+D(Q\|P).
 $$ 
+>  容易知道，能量泛函实际就是划分函数 $Z$ 的对数减去 $Q$ 和 $P$ 的 KL 散度
+>  或者说能量泛函加上 $Q$ 和 $P$ 的 KL 散度就得到了 $\log Z$
 
 How does this apply to the case of learning from missing data? We can choose 
 
 $$
 P(\mathcal{H}\mid\mathcal{D},\pmb\theta)=P(\mathcal{H},\mathcal{D}\mid\pmb\theta)/P(\mathcal{D}\mid\pmb\theta)
 $$ 
+as our distribution over $\mathcal{H}$ (we hold $\mathcal{D}$ and $\pmb \theta$ ﬁxed or now). With this choice, the partition functional $Z(\pmb \theta)$ is the data likelihood $P({\mathcal{D}}\mid\theta)$ and $\tilde{P}$ is the joint probability $P({\mathcal{H}},{\mathcal{D}}\mid{\boldsymbol{\theta}})$ , so that $\log\tilde{P}={\ell}(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)$ . 
 
-as our d tion over $\mathcal{H}$ (we hold $\mathcal{D}$ and $\theta$ ﬁxed or now). With this choice, the partition func $Z(\theta)$ likelihood $P({\mathcal{D}}\mid\theta)$ and $\tilde{P}$ is the joint probability $P({\mathcal{H}},{\mathcal{D}}\mid{\boldsymbol{\theta}})$ , so that $\log\tilde{P}=\check{\ell}(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)$ ⟨D H⟩ . Rewriting the energy functional for this new setting, we obtain: 
+>  考虑后验分布 $P(\mathcal H \mid \mathcal D, \pmb \theta)$ ，根据贝叶斯定理，它可以写为 $P(\mathcal H, \mathcal D\mid \pmb \theta)/ P(\mathcal D\mid \pmb \theta)$
+>  注意这里 $\mathcal D, \pmb \theta$ 都视作给定的量，因此联合分布 $P(\mathcal H, \mathcal D\mid \pmb \theta)$ 仍然是一个仅关于 $\mathcal H$ 的分布
+>  我们将联合分布 $P(\mathcal H, \mathcal D\mid \pmb \theta)$ 视作 $\tilde P$，将数据集似然 $P(\mathcal D\mid \pmb \theta)$ 视作划分函数
+>  注意 $\log \tilde P = \log P(\mathcal H, \mathcal D\mid \pmb \theta) = \ell(\pmb \theta : \langle \mathcal D, \mathcal H\rangle)$，联合分布 $\tilde P$ 取对数就是参数 $\pmb \theta$ 下的数据集似然
+
+Rewriting the energy functional for this new setting, we obtain: 
 
 $$
 F_{\mathcal{D}}[\pmb{\theta},Q]=\pmb{E}_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]+\pmb{H}_{Q}(\mathcal{H}).
 $$ 
+>  我们考虑任意另一个 $\mathcal H$ 上的分布 $Q(\mathcal H)$，容易知道它和给定参数和观测时的后验分布 $P = \tilde P/Z = P(\mathcal H\mid\mathcal D, \pmb \theta)$ 之间的能量泛函形式如上
 
-expected log-likelihood 
+Note that the ﬁrst term is precisely the expected log-likelihood relative to $Q$ . Applying our earlier analysis, we now can prove 
 
-Corollary 19.1 Note that the ﬁrst term is precisely the expected log-likelihood relative to $Q$ . Applying our earlier analysis, we now can prove 
+**Corollary 19.1** 
+For any $Q$,
 
 $$
 \begin{array}{l l l}{\ell(\pmb\theta:\mathcal D)}&{=}&{F_{\mathcal D}[\pmb\theta,Q]+\pmb D(Q(\mathcal H)\|P(\mathcal H\mid\mathcal D,\pmb\theta))}\\ &{=}&{\pmb E_{Q}[\ell(\pmb\theta:\langle\mathcal D,\mathcal H\rangle)]+\pmb H_{Q}(\mathcal H)+\pmb D(Q(\mathcal H)\|P(\mathcal H\mid\mathcal D,\pmb\theta)).}\end{array}
 $$ 
+>  引理
+>  对于任意的 $Q(\mathcal H)$，可以将观测数据集似然 $\ell(\pmb \theta: \mathcal D)$ 写为以上形式
+>  即 $P(\mathcal H, \mid \mathcal D,\pmb \theta)$ 和 $Q$ 之间的能量泛函再加上 $P(\mathcal H\mid \mathcal D ,\pmb \theta)$ 和 $Q$ 之间的 KL 散度
 
-data completion Both equalities have important ramiﬁcations. Starting from the second equality, since both the entropy $H_{Q}(\mathcal{H})$ H and the relative entropy $D(Q({\mathcal{H}})\|P({\mathcal{H}}\mid{\mathcal{D}},\theta))$ H | | H | D are nonnegative, we conclude that the expected log-likelihood $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ wer bound on $\ell(\pmb\theta:\mathcal D)$ . This result is choice of distribution $Q$ . If we select $Q(\mathcal{H})$ H to be the data completion distribution $P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta})$ H | D , the relative entropy term becomes zero. In this case, the remaining term $H_{Q}({\mathcal{H}})$ H captures to a certain extent the diference between the expected log-likelihood and the real log-likelihood. Intuitively, when $Q$ is close to being deterministic, the expected value is close to the actual value. 
+Both equalities have important ramiﬁcations. Starting from the second equality, since both the entropy $H_{Q}(\mathcal{H})$ and the relative entropy $D(Q({\mathcal{H}})\|P({\mathcal{H}}\mid{\mathcal{D}},\theta))$ are nonnegative, we conclude that the expected log-likelihood $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ is a lower bound on $\ell(\pmb\theta:\mathcal D)$ . This result is choice of distribution $Q$ . If we select $Q(\mathcal{H})$ to be the data completion distribution $P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta})$ , the relative entropy term becomes zero. In this case, the remaining term $H_{Q}({\mathcal{H}})$ captures to a certain extent the difference between the expected log-likelihood and the real log-likelihood. Intuitively, when $Q$ is close to being deterministic, the expected value is close to the actual value. 
+>  考虑第二个等式，因为熵和 KL 散度/相对熵都是非负的，故可以知道期望对数似然 $E_Q[\ell(\pmb \theta: \langle \mathcal D, \mathcal H \rangle)]$ 是实际对数似然 $\ell(\pmb \theta:\mathcal D)$ 的下界
+>  当 $Q$ 是后验分布 $P(\mathcal H \mid \mathcal D, \pmb \theta)$ 时，相对熵为 0，此时熵 $H_Q(\mathcal H)$ 捕获了期望对数似然和实际对数似然之间的差异
+>  直观上，当 $Q = P(\mathcal H\mid \mathcal D, \pmb \theta)$ 接近于确定性，$Q$ 的熵接近 0，期望对数似然就接近于真实对数似然，因为此时可以根据 $\mathcal D$ 近乎确定地判断出 $\mathcal H$ 的取值
 
-The ﬁrst equality, for the same reasons, shows that, for any distribution $Q$ , the $F$ function is a lower bound on the log-likelihood. Moreover, this lower bound is tight for every choice of $\theta$ : if w choose $Q=P(\mathcal{H}\mid\mathcal{D},\theta)$ , the two functions have the same value. Thus, if we maximize the F function, we are bound to maximize the log-likelihood. 
-
-coordinate ascent 
+The ﬁrst equality, for the same reasons, shows that, for any distribution $Q$ , the $F$ function is a lower bound on the log-likelihood. Moreover, this lower bound is tight for every choice of $\pmb \theta$ : if we choose $Q=P(\mathcal{H}\mid\mathcal{D},\theta)$ , the two functions have the same value. Thus, if we maximize the F function, we are bound to maximize the log-likelihood. 
+>  考虑第一个等式，因为 KL 散度非负，故能量泛函 $F$ 是真实对数似然的一个下界
+>  注意该下界对于任意的参数选择 $\pmb \theta$ 都是一个紧密下界，当 $Q = P(\mathcal H\mid \mathcal D, \pmb \theta)$ 时，下界取到真实值
+>  因此，最大化能量泛函 $F$ 等价于最大化对数似然
 
 There many possible ways to optimize this target function. We now show that the EM procedure we described can be viewed as implicitly optimizing the EM functional $F$ using a particular optimization strategy. The strategy we are going to utilize is a coordinate ascent optimization. We start with some choice $\theta$ of parameters. We then search for $Q$ that maximizes $F_{\mathcal{D}}[\pmb{\theta},Q]$ while keeping $\theta$ ﬁxed. Next, we ﬁx $Q$ and search for parameters that maximize $F_{\mathcal{D}}[\pmb{\theta},Q]$ . We continue in this manner until convergence. We now consider each of these steps. 
+>  我们论证之前描述的 EM 过程等价于使用坐标上升方法优化能量泛函 $F$
+>  即，我们从特定参数 $\pmb \theta$ 开始，固定参数 $\pmb \theta$，寻找最大化能量泛函 $F_{\mathcal D}[\pmb \theta, Q]$ 的分布 $Q$；之后，固定 $Q$，寻找最大化能量泛函 $F_{\mathcal D}[\pmb \theta, Q]$ 的参数 $\pmb \theta$
+>  该过程重复直到收敛
 
-• Optimizing $Q$ . Suppose that $\theta$ are ﬁxed, and we are searching for arg max Q $F_{\mathcal{D}}[\pmb{\theta},Q]$ . Using corollary 19.1, we know that, if $Q^{*}=P(\mathcal{H}\mid\mathcal{D},\theta)$ , then 
+- **Optimizing $Q$ .** Suppose that $\theta$ are ﬁxed, and we are searching for $\arg \max_Q F_{\mathcal{D}}[\pmb{\theta},Q]$ . Using corollary 19.1, we know that, if $Q^{*}=P(\mathcal{H}\mid\mathcal{D},\theta)$ , then 
 
 $$
 F_{\mathcal{D}}[\pmb{\theta},Q^{*}]=\ell(\pmb{\theta}:\mathcal{D})\geq F_{\mathcal{D}}[\pmb{\theta},Q].
 $$ 
-Thus, we maximize the EM functional by choosing the auxiliary distribution $Q^{*}$ . In other words, we can view the E-step as implicitly optimizing $Q$ by using $P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ in computing the expected sufficient statistics. 
+Thus, we maximize the EM functional by choosing the auxiliary distribution $Q^{*}$ . In other words, we can view the E-step as implicitly optimizing $Q$ by using $P(\mathcal{H}\mid\mathcal{D},\pmb \theta^{t})$ in computing the expected sufficient statistics. 
 
-• Optimizing $\theta$ . Suppose $Q$ is ﬁxed, and that we wish to ﬁnd arg max θ $F_{\mathcal{D}}[\pmb{\theta},\mathbf{Q}]$ . Because the only term in $F$ that involves $\theta$ is $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ ⟨D H⟩ , the maximization is equivalent to maximizing the expected log-likelihood. As we saw, we can ﬁnd the maximum by comput- ing expected sufficient statistics and then solving the MLE given these expected sufficient statistics. 
+>  优化 $Q$
+>  根据引理 19.1，$\arg\max_Q F_{\mathcal D} = P(\mathcal H\mid \mathcal D,\pmb \theta)$，此时 $F_{\mathcal D} = \ell(\pmb \theta: \mathcal D)$
+>  因此，寻找最优的 $Q$ 等价于 EM 过程的 E-step 根据后验分布计算期望充分统计量
 
-Convergence of EM The discussion so far shows that the EM procedure can be viewed as maximizing an objective function; because the objective function can be shown to be bounded, this procedure is guaranteed to converge. However, it is not clear what can be said about the convergence points of this procedure. We now analyze the convergence points of this procedure in terms of our true objective: the log-likelihood function. Intuitively, as our procedure is optimizing the energy functional, which is a tight lower bound of the log-likelihood function, each step of this optimization also improves the log-likelihood. This intuition is illustrated in ﬁgure 19.8. In more detail, the E-step is selecting, at the current set of parameters, the distribution $Q^{t}$ for which the energy functional is a tight wer bound to $\ell(\pmb\theta:{\mathcal D})$ . The energy functional, which is a well-behaved concave function in θ , can be maximized efectively via the M-step, taking us to the parameters $\pmb{\theta}^{t+1}$ . Since the energy functional is guaranteed to remain below the log-likelihood function, this step is guaranteed to improve the log-likelihood. Moreover, the improvement is guaranteed to be at least as large as the improvement in the energy functional. More formally, using corollary 19.1, we can now prove the following generalization of theorem 19.3: 
+- **Optimizing $\theta$ .** Suppose $Q$ is ﬁxed, and that we wish to ﬁnd $\arg \max_\theta F_{\mathcal{D}}[\pmb{\theta},\mathbf{Q}]$ . Because the only term in $F$ that involves $\theta$ is $E_{Q}[\ell(\pmb{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]$ , the maximization is equivalent to maximizing the expected log-likelihood. As we saw, we can ﬁnd the maximum by computing expected sufficient statistics and then solving the MLE given these expected sufficient statistics. 
+
+>  优化 $\pmb \theta$
+>  此时目标是找到 $\arg\max_{\pmb \theta}F_{\mathcal D}$，根据引理 19.1，此时 $F_{\mathcal D}$ 拆分后，和 $\pmb \theta$ 相关的项就是期望对数似然 $E_{Q}[\ell(\pmb \theta: \langle \mathcal D, \mathcal H\rangle)]$，故此时的优化问题等价于根据期望充分统计量进行 MLE 估计，等价于 EM 过程的 M-step
+
+**Convergence of EM** The discussion so far shows that the EM procedure can be viewed as maximizing an objective function; because the objective function can be shown to be bounded, this procedure is guaranteed to converge. However, it is not clear what can be said about the convergence points of this procedure. We now analyze the convergence points of this procedure in terms of our true objective: the log-likelihood function.
+>  根据之前的讨论，EM 过程可以视作最大化能量泛函 $F$
+>  因为能量泛函有界，故该过程保证会收敛
+>  我们开始讨论其收敛点
+
+ Intuitively, as our procedure is optimizing the energy functional, which is a tight lower bound of the log-likelihood function, each step of this optimization also improves the log-likelihood. This intuition is illustrated in ﬁgure 19.8. 
+ >  直观上，因为能量泛函是真实对数似然的紧密下界，故每一步对能量泛函的优化也会增大真实对数似然
+ 
+ In more detail, the E-step is selecting, at the current set of parameters, the distribution $Q^{t}$ for which the energy functional is a tight lower bound to $\ell(\pmb\theta:{\mathcal D})$ . The energy functional, which is a well-behaved concave function in $\pmb \theta$ , can be maximized effectively via the M-step, taking us to the parameters $\pmb{\theta}^{t+1}$ . 
+>  E-step 是基于当前参数 $\pmb \theta$ 选择分布 $Q$，使得能量泛函达到上界 $\ell (\pmb \theta: \mathcal D)$
+>  M-step 则优化参数以提高上界 $\ell(\pmb \theta:\mathcal D)$，能量泛函是相对于 $\pmb \theta$ 的凹函数 (相对于 $\pmb \theta$，能量泛函就是期望对数似然 + 常数)，因此这一步的优化是高效的
+ 
+ Since the energy functional is guaranteed to remain below the log-likelihood function, this step is guaranteed to improve the log-likelihood. Moreover, the improvement is guaranteed to be at least as large as the improvement in the energy functional. 
+>  因为能量泛函一定小于对数似然函数，故提高能量泛函保证会提高对数似然，并且提高幅度保证至少和能量泛函的提高幅度相同 
+ 
+ More formally, using corollary 19.1, we can now prove the following generalization of theorem 19.3: 
+
+**Theorem 19.5**
+During iterations of the EM procedure of algorithm 19.2, we have that
 
 $$
 \begin{array}{r}{\ell(\pmb{\theta}^{t+1}:\mathcal{D})-\ell(\pmb{\theta}^{t}:\mathcal{D})\geq\pmb{E}_{P(\mathcal{H}|\mathcal{D},\pmb{\theta}^{t})}\big[\ell(\pmb{\theta}^{t+1}:\mathcal{D},\mathcal{H})\big]-\pmb{E}_{P(\mathcal{H}|\mathcal{D},\pmb{\theta}^{t})}\big[\ell(\pmb{\theta}^{t}:\mathcal{D},\mathcal{H})\big].}\end{array}
 $$ 
-
 As a consequence, we obtain that: 
 
 $$
 \ell(\pmb\theta^{t}:\mathcal D)\leq\ell(\pmb\theta^{t+1}:\mathcal D).
 $$ 
+> 定理
+> EM 过程迭代中，以上两个不等式成立
+> 第一个不等式表示参数更新时，对数似然的提升一定大于等于能量泛函的提升
+> 第二个不等式表示参数更新时，对数似然一定是不减的
 
-gin with the ﬁrst statement. Using corollary 19.1, with the distribution $Q^{t}({\mathcal{H}})=$ $P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ we have that 
+Proof We begin with the ﬁrst statement. Using corollary 19.1, with the distribution $Q^{t}({\mathcal{H}})=$ $P(\mathcal{H}\mid\mathcal{D},\pmb \theta^{t})$ we have that 
 
 $$
-\begin{array}{r c l}{\ell(\pmb{\theta}^{t+1}:\mathscr{D})}&{=}&{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t+1}:\langle\mathscr{D},\mathscr{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathscr{H})+\pmb{D}(Q^{t}(\mathscr{H})\|P(\mathscr{H}\mid\mathscr{D},\pmb{\theta}^{t+1})}\\ {\ell(\pmb{\theta}^{t}:\mathscr{D})}&{=}&{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t}:\langle\mathscr{D},\mathscr{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathscr{H})+\pmb{D}(Q^{t}(\mathscr{H})\|P(\mathscr{H}\mid\mathscr{D},\pmb{\theta}^{t}))}\\ &{=}&{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t}:\langle\mathscr{D},\mathscr{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathscr{H}).}\end{array}
+\begin{align}{\ell(\pmb{\theta}^{t+1}:\mathcal{D})}&{=}{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t+1}:\langle\mathcal{D},\mathcal{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathcal{H})+\pmb{D}(Q^{t}(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t+1})}\\ {\ell(\pmb{\theta}^{t}:\mathcal{D})}&{=}{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathcal{H})+\pmb{D}(Q^{t}(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t}))}\\ &{=}{\pmb{E}_{Q^{t}}\big[\ell(\pmb{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\big]+\pmb{H}_{Q^{t}}(\mathcal{H}).}\end{align}
 $$ 
+>  根据引理 19.1，当 $Q = Q^t$，将参数 $\pmb \theta^t, \pmb \theta^{t+1}$ 的对应的对数似然分解
 
-The last step is justiﬁed by our choice of $Q^{t}(\mathcal{H})=P(\mathcal{H}\mid\mathcal{D},\theta^{t})$ . Subtracting these two terms, we have that 
+The last step is justiﬁed by our choice of $Q^{t}(\mathcal{H})=P(\mathcal{H}\mid\mathcal{D},\pmb \theta^{t})$ . Subtracting these two terms, we have that 
 
 $$
 \begin{array}{r l}&{\ell(\pmb{\theta}^{t+1}:\mathcal{D})-\ell(\pmb{\theta}^{t}:\mathcal{D})=}\\ &{\qquad\pmb{E}_{\boldsymbol{Q}^{t}}\big[\ell(\pmb{\theta}^{t+1}:\mathcal{D},\mathcal{H})\big]-\pmb{E}_{\boldsymbol{Q}^{t}}\big[\ell(\pmb{\theta}^{t}:\mathcal{D},\mathcal{H})\big]+\pmb{D}(\boldsymbol{Q}^{t}(\mathcal{H})\|\boldsymbol{P}(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t+1})).}\end{array}
 $$ 
-
 Because the last term is nonnegative, we get the desired inequality. 
 
-To prove the second statement of the theorem, we note that $\pmb{\theta}^{t+1}$ is the value of $\theta$ that maximizes $E_{P(\mathcal{H}|\mathcal{D},\theta^{t})}[\ell(\pmb{\theta}:\mathcal{D},\mathcal{H})]$ . Hence the value obtained for this expression for $\pmb{\theta}^{t+1}$ is at H|D least at large as the value obtained for any other set of parameters, including $\theta^{t}$ . It follows that the right-hand side of the inequality is nonnegative, which implies the second statement. 
+>  将上面减去下面，就得到了定理 19.5 的第一个式子
 
-We conclude that EM performs a variant of hill climbing, in the sense that it improves the log-likelihood at each step. Moreover, the M-step can be understood as maximizing a lower-bound on the improvement in the likelihood. Thus, in a sense we can view the algorithm as searching for the largest possible improvement, when using the expected log-likelihood as a proxy for the actual log-likelihood. 
+To prove the second statement of the theorem, we note that $\pmb{\theta}^{t+1}$ is the value of $\pmb \theta$ that maximizes $E_{P(\mathcal{H}|\mathcal{D},\pmb \theta^{t})}[\ell(\pmb{\theta}:\mathcal{D},\mathcal{H})]$ . Hence the value obtained for this expression for $\pmb{\theta}^{t+1}$ is at least at large as the value obtained for any other set of parameters, including $\pmb \theta^{t}$ . It follows that the right-hand side of the inequality is nonnegative, which implies the second statement. 
+>  EM 过程中，参数 $\pmb \theta^{t+1}$ 是我们寻找的最大化期望对数似然 $E_{P (\mathcal{H}|\mathcal{D},\pmb \theta^{t})}[\ell (\pmb{\theta}:\mathcal{D},\mathcal{H})]$ 的参数 $\pmb \theta$，故当 $\pmb \theta$ 为 $t+1$ 时，该目标一定不小于 $\pmb \theta$ 为 $t$ 时的值
 
-For most learning problems, we know that the log-likelihood is upper bounded. For example, if we have discrete data, then the maximal likelihood we can assign to the data is 1 . Thus, the log-likelihood is bounded by 0 . If we have a continuous model, we can construct examples where the likelihood can grow unboundedly; however, we can often introduce constraints on the parameters that guarantee a bound on the likelihood (see exercise 19.10). If the log-likelihood is bounded, and the EM iterations are nondecreasing in the log-likelihood, then the sequence of log-likelihoods at successive iterations must converge. 
+**We conclude that EM performs a variant of hill climbing, in the sense that it improves the log-likelihood at each step. Moreover, the M-step can be understood as maximizing a lower-bound on the improvement in the likelihood. Thus, in a sense we can view the algorithm as searching for the largest possible improvement, when using the expected log-likelihood as a proxy for the actual log-likelihood.** 
+>  根据上述讨论，EM 执行的实际就是爬坡的一个变体，它在每一步都会提高对数似然
+>  其中，M-step 可以视作通过最大化对数似然的下界来提高对数似然，我们进而可以将该算法视作用期望对数似然替代真实对数似然，来搜索最大的可能提升 (根据期望对数似然进行 MLE 估计)
 
-The question is what can be said about this convergence point. Ideally, we would like to guar- antee convergence to the maximum value of our log-likelihood function. Unfortunately, as we mentioned earlier, we cannot provide this guarantee; however, we can now prove theorem 19.4, which shows convergence to a ﬁxed point of the log-likelihood function, that is, one where the gradient is zero. We restate the theorem for convenience: 
+For most learning problems, we know that the log-likelihood is upper bounded. For example, if we have discrete data, then the maximal likelihood we can assign to the data is 1 . Thus, the log-likelihood is bounded by 0 . If we have a continuous model, we can construct examples where the likelihood can grow unboundedly; however, we can often introduce constraints on the parameters that guarantee a bound on the likelihood (see exercise 19.10). 
+>  对于大多数学习问题，对数似然存在上界
+>  例如，对于离散数据，我们可以赋予数据的最大似然就是 1，因此对数似然的上界就是 0
+>  对于连续模型，我们可以构造让似然趋向无穷大的样例 (连续情况下，似然函数是根据概率密度函数定义的，而不是概率质量函数，概率密度函数可以趋向于正无穷，不受概率质量函数在 01 之间的限制)，但我们可以为参数引入约束以确保似然有界
 
-We now co sider the gradient of $\ell(\pmb\theta:{\mathcal D})$ with respect to $\theta$ . Since the term $H_{Q}({\mathcal{H}})$ H does not depend on θ , we get that 
+If the log-likelihood is bounded, and the EM iterations are nondecreasing in the log-likelihood, then the sequence of log-likelihoods at successive iterations must converge. 
+>  而如果对数似然有界，同时 EM 迭代保证对数似然不减，故 EM 算法就一定会收敛
+
+The question is what can be said about this convergence point. Ideally, we would like to guarantee convergence to the maximum value of our log-likelihood function. Unfortunately, as we mentioned earlier, we cannot provide this guarantee; however, we can now prove theorem 19.4, which shows convergence to a ﬁxed point of the log-likelihood function, that is, one where the gradient is zero. We restate the theorem for convenience: 
+>  EM 算法不能保证收敛到似然函数的最大值，但可以保证收敛到似然函数的一个固定点，即梯度为零的点
+
+**Theorem 19.6**
+Suppose $\pmb \theta^{t}$ is such that $\pmb \theta^{t+1} = \pmb \theta^t$ during EM, and $\pmb \theta^t$ is an interior point of the allowed parameter space. Then $\pmb \theta^t$ is a stationary point of the log-likelihood function.
+>  定理
+>  EM 过程中 $\pmb \theta^t = \pmb \theta^{t+1}$，且 $\pmb \theta^{t}$ 是参数空间的内点，则 $\pmb \theta^t$ 是对数似然函数的驻点
+
+Proof
+We start by rewriting the log-likelihood function using corollary 19.1.
 
 $$
-\nabla_{\boldsymbol{\theta}}\boldsymbol{\ell}(\boldsymbol{\theta}:\mathcal{D})=\nabla_{\boldsymbol{\theta}}E_{\boldsymbol{Q}}[\boldsymbol{\ell}(\boldsymbol{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]+\nabla_{\boldsymbol{\theta}}\boldsymbol{\mathcal{D}}(\boldsymbol{Q}(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta})).
+\ell(\pmb \theta:\mathcal D) = E_Q[\ell(\pmb \theta:\langle \mathcal D, \mathcal H \rangle)] + H_Q(\mathcal H) + D(Q(\mathcal H) || P(\mathcal H\mid \mathcal D, \pmb \theta))
+$$
+
+We now consider the gradient of $\ell(\pmb\theta:{\mathcal D})$ with respect to $\pmb \theta$ . Since the term $H_{Q}({\mathcal{H}})$ H does not depend on $\pmb \theta$ , we get that 
+
+$$
+\nabla_{\boldsymbol{\theta}}\boldsymbol{\ell}(\boldsymbol{\theta}:\mathcal{D})=\nabla_{\boldsymbol{\theta}}E_{\boldsymbol{Q}}[\boldsymbol{\ell}(\boldsymbol{\theta}:\langle\mathcal{D},\mathcal{H}\rangle)]+\nabla_{\boldsymbol{\theta}}{{D}}({Q}(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta})).
 $$ 
+This observation is true for any choice of $Q$ . 
 
-This observation is true for any choice of $Q$ . Now suppose we are in an EM iteration. In this case, we set $Q=P(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t})$ and evaluate the gradient at $\theta^{t}$ 
+>  我们先将对数似然函数按照引理 19.1 分解，然后计算梯度的形式如上
 
-A somewhat simpliﬁed proof runs as follows. Because θ ${\boldsymbol{\theta}}\,=\,{\boldsymbol{\theta}}^{t}$ is a minimum of the KL- divergence term, we know that $\nabla_{\boldsymbol{\theta}}D(Q(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta}^{t}))$ H | | H | D is 0 . This implies that 
+Now suppose we are in an EM iteration. In this case, we set $Q=P(\mathcal{H}\mid\mathcal{D},\pmb{\theta}^{t})$ and evaluate the gradient at $\pmb \theta^{t}$ 
+
+A somewhat simpliﬁed proof runs as follows. Because ${\boldsymbol{\theta}}\,=\,{\boldsymbol{\theta}}^{t}$ is a minimum of the KL-divergence term, we know that $\nabla_{\boldsymbol{\theta}}D(Q(\mathcal{H})\|P(\mathcal{H}\mid\mathcal{D},\boldsymbol{\theta}^{t}))$ is 0 . This implies that 
 
 $$
 \nabla_{\pmb\theta}\ell(\pmb\theta^{t}:\mathcal D)=\nabla_{\pmb\theta}\pmb E_{Q}\big[\ell(\pmb\theta^{t}:\langle\mathcal D,\mathcal H\rangle)\big].
 $$ 
-
 Or, in other words, $\nabla_{\boldsymbol{\theta}}\ell(\boldsymbol{\theta}^{t}:\mathcal{D})=0$ if and only if $\nabla_{\boldsymbol{\theta}}E_{Q}\left[\boldsymbol{\ell}(\boldsymbol{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\right]=0$ . 
 
-Recall that $\pmb{\theta}^{t+1}=\arg\operatorname*{max}_{\pmb{\theta}}\pmb{E}_{Q}\big[\ell(\pmb{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\big]$ ⟨D H⟩ . Hence the gradient of the expected likelihood at $\theta^{t+1}$ is 0 . Thus, we conclude that θ $\pmb\theta^{t+1}=\pmb\theta^{t}$ only if $\nabla_{\boldsymbol{\theta}}E_{Q}\left[\boldsymbol{\ell}(\boldsymbol{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\right]=0$  . And so, at this point, $\nabla_{\boldsymbol{\theta}}\ell(\boldsymbol{\theta}^{t}:\mathcal{D})=0$ . This implies that this set of parameters is a stationary point of the log-likelihood function. 
+>  EM 过程中，我们令 $Q = P(\mathcal H\mid \mathcal D, \pmb \theta^t)$，因为后验分布使得 KL 散度为零，显然此时 KL 散度的梯度项为零
+>  故此时对数似然函数的梯度就等于期望对数似然函数的梯度
+>  故 EM 过程中，对数似然函数的梯度为 0 当且仅当期望对数似然函数的梯度为 0
+
+Recall that $\pmb{\theta}^{t+1}=\arg\operatorname*{max}_{\pmb{\theta}}\pmb{E}_{Q}\big[\ell(\pmb{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\big]$ . Hence the gradient of the expected likelihood at $\pmb \theta^{t+1}$ is 0 . Thus, we conclude that $\pmb\theta^{t+1}=\pmb\theta^{t}$ only if $\nabla_{\boldsymbol{\theta}}E_{Q}\left[\boldsymbol{\ell}(\boldsymbol{\theta}^{t}:\langle\mathcal{D},\mathcal{H}\rangle)\right]=0$  . And so, at this point, $\nabla_{\boldsymbol{\theta}}\ell(\boldsymbol{\theta}^{t}:\mathcal{D})=0$ . This implies that this set of parameters is a stationary point of the log-likelihood function.
+>  新参数 $\pmb \theta^{t+1}$ 是最大化期望对数似然的参数，因此期望对数似然相对于 $\pmb \theta^{t+1}$ 的梯度也为零
+>  因为期望对数似然相对于 $\pmb \theta$ 是凹函数，故 $\pmb \theta^{t} = \pmb \theta^{t+1}$ 当且仅当期望对数似然相对于 $\pmb \theta^t$ 的梯度也为 0
+>  因此，EM 过程中，如果 $\pmb \theta^{t} = \pmb \theta^{t+1}$，则对数似然相对于参数 $\pmb \theta^{t}$ 的梯度就是 0，此时对数似然函数就达到了一个驻点
 
 The actual argument has to be somewhat more careful. Recall that the parameters must lie within some allowable set. For example, the parameters of a discrete random variable must sum up to one. Thus, we are searching within a constrained space of parameters. When we have constraints, we often do not have zero gradient. Instead, we get to a stationary point when the gradient is orthogonal to the constraints (that is, local changes within the allowed space do not improve the likelihood). The arguments we have stated apply equally well when we replace statements about equality to 0 with orthogonality to the constraints on the parameter space. 
+>  注意参数存在限制，需要处于某个允许的集合中
+>  在约束下，往往得不到梯度为零的点，得到的驻点往往是梯度与约束正交的点，此时再向梯度方向前进就会违反约束 
+>  (不正交时，可以向梯度在约束上的投影前进，在遵循约束的前提下提高似然)
+>  因此，在约束下，EM 算法保证收敛到的是参数空间中梯度方向和约束方向正交的点
 
 #### 19.2.2.6 Hard-Assignment EM 
 In section 19.2.2.4, we brieﬂy mentioned the idea of using a hard assignment to the hidden variables, in the context of applying EM to Bayesian clustering. We now generalize this simple idea to the case of arbitrary Bayesian networks. 
@@ -14169,7 +14307,7 @@ So far we have discussed two algorithms for parameter learning with incomplete d
 
 There are several points of similarity in the overall strategy of both algorithms. Both algorithms are local in nature. At each iteration they maintain a “current” set of parameters, and use these to ﬁnd the next set. Moreover, both perform some version of greedy optimization based on the current point. Gradient ascent attempts to progress in the steepest direction from the current point. EM performs a greedy step in improving its target function given the local parameters. Finally, both algorithms provide a guarantee to converge to local maxima (or, more precisely, to stationary points where the gradient is 0 ). On one hand, this is an important guarantee, in the sense that both are at least locally maximal. On the other hand, this is a weak guarantee, since many real-world problems have multimodal likelihood functions, and thus we do not know how far the learned parameters are from the global maximum (or maxima). 
 
-In terms of the actual computational steps, the two algorithms are also quite similar. For table-CPDs, the main component of either an EM iteration or a gradient step is computing the expected sufficient statistics of the data given the current parameters. This involves performing inference on each instance. Thus, both algorithms can exploit dynamic programming procedures (for example, clique tree inference) to compute all the expected sufficient statistics in an instance efciently. 
+In terms of the actual computational steps, the two algorithms are also quite similar. For table-CPDs, the main component of either an EM iteration or a gradient step is computing the expected sufficient statistics of the data given the current parameters. This involves performing inference on each instance. Thus, both algorithms can exploit dynamic programming procedures (for example, clique tree inference) to compute all the expected sufficient statistics in an instance efficiently. 
 
 In term of implementation details, the algorithms provide different beneﬁts. On one hand, gradient ascent allows to use “black box” nonlinear optimization techniques, such as conjugate gradient ascent (see appendix A.5.2). This allows the implementation to build on a rich set of existing tools. Moreover, gradient ascent can be easily applied to various CPDs by using the chain rule of derivatives. On the other hand, EM relies on maximization from complete data. Thus, it allows for a fairly straightforward use of learning procedure for complete data in the case of incomplete data. The only change is replacing the part that accumulates sufficient statistics by a procedure that computes expected sufficient statistics. As such, most people ﬁnd EM easier to implement. 
 
@@ -14245,9 +14383,6 @@ The data in this application are a point cloud representation of an indoor envir
 
 The EM algorithm can be used to ﬁt a more compact representation of the environment to the data, reducing the noise and providing a smoother, more realistic output. In particular, in this example, the model consists of a set of $3D$ planes $p_{1},\dots,p_{K}$ , each characterized by two parameters $\begin{array}{r}{\alpha_{k},\beta_{k}.}\end{array}$ , where $\alpha_{k}$ is a unit-length vector in $I\!\!R^{3}$ that encodes the plane’s surface normal vector, and $\beta_{k}$ is a scalar that denotes its distance to the origin of the global coordinate system. Thus, the distance of any point $_{_{x}}$ to the plane is $d({\pmb x},p_{k})=|\alpha_{k}{\pmb x}-\beta_{k}|$ . 
 
-![](images/2283a6e3a3bdc2d2f5bf45696b760c24cc27242457cd4c15219ad72eaa66be38.jpg) 
-Figure 19.D.1 — Sample results from EM-based 3D plane mapping (a) Raw data map obtained from range ﬁnder. (b) Planes extracted from map using EM. (c) Fragment of reconstructed surface using raw data. (d) The same fragment reconstructed using planes. 
-
 correspondence variable data association 
 
 The probabilistic model also needs to specify, for each point $\pmb{x}_{m}$ in the point cloud, to which plane $\pmb{x}_{m}$ belongs. This assignment can be modeled via a set of correspondence variables $C_{m}$ such that $C_{m}=k$ if the measurement point $\pmb{x}_{m}$ was generated by the k th plane. Each assignment to the correspondence variables, which are unobserved, encodes a possible solution to the data ee box 12.D for more details.) We deﬁne $P(\mathbf{X}_{m}\mid\mathbf{\mu}C_{m}=\boldsymbol{k}:\mathbf{\theta}_{k})$ ) to be $\propto\mathcal{N}\left(d({\pmb x},p_{k})\mid0;\sigma^{2}\right)$ . In addition, we also allow an additional value $C_{m}\,=\,0$ that encodes points that are not generated by any of the planes; the distribution $P(X_{m}\mid C_{m}=0)$ is taken to be uniform over the (ﬁnite) space. 
@@ -14257,44 +14392,62 @@ Given a probabilistic model, the EM algorithm can be applied to ﬁnd the assign
 The results of this algorithm are shown in ﬁgure 19.D.1. One can see that the resulting map is considerably smoother and more realistic than the results derived directly from the raw data. 
 
 ### 19.2.4 Approximate Inference\* 
-The main computational cost in both gradient ascent and EM is in the computation of expected sufficient statistics. This step requires running probabilistic inference on each instance in the training data. These inference steps are needed both for computing the likelihood and for computing the posterior probability over events of the form $x,\mathrm{Da}_{X}$ for each variable and its parents. For some models, such as the naive Bayes clustering model, this inference step is almost trivial. For other models, this inference step can be extremely costly. In practice, we often want to learn parameters for models where exact inference is impractical. Formally, this happens when the tree-width of the unobserved parts of the model is large. (Note the contrast to learning from complete data, where the cost of learning the model did not depend on the complexity of inference.) In such situations the cost of inference becomes the limiting factor in our ability to learn from data. 
+The main computational cost in both gradient ascent and EM is in the computation of expected sufficient statistics. This step requires running probabilistic inference on each instance in the training data. These inference steps are needed both for computing the likelihood and for computing the posterior probability over events of the form $x,\mathrm{pa}_{X}$ for each variable and its parents. For some models, such as the naive Bayes clustering model, this inference step is almost trivial. For other models, this inference step can be extremely costly. In practice, we often want to learn parameters for models where exact inference is impractical. Formally, this happens when the tree-width of the unobserved parts of the model is large. (Note the contrast to learning from complete data, where the cost of learning the model did not depend on the complexity of inference.) In such situations the cost of inference becomes the limiting factor in our ability to learn from data. 
+>  梯度上升和 EM 中主要的计算量在于对训练数据中的每个实例进行推理，以计算充分统计量
+>  为形式为 $x, \mathrm{pa}_X$ 的事件计算似然和后验概率时，都需要进行推理
+>  实践中，需要学习的模型的推理往往过于昂贵，因为模型的未观测部分的树宽过大 (注意从完整数据中学习的开销不涉及推理的复杂度)
 
-Recall the network discussed in example 6.11 and example 19.9, where we have n students taking m classes, and the grade for each student in each class depends on both the difculty of the class and his or her intelligence. In the ground network for this example, we have a set of variables $I=\{I(s)\}$ for the $n$ students (denoting the intelligence le el of each student $S_{.}$ ), $D=\{D(c)\}$ for the m courses (denoting the difculty level of each course c ), and $G=\{G(s,c)\}$ for the grades, where each variable $G(s,c)$ has as parents $I(s)$ and $D(c)$ . Since this network is derived from $^a$ plate model, the CPDs are all shared, so we only have three CPDs that must be learned: $P(I(S))$ , $^{\dag}(D(C)),P(G(S,C)\mid I(S),D(C))$ . 
+Example 19.9
+Recall the network discussed in example 6.11 and example 19.9, where we have n students taking m classes, and the grade for each student in each class depends on both the difficulty of the class and his or her intelligence. In the ground network for this example, we have a set of variables $I=\{I(s)\}$ for the $n$ students (denoting the intelligence level of each student $S_{.}$ ), $D=\{D(c)\}$ for the m courses (denoting the difficulty level of each course c ), and $G=\{G(s,c)\}$ for the grades, where each variable $G(s,c)$ has as parents $I(s)$ and $D(c)$ . Since this network is derived from $^a$ plate model, the CPDs are all shared, so we only have three CPDs that must be learned: $P(I(S))$ , $P(D(C)),P(G(S,C)\mid I(S),D(C))$ . 
 
-Suppose we only observe the grades of the students but not their intelligence or the difculty of courses, and we want to learn this model. First, we note that there is no way to force the model to respect our desired semantics for the (hidden) variables $I$ and $D$ ; for example, a model in which we ﬂip the two values for $I$ is equally good. Nevertheless, we can hope that some value for $I$ will correspond to “high intelligence” and the other to “low intelligence,” and similarly for $D$ . 
+Suppose we only observe the grades of the students but not their intelligence or the difficulty of courses, and we want to learn this model. First, we note that there is no way to force the model to respect our desired semantics for the (hidden) variables $I$ and $D$ ; for example, a model in which we ﬂip the two values for $I$ is equally good. Nevertheless, we can hope that some value for $I$ will correspond to “high intelligence” and the other to “low intelligence,” and similarly for $D$ . 
 
 To perform EM in this model, we need to infer the expected counts of assignments to triplets of variables of the form $I(s),D(c),G(s,c)$ . Since we have parameter sharing, we will aggregate these counts and then estimate the CPD $P(G(S,C)\mid I(S),D(C))$ from the aggregate counts. The problem is that observing a variable $G(s,c)$ couples its two parents. Thus, this network induces $a$ Markov network that has a pairwise potential between any pair of $I(s)$ and $D(c)$ variables that share an observed child. If enough grade variables are observed, this network will be close to a full bipartite graph, and exact inference about the posterior probability becomes intractable. This creates a serious problem in applying either EM or gradient ascent for learning this seemingly simple model from data. 
 
 An obvious solution to this problem is to use approximate inference procedures. A simple approach is to view inference as a “black box.” Rather than invoking exact inference in the learning procedures shown in algorithm 19.1 and algorithm 19.2, we can simply invoke one of the approximate inference procedures we discussed in earlier chapters. This view is elegant because it decouples the choices made in the design of the learning procedure from the choices made in the approximate inference procedures. 
+>  该问题的一个解决方法就是使用近似推理
 
-However, this decoupling can obscure important efects of the approximation on our learning procedure. For example, suppose we use approximate inference for computing the gradient in a gradient ascent approach. In this case, our estimate of the gradient is generally somewhat wrong, and the errors in successive iterations are generally not consistent with each other. Such inaccuracies can confuse the gradient ascent procedure, a problem that is particularly signiﬁcant when the procedure is closer to the convergence point and the gradient is close to 0 , so that the errors can easily dominate. A key question is whether learning with approximate inference results in an approximate learning procedure; that is, whether we are guaranteed to ﬁnd a local maximum of an approximation of the likelihood function. In general, there are very few cases where we can provide any types of guarantees on the interaction between approximate inference and learning. Nevertheless, in practice, the use of approximate inference is often unavoidable, and so many applications use some form of approximate inference despite the lack of theoretical guarantees. 
+However, this decoupling can obscure important effects of the approximation on our learning procedure. For example, suppose we use approximate inference for computing the gradient in a gradient ascent approach. In this case, our estimate of the gradient is generally somewhat wrong, and the errors in successive iterations are generally not consistent with each other. Such inaccuracies can confuse the gradient ascent procedure, a problem that is particularly signiﬁcant when the procedure is closer to the convergence point and the gradient is close to 0 , so that the errors can easily dominate. **A key question is whether learning with approximate inference results in an approximate learning procedure; that is, whether we are guaranteed to ﬁnd a local maximum of an approximation of the likelihood function. In general, there are very few cases where we can provide any types of guarantees on the interaction between approximate inference and learning. Nevertheless, in practice, the use of approximate inference is often unavoidable, and so many applications use some form of approximate inference despite the lack of theoretical guarantees.** 
+>  注意近似推理显然对学习过程存在影响
+>  例如使用近似推理计算梯度，我们的梯度估计一般存在偏差，尤其是在接近收敛点，真实梯度接近零的情况下，近似估计的偏差会占据主导
+>  我们需要确保近似推理过程下，学习过程是一个近似学习过程，也就是保证此时的学习过程可以找到近似似然函数的一个局部极大值，但在实践中，我们很少能这样确保
+>  尽管如此，近似推理还是需要被使用，因此许多应用都在没有理论确保的情况下使用近似推理
 
-One class of approximation algorithms for which a unifying perspective is useful is in the combination of EM with the global approximate inference methods of chapter 11. Let us con- sider ﬁrst the structured variational methods of section 11.5, where the integration is easiest to understand. In these methods, we are attempting to ﬁnd an approximate distribution $Q$ that is close to an unnormalized distribution $\tilde{P}$ in which we are interested. We saw that algorithms in this class can be viewed as ﬁnding a distribution $Q$ in a suitable family of distributions that maximizes the energy functional: 
+One class of approximation algorithms for which a unifying perspective is useful is in the combination of EM with the global approximate inference methods of chapter 11. 
+
+Let us consider ﬁrst the structured variational methods of section 11.5, where the integration is easiest to understand. In these methods, we are attempting to ﬁnd an approximate distribution $Q$ that is close to an unnormalized distribution $\tilde{P}$ in which we are interested. We saw that algorithms in this class can be viewed as ﬁnding a distribution $Q$ in a suitable family of distributions that maximizes the energy functional: 
 
 $$
-F[\tilde{P},Q]=E_{Q}\Bigl[\log\tilde{P}\Bigr]+H_{Q}(\mathcal{X}).
+F[{P},Q]=E_{Q}\Bigl[\log\tilde{P}\Bigr]+H_{Q}(\mathcal{X}).
 $$ 
-
 Thus, in these approximate inference procedures, we search for a distribution $Q$ that maximizes 
 
 $$
-\operatorname*{max}_{Q\in{\mathcal{Q}}}F[\tilde{P},Q].
+\operatorname*{max}_{Q\in{\mathcal{Q}}}F[{P},Q].
 $$ 
+>  我们考虑结构变分方法 (近似推理) 和 EM 方法 (学习) 的结合
+>  结构变分法意在找到规范化分布 $P$ 的近似分布 $Q$，根据推导，我们知道最优的分布 $Q$ 就是能够最大化能量泛函 $F[P, Q]$ 的分布
 
-variational EM 
-
-We saw that we can view EM as an attempt to maximize the same energy functional, with the diference that we are also optimizing over the parameter iz ation $\theta$ of $\tilde{P}$ . We can combine both goals into a single objective by requiring that the distribution $Q$ used in the EM functional come from a particular family $\mathcal{Q}$ . Thus, we obtain the following variational $E M$ problem: 
+We saw that we can view EM as an attempt to maximize the same energy functional, with the difference that we are also optimizing over the parameterization $\pmb \theta$ of $\tilde{P}$ . We can combine both goals into a single objective by requiring that the distribution $Q$ used in the EM functional come from a particular family $\mathcal{Q}$ . Thus, we obtain the following variational EM problem: 
 
 $$
-\operatorname*{max}_{\theta}\operatorname*{max}_{Q\in\mathcal{Q}}F_{\mathcal{D}}[\theta,Q],
-$$ 
+\operatorname*{max}_{\pmb \theta}\operatorname*{max}_{Q\in\mathcal{Q}}F_{\mathcal{D}}[\pmb\theta,Q],\tag{19.7}
+$$
 
-where $\mathcal{Q}$ is a family of approximate distributions we are considering for representing the distri- bution over the unobserved variables. 
+where $\mathcal{Q}$ is a family of approximate distributions we are considering for representing the distribution over the unobserved variables. 
 
-To apply the variational EM framework, we need to choose the family of distributions $\mathcal{Q}$ that will be used to approximate the distribution $P(\mathcal{H}\mid\mathcal{D},\theta)$ . Importantly, because this posterior distribution is a product of the posteriors for the different training instance, our approximation $Q$ can take the same form without incurring any error. Thus, we need only to decide how to represent the posterior $P(h[m]\mid o[m],\theta)$ for each instance $m$ . We therefore deﬁne a class $\mathcal{Q}$ that we will use to approximate $P(h[m]\mid o[m],\theta)$ . Importantly, since the evidence $o[m]$ is different for each data instance $m$ , the posterior distribution for each instance is also different, and hence we need to use a different distribution $Q[m]\in{\mathcal{Q}}$ to approximate the posterior for each data instance. In principle, using the techniques of section 11.5, we can use any class $\mathcal{Q}$ that allows tractable inference. In actice, a common solution is to use the mean ﬁeld approximation, where we assume that Q is a product of marginal distributions (one per each unobserved value). 
+>  根据之前的推导，我们知道 EM 过程同样可以视作最大化该能量泛函，差异仅在于 EM 过程还需要对 $P$ 的参数进行优化
+>  变分 EM 问题写为 (19.7) 的形式，其中 $\mathcal Q$ 是我们考虑的用于近似后验分布 $P(\mathcal H\mid \mathcal D,\pmb \theta)$ 一族近似分布
+>  (变分 EM 和标准 EM 的差异仅在于 E-step，标准 EM 中，E-step 需要精确求出后验分布 $P(\mathcal H\mid \mathcal D, \pmb \theta)$，变分 EM 中，E-step 采用的是变分方法求出后验分布 $P(\mathcal H\mid \mathcal D, \pmb \theta)$ 的一个近似分布)
+
+To apply the variational EM framework, we need to choose the family of distributions $\mathcal{Q}$ that will be used to approximate the distribution $P(\mathcal{H}\mid\mathcal{D},\pmb \theta)$ . Importantly, because this posterior distribution is a product of the posteriors for the different training instance, our approximation $Q$ can take the same form without incurring any error. Thus, we need only to decide how to represent the posterior $P(h[m]\mid o[m],\theta)$ for each instance $m$ . We therefore deﬁne a class $\mathcal{Q}$ that we will use to approximate $P(h[m]\mid o[m],\theta)$ . Importantly, since the evidence $o[m]$ is different for each data instance $m$ , the posterior distribution for each instance is also different, and hence we need to use a different distribution $Q[m]\in{\mathcal{Q}}$ to approximate the posterior for each data instance. In principle, using the techniques of section 11.5, we can use any class $\mathcal{Q}$ that allows tractable inference. In practice, a common solution is to use the mean ﬁeld approximation, where we assume that $Q$ is a product of marginal distributions (one per each unobserved value). 
+>  考虑变分族 $\mathcal Q$ 的选择
+>  注意后验分布 $P(\mathcal H\mid \mathcal D, \pmb \theta)$ 本身就是各个训练实例的后验分布的乘积，因此 $\mathcal Q$ 也应该采用相同的形式
+>  故我们实际应该决定的就是如何为每个实例 $m$ 表示后验 $P(\pmb h[m]\mid \pmb o[m], \pmb \theta)$，因此我们考虑的是选择近似 $P(\pmb h[m]\mid \pmb o[m], \pmb \theta)$ 的分布族 $\mathcal Q$
+>  但注意每个数据实例 $\pmb o[m]$ 都不同，每个实例隐变量 $\pmb h[m]$ 所服从的具体后验分布也不同，因此，我们实际上需要为每个实例选择一个 $Q[m]\in \mathcal Q$ 以最好地近似 $P(\pmb h[m]\mid \pmb o[m],\pmb \theta)$
+>  原则上可以使用任意可解的分布作为 $Q$，实践中常使用平均场近似，即所有的变量边际独立，$Q$ 完全分解
 
 Example 19.10 
-
 Importantly, although the prior over the variables $I(s_{1}),\ldots,I(s_{n})$ is identical, their posterior is generally different. Thus, the marginal of each of the variable has different parameters in $Q$ (and similarly for the $D(c)$ variables). 
 
 In our approximate $E$ -step, given a set of parameters $\theta$ for the model, we need to compute approximate expected sufficient statistics. We do so in two steps. First, we use iterations of the mean ﬁeld update equation equation (11.54) to ﬁnd the best choice of marginals in $Q$ to approximate $P(I(s_{1}),.\,.\,,I(s_{n}),D(c_{1}),.\,.\,,D(c_{m})\;\mid\;o,\theta)$ . We then use the distribution $Q$ to compute approximate expected sufficient statistics by ﬁnding: 
@@ -14304,26 +14457,37 @@ $$
 $$ 
 
 Given our choice of $\mathcal{Q},$ , we can optimize the variational EM objective very similarly to the optimization of the exact EM objective, by iterating over two steps: 
+>  给定变分分布族 $\mathcal Q$，变分 EM 的形式和标准 EM 相似，包括以下两步：
 
-variational E-step • Variational E-step For each $m$ , ﬁnd 
+- **Variational E-step** For each $m$ , find 
 
 $$
-Q^{t}[m]=\arg\operatorname*{max}_{Q\in Q}F_{o[m]}[\pmb\theta,Q].
+Q^{t}[m]=\arg\operatorname*{max}_{Q\in Q}F_{\pmb o[m]}[\pmb\theta,Q].
 $$ 
-
 This step is identical to our deﬁnition of variational inference in chapter 11, and it can be implemented using the algorithms we discussed there, usually involving iterations of local updates until convergence. 
 
-At the end of this step, we have an approximate distribution $\begin{array}{r}{Q^{t}=\prod_{m}Q^{t}[m]}\end{array}$ ] and can collect the expected sufficient statistics. To compute the expected sufficient statistics, we combine the observed values in the data with expected counts from the distribution $Q$ . This process requires answering queries about events in the distribution $Q$ . For some approximations, such as the mean ﬁeld approximation, we can answer such queries efciently (that is, by multiplying the marginal probabilities over each variables); see example 19.10. If we use a richer class of approximate distributions, we must perform a more elaborate inference process. Note that, because the approximation $Q$ is simpler than the original distribution $P$ , we have no guarantee that a clique tree for $Q$ will respect the family-preservation property relative to families in $P$ . Thus, in some cases, we may need to perform queries that are outside the clique tree used to perform the E-step (see section 10.3.3.2). 
+>  变分 E-step
+>  对每个 $m$，找到最优变分分布 $Q^t [m]$，最优变分分布即变分族 $\mathcal Q$ 中能够最大化能量泛函 $F_{\pmb o[m]}$ 的分布
+>  找到最优变分分布的算法在之前讨论过，一般是迭代进行局部更新直到收敛
+>  容易直到，变分分布的迭代更新中，每一次更新我们都得到更接近 $P(\mathcal H\mid \mathcal D, \pmb \theta)$ 的分布，进而也是在迭代式地提高能量泛函
 
-• M-step We ﬁnd a new set of parameters 
+At the end of this step, we have an approximate distribution $\begin{array}{r}{Q^{t}=\prod_{m}Q^{t}[m]}\end{array}$ and can collect the expected sufficient statistics. To compute the expected sufficient statistics, we combine the observed values in the data with expected counts from the distribution $Q$ . This process requires answering queries about events in the distribution $Q$ . For some approximations, such as the mean ﬁeld approximation, we can answer such queries efficiently (that is, by multiplying the marginal probabilities over each variables); see example 19.10. If we use a richer class of approximate distributions, we must perform a more elaborate inference process. Note that, because the approximation $Q$ is simpler than the original distribution $P$ , we have no guarantee that a clique tree for $Q$ will respect the family-preservation property relative to families in $P$ . Thus, in some cases, we may need to perform queries that are outside the clique tree used to perform the E-step (see section 10.3.3.2). 
+>  得到变分分布 $Q^t[m]$ 之后，我们在变分分布中执行查询，计算期望计数，与观测值结合得到近似的期望充分统计量
+
+- **M-step** We ﬁnd a new set of parameters 
 
 $$
 \pmb{\theta}^{t+1}=\arg\operatorname*{max}_{\pmb{\theta}}F_{\mathcal{D}}[\pmb{\theta},Q^{t}];
-$$ 
+$$
 
 this step is identical to the M-step in standard EM. 
 
-The preceding algorithm is essentially performing coordinate-wise ascent alternating between optimization of $Q$ and $\theta$ . It opens up the way to alternative ways of maximizing the same objective function. For example, we can limit the number of iterations in the variational E-step. Since each such iteration improves the energy functional, we do not need to reach a maximum in the $Q$ dimension before making an improvement to the parameters. 
+>  M-step
+>  这一步和标准 EM 相同，我们基于近似期望充分统计量对参数进行 MLE 估计
+
+The preceding algorithm is essentially performing coordinate-wise ascent alternating between optimization of $Q$ and $\pmb \theta$ . It opens up the way to alternative ways of maximizing the same objective function. For example, we can limit the number of iterations in the variational E-step. Since each such iteration improves the energy functional, we do not need to reach a maximum in the $Q$ dimension before making an improvement to the parameters. 
+>  上述算法本质上交替在 $Q$ 和 $\pmb \theta$ 上执行坐标上升迭代，以最大化能量泛函
+>  因为变分近似的更新是迭代的过程，我们不必要在变分 E-step 一定找到当前最优的变分近似 $Q$，可以限制在一定的迭代次数内，也就是不必要在 $Q$ 维度走到局部最优才走 $\pmb \theta$ 维度
 
 Importantly, regardless of the method used to optimize the variational EM functional of equation (19.7), we can provide some guarantee regarding the properties of our optimum. Recall that we showed that 
 
@@ -14333,9 +14497,27 @@ $$
 
 Thus, maximizing the objective of equation (19.7) maximizes a lower bound of the likelihood. When we limit the choice of $Q$ to be in a particular family, we cannot necessarily get a tight bound on the likelihood. However, since we are maximizing a lower bound, we know that we do not overestimate the likelihood of parameters we are considering. If the lower bound is relatively good, this property implies that we distinguish high-likelihood regions in the parameter space from very low ones. Of course, if the lower bound is loose, this guarantee is not very meaningful. 
 
-We can try to extend these ideas to other approximation methods. For example, general- ized belief propagation section 11.3 is an attractive algorithm in this context, since it can be fairly efcient. Moreover, because the cluster graph satisﬁes the family preservation property, computation of an expected sufficient statistic can be done locally within a single cluster in the graph. The question is whether such an approximation can be understood as maximizing a clear objective. Recall that cluster-graph belief propagation can be viewed as attempting to maximize an approximation of the energy functional where we replace the term $H_{Q}(\mathcal X)$ X by approximate entropy terms. Using exactly the same arguments as before, we can then show that, if we use generalized belief propagation for computing expected sufficient statistics in the E-step, then we are effectively attempting to maximize the approximate version of the energy functional. In this case, we cannot prove that this approximation is a lower bound to the correct likelihood. Moreover, if we use a standard message passing algorithm to compute the ﬁxed points of the energy functional, we have no guarantees of convergence, and we may get oscillations both within an E-step and over several steps, which can cause signiﬁcant problems in practice. Of course, we can use other approximations of the energy functional, including ones that are guaranteed to be lower bounds of the likelihood, and algorithms that are guaranteed to be convergent. These approaches, although less commonly used at the moment, share the same beneﬁts of the structured variational approximation. 
+>  我们知道，在 E-step 中，真实后验分布 $P(\mathcal H\mid \mathcal D,\pmb \theta)$ 下，能量泛函达到其上界——真实对数似然，我们优化变分分布的过程就是使得能量泛函不断接近这个上界的过程，或者说我们在最大化真实对数似然的一个下界
+>  这个下界不一定是紧密的下界，它和我们选择的变分分布族 $\mathcal Q$ 有关
+>  如果这个下界较为紧密，我们的近似期望统计量就接近期望统计量，在 M-step 的参数 MLE 中，我们就容易从参数空间的低似然区域更新到高似然区域
+>  如果下界较为松弛，则没有这样的保证
+
+We can try to extend these ideas to other approximation methods. For example, generalized belief propagation section 11.3 is an attractive algorithm in this context, since it can be fairly efficient. Moreover, because the cluster graph satisﬁes the family preservation property, computation of an expected sufficient statistic can be done locally within a single cluster in the graph. 
+>  E-step 使用的近似推理方法不限于变分方法，还可以考虑其他近似推理方法
+>  例如信念传播算法，该算法也简单高效，并且因为簇图满足族保持性质，计算期望充分统计量时 (在近似分布中进行推理时) 可以在簇图中的当个簇完成
+
+The question is whether such an approximation can be understood as maximizing a clear objective. Recall that cluster-graph belief propagation can be viewed as attempting to maximize an approximation of the energy functional where we replace the term $H_{Q}(\mathcal X)$ by approximate entropy terms. Using exactly the same arguments as before, we can then show that, if we use generalized belief propagation for computing expected sufficient statistics in the E-step, then we are effectively attempting to maximize the approximate version of the energy functional.  
+>  再考虑能否将它理解为优化一个目标
+>  实际上簇图信念传播算法等价于优化能量泛函的一个近似，其中我们将 $H_Q(\mathcal X)$ 替换为了一个近似熵项
+>  因此，根据之前类似的推导过程，在 E-step 使用簇图信念传播进行近似推理等价于最大化能量泛函的一个近似
+
+In this case, we cannot prove that this approximation is a lower bound to the correct likelihood. Moreover, if we use a standard message passing algorithm to compute the ﬁxed points of the energy functional, we have no guarantees of convergence, and we may get oscillations both within an E-step and over several steps, which can cause signiﬁcant problems in practice. Of course, we can use other approximations of the energy functional, including ones that are guaranteed to be lower bounds of the likelihood, and algorithms that are guaranteed to be convergent. These approaches, although less commonly used at the moment, share the same beneﬁts of the structured variational approximation.
+>  此时我们不能证明该近似是真实似然的一个下界，同时我们没有收敛保证，且容易在 E-step 震荡
+>  当然其他的近似推理方法也可以使用
+>  实践中最常用的是结构变分近似
 
 More broadly, the ability to characterize the approximate algorithm as attempting to optimize a clear objective function is important. For example, an immediate consequence is that, to monitor the progress of the algorithm, we should evaluate the approximate energy functional, since we know that, at least when all goes well, this quantity should increase until the convergence point. 
+>  能够将近似推理算法表示为优化一个清晰的目标函数是重要的，例如，我们可以通过监控目标函数的变化考察算法是否在收敛
 
 ## 19.6 Summary 
 In this chapter, we considered the problem of learning in the presence of incomplete data. We saw that learning from such data introduces several signiﬁcant challenges. 
