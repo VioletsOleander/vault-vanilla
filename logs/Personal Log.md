@@ -79,7 +79,7 @@ Date: 2024.8.19-2024.8.26
 Date: 2024.8.26-2024.9.9
 
 \[Paper\]
-- [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: Sec1-Sec5
+- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec1-Sec5
 
 \[Book\]
 - [[Pro Git]]: CH 7.1
@@ -96,13 +96,13 @@ Date: 2024.9.2-2024.9.9
 Date: 2024.9.9-2024.9.16
 
 \[Paper\]
-- [[A Survey of Large Language Models v13-2023|A Survey of Large Language Models]]: CH6-CH7
+- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: CH6-CH7
     CH6-Utilization
         Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
-- [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|Are Emergent Abilities of Large Language Models a Mirage?]]: All
+- [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|2023-NeurIPS-Are Emergent Abilities of Large Language Models a Mirage?]]: All
 
 \[Book\]
-- [[book-notes/Introductory Combinatorics-2009|Introductory Combinactorics]]: CH1
+- [[book-notes/Introductory Combinatorics-2009|Introductory Combinatorics]]: CH1
     CH1-What is Combinatorics
         Combinatorics: existence, enumeration, analysis, optimization of discrete/finite structures
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH2
@@ -117,7 +117,7 @@ Date: 2024.9.9-2024.9.16
 Date: 2024.9.16-2024.9.23
 
 \[Book\]
-- [[book-notes/Introductory Combinatorics-2009|Introductory Combinactorics]]: CH2
+- [[book-notes/Introductory Combinatorics-2009|Introductory Combinatorics]]: CH2
     CH2-Permutations and Combinations
         Permutation/Combination of Sets (combination = permutation + division), Permutation/Combination of Multisets (permutation of sets + division/solutions of linear equation) , classical probability
 - [[book-notes/Convex Optimization|Convex Optimization]]: CH2-CH2.5
@@ -132,7 +132,7 @@ Date: 2024.9.16-2024.9.23
 Date: 2024.9.23-2024.9.30
 
 \[Paper\]
-- [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: CH7
+- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: CH7
     CH7-Capacity and Evaluation
         LLM abilities: 1. basic ability: language generation (including code), knowledge utilization (e.g. knowledge-intensive QA) , complex reasoning (e.g. math) ; 2. advanced ability: human alignment, interaction with external environment (e.g. generate proper action plan for embodied AI), tool manipulate (e.g. call proper API according to tasks); introduction to some benchmarks
 
@@ -147,11 +147,11 @@ Date: 2024.9.23-2024.9.30
 Date: 2024.9.30-2024.10.7
 
 \[Paper\]
-- [[A Survey of Large Language Models v13-2023|A Survry of Large Language Models]]: CH8-CH9
+- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: CH8-CH9
     CH8-Applicatoin
         LLM application in various tasks
     CH9-Conclusion and future directions
-- [[Importance Sampling A Review-2010|Importance Sampling: A Review]]: All
+- [[Importance Sampling A Review-2010|2010-Importance Sampling: A Review]]: All
     IS is all about variance reduction for Monte Carlo approximation;
     Adaptive parametric Importance Sampling: $q (x)$ be defined as a multivariate normal or student distribution, then optimizing a variation correlated metric to derive an optimal parameter setting for that distribution;
     Sequential Importance Sampling: Chain decompose $p (x)$, and chain construct $q (x)$;
@@ -161,7 +161,7 @@ Date: 2024.9.30-2024.10.7
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH6-CH6.2
     CH6-Template-based Representations
         temporal models; Markov assumption + 2-TBN = DBN; DBN usually be modeled as state-observation model (the state and observation are considered separately; observation doesn't affect the state), two examples: HMM, linear dynamic system (all the dependencies are linear Gaussian)
-- [[面向计算机科学的组合数学]]: CH1.7
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH1.7
     CH1-排列组合
         CH1.7-生成全排列
             中介数和排列之间的一一对应关系
@@ -176,7 +176,7 @@ Date: 2024.10.7-2024.10.14
 
 \[Book\]
 - [[A Tour of C++]]: CH5
-- [[面向计算机科学的组合数学]]: CH2.1-CH2.3
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH2.1-CH2.3
     CH2-鸽巢原理
         鸽巢原理仅解决存在性问题
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4-CH4.3.1
@@ -206,7 +206,7 @@ Date: 2024.10.14-2024.10.21
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.3.1-CH4.4.2
     CH4.3.1-CH4.4.2: Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-separation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
-- [[面向计算机科学的组合数学]]: CH3-CH3.3
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH3-CH3.3
     CH3-母函数
         使用幂级数表示数列（数列由幂级数的系数构造）
 - [[A Tour of C++]]: CH6
@@ -254,7 +254,7 @@ Date: 2024.10.28-2024.11.4
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
     CH4.6.1-Conditional Random Fields
         CRF models conditional distribution by partially directed graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditional distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict expandability, because the parameters learned has less semantics on their own.
-- [[面向计算机科学的组合数学]]: CH4-CH4.4.1
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH4-CH4.4.1
     Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
 \[Doc\]
@@ -382,7 +382,7 @@ Date: 2024.11.11-2024.11.18
             `s` suffix's corresponding operator is defined in `std::literals::string_literals`.
             `string` 's implementation is shor-string optimized.
             `string` is actually an alias of `basic_string<char>`.
-- [[面向计算机科学的组合数学]]: CH4.4.1-CH4.5.2
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH4.4.1-CH4.5.2
     Write characteristic polynominal directly from the recurrence relation, and slove the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
 
 \[Doc\]
@@ -484,7 +484,7 @@ Date: 2024.11.18-2024.11.25
             What's more, the beliefs in cluster graph is essentially $P_{\mathcal T}$ 's marginal, where $\mathcal T$ is a subtree in the graph. This property is called tree consistency.
             For pairwise Markov networks, we can introduce a cluster for each potential, and put edges between clusters which have overlapping scope. Loopy belief propagation was originally based on this construction.
             For more complex network, we can use Bethe cluster graph, which uses bipartite graph.
-- [[面向计算机科学的组合数学]]: CH5.1-CH5.2
+- [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH5.1-CH5.2
 
 \[Doc\]
 - [[Models|huggingface/hub/Models]]: Sec0-Sec1
@@ -852,6 +852,7 @@ Date: 2024.12.30-2025.1.6
 - [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
 
 \[Book\]
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
 - [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
 
 \[Doc\]
