@@ -565,8 +565,7 @@ As we have described above, the quantity $p(\mathbf{w}\,|\,\alpha,\beta)$ cannot
 >  故我们需要借助变分推理，得到对数似然的可计算的下界，我们相对于该下界优化 $\alpha, \beta$
 >  因此，我们需要通过交替的变分 EM 过程寻找 LDA 模型的近似经验贝叶斯估计
 >  EM 过程中，我们先通过变分方法，找到最大化下界的变分参数 $\gamma, \phi$，然后固定变分参数，找到最大化下界的模型参数 $\alpha, \beta$
->  (根据 Eq (13) ，给定 $\alpha, \beta$，最大化对数似然下界的变分参数 $\gamma, \phi$ 定义的就是最小化和真实后验之间的 KL 散度的近似变分后验
->  )
+>  (根据 Eq (13) ，给定 $\alpha, \beta$，最大化对数似然下界的变分参数 $\gamma, \phi$ 定义的就是最小化和真实后验之间的 KL 散度的近似变分后验)
 
 We provide a detailed derivation of the variational EM algorithm for LDA in Appendix A.4. The derivation yields the following iterative algorithm: 
 
@@ -714,7 +713,7 @@ where
 $$
 c=\frac{\sum_{j=1}^{k}g_{j}/h_{j}}{z^{-1}\!+\!\sum_{j=1}^{k}h_{j}^{-1}}.
 $$ 
-Observe that this expression depends only on the $2k$ values $h_{i}$ and $g_{i}$ and thus yields a NewtonRaphson algorithm that has linear time complexity. 
+Observe that this expression depends only on the $2k$ values $h_{i}$ and $g_{i}$ and thus yields a Newton-Raphson algorithm that has linear time complexity. 
 ## A.3 Variational Inference 
 In this section we derive the variational inference algorithm described in Section 5.1. Recall that this involves using the following variational distribution : 
 
@@ -973,41 +972,80 @@ $$
 $$ 
 Since Eq. (17) depends on the variational multinomial $\phi$ , full variational inference requires alternating between Eqs. (16) and (17) until the bound converges. 
 
->  可以知道 $\gamma_i$ 满足 Eq (17) 时，梯度为零
+>  可以知道所有的 $\gamma_i$ 满足 Eq (17) 时，梯度为零
 >  因为 Eq (17) 依赖于变分多项式参数 $\phi$，故完整的变分推断需要迭代根据 Eq (16) 和 Eq (17) 更新，直到下界收敛
 
 ## A.4 Parameter estimation 
 In this final section, we consider the problem of obtaining empirical Bayes estimates of the model parameters $\alpha$ and $\beta$ . We solve this problem by using the variational lower bound as a surrogate for the (intractable) marginal log likelihood, with the variational parameters $\phi$ and $\gamma$ fixed to the values found by variational inference. We then obtain (approximate) empirical Bayes estimates by maximizing this lower bound with respect to the model parameters. 
+>  我们使用变分 EM 获得模型参数 $\alpha, \beta$ 的经验贝叶斯估计
+>  变分 EM 中，我们根据变分推断找到变分参数 $\phi, \gamma$，变分参数定义了似然函数的变分下界，我们继而寻找最大化该下界的经验贝叶斯估计参数
 
 We have thus far considered the log likelihood for a single document. Given our assumption of exchange ability for the documents, the overall log likelihood of a corpus $D=\left\{\mathbf{w}_{1},\mathbf{w}_{2},\ldots,\mathbf{w}_{M}\right\}$ is the sum of the log likelihoods for individual documents; moreover, the overall variational lower bound is the sum of the individual variational bounds. In the remainder of this section, we abuse notation by using $L$ for the total variational bound, indexing the document-specific terms in the individual bounds by $d$ , and summing over all the documents. 
+>  在可交换性假设下，语料库的总体对数似然等于各个文档的对数似然求和，进而总体的变分下界就是各个单独变分下界的和
+>  我们用 $L$ 表示总体的变分下界
 
-Recall from Section 5.3 that our overall approach to finding empirical Bayes estimates is based on a variational EM procedure. In the variational E-step, discussed in Appendix A.3, we maximize the bound $L(\gamma,\upphi;\alpha,\beta)$ with respect to the variational parameters $\gamma$ and $\Phi$ . In the M-step, which we describe in this section, we maximize the bound with respect to the model parameters $\alpha$ and $\beta$ . The overall procedure can thus be viewed as coordinate ascent in $L$ . 
+Recall from Section 5.3 that our overall approach to finding empirical Bayes estimates is based on a variational EM procedure. In the variational E-step, discussed in Appendix A.3, we maximize the bound $L(\gamma,\phi;\alpha,\beta)$ with respect to the variational parameters $\gamma$ and $\phi$ . In the M-step, which we describe in this section, we maximize the bound with respect to the model parameters $\alpha$ and $\beta$ . The overall procedure can thus be viewed as coordinate ascent in $L$ . 
+>  在变分 E-step 中，我们相对于变分参数 $\gamma, \phi$ 最大化下界 $L(\gamma, \phi; \alpha, \beta)$
+>  在 M-step 中，我们相对于模型参数 $\alpha, \beta$ 最大化该下界
+>  总体的过程可以视作对 $L$ 的梯度上升
 
-A.4.1 C ONDITIONAL multinomial
+### A.4.1 Conditional Multinomials
 To maximize with respect to $\beta$ , we isolate terms and add Lagrange multipliers: 
 
 $$
-L_{[\beta]}=\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\sum_{i=1}^{k}\sum_{j=1}^{V}\upphi_{d n i}w_{d n}^{j}\log\beta_{i j}+\sum_{i=1}^{k}\uplambda_{i}\left(\sum_{j=1}^{V}\beta_{i j}-1\right).
+L_{[\beta]}=\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\sum_{i=1}^{k}\sum_{j=1}^{V}\phi_{d n i}w_{d n}^{j}\log\beta_{i j}+\sum_{i=1}^{k}\lambda_{i}\left(\sum_{j=1}^{V}\beta_{i j}-1\right).
 $$ 
+>  要相对于 $\beta$ 最大化 $L$，我们找出 $L$ 中和 $\beta$ 有关的项，并添加拉格朗日乘子，得到关于 $\beta$ 的拉格朗日函数
+>  (对于每个主题 $i$，参数 $\beta_{ij}$ 要服从的约束是 $\sum_{j=1}^V \beta_{ij} =1$，因此拉格朗日乘子项涉及了 $k$ 个约束)
+
 We take the derivative with respect to ${\beta}_{i j}$ , set it to zero, and find: 
 
 $$
-\beta_{i j}\propto\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\upphi_{d n i}w_{d n}^{j}.
+\beta_{i j}\propto\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\phi_{d n i}w_{d n}^{j}.
 $$ 
-A.4.2 D IRICHLET 
+>  计算拉格朗日函数相对于 $\beta_{ij}$ 的导数，令其为零，得到 $\beta_{ij}$ 的最优解
+
+>  推导
+
+$$
+\begin{align}
+&\frac {\partial L_{[\beta]}}{\partial \beta_{ij}}\\
+=& \frac {\partial}{\partial \beta_{ij}}\left(\sum_{d=1}^M\sum_{n=1}^{N_d}\phi_{dni}w_{dn}^j \log \beta_{ij}\right) + \frac {\partial}{\partial \beta_{ij}}\left(\lambda_i \beta_{ij}\right)\\
+=&\sum_{d=1}^M\sum_{n=1}^{N_d}\phi_{dni}w_{dn}^j \frac {1}{\beta_{ij}} + \lambda_i
+\end{align}
+$$
+
+>  令导数为零，得到
+
+$$
+\begin{align}
+\frac {\partial L_{[\beta]}}{\partial \beta_{ij}}&=0\\
+\sum_{d=1}^M\sum_{n=1}^{N_d}\phi_{dni}w_{dn}^j \frac {1}{\beta_{ij}} + \lambda_i &=0\\
+\left(\sum_{d=1}^M\sum_{n=1}^{N_d}\phi_{dni}w_{dn}^j\right) \frac {1}{\beta_{ij}} &=- \lambda_i \\
+\left(\sum_{d=1}^M\sum_{n=1}^{N_d}\phi_{dni}w_{dn}^j\right) \frac {1}{\beta_{ij}} &=- \lambda_i \\
+\beta_{ij} &= \frac {\left(\sum_{d=1}^M\sum_{n=1}^{N_d}\phi_{dni}w_{dn}^j\right)}{-\lambda_i} \\
+\beta_{ij} &\propto  {\left(\sum_{d=1}^M\sum_{n=1}^{N_d}\phi_{dni}w_{dn}^j\right)}
+\end{align}
+$$
+
+>  推导完毕
+
+### A.4.2 Dirichlet
 The terms which contain $\alpha$ are: 
 
 $$
-L_{[\alpha]}=\sum_{d=1}^{M}\left(\log\Gamma\left(\sum_{j=1}^{k}\alpha_{j}\right)-\sum_{i=1}^{k}\log\Gamma(\alpha_{i})+\sum_{i=1}^{k}\left((\alpha_{i}-1)\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\Upsilon_{d j}\right)\right)\right)\right)
+L_{[\alpha]}=\sum_{d=1}^{M}\left(\log\Gamma\left(\sum_{j=1}^{k}\alpha_{j}\right)-\sum_{i=1}^{k}\log\Gamma(\alpha_{i})+\sum_{i=1}^{k}\left((\alpha_{i}-1)\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\gamma_{d j}\right)\right)\right)\right)
 $$ 
 Taking the derivative with respect to $\alpha_{i}$ gives: 
 
 $$
 \frac{\partial L}{\partial\alpha_{i}}=M\left(\Psi\left(\sum_{j=1}^{k}\alpha_{j}\right)-\Psi(\alpha_{i})\right)+\sum_{d=1}^{M}\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\gamma_{d j}\right)\right)
 $$ 
-This derivative depends on $\alpha_{j}$ , where $j\neq i$ , and we therefore must use an iterative method to find the maximal α . In particular, the Hessian is in the form found in Eq. (10): 
+This derivative depends on $\alpha_{j}$ , where $j\neq i$ , and we therefore must use an iterative method to find the maximal α . In particular, the Hessian is in the form found in Eq. (10):  
+
 $$
 \frac{\partial L}{\partial\alpha_{i}\alpha_{j}}=\updelta(i,j)M\Psi^{\prime}(\alpha_{i})-\Psi^{\prime}\left(\sum_{j=1}^{k}\alpha_{j}\right),
 $$ 
 and thus we can invoke the linear-time Newton-Raphson algorithm described in Appendix A.2. 
+
 Finally, note that we can use the same algorithm to find an empirical Bayes point estimate of $\boldsymbol\upeta$ , the scalar parameter for the exchangeable Dirichlet in the smoothed LDA model in Section 5.4. 
