@@ -850,12 +850,8 @@ Date: 2024.12.30-2025.1.6
 
 \[Paper\]
 - [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
+    
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
-- [[book-notes/一份（不太）简短的 LaTeX2e 介绍|一份（不太）简短的 LaTeX2e 介绍]]: CH3
-
-\[Doc\]
-- [[doc-notes/python/howto/general/Regular Expression HOWTO|python/howto/general/Regular Expression HOWTO]]
-- [[doc-notes/matplotlib/user-guide/Quick start guide|matplotlib/user-guide/Quick start guide]]
 
