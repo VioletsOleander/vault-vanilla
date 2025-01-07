@@ -47,7 +47,7 @@ To see how to proceed beyond pLSI, let us consider the fundamental probabilistic
 >  用概率论的语言来说，这是假设了文档中词的可交换性
 >  另外，这些方法还假设了文档是可交换的，即语料库中文档的具体排序也可以忽略不计
 
-A classic representation theorem due to de Finetti (1990) establishes that any collection of exchangeable random variables has a representation as a mixture distribution—in general an infinite mixture. Thus, if we wish to consider exchangeable representations for documents and words, we need to consider mixture models that capture the exchange ability of both words and documents. 
+A classic representation theorem due to de Finetti (1990) establishes that any collection of exchangeable random variables has a representation as a mixture distribution—in general an infinite mixture. Thus, if we wish to consider exchangeable representations for documents and words, we need to consider mixture models that capture the exchangeability of both words and documents. 
 >  de Finetti 的经典表示理论指出，任意的一组可交换随机变量都可以表示为一个混合分布——通常是无限的混合分布
 >  因此，如果我们需要考虑文档和词的可交换表示，我们就需要考虑能够同时捕获单词和文档的混合模型 
 >  (词和文档都视作随机变量，且它们可交换，这样的一组可交换随机变量应该可以被一个混合分布表示)
@@ -55,12 +55,12 @@ A classic representation theorem due to de Finetti (1990) establishes that any c
 This line of thinking leads to the latent Dirichlet allocation (LDA) model that we present in the current paper. 
 >  这一思路引出了本文介绍的 LDA 模型
 
-It is important to emphasize that an assumption of exchange ability is not equivalent to an assumption that the random variables are independent and identically distributed. Rather, exchangeability essentially can be interpreted as meaning “ conditionally independent and identically distributed,” where the conditioning is with respect to an underlying latent parameter of a probability distribution. Conditionally, the joint distribution of the random variables is simple and factored while marginally over the latent parameter, the joint distribution can be quite complex. Thus, while an assumption of exchange ability is clearly a major simplifying assumption in the domain of text modeling, and its principal justification is that it leads to methods that are computationally efficient, the exchange ability assumptions do not necessarily lead to methods that are restricted to simple frequency counts or linear operations. We aim to demonstrate in the current paper that, by taking the de Finetti theorem seriously, we can capture significant intra-document statistical structure via the mixing distribution. 
+It is important to emphasize that an assumption of exchange ability is not equivalent to an assumption that the random variables are independent and identically distributed. Rather, exchangeability essentially can be interpreted as meaning “ conditionally independent and identically distributed,” where the conditioning is with respect to an underlying latent parameter of a probability distribution. Conditionally, the joint distribution of the random variables is simple and factored while marginally over the latent parameter, the joint distribution can be quite complex. Thus, while an assumption of exchangeability is clearly a major simplifying assumption in the domain of text modeling, and its principal justification is that it leads to methods that are computationally efficient, the exchangeability assumptions do not necessarily lead to methods that are restricted to simple frequency counts or linear operations. We aim to demonstrate in the current paper that, by taking the de Finetti theorem seriously, we can capture significant intra-document statistical structure via the mixing distribution. 
 >  注意，可交换性假设不等价于假设随机变量是独立同分布的
 >  可交换性本质上可以被解释为 “条件独立且同分布”，其中的条件指概率分布的潜在参数
 >  在给定条件下，随机变量的联合分布可以分解，而在潜在参数的边际分布下，联合分布则十分复杂
 >  因此，虽然可交换性假设在文本建模领域显然是一个简化的假设，但该假设可以导出计算效率高的方法
->  同时，可交换性交涉并不一定限制方法为简单的频率计数说线性操作
+>  同时，可交换性假设并不一定限制方法为简单的频率计数或线性操作
 >  本文中，我们旨在证明，通过认真考虑 de Finetti 定理，我们可以通过混合分布捕获显著的文档内统计结构
 
 It is also worth noting that there are a large number of generalizations of the basic notion of exchange ability, including various forms of partial exchange ability, and that representation theorems are available for these cases as well (Diaconis, 1988). Thus, while the work that we discuss in the current paper focuses on simple “bag-of-words” models, which lead to mixture distributions for single words (unigrams), our methods are also applicable to richer models that involve mixtures for larger structural units such as $n$ -grams or paragraphs. 
@@ -569,8 +569,12 @@ As we have described above, the quantity $p(\mathbf{w}\,|\,\alpha,\beta)$ cannot
 
 We provide a detailed derivation of the variational EM algorithm for LDA in Appendix A.4. The derivation yields the following iterative algorithm: 
 
-1. (E-step) For each document, find the optimizing values of the variational parameters $\{\gamma_{d}^{*},\phi_{d}^{*}:$ : $d\in D\}$ . This is done as described in the previous section. 
+1. (E-step) For each document, find the optimizing values of the variational parameters $\{\gamma_{d}^{*},\phi_{d}^{*} : d\in D\}$ . This is done as described in the previous section. 
 2. (M-step) Maximize the resulting lower bound on the log likelihood with respect to the model parameters $\alpha$ and $\beta$ . This corresponds to finding maximum likelihood estimates with expected sufficient statistics for each document under the approximate posterior which is computed in the E-step. 
+
+>  LDA 的变分 EM 算法见 Appendix A.4，我们最后得到的迭代式算法如下：
+>  1. E-step：为每个文档找到最优的变分参数 $\{\gamma_d^*, \phi_d^*:d\in D\}$
+>  2. M-step：相对于模型参数 $\alpha, \beta$ 最大化对数似然下界，也即使用 E-step 计算的近似后验下的近似期望充分统计量找到模型参数的 MLE 估计
 
 In Appendix A.4, we show that the M-step update for the conditional multinomial parameter $\beta$ can be written out analytically: 
 
@@ -579,141 +583,403 @@ $$
 $$ 
 We further show that the M-step update for Dirichlet parameter $\alpha$ can be implemented using an efficient Newton-Raphson method in which the Hessian is inverted in linear time. 
 
+>  根据 Appendix A.4，条件多项式参数 $\beta$ 的更新参照如上的解析形式 
+>  (可以发现 $\beta_{ij}$ 的估计值正比于变分参数下词 $j$ 出现的加权计数)
+>  Dirichlet 参数 $\alpha$ 的更新可以使用线性时间内逆转 Hessian 的 Newton-Raphson 算法进行
+
 ## 5.4 Smoothing 
-The large vocabulary size that is characteristic of many document corpora creates serious problems of sparsity. A new document is very likely to contain words that did not appear in any of the documents in a training corpus. Maximum likelihood estimates of the multinomial parameters assign zero probability to such words, and thus zero probability to new documents. The standard approach to coping with this problem is to “smooth” the multinomial parameters, assigning positive probability to all vocabulary items whether or not they are observed in the training set (Jelinek, 1997). Laplace smoothing is commonly used; this essentially yields the mean of the posterior distribution under a uniform Dirichlet prior on the multinomial parameters. 
+The large vocabulary size that is characteristic of many document corpora creates serious problems of sparsity. A new document is very likely to contain words that did not appear in any of the documents in a training corpus. Maximum likelihood estimates of the multinomial parameters assign zero probability to such words, and thus zero probability to new documents. 
+>  许多文档语料库的词袋很大，这容易导致严重的稀疏性
+>  另外，新的文档很可能会包含训练语料库中没有的词，多项式参数的极大似然估计将会给该词赋予零概率，因此新文档也被赋予零概率
+>  (根据之前推导，极大似然估计正比于词的加权出现次数，如果词没有在训练集中，显然极大似然估计就会为其参数赋予零概率)
+
+The standard approach to coping with this problem is to “smooth” the multinomial parameters, assigning positive probability to all vocabulary items whether or not they are observed in the training set (Jelinek, 1997). Laplace smoothing is commonly used; this essentially yields the mean of the posterior distribution under a uniform Dirichlet prior on the multinomial parameters. 
+>  解决该问题的标准方法是 “平滑” 多项式参数，无论词是否在训练集中，都为该词赋予正概率
+>  常用的是 Laplace 平滑，也就是为多项式参数赋予均匀的 Dirichlet 先验，执行贝叶斯估计
+
 Unfortunately, in the mixture model setting, simple Laplace smoothing is no longer justified as a maximum a posteriori method (although it is often implemented in practice; cf. Nigam et al., 1999). In fact, by placing a Dirichlet prior on the multinomial parameter we obtain an intractable posterior in the mixture model setting, for much the same reason that one obtains an intractable posterior in the basic LDA model. Our proposed solution to this problem is to simply apply variational inference methods to the extended model that includes Dirichlet smoothing on the multinomial parameter. 
-In the LDA setting, we obtain the extended graphical model shown in Figure 7. We treat $\beta$ as a $k\times V$ random matrix (one row for each mixture component), where we assume that each row is independently drawn from an exchangeable Dirichlet distribution. We now extend our inference procedures to treat the $\beta_{i}$ as random variables that are endowed with a posterior distribution, conditioned on the data. Thus we move beyond the empirical Bayes procedure of Section 5.3 and consider a fuller Bayesian approach to LDA. 
+>  但在混合模型的设定下，简单的 Laplace 平滑不能再被证明是一个极大后验方法，此时，如果设定多项式参数服从 Dirichlet 先验，参数的后验分布是不可解的
+>  在 LDA 模型中也有类似的情况
+>  我们的解决方案是为添加了 Dirichlet 平滑的拓展 LDA 模型执行变分推理
+
+![[pics/LDA-Figure7.png]]
+
+In the LDA setting, we obtain the extended graphical model shown in Figure 7. We treat $\beta$ as a $k\times V$ random matrix (one row for each mixture component), where we assume that each row is independently drawn from an exchangeable Dirichlet distribution. 
+>  加入平滑先验后，我们获得的是 Figure 7 的拓展模型，此时我们将参数 $\beta$ 视作 $k\times V$ 的随机矩阵，其中每一行是一个混合成分，我们假设每个混合成分都独立服从一个可交换的 Dirichlet 先验分布 
+>  (可交换的 Dirichlet 分布就是仅有一个标量参数 $\eta$ 参数化的分布，所有超参数 $\alpha_i$ 都等于 $\eta$)
+
+We now extend our inference procedures to treat the $\beta_{i}$ as random variables that are endowed with a posterior distribution, conditioned on the data. Thus we move beyond the empirical Bayes procedure of Section 5.3 and consider a fuller Bayesian approach to LDA. 
+>  我们继而拓展推理过程，将 $\beta_i$ 视作随机变量，计算其条件于数据的后验分布
+>  此时我们不再执行 Section 5.3 的经验贝叶斯过程 (或者说 MLE 估计)，而是考虑完整的贝叶斯方法
+
 We consider a variational approach to Bayesian inference that places a separable distribution on the random variables ${\beta},\,\theta.$ , and $\mathbf{z}$ (Attias, 2000): 
+
 $$
-q(\beta_{1:k},\mathbf{z}_{1:M},\theta_{1:M}\,|\,\uplambda,\Upphi,\gamma)=\prod_{i=1}^{k}\mathrm{Dir}(\beta_{i}\,|\,\uplambda_{i})\prod_{d=1}^{M}q_{d}(\theta_{d},\mathbf{z}_{d}\,|\,\upphi_{d},\gamma_{d}),
-$$ 
-where $q_{d}(\boldsymbol{\Theta},\mathbf{z}\,|\,\boldsymbol{\Phi},\Upsilon)$ is the variational distribution defined for LDA in Eq. (4). As is easily verified, the resulting variational inference procedure again yields Eqs. (6) and (7) as the update equations for the variational parameters $\Phi$ and $\gamma,$ respectively, as well as an additional update for the new variational parameter $\uplambda$ : 
+q(\beta_{1:k},\mathbf{z}_{1:M},\theta_{1:M}\,|\,\lambda,\phi,\gamma)=\prod_{i=1}^{k}\mathrm{Dir}(\beta_{i}\,|\,\lambda_{i})\prod_{d=1}^{M}q_{d}(\theta_{d},\mathbf{z}_{d}\,|\,\phi_{d},\gamma_{d}),
 $$
-\lambda_{i j}=\boldsymbol{\upeta}+\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}\boldsymbol{\upphi}_{d n i}^{*}\boldsymbol{w}_{d n}^{j}.
+
+where $q_{d}({\theta},\mathbf{z}\,|\,{\phi},\gamma)$ is the variational distribution defined for LDA in Eq. (4). 
+
+>  我们为拓展模型中的参数后验分布定义变分分布如上，其中 $q_d(\theta, \mathbf z\mid \phi, \gamma)$ 是为基础 LDA 模型中的参数后验分布定义的变分分布，和 Eq (4) 中的定义一样，参数 $\beta_i$ 的后验分布的变分分布定义为条件于变分参数 $\lambda_i$ 的 Dirichlet 分布
+
+As is easily verified, the resulting variational inference procedure again yields Eqs. (6) and (7) as the update equations for the variational parameters $\phi$ and $\gamma,$ respectively, as well as an additional update for the new variational parameter $\lambda$ : 
+
+$$
+\lambda_{i j}={\eta}+\sum_{d=1}^{M}\sum_{n=1}^{N_{d}}{\phi}_{d n i}^{*}{w}_{d n}^{j}.
 $$ 
 Iterating these equations to convergence yields an approximate posterior distribution on $\beta,\theta$ , and $\mathbf{z}$ . 
-We are now left with the hyper parameter $\boldsymbol\upeta$ on the exchangeable Dirichlet, as well as the hyper parameter $\alpha$ from before. Our approach to setting these hyper parameters is again (approximate) empirical Bayes—we use variational EM to find maximum likelihood estimates of these parameters based on the marginal likelihood. These procedures are described in Appendix A.4. 
+
+>  在该定义下，变分推理过程 (学习变分分布参数的过程) 对于变分参数 $\phi, \gamma$ 的更新公式仍然是 Eq (6), Eq (7)，对于变分参数 $\lambda$ 的更新过程如上
+
+We are now left with the hyperparameter $\eta$ on the exchangeable Dirichlet, as well as the hyperparameter $\alpha$ from before. Our approach to setting these hyperparameters is again (approximate) empirical Bayes—we use variational EM to find maximum likelihood estimates of these parameters based on the marginal likelihood. These procedures are described in Appendix A.4. 
+>  得到拓展模型的参数后验的变分分布后，我们继而根据 (近似) 经验贝叶斯方法估计超参数 $\eta$ 和 $\alpha$
+>  也就是说，我们仍然使用的是变分 EM 过程学习拓展模型
+
 # 6. Example 
-In this section, we provide an illustrative example of the use of an LDA model on real data. Our data are 16,000 documents from a subset of the TREC AP corpus (Harman, 1992). After removing a standard list of stop words, we used the EM algorithm described in Section 5.3 to find the Dirichlet and conditional multinomial parameters for a 100-topic LDA model. The top words from some of the resulting multinomial distributions $p(w\,|\,z)$ are illustrated in Figure 8 (top). As we have hoped, these distributions seem to capture some of the underlying topics in the corpus (and we have named them according to these topics). 
+In this section, we provide an illustrative example of the use of an LDA model on real data. Our data are 16,000 documents from a subset of the TREC AP corpus (Harman, 1992). After removing a standard list of stop words, we used the EM algorithm described in Section 5.3 to find the Dirichlet and conditional multinomial parameters for a 100-topic LDA model.
+>  本节讨论 LDA 模型用于真实数据上的一个示例
+>  数据集是 TREC AP 语料库的一个子集，包括 16000 个文档
+>  数据集的预处理是移除标准停止词
+>  我们用 Section5.3 描述的 EM 算法为 100-主题的 LDA 模型获得多项式和 Dirichlet 参数
+
+ The top words from some of the resulting multinomial distributions $p(w\,|\,z)$ are illustrated in Figure 8 (top). As we have hoped, these distributions seem to capture some of the underlying topics in the corpus (and we have named them according to these topics). 
+>  Figure 8 展示了模型中几个多项式分布 $p(w\mid z)$ 中最高概率的几个词汇
+>  可以看到，这几个多项式分布捕获了语料库中的某个潜在主题 (多项式分布中，高概率的几个词汇都属于类似的主题)
+
+> [! info] 停止词 (Stop Words)
+> 停止词 (Stop Words) 是指在文本处理和信息检索中通常被过滤掉的常见词汇，这些词在自然语言中出现频率很高，但它们对理解句子或文档的主要含义贡献很小
+>  在诸如文本分类、情感分析、主题建模等自然语言处理任务中，去除停止词可以帮助减少噪音，提高模型效率，并专注于更有意义的词汇
+> 
+>  常见的停止词包括：
+> 
+> - **英文**：a, an, the, and, or, but, if, then, is, are, was, were, be, being, been, has, have, had, do, does, did, will, would, shall, should, can, could, may, might, must, at, by, with, from, to, in, out, on, off, for, of, as.
+> - **中文**：由于中文没有空格分隔单词，所以中文的停止词通常是单个汉字或者短语，例如：的、地、得、了、着、一、不、和、而、与、以、及、其、之、也、吗、呢、啊、哦等。
+> 
+> 停止词列表可以根据具体的应用场景进行调整。某些情况下，特定领域的术语也可能被视为停止词；其他情况下，一些通常被认为是停止词的词汇可能对任务至关重要，不应该被移除
+> 
+> 此外，随着深度学习技术的发展，尤其是在使用预训练语言模型时，直接去除停止词的做法变得不那么普遍，因为这些模型能够更好地理解和处理上下文中的所有词汇，即使是一些传统的“停止词”
+> 然而，在特征工程或更简单的机器学习方法中，停止词过滤仍然是一个常用的技术
+
+![[pics/LDA-Figure8.png]]
+
 As we emphasized in Section 4, one of the advantages of LDA over related latent variable models is that it provides well-defined inference procedures for previously unseen documents. Indeed, we can illustrate how LDA works by performing inference on a held-out document and examining the resulting variational posterior parameters. 
+
 Figure 8 (bottom) is a document from the TREC AP corpus which was not used for parameter estimation. Using the algorithm in Section 5.1, we computed the variational posterior Dirichlet parameters $\gamma$ for the article and variational posterior multinomial parameters $\phi_{n}$ for each word in the article. 
-Recall that the i th posterior Dirichlet parameter $\gamma_{i}$ is approximately the i th prior Dirichlet parameter $\mathfrak{X}_{i}$ plus the expected number of words which were generated by the i th topic (see Eq. 7). Therefore, the prior Dirichlet parameters subtracted from the posterior Dirichlet parameters indicate the expected number of words which were allocated to each topic for a particular document. For the example article in Figure 8 (bottom), most of the $\gamma_{i}$ are close to $\mathfrak{X}_{i}$ . Four topics, however, are sign i cant ly larger (by this, we mean $\gamma_{i}-\alpha_{i}\geq1\mathrm{~}$ ). Looking at the corresponding distributions over words identifies the topics which mixed to form this document (Figure 8, top). 
-Further insight comes from examining the $\phi_{n}$ parameters. These distributions approximate $p(z_{n}\,|\,\mathbf{w})$ and tend to peak towards one of the $k$ possible topic values. In the artic , the words are color coded according to these values (i.e., the i th color is used if $q_{n}(z_{n}^{i}=1)>0.9)$ 9). With this illustration, one can identify how the different topics mixed in the document text. 
-While demonstrating the power of LDA, the posterior analysis also highlights some of its limitations. In particular, the bag-of-words assumption allows words that should be generated by the same topic (e.g., “William Randolph Hearst Foundation”) to be allocated to several different topics. Overcoming this limitation would require some form of extension of the basic LDA model; in particular, we might relax the bag-of-words assumption by assuming partial exchange ability or Markov ian it y of word sequences. 
+
+>  LDA 相较于其他隐变量模型的优势在于它为未见过的文档提供了良定义的推理过程
+>  我们使用语料库的留出文档，让 LDA 执行推理，检验得到的变分后验参数 $\gamma, \phi_n$，其中 $\gamma$ 是该文档的变分后验 Dirichlet 参数，$\phi_n$ 是该文档中词的变分后验多项式参数
+
+Recall that the $i$ th posterior Dirichlet parameter $\gamma_{i}$ is approximately the $i$ th prior Dirichlet parameter $\alpha_{i}$ plus the expected number of words which were generated by the $i$ th topic (see Eq. 7). Therefore, the prior Dirichlet parameters subtracted from the posterior Dirichlet parameters indicate the expected number of words which were allocated to each topic for a particular document. For the example article in Figure 8 (bottom), most of the $\gamma_{i}$ are close to $\alpha_{i}$ . Four topics, however, are significantly larger (by this, we mean $\gamma_{i}-\alpha_{i}\geq1\mathrm{~}$ ). Looking at the corresponding distributions over words identifies the topics which mixed to form this document (Figure 8, top). 
+>  贝叶斯估计中，第 $i$ 个后验 Dirichlet 参数 $\gamma_i$ 可以近似认为是第 $i$ 个先验 Dirichlet 参数加上由第 $i$ 个主题生成的单词的期望数量 (Eq 7)
+>  因此后验 Dirichlet 参数减去先验 Dirichlet 参数就表示了该文档分配给各个主题的期望单词数
+>  例如 Figure 8 (bottom) 的文档中，大多数 $\gamma_i$ 接近 $\alpha_i$ (说明该文档分配给主题 $i$ 的期望单词数量很少)，而有四个主题的 $\gamma_i$ 则显著高于 $\alpha_i$ ($\gamma_i - \alpha_i \ge 1$)，我们可以找到这些主题下的多项式分布，以确定这些主题表达的是什么 (Figure 8, top)
+
+Further insight comes from examining the $\phi_{n}$ parameters. These distributions approximate $p(z_{n}\,|\,\mathbf{w})$ and tend to peak towards one of the $k$ possible topic values. In the article , the words are color coded according to these values (i.e., the $i$ th color is used if $q_{n}(z_{n}^{i}=1)>0.9)$ . With this illustration, one can identify how the different topics mixed in the document text. 
+>  我们进一步检验参数 $\phi_n$，参数 $\phi_n$ 定义的多项式分布近似了后验分布 $p(z_n\mid \mathbf w)$，该近似分布趋向于给 $k$ 个可能主题中某一个赋予峰值
+>  我们进而可以确定文档中每个词的最可能来源主题，以确定文档中的文本的主题混合方式
+
+While demonstrating the power of LDA, the posterior analysis also highlights some of its limitations. In particular, the bag-of-words assumption allows words that should be generated by the same topic (e.g., “William Randolph Hearst Foundation”) to be allocated to several different topics. Overcoming this limitation would require some form of extension of the basic LDA model; in particular, we might relax the bag-of-words assumption by assuming partial exchangeability or Markovianity of word sequences. 
+>  LDA 的后验分析也存在劣势，例如，词袋假设允许由同一个主题生成的词组中的每个词被分配给不同的主题
+>  要克服该限制，需要拓展基础 LDA 模型，例如假设单词序列存在部分的可交换性或 Markov 性以松弛词袋假设
+
 # 7. Applications and Empirical Results 
-In this section, we discuss our empirical evaluation of LDA in several problem domains—document modeling, document class i cation, and collaborative filtering. 
-In all of the mixture models, the expected complete log likelihood of the data has local maxima at the points where all or some of the mixture components are equal to each other. To avoid these local maxima, it is important to initialize the EM algorithm appropriately. In our experiments, we initialize EM by seeding each conditional multinomial distribution with five documents, reducing their effective total length to two words, and smoothing across the whole vocabulary. This is essentially an approximation to the scheme described in Heckerman and Meila (2001). 
-# 7.1 Document modeling 
-We trained a number of latent variable models, including LDA, on two text corpora to compare the generalization performance of these models. The documents in the corpora are treated as unlabeled; thus, our goal is density estimation—we wish to achieve high likelihood on a held-out test set. In particular, we computed the perplexity of a held-out test set to evaluate the models. The perplexity, used by convention in language modeling, is monotonically decreasing in the likelihood of the test data, and is algebraic ly equivalent to the inverse of the geometric mean per-word likelihood. A lower perplexity score indicates better generalization performance. More formally, for a test set of $M$ documents, the perplexity is: 
+In this section, we discuss our empirical evaluation of LDA in several problem domains—document modeling, document classification, and collaborative filtering. 
+>  本节讨论 LDA 模型在三个问题领域的经验评估
+
+In all of the mixture models, the expected complete log likelihood of the data has local maxima at the points where all or some of the mixture components are equal to each other. To avoid these local maxima, it is important to initialize the EM algorithm appropriately. 
+>  所有的混合模型中，数据的期望完整对数似然在部分混合成分互相相同的点上存在局部极大值 (该现象称为退化，混合成分相同时，模型的有效复杂度降低，部分成分没有贡献出模型的多样性，优化过程此时也无法通过区分成分进一步提高似然，模型达到了局部最优值)
+>  避免该局部极大值要求我们恰当初始化 EM 算法
+
+In our experiments, we initialize EM by seeding each conditional multinomial distribution with five documents, reducing their effective total length to two words, and smoothing across the whole vocabulary. This is essentially an approximation to the scheme described in Heckerman and Meila (2001). 
+>  实验中，初始化 EM 时，对每个条件多项式分布，我们使用五个文档作为种子，将它们的有效总长度减少到两个词，并且对整个词表进行了平滑
+>  (也就是说，每个主题的多项式参数向量 $\beta_{i}$ 初始化过程如下：随机选出五个文档，对于其中每个文档，选出文档中最具代表性的两个词，例如最常出现的两个词，或者按照其他标准，然后根据这 10 个词估计参数向量 $\beta_i$ ，最后还需要为 $\beta_i$ 做平滑处理，即向量中不允许存在零条目)
+
+## 7.1 Document modeling 
+We trained a number of latent variable models, including LDA, on two text corpora to compare the generalization performance of these models. The documents in the corpora are treated as unlabeled; thus, our goal is density estimation—we wish to achieve high likelihood on a held-out test set. 
+>  文档建模任务中，我们在两个文本语料库上训练隐变量模型，比较它们的泛化表现
+>  语料库中的文档视作无标签数据，我们的目标是密度估计，即在模型留出测试集上达到高的似然
+
+In particular, we computed the perplexity of a held-out test set to evaluate the models. The perplexity, used by convention in language modeling, is monotonically decreasing in the likelihood of the test data, and is algebraically equivalent to the inverse of the geometric mean per-word likelihood. A lower perplexity score indicates better generalization performance. More formally, for a test set of $M$ documents, the perplexity is: 
+
 $$
 p e r p l e x i t y(D_{\mathrm{test}})=\exp\left\{-\frac{\sum_{d=1}^{M}\log p(\mathbf{w}_{d})}{\sum_{d=1}^{M}N_{d}}\right\}.
-$$ 
-In our experiments, we used a corpus of scientific abstracts from the C. Elegans community (Avery, 2002) containing 5,225 abstracts with 28,414 unique terms, and a subset of the TREC AP corpus containing 16,333 newswire articles with 23,075 unique terms. In both cases, we held out $10\%$ of the data for test purposes and trained the models on the remaining $90\%$ . In preprocessing the data, 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/044de3a4f33b0626810d01546f5295c65a73cfb227f5b914b9c7684f618bb780.jpg) 
-The William Randolph Hearst Foundation will give $\S1.25$ million to Lincoln Center, Metropoli-tan Opera Co., New York Philharmonic and Juilliard School. “Our board felt that we had a real opportunity to make a mark on the future of the performing arts with these grants an act every bit as important as our traditional areas of support in health, medical research, education and the social services,” Hearst Foundation President Randolph A. Hearst said Monday in announcing the grants. Lincoln Center’s share will be $\mathbb{S}200{,}000$ for its new building, which will house young artists and provide new public facilities. The Metropolitan Opera Co. and New York Philharmonic will receive $\mathbb{S400,000}$ each. The Juilliard School, where music and the performing arts are taught, will get $\mathbb{S}250{,}000$ . The Hearst Foundation, a leading supporter of the Lincoln Center Consolidated Corporate Fund, will make its usual annual $\mathbb{S}100{,}000$ donation, too. 
-Figure 8: An example article from the AP corpus. Each color codes a different factor from which the word is putatively generated. 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/a192ff1a8b109c3e66421ffd55b97a3e95f81d88d2de6f533d559e3c95380227.jpg) 
-Figure 9: Perplexity results on the nematode (Top) and AP (Bottom) corpora for LDA, the unigram model, mixture of unigrams, and pLSI. 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/c8ac47f18f60ecf1a6137de1e2b50f143e0363c9f715a8a9d3076677cebc8d0d.jpg) 
-Table 1: Overfitting in the mixture of unigrams and pLSI models for the AP corpus. Similar behavior is observed in the nematode corpus (not reported). 
-we removed a standard list of 50 stop words from each corpus. From the AP data, we further removed words that occurred only once. 
+$$
+
+>  具体地说，我们的评估度量是困惑度，困惑度常用于语言建模，它随着数据似然单调递减
+>  困惑度在代数上等价于逐词似然的几何平均数的逆，困惑度越低说明泛化似然越好 (困惑度越小，逐词似然的几何平均数就越大，进而测试集似然就越大)
+>  对于包含 $M$ 个文档的测试集，困惑度的正式定义如上
+
+>  推导
+>  记 $\sum_{d=1}^M N_d = N$
+
+$$
+\begin{align}
+perplexity(\mathrm D_{\mathrm {test}}) 
+&= \exp\left\{-\frac {\sum_{d=1}^M \log p(\mathbf w_d)}{\sum_{d=1}^M N_d}\right\}\\
+&= \exp\left\{-\frac {\sum_{d=1}^M \log p(\mathbf w_d)}{N}\right\}\\
+&= \exp\left\{-\frac { \log\prod_{d=1}^M p(\mathbf w_d)}{N}\right\}\\
+&= \exp\left\{- { \log\left(\prod_{d=1}^M p(\mathbf w_d)\right)^{\frac 1 N}}\right\}\\
+&= \frac {1}{\exp\left\{{ \log\left(\prod_{d=1}^M p(\mathbf w_d)\right)^{\frac 1 N}}\right\}}\\
+&= \frac {1}{{ \left(\prod_{d=1}^M p(\mathbf w_d)\right)^{\frac 1 N}}}\\
+&= \frac {1}{{ \left(\prod_{d=1}^M\prod_{i=1}^{N_d} p( w_{di})\right)^{\frac 1 N}}}\\
+\end{align}
+$$
+
+>  推导完毕
+
+> [! info] 几何平均数
+>  几何平均数 (Geometric Mean) 是衡量一组正数值的中心趋势的一种方式，适用于表示比例或比率的数据集
+> 
+>  对于一组正实数 $x_1,x_2,\dots,x_n$ ​，它们的几何平均数 $G$ 定义为：
+> $G = \sqrt[n]{x_1x_2\cdots x_n} =(x_1x_2\cdots x_n)^{\frac 1 n}$
+> 也就是将所有数值相乘，然后取这些值乘积的 $n$ 次方根 ($n$ 是数值的数量) 
+> 
+> 相较于算数平均数，几何平均数对于极值更不敏感，同时不会改变数据的尺度
+> 但几何平均数只能应用于正数，对于非正数没有定义
+> 
+> 可以证明对于任意一组正实数，其算数平均数总是大于等于其几何平均数
+
+In our experiments, we used a corpus of scientific abstracts from the C. Elegans community (Avery, 2002) containing 5,225 abstracts with 28,414 unique terms, and a subset of the TREC AP corpus containing 16,333 newswire articles with 23,075 unique terms. In both cases, we held out $10\%$ of the data for test purposes and trained the models on the remaining $90\%$ . In preprocessing the data, we removed a standard list of 50 stop words from each corpus. From the AP data, we further removed words that occurred only once. 
+>  数据集留出 10% 作为测试集，90% 作为训练集
+>  预处理时移除每个语料库的 50 个停止词，AP 数据集还移除了仅出现一次的词
+
 We compared LDA with the unigram, mixture of unigrams, and pLSI models described in Section 4. We trained all the hidden variable models using EM with exactly the same stopping criteria, that the average change in expected log likelihood is less than $0.001\%$ . 
-Both the pLSI model and the mixture of unigrams suffer from serious overfitting issues, though for different reasons. This phenomenon is illustrated in Table 1. In the mixture of unigrams model, overfitting is a result of peaked posteriors in the training set; a phenomenon familiar in the supervised setting, where this model is known as the naive Bayes model (Rennie, 2001). This leads to a nearly deterministic clustering of the training documents (in the E-step) which is used to determine the word probabilities in each mixture component (in the M-step). A previously unseen document may best fit one of the resulting mixture components, but will probably contain at least one word which did not occur in the training documents that were assigned to that component. Such words will have a very small probability, which causes the perplexity of the new document to explode. As $k$ increases, the documents of the training corpus are partitioned into finer collections and thus induce more words with small probabilities. 
+>  所有模型使用 EM 过程训练，停止条件相同，即期望对数似然的平均该变量小于 0.001% 时停止
+
+![[pics/LDA-Table1.png]]
+
+Both the pLSI model and the mixture of unigrams suffer from serious overfitting issues, though for different reasons. This phenomenon is illustrated in Table 1. 
+>  pLSI 模型和混合单词元模型都有严重过拟合问题
+
+In the mixture of unigrams model, overfitting is a result of peaked posteriors in the training set; a phenomenon familiar in the supervised setting, where this model is known as the naive Bayes model (Rennie, 2001). This leads to a nearly deterministic clustering of the training documents (in the E-step) which is used to determine the word probabilities in each mixture component (in the M-step). A previously unseen document may best fit one of the resulting mixture components, but will probably contain at least one word which did not occur in the training documents that were assigned to that component. Such words will have a very small probability, which causes the perplexity of the new document to explode. As $k$ increases, the documents of the training corpus are partitioned into finer collections and thus induce more words with small probabilities. 
+>  混合单词元模型的过拟合源于训练集的后验过于偏斜，在有监督情况下，这一现象也很常见 (有监督情况下，混合单词元模型的形式就是朴素贝叶斯模型)
+>  训练集的后验过于偏斜导致 EM 过程中，E 步会为文档给予近乎确定的簇，该簇进而在 M-step 主导各个混合成分的单词概率 (即 LDA 模型中的 $\beta_i$ ) 的确定
+>  运用于测试集中，未见过的文档会被分配给某个簇，如果该文档包含了某个单词，对于该簇来说，该单词在训练集中该簇下的文档中未见过，则该单词的概率就会非常小，进而导致新文档的困惑度过高 (似然过低)
+>  随着主题数量 $k$ 增大，训练集中的文档会被更细粒度地分配给各个主题，各个主题可能见过的单词数量也会相应下降，进而更容易导致测试时出现未见过的单词，进而导致高困惑度
+
 In the mixture of unigrams, we can alleviate overfitting through the variational Bayesian smoothing scheme presented in Section 5.4. This ensures that all words will have some probability under every mixture component. 
-In the pLSI case, the hard clustering problem is alleviated by the fact that each document is allowed to exhibit a different proportion of topics. However, pLSI only refers to the training documents and a different overfitting problem arises that is due to the dimensionality of the $p(z|d)$ parameter. One reasonable approach to assigning probability to a previously unseen document is by marginal i zing over $d$ : 
+>  混合单词元模型的过拟合问题可以通过变分贝叶斯平滑缓解 (Section 5.4)，即为所有单词赋予小概率
+
+In the pLSI case, the hard clustering problem is alleviated by the fact that each document is allowed to exhibit a different proportion of topics. However, pLSI only refers to the training documents and a different overfitting problem arises that is due to the dimensionality of the $p(z|d)$ parameter. One reasonable approach to assigning probability to a previously unseen document is by marginalizing over $d$ : 
+
 $$
 p(\mathbf{w})=\sum_{d}\prod_{n=1}^{N}\sum_{z}p(w_{n}\,|\,z)p(z\,|\,d)p(d).
 $$ 
 Essentially, we are integrating over the empirical distribution on the topic simplex (see Figure 4). 
-This method of inference, though theoretically sound, causes the model to overfit. The documentspecific topic distribution has some components which are close to zero for those topics that do not appear in the document. Thus, certain words will have very small probability in the estimates of 
-each mixture component. When determining the probability of a new document through marginalization, only those training documents which exhibit a similar proportion of topics will contribute to the likelihood. For a given training document’s topic proportions, any word which has small probability in all the constituent topics will cause the perplexity to explode. As $k$ gets larger, the chance that a training document will exhibit topics that cover all the words in the new document decreases and thus the perplexity grows. Note that pLSI does not overfit as quickly (with respect to $k$ ) as the mixture of unigrams. 
-This overfitting problem essentially stems from the restriction that each future document exhibit the same topic proportions as were seen in one or more of the training documents. Given this constraint, we are not free to choose the most likely proportions of topics for the new document. An alternative approach is the “folding-in” heuristic suggested by Hofmann (1999), where one ignores the $p(z|d)$ parameters refits $p(z|d_{\mathrm{new}})$ . Note that this gives the pLSI model an unfair advantage by allowing it to refit $k-1$ − 1 parameters to the test data. 
+
+>  pLSI 允许每个文档由多个主题按照不同比例组成，缓解了混合单词元模型的过拟合问题，但 pLSI 存在由参数 $p(z\mid d)$ 的维度导致的过拟合问题 (参数 $p(z\mid d)$ 的数量和训练集文档数量成线性关系)
+>  pLSI 模型中为未见过的文档赋予概率的一个方法是在所有的 $p(z\mid d)$ 上边际化，也就是在全部训练集文档的主题混合成分上边际化，这本质上是在主题单纯形的经验分布上积分
+
+This method of inference, though theoretically sound, causes the model to overfit. The document specific topic distribution has some components which are close to zero for those topics that do not appear in the document. Thus, certain words will have very small probability in the estimates of each mixture component. When determining the probability of a new document through marginalization, only those training documents which exhibit a similar proportion of topics will contribute to the likelihood. For a given training document’s topic proportions, any word which has small probability in all the constituent topics will cause the perplexity to explode. As $k$ gets larger, the chance that a training document will exhibit topics that cover all the words in the new document decreases and thus the perplexity grows. Note that pLSI does not overfit as quickly (with respect to $k$ ) as the mixture of unigrams. 
+>  但该推理方法导致了模型过拟合
+>  每个训练集文档的主题混合实际上是比较偏斜的，对于该文档中没有出现的主题，它的概率会趋向于零，同样的，每个主题下，会有特定单词概率趋向于零
+>  当用边际化计算新文档的概率时，实际上仅有和新文档展示类似的主题混合的训练文档会贡献其似然
+>  同时对于给定的一个训练文档主题混合，它对部分单词赋予的小概率同样导致困惑度增大
+>  随着主题数量 $k$ 增大，训练文档的主题混合覆盖新文档全部单词的概率降低，进而困惑度增大
+
+This overfitting problem essentially stems from the restriction that each future document exhibit the same topic proportions as were seen in one or more of the training documents. Given this constraint, we are not free to choose the most likely proportions of topics for the new document. An alternative approach is the “folding-in” heuristic suggested by Hofmann (1999), where one ignores the $p(z|d)$ parameters and refits $p(z|d_{\mathrm{new}})$ . Note that this gives the pLSI model an unfair advantage by allowing it to refit $k-1$ parameters to the test data. 
+>  该过拟合现象本质来源于限制了未见文档需要展示出和见过的训练集文档相同的主题混合，该限制下，我们无法自由为新文档选择最可能的主题混合
+>  一种解决方法是 folding-in 启发式方法，它为新文档再拟合 $p(z\mid d_{\mathrm{new}})$，但需要额外 $k-1$ 参数
+
 LDA suffers from neither of these problems. As in pLSI, each document can exhibit a different proportion of underlying topics. However, LDA can easily assign probability to a new document; no heuristics are needed for a new document to be endowed with a different set of topic proportions than were associated with documents in the training corpus. 
+>  LDA 不存在以上两种问题，LDA 中，每个文档可以具有不同的主题混合，同时对于新的文档也不需要启发式方法即可赋予与训练语料库中不同的主题比例集合
+
+![[pics/LDA-Figure9.png]]
+
 Figure 9 presents the perplexity for each model on both corpora for different values of $k$ . The pLSI model and mixture of unigrams are suitably corrected for overfitting. The latent variable models perform better than the simple unigram model. LDA consistently performs better than the other models. 
-# 7.2 Document class i cation 
-In the text class i cation problem, we wish to classify a document into two or more mutually exclusive classes. As in any class i cation problem, we may wish to consider generative approaches or disc rim i native approaches. In particular, by using one LDA module for each class, we obtain a generative model for class i cation. It is also of interest to use LDA in the disc rim i native framework, and this is our focus in this section. 
-A challenging aspect of the document class i cation problem is the choice of features. Treating individual words as features yields a rich but very large feature set (Joachims, 1999). One way to reduce this feature set is to use an LDA model for dimensionality reduction. In particular, LDA reduces any document to a fixed set of real-valued features—the posterior Dirichlet parameters $\gamma^{\ast}(\mathbf{w})$ associated with the document. It is of interest to see how much discriminatory information we lose in reducing the document description to these parameters. 
-We conducted two binary class i cation experiments using the Reuters-21578 dataset. The dataset contains 8000 documents and 15,818 words. 
+>  Figure 9 展示了两个数据集上困惑度随 $k$ 变化的曲线，pLSI 模型和混合单词元模型适当修正了过拟合问题，隐变量模型表现好于简单的单词元模型
+>  LDA 的表现始终好于其他模型
+
+## 7.2 Document classification 
+In the text classification problem, we wish to classify a document into two or more mutually exclusive classes. As in any classification problem, we may wish to consider generative approaches or discriminative approaches. In particular, by using one LDA module for each class, we obtain a generative model for classification. It is also of interest to use LDA in the discriminative framework, and this is our focus in this section. 
+>  文本分类问题中，我们希望将一个文档分类至多个互斥的类之一
+>  分类问题可以使用生成式方法或判别式方法，如果对每个类建模一个 LDA 模型，就是生成式方法 (分类时，将文档在各个类的 LDA 模型上的似然进行比较)
+>  本节讨论在判别式框架下使用 LDA
+
+A challenging aspect of the document classification problem is the choice of features. Treating individual words as features yields a rich but very large feature set (Joachims, 1999). One way to reduce this feature set is to use an LDA model for dimensionality reduction. In particular, LDA reduces any document to a fixed set of real-valued features—the posterior Dirichlet parameters $\gamma^{\ast}(\mathbf{w})$ associated with the document. It is of interest to see how much discriminatory information we lose in reducing the document description to these parameters. 
+>  文档分类的一个挑战是特征选择，将单独的词视作特征会得到丰富但过大的特征集合
+>  LDA 模型可以用于降维以简化该特征集合，具体地说，LDA 将任意文档都简化为固定的一组实值向量——该文档相关的后验 Dirichlet 参数 $\gamma^*(\mathbf w)$ 
+>  (该参数定义了给定文档的情况下，主题应该服从的 Dirichlet 分布)
+>  我们考虑将文档信息简化到这些参数会损失多少判别式信息
+
+We conducted two binary classification experiments using the Reuters-21578 dataset. The dataset contains 8000 documents and 15,818 words. 
+
 In these experiments, we estimated the parameters of an LDA model on all the documents, without reference to their true class label. We then trained a support vector machine (SVM) on the low-dimensional representations provided by LDA and compared this SVM to an SVM trained on all the word features. 
+
 Using the SVMLight software package (Joachims, 1999), we compared an SVM trained on all the word features with those trained on features induced by a 50-topic LDA model. Note that we reduce the feature space by 99.6 percent in this case. 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/482e3480304e298eec578c02f6053e0999f2549ad6d79730748628f5fc115722.jpg) 
-Figure 10: Class i cation results on two binary class i cation problems from the Reuters-21578 dataset for different proportions of training data. Graph (a) is EARN vs. NOT EARN . Graph (b) is GRAIN vs. NOT GRAIN . 
-![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/9606c15444f5bcfe3c4f780529676092ba4431ba89cdfa5408237a29876dd53f.jpg) 
-Figure 11: Results for collaborative filtering on the EachMovie data. 
-Figure 10 shows our results. We see that there is little reduction in class i cation performance in using the LDA-based features; indeed, in almost all cases the performance is improved with the LDA features. Although these results need further substantiation, they suggest that the topic-based representation provided by LDA may be useful as a fast filtering algorithm for feature selection in text class i cation. 
-# 7.3 Collaborative filtering 
+
+>  我们在测试集上以无监督方式训练 50-主题的 LDA 模型，然后获取每个测试集文档的后验 Dirichlet 参数向量作为文档的特征/低维表示
+>  我们在该特征上训练 SVM，和在所有单词特征上训练的 SVM 比较
+>  注意 LDA 方式提取的特征减少了 99.6% 的特征空间大小
+
+![[pics/LDA-Figure10.png]]
+
+Figure 10 shows our results. We see that there is little reduction in classification performance in using the LDA-based features; indeed, in almost all cases the performance is improved with the LDA features. Although these results need further substantiation, they suggest that the topic-based representation provided by LDA may be useful as a fast filtering algorithm for feature selection in text classification. 
+>  从 Figure 10 可以看到基于 LDA 的特征对分类问题损害很小，并且实际上大多数情况下 LDA 特征提高了分类准确率
+>  这说明 LDA 提供的基于主题的表示有助于文本分类
+
+## 7.3 Collaborative filtering 
 Our final experiment uses the EachMovie collaborative filtering data. In this data set, a collection of users indicates their preferred movie choices. A user and the movies chosen are analogous to a document and the words in the document (respectively). 
+>  我们的最终实验使用了 EachMovie 协同过滤数据
+>  在这个数据集中，一组用户表明他们偏好的电影选择，用户和所选的电影分别类似于文档和文档中的词语
+
 The collaborative filtering task is as follows. We train a model on a fully observed set of users. Then, for each unobserved user, we are shown all but one of the movies preferred by that user and are asked to predict what the held-out movie is. The different algorithms are evaluated according to the likelihood they assign to the held-out movie. More precisely, define the predictive perplexity on $M$ test users to be: 
+
 $$
-\begin{array}{r}{p r e d i c t i v e\mathrm{-}p e r p l e x i t y(D_{\mathrm{test}})=\exp\left\{-\frac{\sum_{d=1}^{M}\log p\left(w_{d,N_{d}}\,\vert\,\mathbf{w}_{d,1:N_{d}-1}\right)}{M})\right\}.}\end{array}
+{p r e d i c t i v e\text{-}p e r p l e x i t y(D_{\mathrm{test}})=\exp\left\{-\frac{\sum_{d=1}^{M}\log p\left(w_{d,N_{d}}\,\vert\,\mathbf{w}_{d,1:N_{d}-1}\right)}{M})\right\}.}
 $$ 
+>  协同过滤任务中，我们在观察到的用户数据上训练模型，然后给定未观察的用户模型需要在给定其他所有该用户偏好的电影的情况下预测一个留出电影是什么
+>  我们根据模型赋予留出电影的似然评估算法
+>  预测困惑度的定义如上，它和之前困惑度的定义完全类似，差异仅在于此时每个文档 (用户) 涉及的概率是给定其他所有词 (电影) 某个留出词 (电影) 的概率
+
 We restricted the EachMovie dataset to users that positively rated at least 100 movies (a positive rating is at least four out of five stars). We divided this set of users into 3300 training users and 390 testing users. 
+
 Under the mixture of unigrams model, the probability of a movie given a set of observed movies is obtained from the posterior distribution over topics: 
+
 $$
 p(w|\mathbf{w}_{\mathrm{obs}})=\sum_{z}p(w|z)p(z|\mathbf{w}_{\mathrm{obs}}).
 $$ 
-In the pLSI model, the probability of a held-out movie is given by the same equation except that $p(z|\mathbf{w}_{\mathrm{obs}})$ is computed by folding in the previously seen movies. Finally, in the LDA model, the probability of a held-out movie is given by integrating over the posterior Dirichlet: 
+>  混合单词元模型中，给定一组观测，某个观测的概率通过对主题的后验分布求和得到，如上所示
+
+In the pLSI model, the probability of a held-out movie is given by the same equation except that $p(z|\mathbf{w}_{\mathrm{obs}})$ is computed by folding in the previously seen movies. 
+>  pLSI 模型中，留出观测的概率同样需要在主题的后验概率上求和，差异仅在于后验分布 $p(z\mid \mathbf w_{\text{obs}})$ 的计算
+
+Finally, in the LDA model, the probability of a held-out movie is given by integrating over the posterior Dirichlet: 
+
 $$
-p(w|\mathbf{w}_{\mathrm{obs}})=\int\sum_{z}p(w|z)p(z|\Theta)p(\Theta|\mathbf{w}_{\mathrm{obs}})d\Theta,
+p(w|\mathbf{w}_{\mathrm{obs}})=\int\sum_{z}p(w|z)p(z|\theta)p(\theta|\mathbf{w}_{\mathrm{obs}})d\theta,
 $$ 
-where $p\big(\boldsymbol{\Theta}|\mathbf{w}_{\mathrm{obs}}\big)$ is given by the variational inference method described in Section 5.2. Note that this quantity is efficient to compute. We can interchange the sum and integral sign, and compute a linear combination of $k$ Dirichlet expectations. 
+where $p({\theta}|\mathbf{w}_{\mathrm{obs}})$ is given by the variational inference method described in Section 5.2. Note that this quantity is efficient to compute. We can interchange the sum and integral sign, and compute a linear combination of $k$ Dirichlet expectations. 
+
+>  LDA 模型中，除了对主题分布求和以外，还需要对 Dirichlet 参数的后验分布积分
+>  该式是可以高效计算的，我们可以交换积分和求和符号，然后计算 $k$ 个 Dirichlet 期望的线性组合
+
+>  推导
+>  依照图模型，利用条件独立性分解联合分布即可
+
+$$
+\begin{align}
+p(w\mid \mathbf w_{\text{obs}})
+&=\int\sum_zp(w,z,\theta\mid \mathbf w_{obs})d\theta\\
+&=\int\sum_zp(w\mid z)p(z\mid\theta) p(\theta\mid\mathbf w_{obs})d\theta\\
+\end{align}
+$$
+
+>  推导完毕
+
+![[pics/LDA-Figure11.png]]
+
 With a vocabulary of 1600 movies, we find the predictive perplexities illustrated in Figure 11. Again, the mixture of unigrams model and pLSI are corrected for overfitting, but the best predictive perplexities are obtained by the LDA model. 
+
 # 8. Discussion 
-We have described latent Dirichlet allocation, a ﬂexible generative probabilistic model for collections of discrete data. LDA is based on a simple exchange ability assumption for the words and topics in a document; it is therefore realized by a straightforward application of de Finetti’s representation theorem. We can view LDA as a dimensionality reduction technique, in the spirit of LSI, but with proper underlying generative probabilistic semantics that make sense for the type of data that it models. 
+We have described latent Dirichlet allocation, a ﬂexible generative probabilistic model for collections of discrete data. LDA is based on a simple exchangeability assumption for the words and topics in a document; it is therefore realized by a straightforward application of de Finetti’s representation theorem. We can view LDA as a dimensionality reduction technique, in the spirit of LSI, but with proper underlying generative probabilistic semantics that make sense for the type of data that it models. 
+>  本文介绍了 LDA 模型，该模型是针对离散数据集的生成式概率模型
+>  LDA 基于文档单词和主题的可交换性假设，通过应用 de Finetti 的表示定理得到
+>  LDA 可以视作一种降维技术，同时也具有恰当的生成概率语义
+
 Exact inference is intractable for LDA, but any of a large suite of approximate inference algorithms can be used for inference and parameter estimation within the LDA framework. We have presented a simple convexity-based variational approach for inference, showing that it yields a fast algorithm resulting in reasonable comparative performance in terms of test set likelihood. Other approaches that might be considered include Laplace approximation, higher-order variational techniques, and Monte Carlo methods. In particular, Leisink and Kappen (2002) have presented a general methodology for converting low-order variational lower bounds into higher-order variational bounds. It is also possible to achieve higher accuracy by dispensing with the requirement of maintaining a bound, and indeed Minka and Lafferty (2002) have shown that improved inferential accuracy can be obtained for the LDA model via a higher-order variational technique known as expectation propagation. Finally, Griffiths and Steyvers (2002) have presented a Markov chain Monte Carlo algorithm for LDA. 
-LDA is a simple model, and although we view it as a competitor to methods such as LSI and pLSI in the setting of dimensionality reduction for document collections and other discrete corpora, it is also intended to be illustrative of the way in which probabilistic models can be scaled up to provide useful inferential machinery in domains involving multiple levels of structure. Indeed, the principal advantages of generative models such as LDA include their modularity and their extensibility. As a probabilistic module, LDA can be readily embedded in a more complex model— a property that is not possessed by LSI. In recent work we have used pairs of LDA modules to model relationships between images and their corresponding descriptive captions (Blei and Jordan, 2002). Moreover, there are numerous possible extensions of LDA. For example, LDA is readily extended to continuous data or other non-multinomial data. As is the case for other mixture models, including finite mixture models and hidden Markov models, the “emission” probability $p\big(w_{n}\,\vert\,z_{n}\big)$ contributes only a likelihood value to the inference procedures for LDA, and other likelihoods are readily substituted in its place. In particular, it is straightforward to develop a continuous variant of LDA in which Gaussian observable s are used in place of multinomials. Another simple extension of LDA comes from allowing mixtures of Dirichlet distributions in the place of the single Dirichlet of LDA. This allows a richer structure in the latent topic space and in particular allows a form of document clustering that is different from the clustering that is achieved via shared topics. Finally, a variety of extensions of LDA can be considered in which the distributions on the topic variables are elaborated. For example, we could arrange the topics in a time series, essentially relaxing the full exchange ability assumption to one of partial exchange ability. We could also consider partially exchangeable models in which we condition on exogenous variables; thus, for example, the topic distribution could be conditioned on features such as “paragraph” or “sentence,” providing a more powerful text model that makes use of information obtained from a parser. 
-# Acknowledgements 
-This work was supported by the National Science Foundation (NSF grant IIS-9988642) and the Multidisciplinary Research Program of the Department of Defense (MURI N00014-00-1-0637). Andrew Y. $\mathrm{Mg}$ and David M. Blei were additionally supported by fellowships from the Microsoft Corporation. 
-# References 
-M. Abramowitz and I. Stegun, editors. Handbook of Mathematical Functions . Dover, New York, 1970. 
-D. Aldous. Exchange ability and related topics. In Ecole d’´et´e de probabilit´es de Saint-Flour, XIII— 1983 , pages 1–198. Springer, Berlin, 1985. H. Attias. A variational Bayesian framework for graphical models. In Advances in Neural Information Processing Systems 12 , 2000. L. Avery. Caen or rh abd it is genetic center bibliography. 2002. URL http://elegans.swmed.edu/wli/cgcbib . R. Baeza-Yates and B. Ribeiro-Neto. Modern Information Retrieval . ACM Press, New York, 1999. D. Blei and M. Jordan. Modeling annotated data. Technical Report UCB//CSD-02-1202, U.C. Berkeley Computer Science Division, 2002. B. de Finetti. Theory of probability. Vol. 1-2 . John Wiley & Sons Ltd., Chichester, 1990. Reprint of the 1975 translation. S. Deerwester, S. Dumais, T. Landauer, G. Furnas, and R. Harshman. Indexing by latent semantic analysis. Journal of the American Society of Information Science , 41(6):391–407, 1990. P. Diaconis. Recent progress on de Finetti’s notions of exchange ability. In Bayesian statistics, 3 (Valencia, 1987) , pages 111–125. Oxford Univ. Press, New York, 1988. J. Dickey. Multiple hyper geometric functions: Probabilistic interpretations and statistical uses. Journal of the American Statistical Association , 78:628–637, 1983. J. Dickey, J. Jiang, and J. Kadane. Bayesian methods for censored categorical data. Journal of the American Statistical Association , 82:773–781, 1987. A. Gelman, J. Carlin, H. Stern, and D. Rubin. Bayesian data analysis . Chapman & Hall, London, 1995. T. Griffiths and M. Steyvers. A probabilistic approach to semantic representation. In Proceedings of the 24th Annual Conference of the Cognitive Science Society , 2002. D. Harman. Overview of the first text retrieval conference (TREC-1). In Proceedings of the First Text Retrieval Conference (TREC-1) , pages 1–20, 1992. D. Heckerman and M. Meila. An experimental comparison of several clustering and initialization methods. Machine Learning , 42:9–29, 2001. T. Hofmann. Probabilistic latent semantic indexing. Proceedings of the Twenty-Second Annual International SIGIR Conference , 1999. F. Jelinek. Statistical Methods for Speech Recognition . MIT Press, Cambridge, MA, 1997. T. Joachims. Making large-scale SVM learning practical. In Advances in Kernel Methods - Support Vector Learning . M.I.T. Press, 1999. M. Jordan, editor. Learning in Graphical Models . MIT Press, Cambridge, MA, 1999. 
-M. Jordan, Z. Ghahramani, T. Jaakkola, and L. Saul. Introduction to variational methods for graphical models. Machine Learning , 37:183–233, 1999. R. Kass and D. Steffey. Approximate Bayesian inference in conditionally independent hierarchical models (parametric empirical Bayes models). Journal of the American Statistical Association , 84 (407):717–726, 1989.M. Leisink and H. Kappen. General lower bounds based on computer generated higher order expansions. In Uncertainty in Artificial Intelligence, Proceedings of the Eighteenth Conference , 2002. T. Minka. Estimating a Dirichlet distribution. Technical report, M.I.T., 2000. T. P. Minka and J. Lafferty. Expectation-propagation for the generative aspect model. In Uncertainty in Artificial Intelligence (UAI) , 2002. C. Morris. Parametric empirical Bayes inference: Theory and applications. Journal of the American Statistical Association , 78(381):47–65, 1983. With discussion. K. Nigam, J. Lafferty, and A. McCallum. Using maximum entropy for text class i cation. IJCAI-99 Workshop on Machine Learning for Information Filtering , pages 61–67, 1999. K. Nigam, A. McCallum, S. Thrun, and T. Mitchell. Text class i cation from labeled and unlabeled documents using EM. Machine Learning , 39(2/3):103–134, 2000. C. Papa dimitri ou, H. Tamaki, P. Raghavan, and S. Vempala. Latent semantic indexing: A probabilistic analysis. pages 159–168, 1998. A. Popescul, L. Ungar, D. Pennock, and S. Lawrence. Probabilistic models for unified collaborative and content-based recommendation in sparse-data environments. In Uncertainty in Artificial Intelligence, Proceedings of the Seventeenth Conference , 2001. J. Rennie. Improving multi-class text class i cation with naive Bayes. Technical Report AITR-2001- 004, M.I.T., 2001. G. Ronning. Maximum likelihood estimation of Dirichlet distributions. Journal of Statistcal Computation and Simulation , 34(4):215–221, 1989. G. Salton and M. McGill, editors. Introduction to Modern Information Retrieval . McGraw-Hill, 1983. 
+>  LDA 不能执行精确推理
+>  我们展示了基于凸性的变分推理方法，该推理方法快速，且可以得到较好的测试集似然
+>  拉普拉斯近似、高阶变分、MC 方法也可以用于推理
+
+LDA is a simple model, and although we view it as a competitor to methods such as LSI and pLSI in the setting of dimensionality reduction for document collections and other discrete corpora, it is also intended to be illustrative of the way in which probabilistic models can be scaled up to provide useful inferential machinery in domains involving multiple levels of structure. Indeed, the principal advantages of generative models such as LDA include their modularity and their extensibility. As a probabilistic module, LDA can be readily embedded in a more complex model— a property that is not possessed by LSI. In recent work we have used pairs of LDA modules to model relationships between images and their corresponding descriptive captions (Blei and Jordan, 2002). 
+>  像 LDA 这样的生成模型的优势还包括它的模块性和可拓展性，LDA 可以作为概率模块嵌入到更复杂的模型
+
+Moreover, there are numerous possible extensions of LDA. For example, LDA is readily extended to continuous data or other non-multinomial data. As is the case for other mixture models, including finite mixture models and hidden Markov models, the “emission” probability $p\big(w_{n}\,\vert\,z_{n}\big)$ contributes only a likelihood value to the inference procedures for LDA, and other likelihoods are readily substituted in its place. In particular, it is straightforward to develop a continuous variant of LDA in which Gaussian observables are used in place of multinomials. Another simple extension of LDA comes from allowing mixtures of Dirichlet distributions in the place of the single Dirichlet of LDA. This allows a richer structure in the latent topic space and in particular allows a form of document clustering that is different from the clustering that is achieved via shared topics. 
+>  LDA 可以拓展到连续数据和其他非多项式数据，和其他混合模型一样，LDA 的发射概率 $p(w_n \mid z_n)$ 仅在推理过程中贡献了似然值，其他的似然函数可以替代它
+>  例如，可以用高斯分布替代多项式分布，将 LDA 拓展到连续的观测值 
+>  (LDA 的学习和推理都使用近似方法，没有利用 Dirichlet 和多项式的共轭性质，故可以任意拓展，例如将多项式替换为高斯)
+>  另一类拓展是用多个 Dirichlet 分布的混合替代单个 Dirichlet 分布，这使得潜在主题的空间更加丰富
+
+Finally, a variety of extensions of LDA can be considered in which the distributions on the topic variables are elaborated. For example, we could arrange the topics in a time series, essentially relaxing the full exchangeability assumption to one of partial exchangeability. We could also consider partially exchangeable models in which we condition on exogenous variables; thus, for example, the topic distribution could be conditioned on features such as “paragraph” or “sentence,” providing a more powerful text model that makes use of information obtained from a parser. 
+>  还可以拓展主题变量的分布来拓展 LDA 模型，例如按照时间序列组织主题，将完全的可交换性假设松弛到部分可交换性
+>  还可以考虑条件于外生变量的部分可交换模型，例如主题分布条件于 “段落”，“句子”特征
+
 # Appendix A. Inference and parameter estimation 
 In this appendix, we derive the variational inference procedure (Eqs. 6 and 7) and the parameter maximization procedure for the conditional multinomial (Eq. 9) and for the Dirichlet. We begin by deriving a useful property of the Dirichlet distribution. 
 
 ## A.1 Computing $\mathbf{E}[\log(\theta_{i}\,|\,{\alpha})]$ 
 The need to compute the expected value of the log of a single probability component under the Dirichlet arises repeatedly in deriving the inference and parameter estimation procedures for LDA. This value can be easily computed from the natural parameterization of the exponential family representation of the Dirichlet distribution. 
+
 Recall that a distribution is in the exponential family if it can be written in the form: 
+
 $$
-p(x\,|\,\boldsymbol{\mathfrak{n}})=h(x)\exp\left\{\boldsymbol{\mathfrak{n}}^{T}T(x)-A(\boldsymbol{\mathfrak{n}})\right\},
+p(x\,|\,{\eta})=h(x)\exp\left\{\eta^{T}T(x)-A({\eta})\right\},
 $$
-  
-where $\boldsymbol\upeta$ is the natural parameter, $T(x)$ is the sufficient statistic, and $A(\boldsymbol{\mathfrak{n}})$ is the log of the normalization factor. 
-We can write the Dirichlet in this form by exponent i a ting the log of Eq. (1): 
+ 
+where $\eta$ is the natural parameter, $T(x)$ is the sufficient statistic, and $A({\eta})$ is the log of the normalization factor. 
+
+>  分布可以写为以上形式的就是指数族分布
+>  其中 $\eta$ 是自然参数，$T(x)$ 为充分统计量，$A(\eta)$ 为规范化因子的对数
+
+We can write the Dirichlet in this form by exponentiating the log of Eq. (1): 
+
 $$
-\begin{array}{r}{p(\Theta\,|\,\alpha)=\exp\left\{\left(\sum_{i=1}^{k}(\alpha_{i}-1)\log\theta_{i}\right)+\log\Gamma\left(\sum_{i=1}^{k}\alpha_{i}\right)-\sum_{i=1}^{k}\log\Gamma(\alpha_{i})\right\}.}\end{array}
+\begin{array}{r}{p(\theta\,|\,\alpha)=\exp\left\{\left(\sum_{i=1}^{k}(\alpha_{i}-1)\log\theta_{i}\right)+\log\Gamma\left(\sum_{i=1}^{k}\alpha_{i}\right)-\sum_{i=1}^{k}\log\Gamma(\alpha_{i})\right\}.}\end{array}
 $$
-       
-From this form, we imm at the natural parameter of the Dirichlet is $\mathfrak{n}_{i}=\mathfrak{a}_{i}-1$ and the sufficient statistic is $T(\theta_{i})=\log\theta_{i}$ . Furthermore, using the general fact that the derivative of the log normalization factor with respect to the natural parameter is equal to the expectation of the sufficient statistic, we obtain: 
+
+From this form, we immediately at the natural parameter of the Dirichlet is $\eta_{i}=\alpha_{i}-1$ and the sufficient statistic is $T(\theta_{i})=\log\theta_{i}$ . 
+
+>  Dirichlet 分布也可以写为这种形式，其中自然参数是 $\eta_i = \alpha_i - 1$，充分统计量是 $T(\theta_i) = \log \theta_i$
+
+Furthermore, using the general fact that the derivative of the log normalization factor with respect to the natural parameter is equal to the expectation of the sufficient statistic, we obtain: 
+
 $$
-\begin{array}{r}{\mathrm{E}[\log\Theta_{i}\,|\,\mathfrak{a}]=\Psi(\mathfrak{a}_{i})-\Psi\left(\sum_{j=1}^{k}\mathfrak{a}_{j}\right)}\end{array}
+\begin{array}{r}{\mathrm{E}[\log\theta_{i}\,|\,\alpha]=\Psi(\alpha_{i})-\Psi\left(\sum_{j=1}^{k}\alpha_{j}\right)}\end{array}
 $$
-    
+ 
 where $\Psi$ is the digamma function, the first derivative of the log Gamma function. 
-# A.2 Newton-Raphson methods for a Hessian with special structure 
+
+>  指数族函数中，对数规范化因子相对于自然参数的导数等于充分统计量的期望
+>  其中 $\Psi$ 为 digamma 函数，即对数 Gamma 函数的一阶导数
+
+## A.2 Newton-Raphson methods for a Hessian with special structure 
 In this section we describe a linear algorithm for the usually cubic Newton-Raphson optimization method. This method is used for maximum likelihood estimation of the Dirichlet distribution (Ronning, 1989, Minka, 2000). 
+>  本节描述通常为三次的牛顿-拉普森优化方法的线性算法
+>  该方法用于 Dirichlet 分布的 MLE 估计
+
 The Newton-Raphson optimization technique finds a stationary point of a function by iterating: 
+
 $$
 \alpha_{\mathrm{new}}=\alpha_{\mathrm{old}}-H(\alpha_{\mathrm{old}})^{-1}g(\alpha_{\mathrm{old}})
 $$ 
 where $H(\alpha)$ and $g(\alpha)$ are the Hessian matrix and gradient respectively at the point $\alpha$ . In general, this algorithm scales as $\mathrm{O}(N^{3})$ due to the matrix inversion. 
+
+>  Newton-Raphson 优化技术通过上述迭代找到驻点 (找到导函数的零点)
+>  其中 $H(\alpha)$ 为点 $\alpha$ 处的 Hessian 矩阵，$g(\alpha)$ 为点 $\alpha$ 处的梯度
+>  因为涉及了矩阵求逆，该算法的复杂度一般为 $O(N^3)$
+
 If the Hessian matrix is of the form: 
+
 $$
-H=\mathrm{diag}(h)+\mathbf{1}z\mathbf{1}^{\mathrm{T}},
-$$ 
+H=\mathrm{diag}(h)+\mathbf{1} z\mathbf{1}^{\mathrm{T}},\tag{10}
+$$
+
 where $\mathrm{diag}(h)$ is defined to be a diagonal matrix with the elements of the vector $h$ along the diagonal, then we can apply the matrix inversion lemma and obtain: 
+
 $$
-H^{-1}=\mathrm{diag}(h)^{-1}-\frac{\mathrm{diag}(h)^{-1}{\bf11^{\mathrm{T}}}\mathrm{diag}(h)^{-1}}{z^{-1}+\sum_{j=1}^{k}h_{j}^{-1}}
-$$ 
-Multiplying by the gradient, we obtain the i th component: 
+H^{-1}=\mathrm{diag}(h)^{-1}-\frac{\mathrm{diag}(h)^{-1}{\bf11^{\mathrm{T}}}\mathrm{diag}(h)^{-1}}{ z^{-1}+\sum_{j=1}^{k}h_{j}^{-1}}
+$$
+
+>  如果 Hessian 矩阵 $H$ 满足 (10) 的形式，我们运用矩阵逆定理，可以得到 $H^{-1}$ 的形式如上
+
+Multiplying by the gradient, we obtain the $i$ th component: 
+
 $$
 (H^{-1}g)_{i}=\frac{g_{i}-c}{h_{i}}
-$$ 
-where 
 $$
-c=\frac{\sum_{j=1}^{k}g_{j}/h_{j}}{z^{-1}\!+\!\sum_{j=1}^{k}h_{j}^{-1}}.
-$$ 
+
+where
+
+$$
+c=\frac{\sum_{j=1}^{k}g_{j}/h_{j}}{ z^{-1}\!+\!\sum_{j=1}^{k}h_{j}^{-1}}.
+$$
+
+>  则 $H^{-1}g$ 的第 $i$ 个元素的计算就如上所示
+
 Observe that this expression depends only on the $2k$ values $h_{i}$ and $g_{i}$ and thus yields a Newton-Raphson algorithm that has linear time complexity. 
+>  计算 $(H^{-1}g)$ 的第 $i$ 个元素仅依赖于 $h_i$ 和 $g_i$ 共 $2k$ 个值，因此算法复杂度是线性的 (和向量 $\alpha$ 的元素数量相同数量级)
+
 ## A.3 Variational Inference 
 In this section we derive the variational inference algorithm described in Section 5.1. Recall that this involves using the following variational distribution : 
 
@@ -1034,18 +1300,79 @@ $$
 The terms which contain $\alpha$ are: 
 
 $$
-L_{[\alpha]}=\sum_{d=1}^{M}\left(\log\Gamma\left(\sum_{j=1}^{k}\alpha_{j}\right)-\sum_{i=1}^{k}\log\Gamma(\alpha_{i})+\sum_{i=1}^{k}\left((\alpha_{i}-1)\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\gamma_{d j}\right)\right)\right)\right)
+L_{[\alpha]}=\sum_{d=1}^{M}\left(\log\Gamma(\sum_{j=1}^{k}\alpha_{j})-\sum_{i=1}^{k}\log\Gamma(\alpha_{i})+\sum_{i=1}^{k}(\alpha_{i}-1)\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\gamma_{d j}\right)\right)\right)
 $$ 
 Taking the derivative with respect to $\alpha_{i}$ gives: 
 
 $$
 \frac{\partial L}{\partial\alpha_{i}}=M\left(\Psi\left(\sum_{j=1}^{k}\alpha_{j}\right)-\Psi(\alpha_{i})\right)+\sum_{d=1}^{M}\left(\Psi(\gamma_{d i})-\Psi\left(\sum_{j=1}^{k}\gamma_{d j}\right)\right)
 $$ 
-This derivative depends on $\alpha_{j}$ , where $j\neq i$ , and we therefore must use an iterative method to find the maximal α . In particular, the Hessian is in the form found in Eq. (10):  
+>  我们找出 $L$ 中和 $\alpha$ 有关的项，并计算它相对于 $\alpha_i$ 的导数如上
+
+This derivative depends on $\alpha_{j}$ , where $j\neq i$ , and we therefore must use an iterative method to find the maximal $\alpha$ .
+
+>  该导数还依赖于 $\alpha_j(j\ne i)$，也就是说对 $\alpha_i$ 的优化需要考虑到其他 $\alpha_j$ 的影响，因此不考虑对 $\alpha$ 逐元素优化的话，我们还需要使用迭代方法寻找最优的 $\alpha$
+
+In particular, the Hessian is in the form found in Eq. (10):  
 
 $$
-\frac{\partial L}{\partial\alpha_{i}\alpha_{j}}=\updelta(i,j)M\Psi^{\prime}(\alpha_{i})-\Psi^{\prime}\left(\sum_{j=1}^{k}\alpha_{j}\right),
+\frac{\partial L}{\partial\alpha_{i}\alpha_{j}}=\delta(i,j)M\Psi^{\prime}(\alpha_{i})-\Psi^{\prime}\left(\sum_{j=1}^{k}\alpha_{j}\right),
 $$ 
 and thus we can invoke the linear-time Newton-Raphson algorithm described in Appendix A.2. 
 
-Finally, note that we can use the same algorithm to find an empirical Bayes point estimate of $\boldsymbol\upeta$ , the scalar parameter for the exchangeable Dirichlet in the smoothed LDA model in Section 5.4. 
+>  $L$ 相对于 $\alpha$ 的 Hessian 的元素的形式如上，其中 $\delta(i, j)$ 是克罗内克函数，当 $i= j$ 时为 $1$，否则为 $0$
+>  进而我们可以使用 Appendix A.2 介绍的线性时间牛顿法对 $\alpha$ 进行优化
+
+>  推导
+> 完整的 Hessian 矩阵 $H$ 可以写成如下形式：
+
+$$
+H = 
+\begin{bmatrix}
+M\Psi'(\alpha_1) - \Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) & -\Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) & \cdots & -\Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) \\
+-\Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) & M\Psi'(\alpha_2) - \Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) & \cdots & -\Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) \\
+\vdots & \vdots & \ddots & \vdots \\
+-\Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) & -\Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right) & \cdots & M\Psi'(\alpha_k) - \Psi'\left(\sum_{j=1}^{k}\alpha_{j}\right)
+\end{bmatrix}
+$$
+
+> 可以观察到 $H$ 可以分解为 $H = \mathrm{diag}(h) + \mathbf 1 z\mathbf 1^T$ 的形式，
+> 其中 $\mathrm{diag}(h)$ 是一个对角矩阵，其对角线元素为 $h_i = M\Psi' (\alpha_i)$，即：
+  
+$$
+\mathrm{diag}(h) =
+\begin{bmatrix}
+h_1 & 0 & \cdots & 0 \\
+0 & h_2 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & h_k
+\end{bmatrix}=\begin{bmatrix}
+M\Psi'(\alpha_1) & 0 & \cdots & 0 \\
+0 & M\Psi'(\alpha_2) & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & M\Psi'(\alpha_k)
+\end{bmatrix}
+$$
+
+>  其中 $\mathbf{1} z\mathbf{1}^{\mathrm{T}}$ 是一个所有元素均为常数 $z = -\Psi'\left (\sum_{j=1}^{k}\alpha_j\right)$ 的矩阵，即：
+
+$$
+\mathbf{1} z\mathbf{1}^{\mathrm{T}} =
+\begin{bmatrix}
+z &  \cdots & z \\
+z &  \cdots & z \\
+\vdots & \ddots & \vdots \\
+z &  \cdots & z
+\end{bmatrix} = 
+\begin{bmatrix}
+-\Psi'(\sum_{j=1}^k\alpha_j)  & \cdots &  -\Psi'(\sum_{j=1}^k\alpha_j)\\
+ -\Psi'(\sum_{j=1}^k\alpha_j) &\cdots &  -\Psi'(\sum_{j=1}^k\alpha_j)\\
+\vdots  & \ddots & \vdots \\
+ -\Psi'(\sum_{j=1}^k\alpha_j)& \cdots & z-\Psi'(\sum_{j=1}^k\alpha_j)
+\end{bmatrix}
+$$
+
+>  推导完毕
+
+Finally, note that we can use the same algorithm to find an empirical Bayes point estimate of $\eta$ , the scalar parameter for the exchangeable Dirichlet in the smoothed LDA model in Section 5.4. 
+>  对于平滑的 LDA 模型，我们同样使用上述算法寻找参数 $\eta$ 的经验贝叶斯点估计
