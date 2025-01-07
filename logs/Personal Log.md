@@ -172,7 +172,8 @@ Date: 2024.10.7-2024.10.14
 
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: CH0-CH3.1
-    CH0-CH3.1: Abstract, Background, Algorithm 1; Algorithm 1 is basically a tiled implementation of attention calculation. What makes algorithm 1 looks not so intuitive is the repetitive rescaling of softmax factor, whose aim is to stabilize the computation. In algorithm 1, each query's attention result is accumulated gradually by the outer loop, and the already accumulated partial attention result's weights for the corresponding value is dynamically updated/changed by the outer loop.
+    CH0-CH3.1: 
+        Abstract, Background, Algorithm 1; Algorithm 1 is basically a tiled implementation of attention calculation. What makes algorithm 1 looks not so intuitive is the repetitive rescaling of softmax factor, whose aim is to stabilize the computation. In algorithm 1, each query's attention result is accumulated gradually by the outer loop, and the already accumulated partial attention result's weights for the corresponding value is dynamically updated/changed by the outer loop.
 
 \[Book\]
 - [[A Tour of C++]]: CH5
@@ -180,7 +181,8 @@ Date: 2024.10.7-2024.10.14
     CH2-鸽巢原理
         鸽巢原理仅解决存在性问题
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4-CH4.3.1
-    CH4-CH4.3.1: Markov Network's parameterization: the idea was derived from statistical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of particular configuration; separation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
+    CH4-CH4.3.1: 
+        Markov Network's parameterization: the idea was derived from statistical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of particular configuration; separation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
 
 \[Doc\]
 - [[doc-notes/python/packages/ultralytics]] : Quickstart, Usage(Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
@@ -205,7 +207,8 @@ Date: 2024.10.14-2024.10.21
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.3.1-CH4.4.2
-    CH4.3.1-CH4.4.2: Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-separation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
+    CH4.3.1-CH4.4.2: 
+        Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-separation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH3-CH3.3
     CH3-母函数
         使用幂级数表示数列（数列由幂级数的系数构造）
@@ -231,7 +234,8 @@ Date: 2024.10.21-2024.10.28
         block-sparse implementation is just skipping masked block, nothing special
     SecF-Full Experimental Results
 - [[Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec3
-    Sec3-Markov Fields and the Hammersley-Clifford Theorem: define ground state -> define Q function -> expand Q function -> proof the terms in Q function (G function) are only not null when their relating variables form a clique
+    Sec3-Markov Fields and the Hammersley-Clifford Theorem
+        define ground state -> define Q function -> expand Q function -> proof the terms in Q function (G function) are only not null when their relating variables form a clique
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.5
@@ -383,7 +387,7 @@ Date: 2024.11.11-2024.11.18
             `string` 's implementation is shor-string optimized.
             `string` is actually an alias of `basic_string<char>`.
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH4.4.1-CH4.5.2
-    Write characteristic polynominal directly from the recurrence relation, and slove the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
+    Write characteristic polynomial directly from the recurrence relation, and solve the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
 
 \[Doc\]
 - [[nvidia/CUDA C++ Programming Guide v12.6]]: CH2
@@ -849,8 +853,22 @@ Date: 2024.12.16-2024.12.23-2024.12.30
 Date: 2024.12.30-2025.1.6
 
 \[Paper\]
-- [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]
-    
+- [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]: All
+    Sec1-Introduction
+        This paper focuses on modeling collections of discrete data, and aims to find efficient and statistically meaningful representation of the member in the collections.
+        A basic method of processing documents in a corpora is tf-idf scheme, whose basic idea is using a word's tf-idf value to represent a word's importance to a document, and using a tf-idf vector to represent a document.
+        Tf-idf scheme's description length is not small, and thus reveal little inter and intra document statistical structure.
+        LSI do SVD to tf-idf matrix to capture a linear subspace in the tf-idf feature space, thus achieving dimension reduction.
+        Another method of modeling data is simply using maximum likelihood of Bayesian method to fit a generative model for the data.
+        pLSI model view each word in a document as sampled from a mixture model, where the mixture component is the a conditional multinominal distribution over vocabulary given a topic. Each document is represented by a probability distribution over the topics. The words in the document can be essentially viewed as first sample a topic from the topic distribution and sample the word from the multinominal distribution given the topic. By this way, the document's representation is significantly reduced.
+        The problem of pLSI is the lack of modeling generative probabilistic model for the topic's distribution. Thus the parameter increases linearly with the size of the corpus and it is not clear to assign topic distribution for new document.
+        pLSI assumes exchangeability of words in a document and documents in a corpus. According to Finetti's representation theorem, any collection of exchangeable random variables can have a joint mixture distribution. This lead us to not only consider a mixture distribution over words, but also consider a mixture distribution over documents. 
+    Sec2-Notation and terminology
+        We aims to find a probabilistic model that not only assign high probability to members of the corpus but also assign high probability to other similar documents.
+    Sec3-Latent Dirichlet Allocation
+        LDA's basic idea is to represent a document as a random mixture of latent topics, where each topic is characterized by a multinominal distribution over words. Note the difference between LDA's representation and pLSI's representation is that LDA is represented by a **random** mixture of topics, which indicates there is a distribution of the topic mixture. While in pLSI, the documents' topic mixture is not modeled as random, thus being deterministic.
+        In LDA, the document is generated by: first sample $N$ (word counts) from a Poisson distribution, next sample $\theta$ (topic mixture proportion/document representation) from a Dirichlet distribution with parameter $\alpha$, next for each word, sample a topic from the multinominal defined by $\theta$ and sample a word from the multinominal defined by the sampled topic.
+        LDA assumes the topic number is known and fixed, and the word's multinominal is fixed and is to be estimated from the corpus.
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
