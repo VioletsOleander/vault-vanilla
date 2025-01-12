@@ -872,3 +872,6 @@ Date: 2024.12.30-2025.1.6
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
+
+### Week2
+Date: 2024.12.30-2025.1.6
