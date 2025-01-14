@@ -27,7 +27,7 @@ Nowcasting is defined by the World Meteorological Organization (WMO) as forecast
 Weather radar echoes provide cloud observations at sub-2-km spatial resolution and up to 5-min temporal resolution, which are ideal for precipitation nowcasting. The natural option for exploiting these data is numerical weather prediction, which produces precipitation forecasts based on solving coupled primitive equations of the atmosphere. However, these methods, even when implemented on a supercomputing platform, restrict the numerical weather prediction forecast update cycles to hours and the spatial resolution to the mesoscale, whereas extreme weather processes typically exhibit lifetimes of tens of minutes and individual features at the convective scale. 
 >  天气雷达回波提供了亚 2km 空间尺度和 5min 时间尺度的云层观测，适用于临近降水预报
 >  数值天气预报基于求解耦合的大气基本方程来利用这些数据进行降水预测
->  但即便在超算平台上，数值天气预测的更新周期也需要以小时计，同时空间尺度限制在中尺度，而极端天气的声明周期一般仅有几十分钟，同时其特征处于对流尺度
+>  但即便在超算平台上，数值天气预测的更新周期也需要以小时计，同时空间尺度限制在中尺度，而极端天气的生命周期一般仅有几十分钟，同时其特征处于对流尺度
 
 > [! info] 雷达回波
 > 雷达回波（Radar Echo）是指由雷达发射的电磁波遇到目标物体（如雨滴、雪片、冰雹、云中的水汽粒子等）后反射回来的信号
@@ -201,7 +201,6 @@ When learning the operator with back propagation, we stop the gradients between 
 >  
 > $$\frac {\partial \mathbf x''_t}{\partial \mathbf x''_{t-1}} = 0$$
 > 
->  梯度截断阻止了时间步的
 
 The evolution network augments with an encoder–decoder architecture that simultaneously predicts motion fields $\mathbf{v}_{1:T}$ and intensity residuals $\mathbf s_{1:T}$ at all future time steps based on past radar fields $\mathbf x_{-T_{0}:0},$ . Such a full dependency between the past and future time steps mitigates the non stationarity issue in sequence prediction. Also, the evolution encoder, motion decoder and intensity decoder are neural networks (Fig. 1b), enabling nonlinear evolution modelling, which previous advection schemes struggle to capture. 
 >  演化网络还引入了编码器-解码器架构，基于过去的雷达场 $\mathbf x_{-T_0:0}$ 同时预测未来所有时间步的运动场 $\mathbf v_{1:T}$ 和强度残差 $\mathbf s_{1:T}$
@@ -472,8 +471,8 @@ The noise projector transforms the latent Gaussian vector $\mathbf z$ to the sam
 The physics-conditioning mechanism to fuse the generative network and the evolution network is implemented by applying the spatially adaptive normalization to each convolutional layer of the nowcast decoder (Extended Data Fig. 1b,e). First, each channel of the nowcast decoder is normalized by a parameter-free instance-normalization module. Then the evolution network predictions $\mathbf x_{1:T}^{\prime\prime}$ are resized to a compatible spatial size and then concatenated to the nowcast decoder at the corresponding layer through average pooling. Finally, a two-layer convolutional network transforms the resized predictions into new mean and variance for each channel of the nowcast decoder, ensuring not to distort the spatial-coherent features from the evolution network predictions $\mathbf x_{1:T}^{\prime\prime}$ . Through the physics-conditioning mechanism, the generative network is adaptively informed by the physical knowledge learned with the evolution network, while resolving the inherent conflict between physical-evolution and statistical-learning regimes. 
 >  用于融合生成网络和进化网络的物理条件机制通过在 nowcast 解码器中的每个卷积层应用空间自适应规范化实现
 >  首先，我们 nowcast 解码器的每个通道通过一个无参数的实例规范化模块进行规范化 (规范化每个特征图的均值和方差，使分布更加稳定)
->  然后，演化网络预测 $\mathbf x_{1: T}''$ 通过平均池化调整大小到匹配的空间尺寸
->  最后，通过两层的卷积网络将调整尺寸后的预测 $\mathbf x_{1: T}''$ 转化为新的均值和方差，匹配 nowcast 解码器的每个通道，同时保持不扭曲预测 $\mathbf x_{1: T}''$ 的空间一致性特征
+>  然后，演化网络预测 $\mathbf x_{1: T}''$ 通过平均池化调整大小到匹配的空间尺寸，然后拼接到 decoder 中对应层的特征图中
+>  最后，通过两层的卷积网络将预测转化为新的均值和方差，匹配 nowcast 解码器的每个通道，同时保持不扭曲预测 $\mathbf x_{1: T}''$ 的空间一致性特征
 >  (使用卷积而不是直接规范化是因为规范化是对每个特征图独立进行的，可能会破坏特征图之间的空间连贯性，卷积则更加灵活)
 >  生成网络在物理条件机制中学习演化网络提供的物理机制，同时解决统计学习方法和物理演化的内在冲突
 
