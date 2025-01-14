@@ -620,7 +620,7 @@ Date: 2024.12.9-2024.12.16
         FastAI is PyTorch's frontend.
         ONNX defines a scalable computation graph model.
         Deep Learning Hardware
-        TPU includes Matrix Multiplier Unit, Unified Buffer, and Activation Unit. MXU mainly consists of a systolic array. TPU is programmable but use matrix as primitive instead of vector or scalar.
+        TPU includes Matrix Multiplier Unit, Unified Buffer, and Activation Unit. MMU mainly consists of a systolic array. TPU is programmable but use matrix as primitive instead of vector or scalar.
         Hardware-specific DL Code Generator
         FPGA lies between CPUs/GPUs and ASIC. HLS programming model provides C/C++ programming interface to program FPGA. However, the DL model is usually described by the languages of DL framework instead of bare C/C++. Thus mapping DL models to FPGA remains a complicated work.
         The hardware-specific code generator targeting FPGA take DL model as input, output HLS or Verilog/VHDL. Based on the generated architecture of FPGA-based accelerators, the code generator can be classified as the processor architecture specific or the streaming architecture specific.
@@ -674,34 +674,34 @@ Date: 2024.12.9-2024.12.16
             Apply EM in clustering, we are viewing the data as coming from a mixture distribution and attempts to use the hidden variable to separate out the mixture into its components. If we use hard-assignment EM, we get k-means.
             Hard-assignment version tends to increase the contrast between different classes, since assignments have to choose between them. Soft-assignment can learn classes that are overlapping, since many instances contribute to two or more classes.
             Hard-assignment traverses the combinatorial space of assignments to the hidden variables $\mathcal H$. Soft-assignment traverses the continuous space of parameter assignments. The former makes discrete steps, and will converge faster. The latter can take paths that are infeasible to the former, and can shift two clusters' mean in a coordinated way, while the former can only "jump", since it cannot simultaneously reassign multiple instances and change the class means.
-        CH20-Learning Undirected Models
-            CH20.1-Overview
-                The biggest difference between MN and BN is the partition function. This global factor couples all of the parameters  across the network, preventing us from decomposing the problem and estimating local groups of parameters separately.
-                Therefore, even MLE estimation in the complete data case cannot be solved in a closed form (except for chordal MN, which is equivalent to BN).
-                To learn MN, we generally resort to iterative methods, and each iteration step of it requires us to run inference in the network.
-                Bayesian estimation for MN also has no closed-form solution. Thus the integration associated it must be performed using approximate inference (variational methods or MCMC).
-                In this area, part of the work focuses on the formulation of alternative, more tractable objectives of this estimation problem. Another part of the work focuses on the approximate inference algorithms.
-                Structure learning for MN also need approximation methods for similar reason. The advantage of MN's structure learning over BN's structure learning is the lack of acyclicity constraint. The acyclicity constraint will couple decisions regarding the family of different variables. 
-            CH20.2-The Likelihood Function
-                For MN which has equivalent structure to BN, we can use BN's CPDs to represent MN's potentials. The BN's MLE solution is exactly the MN's MLE solution.
-                We use log-linear format to represent the Gibbs distribution. Thus the parameters to learn corresponds to the weight we put on each feature. In this setting, the sufficient statistics of the likelihood function are the sums of the feature values in the instances in $\mathcal D$.
-                In this setting, the likelihood function can be described as a sum of two functions, the first one is linear in the parameters. 
-                We can prove that $\ln Z(\pmb \theta)$ is convex with respect the $\pmb \theta$ (It has semi-positive Hessian). The first derivative of $\ln Z(\pmb \theta)$ with respect to $\theta_i$ is $E_{\pmb \theta}[f_i]$. The second derivative of $\ln Z(\pmb \theta)$ with respect to $\theta_i, \theta_j$ is $Cov_{\pmb \theta}[f_i; f_j]$.
-                Therefore, $-\ln Z(\pmb \theta)$ is concave in $\pmb \theta$, the sum of a linear function and a concave function is concave. Thus the log-likelihood function is concave. Therefore the log-likelihood function has no local maximum. (only has multiple equivalent global maximum)
-            CH20.3-Maximum (Conditional) Likelihood Parameter Estimation
-                For a concave function, its maxima are precisely the points at which the gradient is zero. Thus we can precisely characterize the maximum likelihood parameters $\hat {\pmb \theta}$.
-                At the maximal likelihood parameter $\hat {\pmb \theta}$, the expected value of each feature relative to $P_{\hat {\pmb \theta}}$ matches its empirical expectation in $\mathcal D$. In other words, we want the expected sufficient statistics in the learned distribution to match the empirical expectations. This type of equality constraint is called moment matching. Therefore, the MLE estimation is consistent: if the model if sufficiently expressive to capture the data-generating distribution, then, at the large sample limit, the optimum of the likelihood objective is the true model.
-                Although the likelihood function is concave, there is no analytical form of its maximum. Thus we have to use iterative methods to search for the global optimum.
-                The gradient can be computed according to (20.4), it is the difference between the feature's empirical count in the data and the expected count relative to the current parameterization $\pmb \theta$.
-                To compute the expected count, we have to compute the different probabilities of the form $P_{\pmb \theta}(a, b)$, which needs us to do inference at each iteration. To reduce the computational cost, we may use approximate methods.
-                In practice, standard gradient ascent converges slowly and is sensitive to the step size. Mush faster convergence can be obtained with second-order methods, which utilize the Hessian to provide the quadratic approximation to the function. The computation of Hessian is illustrated in (20.5), which may also need approximation.
-                If we only need the model to do inference, we can train a discriminative model. In other words, we train a CRF that encodes a conditional distribution $P(\pmb Y\mid \pmb X)$.
-                Now the objective is the conditional likelihood and its log. The objective can be proved to be concave. Each data instance $\pmb y[m]$ 's log-likelihood is the log-likelihood of the data case in the MN reduced to the context $\pmb x[m]$.
-                In unconditional case, each gradient step requires only a single execution of inference. When training a CRF, we must execute inference for each data case (in the reduced, simpler MN). If the domain of $\pmb X$ is very large, the reduction will be more beneficial. Thus in this case training a discriminative network will be more economical.
-                In the missing data case, the likelihood function will be multiple modal, thus losing its concavity.
-                In this case, according to (20.9), the gradient of feature $f_i$ is the difference between two expectations - the feature expectation over the data and the hidden variables minus the feature expectation over all the variables.
-                Applying EM in MN is similar to BN. The difference is in M-step, where MN needs run inference to get gradient.
-                The trade-off between gradient method and EM method is more subtle in MN.
+    CH20-Learning Undirected Models
+        CH20.1-Overview
+            The biggest difference between MN and BN is the partition function. This global factor couples all of the parameters  across the network, preventing us from decomposing the problem and estimating local groups of parameters separately.
+            Therefore, even MLE estimation in the complete data case cannot be solved in a closed form (except for chordal MN, which is equivalent to BN).
+            To learn MN, we generally resort to iterative methods, and each iteration step of it requires us to run inference in the network.
+            Bayesian estimation for MN also has no closed-form solution. Thus the integration associated it must be performed using approximate inference (variational methods or MCMC).
+            In this area, part of the work focuses on the formulation of alternative, more tractable objectives of this estimation problem. Another part of the work focuses on the approximate inference algorithms.
+            Structure learning for MN also need approximation methods for similar reason. The advantage of MN's structure learning over BN's structure learning is the lack of acyclicity constraint. The acyclicity constraint will couple decisions regarding the family of different variables. 
+        CH20.2-The Likelihood Function
+            For MN which has equivalent structure to BN, we can use BN's CPDs to represent MN's potentials. The BN's MLE solution is exactly the MN's MLE solution.
+            We use log-linear format to represent the Gibbs distribution. Thus the parameters to learn corresponds to the weight we put on each feature. In this setting, the sufficient statistics of the likelihood function are the sums of the feature values in the instances in $\mathcal D$.
+            In this setting, the likelihood function can be described as a sum of two functions, the first one is linear in the parameters. 
+            We can prove that $\ln Z(\pmb \theta)$ is convex with respect the $\pmb \theta$ (It has semi-positive Hessian). The first derivative of $\ln Z(\pmb \theta)$ with respect to $\theta_i$ is $E_{\pmb \theta}[f_i]$. The second derivative of $\ln Z(\pmb \theta)$ with respect to $\theta_i, \theta_j$ is $Cov_{\pmb \theta}[f_i; f_j]$.
+            Therefore, $-\ln Z(\pmb \theta)$ is concave in $\pmb \theta$, the sum of a linear function and a concave function is concave. Thus the log-likelihood function is concave. Therefore the log-likelihood function has no local maximum. (only has multiple equivalent global maximum)
+        CH20.3-Maximum (Conditional) Likelihood Parameter Estimation
+            For a concave function, its maxima are precisely the points at which the gradient is zero. Thus we can precisely characterize the maximum likelihood parameters $\hat {\pmb \theta}$.
+            At the maximal likelihood parameter $\hat {\pmb \theta}$, the expected value of each feature relative to $P_{\hat {\pmb \theta}}$ matches its empirical expectation in $\mathcal D$. In other words, we want the expected sufficient statistics in the learned distribution to match the empirical expectations. This type of equality constraint is called moment matching. Therefore, the MLE estimation is consistent: if the model if sufficiently expressive to capture the data-generating distribution, then, at the large sample limit, the optimum of the likelihood objective is the true model.
+            Although the likelihood function is concave, there is no analytical form of its maximum. Thus we have to use iterative methods to search for the global optimum.
+            The gradient can be computed according to (20.4), it is the difference between the feature's empirical count in the data and the expected count relative to the current parameterization $\pmb \theta$.
+            To compute the expected count, we have to compute the different probabilities of the form $P_{\pmb \theta}(a, b)$, which needs us to do inference at each iteration. To reduce the computational cost, we may use approximate methods.
+            In practice, standard gradient ascent converges slowly and is sensitive to the step size. Mush faster convergence can be obtained with second-order methods, which utilize the Hessian to provide the quadratic approximation to the function. The computation of Hessian is illustrated in (20.5), which may also need approximation.
+            If we only need the model to do inference, we can train a discriminative model. In other words, we train a CRF that encodes a conditional distribution $P(\pmb Y\mid \pmb X)$.
+            Now the objective is the conditional likelihood and its log. The objective can be proved to be concave. Each data instance $\pmb y[m]$ 's log-likelihood is the log-likelihood of the data case in the MN reduced to the context $\pmb x[m]$.
+            In unconditional case, each gradient step requires only a single execution of inference. When training a CRF, we must execute inference for each data case (in the reduced, simpler MN). If the domain of $\pmb X$ is very large, the reduction will be more beneficial. Thus in this case training a discriminative network will be more economical.
+            In the missing data case, the likelihood function will be multiple modal, thus losing its concavity.
+            In this case, according to (20.9), the gradient of feature $f_i$ is the difference between two expectations - the feature expectation over the data and the hidden variables minus the feature expectation over all the variables.
+            Applying EM in MN is similar to BN. The difference is in M-step, where MN needs run inference to get gradient.
+            The trade-off between gradient method and EM method is more subtle in MN.
 
 ### Week 4
 Date: 2024.12.16-2024.12.23-2024.12.30
@@ -869,12 +869,68 @@ Date: 2024.12.30-2025.1.6
         LDA's basic idea is to represent a document as a random mixture of latent topics, where each topic is characterized by a multinominal distribution over words. Note the difference between LDA's representation and pLSI's representation is that LDA is represented by a **random** mixture of topics, which indicates there is a distribution of the topic mixture. While in pLSI, the documents' topic mixture is not modeled as random, thus being deterministic.
         In LDA, the document is generated by: first sample $N$ (word counts) from a Poisson distribution, next sample $\theta$ (topic mixture proportion/document representation) from a Dirichlet distribution with parameter $\alpha$, next for each word, sample a topic from the multinominal defined by $\theta$ and sample a word from the multinominal defined by the sampled topic.
         LDA assumes the topic number is known and fixed, and the word's multinominal is fixed and is to be estimated from the corpus.
+        In LDA, given $\alpha$, topic mixture $\theta$ is a $k$ -dimensional Dirichlet random variable and take values in a $(k-1)$ -simplex, with $\theta_i \ge 0, \sum_{i=1}^k \theta_i = 1$. Topic mixture $\theta$ defines a multinominal over $k$ possible topics.
+        There are three levels to the LDA representation. $\alpha, \beta$ are corpus-level parameters, sampled once when generating the corpus. $\theta$ are document-level parameters, sampled once for each document. $z, w$  are word-level variables, sampled once for each word. In LDA, a document can associate multiple topics.
+        In LDA, to obtain a document's marginal probability, we need to marginalize out the topic variables $z$ for each word and marginalize out the topic mixtures $\theta$ for the document.
+    Sec4-Relationship with other latent variables
+        In unigram model, each word are drawn from a single multinomial.
+        In mixture of unigram model, each document associates a topic, and each topic defines a multinomial over the vocabulary. The multinominal can be viewed as a representation of the topic. The difference between mixture of unigram model and LDA is that LDA allow a document exhibit multiple topics, and defines a distribution over the topics.
+        pLSI allow a document associate multiple topics, but each document's topic mixture is deterministic. The number of parameters grow linear with the corpus size.
+        LDA treat the topic mixture as a random variable, making generalizing to new document easy and removing the linear dependency of the parameter number.
+    Sec5-Inference and Parameter Estimation
+        In inference, we need to compute the posterior $p(\theta, \mathbf z\mid \mathbf w, \alpha, \beta)$. We construct a variational model representing the approximate posterior and optimize the KL divergence between the variational approximate posterior and the true posterior to find the optimal approximate posterior.
+        Note that the optimization for variational parameter is conducted for fixed $\mathbf w$. Therefore the variational parameter is conditioned on the document. The variational Dirichlet parameter $\gamma$ can be viewed as the representation of the document.
+        In parameter estimation, we use variational EM procedure to maximize the log-likelihood. The E-step finds the optimal variational parameters, which is the same as the inference. The M-step finds the optimal model parameters $\alpha, \beta$ by MLE or by Bayesian estimation (smoothing). 
+    Sec6-Example
+        The prior Dirichlet parameters subtracted from the posterior Dirichlet parameters indicate the expected number of words which were allocated to each topic for a particular document.
+    Sec7-Applications and Empirical Results
+        Perplexity monotonically decrease with the likelihood of test data and is algebraically equivalent to the inverse of the geometric mean per-word likelihood. Lower perplexity indicates higher test set likelihood and thud indicates better generalization performance.
+    Sec8-Discussion
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
 
 ### Week2
-Date: 2024.12.30-2025.1.6
+Date: 2024.1.6-2025.1.13
 
-
-
+\[Paper\]
+- [[paper-notes/Skilful Nowcasting of Extreme Precipitation with NowcastNet-2023-Nature|2023-Nature-Skilful Nowcasting of Extreme Precipitation with NowcastNet]]: All
+    Sec0-Abstract
+        Pure physics-based method can not capture convective dynamics. Data-driven learning can not obey physical laws like advective conservation. NowcastNet unify physical-evolution scheme and conditional learning methods, and optimize forecast error end-to-end.
+    Sec1-Introduction
+        Weather radar echoes provide cloud observations at sub-2km spatial resolution and up to 5-min temporal resolution.
+        DARTS and pySTEPS are based on advection scheme. They predict the future motion fields and intensity residuals from radar observations and iteratively advect the past radar field according to the predicted motion field, with the addition of intensity residuals, to obtain the future fields. The advection scheme respects the physical conservation laws, but does not account for the convective influence. Also, existing advection method does not incorporate nonlinear evolution simulation and end-to-end forecast error optimization.
+        Deep learning based methods do not account for the physical laws explicitly, and thus may produce unnatural motion and intensity, high location error and large cloud dissipation at increasing lead times.
+        NowcastNet combines deep learning methods and physical principles. It integrates advective conservation into a learning based model, and thus can predict long-lived mesoscale advective pattern and short-lived convective detail.
+    Sec2-NowcastNet
+        Given past radar fields $\mathbf x_{-T_0:0}$, the generative model generate future fields $\widehat {\mathbf x}_{1:T}$ from random Gaussian vector $\mathbf z$ conditioned on the evolution network's prediction.
+        The random Gaussian vector $\mathbf z$ introduce randomness to the generation to capture chaotic dynamics. Integration over the latent vector enables ensemble forecast.
+        The evolution network's prediction aims to comply with the physical advection process and produce physically plausible prediction for advective features at 20km scale. The generative network's aims to generate fine-grained prediction that captures convective features at 1-2km scale. This scale disentanglement mitigates error propagation between scales in multiscale prediction network.
+        The physical-conditioning mechanism is implemented by spatially adaptive normalization technique. In forward pass, in each layer of nowcast decoder, the mean and variance of the activations are replaced by spatially corresponding statistics computed from the evolution network predictions. Therefore the nowcast decoder combines mesoscale advective pattern governed by the physical laws and convective-scale details revealed by radar observations.
+        NowcastNet is trained in an adversarial way. The temporal discriminator on the nowcast decoder takes the pyramid features in several time windows as input and output the possibility that the input is fake or real radar field. By deceiving the discriminator, NowcastNet can learn to generate convective details present in the radar observation but left out by the advection-based evolution network.
+        To make the generated field spatially consistent with the read observation, the loss also includes pool regularization term, which enforce pooling-level consistency between ensemble prediction and real observation.
+    Sec3-Evolution network
+        Previous implementation of advection schemes' disadvantages include: 1. advection operation is not differentiable 2.  can not provide nonlinear modelling ability 3. auto regressive generation prevents direct optimization of forecast error and accumulates estimation error of initial states, motion field, intensity residual.
+        The evolution network's evolution operator is differentiable and directly optimize the forecast error throughout the time horizon by back propagation.
+        The evolution operator takes the motion field, intensity residual and the current field as input and output the field in the next time step by one step of advection. The evolution operator can finally produce predictions $\mathbf x_{1:T}$ for several time steps. The gradient can be passed through the evolution operator, to directly optimize the motion decoder, intensity decoder, and the evolution encoder.
+        To avoid numerical instability from discontinuous interpolation, in the evolution operator, the gradient between each time step is detached.
+        The motion decoder and intensity decoder simultaneously predict motion fields and intensity residuals at all future time steps. 
+        The objective of evolution network is minimizing the forecast error throughout the time horizon. The accumulated error term in the loss involves the distance between the predict field $\mathbf x_{t}''$ and the real field $\mathbf x_t$. It also involves the distance between the advected field $\mathbf x_t'$ and the real field $\mathbf x_t$ to short cut the gradient. It can be viewed as a residual shortcut. Therefore the intensity $\mathbf s_t$ in learning will tend to fit the residual between the real field and the advected field.
+        To ensure continuity and to ensure the large precipitation pattern's motion field being more smooth than the small ones. The loss also involves a motion regularization term, which penalize the motion field's gradient norm in a weighted way.
+    Sec4-Evaluation settings
+        An importance sampling strategy is applied to create datasets more representative of extreme-precipitation events.
+    Sec5-Precipitation events
+    Sec6-Meterologist evaluation
+    Sec7-Quantitive evaluation
+    Sec8-Methods
+        According to the continuity equation, the temporal evolution of precipitation can be modelled as a composition of advection by motion fields and addition by intensity residuals. The evolution operator is constructed in this principle, and the motion field and intensity residuals are predicted by neural networks based on past radar observations.
+        The evolution network is responsible for predicts future radar fields at 20-km scale. The backbone of evolution network is a two-way U-Net, where each convolution layer is spectral normalized and the skip connections concatenate the temporal dimension/the channel dimension.
+        The evolution operator views motion field $\mathbf v_{1:T}$ as departure offset and views intensity residual $\mathbf s_{1:T}$ precipitation intensity growth or decay.
+        As applying bilinear interpolation continuously will blur the field. The advected field $\mathbf x_t'$ is computed by nearest interpolation, but the gradient and loss is computed from the bilinear interpolated field $(\mathbf x_t')_{\mathrm {bili}}$.
+        Gradient between two consecutive time steps in the operator is detached because successive bilinear interpolation will make end-to-end optimization unstable.
+        To balance different rainfall levels, the distance calculation in the accumulation loss is weighted proportional to the rain rate.
+        The generative network is responsible for generating the final predicted precipitation field at a 1-2km scale. The backbone of generative network is also a U-Net encoder decoder structure. The encoder is identical to the evolution network's encoder, and it takes the concatenation of $\mathbf x_{-T_0:0}$ and $\mathbf x_{1: T}''$ as input. The decoder has different structure, and it takes encoder's encoded representation added by the transformed latent random vector as input.
+        The conditioning mechanism is implemented by applying the spatially adaptive normalization to each convolutional layer in the decoder. 
+        The pooling-regularization term is calculated from the ensembled prediction.
+    Sec9-Datasets
+    Sec10-Evaluation
