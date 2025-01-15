@@ -889,9 +889,16 @@ Date: 2024.12.30-2025.1.6
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
+    CH19.2-Parameter Estimation
+        CH19.2.2-Expectation Maximization
+            CH19.2.2.5-Theoretical Foundations
+                Each iteration of the EM process can be viewed as maximizing an auxiliary function. Maximizing the auxiliary function will yield better log-likelihood.
+                For exponential family models, the expected log-likelihood is a linear function of the expected sufficient statistics. Thus to maximize the expected log-likelihood, we first derive the expected sufficient statistics, and then compute the parameters that maximize the expected log-likelihood. That's precisely the EM process.
+                In each EM iteration, we are actually optimizing a function of the parameter $\pmb \theta$ and the posterior choice $Q$. We define the energy functional associated with $P$ and $Q$ as $F[P, Q] = E_Q[\log \tilde P] + H_Q$. Then we can prove $\log Z = F[P, Q] + D(Q||P)$.
+                Let $P = P(\mathcal H\mid \mathcal D,\pmb \theta)$,
 
 ### Week2
-Date: 2024.1.6-2025.1.13
+Date: 2025.1.6-2025.1.13
 
 \[Paper\]
 - [[paper-notes/Skilful Nowcasting of Extreme Precipitation with NowcastNet-2023-Nature|2023-Nature-Skilful Nowcasting of Extreme Precipitation with NowcastNet]]: All
@@ -934,3 +941,8 @@ Date: 2024.1.6-2025.1.13
         The pooling-regularization term is calculated from the ensembled prediction.
     Sec9-Datasets
     Sec10-Evaluation
+\[Book\]
+- [[book-notes/深度强化学习|深度强化学习]]
+
+### Week 3
+Date: 2025.1.13-2025.1.
