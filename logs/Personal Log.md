@@ -24,6 +24,7 @@ Date: 2024.7.29-2024.8.5
 - [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
     Derived Ideas:
         1. Thread Tile: 改变 Thread Tile 内矩阵的运算顺序，利用 Register 减少对 global memory 的访问次数；其中 Thread tile 的长宽 $M_{frag},N_{frag}$ 的选取与线程内 FFMA 指令对非 FFMA 指令如 LDS 指令的延迟覆盖是相关的
+
 ## August
 ### Week 1
 Date: 2024.8.5-2024.8.12
@@ -96,8 +97,8 @@ Date: 2024.9.2-2024.9.9
 Date: 2024.9.9-2024.9.16
 
 \[Paper\]
-- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: CH6-CH7
-    CH6-Utilization
+- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec6
+    Sec6-Utilization
         Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
 - [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|2023-NeurIPS-Are Emergent Abilities of Large Language Models a Mirage?]]: All
 
@@ -132,8 +133,8 @@ Date: 2024.9.16-2024.9.23
 Date: 2024.9.23-2024.9.30
 
 \[Paper\]
-- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: CH7
-    CH7-Capacity and Evaluation
+- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec7
+    Sec7-Capacity and Evaluation
         LLM abilities: 1. basic ability: language generation (including code), knowledge utilization (e.g. knowledge-intensive QA) , complex reasoning (e.g. math) ; 2. advanced ability: human alignment, interaction with external environment (e.g. generate proper action plan for embodied AI), tool manipulate (e.g. call proper API according to tasks); introduction to some benchmarks
 
 \[Book\]
@@ -171,9 +172,13 @@ Date: 2024.9.30-2024.10.7
 Date: 2024.10.7-2024.10.14
 
 \[Paper\]
-- [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: CH0-CH3.1
-    CH0-CH3.1: 
-        Abstract, Background, Algorithm 1; Algorithm 1 is basically a tiled implementation of attention calculation. What makes algorithm 1 looks not so intuitive is the repetitive rescaling of softmax factor, whose aim is to stabilize the computation. In algorithm 1, each query's attention result is accumulated gradually by the outer loop, and the already accumulated partial attention result's weights for the corresponding value is dynamically updated/changed by the outer loop.
+- [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec0-Sec3.1
+    Sec0-Abstract
+    Sec1-Introduction
+    Sec2-Background
+    Sec3-FlashAttention: Algorithm, Analysis, and Extensions
+        Sec3.1-An Efficient Attention Algorithm with Tiling and Recomputation
+            Algorithm 1 is basically a tiled implementation of attention calculation. What makes algorithm 1 looks not so intuitive is the repetitive rescaling of softmax factor, whose aim is to stabilize the computation. In algorithm 1, each query's attention result is accumulated gradually by the outer loop, and the already accumulated partial attention result's weights for the corresponding value is dynamically updated/changed by the outer loop.
 
 \[Book\]
 - [[A Tour of C++]]: CH5
@@ -181,7 +186,7 @@ Date: 2024.10.7-2024.10.14
     CH2-鸽巢原理
         鸽巢原理仅解决存在性问题
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4-CH4.3.1
-    CH4-CH4.3.1: 
+    CH4-Undirected Graphical Models
         Markov Network's parameterization: the idea was derived from statistical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of particular configuration; separation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
 
 \[Doc\]
@@ -193,22 +198,25 @@ Date: 2024.10.14-2024.10.21
 
 \[Paper\]
 - [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec3.1-Sec5
-    Sec3.1-IO Analysis
-        The IO complexity of FlashAttention is $\Theta(N^2d^2M^{-1})$ while the IO complexity of the standard attention computation is $\Theta (Nd + N^2)$. The main difference is in $M$ and $N^2$. Standard attention computation does not use SRAM at all, all memory accesses are global memory access, in which the process of fetching "weight matrix" $P\in \mathbb R^{N\times N}$ contributes most of the IO complexity. FlashAttention utilized SRAM, and do not store "weight matrix" into DRAM, but keep a block of it on chip the entire time, thus effectively reduced the IO complexity.
-    Sec3.2-Block sparse Flash-Attention
-        The main difference between FlashAttention is that the range of "attention" is restricted, thereby the computation and memory accesses is reduced by skipping the masked entries.
+    Sec3-FlashAttention: Algorithm, Analysis and Extensions
+        Sec3.1-IO Analysis
+            The IO complexity of FlashAttention is $\Theta(N^2d^2M^{-1})$ while the IO complexity of the standard attention computation is $\Theta (Nd + N^2)$. The main difference is in $M$ and $N^2$. Standard attention computation does not use SRAM at all, all memory accesses are global memory access, in which the process of fetching "weight matrix" $P\in \mathbb R^{N\times N}$ contributes most of the IO complexity. FlashAttention utilized SRAM, and do not store "weight matrix" into DRAM, but keep a block of it on chip the entire time, thus effectively reduced the IO complexity.
+        Sec3.2-Block sparse Flash-Attention
+            The main difference between FlashAttention is that the range of "attention" is restricted, thereby the computation and memory accesses is reduced by skipping the masked entries.
     Sec4-Experiments
         FlashAttention trains faster; FlashAttention trains more memory-efficient (linear), thus allowing longer context window in training. The reason for that is FlashAttention do not compute the entire "weight matrix" $P\in \mathbb R^{N\times N}$ one time, but do a two level loop, compute one row of $P$ each time. The FLOP is actually increased, but the memory usage is restricted to $O (N)$ instead of $O (N^2)$ and the additional computation time brought by the increased FLOP is eliminated by the time reduced by less DRAM accesses.
 - [[Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec0-Sec2
     Sec0-Summary
         This paper proposed an alternative proof of HC theorem, thereby reinforcing the importance of conditional probability models over joint probability models for modeling spatial interaction.
-    Sec1-Sec2
+    Sec1-Introduction
+    Sec2-Markov Fields and The Hammersley-Clifford Theorem
         For positive distribution, conditional probability can be used to deduce the overall joint probability. This is made possible by HC theorem.
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.3.1-CH4.4.2
-    CH4.3.1-CH4.4.2: 
-        Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-separation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
+    CH4-Undirected Graphical Models
+        CH4.3-Markov Network Independencies: 
+            Markov network encodes three types of independence: pairwise independence, local independence (Markov blanket), global independence (d-separation). For positive distribution, they are equivalent. For non-positive distribution (those with deterministic relationships), they are not equivalent. This is because the semantics of Markov network is not enough to convey deterministic relationships. By HC theorem, $P$ factorizes over Markov network $\mathcal H$ is equivalent to $P$ satisfies the three types of independence encoded by $\mathcal H$.
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH3-CH3.3
     CH3-母函数
         使用幂级数表示数列（数列由幂级数的系数构造）
@@ -216,7 +224,8 @@ Date: 2024.10.14-2024.10.21
 
 \[Doc\]
 - [[Pytorch 2.x]]: CH0
-    CH0-General Introduction: `torch.compile` : TorchDynamo --> FX Graph in Torch IR --> AOTAutograd --> FX graph in Aten/Prims IR --> TorchInductor --> Triton code/OpenMP code...
+    CH0-General Introduction
+        `torch.compile` : TorchDynamo --> FX Graph in Torch IR --> AOTAutograd --> FX graph in Aten/Prims IR --> TorchInductor --> Triton code/OpenMP code...
 - [[doc-notes/triton/Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
     Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapsulates all the complicated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
 
@@ -256,10 +265,13 @@ Date: 2024.10.28-2024.11.4
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH4.6.1
-    CH4.6.1-Conditional Random Fields
-        CRF models conditional distribution by partially directed graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditional distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict expandability, because the parameters learned has less semantics on their own.
+    CH4-Undirected Graphical Models
+        CH4.6-Partially Directed Models
+            CH4.6.1-Conditional Random Fields
+                CRF models conditional distribution by partially directed graph, whose advantage lies in its more flexibility. CRF allows us to use Markov network's factor decomposition semantics to represent conditional distribution. The specification of factors has lots of flexibility compared to explicitly specifying CPD in conditional Bayesian networks. But this flexibility in turn restrict expandability, because the parameters learned has less semantics on their own.
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH4-CH4.4.1
-    Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
+    CH4-线性常系数递推关系
+        Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
 \[Doc\]
 - [[Learn the Basics|pytorch/tutorial/beginner/Learn the Basics]] 
@@ -288,25 +300,27 @@ Date: 2024.11.4-2024.11.11
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH7, CH9.2-CH9.3
-    CH7.1-Multivariate Gaussians: 
-        Two parameterization: Standard, Information Matrix
-        Marginal and Conditional density of Joint Gaussian is Gaussian, and the Conditional density is also linear Gaussian model
-        Zero in $\Sigma$ implies linear independence in Joint Gaussian, which in turn implies statistical independence
-        Zero in $J$ implies conditional independence
-    CH7.2-Gaussian Bayesian Networks:
-        All CPDs being linear Gaussian model implies the joint density is Gaussian
-    CH7.3-Gaussian Markov Random Fields:
-        Any Gaussian's information representetaion can be related to a pairwise Markov network with quadratic node and edge potentials
-        The converse is not necessarily true, the positive definiteness of $J$ should be guaranteed.
-        There exists two sufficient condition to make the converse true: diagonally dominate, pairwise normalizable
-    CH7.4-Summary:
-        A multivariate Gaussian can be represented both by Gaussian Bayesian network and Gaussian Markov network
-        Gaussians are representationally compact and computationally tractable. Even in complicated problem, we can assume the prior to be Gaussian or approximate the inference to make the intermediate be Gaussian to ensure the computational tractability
-    CH9.2-'Variable Elimination: The Basic Ideas':
-        The basic idea of variable elimination is dynamic programming. To calculate the margianal $P(X)$ from CPD $P (X \mid Y)$, we first calculate the marginal of $Y$ and store it, thus calculate the marginal $P (X)$ by $P (X) = \sum_y P (y) P (X\mid y)$, avoiding recalculate $P (Y)$ for every $x \in Val (X)$
-    CH9.3-Variable Elimination:
-        We viewing the joint density as a product of factors. To calculate the marginalization over a subset of variables, we sum out of the other variables. This process is generalized as the sum-product variable elimication algorithm. The calculation of this algorithm can be simplified by using the property of factor's limited scope to isolated only the related factors to summation (distributive law of multiplication)
-        To deal with evidence, we first use the evidence to reduce the factors (leaving the factors compatible with the evidence), and do the same algorithm to the reduced set of factors.
+    CH7-Gaussian Network Models
+        CH7.1-Multivariate Gaussians: 
+            Two parameterization: Standard, Information Matrix
+            Marginal and Conditional density of Joint Gaussian is Gaussian, and the Conditional density is also linear Gaussian model
+            Zero in $\Sigma$ implies linear independence in Joint Gaussian, which in turn implies statistical independence
+            Zero in $J$ implies conditional independence
+        CH7.2-Gaussian Bayesian Networks:
+            All CPDs being linear Gaussian model implies the joint density is Gaussian
+        CH7.3-Gaussian Markov Random Fields:
+            Any Gaussian's information representetaion can be related to a pairwise Markov network with quadratic node and edge potentials
+            The converse is not necessarily true, the positive definiteness of $J$ should be guaranteed.
+            There exists two sufficient condition to make the converse true: diagonally dominate, pairwise normalizable
+        CH7.4-Summary:
+            A multivariate Gaussian can be represented both by Gaussian Bayesian network and Gaussian Markov network
+            Gaussians are representationally compact and computationally tractable. Even in complicated problem, we can assume the prior to be Gaussian or approximate the inference to make the intermediate be Gaussian to ensure the computational tractability
+    CH9-Exact Inference: Variable Elimination
+        CH9.2-'Variable Elimination: The Basic Ideas':
+            The basic idea of variable elimination is dynamic programming. To calculate the marginal $P(X)$ from CPD $P (X \mid Y)$, we first calculate the marginal of $Y$ and store it, thus calculate the marginal $P (X)$ by $P (X) = \sum_y P (y) P (X\mid y)$, avoiding recalculate $P (Y)$ for every $x \in Val (X)$
+        CH9.3-Variable Elimination:
+            We viewing the joint density as a product of factors. To calculate the marginalization over a subset of variables, we sum out of the other variables. This process is generalized as the sum-product variable elimication algorithm. The calculation of this algorithm can be simplified by using the property of factor's limited scope to isolated only the related factors to summation (distributive law of multiplication)
+            To deal with evidence, we first use the evidence to reduce the factors (leaving the factors compatible with the evidence), and do the same algorithm to the reduced set of factors.
 - [[A Tour of C++]] : CH7-CH8
 
 \[Doc\]
@@ -387,7 +401,8 @@ Date: 2024.11.11-2024.11.18
             `string` 's implementation is shor-string optimized.
             `string` is actually an alias of `basic_string<char>`.
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH4.4.1-CH4.5.2
-    Write characteristic polynomial directly from the recurrence relation, and solve the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
+    CH4-线性常系数递推关系
+        Write characteristic polynomial directly from the recurrence relation, and solve the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
 
 \[Doc\]
 - [[nvidia/CUDA C++ Programming Guide v12.6]]: CH2
@@ -403,35 +418,34 @@ Date: 2024.11.11-2024.11.18
         Compute Capability is the version of SM architecture, denoted by a major version number and a minor version number
         CUDA version is the version of CUDA software platform
 - [[docker/get-started/What is Docker]] 
-        Containers include everything needed for running an application
-        Use containers to be the unit of distributing and deploying applications
-        Docker client ( `docker` ) use Docker API to communicate with Docker daemon ( `dockerd` ), which is responsible for managing containers
-        Docker registry stores images. `docker pull` pulls image from registry, and `docker push` pushes image to registry
-        Image is an read-only template of instructions for creating container. Image is defined by Dockerfile, and is consists of layers. Each instruction in Dockerfile defines a layer in image. Once created, the image can not be modified. Container is a runnable instance of an image.
+    Containers include everything needed for running an application
+    Use containers to be the unit of distributing and deploying applications
+    Docker client ( `docker` ) use Docker API to communicate with Docker daemon ( `dockerd` ), which is responsible for managing containers
+    Docker registry stores images. `docker pull` pulls image from registry, and `docker push` pushes image to registry
+    Image is an read-only template of instructions for creating container. Image is defined by Dockerfile, and is consists of layers. Each instruction in Dockerfile defines a layer in image. Once created, the image can not be modified. Container is a runnable instance of an image.
 - [[docker/get-started/Docker Concepts]]
-        The Basics: 
-        Container is essentially an isolated process. Multiple containers share the same kernel.
-        Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which represents a set of filesystem changes.
-        Repository is a collection of related images in the registry.
-        Keep each container doing only one thing.
-        Docker Compose uses yaml file to define the configurations and interactions for all related containers. Docker Compose is an declarative tool.
-        Building Images:
-        The image is consists of multiple layers. We reuse other images' base layers to define custom layer.
-        After each layer is downloaded, it is extracted into the own directory in the host filesystem.
-        When running a container from an image, a union filesystem is created, where layers are stacked on top of each other. The container's root directory will be changed to the location of the unified directory by `chroot`.
-        In the union filesystem, in addition to the image layers, Docker will create a new directory for the container, which allows the container make filesystems changes while keeping original layers untouched.
-        Dockerfile provides instructions to the image builder. Common instructions include `FROM/WORKDIR/COPY/RUN/ENV/EXPOSE/USER/CMD` etc.
-        A Dockerfile typically 1. determine base image 2. install dependencies 3. copy in sources/binaries 4. configure the final image.
-        Use `docker build` to build image from Dockerfile. 
-        Image's name pattern is `[HOST[:PORT_NUMBER]/]PATH[:TAG]` 
-        Use `docker build -t` to specify a tag for the image when building. Use `docker image tag` to specify another tag for an image.
-        Use `docker push` to push built image.
-        Modify `RUN` 's command will invalidate the build cache for this layer.
-        Modify files be `COPY` ed or `ADD` ed will invalidate the build cache for this layer.
-        All the following layer of an invalidated layer will be invalidated.
-        When writing Dockerfile, considering the invalidation rule to ensure the Dockerfile can build as efficient as possible.
-        Multi-stage build introduces multiple stages in Dockerfile. It is recommended to use one stage to build and minify code for interpreted languages or use one stage to compile code for compiled languages. Then use another stage, copying in the artifacts in the previous stage, only bundle the runtime environment, thus reducing the image size.
-        Use `FROM <image-name> AS <stage-name>` to define stage. Use `--from=<stage-name>` in `COPY` to copy previous stages artifacts.
+    The Basics: 
+    Container is essentially an isolated process. Multiple containers share the same kernel.
+    Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which represents a set of filesystem changes.
+    Repository is a collection of related images in the registry. Keep each container doing only one thing.
+    Docker Compose uses yaml file to define the configurations and interactions for all related containers. Docker Compose is an declarative tool.
+    Building Images:
+    The image is consists of multiple layers. We reuse other images' base layers to define custom layer.
+    After each layer is downloaded, it is extracted into the own directory in the host filesystem.
+    When running a container from an image, a union filesystem is created, where layers are stacked on top of each other. The container's root directory will be changed to the location of the unified directory by `chroot`.
+    In the union filesystem, in addition to the image layers, Docker will create a new directory for the container, which allows the container make filesystems changes while keeping original layers untouched.
+    Dockerfile provides instructions to the image builder. Common instructions include `FROM/WORKDIR/COPY/RUN/ENV/EXPOSE/USER/CMD` etc.
+    A Dockerfile typically 1. determine base image 2. install dependencies 3. copy in sources/binaries 4. configure the final image.
+    Use `docker build` to build image from Dockerfile. 
+    Image's name pattern is `[HOST[:PORT_NUMBER]/]PATH[:TAG]` 
+    Use `docker build -t` to specify a tag for the image when building. Use `docker image tag` to specify another tag for an image.
+    Use `docker push` to push built image.
+    Modify `RUN` 's command will invalidate the build cache for this layer.
+    Modify files be `COPY` ed or `ADD` ed will invalidate the build cache for this layer.
+    All the following layer of an invalidated layer will be invalidated.
+    When writing Dockerfile, considering the invalidation rule to ensure the Dockerfile can build as efficient as possible.
+    Multi-stage build introduces multiple stages in Dockerfile. It is recommended to use one stage to build and minify code for interpreted languages or use one stage to compile code for compiled languages. Then use another stage, copying in the artifacts in the previous stage, only bundle the runtime environment, thus reducing the image size.
+    Use `FROM <image-name> AS <stage-name>` to define stage. Use `--from=<stage-name>` in `COPY` to copy previous stages artifacts.
 
 ### Week 4
 Date: 2024.11.18-2024.11.25
@@ -784,34 +798,35 @@ Date: 2024.12.16-2024.12.23-2024.12.30
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH18.1-CH18.3
-    18.1-Introduction
-        In structure learning, we aims to recover $\mathcal G^*$ or its I-equivalence based on data. $\mathcal G^*$ is $P^*$ 's perfect map.
-        The more edges our structure have, the more parameters we need to learn. Because of data fragmentation, the quality of estimated parameter will decrease if the number of samples is fixed. (Note that the standard deviation of MLE estimate if $1/\sqrt M$)
-        Thus when doing density estimation from limited data, we prefer sparse structure even if the true structure $\mathcal G^*$ is more dense. Because we need to avoid overfitting.
-        There are three methods for structure learning. 
-        The first one is constraint-based structure learning, which tests the independence in data and find a network that best explains these independencies. This type of method is sensitive to failures in individual independencies test. If one of these tests return a wrong answer, the network construction will be misled.
-        The second one is score-based structure learning. This method defines a hypothesis space of potential models and a score function that measures how well the model fits the observation. The task is to search the model that maximize the score in the hypothesis space. Score-based method consider the whole structure at once, thus is less sensitive to individual failures.
-        The third method does not learn a single model but an ensemble of multiple possible structures.
-    18.2-Constraint-Based Approaches
-        Determining whether two variables are independent is often referred to as hypothesis testing.
-    18.3-Structure Scores
-        Score-based methods approach the problem of structure learning as an optimization problem.
-        Intuitively, we need to find a model that would make the data as probable as possible. In this case, our model is pair $\langle \mathcal G,\pmb \theta_{\mathcal G}\rangle$. The likelihood score directly defines $\pmb \theta_{\mathcal G}$ to be its the MLE estimation $\hat {\pmb \theta}_{\mathcal G}$, and tries to find structure $\mathcal G$ that maximize $score_{L}(\mathcal G:\mathcal D) = \ell(\hat {\pmb \theta}_{\mathcal G}:\mathcal G)$.
-        The likelihood score can decompose according to (18.4). We can observe that the likelihood measures the strength of the dependencies between variables and their parents. 
-        For BN, the process of choosing a network structure is often subject to constraints. Some constraints are a consequence of the acyclicity requirement, others may be due to a preference for simpler structures.
-        Because the property of mutual information, adding edge to a network will never decrease its likelihood score. Thus likelihood score will result in fully connected network in most cases. Therefore, the likelihood score can not avoid overfitting.
-        The Bayesian method put a distribution on possible structures $\mathcal G$ and is proportional to the posterior $P(\mathcal G\mid \mathcal D)$. The Bayesian score is defined as $score_B(\mathcal G: \mathcal D) = \log P(\mathcal D\mid \mathcal G) + \log P(\mathcal G)$.
-        The calculation of marginal likelihood $P(\mathcal D\mid \mathcal G)$ need us to integrate the whole parameter space $\Theta_{\mathcal G}$. Therefore, we are measuring the expected likelihood, averaged over different possible choices of $\pmb \theta_{\mathcal G}$ decreasing the sensitivity of the likelihood to the particular choice of parameters. 
-        Another perspective to explain the Bayesian score is derived from the holdout testing methods. The Bayesian score can be viewed as a form of prequential analysis, where each instance is evaluated in incremental order, and contributes both to our evaluation of the model and to our final model score. The sequence order can be arbitrary. According to (18.8), the marginal likelihood can be approximately viewed as the estimation of the model' expected likelihood in the underlying distribution.
-        If the parameter's priors are in conjugate case, the marginal likelihood of a single variable's form can be easily written. As a consequence, the marginal likelihood of the dataset can be further written simpler according to (18.9).
-        The Bayesian score for BN cane be decomposed under the assumption of parameter independence. The the local independence is also satisfied, (18.9) can be applied to substitute the local terms of the factorized Bayesian score.
-        If $M\to \infty$, the $\log P(\mathcal D\mid \mathcal G)$ can be represented as Theorem 18.1. We can observe that the Bayesian score tends to trade off the likelihood (fit the data) and the model complexity. Omitting the constant term, we get the BIC score.
-        The log-likelihood term increase linear to $M$, and the model complexity term increase log to $M$, therefore the emphasis on data fitting will increase as $M$.
-        BIC score and the Bayesian score are consistent, which means with adequate data, the score will select $\mathcal G^*$. or its I-equivalence.
-        Consistency is an asymptotic property, and thus it does not imply much about the properties of networks learned with limited amounts of data.
-        We call the prior satisfies parameter modularity if two structure's local structure are the same, their prior will be the same
-        Under parameter modularity, Bayesian score will be decomposable, and thus the searching can be done locally and separately.
-        The likelihood score is naturally decomposable.
+    CH18-Structure Learning in Bayesian Networks
+        CH18.1-Introduction
+            In structure learning, we aims to recover $\mathcal G^*$ or its I-equivalence based on data. $\mathcal G^*$ is $P^*$ 's perfect map.
+            The more edges our structure have, the more parameters we need to learn. Because of data fragmentation, the quality of estimated parameter will decrease if the number of samples is fixed. (Note that the standard deviation of MLE estimate if $1/\sqrt M$)
+            Thus when doing density estimation from limited data, we prefer sparse structure even if the true structure $\mathcal G^*$ is more dense. Because we need to avoid overfitting.
+            There are three methods for structure learning. 
+            The first one is constraint-based structure learning, which tests the independence in data and find a network that best explains these independencies. This type of method is sensitive to failures in individual independencies test. If one of these tests return a wrong answer, the network construction will be misled.
+            The second one is score-based structure learning. This method defines a hypothesis space of potential models and a score function that measures how well the model fits the observation. The task is to search the model that maximize the score in the hypothesis space. Score-based method consider the whole structure at once, thus is less sensitive to individual failures.
+            The third method does not learn a single model but an ensemble of multiple possible structures.
+        CH18.2-Constraint-Based Approaches
+            Determining whether two variables are independent is often referred to as hypothesis testing.
+        CH18.3-Structure Scores
+            Score-based methods approach the problem of structure learning as an optimization problem.
+            Intuitively, we need to find a model that would make the data as probable as possible. In this case, our model is pair $\langle \mathcal G,\pmb \theta_{\mathcal G}\rangle$. The likelihood score directly defines $\pmb \theta_{\mathcal G}$ to be its the MLE estimation $\hat {\pmb \theta}_{\mathcal G}$, and tries to find structure $\mathcal G$ that maximize $score_{L}(\mathcal G:\mathcal D) = \ell(\hat {\pmb \theta}_{\mathcal G}:\mathcal G)$.
+            The likelihood score can decompose according to (18.4). We can observe that the likelihood measures the strength of the dependencies between variables and their parents. 
+            For BN, the process of choosing a network structure is often subject to constraints. Some constraints are a consequence of the acyclicity requirement, others may be due to a preference for simpler structures.
+            Because the property of mutual information, adding edge to a network will never decrease its likelihood score. Thus likelihood score will result in fully connected network in most cases. Therefore, the likelihood score can not avoid overfitting.
+            The Bayesian method put a distribution on possible structures $\mathcal G$ and is proportional to the posterior $P(\mathcal G\mid \mathcal D)$. The Bayesian score is defined as $score_B(\mathcal G: \mathcal D) = \log P(\mathcal D\mid \mathcal G) + \log P(\mathcal G)$.
+            The calculation of marginal likelihood $P(\mathcal D\mid \mathcal G)$ need us to integrate the whole parameter space $\Theta_{\mathcal G}$. Therefore, we are measuring the expected likelihood, averaged over different possible choices of $\pmb \theta_{\mathcal G}$ decreasing the sensitivity of the likelihood to the particular choice of parameters. 
+            Another perspective to explain the Bayesian score is derived from the holdout testing methods. The Bayesian score can be viewed as a form of prequential analysis, where each instance is evaluated in incremental order, and contributes both to our evaluation of the model and to our final model score. The sequence order can be arbitrary. According to (18.8), the marginal likelihood can be approximately viewed as the estimation of the model' expected likelihood in the underlying distribution.
+            If the parameter's priors are in conjugate case, the marginal likelihood of a single variable's form can be easily written. As a consequence, the marginal likelihood of the dataset can be further written simpler according to (18.9).
+            The Bayesian score for BN cane be decomposed under the assumption of parameter independence. The the local independence is also satisfied, (18.9) can be applied to substitute the local terms of the factorized Bayesian score.
+            If $M\to \infty$, the $\log P(\mathcal D\mid \mathcal G)$ can be represented as Theorem 18.1. We can observe that the Bayesian score tends to trade off the likelihood (fit the data) and the model complexity. Omitting the constant term, we get the BIC score.
+            The log-likelihood term increase linear to $M$, and the model complexity term increase log to $M$, therefore the emphasis on data fitting will increase as $M$.
+            BIC score and the Bayesian score are consistent, which means with adequate data, the score will select $\mathcal G^*$. or its I-equivalence.
+            Consistency is an asymptotic property, and thus it does not imply much about the properties of networks learned with limited amounts of data.
+            We call the prior satisfies parameter modularity if two structure's local structure are the same, their prior will be the same
+            Under parameter modularity, Bayesian score will be decomposable, and thus the searching can be done locally and separately.
+            The likelihood score is naturally decomposable.
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH1.1-CH1.6, CH2.1-CH2.2, CH3.1-CH3.2, CH7
     CH1-排列组合
     CH2-鸽巢原理
@@ -889,13 +904,14 @@ Date: 2024.12.30-2025.1.6
 
 \[Book\]
 - [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
-    CH19.2-Parameter Estimation
-        CH19.2.2-Expectation Maximization
-            CH19.2.2.5-Theoretical Foundations
-                Each iteration of the EM process can be viewed as maximizing an auxiliary function. Maximizing the auxiliary function will yield better log-likelihood.
-                For exponential family models, the expected log-likelihood is a linear function of the expected sufficient statistics. Thus to maximize the expected log-likelihood, we first derive the expected sufficient statistics, and then compute the parameters that maximize the expected log-likelihood. That's precisely the EM process.
-                In each EM iteration, we are actually optimizing a function of the parameter $\pmb \theta$ and the posterior choice $Q$. We define the energy functional associated with $P$ and $Q$ as $F[P, Q] = E_Q[\log \tilde P] + H_Q$. Then we can prove $\log Z = F[P, Q] + D(Q||P)$.
-                Let $P = P(\mathcal H\mid \mathcal D,\pmb \theta)$,
+    CH19-Partially Observed Data
+        CH19.2-Parameter Estimation
+            CH19.2.2-Expectation Maximization
+                CH19.2.2.5-Theoretical Foundations
+                    Each iteration of the EM process can be viewed as maximizing an auxiliary function. Maximizing the auxiliary function will yield better log-likelihood.
+                    For exponential family models, the expected log-likelihood is a linear function of the expected sufficient statistics. Thus to maximize the expected log-likelihood, we first derive the expected sufficient statistics, and then compute the parameters that maximize the expected log-likelihood. That's precisely the EM process.
+                    In each EM iteration, we are actually optimizing a function of the parameter $\pmb \theta$ and the posterior choice $Q$. We define the energy functional associated with $P$ and $Q$ as $F[P, Q] = E_Q[\log \tilde P] + H_Q$. Then we can prove $\log Z = F[P, Q] + D(Q||P)$.
+                    Let $P = P(\mathcal H\mid \mathcal D,\pmb \theta)$,
 
 ### Week2
 Date: 2025.1.6-2025.1.13
