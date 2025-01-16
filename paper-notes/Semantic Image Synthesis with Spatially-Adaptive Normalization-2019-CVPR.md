@@ -132,158 +132,152 @@ We train the generator with the same multi-scale discriminator and loss function
 > 2. 如果样本已经被正确分类并且有足够的置信度，那么该样本就不会对损失做出贡献。
 > 3. 在多类别分类中，可以通过比较目标类别的得分与其他所有非目标类别得分的最大值，拓展成多类别铰链损失（multi-class hinge loss）。
 
-Why does the SPADE work better? A short answer is that it can better preserve semantic information against common normalization layers. Specifically, while normalization layers such as the InstanceNorm [46] are essential pieces in almost all the state-of-the-art conditional image synthesis models [48], they tend to wash away semantic information when applied to uniform or flat segmentation masks. 
+**Why does the SPADE work better?** A short answer is that it can better preserve semantic information against common normalization layers. Specifically, while normalization layers such as the InstanceNorm [46] are essential pieces in almost all the state-of-the-art conditional image synthesis models [48], they tend to wash away semantic information when applied to uniform or flat segmentation masks. 
+>  **为什么 SPADE 效果更好**
+>  简单来说，它相较于普通规范化层，更能保留语义信息
+>  具体地说，尽管规范化层 (例如实例规范化) 在几乎所有 SOTA 条件图像合成模型中都是必要组件，但这些规范化层实际上在应用均匀或平坦的分割掩码时，倾向于冲淡语义信息
 
-Let us consider a simple module that first applies convolution to a segmentation mask and then normalization. Furthermore, let us assume that a segmentation mask with a single label is given as input to the module (e.g., all the pixels have the same label such as sky or grass). Under this setting, the convolution outputs are again uniform, with different labels having different uniform values. Now, after we apply InstanceNorm to the output, the normalized activation will become all zeros no matter what the input semantic label is given. Therefore, semantic information is totally lost. This limitation applies to a wide range of generator architectures, including pix2pixHD and its variant that concatenates the semantic mask at all intermediate layers, as long as a network applies convolution and then normalization to the semantic mask. In Figure 3, we empirically show this is precisely the case for pix2pixHD. Because a segmentation mask consists of a few uniform regions in general, the issue of information loss emerges when applying normalization. 
+Let us consider a simple module that first applies convolution to a segmentation mask and then normalization. Furthermore, let us assume that a segmentation mask with a single label is given as input to the module (e.g., all the pixels have the same label such as sky or grass). Under this setting, the convolution outputs are again uniform, with different labels having different uniform values. Now, after we apply InstanceNorm to the output, the normalized activation will become all zeros no matter what the input semantic label is given. Therefore, semantic information is totally lost. 
+>  考虑一个简单模块，它先对分割掩码应用卷积，然后规范化
+>  我们假设仅带有一个标签的分割掩码 (即所有像素标记相同) 作为该模块输入，此时，卷积输出是均匀的，不同的标签对应不同的均匀值
+>  那么，我们对卷积输出应用实例规范化，规范化后的激活就将变为全零，无论输入的分割掩码对应的是哪个语义标签，因此，语义信息完全丢失了
 
+![[pics/Spatially-Adaptive Normalization-Fig 3.png]]
 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/dec17f5a5b5b8e9055300ef13f9db96ad199078275686a88d271a95a1e307147.jpg) 
-Figure 4: In the SPADE generator, each normalization layer uses the segmentation mask to modulate the layer activations. (left) Structure of one residual block with the SPADE. (right) The generator contains a series of the SPADE residual blocks with upsampling layers. Our architecture achieves better performance with a smaller number of parameters by removing the downsampling layers of leading image-to-image translation networks such as the pix2pixHD model [48]. 
+This limitation applies to a wide range of generator architectures, including pix2pixHD and its variant that concatenates the semantic mask at all intermediate layers, as long as a network applies convolution and then normalization to the semantic mask. In Figure 3, we empirically show this is precisely the case for pix2pixHD. Because a segmentation mask consists of a few uniform regions in general, the issue of information loss emerges when applying normalization. 
+>  因此，所有先对语义掩码进行卷积再规范化的网络都存在这样的问题
+>  如 Figure 3 所示，因为语义掩码通常由几个均匀区域组成，故信息丢失的问题再应用规范化时通常会发生
+
 In contrast, the segmentation mask in the SPADE Generator is fed through spatially adaptive modulation without normalization. Only activations from the previous layer are normalized. Hence, the SPADE generator can better preserve semantic information. It enjoys the benefit of normalization without losing the semantic input information. 
-Multi-modal synthesis. By using a random vector as the input of the generator, our architecture provides a simple way for multi-modal synthesis [20, 60]. Namely, one can attach an encoder that processes a real image into a random vector, which will be then fed to the generator. The encoder and generator form a VAE [28], in which the encoder tries to capture the style of the image, while the generator combines the encoded style and the segmentation mask information via the SPADEs to reconstruct the original image. The encoder also serves as a style guidance network at test time to capture the style of target images, as used in Figure 1. For training, we add a KL-Divergence loss term [28]. 
+>  相较之下，SPADE 中，语义分割掩码不通过规范化传递 (没有经过批量规范化处理)，而是通过空间自适应调节传递，这更好地保留了语义信息，在利用了规范化的优势的同时没有丢失语义输入信息
+
+**Multi-modal synthesis.** By using a random vector as the input of the generator, our architecture provides a simple way for multi-modal synthesis [20, 60]. Namely, one can attach an encoder that processes a real image into a random vector, which will be then fed to the generator. The encoder and generator form a VAE [28], in which the encoder tries to capture the style of the image, while the generator combines the encoded style and the segmentation mask information via the SPADEs to reconstruct the original image. The encoder also serves as a style guidance network at test time to capture the style of target images, as used in Figure 1. For training, we add a KL-Divergence loss term [28]. 
+>  **多模态合成**
+>  生成器的输入是随机向量，这为多模态合成提供了简单的实现方法
+>  也就是说，我们可以附加一个编码器，它将真实图像处理为一个随机向量，该随机向量作为生成器的输入
+>  编码器和生成器构成了一个 VAE，其中编码器视图捕获输入图像的风格，生成器结合编码后的风格和 SPADE 传递的语义分割掩码信息以重构原始图像
+>  在测试时，编码器可以作为风格指导网络，捕获目标图像的风格，传递给生成器
+>  在训练时，我们添加了一个 KL 散度损失项，引导生成器重构输入图像 (及其风格)
+
 # 4. Experiments 
-Implementation details. We apply the Spectral Norm [38] to all the layers in both generator and discriminator. The learning rates for the generator and discriminator are 0.0001 and 0.0004, respectively [17]. We use the ADAM solver [27] with $\beta_{1}\,=\,0$ and $\beta_{2}\,=\,0.999$ . All the experiments are conducted on an NVIDIA DGX1 with 8 32GB V100 GPUs. We use synchronized BatchNorm, i.e., these statistics are collected from all the GPUs. 
-Datasets. We conduct experiments on several datasets. 
-• COCO-Stuff [4] is derived from the COCO dataset [32]. It has 118, 000 training images and 5, 000 validation images captured from diverse scenes. It has 182 semantic classes. Due to its vast diversity, existing image synthesis models perform poorly on this dataset. • ADE20K [58] consists of 20, 210 training and 2, 000 validation images. Similarly to the COCO, the dataset contains challenging scenes with 150 semantic classes. • ADE20K-outdoor is a subset of the ADE20K dataset that only contains outdoor scenes, used in Qi et al. [43]. Cityscapes dataset [9] contains street scene images in German cities. The training and validation set sizes are 3, 000 and 500, respectively. Recent work has achieved photorealistic semantic image synthesis results [43, 47] on the Cityscapes dataset. • Flickr Landscapes. We collect 41, 000 photos from Flickr and use 1, 000 samples for the validation set. To avoid expensive manual annotation, we use a well-trained DeepLabV2 [5] to compute input segmentation masks. 
+**Implementation details.** We apply the Spectral Norm [38] to all the layers in both generator and discriminator. The learning rates for the generator and discriminator are 0.0001 and 0.0004, respectively [17]. We use the ADAM solver [27] with $\beta_{1}\,=\,0$ and $\beta_{2}\,=\,0.999$ . All the experiments are conducted on an NVIDIA DGX1 with 8 32GB V100 GPUs. We use synchronized BatchNorm, i.e., these statistics are collected from all the GPUs. 
+>  **实现细节**
+>  生成器和判别器所有层都应用了谱规范化，我们使用同步的批量规范化，即规范化时的统计量会从所有 GPUs 收集
+
+**Datasets.** We conduct experiments on several datasets. 
+- *COCO-Stuff* [4] is derived from the COCO dataset [32]. It has 118, 000 training images and 5, 000 validation images captured from diverse scenes. It has 182 semantic classes. Due to its vast diversity, existing image synthesis models perform poorly on this dataset. 
+- *ADE20K* [58] consists of 20, 210 training and 2, 000 validation images. Similarly to the COCO, the dataset contains challenging scenes with 150 semantic classes. 
+- *ADE20K-outdoor* is a subset of the ADE20K dataset that only contains outdoor scenes, used in Qi et al. [43]. Cityscapes dataset [9] contains street scene images in German cities. The training and validation set sizes are 3, 000 and 500, respectively. Recent work has achieved photorealistic semantic image synthesis results [43, 47] on the Cityscapes dataset. 
+- *Flickr Landscapes*. We collect 41, 000 photos from Flickr and use 1, 000 samples for the validation set. To avoid expensive manual annotation, we use a well-trained DeepLabV2 [5] to compute input segmentation masks. 
+
 We train the competing semantic image synthesis methods on the same training set and report their results on the same validation set for each dataset. 
-Performance metrics. We adopt the evaluation protocol from previous work [6, 48]. Specifically, we run a semantic segmentation model on the synthesized images and compare how well the predicted segmentation mask matches the ground truth input. Intuitively, if the output images are realistic, a well-trained semantic segmentation model should be able to predict the ground truth label. For measuring the segmentation accuracy, we use both the mean Intersectionover-Union (mIoU) and the pixel accuracy (accu). We use the state-of-the-art segmentation networks for each dataset: DeepLabV2 [5, 40] for COCO-Stuff, UperNet101 [51] for ADE20K, and DRN-D-105 [53] for Cityscapes. In addition to the mIoU and the accu segmentation performance metrics, we use the Fre´chet Inception Distance (FID) [17] to measure the distance between the distribution of synthesized results and the distribution of real images. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/f816858faa279df1fa05faf5ec47a290dbf31346ab48b21545d7c20945557f1c.jpg) 
-Figure 5: Visual comparison of semantic image synthesis results on the COCO-Stuff dataset. Our method successfully synthesizes realistic details from semantic labels. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/2e31652c3769427ddc9ad43246583701f3ab5640c1c34a6d2b0eb0e3a760a031.jpg) 
-Figure 6: Visual comparison of semantic image synthesis results on the ADE20K outdoor and Cityscapes datasets. Our method produces realistic images while respecting the spatial semantic layout at the same time. 
-<html><body><table><tr><td rowspan="2">Method</td><td colspan="3">COCO-Stuff</td><td colspan="3">ADE20K</td><td colspan="3">ADE20K-outdoor</td><td colspan="3">Cityscapes</td></tr><tr><td>mIoU</td><td>accu</td><td>FID</td><td>mIoU</td><td>accu</td><td>FID</td><td>mIoU</td><td>accu</td><td>FID</td><td>mIoU</td><td>accu</td><td>FID</td></tr><tr><td>CRN [6]</td><td>23.7</td><td>40.4</td><td>70.4</td><td>22.4</td><td>68.8</td><td>73.3</td><td>16.5</td><td>68.6</td><td>99.0</td><td>52.4</td><td>77.1</td><td>104.7</td></tr><tr><td>SIMS [43]</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>13.1</td><td>74.7</td><td>67.7</td><td>47.2</td><td>75.5</td><td>49.7</td></tr><tr><td>pix2pixHD [48]</td><td>14.6</td><td>45.8</td><td>111.5</td><td>20.3</td><td>69.2</td><td>81.8</td><td>17.4</td><td>71.6</td><td>97.8</td><td>58.3</td><td>81.4</td><td>95.0</td></tr><tr><td>Ours</td><td>37.4</td><td>67.9</td><td>22.6</td><td>38.5</td><td>79.9</td><td>33.9</td><td>30.8</td><td>82.9</td><td>63.3</td><td>62.3</td><td>81.9</td><td>71.8</td></tr></table></body></html>
-Table 1: Our method outperforms the current leading methods in semantic segmentation (mIoU and accu) and FID [17] scores on all the benchmark datasets. For the mIoU and accu, higher is better. For the FID, lower is better. 
-Baselines. We compare our method with 3 leading semantic image synthesis models: the pix2pixHD model [48], the cascaded refinement network (CRN) [6], and the semiparametric image synthesis method (SIMS) [43]. The pix2pixHD is the current state-of-the-art GAN-based conditional image synthesis framework. The CRN uses a deep network that repeatedly refines the output from low to high resolution, while the SIMS takes a semi-parametric approach that composites real segments from a training set and refines the boundaries. Both the CRN and SIMS are mainly trained using image reconstruction loss. For a fair comparison, we train the CRN and pix2pixHD models using the implementations provided by the authors. As image synthesis using the SIMS requires many queries to the training dataset, it is computationally prohibitive for a large dataset such as the COCO-stuff and the full ADE20K. Therefore, we use the results provided by the authors when available. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/8eacf3934117a5693cc7a9a3ca52a8324033a56e6a5274e4bc939d2717a41606.jpg) 
-Figure 7: Semantic image synthesis results on the Flickr Landscapes dataset. The images were generated from semantic layout of photographs on the Flickr website. 
-Quantitative comparisons. As shown in Table 1, our method outperforms the current state-of-the-art methods by a large margin in all the datasets. For the COCO-Stuff, our method achieves an mIoU score of 35.2, which is about 1.5 times better than the previous leading method. Our FID is also 2.2 times better than the previous leading method. We note that the SIMS model produces a lower FID score but has poor segmentation performances on the Cityscapes dataset. This is because the SIMS synthesizes an image by first stitching image patches from the training dataset. As using the real image patches, the resulting image distribution can better match the distribution of real images. However, because there is no guarantee that a perfect query (e.g., a person in a particular pose) exists in the dataset, it tends to copy objects that do not match the input segments. 
-Qualitative results. In Figures 5 and 6, we provide qualitative comparisons of the competing methods. We find that our method produces results with much better visual quality and fewer visible artifacts, especially for diverse scenes in the COCO-Stuff and ADE20K dataset. When the training dataset size is small, the SIMS model also renders images with good visual quality. However, the depicted content often deviates from the input segmentation mask (e.g., the shape of the swimming pool in the second row of Figure 6). 
-<html><body><table><tr><td>Dataset</td><td>Oursvs. CRN</td><td>Oursvs. pix2pixHD</td><td>Oursvs. SIMS</td></tr><tr><td>COCO-Stuff</td><td>79.76</td><td>86.64</td><td>N/A</td></tr><tr><td>ADE20K</td><td>76.66</td><td>83.74</td><td>N/A</td></tr><tr><td>ADE20K-outdoor</td><td>66.04</td><td>79.34</td><td>85.70</td></tr><tr><td>Cityscapes</td><td>63.60</td><td>53.64</td><td>51.52</td></tr></table></body></html>
-Table 2: User preference study. The numbers indicate the percentage of users who favor the results of the proposed method over those of the competing method. 
+
+**Performance metrics.** We adopt the evaluation protocol from previous work [6, 48]. Specifically, we run a semantic segmentation model on the synthesized images and compare how well the predicted segmentation mask matches the ground truth input. Intuitively, if the output images are realistic, a well-trained semantic segmentation model should be able to predict the ground truth label. For measuring the segmentation accuracy, we use both the mean Intersection-over-Union (mIoU) and the pixel accuracy (accu). We use the state-of-the-art segmentation networks for each dataset: DeepLabV2 [5, 40] for COCO-Stuff, UperNet101 [51] for ADE20K, and DRN-D-105 [53] for Cityscapes. In addition to the mIoU and the accu segmentation performance metrics, we use the Fre´chet Inception Distance (FID) [17] to measure the distance between the distribution of synthesized results and the distribution of real images. 
+>  **性能指标**
+>  我们在合成图像上运行语义分割模型，比较模型预测的分割掩码和输入分割掩码的匹配程度，直观上，如果输出图像逼真，一个训练好的语义分割模型应该能够预测出真实的标签
+>  度量分割准确率的指标采用了平均交并比和像素准确率
+>  我们还使用了 FID 衡量合成结果分布和真实图像分布之间的距离
+
+**Baselines.** We compare our method with 3 leading semantic image synthesis models: the pix2pixHD model [48], the cascaded refinement network (CRN) [6], and the semiparametric image synthesis method (SIMS) [43]. The pix2pixHD is the current state-of-the-art GAN-based conditional image synthesis framework. The CRN uses a deep network that repeatedly refines the output from low to high resolution, while the SIMS takes a semi-parametric approach that composites real segments from a training set and refines the boundaries. Both the CRN and SIMS are mainly trained using image reconstruction loss. For a fair comparison, we train the CRN and pix2pixHD models using the implementations provided by the authors. As image synthesis using the SIMS requires many queries to the training dataset, it is computationally prohibitive for a large dataset such as the COCO-stuff and the full ADE20K. Therefore, we use the results provided by the authors when available. 
+
+
+![[pics/Spatially-Adaptive Normalization-Table 1.png]]
+
+**Quantitative comparisons.** As shown in Table 1, our method outperforms the current state-of-the-art methods by a large margin in all the datasets. For the COCO-Stuff, our method achieves an mIoU score of 35.2, which is about 1.5 times better than the previous leading method. Our FID is also 2.2 times better than the previous leading method. We note that the SIMS model produces a lower FID score but has poor segmentation performances on the Cityscapes dataset. This is because the SIMS synthesizes an image by first stitching image patches from the training dataset. As using the real image patches, the resulting image distribution can better match the distribution of real images. However, because there is no guarantee that a perfect query (e.g., a person in a particular pose) exists in the dataset, it tends to copy objects that do not match the input segments. 
+>  注意到 SIMS 模型的 FID 很低，但是在 Cityspaces 数据集上分割效果较差，这是因为 SMIS 通过从训练集中拼接图像块来合成图像，故结果图像的分布更匹配真实图像的分布，但由于无法保证数据集中存在完美的查询 (例如处于特定姿势的人)，SMIS 倾向于拷贝不匹配输入分割的物体
+
+![[pics/Spatially-Adaptive Normalization-Figure 5.png]]
+
+**Qualitative results.** In Figures 5 and 6, we provide qualitative comparisons of the competing methods. We find that our method produces results with much better visual quality and fewer visible artifacts, especially for diverse scenes in the COCO-Stuff and ADE20K dataset. When the training dataset size is small, the SIMS model also renders images with good visual quality. However, the depicted content often deviates from the input segmentation mask (e.g., the shape of the swimming pool in the second row of Figure 6). 
+>  我们的方法生成的图片视觉质量更好，伪影更少
+>  当数据集较小时，SIMS 也能生成视觉质量较好的图像，但所描绘的内容往往偏离输入的分割掩码
+
 In Figures 7 and 8, we show more example results from the Flickr Landscape and COCO-Stuff datasets. The proposed method can generate diverse scenes with high image fidelity. More results are included in the appendix. 
-Human evaluation. We use the Amazon Mechanical Turk (AMT) to compare the perceived visual fidelity of our method against existing approaches. Specifically, we give the AMT workers an input segmentation mask and two synthesis outputs from different methods and ask them to choose the output image that looks more like a corresponding image of the segmentation mask. The workers are given unlimited time to make the selection. For each comparison, we randomly generate 500 questions for each dataset, and each question is answered by 5 different workers. For quality control, only workers with a lifetime task approval rate greater than $98\%$ can participate in our study. 
-Table 2 shows the evaluation results. We find that users 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/0628224caa6caa2eed81c36d628fa9c5128fca16114dd398070b6be85d322610.jpg) 
-Figure 8: Semantic image synthesis results on COCO-Stuff. Our method successfully generates realistic images in diverse scenes ranging from animals to sports activities. 
-<html><body><table><tr><td>Method</td><td>#param</td><td>COCO.</td><td>ADE</td><td>City.</td></tr><tr><td>decoder w/SPADE (Ours) compact decoder w/ SPADE</td><td>96M 61M</td><td>35.2 35.2</td><td>38.5 38.0</td><td>62.3 62.5</td></tr><tr><td>decoderw/Concat pix2pixHD++w/SPADE</td><td>79M 237M</td><td>31.9</td><td>33.6</td><td>61.1</td></tr><tr><td>pix2pixHD++ w/ Concat</td><td></td><td>34.4</td><td>39.0</td><td>62.2</td></tr><tr><td></td><td>195M</td><td>32.9</td><td>38.9</td><td>57.1</td></tr><tr><td>pix2pixHD++</td><td>183M</td><td>32.7</td><td>38.3</td><td>58.8</td></tr><tr><td>compact pix2pixHD++</td><td>103M</td><td>31.6</td><td>37.3</td><td>57.6</td></tr><tr><td>pix2pixHD [48]</td><td>183M</td><td>14.6</td><td>20.3</td><td>58.3</td></tr></table></body></html> 
-<html><body><table><tr><td>Method</td><td>COCO</td><td>ADE20K</td><td>Cityscapes</td></tr><tr><td>segmap input random input</td><td>35.2 35.3</td><td>38.5 38.3</td><td>62.3 61.6</td></tr><tr><td>kernelsize5x5 kernelsize3x3 kernelsize 1x1</td><td>35.0 35.2 32.7</td><td>39.3 38.5 35.9</td><td>61.8 62.3 59.9</td></tr><tr><td>#params 141M #params 96M #params 61M</td><td>35.3 35.2 35.2</td><td>38.3 38.5 38.0</td><td>62.5 62.3 62.5</td></tr><tr><td>SyncBatchNorm BatchNorm InstanceNorm</td><td>35.0 33.7 33.9</td><td>39.3 37.9 37.4</td><td>61.8 61.8 58.7</td></tr></table></body></html> 
-Table 4: The SPADE generator works with different configurations. We change the input of the generator, the convolutional kernel size acting on the segmentation map, the capacity of the network, and the parameter-free normalization method. The settings used in the paper are boldfaced. 
-strongly favor our results on all the datasets, especially on the challenging COCO-Stuff and ADE20K datasets. For the Cityscapes, even when all the competing methods achieve high image fidelity, users still prefer our results. 
-Effectiveness of the SPADE. For quantifying importance of the SPADE, we introduce a strong baseline called $\mathrm{pix}2\mathrm{pix}\mathrm{HD}++$ , which combines all the techniques we find useful for enhancing the performance of pix2pixHD except the SPADE. We also train models that receive the segmentation mask input at all the intermediate layers via feature concatenation in the channel direction, which is termed as pix2pixHD $^{++}$ w/ Concat. Finally, the model that combines the strong baseline with the SPADE is denoted as pix2pixHD $^{++}$ w/ SPADE. 
+
+**Human evaluation.** We use the Amazon Mechanical Turk (AMT) to compare the perceived visual fidelity of our method against existing approaches. Specifically, we give the AMT workers an input segmentation mask and two synthesis outputs from different methods and ask them to choose the output image that looks more like a corresponding image of the segmentation mask. The workers are given unlimited time to make the selection. For each comparison, we randomly generate 500 questions for each dataset, and each question is answered by 5 different workers. For quality control, only workers with a lifetime task approval rate greater than $98\%$ can participate in our study. 
+
+Table 2 shows the evaluation results. We find that users strongly favor our results on all the datasets, especially on the challenging COCO-Stuff and ADE20K datasets. For the Cityscapes, even when all the competing methods achieve high image fidelity, users still prefer our results. 
+
+**Effectiveness of the SPADE.** For quantifying importance of the SPADE, we introduce a strong baseline called $\mathrm{pix}2\mathrm{pix}\mathrm{HD}++$ , which combines all the techniques we find useful for enhancing the performance of pix2pixHD except the SPADE. We also train models that receive the segmentation mask input at all the intermediate layers via feature concatenation in the channel direction, which is termed as pix2pixHD $^{++}$ w/ Concat. Finally, the model that combines the strong baseline with the SPADE is denoted as pix2pixHD $^{++}$ w/ SPADE. 
+
 As shown in Table 3, the architectures with the proposed SPADE consistently outperforms its counterparts, in both the decoder-style architecture described in Figure 4 and more traditional encoder-decoder architecture used in the pix2pixHD. We also find that concatenating segmentation masks at all intermediate layers, a reasonable alternative to the SPADE, does not achieve the same performance as SPADE. Furthermore, the decoder-style SPADE generator works better than the strong baselines even with a smaller number of parameters. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/d59ad5c4133a57dbf6d6e8ea8f3772d95bd3a52642cbbbaa8186c0a14bd95d7f.jpg) 
-Figure 9: Our model attains multimodal synthesis capability when trained with the image encoder. During deployment, by using different random noise, our model synthesizes outputs with diverse appearances but all having the same semantic layouts depicted in the input mask. For reference, the ground truth image is shown inside the input segmentation mask. 
-Variations of SPADE generator. Table 4 reports the performance of several variations of our generator. First, we compare two types of input to the generator where one is the random noise while the other is the downsampled segmentation map. We find that both of the variants render similar performance and conclude that the modulation by SPADE alone provides sufficient signal about the input mask. Second, we vary the type of parameter-free normalization layers before applying the modulation parameters. We observe that the SPADE works reliably across different normalization methods. Next, we vary the convolutional kernel size acting on the label map, and find that kernel size of 1x1 hurts performance, likely because it prohibits utilizing the context of the label. Lastly, we modify the capacity of the generator by changing the number of convolutional filters. We present more variations and ablations in the appendix. 
-Multi-modal synthesis. In Figure 9, we show the multimodal image synthesis results on the Flickr Landscape dataset. For the same input segmentation mask, we sample different noise inputs to achieve different outputs. More results are included in the appendix. 
-Semantic manipulation and guided image synthesis. In Figure 1, we show an application where a user draws different segmentation masks, and our model renders the corresponding landscape images. Moreover, our model allows users to choose an external style image to control the global appearances of the output image. We achieve it by replacing the input noise with the embedding vector of the style image computed by the image encoder. 
+
+>  在所有中间层将分割掩码在通道维度拼接到特征中的效果劣于使用 SPADE
+
+**Variations of SPADE generator.** Table 4 reports the performance of several variations of our generator. First, we compare two types of input to the generator where one is the random noise while the other is the downsampled segmentation map. We find that both of the variants render similar performance and conclude that the modulation by SPADE alone provides sufficient signal about the input mask. Second, we vary the type of parameter-free normalization layers before applying the modulation parameters. We observe that the SPADE works reliably across different normalization methods. Next, we vary the convolutional kernel size acting on the label map, and find that kernel size of 1x1 hurts performance, likely because it prohibits utilizing the context of the label. Lastly, we modify the capacity of the generator by changing the number of convolutional filters. We present more variations and ablations in the appendix. 
+>  Table 4 报告了几个生成器变体的表现
+>  我们首先比较了两种输入类型，一种是随机噪声，另一种是下采样的分割图，发现二者性能相似，这说明 SPADE 的调节就能提供足够的分割图的信息
+>  我们还比较了进行参数调节之前使用的无参数规范化层的种类，发现 SPADE 在不同的规范化下都有稳定表现
+>  我们还比较了作用域标签图的卷积核的不同大小，发现 1x1 的卷积核会损害性能，可能因为它无法利用标签的上下文信息
+
+![[pics/Spatially-Adaptive Normalization-Figure 9.png]]
+
+**Multi-modal synthesis.** In Figure 9, we show the multimodal image synthesis results on the Flickr Landscape dataset. For the same input segmentation mask, we sample different noise inputs to achieve different outputs. More results are included in the appendix. 
+
+**Semantic manipulation and guided image synthesis.** In Figure 1, we show an application where a user draws different segmentation masks, and our model renders the corresponding landscape images. Moreover, our model allows users to choose an external style image to control the global appearances of the output image. We achieve it by replacing the input noise with the embedding vector of the style image computed by the image encoder. 
+>  将输入噪声向量替换为风格图片经过编码器处理的嵌入向量，就可以控制生成图片的风格
+
 # 5. Conclusion 
 We have proposed the spatially-adaptive normalization, which utilizes the input semantic layout while performing the affine transformation in the normalization layers. The proposed normalization leads to the first semantic image synthesis model that can produce photorealistic outputs for diverse scenes including indoor, outdoor, landscape, and street scenes. We further demonstrate its application for multi-modal synthesis and guided image synthesis. 
-Acknowledgments. We thank Alexei A. Efros, Bryan Catanzaro, Andrew Tao, and Jan Kautz for insightful advice. We thank Chris Hebert, Gavriil Klimov, and Brad Nemire for their help in constructing the demo apps. Taesung Park contributed to the work during his internship at NVIDIA. His Ph.D. is supported by a Samsung Scholarship. 
-# References 
-[1] M. Arjovsky, S. Chintala, and L. Bottou. Wasserstein generative adversarial networks. In International Conference on Machine Learning (ICML), 2017. 3 
-[2] J. L. Ba, J. R. Kiros, and G. E. Hinton. Layer normalization. arXiv preprint arXiv:1607.06450, 2016. 2 
-[3] A. Brock, J. Donahue, and K. Simonyan. Large scale gan training for high fidelity natural image synthesis. In International Conference on Learning Representations (ICLR), 2019. 1, 2 
-[4] H. Caesar, J. Uijlings, and V. Ferrari. Coco-stuff: Thing and stuff classes in context. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018. 2, 4 
-[5] L.-C. Chen, G. Papandreou, I. Kokkinos, K. Murphy, and A. L. Yuille. Deeplab: Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected crfs. IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI), 40(4):834–848, 2018. 4, 5 
-[6] Q. Chen and V. Koltun. Photographic image synthesis with cascaded refinement networks. In IEEE International Conference on Computer Vision (ICCV), 2017. 1, 4, 5, 13, 14, 15, 16, 17, 18 
-[7] T. Chen, M.-M. Cheng, P. Tan, A. Shamir, and S.-M. Hu. Sketch2photo: internet image montage. ACM Transactions on Graphics (TOG), 28(5):124, 2009. 1, 2 
-[8] T. Chen, M. Lucic, N. Houlsby, and S. Gelly. On self modulation for generative adversarial networks. In International Conference on Learning Representations, 2019. 2 
-[9] M. Cordts, M. Omran, S. Ramos, T. Rehfeld, M. Enzweiler, R. Benenson, U. Franke, S. Roth, and B. Schiele. The cityscapes dataset for semantic urban scene understanding. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016. 2, 4 
-[10] H. De Vries, F. Strub, J. Mary, H. Larochelle, O. Pietquin, and A. C. Courville. Modulating early visual processing by language. In Advances in Neural Information Processing Systems, 2017. 2 
-[11] V. Dumoulin, J. Shlens, and M. Kudlur. A learned representation for artistic style. In International Conference on Learning Representations (ICLR), 2016. 2, 3 
-[12] X. Glorot and Y. Bengio. Understanding the difficulty of training deep feedforward neural networks. In Proceedings of the thirteenth international conference on artificial intelligence and statistics, pages 249–256, 2010. 12, 13 
-[13] I. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, and Y. Bengio. Generative adversarial nets. In Advances in Neural Information Processing Systems, 2014. 2 
-[14] J. Hays and A. A. Efros. Scene completion using millions of photographs. In ACM SIGGRAPH, 2007. 1 
-[15] K. He, X. Zhang, S. Ren, and J. Sun. Deep residual learning for image recognition. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016. 3 
-[16] A. Hertzmann, C. E. Jacobs, N. Oliver, B. Curless, and D. H. Salesin. Image analogies. 2001. 1, 2 
-[17] M. Heusel, H. Ramsauer, T. Unterthiner, B. Nessler, and S. Hochreiter. GANs trained by a two time-scale update rule converge to a local Nash equilibrium. In Advances in Neural Information Processing Systems, 2017. 4, 5, 13 
-[18] S. Hong, D. Yang, J. Choi, and H. Lee. Inferring semantic layout for hierarchical text-to-image synthesis. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018. 2 
-[19] X. Huang and S. Belongie. Arbitrary style transfer in realtime with adaptive instance normalization. In IEEE International Conference on Computer Vision (ICCV), 2017. 2, 3 
-[20] X. Huang, M.-Y. Liu, S. Belongie, and J. Kautz. Multimodal unsupervised image-to-image translation. European Conference on Computer Vision (ECCV), 2018. 2, 3, 4 
-[21] S. Ioffe and C. Szegedy. Batch normalization: Accelerating deep network training by reducing internal covariate shift. In International Conference on Machine Learning (ICML), 2015. 2, 3 
-[22] P. Isola, J.-Y. Zhu, T. Zhou, and A. A. Efros. Image-toimage translation with conditional adversarial networks. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2017. 1, 2, 3, 11, 12 
-[23] M. Johnson, G. J. Brostow, J. Shotton, O. Arandjelovic, V. Kwatra, and R. Cipolla. Semantic photo synthesis. In Computer Graphics Forum, volume 25, pages 407–413, 2006. 1, 2 
-[24] L. Karacan, Z. Akata, A. Erdem, and E. Erdem. Learning to generate images of outdoor scenes from attributes and semantic layouts. arXiv preprint arXiv:1612.00215, 2016. 2 
-[25] L. Karacan, Z. Akata, A. Erdem, and E. Erdem. Manipulating attributes of natural scenes via hallucination. arXiv preprint arXiv:1808.07413, 2018. 2 
-[26] T. Karras, S. Laine, and T. Aila. A style-based generator architecture for generative adversarial networks. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2019. 2 
-[27] D. P. Kingma and J. Ba. Adam: A method for stochastic optimization. In International Conference on Learning Representations (ICLR), 2015. 4 
-[28] D. P. Kingma and M. Welling. Auto-encoding variational bayes. In International Conference on Learning Representations (ICLR), 2014. 2, 4, 11, 12 
-[29] A. Krizhevsky, I. Sutskever, and G. E. Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems, 2012. 2 
-[30] J.-F. Lalonde, D. Hoiem, A. A. Efros, C. Rother, J. Winn, and A. Criminisi. Photo clip art. In ACM transactions on graphics (TOG), volume 26, page 3. ACM, 2007. 1 
-[31] J. H. Lim and J. C. Ye. Geometric gan. arXiv preprint arXiv:1705.02894, 2017. 3, 11 
-[32] T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan, P. Dolla´r, and C. L. Zitnick. Microsoft coco: Common objects in context. In European Conference on Computer Vision (ECCV), 2014. 2, 4 
-[33] M.-Y. Liu, T. Breuel, and J. Kautz. Unsupervised image-toimage translation networks. In Advances in Neural Information Processing Systems, 2017. 2 
-[34] X. Mao, Q. Li, H. Xie, Y. R. Lau, Z. Wang, and S. P. Smolley. Least squares generative adversarial networks. In IEEE International Conference on Computer Vision (ICCV), 2017. 3, 11 
-[35] T. B. Mathias Eitz, Kristian Hildebrand and M. Alexa. Photosketch: A sketch based image query and compositing system. In ACM SIGGRAPH 2009 Talk Program, 2009. 1 
-[36] L. Mescheder, A. Geiger, and S. Nowozin. Which training methods for gans do actually converge? In International Conference on Machine Learning (ICML), 2018. 2, 3, 11 
-[37] M. Mirza and S. Osindero. Conditional generative adversarial nets. arXiv preprint arXiv:1411.1784, 2014. 2 
-[38] T. Miyato, T. Kataoka, M. Koyama, and Y. Yoshida. Spectral normalization for generative adversarial networks. In International Conference on Learning Representations (ICLR), 2018. 3, 4, 11 
-[39] T. Miyato and M. Koyama. cGANs with projection discriminator. In International Conference on Learning Representations (ICLR), 2018. 2, 3, 11 
-[40] K. Nakashima. Deeplab-pytorch. https://github. com/kazuto1011/deeplab-pytorch, 2018. 5 
-[41] A. Odena, C. Olah, and J. Shlens. Conditional image synthesis with auxiliary classifier GANs. In International Conference on Machine Learning (ICML), 2017. 2 
-[42] E. Perez, H. De Vries, F. Strub, V. Dumoulin, and A. Courville. Learning visual reasoning without strong priors. In International Conference on Machine Learning (ICML), 2017. 2 
-[43] X. Qi, Q. Chen, J. Jia, and V. Koltun. Semi-parametric image synthesis. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018. 4, 5, 13, 17, 18 
-[44] S. Reed, Z. Akata, X. Yan, L. Logeswaran, B. Schiele, and H. Lee. Generative adversarial text to image synthesis. In International Conference on Machine Learning (ICML), 2016. 2 
-[45] T. Salimans and D. P. Kingma. Weight normalization: A simple reparameterization to accelerate training of deep neural networks. In Advances in Neural Information Processing Systems, 2016. 2 
-[46] D. Ulyanov, A. Vedaldi, and V. Lempitsky. Instance normalization: The missing ingredient for fast stylization. arxiv 2016. arXiv preprint arXiv:1607.08022, 2016. 2, 3 
-[47] T.-C. Wang, M.-Y. Liu, J.-Y. Zhu, G. Liu, A. Tao, J. Kautz, and B. Catanzaro. Video-to-video synthesis. In Advances in Neural Information Processing Systems, 2018. 1, 4 
-[48] T.-C. Wang, M.-Y. Liu, J.-Y. Zhu, A. Tao, J. Kautz, and B. Catanzaro. High-resolution image synthesis and semantic manipulation with conditional gans. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018. 1, 3, 4, 5, 7, 11, 12, 13, 14, 15, 16, 17, 18 
-[49] X. Wang, K. Yu, C. Dong, and C. Change Loy. Recovering realistic texture in image super-resolution by deep spatial feature transform. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pages 606–615, 2018. 2 
-[50] Y. Wu and K. He. Group normalization. In European Conference on Computer Vision (ECCV), 2018. 2 
-[51] T. Xiao, Y. Liu, B. Zhou, Y. Jiang, and J. Sun. Unified perceptual parsing for scene understanding. In European Conference on Computer Vision (ECCV), 2018. 5 
-[52] T. Xu, P. Zhang, Q. Huang, H. Zhang, Z. Gan, X. Huang, and X. He. Attngan: Fine-grained text to image generation with attentional generative adversarial networks. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018. 2 
-[53] F. Yu, V. Koltun, and T. Funkhouser. Dilated residual networks. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2017. 5 
-[54] H. Zhang, I. Goodfellow, D. Metaxas, and A. Odena. Selfattention generative adversarial networks. In International Conference on Machine Learning (ICML), 2019. 1, 2, 3, 11 
-[55] H. Zhang, T. Xu, H. Li, S. Zhang, X. Huang, X. Wang, and D. Metaxas. Stackgan: Text to photo-realistic image synthesis with stacked generative adversarial networks. In IEEE International Conference on Computer Vision (ICCV), 2017. 1, 2 
-[56] H. Zhang, T. Xu, H. Li, S. Zhang, X. Wang, X. Huang, and D. Metaxas. Stackgan++: Realistic image synthesis with stacked generative adversarial networks. IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI), 2018. 1 
-[57] B. Zhao, L. Meng, W. Yin, and L. Sigal. Image generation from layout. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2019. 2 
-[58] B. Zhou, H. Zhao, X. Puig, S. Fidler, A. Barriuso, and A. Torralba. Scene parsing through ade20k dataset. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2017. 2, 4 
-[59] J.-Y. Zhu, T. Park, P. Isola, and A. A. Efros. Unpaired imageto-image translation using cycle-consistent adversarial networks. In IEEE International Conference on Computer Vision (ICCV), 2017. 2 
-[60] J.-Y. Zhu, R. Zhang, D. Pathak, T. Darrell, A. A. Efros, O. Wang, and E. Shechtman. Toward multimodal image-toimage translation. In Advances in Neural Information Processing Systems, 2017. 2, 3, 4 
-# A. Additional Implementation Details 
-Generator. The architecture of the generator consists of a series of the proposed SPADE ResBlks with nearest neighbor upsampling. We train our network using 8 GPUs simultaneously and use the synchronized version of the BatchNorm. We apply the Spectral Norm [38] to all the convolutional layers in the generator. The architectures of the proposed SPADE and SPADE ResBlk are given in Figure 10 and Figure 11, respectively. The architecture of the generator is shown in Figure 12. 
-Discriminator. The architecture of the discriminator follows the one used in the pix2pixHD method [48], which uses a multi-scale design with the InstanceNorm (IN). The only difference is that we apply the Spectral Norm to all the 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/029a1e258bd921b008fb12a2d63784e0f8f860cfabd9a66210802e6d2bb66fcb.jpg) 
-Figure 12: SPADE Generator. Different from prior image generators [22,48], the semantic segmentation mask is passed to the generator through the proposed SPADE ResBlks in Figure 11. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/359b6b1b23d8a2d43262bd799884855c6bdc27d67fba46a36b1befeeae618f7e.jpg) 
-Figure 10: SPADE Design. The term $3\mathrm{x}3$ -Conv-k denotes a 3-by-3 convolutional layer with $k$ convolutional filters. The segmentation map is resized to match the resolution of the corresponding feature map using nearest-neighbor downsampling. 
-Image Encoder. The image encoder consists of 6 stride-2 convolutional layers followed by two linear layers to produce the mean and variance of the output distribution as shown in Figure 14. 
-Learning objective. We use the learning objective function in the pix2pixHD work [48] except that we replace its LSGAN loss [34] term with the Hinge loss term [31, 38, 54]. We use the same weighting among the loss terms in the objective function as that in the pix2pixHD work. 
+>  我们提出空间自适应规范化，它在规范化层根据输入语义布局执行仿射变换
+>  该方法可以用于为各种场景进行语义图像合成，并且可以进行多模态合成以及风格引导的合成
+
+# Appendix
+## A. Additional Implementation Details 
+
+![[pics/Spatially-Adaptive Normalization-Figure 10.png]]
+
+
+![[pics/Spatially-Adaptive Normalization-Figure 11.png]]
+
+![[pics/Spatially-Adaptive Normalization-Figure 12.png]]
+
+**Generator.** The architecture of the generator consists of a series of the proposed SPADE ResBlks with nearest neighbor upsampling. We train our network using 8 GPUs simultaneously and use the synchronized version of the BatchNorm. We apply the Spectral Norm [38] to all the convolutional layers in the generator. The architectures of the proposed SPADE and SPADE ResBlk are given in Figure 10 and Figure 11, respectively. The architecture of the generator is shown in Figure 12. 
+>  **生成器**
+>  生成器由一组带有最近邻上采样的 SPADE ResBlk 组成
+>  我们使用了同步批量规范化，同时为所有卷积层应用谱规范化
+>  SPADE 结构见 Figure 10，SPADE ResBlk 结构见 Figure 11
+>  生成器总体结构见 Figure 12
+
+![[pics/Spatially-Adaptive Normalization-Figure 13.png]]
+
+**Discriminator.** The architecture of the discriminator follows the one used in the pix2pixHD method [48], which uses a multi-scale design with the InstanceNorm (IN). The only difference is that we apply the Spectral Norm to all the convolutional layers of the discriminator. The details of the discriminator architecture is shown in Figure 13.
+>  **判别器**
+>  判别器结构和 pix2pixHD 中相同，采用了多尺度设计，以及使用了实例规范化
+>  我们额外对判别器每层卷积层使用了谱规范化
+>  具体结构见 Figure 13
+
+![[pics/Spatially-Adaptive Normalization-Figure 14.png]]
+
+**Image Encoder.** The image encoder consists of 6 stride-2 convolutional layers followed by two linear layers to produce the mean and variance of the output distribution as shown in Figure 14. 
+>  图像编码器最终输出均值和方差向量，结构见 Figure 14
+
+**Learning objective.** We use the learning objective function in the pix2pixHD work [48] except that we replace its LSGAN loss [34] term with the Hinge loss term [31, 38, 54]. We use the same weighting among the loss terms in the objective function as that in the pix2pixHD work. 
+
 When training the proposed framework with the image encoder for multi-modal synthesis and style-guided image synthesis, we include a KL Divergence loss: 
+
 $$
 \mathcal{L}_{\mathrm{KLD}}=\mathcal{D}_{\mathrm{KL}}(q(\mathbf{z}|\mathbf{x})||p(\mathbf{z}))
 $$ 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/b4e37d2c9f938e07d26ae1cdf833b3bf8340272789d0579bc18fcf34ca50e6a9.jpg) 
-Figure 11: SPADE ResBlk. The residual block design largely follows that in Mescheder et al. [36] and Miyato et al. [39]. We note that for the case that the number of channels before and after the residual block is different, the skip connection is also learned (dashed box in the figure). convolutional layers of the discriminator. The details of the discriminator architecture is shown in Figure 13. 
 where the prior distribution $p(\mathbf{z})$ is a standard Gaussian distribution and the variational distribution $q$ is fully determined by a mean vector and a variance vector [28]. We use the reparamterization trick [28] for back-propagating the gradient from the generator to the image encoder. The weight for the KL Divergence loss is 0.05. 
-In Figure 15, we overview the training data flow. The image encoder encodes a real image to a mean vector and a variance vector. They are used to compute the noise input to the generator via the reparameterization trick [28]. The generator also takes the segmentation mask of the input image as input with the proposed SPADE ResBlks. The and the output image from the generator as input and aims to classify that as fake. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/914410ffa73ba84a6e2f62a36585822965d12b1b47e64dcfed9af53f09c82f55.jpg) 
-Figure 13: Our discriminator design largely follows that in the pix2pixHD [48]. It takes the concatenation the segmentation map and the image as input. It is based on the PatchGAN [22]. Hence, the last layer of the discriminator is a convolutional layer. 
-Training details. We perform 200 epochs of training on the Cityscapes and ADE20K datasets, 100 epochs of training on the COCO-Stuff dataset, and 50 epochs of training on the Flickr Landscapes dataset. The image sizes are $256\times256$ , except the Cityscapes at $512\times256$ . We linearly decay the learning rate to 0 from epoch 100 to 200 for the Cityscapes and ADE20K datasets. The batch size is 32. We initialize the network weights using thes Glorot initialization [12]. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/7f132702bc54314cd9c45fe37dcece0e8d337f25f9f8df00de1fbf61d816f6fd.jpg) 
-Figure 14: The image encoder consists a series of convolutional layers with stride 2 followed by two linear layers that output a mean vector $\mu$ and a variance vector $\sigma$ . 
-discriminator takes concatenation of the segmentation mask 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/25c9eef0c910e118ae6c5c02ad753ffd4355e665a7791a437e9e162501525e62.jpg) 
-Figure 15: The image encoder encodes a real image to a latent representation for generating a mean vector and a variance vector. They are used to compute the noise input to the generator via the reparameterization trick [28]. The generator also takes the segmentation mask of the input image as input via the proposed SPADE ResBlks. The discriminator takes concatenation of the segmentation mask and the output image from the generator as input and aims to classify that as fake. 
-B. Additional Ablation Study 
-<html><body><table><tr><td>Method</td><td>COCO.</td><td>ADE.</td><td>City.</td></tr><tr><td>Ours Oursw/oPerceptualloss Oursw/oGANfeaturematchingloss Oursw/adeeperdiscriminator</td><td>35.2 24.7 33.2 34.9</td><td>38.5 30.1 38.0 38.3</td><td>62.3 57.4 62.2 60.9</td></tr><tr><td>pix2pixHD++ w/ SPADE pix2pixHD++ pix2pixHD++ w/o Sync BatchNorm pix2pixHD++ w/o Sync BatchNorm,</td><td>34.4 32.7 27.4 26.0</td><td>39.0 38.3 31.8 31.9</td><td>62.2 58.8 51.1 52.3</td></tr><tr><td>andw/oSpectralNorm pix2pixHD [48]</td><td>14.6</td><td>20.3</td><td>58.3</td></tr></table></body></html> 
-Table 5: Additional ablation study results using the mIoU metric: the table shows that both the perceptual loss and GAN feature matching loss terms are important. Making the discriminator deeper does not lead to a performance boost. The table also shows that all the components (Synchronized BatchNorm, Spectral Norm, TTUR, the Hinge loss objective, and the SPADE) used in the proposed method helps our strong baseline, pix2pixHD $^{++}$ . 
+
+![[pics/Spatially-Adaptive Normalization-Figure 15.png]]
+
+In Figure 15, we overview the training data flow. The image encoder encodes a real image to a mean vector and a variance vector. They are used to compute the noise input to the generator via the reparameterization trick [28]. The generator also takes the segmentation mask of the input image as input with the proposed SPADE ResBlks. The discriminator takes concatenation of the segmentation mask and the output image from the generator as input and aims to classify that as fake. 
+>  训练数据流为：图像编码器将真实图像编码为均值向量和方差向量，用于计算输入给生成器的噪声向量；生成器通过 SPADE ResBlk 接受分割掩码的信息；判别器接受分割掩码和生成器的输出图像的拼接作为输入，目标是将输入判别为假
+
+**Training details.** We perform 200 epochs of training on the Cityscapes and ADE20K datasets, 100 epochs of training on the COCO-Stuff dataset, and 50 epochs of training on the Flickr Landscapes dataset. The image sizes are $256\times256$ , except the Cityscapes at $512\times256$ . We linearly decay the learning rate to 0 from epoch 100 to 200 for the Cityscapes and ADE20K datasets. The batch size is 32. We initialize the network weights using thes Glorot initialization [12]. 
+
+## B. Additional Ablation Study 
 Table 5 provides additional ablation study results analyzing the contribution of individual components in the proposed method. We first find that both of the perceptual loss and GAN feature matching loss inherited from the learning objective function of the pix2pixHD [48] are important. Removing any of them leads to a performance drop. We also find that increasing the depth of the discriminator by inserting one more convolutional layer to the top of the pix2pixHD discriminator does not improve the results. 
+>  消融分析见 Table 5，我们发现 pix2pixHD 的目标函数中，感知损失和 GAN 特征匹配损失都很重要，移除任意一项都会降低性能，我们还发现增加判别器的深度不会改善结果
+
+![[pics/Spatially-Adaptive Normalization-Table 5.png]]
+
 In Table 5, we also analyze the effectiveness of each component used in our strong baseline, the pix2pixHD++ method, derived from the pix2pixHD method. We found that the Spectral Norm, synchronized BatchNorm, TTUR [17], and the hinge loss objective all contribute to the performance boost. Adding the SPADE to the strong baseline further improves the performance. Note that the $\mathrm{pix}2\mathrm{pixHD}++\mathrm{w}/\mathrm{c}$ Sync BatchNorm and w/o Spectral Norm still differs from the pix2pixHD in that it uses the hinge loss objective, TTUR, a large batch size, and the Glorot initialization [12]. 
-# C. Additional Results 
+
+## C. Additional Results 
 In Figure 16, 17, and 18, we show additional synthesis results from the proposed method on the COCO-Stuff and ADE20K datasets with comparisons to those from the CRN [6] and pix2pixHD [48] methods. 
 In Figure 19 and 20, we show additional synthesis results from the proposed method on the ADE20K-outdoor and Cityscapes datasets with comparison to those from the CRN [6], SIMS [43], and pix2pixHD [48] methods. 
 In Figure 21, we show additional multi-modal synthesis results from the proposed method. As sampling different z from a standard multivariate Gaussian distribution, we synthesize images of diverse appearances. 
 In the accompanying video, we demonstrate our semantic image synthesis interface. We show how a user can create photorealistic landscape images by painting semantic labels on a canvas. We also show how a user can synthesize images of diverse appearances for the same semantic segmentation mask as well as transfer the appearance of a provided style image to the synthesized one. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/4f77c34d7bdb56515540ba62ce55673b877e2d185ef79a62f56bbac22c850515.jpg) 
-Figure 16: Additional results with comparison to those from the CRN [6] and pix2pixHD [48] methods on the COCO-Stuff dataset. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/f60d91f1c70ce94e07cf1cb6a1518aebeef1d8f831a684dced438c8a060ecd80.jpg) 
-Figure 17: Additional results with comparison to those from the CRN [6] and pix2pixHD [48] methods on the COCO-Stuff dataset. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/f3604318779a05e15446f21f77e5437bb7040884af9c81ee68af5c6ce0ded89d.jpg) 
-Figure 18: Additional results with comparison to those from the CRN [6] and pix2pixHD [48] methods on the ADE20K dataset. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/091c66259aadfa499b52c77838659b25d7040dfcb300753a762216e821186831.jpg) 
-Figure 19: Additional results with comparison to those from the CRN [6], SIMS [43], and pix2pixHD [48] methods on the ADE20K-outdoor dataset. 17 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/21599fa8abfe38d4e5954fc55a5b28e95a4fd3b89b2bae348a86ea97c8684684.jpg) 
-Figure 20: Additional results with comparison to those from the CRN [6], SIMS [43], and pix2pixHD [48] methods on the Cityscapes dataset. 
-![](https://cdn-mineru.openxlab.org.cn/extract/1296bae5-f687-4353-bab4-46bfd5d1a549/3cf7fd1c6a68dfd6fa7279e2a951657973b5138b926eab0c15ae3d99a8d4f4ac.jpg) 
-Figure 21: Additional multi-modal synthesis results on the Flickr Landscapes Dataset. By sampling latent vectors from a standard Gaussian distribution, we synthesize images of diverse appearances. 
