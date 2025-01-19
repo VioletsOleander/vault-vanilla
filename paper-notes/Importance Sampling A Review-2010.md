@@ -1,5 +1,5 @@
 # Abstract 
-We provide a short overview of Importance Sampling – a popular sampling tool used for Monte Carlo computing. We discuss its mathematical foundation and properties that determine its accuracy in Monte Carlo approximations. We review the fundamental developments in designing efficient IS for practical use. This includes parametric approximation with optimization based adaptation, sequential sampling with dynamic adap- tation through resampling and population based approaches that make use of Markov chain sampling. 
+We provide a short overview of Importance Sampling – a popular sampling tool used for Monte Carlo computing. We discuss its mathematical foundation and properties that determine its accuracy in Monte Carlo approximations. We review the fundamental developments in designing efficient IS for practical use. This includes parametric approximation with optimization based adaptation, sequential sampling with dynamic adaptation through resampling and population based approaches that make use of Markov chain sampling. 
 > 重要性采样：蒙特卡洛计算的采样工具
 > 对重要性采样的优化：在基于优化的适应上的参数近似，通过重采样来进行序列采样的动态适应，利用 Markov 链的基于群体的方法
 
@@ -10,15 +10,14 @@ Importance sampling (IS) refers to a collection of Monte Carlo methods where a m
 > IS 指一系列 Monte Carlo 方法
 > Monte Carlo 方法即相对于目标分布的数学期望是通过从另一个分布的随机采样的加权平均近似的
 
-Together with Markov Chain Monte Carlo methods, IS has provided a foundation for simulation-based approaches to numerical integration since its introduction as a variance reduction technique in statis- tical physics (Hammersely and Morton 1954, Rosenbluth and Rosenbluth 1955). Nowadays, IS is used in a wide variety of application areas and there have been recent developments involving adaptive versions of the methodology. 
+Together with Markov Chain Monte Carlo methods, IS has provided a foundation for simulation-based approaches to numerical integration since its introduction as a variance reduction technique in statistical physics (Hammersely and Morton 1954, Rosenbluth and Rosenbluth 1955). Nowadays, IS is used in a wide variety of application areas and there have been recent developments involving adaptive versions of the methodology. 
 > IS 和 Markov Chain Monte Carlo 方法一起构成了基于模拟的数值积分计算的基础，它最早在统计物理学中被作为一个方差减少的方法被引入
 
-The appeal of IS lies in a simple probability result. Let $p(x)$ be a probability density for a random variable $X$ and suppose we wish to compute an expecation $\mu_{f}=\mathbb{E}_{p}[f(X)]$ , with 
+The appeal of IS lies in a simple probability result. Let $p(x)$ be a probability density for a random variable $X$ and suppose we wish to compute an expectation $\mu_{f}=\mathbb{E}_{p}[f(X)]$ , with 
 
 $$
 \mu_{f}=\int f(x)p(x)d x.
 $$ 
-
 Then for any probability density $q(x)$ that satisfies $q(x)\,>\,0$ whenever $f(x)p(x)\neq0$ , one has 
 
 $$
@@ -36,7 +35,6 @@ can be used to estimate $\mu_{f}$ by
 $$
 \hat{\mu}_{f}=\frac{1}{m}\sum_{j=1}^{m}w(x^{(j)})f(x^{(j)}).
 $$ 
-
 > 此时，我们可以从 $q (x)$ 中采样 $x^{(1)}, \dots, x^{(m)}$ 来估计 $\hat \mu_f$
 
 In many applications the density $p(x)$ is known only up to a normalizing constant. Here one has $w(x)\,=\,c w_{0}(x)$ where $w_{0}(x)$ can be computed exactly but the multiplicative constant $c$ is unknown. In this case one replaces $\hat{\mu}_{f}$ with the ratio estimate 
@@ -47,7 +45,6 @@ In many applications the density $p(x)$ is known only up to a normalizing consta
 $$
 \tilde{\mu}_{f}=\frac{\sum_{j=1}^{m}w(x^{(j)})f(x^{(j)})}{\sum_{j=1}^{m}w\bigl(x^{(j)}\bigr)}.
 $$ 
-
 It follows from the strong law of large numbers that $\hat{\mu}_{f}\to\mu$ and ${\tilde{\mu}}_{f}\to\mu_{f}$ as $n\to \infty$ almost surely; see Geweke (1989). 
 > 根据大数定律，随着 $m\to \infty$，$\hat \mu_f \to \mu$（平均值趋向于期望）
 > 同理，随着 $m\to \infty, \tilde \mu_f \to \mu$（如果分子分母同时收敛于各自的期望，则分数也会收敛于期望的比值，显然分子收敛于 $mE_{q(x)}\left[f(x)\frac {p(x)}{q(x)}\right]= m\int f(x)p(x)dx = m\mu$，分母收敛于 $mE_{q(x)}\left[\frac {p(x)}{q(x)}\right]= m\int p(x)dx = m$）
