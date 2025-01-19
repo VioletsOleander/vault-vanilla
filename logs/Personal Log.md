@@ -978,3 +978,4 @@ Date: 2025.1.13-2025.1.20
 \[Paper\]
 - [[paper-notes/Semantic Image Synthesis with Spatially-Adaptive Normalization-2019-CVPR|2019-CVPR-Semantic Image Synthesis with Spatially-Adaptive Normalization]]: All
 
+
