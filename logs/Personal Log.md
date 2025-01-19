@@ -903,7 +903,7 @@ Date: 2024.12.30-2025.1.6
     Sec8-Discussion
 
 \[Book\]
-- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.4
+- [[book-notes/Probabilistic Graphical Models-Principles and Techniques|Probabilistic Graphical Models-Principles and Techniques]]: CH19.2.2.5, CH19.2.3, CH19.2.4
     CH19-Partially Observed Data
         CH19.2-Parameter Estimation
             CH19.2.2-Expectation Maximization
@@ -911,7 +911,19 @@ Date: 2024.12.30-2025.1.6
                     Each iteration of the EM process can be viewed as maximizing an auxiliary function. Maximizing the auxiliary function will yield better log-likelihood.
                     For exponential family models, the expected log-likelihood is a linear function of the expected sufficient statistics. Thus to maximize the expected log-likelihood, we first derive the expected sufficient statistics, and then compute the parameters that maximize the expected log-likelihood. That's precisely the EM process.
                     In each EM iteration, we are actually optimizing a function of the parameter $\pmb \theta$ and the posterior choice $Q$. We define the energy functional associated with $P$ and $Q$ as $F[P, Q] = E_Q[\log \tilde P] + H_Q$. Then we can prove $\log Z = F[P, Q] + D(Q||P)$.
-                    Let $P = P(\mathcal H\mid \mathcal D,\pmb \theta)$,
+                    Let $P = P(\mathcal H\mid \mathcal D,\pmb \theta) = P(\mathcal H, \mathcal D\mid \pmb \theta)/P(\mathcal D\mid \pmb \theta)$. According to the previous conclusion, we can get $\ell(\pmb \theta : \mathcal D) = F[P, Q] + D(Q|| P)$. Therefore, $\ell(\pmb \theta: \mathcal D) = E_Q[\log P(\mathcal H, \mathcal D\mid \pmb \theta)] +H_Q+ D(Q|| P(\mathcal H\mid \mathcal D, \pmb \theta))$. That is, we get an equivalent form of the log-likelihood, which is written as a function of $Q$ and $\pmb \theta$.
+                    Take a step further, we can get $\ell(\pmb \theta : \mathcal D) = E_Q[\ell(\pmb \theta :\langle \mathcal D, \mathcal H \rangle)] + H_Q +  D(Q||P(\mathcal H\mid \mathcal D, \pmb \theta))$.
+                    Because entropy and KL divergence are non-negative, the expected log-likelihood is a lower bound of the actual log-likelihood. Also, the energy functional (expected log-likelihood + entropy term) is a tight lower bound of the actual log-likelihood.
+                    EM procedure is actually optimize the energy functional in a coordinate ascent way. Given fixed parameter $\pmb \theta$, it first search the optimal $Q$ the minimize the KL divergence, and then, given fixed $Q$, it tries to find the optimal $\pmb \theta$ that maximize the expected log-likelihood.
+                    Because the energy functional is a tight lower bound of the actual log-likelihood, improving the energy functional will guarantee to improve the log-likelihood. And the improvement is guaranteed to be as large as the energy functional's improvement.
+                    For most learning problem, the log-likelihood is upper bounded, and because EM can monotonically improve the log-likelihood, EM is guaranteed to converge to a stationary point of the log-likelihood function.
+            CH19.2.3-Comparisoin: Gradient Ascent versus EM
+                EM and gradient ascent are both local, greedy in nature, and both guarantee to converge to a stationary point of the log-likelihood function.
+            CH19.2.4-Approximate Inference
+                When computing gradient approximately, the approximation error will dominate if the stationary point is close.
+                There is no guarantee that approximate inference will find a local maxima, but in practice, approximation is unavoidable.
+                In variational EM, the E-step is to find the optimal variational $Q$ for each instance. Each instance's optimal variational posterior is different. The algorithm is essentially performing coordinate-wise ascent alternating between optimization of $Q$ and $\pmb \theta$. Therefore it is not necessarily to take too many steps to find best variational $Q$ in one iteration.
+                In variational EM, the energy functional is not necessarily a tight lower bound of the actual log-likelihood. It depends on the choice of the variational distribution family. Therefore, variational EM has no convergence guarantee and it is easy to get oscillations both within a E-step and over several steps.
 
 ### Week2
 Date: 2025.1.6-2025.1.13
@@ -961,4 +973,7 @@ Date: 2025.1.6-2025.1.13
 - [[book-notes/深度强化学习|深度强化学习]]
 
 ### Week 3
-Date: 2025.1.13-2025.1.
+Date: 2025.1.13-2025.1.20
+
+\[Paper\]
+- [[paper-notes/Semantic Image Synthesis with Spatially-Adaptive Normalization-2019-CVPR|2019-CVPR-Semantic Image Synthesis with Spatially-Adaptive Normalization]]: All
