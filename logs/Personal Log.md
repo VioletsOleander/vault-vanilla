@@ -929,7 +929,7 @@ Date: 2024.12.30-2025.1.6
 Date: 2025.1.6-2025.1.13
 
 \[Paper\]
-- [[paper-notes/Skilful Nowcasting of Extreme Precipitation with NowcastNet-2023-Nature|2023-Nature-Skilful Nowcasting of Extreme Precipitation with NowcastNet]]: All
+- [[paper-notes/precipitation-nowcasting/Skilful Nowcasting of Extreme Precipitation with NowcastNet-2023-Nature|2023-Nature-Skilful Nowcasting of Extreme Precipitation with NowcastNet]]: All
     Sec0-Abstract
         Pure physics-based method can not capture convective dynamics. Data-driven learning can not obey physical laws like advective conservation. NowcastNet unify physical-evolution scheme and conditional learning methods, and optimize forecast error end-to-end.
     Sec1-Introduction
@@ -976,6 +976,6 @@ Date: 2025.1.6-2025.1.13
 Date: 2025.1.13-2025.1.20
 
 \[Paper\]
-- [[paper-notes/Semantic Image Synthesis with Spatially-Adaptive Normalization-2019-CVPR|2019-CVPR-Semantic Image Synthesis with Spatially-Adaptive Normalization]]: All
+- [[paper-notes/normalization/Semantic Image Synthesis with Spatially-Adaptive Normalization-2019-CVPR|2019-CVPR-Semantic Image Synthesis with Spatially-Adaptive Normalization]]: All
 
 
