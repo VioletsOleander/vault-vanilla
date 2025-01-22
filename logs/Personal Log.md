@@ -970,12 +970,35 @@ Date: 2025.1.6-2025.1.13
     Sec9-Datasets
     Sec10-Evaluation
 \[Book\]
-- [[book-notes/深度强化学习|深度强化学习]]
+- [[book-notes/深度强化学习|深度强化学习]]: CH1
 
 ### Week 3
 Date: 2025.1.13-2025.1.20
 
 \[Paper\]
 - [[paper-notes/normalization/Semantic Image Synthesis with Spatially-Adaptive Normalization-2019-CVPR|2019-CVPR-Semantic Image Synthesis with Spatially-Adaptive Normalization]]: All
-
-
+    Sec0-Abstract  
+        Directly use semantic layout as input to the network is suboptimal, because the normalization layer tend to wash away semantic information.
+        Spatially-Adaptive Normalization use semantic layout to modulate the activations in the normalization layer spatially-adaptively.
+    Sec1-Introduction
+        Semantic image synthesis focuses on converting semantic segmentation mask to a photorealistic image.
+        In traditional architecture, the normalization layer will wash away the information in the semantic mask, preventing semantic information propagating through the network.
+    Sec2-Related Work
+        Conditional normalization layers requires external data and generally first normalize activations to zero mean and unit deviation, then modulate the normalized activations using the external semantic input.
+        Generating image from semantic mask requires applying a spatially-varying transformation/modulation to the normalized activations.
+    Sec3-Semantic Image Synthesis
+        SPatially Adaptive (DE) normalization first apply batch normalization, and then modulate the normalized activations with learned scale and bias spatially-adaptively. That is, the modulation parameters depend on the input mask and vary with respect to the location $(x, y)$.
+        With SPADE, there is no need to feed the mask to the first layer of the generator. The generator can take a random vector as input to support multi-modal synthesis. That is, for the same mask, different random vector can leads to different but semantically consistent images.
+        In SPADE, the semantic mask is fed through spatially adaptive modulation, without normalization. Therefore the semantic information is better preserved.
+        By replacing the input noise with the embedding vector of the style image computed by the image encoder, we can further control the style of the synthesized image.
+    Sec4-Experiments
+    Sec5-Conclusion
+- [[paper-notes/precipitation-nowcasting/Skilful Precipitation Nowcasting Using Deep Generative Models of Radar-2021-Nature|2021-Nature-Skilful Precipitation Nowcasting Using Deep Generative Models of Radar]]: All
+    Sec0-Abstract
+        Operational nowcasting methods typically advect precipitation fields with radar-based wind estimates, and struggle to capture non-linear events like convective initiations.
+        Deep learning methods directly predict future rain rates, free of physical constraints. Deep learning methods can predict low-intensity rainfall, while the lack of constraints lead to blurry prediction at longer lead time and heavier rain events.
+    Sec1-Introduction
+        Radar data is available every five minutes at 1km x 1km grid resolution.
+        Advective methods rely on the advection equation, using optical flow and smoothness penalty to estimate motion field.
+        Deep learning based models are directly trained on large corpora of radar observations and do not rely on in-built physical assumptions. Deep learning based model conduct optimization end-to-end and has fewer inductive biases, therefore greatly improve forecast quality at low precipitation levels.
+    
