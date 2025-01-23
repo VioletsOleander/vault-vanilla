@@ -1001,4 +1001,9 @@ Date: 2025.1.13-2025.1.20
         Radar data is available every five minutes at 1km x 1km grid resolution.
         Advective methods rely on the advection equation, using optical flow and smoothness penalty to estimate motion field.
         Deep learning based models are directly trained on large corpora of radar observations and do not rely on in-built physical assumptions. Deep learning based model conduct optimization end-to-end and has fewer inductive biases, therefore greatly improve forecast quality at low precipitation levels.
-    
+
+### Week4
+Date: 2025.1.20-2025.1.27
+
+\[Doc\]
+- [[doc-notes/onnx/Introduction to ONNX|onnx/Introduction to ONNX]]
