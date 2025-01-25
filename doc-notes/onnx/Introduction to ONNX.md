@@ -1,5 +1,5 @@
 ---
-completed: 
+completed: true
 version: 1.18.0
 ---
 # ONNX Concepts
@@ -1559,11 +1559,17 @@ print()
 
 # Some display.
 print(onnx_model)
+```
 
+>  上例中
+>  `ReduceSum` 节点对输入张量的所有元素求和
+>  then 分支是一个仅包含一个节点的子图，该节点直接返回值为 1 的常量张量，else 分支类似，返回值为 -1 的常量张量
+>  `If` 节点接受条件 `cond` 作为输入，根据条件的结果选择执行哪个分支，同时返回一个结果
+>  最后的图仅需要通过 `If` 节点构建即可
+>  `onnxruntime.InferenceSession` 根据模型和要使用的执行提供程序 (这里是 CPU) 构建运行会话，会话的 `run` 方法运行模型
+
+```
 result [array([1.], dtype=float32)]
-```
-
-```
 ir_version: 8
 graph {
   node {
@@ -1693,10 +1699,12 @@ Both else and then branches are very simple. Node _If_ could even be replaced 
 
 ### Scan
 [Scan](https://onnx.ai/onnx/operators/onnx__Scan.html#l-onnx-doc-scan) seems quite complex when reading the specifications. It is useful to loop over one dimension of a tensor and store the results in a preallocated tensor.
+>  Scan 算子用于循环遍历张量的一个维度，并将结果存储在预先分配的张量中
 
-The following example implements a classic nearest neighbors for a regression problem. The first step consists in computing the pairwise distances between the input features _X_ and the training set _W_: dist(X,W)=(Mij)=(\normXi−Wj2)ij. It is followed by an operator [TopK](https://onnx.ai/onnx/operators/onnx__TopK.html#l-onnx-doc-topk) which extracts the _k_ nearest neighbors.
+The following example implements a classic nearest neighbors for a regression problem. The first step consists in computing the pairwise distances between the input features _X_ and the training set _W_: $dist(X,W) = (M_{ij})=(\|X_i - W_j\|_2^2)$. It is followed by an operator [TopK](https://onnx.ai/onnx/operators/onnx__TopK.html#l-onnx-doc-topk) which extracts the _k_ nearest neighbors.
+>  本例实现最近邻算法，它首先计算输入特征 $X$ 和训练集 $W$ 的成对距离，然后选出 topK 个最近邻
 
-```
+```python
 import numpy
 from onnx import numpy_helper, TensorProto
 from onnx.helper import (
@@ -1722,29 +1730,28 @@ outputs.append(value)
 
 node = make_node(
     'Identity', ['next_in'], ['next_out'],
-    name='cdistd_17_Identity', domain='')
+    name='cdistd_17_Identity', domain='') # 将 next_in 直接赋值给 next_out
 nodes.append(node)
 
 node = make_node(
     'Sub', ['next_in', 'next'], ['cdistdf_17_C0'],
-    name='cdistdf_17_Sub', domain='')
+    name='cdistdf_17_Sub', domain='') # 计算 next_in - next
 nodes.append(node)
 
 node = make_node(
     'ReduceSumSquare', ['cdistdf_17_C0'], ['cdistdf_17_reduced0'],
-    name='cdistdf_17_ReduceSumSquare', axes=[1], keepdims=0, domain='')
+    name='cdistdf_17_ReduceSumSquare', axes=[1], keepdims=0, domain='') # 在第一轴上求平方和，不保留维度
 nodes.append(node)
 
 node = make_node(
     'Identity', ['cdistdf_17_reduced0'],
-    ['scan_out'], name='cdistdf_17_Identity', domain='')
+    ['scan_out'], name='cdistdf_17_Identity', domain='') # 将平方和结果赋值给 scan_out
 nodes.append(node)
 
 graph = make_graph(nodes, 'OnnxIdentity',
-                   inputs, outputs, initializers)
+                   inputs, outputs, initializers) # inputs 包括 next_in, next, outputs 包括 next_out, scan_out, 初始化值为空
 
 # main graph
-
 initializers = []
 nodes = []
 inputs = []
@@ -2186,31 +2193,41 @@ opset_import {
   domain: "ai.onnx.ml"
   version: 15
 }
+```
 
 Visually it looks like the following:
 
 ![../_images/dot_scan_py.png](https://onnx.ai/onnx/_images/dot_scan_py.png)
 
 The subgraph is executed by operator [Scan](https://onnx.ai/onnx/operators/onnx__Scan.html#l-onnx-doc-scan). In this case, there is one _scan_ input meaning the operator only builds one output.
+>  子图由算子 Scan 执行，本例中，`num_scan_inputs=1` 表示只有一个 scan 输入，这也意味着算子仅生成一个输出 (对应于该输入的输出)
 
+```python
 node = make_node(
     'Scan', ['X1', 'X2'], ['Y1', 'Y2'],
     name='Sc_Scan', body=graph, num_scan_inputs=1, domain='')
+```
 
-At the first iteration, the subgraph gets _X1_ and the first row of _X2_. The graph produces two outputs. The first one replaces _X1_ in the next iteration, the second one is store in a container to form _Y2_. At the second iteration, second input of the subgraph is the second row of _X2_. Here is a short summary. Green is the first iteration, blue the second.
+At the first iteration, the subgraph gets _X1_ and the first row of _X2_. The graph produces two outputs. The first one replaces _X1_ in the next iteration, the second one is store in a container to form _Y2_. At the second iteration, second input of the subgraph is the second row of _X2_. 
+>  在第一次迭代中，子图获取 X1, X2 的第一行，子图产生两个输出，第一个输出替换下次迭代中的 X1，第二个输出存储在一个容器中以形成 Y2
+>  第二次迭代中，子图的第二个输入是 X2 的第二行
+
+Here is a short summary. Green is the first iteration, blue the second.
 
 [![../_images/scanop.png](https://onnx.ai/onnx/_images/scanop.png)](https://onnx.ai/onnx/_images/scanop.png)
 
-## Functions[](https://onnx.ai/onnx/intro/python.html#functions "Link to this heading")
-
+## Functions
 As mentioned in previous chapter, functions can be used to shorten the code to build the model and offer more possibilities to the runtime running predictions to be faster if there exists a specific implementation of this function. If it is not the case, the runtime can still use the default implementation based on existing operators.
+>  如果运行时存在函数的特定实现，则会采用该特定实现加速推理，如果不存在，仍然可以使用基于现存算子的默认实现
 
 Function `make_function` is used to define a function. It works like a graph with less types. It is more like a template. This API may evolve. It does not include initializers either.
+>  `make_function` 用于定义函数，函数的工作原理类似类型较少的图，更像是一个模板
 
-### A function with no attribute[](https://onnx.ai/onnx/intro/python.html#a-function-with-no-attribute "Link to this heading")
-
+### A function with no attribute
 That’s the more simple case. Every input of the function is a dynamic object known at execution time.
+>  下面的例子中，函数的每个输入都是在执行时已知的动态对象
 
+```python
 import numpy
 from onnx import numpy_helper, TensorProto
 from onnx.helper import (
@@ -2220,7 +2237,7 @@ from onnx.helper import (
 from onnx.checker import check_model
 
 new_domain = 'custom'
-opset_imports = [make_opsetid("", 14), make_opsetid(new_domain, 1)]
+opset_imports = [make_opsetid("", 14), make_opsetid(new_domain, 1)] # 包含默认域的第 14 版和自定义域的第 1 版
 
 # Let's define a function for a linear regression
 
@@ -2244,7 +2261,7 @@ B = make_tensor_value_info('B', TensorProto.FLOAT, [None, None])
 Y = make_tensor_value_info('Y', TensorProto.FLOAT, [None])
 
 graph = make_graph(
-    [make_node('LinearRegression', ['X', 'A', 'B'], ['Y1'], domain=new_domain),
+    [make_node('LinearRegression', ['X', 'A', 'B'], ['Y1'], domain=new_domain), # 用函数构造节点
      make_node('Abs', ['Y1'], ['Y'])],
     'example',
     [X, A, B], [Y])
@@ -2256,7 +2273,9 @@ check_model(onnx_model)
 
 # the work is done, let's display it...
 print(onnx_model)
+```
 
+```
 ir_version: 11
 graph {
   node {
@@ -2364,11 +2383,14 @@ functions {
   }
   domain: "custom"
 }
+```
 
-### A function with attributes[](https://onnx.ai/onnx/intro/python.html#a-function-with-attributes "Link to this heading")
-
+### A function with attributes
 The following functions are equivalent to the previous one except one input, _B_, was converted into an argument named _bias_. The code is almost the same except the bias is now a constant. Inside the function definition, a node _Constant_ is created to insert the argument as a result. It is linked to the argument with the attribute `ref_attr_name`.
+>  下面的函数和之前的函数等效，除了一个输入 B 被转化为了参数 bias
+>  此时 bias 是一个常量，我们在函数内部创建 Constant 节点，将参数作为结果插入，该 Constant 节点通过其属性的 `ref_attr_name` 字段获取参数值
 
+```python
 import numpy
 from onnx import numpy_helper, TensorProto, AttributeProto
 from onnx.helper import (
@@ -2399,7 +2421,7 @@ node2 = make_node('Add', ['XA', 'B'], ['Y'])
 
 linear_regression = make_function(
     new_domain,            # domain name
-    'LinearRegression',     # function name
+    'LinearRegression',     # function name    
     ['X', 'A'],             # input names
     ['Y'],                  # output names
     [cst, node1, node2],    # nodes
@@ -2428,7 +2450,9 @@ check_model(onnx_model)
 
 # the work is done, let's display it...
 print(onnx_model)
+```
 
+```
 ir_version: 11
 graph {
   node {
@@ -2540,11 +2564,13 @@ functions {
   }
   domain: "custom"
 }
+```
 
-## Parsing[](https://onnx.ai/onnx/intro/python.html#parsing "Link to this heading")
-
+## Parsing
 Module onnx provides a faster way to define a graph and is lot easier to read. That’s easy to use when the graph is built in a single function, less easy when the graph is built from many different functions converting each piece of a machine learning pipeline.
+>  onnx 模块提供了一种更快定义图的方式，如果图仅包含单个函数时，使用起来会十分方便
 
+```python
 import onnx.parser
 from onnx.checker import check_model
 
@@ -2562,7 +2588,9 @@ onnx_model = onnx.parser.parse_model(input)
 check_model(onnx_model)
 
 print(onnx_model)
+```
 
+```
 ir_version: 8
 graph {
 node {
@@ -2640,13 +2668,18 @@ opset_import {
 domain: ""
 version: 15
 }
+```
 
 This way is used to create small models but it is rarely used in converting libraries.
+>  这种方法主要用于创建小模型，在转换库时很少使用
 
-## Checker and Shape Inference[](https://onnx.ai/onnx/intro/python.html#checker-and-shape-inference "Link to this heading")
+## Checker and Shape Inference
+onnx provides a function to check the model is valid. It checks input type or shapes whenever it can detect inconsistency. 
+>  onnx 提供了 `checker.checker_model` 函数用于检查模型是否有效，该函数检查模型中的输入类型和形状是否和输出一致
 
-onnx provides a function to check the model is valid. It checks input type or shapes whenever it can detect inconsistency. The following example adds two matrices of different types which is not allowed.
+The following example adds two matrices of different types which is not allowed.
 
+```python
 import onnx.parser
 import onnx.checker
 
@@ -2665,13 +2698,20 @@ try:
     onnx.checker.check_model(onnx_model)
 except Exception as e:
     print(e)
+```
 
+```
 b'[ParseError at position (line: 6 column: 44)]\nError context:     agraph (float[I,4] X, float[4,2] A, int[4] B) => (float[I] Y) {\nExpected character ) not found.'
+```
 
 `check_model` raises an error due to that inconsistency. This work for all operators defined in the main domain or the ML domain. It remains silent for any custom operator not defined in any specification.
+>  检测到不一致性时，函数会抛出错误，这适用于主域和 ML 域中定义的所有算子
+>  对于未在任何规范中定义的自定义算子则无法检测
 
 Shape inference serves one purpose: estimate the shape and the type of intermediate results. If known, the runtime can estimate the memory consumption beforehand and optimize the computation. It can fuse some operators, it can do the computation inplace…
+>  形状推理 `onnx.shape_inference` 只有一个目的：估计中间结果的形状和类型，如果可以确定，运行时可以估计内存消耗并优化计算，例如融合某些算子、进行原地计算等
 
+```python
 import onnx.parser
 from onnx import helper, shape_inference
 
@@ -2689,7 +2729,9 @@ onnx_model = onnx.parser.parse_model(input)
 inferred_model = shape_inference.infer_shapes(onnx_model)
 
 print(inferred_model)
+```
 
+```
 ir_version: 8
 graph {
   node {
@@ -2786,17 +2828,23 @@ opset_import {
   domain: ""
   version: 15
 }
+```
 
-There is a new attribute `value_info` which stores the inferred shapes. Letter `I` in `dim_param: "I"` can be seen as a variable. It depends on the inputs but the function is able to tell which intermediate result will share the same dimension. Shape inference does not work all the time. For example, a Reshape operator. Shape inference only works if the shape is constant. If not constant, the shape cannot be easily inferred unless the following nodes expect specific shape.
+There is a new attribute `value_info` which stores the inferred shapes. Letter `I` in `dim_param: "I"` can be seen as a variable. It depends on the inputs but the function is able to tell which intermediate result will share the same dimension. 
+>  形状推理后得到的 `inferred_model` 新增了一个属性 `value_info` 用于存储推断出的形状
+>  `dim_param: "I"` 中的 `I` 可以视作一个变量，它取决于输入，但函数可以确定哪个中间结果将共享相同的维度
 
-## Evaluation and Runtime[](https://onnx.ai/onnx/intro/python.html#evaluation-and-runtime "Link to this heading")
+Shape inference does not work all the time. For example, a Reshape operator. Shape inference only works if the shape is constant. If not constant, the shape cannot be easily inferred unless the following nodes expect specific shape.
 
+## Evaluation and Runtime
 The ONNX standard allows frameworks to export trained models in ONNX format, and enables inference using any backend that supports the ONNX format. _onnxruntime_ is one efficient option. It is available in many platforms. It is optimized for fast inference. Its coverage can be tracked on [ONNX Backend Dashboard](https://onnx.ai/backend-scoreboard/). _onnx_ implements a python runtime useful to help understand a model. It is not intended to be used for production and performance is not a goal.
+>  `onnxruntime` 是运行 ONNX 格式模型的一个高效后端，它可以在多个平台上使用
+>  `onnx` Python 库实现了一个 Python 运行时，帮助理解模型
 
-### Evaluation of a linear regression[](https://onnx.ai/onnx/intro/python.html#evaluation-of-a-linear-regression "Link to this heading")
-
+### Evaluation of a linear regression
 Full API is described at [onnx.reference](https://onnx.ai/onnx/api/reference.html#l-reference-implementation). It takes a model (a _ModelProto_, a filename, …). Method `run` returns the outputs for a given set of inputs specified in a dictionary.
 
+```python
 import numpy
 from onnx import numpy_helper, TensorProto
 from onnx.helper import (
@@ -2828,11 +2876,12 @@ print(sess.run(None, feeds))
        [ 0.31556654],
        [-0.00626087],
        [ 0.1317825 ]], dtype=float32)]
+```
 
-### Evaluation of a node[](https://onnx.ai/onnx/intro/python.html#evaluation-of-a-node "Link to this heading")
-
+### Evaluation of a node
 The evaluator can also evaluate a simple node to check how an operator behaves on a specific input.
 
+```python
 import numpy
 from onnx import numpy_helper, TensorProto
 from onnx.helper import make_node
@@ -2852,13 +2901,16 @@ print(sess.run(None, feeds))
        [0., 1.],
        [0., 0.],
        [0., 0.]], dtype=float32)]
+```
 
 Similar code would also work on _GraphProto_ or _FunctionProto_.
 
-### Evaluation Step by Step[](https://onnx.ai/onnx/intro/python.html#evaluation-step-by-step "Link to this heading")
-
+### Evaluation Step by Step
 A converting library takes an existing model trained with a machine learning framework (_pytorch_, _scikit-learn_, …) and converts the model into an ONNX graph. Complex models usually do not work on the first try and seeing intermediate results may help to find the part incorrectly converted. Parameter `verbose` displays information about intermediate results.
+>  转换库将机器学习框架训练的现有模型转换为 ONNX 图，复杂的模型通常不会一次性正常工作，查看中介结果可以有助于找到转换错误的部分
+>  `ReferenceEvaluator` 的 `verbose` 参数可以用于控制显示关于中间结果的信息
 
+```python
 import numpy
 from onnx import numpy_helper, TensorProto
 from onnx.helper import (
@@ -2889,7 +2941,9 @@ for verbose in [1, 2, 3, 4]:
     feeds = {'X': x, 'A': a, 'B': b}
 
     print(sess.run(None, feeds))
+```
 
+```
 ------ verbose=1
 
 [array([[ 0.08636874],
@@ -2933,11 +2987,12 @@ Add(XA, B) -> Y
        [ 0.4998569 ],
        [ 0.25894278],
        [-0.5980879 ]], dtype=float32)]
+```
 
-### Evaluate a custom node[](https://onnx.ai/onnx/intro/python.html#evaluate-a-custom-node "Link to this heading")
+### Evaluate a custom node
+The following example still implements a linear regression but adds the identity matrix to _A_: $Y=X(A+I)+B$.
 
-The following example still implements a linear regression but adds the identity matrix to _A_: Y=X(A+I)+B.
-
+```python
 import numpy
 from onnx import numpy_helper, TensorProto
 from onnx.helper import (
@@ -2946,20 +3001,28 @@ from onnx.helper import (
 from onnx.checker import check_model
 from onnx.reference import ReferenceEvaluator
 
+# 创建张量
 X = make_tensor_value_info('X', TensorProto.FLOAT, [None, None])
 A = make_tensor_value_info('A', TensorProto.FLOAT, [None, None])
 B = make_tensor_value_info('B', TensorProto.FLOAT, [None, None])
 Y = make_tensor_value_info('Y', TensorProto.FLOAT, [None])
+
+# 根据张量和计算需求创建节点
 node0 = make_node('EyeLike', ['A'], ['Eye'])
 node1 = make_node('Add', ['A', 'Eye'], ['A1'])
 node2 = make_node('MatMul', ['X', 'A1'], ['XA1'])
 node3 = make_node('Add', ['XA1', 'B'], ['Y'])
+
+# 根据张量和节点创建图
 graph = make_graph([node0, node1, node2, node3], 'lr', [X, A, B], [Y])
+
+# 根据图创建模型
 onnx_model = make_model(graph)
 check_model(onnx_model)
 with open("linear_regression.onnx", "wb") as f:
     f.write(onnx_model.SerializeToString())
 
+# 运行图
 sess = ReferenceEvaluator(onnx_model, verbose=2)
 
 x = numpy.random.randn(4, 2).astype(numpy.float32)
@@ -2968,7 +3031,9 @@ b = numpy.random.randn(1, 2).astype(numpy.float32)
 feeds = {'X': x, 'A': a, 'B': b}
 
 print(sess.run(None, feeds))
+```
 
+```
 EyeLike(A) -> Eye
 Add(A, Eye) -> A1
 MatMul(X, A1) -> XA1
@@ -2977,9 +3042,11 @@ Add(XA1, B) -> Y
        [-0.8608558 ,  1.3707852 ],
        [-0.8636193 ,  2.132121  ],
        [-0.87918663, -0.10823274]], dtype=float32)]
+```
 
 What if we combine operators _EyeLike_ and _Add_ into _AddEyeLike_ to make it more efficient. Next example replaces these two operators by a single one from domain `'optimized'`.
 
+```python
 import numpy
 from onnx import numpy_helper, TensorProto
 from onnx.helper import (
@@ -2987,17 +3054,22 @@ from onnx.helper import (
     make_graph, make_tensor_value_info, make_opsetid)
 from onnx.checker import check_model
 
+# 创建张量
 X = make_tensor_value_info('X', TensorProto.FLOAT, [None, None])
 A = make_tensor_value_info('A', TensorProto.FLOAT, [None, None])
 B = make_tensor_value_info('B', TensorProto.FLOAT, [None, None])
 Y = make_tensor_value_info('Y', TensorProto.FLOAT, [None])
 
+# 创建节点
 node01 = make_node('AddEyeLike', ['A'], ['A1'], domain='optimized')
 
 node2 = make_node('MatMul', ['X', 'A1'], ['XA1'])
 node3 = make_node('Add', ['XA1', 'B'], ['Y'])
+
+# 创建图
 graph = make_graph([node01, node2, node3], 'lr', [X, A, B], [Y])
 
+# 创建模型
 onnx_model = make_model(graph, opset_imports=[
     make_opsetid('', 18), make_opsetid('optimized', 1)
 ])
@@ -3005,13 +3077,16 @@ onnx_model = make_model(graph, opset_imports=[
 check_model(onnx_model)
 with open("linear_regression_improved.onnx", "wb") as f:
     f.write(onnx_model.SerializeToString())
+```
 
 We need to evaluate this model is equivalent to the first one. This requires an implementation for this particular node.
 
+```python
 import numpy
 from onnx.reference import ReferenceEvaluator
 from onnx.reference.op_run import OpRun
 
+# 实现自定义节点
 class AddEyeLike(OpRun):
 
     op_domain = "optimized"
@@ -3024,6 +3099,7 @@ class AddEyeLike(OpRun):
         X[ind] += alpha
         return (X,)
 
+# 传入实现的自定义节点
 sess = ReferenceEvaluator("linear_regression_improved.onnx", verbose=2, new_ops=[AddEyeLike])
 
 x = numpy.random.randn(4, 2).astype(numpy.float32)
@@ -3043,7 +3119,9 @@ y1 = sess1.run(None, feeds)[0]
 print(y0)
 print(y1)
 print(f"difference: {numpy.abs(y0 - y1).max()}")
+```
 
+```
 AddEyeLike(A) -> A1
 MatMul(X, A1) -> XA1
 Add(XA1, B) -> Y
@@ -3060,9 +3138,11 @@ Add(XA1, B) -> Y
  [ 0.57669586  1.410782  ]
  [ 0.63317615  1.2467988 ]]
 difference: 0.0
+```
 
 Predictions are the same. Let’s compare the performance on a matrix big enough to see a significant difference.
 
+```python
 import timeit
 import numpy
 from onnx.reference import ReferenceEvaluator
@@ -3095,27 +3175,34 @@ y1 = sess1.run(None, feeds)[0]
 print(f"difference: {numpy.abs(y0 - y1).max()}")
 print(f"time with EyeLike+Add: {timeit.timeit(lambda: sess0.run(None, feeds), number=1000)}")
 print(f"time with AddEyeLike: {timeit.timeit(lambda: sess1.run(None, feeds), number=1000)}")
+```
 
+```
 difference: 0.0
 time with EyeLike+Add: 0.09263075000001209
 time with AddEyeLike: 0.07530906099998447
+```
 
 It seems worth adding an optimized node in this case. This kind of optimization is usually called _fusion_. Two consecutive operators are fused into an optimized version of both. Production usually relies on _onnxruntime_ but since the optimization uses basic matrix operation, it should bring the same performance gain on any other runtime.
+>  本例中涉及的优化称为融合，两个连续的算子被融合为一个经过优化的版本
 
-## Implementation details[](https://onnx.ai/onnx/intro/python.html#implementation-details "Link to this heading")
-
-### Python and C++[](https://onnx.ai/onnx/intro/python.html#python-and-c "Link to this heading")
-
+## Implementation details
+### Python and C++
 onnx relies on protobuf to define its type. You would assume that a python object is just a wrapper around a C pointer on the internal structure. Therefore, it should be possible to access internal data from a function receiving a python object of type `ModelProto`. But it is not. According to [Protobuf 4, changes](https://developers.google.com/protocol-buffers/docs/news/2022-05-06), this is no longer possible after version 4 and it is safer to assume the only way to get a hold on the content is to serialize the model into bytes, give it to the C function, then deserialize it. Functions like `check_model` or `shape_inference` are calling `SerializeToString` then `ParseFromString` before checking the model with a C code.
+>  `onnx` 使用 protobuf 来定义其类型
+>  在 protobuf 4 之前，可以认为 `onnx` 中的一个 python 对象 (例如 `ModelProto` ) 仅仅是对内部结构的 C 指针的封装，因此可以直接通过 python 对象访问其内部数据
+>  在 protobuf 4 之后，则不能再通过 python 对象直接访问和修改 C 内部的数据，任何需要将 python 对象传递给 C 函数的操作都需要先将对象序列化为字节流，然后传递给 C 函数，然后再反序列化
+>  因此，ONNX 的许多工具链多了序列化和反序化的操作，例如 `check_model` 或 `shape_inference` 调用底层 C 代码检查模型前，会首先调用 `SerializeToString` 将模型序列化为字节流，然后将字节流传递给 C 函数，在 C 函数执行完毕后，再调用 `ParseFromString` 反序列化字节流
 
-### Attributes and inputs[](https://onnx.ai/onnx/intro/python.html#attributes-and-inputs "Link to this heading")
-
+### Attributes and inputs
 There is a clear distinction between the two. Inputs are dynamic and may change at every execution. Attributes never changes and an optimizer can improve the execution graph assuming it never changes. Therefore, it is impossible to turn an input into an attribute. And the operator _Constant_ is the only operator changing an attribute into an input.
+>  属性和输入之间具有明确的区别，输入是动态的，每次执行都有可能改变，属性则永远不变，优化器在优化时可以假设属性是不变的
+>  因此不可能将输入转化为属性，算子 Constant 则是唯一将属性转化为输入的算子
 
-### Shape or no shape[](https://onnx.ai/onnx/intro/python.html#shape-or-no-shape "Link to this heading")
-
+### Shape or no shape
 onnx usually expects a shape for every input or output assuming the rank (or the number of dimensions) is known. What if we need to create a valid graph for every dimension? This case is still puzzling.
 
+```python
 import numpy
 from onnx import numpy_helper, TensorProto, FunctionProto
 from onnx.helper import (
@@ -3186,7 +3273,9 @@ res = sess.run(None, {
     'A': numpy.random.randn(2).astype(numpy.float32)})
 print(res)
 print("----------- end")
+```
 
+```
 ----------- case 1: 2D x 2D -> 2D
 [array([[ 0.00577903, -0.43896937],
        [ 0.93004453, -0.5679703 ]], dtype=float32)]
@@ -3198,3 +3287,221 @@ print("----------- end")
 <class 'onnx.onnx_cpp2py_export.checker.ValidationError'> Field 'shape' of 'type' is required but missing.
 [array([-0.15104821, -2.5617983 ], dtype=float32)]
 ----------- end
+```
+
+# Converters
+Using ONNX in production means the prediction function of a model can be implemented with ONNX operators. A runtime must be chosen, one available on the platform the model is deployed. Discrepancies are checked and finally, the latency is measured.
+>  在生产中使用 ONNX 意味着模型的预测函数需要使用 ONNX 算子实现，并且模型部署的平台上需要实现一个 ONNX 运行时
+>  然后我们要测量使用 ONNX 部署的模型的预测是否会存在差异，并且测量延迟
+
+The first step of the model conversion can be easy if there exists a converting library for this framework supporting all the pieces of the model. If it is not the case, the missing parts must be implemented in ONNX. That may be very time consuming.
+>  如果框架存在支持模型所有部分的转换库，则模型转换的第一步就很简单
+>  如果没有，则缺失的部分必须用 ONNX 实现，这可能会非常耗时
+
+## What is a converting library?
+[sklearn-onnx](https://onnx.ai/sklearn-onnx/) converts [scikit-learn](https://scikit-learn.org/stable/) models into ONNX. It rewrites the prediction function of a model, whatever it is, with ONNX operators using the API introduced above. It ensures that the predictions are equal or at least very close to the expected predictions computed with the original model.
+>  `sklearn-onnx` 将 `scikit-learn` 模型转化为 ONNX 格式，它使用 ONNX 算子重写模型的预测函数，并且确保预测结果和原来模型的结果相等或者至少非常接近
+
+Machine learning libraries usually have their own design. That’s why there exists a specific converting library for each of them. Many of them are listed there: [Converting to ONNX format](https://github.com/onnx/tutorials#converting-to-onnx-format). Here is a short list:
+
+- [sklearn-onnx](https://onnx.ai/sklearn-onnx/): converts models from [scikit-learn](https://scikit-learn.org/stable/),
+- [tensorflow-onnx](https://github.com/onnx/tensorflow-onnx): converts models from [tensorflow](https://www.tensorflow.org/),
+- [onnxmltools](https://github.com/onnx/onnxmltools): converts models from [lightgbm](https://lightgbm.readthedocs.io/), [xgboost](https://xgboost.readthedocs.io/en/stable/), [pyspark](https://spark.apache.org/docs/latest/api/python/), [libsvm](https://github.com/cjlin1/libsvm)
+- [torch.onnx](https://pytorch.org/docs/master/onnx.html): converts model from [pytorch](https://pytorch.org/).
+
+>  每个机器学习库都有特定的转换为 ONNX 的库，包括
+>  - `skleran-onnx`
+>  - `tensorflow-onnx`
+>  - `onnxmltools`
+>  - `torch.onnx`
+
+The main challenge for all these libraries is to keep up the rhythm. They must be updated everytime ONNX or the library they support have a new released version. That means three to five new releases per year.
+>  这些库需要随着 ONNX 或者支持它们的库发行新版本时进行更新，这意味着每年大约进行 3-5 次新发布
+
+Converting libraries are not compatible among each others. [tensorflow-onnx](https://github.com/onnx/tensorflow-onnx) is dedicated to tensorflow and only tensorflow. The same goes for sklearn-onnx specialized into scikit-learn.
+
+One challenge is customization. It is difficult to support custom pieces in a machine learned model. They have to write the specific converter for this piece. Somehow, it is like implementing twice the prediction function. There is one easy case: deep learning frameworks have their own primitives to ensure the same code can be executed on different environments. As long as a custom layer or a subpart is using pieces of pytorch or tensorflow, there is not much to do. It is a different story for scikit-learn. This package does not have its own addition or multiplication, it relies on numpy or scipy. The user must implement its transformer or predictor with ONNX primitives, whether or not it was implemented with numpy.
+>  深度学习框架拥有自己的原始操作/原语，这些操作已经针对不同环境进行了优化，并且可以直接转换为 ONNX 格式，如果机器学习模型使用的是这些操作，就不需要额外编写转换器
+>  sklearn 没有自己的数学运算实现，而是依赖于外部库 numpy 或 scipy，需要用户额外用 ONNX 原语实现转换器
+
+## Alternatives
+One alternative for implementing ONNX export capability is to leverage standard protocols such as the [Array API standard](https://data-apis.org/array-api/latest/), which standardizes a common set of array operations. It enables code reuse across libraries like NumPy, JAX, PyTorch, CuPy and more. [ndonnx](https://github.com/Quantco/ndonnx) enables execution with an ONNX backend and instant ONNX export for Array API compliant code. This diminishes the need for dedicated converter library code since the same code used to implement most of a library can reused in ONNX conversion. It also provides a convenient primitive for converter authors looking for a NumPy-like experience when constructing ONNX graphs.
+>  实现 ONNX 导出功能的一种替代方法是利用标准协议，例如 Array API 标准，该标准统一了一组常见的数组操作
+>  `ndonxx` 为符合 Array API 的代码实现了即时的 ONNX 导出，这使得各个框架的专用转换库代码的大部分可以进行重用
+>  `ndonnx` 还为转换器作者提供了一个方便的原语，以便在构建 ONNX 图时获得类似 Numpy 的体验
+
+## Opsets
+ONNX releases packages with version numbers like `major.minor.fix`. Every minor update means the list of operators is different or the signature has changed. It is also associated to an opset, version `1.10` is opset 15, `1.11` will be opset 16. 
+>  ONNX 发布包的版本号格式为 `major.minor.fix`
+>  每个 minor 更新意味着新的算子列表或者部分算子的签名改变，每个 minor 版本都和一个算子集相关联，例如 `1.10` 版本对应算子集 15，`1.11` 版本对应算子集 16
+
+Every ONNX graph should define the opset it follows. Changing this version without updating the operators could make the graph invalid. If the opset is left unspecified, ONNX will consider that the graph is valid for the latest opset.
+>  每个 ONNX 图都需要定义它遵循的算子集版本，在没有更新算子集时直接改变版本会使得图无效
+>  如果算子集没有指定，ONNX 会使用使得图有效的最新的算子集版本
+
+New opsets usually introduce new operators. A same inference function could be implemented differently, usually in a more efficient way. However, the runtime the model is running on may not support newest opsets or at least not in the installed version. That’s why every converting library offers the possibility to create an ONNX graph for a specific opset usually called `target_opset`. ONNX language describes simple and complex operators. Changing the opset is similar to upgrading a library. onnx and onnx runtimes must support backward compatibility.
+>  新的算子集一般会引入新的算子，因此更新后相同的推理函数可以利用新算子更高效地实现
+>  但运行模型的运行时也需要支持图使用的算子集，因此每个转换库都提供了针对特定算子集 (称为 `target_opset` ) 创建 ONNX 图的功能
+>  ONNX 语言用于描述简单和复杂的算子，更新算子集类似于更新库，`onnx` 和 `onnx` 运行时必须支持向后兼容性，即新的运行时可以运行旧的算子集
+
+## Other API
+Examples in previous sections show that onnx API is very verbose. It is also difficult to get a whole picture of a graph by reading the code unless it is a small one. Almost every converting library has implemented a different API to create a graph, usually more simple, less verbose than the API of onnx package. All API automate the addition of initializers, hide the creation of a name of every intermediate result, deal with different version for different opset.
+>  ONNX 的 API 非常冗长，除非要创建的图很小，否则通过阅读代码很难了解整个图
+>  几乎所有的转换库都实现了一个不同的 API 来创建图，通常比 `onnx` 包的 API 更简单，这类 API 会自动添加初始值，隐藏对中间结果名称的创建，并处理不同版本的算子集
+
+### A class Graph with a method add_node
+`tensorflow-onnx` implements a class graph. It rewrites tensorflow function with ONNX operator when ONNX does not have a similar function (see [Erf](https://github.com/onnx/tensorflow-onnx/blob/master/tf2onnx/onnx_opset/math.py#L414).
+
+sklearn-onnx defines two different API. The first one introduced in that example [Implement a converter](https://onnx.ai/sklearn-onnx/auto_tutorial/plot_jcustom_syntax.html) follows a similar design that tensorflow-onnx follows. The following lines are extracted from the converter of a linear classifier.
+
+```python
+# initializer
+
+coef = scope.get_unique_variable_name('coef')
+model_coef = np.array(
+    classifier_attrs['coefficients'], dtype=np.float64)
+model_coef = model_coef.reshape((number_of_classes, -1)).T
+container.add_initializer(
+    coef, proto_dtype, model_coef.shape, model_coef.ravel().tolist())
+
+intercept = scope.get_unique_variable_name('intercept')
+model_intercept = np.array(
+    classifier_attrs['intercepts'], dtype=np.float64)
+model_intercept = model_intercept.reshape((number_of_classes, -1)).T
+container.add_initializer(
+    intercept, proto_dtype, model_intercept.shape,
+    model_intercept.ravel().tolist())
+
+# add nodes
+
+multiplied = scope.get_unique_variable_name('multiplied')
+container.add_node(
+    'MatMul', [operator.inputs[0].full_name, coef], multiplied,
+    name=scope.get_unique_operator_name('MatMul'))
+
+# [...]
+
+argmax_output_name = scope.get_unique_variable_name('label')
+container.add_node('ArgMax', raw_score_name, argmax_output_name,
+                   name=scope.get_unique_operator_name('ArgMax'),
+                   axis=1)
+```
+
+### Operator as function
+The second API shown in [Implement a new converter](https://onnx.ai/sklearn-onnx/auto_tutorial/plot_icustom_converter.html) is more compact and defines every ONNX operator as composable functions. The syntax looks like this for [KMeans](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html), less verbose and easier to read.
+
+```python
+rs = OnnxReduceSumSquare(
+    input_name, axes=[1], keepdims=1, op_version=opv)
+
+gemm_out = OnnxMatMul(
+    input_name, (C.T * (-2)).astype(dtype), op_version=opv)
+
+z = OnnxAdd(rs, gemm_out, op_version=opv)
+y2 = OnnxAdd(C2, z, op_version=opv)
+ll = OnnxArgMin(y2, axis=1, keepdims=0, output_names=out[:1],
+                op_version=opv)
+y2s = OnnxSqrt(y2, output_names=out[1:], op_version=opv)
+```
+
+## Tricks learned from experience
+### Discrepancies
+ONNX is strongly typed and optimizes for float32, the most common type in deep learning. Libraries in standard machine learning use both float32 and float64. numpy usually cast to the most generic type, float64. It has no significant impact when the prediction function is contiguous. When it is not, the right type must be used. Example [Issues when switching to float](https://onnx.ai/sklearn-onnx/auto_tutorial/plot_ebegin_float_double.html) gives more insights on that topic.
+>  ONNX 是强类型的，并且针对深度学习中最常见的类型 float32 进行了优化
+
+Parallelization changes the order of computation. It is usually not significant but it may explain some weird discrepancies. `1 + 1e17 - 1e17 = 0` but `1e17 - 1e17 + 1 = 1`. High order of magnitude are rare but not so rare when a model uses the inverse of a matrix.
+
+### IsolationForest Trick
+ONNX only implements a [TreeEnsembleRegressor](https://onnx.ai/onnx/operators/onnx_aionnxml_TreeEnsembleRegressor.html#l-onnx-docai-onnx-ml-treeensembleregressor) but it does not offer the possibility to retrieve any information about the path the decision followed or statistics to the graph. The trick is to used one forest to predict the leave index and map this leave index one or multiple times with the information needed.
+
+![../_images/iff.png](https://onnx.ai/onnx/_images/iff.png)
+
+### Discretization
+Looking in which interval a feature falls into. That’s easy to do with numpy but not so easy to do efficiently with ONNX. The fastest way is to use a TreeEnsembleRegressor, a binary search, which outputs the interval index. That’s what this example implements: [Converter for WOE](https://onnx.ai/sklearn-onnx/auto_tutorial/plot_woe_transformer.html).
+
+### Contribute
+[onnx repository](https://github.com/onnx/onnx) must be forked and cloned.
+
+### Build
+The windows build requires conda. The following steps might not be up to date. Folder [onnx/.github/workflows](https://github.com/onnx/onnx/tree/main/.github/workflows) contains the latest instructions.
+
+**Windows**
+The build is easier with Anaconda. First: create an environment. It must be done only once.
+
+```
+conda create --yes --quiet --name py3.9 python=3.9
+conda install -n py3.9 -y -c conda-forge numpy libprotobuf=3.16.0
+```
+
+Then build the package:
+
+```
+git submodule update --init --recursive
+set ONNX_BUILD_TESTS=1
+set ONNX_ML=$(onnx_ml)
+set CMAKE_ARGS=-DONNX_USE_PROTOBUF_SHARED_LIBS=ON -DONNX_USE_LITE_PROTO=ON -DONNX_WERROR=ON
+
+python -m build --wheel
+```
+
+The package can now be installed.
+
+**Linux**
+After cloning the repository, the following instructions can be run:
+
+```
+python -m build --wheel
+```
+
+### Build the markdown documentation
+The package must be built first (see previous section).
+
+```
+set ONNX_BUILD_TESTS=1
+set ONNX_ML=$(onnx_ml)
+set CMAKE_ARGS=-DONNX_USE_PROTOBUF_SHARED_LIBS=ON -DONNX_USE_LITE_PROTO=ON -DONNX_WERROR=ON
+
+python onnx\gen_proto.py -l
+python onnx\gen_proto.py -l --ml
+pip install -e .
+python onnx\backend\test\cmd_tools.py generate-data
+python onnx\backend\test\stat_coverage.py
+python onnx\defs\gen_doc.py
+set ONNX_ML=0
+python onnx\defs\gen_doc.py
+set ONNX_ML=1
+```
+
+### Update an existing operator
+All operators are defined in folder [onnx/onnx/defs](https://github.com/onnx/onnx/tree/main/onnx/defs). There are two files in every subfolder, one called `defs.cc` and another one called `old.cc`.
+
+- `defs.cc`: contains the most recent definition for every operator
+- `old.cc`: contains the deprecated version of the operators in previous opset
+
+>  所有的算子都定义在目录 `onnx/onnx/defs` 其中每个子目录都有两个文件，一个称为 `defs.cc` ，包含了每个算子最新的定义，另一个是 `old.cc` 包含了以前算子集中已经弃用的算子定义
+
+Updating an operator means copying the definition from `defs.cc` to `old.cc` and updating the existing one in `defs.cc`.
+>  更新算子意味着将 `defs.cc` 中的算子定义拷贝到 `old.cc` 中，并且更新 `defs.cc` 中的算子定义
+
+One file following the pattern `onnx/defs/operator_sets*.h` must be modified. These headers registers the list of existing operators.
+>  更新算子时，模式为 `onnx/defs/operator_sets*.h` 的文件需要被定义，这些头文件为现存的算子列表进行注册
+
+File [onnx/defs/schema.h](https://github.com/onnx/onnx/blob/main/onnx/defs/schema.h) contains the latest opset version. It must be updated too if one opset was upgraded.
+>  `onnx/defs/schama.h` 包含了最新的算子集版本，如果算子集更新了，该文件也需要更新
+
+File [onnx/version_converter/convert.h](https://github.com/onnx/onnx/blob/main/onnx/version_converter/convert.h) contains rules to apply when converter a node from an opset to the next one. This file may be updated too.
+>  `onnx/version_converter/convert.h` 包含了将节点从一个算子集转化到另一个算子集应用的规则，该文件也需要更新
+
+The package must be compiled and the documentation must be generated again to automatically update the markdown documentation and it must be included in the PR.
+
+Then unit test must be updated.
+
+**Summary**
+
+- Modify files `defs.cc`, `old.cc`, `onnx/defs/operator_sets*.h`, `onnx/defs/schema.h`
+- Optional: modify file `onnx/version_converter/convert.h`
+- Build onnx.
+- Build the documentation.
+- Update unit test.
+
+The PR should include the modified files and the modified markdown documentation, usually a subset of `docs/docs/Changelog-ml.md`, `docs/Changelog.md`, `docs/Operators-ml.md`, `docs/Operators.md`, `docs/TestCoverage-ml.md`, `docs/TestCoverage.md`.
