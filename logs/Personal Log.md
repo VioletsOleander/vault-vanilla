@@ -971,6 +971,20 @@ Date: 2025.1.6-2025.1.13
     Sec10-Evaluation
 \[Book\]
 - [[book-notes/深度强化学习|深度强化学习]]: CH1
+    CH1-机器学习基础
+        CH1.1-线性模型
+            偏置与属性值无关，可以认为是本身存在的知识/事实
+            正则化项等于权重的 L2 范数的平方称为岭回归，等于权重的 L1 范数称为 LASSO，正则化项系数可以在验证集上通过交叉验证选取
+            逻辑斯蒂回归模型 = 线性层 + Sigmoid 激活层，激活层用于输出概率值
+            分布的熵等于分布和分布本身的交叉熵，并且当 $q = p$ 时，交叉熵取到最小值等于分布 $p$ 的熵
+            KL 散度即 $q$ 相对于 $p$ 的交叉熵减去 $p$ 本身的熵，KL 散度一定非负，分布 $p$ 固定时，最小化 KL 散度等价于最小化交叉熵
+            Softmax 分类 = 线性层 + Softmax 激活层，Softmax 激活将 Sigmoid 拓展到向量输入
+        CH1.2-神经网络
+            全连接层 = 线性层 + 激活函数
+            卷积层接受三阶张量作为输入，输出三阶张量
+            目标函数为实数时，它相对于张量的梯度的形状和张量本身相同
+            随机梯度下降 SGD 不计算整个数据集上的梯度，而是计算随机抽取的一个样本的梯度，相对于普通梯度下降，SGD 更容易跳出鞍点
+            链式法则对于向量值输入输出的函数也成立，只不过需要使用矩阵乘法，同时乘法顺序颠倒了
 
 ### Week 3
 Date: 2025.1.13-2025.1.20
@@ -1032,6 +1046,7 @@ Date: 2025.1.20-2025.1.27
 - [[doc-notes/onnx/Introduction to ONNX|onnx/Introduction to ONNX]]: All
     
 - [[doc-notes/pytorch/tutorials/beginner/ONNX|pytorch/tutorials/beginner/ONNX]]: All
+    
 
 \[Code\]
 - NowcastNet rewritten project
