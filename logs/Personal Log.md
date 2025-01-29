@@ -1001,11 +1001,42 @@ Date: 2025.1.13-2025.1.20
         Radar data is available every five minutes at 1km x 1km grid resolution.
         Advective methods rely on the advection equation, using optical flow and smoothness penalty to estimate motion field.
         Deep learning based models are directly trained on large corpora of radar observations and do not rely on in-built physical assumptions. Deep learning based model conduct optimization end-to-end and has fewer inductive biases, therefore greatly improve forecast quality at low precipitation levels.
+        This paper develops an observation-driven approach for probabilistic nowcasting using deep generative models (DGMs). DGMs are able to simulate many samples from the conditional distribution of future radar given historical radar, generating a collection of forecasts similar to ensemble methods.
+        DGMs can predict small-scale weather phenomena that are inherently difficult to predict because of the underlying stochasticity.
+    Sec2-Generative models of radar
+        DGMR is a conditional generative model, generating future $N$ radar observations fields given the past $M$ ones.
+        In training, 4 consecutive radar observation frames are feed into the generator. The generator samples multiple realizations of future precipitation, each of which consists of 18 consecutive future radar frames.
+        The objective consists of two losses and one regularization term. The first loss is defined by the spatial discriminator, whose aim is to distinguish individual generated fields with observed fields, ensuring spatial consistency and discouraging blurry predictions. The second loss is defined by the temporal discriminator, whose aim is to distinguish generated sequence and observed sequence, imposing temporal consistency and penalize jumpy predictions.
+        The spatial discriminator is a 2D convolutional neural network, and the temporal is a 3D convolutional neural network.
+        When used alone, these losses yield accuracy on par with the Eulerian persistence model. The regularization term, which penalizes deviations at grid cell resolution between real radar sequence and the model prediction mean (computed with multiple samples), is introduced to improve accuracy.
+        Ablation study shows the importance for generating location-accurate predictions.
+        DGMR is trained on a large corpus of precipitation events, which are 256 x 256 crops extracted from the radar stream, of length 22 frames. An importance sampling scheme is used to create a dataset more representative of heavy precipitations.
+    Sec3-Intercomparison case study
+    Sec4-Forecast skill evaluation
+    Sec5-Forecast value evaluation
+    Sec6-Conclusion
+        The prediction of heavy precipitation at long lead times remains difficult for all approaches.
+    Sec7-Methods
+        Sec7.1-Datasets
+            Most radar composites little to no rain. Medium to heavy precipitation comprises fewer than 0.4% of grid cells in the dataset. Therefore the dataset is rebalanced to include more data with heavier precipitation radar observations.
+            Each example in the dataset is a sequence of 24 radar observations of size 1536 x 1280. 256 x 256 crops are extracted and an importance sampling scheme is imposed to reduce the number of examples containing little precipitation.
+        Sec7.2-Model details and baselines
+            The expectation over latent variables are estimated by Monte Carlo estimation. Per input samples 6 latent variables.
+            During evaluation, full radar observation of size 1535 x 1280 and latent variables with height and width 1/32 of radar observation is used as inputs. 
+        Sec7.3-Performance evaluation
 
 ### Week4
 Date: 2025.1.20-2025.1.27
 
 \[Doc\]
 - [[doc-notes/onnx/Introduction to ONNX|onnx/Introduction to ONNX]]: All
+    
 - [[doc-notes/pytorch/tutorials/beginner/ONNX|pytorch/tutorials/beginner/ONNX]]: All
+
+\[Code\]
+- NowcastNet rewritten project
+
+## February
+### Week1
+Date: 2025.1.27-2025.2.3
 
