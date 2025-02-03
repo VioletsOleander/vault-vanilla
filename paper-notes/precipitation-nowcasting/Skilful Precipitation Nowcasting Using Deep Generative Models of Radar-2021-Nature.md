@@ -78,7 +78,7 @@ Learning is driven by two loss functions and a regularization term, which guide 
 >  正则化项对于模型生成位置准确的预测很重要，我们通过消融试验支持了每个损失项的必要性
 
 Finally, we introduce a fully convolutional latent module for the generator, allowing for predictions over precipitation fields larger than the size used at training time, while maintaining spatiotemporal consistency. We refer to this DGM of rainfall as DGMR in the text. 
->  最后，我们为生成器引入了全卷积潜在模块，以支持在比训练时使用的降水场尺寸更大的降水场上训练，同时保持时空一致性
+>  最后，我们为生成器引入了全卷积潜在模块，以支持在比训练时使用的降水场尺寸更大的降水场上预测，同时保持时空一致性
 >  我们称用于降水预测的深度生成模型为 DGMR
 
 > [!info] 欧拉持久模型

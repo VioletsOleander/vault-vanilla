@@ -2268,7 +2268,7 @@ if __name__ == "__main__":
 ```
 
 you can make the file usable as a script as well as an importable module, because the code that parses the command line only runs if the module is executed as the “main” file:
-> 因此通过 `if __name__ == "__main__"` 可以让文件即作为 importable 模块也可以作为脚本，因为 `if` 下的代码模块作为 “main” 文件执行时才会执行
+> 因此通过 `if __name__ == "__main__"` 可以让文件既作为 importable 模块也可以作为脚本，因为 `if` 下的代码模块作为 “main” 文件执行时才会执行
 
 ```
 $ python fibo.py 50
