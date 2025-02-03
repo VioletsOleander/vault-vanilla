@@ -62,18 +62,18 @@ def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
     return lines_tree
 
 
-def generate_changlog(lines_tree: dict[str, dict[str, list[str]]]) -> str:
+def generate_changelog(lines_tree: dict[str, dict[str, list[str]]]) -> str:
     changelog = ''
 
     changelog += '# Overview\n'
     for section, items in lines_tree.items():
-        changelog += f'## {section}\n'
+        changelog += f'\n## {section}\n'
         for item in items.keys():
             changelog += f'- {item}\n'
 
-    changelog += '# Detail\n'
+    changelog += '\n# Detail\n'
     for section, items in lines_tree.items():
-        changelog += f'## {section}\n'
+        changelog += f'\n## {section}\n'
         for item, lines in items.items():
             changelog += f'- {item}\n'
             for line in lines:
@@ -85,6 +85,6 @@ def generate_changlog(lines_tree: dict[str, dict[str, list[str]]]) -> str:
 if __name__ == "__main__":
     lines = read_file('logs/Personal log.md')
     lines_tree = merge(lines)
-    changlog = generate_changlog(lines_tree)
+    changlog = generate_changelog(lines_tree)
     write_file('ChangeLog.md', changlog)
     print('ChangeLog.md generated')
