@@ -1055,3 +1055,8 @@ Date: 2025.1.20-2025.1.27
 ### Week1
 Date: 2025.1.27-2025.2.3
 
+\[Doc\]
+- [[doc-notes/pytorch/tutorials/beginner/pytorch/tutorials/beginner/Saving and Loading Models|Saving and Loading Models]]
+
+\[Code\]
+- NowcastNet rewritten project
