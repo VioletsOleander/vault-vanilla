@@ -1044,9 +1044,32 @@ Date: 2025.1.20-2025.1.27
 
 \[Doc\]
 - [[doc-notes/onnx/Introduction to ONNX|onnx/Introduction to ONNX]]: All
-    
-- [[doc-notes/pytorch/tutorials/beginner/ONNX|pytorch/tutorials/beginner/ONNX]]: All
-    
+    ONNX Concepts
+        A ML model implemented with ONNX is referred as an ONNX graph.
+        `onnx` implements a python runtime to evaluate ONNX models and ONNX ops.
+        In ONNX graph, each node has its type, which is one of the ONNX operators.
+        Inputs that never change can be stored in the graph as initializers.
+        Operators' attributes refer to its fixed parameters. They can not be changed once the ONNX graph is loaded.
+        ONNX uses protobuf to serialize the graph into one single block.
+        The main list of ONNX operators is within the `ai.onnx` domain. Another domain `ai.onnx.ml` includes more machine learning related operators. ONNX only officially define these two domains.
+        An ONNX tensor is defined by its element type, shape and contiguous array. The array should be a full dense array with no stride.
+        ONNX is strongly typed and dost not support implicit cast. Therefore, to add two tensors with different types, an explicit cast must be inserted in a graph.
+        The version of the opset is incremented with the minor version of `onnx` package. An opset is attached to every ONNX graphs. It defines the versions of all operators in the graph.
+        If the graph contains operators from several domains, the graph should define a global opset for each domain.
+        Tests and loops are implemented by operator `If`, `Scan`, and `Loop`. They all take another ONNX graph as an attribute. 
+        `If` executes one of the two graphs depending on the condition evaluation. These two graphs should product the same number of outputs.
+        `Scan` implements a loop with a fixed number of iterations. It loops over an axis of the input and concatenates the outputs along this axis.
+        `Loop` can do a fixed number of iterations or depending on a condition. Outputs can be concatenates along an axis as `Scan` does or be concatenates into a sequence of tensors.
+        Function is defined with existing operators. Once defined, functions can behave like operators.
+    ONNX with Python
+        Every object in onnx can be serialized to byte stream with method `SerializeToSting` 
+        ONNX essentially treats initializer as default values for the corresponding inputs.
+        Operator `Constant` is the only operator changing an attribute into an input.
+    Converters
+- [[doc-notes/pytorch/tutorials/beginner/ONNX|pytorch/tutorials/beginner/ONNX]]: Introduction to ONNX, Export a PyTorch model to ONNX
+    Introduction to ONNX
+        `torch.onnx.dynamo_export` use TorchDynamo to hook into Python's frame evaluation API and dynamically rewrites its bytecode into an FX graph. The FX graph is polished and converted into an ONNX graph.  
+    Export a PyTorch model to ONNX
 
 \[Code\]
 - NowcastNet rewritten project
@@ -1056,7 +1079,10 @@ Date: 2025.1.20-2025.1.27
 Date: 2025.1.27-2025.2.3
 
 \[Doc\]
-- [[doc-notes/pytorch/tutorials/beginner/pytorch/tutorials/beginner/Saving and Loading Models|Saving and Loading Models]]
+- [[doc-notes/pytorch/tutorials/beginner/Saving and Loading Models|pytorch/tutorials/beginner/Saving and Loading Models]]: All
+    `torch.save` first utilize `pickle` for serialization, and then saves the serialized object to disk.
+    `torch.load` utilize `pickle` for deserialization pickled object to memory.
+    `torch.nn.Module.load_state_dict` accept a deserialized `state_dict` (essentially a Python dictionary object) and load a model's parameters. Setting its keyword parameter `strict=False` can ignore non-matching keys.
 
 \[Code\]
 - NowcastNet rewritten project
