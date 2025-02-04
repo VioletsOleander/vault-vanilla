@@ -633,7 +633,7 @@ The converted numpy dtype for TensorProto.FLOAT is float32.
 
 ## Serialization
 ONNX is built on the top of protobuf. It adds the necessary definitions to describe a machine learning model and most of the time, ONNX is used to serialize or deserialize a model. First section addresses this need. Second section introduces the serialization and deserialization of data such as tensors, sparse tensors…
->  ONNX 基于 protobuf (Protocal Buffers)构建，它在 protobuf 上添加了必要的定义来描述机器学习模型，在大多数情况下，可以直接用 ONNX 来序列化或反序列化机器学习模型
+>  ONNX 基于 protobuf (Protocol Buffers)构建，它在 protobuf 上添加了必要的定义来描述机器学习模型，在大多数情况下，可以直接用 ONNX 来序列化或反序列化机器学习模型
 
 ### Model Serialization
 The model needs to be saved to be deployed. ONNX is based on protobuf. It minimizes the space needed to save the graph on disk. Every object (see [Protos](https://onnx.ai/onnx/api/classes.html#l-onnx-classes)) in onnx can be serialized with method `SerializeToString`. That’s the case for the whole model.
@@ -1096,7 +1096,7 @@ raw_data: "\315\314\314>"
 The type is defined as integer as well with the same meaning. 
 >  初始化值的类型同样被定义为整数，具体的整数对应具体的类型
 
-In this second example, there is only one input left. Input `A` and `B` were removed. They could be kept. In that case, they are optional: every initiliazer sharing the same name as input is considered as a default value. It replaces the input if this one is not given.
+In this second example, there is only one input left. Input `A` and `B` were removed. They could be kept. In that case, they are optional: every initializer sharing the same name as input is considered as a default value. It replaces the input if this one is not given.
 >  本例中，模型仅需要一个输入，输入 `A, B` 被移除了
 >  实际上，它们的状态变为了可选的，ONNX 将任何与输入张量相同名字的初始化值视作该输入张量的默认值，如果没有提供该输入张量，就使用该默认值
 
