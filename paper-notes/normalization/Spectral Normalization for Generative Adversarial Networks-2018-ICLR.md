@@ -20,6 +20,15 @@ A persisting challenge in the training of GANs is the performance control of the
 >  更糟糕的是，当模型分布的支持集和目标分布的支持集不相交时，存在一个判别器可以完美区分模型分布和目标分布，当在这种情况下产生了这样的判别器，生成器的训练就会完全停止，因为这样的判别器对输入的导数是零
 >  这促使我们引入某种限制来约束判别器的选择
 
+> [! info] 支撑集 (Support)
+> 实值函数 $f: X\to \mathbb R$ 的支撑集是该函数定义域 $X$ 的一个子集，满足在 $f$ 下，该子集中的元素都被映射到非零值，记作 $\mathrm{supp}(f)$ ，即
+> 
+> $$\mathrm{supp}(f) = \{x\in X: f(x)\ne 0\} $$ 
+> 
+> 对于 $X$ 的任意子集 $C$，满足性质：使得所有 $X\backslash C$ 中的元素都被 $X$ 映射为零，的所有子集中，$f$ 的支撑集是其中最小的那个 (再小就会出现非零)
+> 
+> 如果实值函数 $f = 0$ 仅对于 $X$ 中的有限个点不成立 ($f(x)\ne 0$)，称 $f$ 具有有限的支撑集，也就是支撑集是有限集
+
 In this paper, we propose a novel weight normalization method called spectral normalization that can stabilize the training of discriminator networks. Our normalization enjoys following favorable properties. 
 
 - Lipschitz constant is the only hyper-parameter to be tuned, and the algorithm does not require intensive tuning of the only hyper-parameter for satisfactory performance. 
@@ -47,7 +56,7 @@ where $\theta\;:=\;\{W^{1},\ldots,W^{L},W^{L+1}\}$ is the learning parameters se
 >   $W^l\in \mathbb R^{d_l\times d_{l-1}}$，$W^L \in \mathbb R^{1\times d_L}$，$a_l$ 为逐元素的非线性激活函数
 >  为了简化，忽略了每一层的偏置项
 
- The final output of the discriminator is given by 
+The final output of the discriminator is given by 
 
 $$
 D(\pmb{x},\theta)=\mathcal A(f(\pmb{x},\theta)),\tag{2}
@@ -80,7 +89,8 @@ $$
 D_{G}^{*}(\pmb x)=\frac{q_{\mathrm{data}}(\pmb x)}{q_{\mathrm{data}}(\pmb x)+p_{G}(\pmb x)}&=\mathrm{sigmoid}(f^{*}(\pmb x)),\\
 &\mathrm{where~}f^{*}(\pmb x)=\log q_{\mathrm{data}}(\pmb x)-\log p_{G}(\pmb x),
 \end{align}\tag{3}
-$$ 
+$$
+
 and its derivative 
 
 $$
@@ -125,37 +135,134 @@ where we mean by $\|f\|_{\mathrm{Lip}}$ the smallest value $M$ such that $\|f(\p
 >  其中范数是 $\ell_2$ 范数
 
 While input based regularizations allow for relatively easy formulations based on samples, they also suffer from the fact that, they cannot impose regularization on the space outside of the supports of the generator and data distributions without introducing somewhat heuristic means. A method we would introduce in this paper, called spectral normalization, is a method that aims to skirt this issue by normalizing the weight matrices using the technique devised by Yoshida & Miyato (2017). 
+>  基于输入的正则化方法可以简单地根据样本进行构造，但无法对生成器和数据分布的支撑集之外的空间施加正则化，除非引入某种启发式方法
+>  本文提出谱规范化方法，旨在通过 Yoshida & Miyato (2017) 涉及的权重矩阵规范化方法来规避这一问题
 
 ## 2.1 Spectral Normalization
-Our spectral normalization controls the Lipschitz constant of the discriminator function $f$ by literally constraining the spectral norm of each layer $g:h_{i n}\mapsto h_{o u t}$ . By definition, Lipschitz norm $\|g\|_{\mathrm{Lip}}$ is equal to $\bar{\mathrm{sup}}_{h}\,\bar{\sigma(\nabla g(h))}$ , where $\sigma(A)$ is the spectral norm of the matrix $A$ ( $L_{2}$ matrix norm of $A$ ) 
+Our spectral normalization controls the Lipschitz constant of the discriminator function $f$ by literally constraining the spectral norm of each layer $g:\pmb h_{i n}\mapsto \pmb h_{o u t}$ . 
+>  谱规范化通过约束每层 $g:\pmb h_{in} \mapsto \pmb h_{out}$ 的谱范数来控制判别函数 $f$ 的 Lipschitz 常数
+
+By definition, Lipschitz norm $\|g\|_{\mathrm{Lip}}$ is equal to ${\mathrm{sup}}_{\pmb h}\,{\sigma(\nabla g(\pmb h))}$ , where $\sigma(A)$ is the spectral norm of the matrix $A$ ( $L_{2}$ matrix norm of $A$ ) 
 
 $$
-\sigma(A):=\operatorname*{max}_{h:h\neq0}\frac{\|A h\|_{2}}{\|h\|_{2}}=\operatorname*{max}_{\|h\|_{2}\leq1}\|A h\|_{2},
+\sigma(A):=\operatorname*{max}_{\pmb h:\pmb h\neq0}\frac{\|A \pmb h\|_{2}}{\|\pmb h\|_{2}}=\operatorname*{max}_{\|\pmb h\|_{2}\leq1}\|A \pmb h\|_{2},\tag{6}
 $$ 
-which is equivalent to the largest singular value of $A$ . Therefore, for a linear layer $g(h)=W h$ , the norm is given by $\begin{array}{r}{\|g\|_{\mathrm{Lip}}=\operatorname*{sup}_{h}\sigma(\operatorname{\bar{V}}\!g(h))=\operatorname*{sup}_{h}\sigma(W)=\sigma(W)}\end{array}$ . 
-If the Lipschitz norm of the activation function $\|a_{l}\|_{\mathrm{Lip}}$ is equal to $1\,^{1}$ , we can use the inequality $\|g_{1}\circ g_{2}\|_{\mathrm{Lip}}\leq\|g_{1}\|_{\mathrm{Lip}}\cdot\|g_{2}\|_{\mathrm{Lip}}$ to observe the following bound on $\|f\|_{\mathrm{Lip}}$ : 
+>  线性层 $g(\pmb h)=W\pmb h$ 的 Lipschitz 范数/常数 $\|g\|_{\mathrm{Lip}}$ 定义为 $\sup_{\pmb h}\sigma(\nabla g(\pmb h))$，其中 $\sigma(A)$ 表示矩阵 $A$ 的谱范数/ $L_2$ 范数，定义如 (6) 所示
+
+>  推导
+>  假设 $g$ 是可微的，根据中值定理的推广形式，对于任意两点 $\pmb x, \pmb y\in \mathbb R^n$，存在某个点 $\pmb z$ 位于 $\pmb x, \pmb y$ 之间的线段上，使得 $g(\pmb x) - g(\pmb y) = \nabla g(\pmb z)(\pmb x- \pmb y)$，进而有 $\|g (\pmb x) - g (\pmb y) \|=\| \nabla g (\pmb z)(\pmb x- \pmb y)\|$ (范数是 $\ell_2$ 范数)
+>  对于任意向量 $\pmb v$，有 $\|\nabla g(\pmb z) \pmb v\|\le \sigma(\nabla g(\pmb z))\|\pmb v\|$ (证明见 [[#Proof of Inequality]])
+>  因此，我们有 $\|g (\pmb x) - g (\pmb y) \|\le \sigma(\nabla g (\pmb z))\|\pmb x- \pmb y\|$ ，即 $\frac {\|g(\pmb x)- g(\pmb y)\|}{\|\pmb x- \pmb y\|}\le \sigma(\nabla g(\pmb z))$ 对于任意 $\pmb x, \pmb y\in \mathbb R^n$ 成立，同时 $\pmb z$ 依赖于 $\pmb x, \pmb y$ 的选择
+>  要找到 $g$ 的 Lipschitz 常数，我们需要考虑所有可能的 $\pmb z$，故需要取上确界，即 $\|g\|_{\mathrm{Lip}}  = \sup_{\pmb z}\sigma(\nabla g(\pmb z))$
+>  
+>  直观上，可以理解为 $\sigma(\nabla g(\pmb z))$ 给出了点 $\pmb z$ 处 $g$ 局部拉伸的最大比例，而 $g$ 整体的 Lipschitz 常数就需要考虑所有这些局部最大拉伸率中的最大值
+
+which is equivalent to the largest singular value of $A$ . Therefore, for a linear layer $g(\pmb h)=W \pmb h$ , the norm is given by  $\begin{array}{r}{\|g\|_{\mathrm{Lip}}=\operatorname*{sup}_{\pmb h}\sigma(\operatorname{\nabla}\!g(\pmb h))=\operatorname*{sup}_{\pmb h}\sigma(W)=\sigma(W)}\end{array}$ . 
+>  矩阵 $A$ 的谱范数实际上等于 $A$ 的最大奇异值，因此，$g$ 的 Lipschitz 范数写为
+>  $\|g\|_{\mathrm{Lip}} = \sup_{\pmb h}\sigma(\nabla g(\pmb h))=\sup_{\pmb h}\sigma(W) = \sigma(W)$，也就是 $g$ 相对于输入的 Jacobian 矩阵 (即权重矩阵) 的谱范数，也就是权重矩阵的最大奇异值
+
+>  推导
+ > $\begin{array}{r}{\|g\|_{\mathrm{Lip}}=\operatorname*{sup}_{\pmb h}\sigma(\operatorname{\nabla}\!g(\pmb h))=\operatorname*{sup}_{\pmb h}\sigma(W)=\sigma(W)}\end{array}$ 中：
+ > 第一个等式源自 Lipschitz 范数的定义
+ > 第二个等式求出了 Jacobian 矩阵 $\nabla g(\pmb h) = W$
+ > 第三个等式是因为 $\sigma(W)$ 和输入 $\pmb h$ 无关，因此 $\sigma(W)$ 相对于 $\pmb h$ 的上确界就是 $\sigma(W)$
+
+If the Lipschitz norm of the activation function $\|a_{l}\|_{\mathrm{Lip}}$ is equal to $1$ , we can use the inequality $\|g_{1}\circ g_{2}\|_{\mathrm{Lip}}\leq\|g_{1}\|_{\mathrm{Lip}}\cdot\|g_{2}\|_{\mathrm{Lip}}$ to observe the following bound on $\|f\|_{\mathrm{Lip}}$ : 
 
 $$
-\begin{array}{r l}&{\|f\|_{\mathrm{Lip}}\leq\|(h_{L}\mapsto W^{L+1}h_{L})\|_{\mathrm{Lip}}\cdot\|a_{L}\|_{\mathrm{Lip}}\cdot\|(h_{L-1}\mapsto W^{L}h_{L-1})\|_{\mathrm{Lip}}}\\ &{\qquad\qquad\cdot\cdot\|a_{1}\|_{\mathrm{Lip}}\cdot\|(h_{0}\mapsto W^{1}h_{0})\|_{\mathrm{Lip}}=\displaystyle\prod_{l=1}^{L+1}\|(h_{l-1}\mapsto W^{l}h_{l-1})\|_{\mathrm{Lip}}=\displaystyle\prod_{l=1}^{L+1}\sigma(W^{l}).}\end{array}
+\begin{array}{r l}&{\|f\|_{\mathrm{Lip}}\leq\|(\pmb h_{L}\mapsto W^{L+1}\pmb h_{L})\|_{\mathrm{Lip}}\cdot\|a_{L}\|_{\mathrm{Lip}}\cdot\|(\pmb h_{L-1}\mapsto W^{L}\pmb h_{L-1})\|_{\mathrm{Lip}}}\\ &{\qquad\qquad\cdot\cdot\|a_{1}\|_{\mathrm{Lip}}\cdot\|(\pmb h_{0}\mapsto W^{1}\pmb h_{0})\|_{\mathrm{Lip}}=\displaystyle\prod_{l=1}^{L+1}\|(\pmb h_{l-1}\mapsto W^{l}\pmb h_{l-1})\|_{\mathrm{Lip}}=\displaystyle\prod_{l=1}^{L+1}\sigma(W^{l}).}\end{array}
 $$ 
+>  如果所有层的激活函数 $a_l$ 的 Lipschitz 范数都等于 1 (例如 ReLU 和 leaky ReLU)，我们可以利用不等式 $\|g_1\circ g_2\|_{\mathrm{Lip}}\le \|g_1\|_{\mathrm{Lip}}\cdot \|g_2\|_{\mathrm{Lip}}$ 得到 $\|f\|_{\mathrm{Lip}}$ 的一个上界，如上所示
+>  可以看到，该上界即所有层的 Lipschitz 范数的积，也就是所有权重矩阵的最大奇异值的乘积
+
+>  推导
+>  假设 $g_1: \mathbb R^m \mapsto \mathbb R^p$ 和 $g_2: \mathbb R^n \mapsto \mathbb R^m$ 是两个 Lipschitz 连续函数
+>  考虑任意两点 $\pmb x, \pmb y \in \mathbb R^n$，根据 Lipschitz 条件，有
+>  $\|g_2(\pmb x) - g_2(\pmb y)\| \le \|g_2\|_{\mathrm{Lip}}\|\pmb x- \pmb y\|$
+>  同时对于 $g_2(\pmb x)$ 和 $g_2(\pmb y)$，根据 Lipschitz 条件，有
+>  $\|g_1(g_2(\pmb x)) - g_1(g_2(\pmb y)) \|\le \|g_1\|_{\mathrm{Lip}} \|g_2(\pmb x) - g_2(\pmb y)\|$
+>  结合两个不等式，得到
+>  $\|g_1 (g_2 (\pmb x)) - g_1 (g_2 (\pmb y)) \|\le \|g_1\|_{\mathrm{Lip}} \|g_2 (\pmb x) - g_2 (\pmb y)\|\le\|g_1\|_{\mathrm{Lip}}\cdot \|g_2\|_{\mathrm{Lip}}\|\pmb x-\pmb y\|$
+>  也就是说，对于任意的 $\pmb x, \pmb y\in \mathbb R^n$，有
+>  $\|g_1 (g_2 (\pmb x)) - g_1 (g_2 (\pmb y)) \|\ \le\|g_1\|_{\mathrm{Lip}}\cdot \|g_2\|_{\mathrm{Lip}}\|\pmb x-\pmb y\|$
+>  即 $\|g_1 \circ g_2 (\pmb x) - g_1 \circ g_2 (\pmb y) \|\ \le\|g_1\|_{\mathrm{Lip}}\cdot \|g_2\|_{\mathrm{Lip}}\|\pmb x-\pmb y\|$
+>  因此容易得出结论 $\|g_1\circ g_2\|_{\mathrm{Lip}} \le \|g_1\|_{\mathrm {Lip}}\cdot \|g_2\|_{\mathrm{Lip}}$
+>  
+>  该结论告诉我们，两个 Lipschitz 连续函数的复合仍然是 Lipschitz 连续的，且其 Lipschitz 常数不超过原来两个 Lipschitz 常数的乘积
+
 Our spectral normalization normalizes the spectral norm of the weight matrix $W$ so that it satisfies the Lipschitz constraint $\sigma(W)=1$ : 
 
 $$
-\bar{W}_{\mathrm{SN}}(W):=W/\sigma(W).
-$$ 
+\bar{W}_{\mathrm{SN}}(W):=W/\sigma(W).\tag{8}
+$$
+
+>  谱规范化将权重矩阵 $W$ 的谱范数 (线性层的 Lipschitz 范数) 进行规范化，令其满足 Lipschitz 约束 $\sigma(W) = 1$，也就是规范化后的 $W$ 的最大奇异值等于 $1$
+>  实现时，按照 (8) 将 $W$ 除去 $W$ 的最大奇异值 $\sigma(W)$ 即可
+
 If we normalize each $W^{l}$ using (8), we can appeal to the inequality (7) and the fact that $\sigma\left(\bar{W}_{\mathrm{SN}}(W)\right)=1$ to see that $\|f\|_{\mathrm{Lip}}$ is bounded from above by 1. 
-Here, we would like to emphasize the difference between our spectral normalization and spectral norm ”regularization” introduced by Yoshida & Miyato (2017). Unlike our method, spectral norm ”regularization” penalizes the spectral norm by adding explicit regularization term to the objective function. Their method is fundamentally different from our method in that they do not make an attempt to ‘set’ the spectral norm to a designated value. Moreover, when we reorganize the derivative of our normalized cost function and rewrite our objective function (12), we see that our method is augmenting the cost function with a sample data dependent regularization function. Spectral norm regularization, on the other hand, imposes sample data independent regularization on the cost function, just like L2 regularization and Lasso. 
+>  当我们根据 (8) 将所有的 $W^l$ 规范化之后 (此时所有的 $g$ 的 Lipschitz 常数的上界是 $1$ )，我们就可以根据不等式 (7) 得到 $f$ 的 Lipschitz 常数 $\|f\|_{\mathrm{Lip}}$ 的上界就是 $1$
+
+Here, we would like to emphasize the difference between our spectral normalization and spectral norm ”regularization” introduced by Yoshida & Miyato (2017). Unlike our method, spectral norm ”regularization” penalizes the spectral norm by adding explicit regularization term to the objective function. Their method is fundamentally different from our method in that they do not make an attempt to ‘set’ the spectral norm to a designated value.
+>  谱规范化和 Yoshida & Miyato (2017) 提出的谱范数正则化方法存在不同，谱范数正则化方法通过为目标函数添加显示的正则化项来惩罚，并不试图将谱范数设定为指定的值
+
+Moreover, when we reorganize the derivative of our normalized cost function and rewrite our objective function (12), we see that our method is augmenting the cost function with a sample data dependent regularization function. Spectral norm regularization, on the other hand, imposes sample data independent regularization on the cost function, just like L2 regularization and Lasso. 
+>  另外，重新组织规范化成本函数并且重写目标函数 (12) 后，我们可以看到我们的方法是通过一个依赖于样本的正则化函数来增强成本函数。而谱范数正则化则对成本函数施加的是样本无关的正则化项，就如 L2 和 Lasso 正则化
 
 ## 2.2 Fast Approximation of The Spectral Norm $\sigma(W)$ 
 As we mentioned above, the spectral norm $\sigma(W)$ that we use to regularize each layer of the discriminator is the largest singular value of $W$ . If we naively apply singular value decomposition to compute the $\sigma(W)$ at each round of the algorithm, the algorithm can become computationally heavy. Instead, we can use the power iteration method to estimate $\sigma(W)$ (Golub & Van der Vorst, 2000; Yoshida & Miyato, 2017). With power iteration method, we can estimate the spectral norm with very small additional computational time relative to the full computational cost of the vanilla GANs. Please see Appendix A for the detail method and Algorithm 1 for the summary of the actual spectral normalization algorithm. 
+>  我们使用幂迭代方法来估计谱范数 $\sigma(W)$，这样引入的额外的计算成本相对于标准的 GANs 的完全计算成本是非常小的
 
 ## 2.3 Gradient Analysis of The Spectrally Normalized Weights 
-The gradient2 of $\bar{W}_{\mathrm{SN}}(W)$ with respect to $W_{i j}$ is: 
+The gradient of $\bar{W}_{\mathrm{SN}}(W)$ with respect to $W_{i j}$ is: 
 
 $$
-\begin{array}{r}{\displaystyle\frac{\partial\bar{W}_{\mathrm{SN}}(W)}{\partial W_{i j}}=\frac{1}{\sigma(W)}E_{i j}-\frac{1}{\sigma(W)^{2}}\frac{\partial\sigma(W)}{\partial W_{i j}}W=\frac{1}{\sigma(W)}E_{i j}-\frac{[\displaystyle u_{1}v_{1}^{\mathrm{T}}]_{i j}}{\sigma(W)^{2}}W~~~~}\\ {\displaystyle~~~~~~~~~~~~~~~~~~~~~~~~~~=\frac{1}{\sigma(W)}\left(E_{i j}-[u_{1}v_{1}^{\mathrm{T}}]_{i j}\bar{W}_{\mathrm{SN}}\right),}\end{array}
-$$ 
-where $E_{i j}$ is the matrix whose $(i,j)$ -th entry is 1 and zero everywhere else, and $\pmb{u}_{1}$ and $\pmb{v}_{1}$ are respectively the first left and right singular vectors of $W$ . If $^h$ is the hidden layer in the network to be transformed by $\bar{W}_{S N}$ , the derivative of the $V(G,D)$ calculated over the mini-batch with respect to $W$ of the discriminator $D$ is given by: 
+\begin{align}
+\frac {\partial \bar W_{\mathrm{SN}}(W)}{\partial W_{ij}}=\frac {1}{\sigma(W)}E_{ij} - \frac {1}{\sigma(W)^2}\frac{\partial \sigma(W)}{\partial W_{ij}}W &=\frac{1}{\sigma(W)}E_{ij} - \frac {[\pmb u_1\pmb v_1^T]_{ij}}{\sigma(W)^2}W\tag{9}\\
+&=\frac{1}{\sigma(W)}(E_{ij}-[\pmb u_1\pmb v_1^T]_{ij}\bar W_{\mathrm{SN}})\tag{10}
+\end{align}
+$$
+
+where $E_{i j}$ is the matrix whose $(i,j)$ -th entry is 1 and zero everywhere else, and $\pmb{u}_{1}$ and $\pmb{v}_{1}$ are respectively the first left and right singular vectors of $W$ . 
+
+>  推导
+
+$$
+\begin{align}
+\frac{\partial \bar W_{\mathrm {SN}}(W)}{\partial W_{ij}} 
+&=\frac{\partial }{\partial W_{ij}}\left(\frac{W}{\sigma(W)}\right)\\
+&=\frac {\sigma(W)\frac {\partial W}{\partial W_{ij}}-\frac {\partial\sigma(W)}{\partial W_{ij}}W}{\sigma(W)^2}\\
+&=\frac {1}{\sigma(W)}\frac {\partial W}{\partial W_{ij}} - \frac {1}{\sigma(W)^2}\frac {\partial \sigma(W)}{\partial W_{ij}}W\\
+\end{align}
+$$
+
+>  其中 $\frac {\partial W}{\partial W_{ij}}$ 等于矩阵 $E_{ij}$，在位置 $(i, j)$ 处为 $1$，其余都为 $0$
+>  进一步有
+
+$$
+\begin{align}
+\frac{\partial \bar W_{\mathrm {SN}}(W)}{\partial W_{ij}} 
+&=\frac {1}{\sigma(W)}\frac {\partial W}{\partial W_{ij}} - \frac {1}{\sigma(W)^2}\frac {\partial \sigma(W)}{\partial W_{ij}}W\\
+&=\frac {1}{\sigma(W)}E_{ij} - \frac {1}{\sigma(W)^2}\frac {\partial \sigma(W)}{\partial W_{ij}}W\\
+&=\frac {1}{\sigma(W)}E_{ij} - \frac {[\pmb u_1\pmb v_1^T]_{ij}}{\sigma(W)^2}W\\
+\end{align}
+$$
+
+>  这里应用了结论 $\frac {\partial \sigma(W)}{\partial W_{ij}}=[\pmb u_1\pmb v_1^T]_{ij}$
+>  其中 $\pmb u_1,\pmb v_1$ 分别是 $W$ 的第一左奇异向量和第一右奇异向量
+>  进一步有
+
+$$
+\begin{align}
+\frac{\partial \bar W_{\mathrm {SN}}(W)}{\partial W_{ij}} 
+&=\frac {1}{\sigma(W)}E_{ij} - \frac {[\pmb u_1\pmb v_1^T]_{ij}}{\sigma(W)^2}W\\
+&=\frac 1 {\sigma(W)}\left(E_{ij}-[\pmb u_1\pmb v_1^T]_{ij}\frac {W}{\sigma(W)}\right)\\
+&=\frac 1 {\sigma(W)}\left(E_{ij}-[\pmb u_1\pmb v_1^T]_{ij}\bar W_{\mathrm {SN}}\right)\\
+\end{align}
+$$
+
+>  推导完毕
+
+If $^h$ is the hidden layer in the network to be transformed by $\bar{W}_{S N}$ , the derivative of the $V(G,D)$ calculated over the mini-batch with respect to $W$ of the discriminator $D$ is given by: 
 
 $$
 \begin{array}{c}{\displaystyle\frac{\partial V(G,D)}{\partial W}=\frac{1}{\sigma(W)}\left(\hat{\mathrm{E}}\left[\delta\boldsymbol{h}^{\mathrm{T}}\right]-\left(\hat{\mathrm{E}}\left[\delta^{\mathrm{T}}\bar{W}_{\mathrm{SN}}\boldsymbol{h}\right]\right)\boldsymbol{u}_{1}\boldsymbol{v}_{1}^{\mathrm{T}}\right)}\\ {\displaystyle=\frac{1}{\sigma(W)}\left(\hat{\mathrm{E}}\left[\delta\boldsymbol{h}^{\mathrm{T}}\right]-\lambda\boldsymbol{u}_{1}\boldsymbol{v}_{1}^{\mathrm{T}}\right)}\end{array}
@@ -166,21 +273,27 @@ We would like to comment on the implication of (12). The first term $\hat{\mathr
 
 # 3 Spectral Normalization vs Other Regularization Techniques
 The weight normalization introduced by Salimans & Kingma (2016) is a method that normalizes the $\ell_{2}$ norm of each row vector in the weight matrix. Mathematically, this is equivalent to requiring the weight by the weight normalization $\bar{W}_{\mathrm{WN}}$ : 
+
 $$
 \sigma_{1}(\bar{W}_{\mathrm{WN}})^{2}+\sigma_{2}(\bar{W}_{\mathrm{WN}})^{2}+\cdots+\sigma_{T}(\bar{W}_{\mathrm{WN}})^{2}=d_{o},\;\mathrm{where}\;T=\operatorname*{min}(d_{i},d_{o}),
 $$ 
 where $\sigma_{t}(A)$ is a $t$ -th singular value of matrix $A$ . Therefore, up to a scaler, this is same as the Frobenius normalization, which requires the sum of the squared singular values to be 1. These normalizations, however, inadvertently impose much stronger constraint on the matrix than intended. If $\bar{W}_{\mathrm{WN}}$ is the weight normalized matrix of dimension $d_{i}\times d_{o}$ , the norm $\lVert\bar{W}_{\mathrm{WN}}h\rVert_{2}$ for a fixed unit vector $^h$ is maximized at $\|\bar{W}_{\mathrm{WN}}\underline{{{h}}}\|_{2}\;=\;\sqrt{d_{o}}$ when $\sigma_{1}(\bar{W}_{\mathrm{WN}})\;=\;\sqrt{d_{o}}$ and $\sigma_{t}(\bar{W}_{\mathrm{WN}})\;=\;0$ for $t\,=\,2,\ldots,T$ , which means that $\bar{W}_{\mathrm{WN}}$ is of rank one. Similar thing can be said to the Frobenius normalization (See the appendix for more details). Using such $\bar{W}_{\mathrm{WN}}$ corresponds to using only one feature to discriminate the model probability distribution from the target. In order to retain as much norm of the input as possible and hence to make the discriminator more sensitive, one would hope to make the norm of $\bar{W}_{\mathrm{WN}}h$ large. For weight normalization, however, this comes at the cost of reducing the rank and hence the number of features to be used for the discriminator. Thus, there is a conflict of interests between weight normalization and our desire to use as many features as possible to distinguish the generator distribution from the target distribution. The former interest often reigns over the other in many cases, inadvertently diminishing the number of features to be used by the discriminators. Consequently, the algorithm would produce a rather arbitrary model distribution that matches the target distribution only at select few features. Weight clipping (Arjovsky et al., 2017) also suffers from same pitfall. 
+
 Our spectral normalization, on the other hand, do not suffer from such a conflict in interest. Note that the Lipschitz constant of a linear operator is determined only by the maximum singular value. In other words, the spectral norm is independent of rank. Thus, unlike the weight normalization, our spectral normalization allows the parameter matrix to use as many features as possible while satisfying local 1-Lipschitz constraint. Our spectral normalization leaves more freedom in choosing the number of singular components (features) to feed to the next layer of the discriminator. 
 Brock et al. (2016) introduced orthonormal regularization on each weight to stabilize the training of GANs. In their work, Brock et al. (2016) augmented the adversarial objective function by adding the following term: 
+
 $$
 \lVert W^{\mathrm{T}}W-I\rVert_{F}^{2}.
 $$ 
 While this seems to serve the same purpose as spectral normalization, orthonormal regularization are mathematically quite different from our spectral normalization because the orthonormal regularization destroys the information about the spectrum by setting all the singular values to one. On the other hand, spectral normalization only scales the spectrum so that the its maximum will be one. 
 Gulrajani et al. (2017) used Gradient penalty method in combination with WGAN. In their work, they placed $K$ -Lipschitz constant on the discriminator by augmenting the objective function with the regularizer that rewards the function for having local 1-Lipschitz constant (i.e. $\|\nabla_{\hat{\mathbf{x}}}f\|_{2}=1\rangle$ ) at discrete sets of points of the form $\hat{\pmb{x}}:=\epsilon\tilde{\pmb{x}}+\bar{(1-\epsilon)}\pmb{x}$ generated by interpolating a sample $\tilde{\pmb{x}}$ from generative distribution and a sample $\textbf{\em x}$ from the data distribution. While this rather straightforward approach does not suffer from the problems we mentioned above regarding the effective dimension of the feature space, the approach has an obvious weakness of being heavily dependent on the support of the current generative distribution. As a matter of course, the generative distribution and its support gradually changes in the course of the training, and this can destabilize the effect of such regularization. In fact, we empirically observed that a high learning rate can destabilize the performance of WGAN-GP. On the contrary, our spectral normalization regularizes the function the operator space, and the effect of the regularization is more stable with respect to the choice of the batch. Training with our spectral normalization does not easily destabilize with aggressive learning rate. Moreover, WGAN-GP requires more computational cost than our spectral normalization with single-step power iteration, because the computation of $\|\nabla_{\hat{\boldsymbol{x}}}f\|_{2}$ requires one whole round of forward and backward propagation. In the appendix section, we compare the computational cost of the two methods for the same number of updates. 
+
 # 4 Experiments
 In order to evaluate the efficacy of our approach and investigate the reason behind its efficacy, we conducted a set of extensive experiments of unsupervised image generation on CIFAR-10 (Torralba et al., 2008) and STL-10 (Coates et al., 2011), and compared our method against other normalization techniques. To see how our method fares against large dataset, we also applied our method on ILSVRC2012 dataset (ImageNet) (Russakovsky et al., 2015) as well. This section is structured as follows. First, we will discuss the objective functions we used to train the architecture, and then we will describe the optimization settings we used in the experiments. We will then explain two performance measures on the images to evaluate the images produced by the trained generators. Finally, we will summarize our results on CIFAR-10, STL-10, and ImageNet. 
 As for the architecture of the discriminator and generator, we used convolutional neural networks. Also, for the evaluation of the spectral norm for the convolutional weight $W\in\mathbb{R}^{d_{\mathrm{out}}\times d_{\mathrm{in}}\times h\times w}$ , we treated the operator as a 2-D matrix of dimension $d_{\mathrm{out}}\times(d_{\mathrm{in}}h w)^{3}$ . We trained the parameters of the generator with batch normalization (Ioffe & Szegedy, 2015). We refer the readers to Table 3 in the appendix section for more details of the architectures. 
+
 For all methods other than WGAN-GP, we used the following standard objective function for the adversarial loss: 
+
 $$
 V(G,D):=\underset{x\sim q_{\mathrm{data}}(x)}{\mathrm{E}}[\log D(\pmb{x})]+\underset{z\sim p(z)}{\mathrm{E}}[\log(1-D(G(z)))],
 $$ 
@@ -224,7 +337,8 @@ GANs without normalization and GANs with layer normalization collapsed in the be
 To ensure that the superiority of our method is not limited within our specific setting, we also compared the performance of SN-GANs against orthonormal regularization on conditional GANs with projection discriminator (Miyato & Koyama, 2018) as well as the standard (unconditional) GANs. In our experiments, SN-GANs achieved better performance than orthonormal regularization for the both settings (See Figure 13 in the appendix section). 
 # 5 Conclusion
 This paper proposes spectral normalization as a stabilizer of training of GANs. When we apply spectral normalization to the GANs on image generation tasks, the generated examples are more diverse than the conventional weight normalization and achieve better or comparative inception scores relative to previous studies. The method imposes global regularization on the discriminator as opposed to local regularization introduced by WGAN-GP, and can possibly used in combinations. In the future work, we would like to further investigate where our methods stand amongst other methods on more theoretical basis, and experiment our algorithm on larger and more complex datasets. 
-# A THE ALGORITHM OF SPECTRAL NORMALIZATION 
+
+# A The Algorithm of Spectral Normalization
 Let us describe the shortcut in Section 2.1 in more detail. We begin with vectors $\tilde{\pmb{u}}$ that is randomly initialized for each weight. If there is no multiplicity in the dominant singular values and if $\tilde{\pmb u}$ is not orthogonal to the first left singular vectors7, we can appeal to the principle of the power method and produce the first left and right singular vectors through the following update rule: 
 $$
 \begin{array}{r}{\tilde{{\boldsymbol{v}}}\leftarrow{\boldsymbol{W}}^{\mathrm{T}}\tilde{{\boldsymbol{u}}}/\|{\boldsymbol{W}}^{\mathrm{T}}\tilde{{\boldsymbol{u}}}\|_{2},\;\tilde{{\boldsymbol{u}}}\leftarrow{\boldsymbol{W}}\tilde{{\boldsymbol{v}}}/\|{\boldsymbol{W}}\tilde{{\boldsymbol{v}}}\|_{2}.}\end{array}
@@ -234,7 +348,8 @@ $$
 \boldsymbol{\sigma}(\boldsymbol{W})\approx\tilde{\boldsymbol{u}}^{\mathrm{T}}\boldsymbol{W}\tilde{\boldsymbol{v}}.
 $$ 
 If we use SGD for updating $W$ , the change in $W$ at each update would be small, and hence the change in its largest singular value. In our implementation, we took advantage of this fact and reused the $\tilde{\pmb u}$ computed at each step of the algorithm as the initial vector in the subsequent step. In fact, with this ‘recycle’ procedure, one round of power iteration was sufficient in the actual experiment to achieve satisfactory performance. Algorithm 1 in the appendix summarizes the computation of the spectrally normalized weight matrix $\bar{W}$ with this approximation. Note that this procedure is very computationally cheap even in comparison to the calculation of the forward and backward propagations on neural networks. Please see Figure 10 for actual computational time with and without spectral normalization. 
-# Algorithm 1 SGD with spectral normalization 
+
+Algorithm 1 SGD with spectral normalization 
 • Initialize $\tilde{\pmb{u}}_{l}\in\mathcal{R}^{d_{l}}$ for $l=1,\dots,L$ with a random vector (sampled from isotropic distribution). 
 • For each update and each layer $l$ : 1. Apply power iteration method to a unnormalized weight $W^{l}$ : 
 $$
@@ -248,19 +363,19 @@ $$
 $$
 W^{l}\gets W^{l}-\alpha\nabla_{W^{l}}\ell(\bar{W}_{\mathrm{SN}}^{l}(W^{l}),\mathcal{D}_{M})
 $$ 
-# B EXPERIMENTAL SETTINGS 
-# B.1 PERFORMANCE MEASURES 
+# B Experimental Settings
+## B.1 Performance Measures
 Inception score is introduced originally by Salimans et al. (2016): $I(\{x_{n}\}_{n=1}^{N})\quad:=$ $\exp(\mathrm{E}[D_{\mathrm{KL}}[p(y|x)||p(y)]])$ , where $p(y)$ is approximated by nN=1 p(y|xn) and p(y|x) is the trained Inception convolutional neural network (Szegedy et al., 2015), which we would refer to Inception model for short. In their work, Salimans et al. (2016) reported that this score is strongly correlated with subjective human judgment of image quality. Following the procedure in Salimans et al. (2016); Warde-Farley & Bengio (2017), we calculated the score for randomly generated 5000 examples from each trained generator to evaluate its ability to generate natural images. We repeated each experiment 10 times and reported the average and the standard deviation of the inception scores. 
 Fre´chet inception distance (Heusel et al., 2017) is another measure for the quality of the generated examples that uses 2nd order information of the final layer of the inception model applied to the examples. On its own, the Fre´chet distance Dowson $\&$ Landau (1982) is 2-Wasserstein distance between two distribution $p_{1}$ and $p_{2}$ assuming they are both multivariate Gaussian distributions: 
 $$
 F(p_{1},p_{2})=\|\pmb{\mu}_{p_{1}}-\pmb{\mu}_{p_{2}}\|_{2}^{2}+\operatorname{trace}\left(C_{p_{1}}+C_{p_{2}}-2(C_{p_{1}}C_{p_{2}})^{1/2}\right),
 $$ 
 where $\{\mu_{p_{1}},C_{p_{1}}\}$ , $\{\mu_{p_{2}},C_{p_{2}}\}$ are the mean and covariance of samples from $q$ and $p$ , respectively. If $f_{\ominus}$ is the output of the final layer of the inception model before the softmax, the Fre´chet inception distance (FID) between two distributions $p_{1}$ and $p_{2}$ on the images is the distance between $f_{\odot}\,{\circ}\,p_{1}$ and $f_{\ominus}\circ p_{2}$ . We computed the Fre´chet inception distance between the true distribution and the generated distribution empirically over 10000 and 5000 samples. Multiple repetition of the experiments did not exhibit any notable variations on this score. 
-# B.2 IMAGE GENERATION ON CIFAR-10 AND STL-10 
+## B.2 Image Generation on CIFAR-10 and STL-10 
 For the comparative study, we experimented with the recent ResNet architecture of Gulrajani et al. (2017) as well as the standard CNN. For this additional set of experiments, we used Adam again for the optimization and used the very hyper parameter used in Gulrajani et al. (2017) $(\alpha\,=\,0.0002,\beta_{1}\,=\,0,\beta_{2}\,=\,0.9,n_{d i s}\,=\,5)$ . For our SN-GANs, we doubled the feature map in the generator from the original, because this modification achieved better results. Note that when we doubled the dimension of the feature map for the WGAN-GP experiment, however, the performance deteriorated. 
-# B.3 IMAGE GENERATION ON IMAGENET 
+## B.3 Image Generation on ImageNet 
 The images used in this set of experiments were resized to $128\times128$ pixels. The details of the architecture are given in Table 6. For the generator network of conditional GANs, we used conditional batch normalization (CBN) (Dumoulin et al., 2017; de Vries et al., 2017). Namely we replaced the standard batch normalization layer with the CBN conditional to the label information $y\in\{1,\ldots,1000\}$ . For the optimization, we used Adam with the same hyperparameters we used for ResNet on CIFAR-10 and STL-10 dataset. We trained the networks with 450K generator updates, and applied linear decay for the learning rate after 400K iterations so that the rate would be 0 at the end. 
-# B.4 NETWORK ARCHITECTURES 
+## B.4 Network Architectures 
 Table 3: Standard CNN models for CIFAR-10 and STL-10 used in our experiments on image Generation. The slopes of all lReLU functions in the networks are set to 0.1. 
 <html><body><table><tr><td>2 E R128 ~ N(0, I)</td></tr><tr><td>dense →> Mg × Mg × 512</td></tr><tr><td>4x4,stride=2deconv.BN256ReLU</td></tr><tr><td>4x4,stride=2dec0nv.BN128ReLU</td></tr><tr><td>4x4,stride=2deconv.BN64ReLU</td></tr><tr><td>3 x3, stride=1 conv. 3 Tanh</td></tr></table></body></html>
 (a) Generator, $M_{g}=4$ for SVHN and CIFAR10, and $M_{g}=6$ for STL-10 
@@ -381,3 +496,192 @@ $$
 where $\exists\,k\in\mathbb{R}$ 
 ![](https://cdn-mineru.openxlab.org.cn/extract/23d6439c-9d99-452c-9a35-268c9379ad69/8854080c0b24cd5f4b36516ccbbee8739ae8c25017154c8f682681d39f526ef6.jpg) 
 Figure 15: Learning curves of (a) critic loss and (b) inception score on different reparametrization method on CIFAR-10 ; weight normalization (WGAN-GP w/ WN), spectral normalization (WGANGP w/ SN), and parametrization free (WGAN-GP). 
+
+# Supplementary Knowledge
+## Matrix norm
+In the field of [mathematics](https://en.wikipedia.org/wiki/Mathematics "Mathematics"), [norms](https://en.wikipedia.org/wiki/Vector_norm "Vector norm") are defined for elements within a [vector space](https://en.wikipedia.org/wiki/Vector_space "Vector space"). Specifically, when the vector space comprises matrices, such norms are referred to as **matrix norms**. Matrix norms differ from vector norms in that they must also interact with matrix multiplication.
+>  数学中，范数为向量空间中的元素而定义，当这些元素是矩阵时，范数就是矩阵范数
+>  矩阵范数和向量范数的差异在于矩阵范数和矩阵乘法相关
+
+### Preliminaries
+Given a [field](https://en.wikipedia.org/wiki/Field_(mathematics) "Field (mathematics)") $K$ of either [real](https://en.wikipedia.org/wiki/Real_number "Real number") or [complex numbers](https://en.wikipedia.org/wiki/Complex_number "Complex number") (or any complete subset thereof), let $K^{m\times n}$ be the K-[vector space](https://en.wikipedia.org/wiki/Vector_space "Vector space") of matrices with $m$ rows and $n$ columns and entries in the field $K$ . A matrix norm is a [norm](https://en.wikipedia.org/wiki/Norm_(mathematics) "Norm (mathematics)") on $K^{m\times n}$.
+
+
+Norms are often expressed with [double vertical bars](https://en.wikipedia.org/wiki/Double_vertical_bar "Double vertical bar") (like so: $\|A\|$ ). Thus, the matrix norm is a [function](https://en.wikipedia.org/wiki/Function_(mathematics) "Function (mathematics)") $\|\cdot\|:K^{m\times n}\to \mathbb R^{0+}$ that must satisfy the following properties:
+
+>  给定一个由实数或复数 (或其任何完备子集) 构成的域 $K$，令 $K^{m\times n}$ 表示 $m$ 行 $n$ 列，元素都来自于 $K$ 的矩阵组成的 $K$ - 向量空间。矩阵范数是定义在 $K^{m\times n}$ 上的范数，其本质是一个函数 $\|\cdot\|: K^{m\times n} \to \mathbb R^{0+}$，满足以下的性质：
+
+For all scalars $\alpha\in K$ and matrices $A, B\in K^{m\times n}$,
+- $\|A\| \ge 0$ (positive-valued)
+- $\|A\| = 0 \iff  A=0_{m, n}$ (definite)
+- $\|\alpha A\| = |\alpha|\cdot \|A\|$ (absolutely homogeneous)
+- $\|A+B\| \le \|A\| + \|B\|$ (sub-additive or satisfying the triangle inequality)
+
+> 对于标量 $\alpha \in K$ 和矩阵 $A, B\in K^{m\times n}$，矩阵范数满足：
+> - $\|A\|\ge 0$ (值为正)
+> - $\|A\| = 0 \iff  A=0_{m, n}$ (确定性，即当且仅当 $A$ 为全零矩阵时，范数才取到一)
+> - $\|\alpha A\| = |\alpha| \cdot \|A\|$ (绝对齐次性)
+> - $\|A+B\| \le \|A\| + \|B\|$ (次可加性/三角不等式)
+
+The only feature distinguishing matrices from rearranged vectors is [multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication "Matrix multiplication"). 
+
+Matrix norms are particularly useful if they are also **sub-multiplicative**:
+
+$$
+\|AB\|\le \|A\|\cdot\|B\|
+$$
+
+Every norm on $K^{n\times n}$ can be rescaled to be sub-multiplicative; in some books, the terminology _matrix norm_ is reserved for sub-multiplicative norms.
+
+>  若矩阵范数还满足以上式子，称范数满足子乘性
+>  $K^{n\times n}$ 中的任意范数都可以被缩放至满足子乘性
+
+### Matrix norms induced by vector norms  
+Suppose a vector norm $||\cdot||_{\alpha}$ on $K^{n}$ and a vector norm $\|\cdot\|_{\beta}$ on $K^{m}$ are given. Any $m\times n$ matrix $A$ induces a linear operator from $K^{n}$ to $K^{m}$ with respect to the standard basis, and one defines the corresponding induced norm or operator norm or subordinate norm on the space $K^{m\times n}$ of all $m\times n$ matrices as follows:  
+>  给定 $K^n$ 上的向量范数 $\|\cdot \|_\alpha$ 和 $K^m$ 上的向量范数 $\|\cdot \|_\beta$
+>  任意 $m\times n$ 的矩阵 $A$ 都导出了一个相对于标准基的从 $K^n$ 到 $K^m$ 的线性算子
+>  我们为空间 $K^{m\times n}$ 中的 $m\times n$ 矩阵定义诱导范数/算子范数/从属范数如下：
+
+$$
+\begin{align}
+\|A\|_{\alpha, \beta} &=\sup\{\|Ax\|_\beta:x\in K^n\ \mathrm{with}\ \|x\|_\alpha=1\}\\
+&=\sup\{\frac {\|Ax\|_\beta}{\|x\|_\alpha}:x\in K^n\ \mathrm{with}\ x\ne 0_n\}
+\end{align}
+$$
+
+where $\sup$ denotes the supremum. 
+>  其中 $\sup$ 表示上确界 (在有限维空间中，$\sup$ 等价于 $\max$)
+
+This norm measures how much the mapping induced by $A$ can stretch vectors. Depending on the vector norms $\|\cdot\|_{\alpha},\|\cdot\|_{\beta}$ used, notation other than $\|\cdot\|_{\alpha,\beta}$ can be used for the operator norm.  
+>  该范数度量了由 $A$ 诱导的映射对向量的拉伸程度
+>  该范数依赖于所使用的向量范数 $\|\cdot \|_\alpha, \|\cdot\|_\beta$
+
+### Matrix norms induced by vector $p$ -norms  
+If the $p$ -norm for vectors $(1\leq p\leq\infty)$ is used for both spaces $K^{n}$ and $K^{m}$ then the corresponding operator norm is:  
+>  如果空间 $K^n$ 和 $K^m$ 都使用了向量的 $p$ 范数 ($1\le p \le \infty$)，则对应的算子范数定义如下
+
+$$
+\|A\|_{p}=\operatorname*{sup}_{x\neq0}{\frac{\|A x\|_{p}}{\|x\|_{p}}}.
+$$  
+These induced norms are different from the "entry-wise" $p$ -norms and the Schatten $p$ -norms for matrices treated below, which are also usually denoted by $\|A\|_{p}$  
+>  注意这里和之前介绍的这类诱导范数和之后定义的 “按元素” 的 $p$ 范数和 Schatten $p$ 范数是不同的，虽然它们也常常记作 $\|A\|_p$
+
+Geometrically speaking, one can imagine a $p$ -norm unit ball $V_{p,n}=\{x\in K^{n}:\|x\|_{p}\leq1\}$ in $K^{n}$ , then apply the linear map $A$ to the ball. It would end up becoming a distorted convex shape $A V_{p,n}\subset K^{m}$ , and $\|A\|_{p}$ measures the longest "radius" of the distorted convex shape. In other words, we must take a $p$ -norm unit ball $V_{p,m}$ in $K^{m}$ , then multiply it by at least $\|A\|_{p}$ , in order for it to be large enough to contain $A V_{p,n}$  
+>  几何上看，可以想象一个 $K^n$ 中 $p$ 范数定义的单位球 $V_{p, n} = \{x\in K^n: \|x\|_p \le 1\}$，然后为该球应用线性映射 $A$，该球会被映射为扭曲的凸集 $AV_{p, n}\subset K^m$。范数 $\|A\|_p$ 度量了该扭曲凸集的最长 “半径”
+>  换句话说，需要将 $K^m$ 中的 $p$ 范数球 $V_{p, m}$ 至少放大 $\|A\|_p$ 被，才能包含住 $AV_{p, n}$
+
+**$p=1$ or $\infty$** 
+When $p=1$ or $p=\infty$ we have simple formulas.  
+
+$$
+\|A\|_{1}=\operatorname*{max}_{1\leq j\leq n}\sum_{i=1}^{m}\left|a_{i j}\right|,
+$$
+
+which is simply the maximum absolute column sum of the matrix.  
+
+>  当 $p=1$ 时，$\|A\|_1$ 的形式如上，它等于矩阵的最大绝对列和
+
+$$
+\|A\|_{\infty}=\operatorname*{max}_{1\leq i\leq m}\sum_{j=1}^{n}\left|a_{i j}\right|,
+$$
+
+which is simply the maximum absolute row sum of the matrix.  
+
+>  当 $p = \infty$ 时，$\|A\|_\infty$ 的形式如上，它等于矩阵的最大绝对行和
+
+
+**Spectral norm $(p=2)$**  
+When $p=2$ (the Euclidean norm or $\ell_{2}$ -norm for vectors), the induced matrix norm is the spectral norm. 
+>  当 $p=2$ (向量的欧几里得范数/ $\ell_2$ 范数)，诱导的矩阵范数称为谱范数
+
+The two values do not coincide in infinite dimensions — see Spectral radius for further discussion. The spectral radius should not be confused with the spectral norm. 
+>  无限维空间中，谱范数和谱半径不相等
+
+The spectral norm of a matrix $A$ is the largest singular value of $A$ , i.e., the square root of the largest eigenvalue of the matrix $A^{*}A$ where $A^{*}$ denotes the conjugate transpose of $A$ : 
+
+$$
+\|A\|_{2}=\sqrt{\lambda_{\operatorname*{max}}\left(A^{*}A\right)}=\sigma_{\operatorname*{max}}(A).
+$$  
+where $\sigma_{\mathrm{max}}(A)$ represents the largest singular value of matrix $A$  
+
+>  矩阵 $A$ 的谱范数 $\|A\|_2$ 是 $A$ 的最大奇异值，即矩阵 $A^*A$ 的最大特征值的平方根 (其中 $A^*$ 是 $A$ 的共轭转置)，定义如上，可以记作 $\sigma_{\max}(A)$
+
+There are further properties:  
+
+-  $\|A\|_{2}=\operatorname*{sup}\{x^{*}A y:x\in K^{m},y\in K^{n}$ with $\|x\|_{2}=\|y\|_{2}=1\}$ Proved by the Cauchy– Schwarz inequality.
+-  $\|A^{*}A\|_{2}=\|A A^{*}\|_{2}=\|A\|_{2}^{2}$ . Proven by singular value decomposition (SVD) on .
+- $\begin{array}{r}{\|A\|_{2}=\sigma_{\mathrm{max}}(A)\leq\|A\|_{\mathrm{F}}=\sqrt{\sum_{i}\sigma_{i}(A)^{2}}}\end{array}$ , where $\|A\|_{\mathrm{F}}$ is the Frobenius norm. Equality holds if and only if the matrix $A$ is a rank-one matrix or a zero matrix. 
+- Conversely, $\|A\|_{\mathrm{F}}\leq\operatorname*{min}(m,n)^{1/2}\|A\|_{2}$ . 
+- $\begin{array}{r}{\|A\|_{2}=\sqrt{\rho(A^{*}A)}\leq\sqrt{\|A^{*}A\|_{\infty}}\leq\sqrt{\|A\|_{1}\|A\|_{\infty}}.}\end{array}$  
+
+### "Entry-wise" matrix norms  
+These norms treat an $m\times n$ matrix as a vector of size $m\cdot n$ , and use one of the familiar vector norms. For example, using the $p$ -norm for vectors, $p\geq1$ , we get:  
+
+$$
+\|A\|_{p}=\|\mathrm{vec}(A)\|_{p}=\left(\sum_{i=1}^{m}\sum_{j=1}^{n}\left|a_{i j}\right|^{p}\right)^{1/p}
+$$
+
+This is a different norm from the induced $p$ -norm (see above) and the Schatten $p$ -norm (see below), but the notation is the same.  
+
+>  “按元素”的矩阵范数将矩阵拉平为 $m\cdot n$ 的向量，然后应用向量范数，此时，矩阵的 $p$ 范数定义如上
+>  该范数和诱导的 $p$ 范数以及 Schatten $p$ 范数不同，但符号相同
+
+The special case $p=2$ is the Frobenius norm, and $p=\infty$ yields the maximum norm.  
+
+$$
+\|A\|_{\mathrm{F}}={\sqrt{\sum_{i}^{m}\sum_{j}^{n}|a_{i j}|^{2}}}={\sqrt{\operatorname{trace}(A^{*}A)}}={\sqrt{\sum_{i=1}^{\operatorname*{min}\{m,n\}}\sigma_{i}^{2}(A)}},
+$$
+
+$$
+\|A\|_{\operatorname*{max}}=\operatorname*{max}_{i,j}|a_{i j}|.
+$$  
+>  $p=2$ 以及 $p = \infty$ 时分别得到 F 范数和最大范数
+
+### Equivalence of norms  
+For any two matrix norms $||\cdot||_{\alpha}$ and $\|\cdot\|_{\beta}$ , we have that:  
+
+$$
+r\|A\|_{\alpha}\leq\|A\|_{\beta}\leq s\|A\|_{\alpha}
+$$  
+for some positive numbers $r$ and $s$ , for all matrices $A\in K^{m\times n}$ . 
+
+>  对于任意两个矩阵范数 $\|\cdot \|_\alpha$ 和 $\|\cdot \|_\beta$，我们都有如上式子对于所有矩阵 $A\in K^{m\times n}$ 成立，其中 $r, s$ 为某些正数
+
+In other words, all norms on $K^{m\times n}$ are equivalent; they induce the same topology on $K^{m\times n}$ . This is true because the vector space $K^{m\times n}$ has the finite dimension $m\times n$ .  
+>  换句话说，所有 $K^{m\times n}$ 上的范数都等价，它们在 $K^{m\times n}$ 诱导出相同的拓扑结构
+
+**Examples of norm equivalence**  
+Let $\|A\|_{p}$ once again refer to the norm induced by the vector $p$ -norm (as above in the Induced norm section).  
+
+For matrix $A\in\mathbb{R}^{m\times n}$ of rank $r$ , the following inequalities hold:
+
+- ${\|A\|_{2}\leq\|A\|_{F}\leq\sqrt{r}\|A\|_{2}}$
+- ${\|A\|_{F}\leq\|A\|_{*}\leq\sqrt{r}\|A\|_{F}}$
+- ${\|A\|_{\operatorname*{max}}\leq\|A\|_{2}\leq\sqrt{m n}\|A\|_{\operatorname*{max}}}$
+- ${\frac{1}{\sqrt{n}}\|A\|_{\infty}\leq\|A\|_{2}\leq\sqrt{m}\|A\|_{\infty}}$
+- ${\frac{1}{\sqrt{m}}\|A\|_{1}\leq\|A\|_{2}\leq\sqrt{n}\|A\|_{1}.}$
+
+## Proof of Inequality
+不等式：对于任意向量 $\pmb h$，有 $\|A\pmb h\|_2 \le \sigma(A)\|\pmb h\|_2$
+
+证明：
+根据矩阵的谱范数的定义，我们知道
+
+$$
+\sigma(A) = \max_{\pmb x\ne 0}\frac {\|A\pmb x\|_2}{\|\pmb x\|_2}
+$$
+
+因此，对于任意非零向量 $\pmb x$，都有不等式
+
+$$
+\begin{align}
+\sigma(A)&\ge \frac {\|A\pmb x\|_2}{\|\pmb x\|_2}\\
+\sigma(A)\|\pmb x\|_2 &\ge \|A\pmb x\|_2
+\end{align}
+$$
+
+成立
+
+再考虑全零向量 $\pmb 0$，容易知道此时不等式仍然成立 (取等号)
+
+证毕
