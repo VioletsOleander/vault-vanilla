@@ -1088,3 +1088,7 @@ Date: 2025.1.27-2025.2.3
 - NowcastNet rewritten project
 
 ### Week2
+Date: 2025.2.3-2025.2.10
+
+\[Book\]
+- [[book-notes/深度强化学习|深度强化学习]]: CH2-CH3
