@@ -1120,7 +1120,17 @@ Date: 2025.2.3-2025.2.10
             观测到当前状态的条件下，回报的期望称为状态价值函数，该函数依赖于当前状态，以及策略
 
 \[Doc\]
-- [[doc-notes/onnx/API Reference|onnx/API Reference]]: All
+- [[doc-notes/onnx/API Reference|onnx/API Reference]]: Index, Protos, Serialization
+    Index
+        Each ONNX object is defined based on a protobuf message, and has name ended with suffix `Proto`
+    Protos
+        It is recommended to use functions in module `onnx.helper` to create Protos instead of explicitly instantiate them. All Protos can be printed by `print()` and will be rendered as a json string.
+        ModelProto is a top level file/container format for bundling a ML model and associating its computation graph with its meta data.
+        NodeProto defines an operators.
+    Serialization
+        Every Proto class implements method `SerializeToSting` . 
+        Protobuf does not store any information about the class of the saved data. The target class must be known before restoring from an object.
 - [[doc-notes/pytorch/tutorials/advanced/Exporting a Model from PyTorch to ONNX and Running it using ONNX Runtime|pytorch/tutorials/advanced/Exporting a Model from PyTorch to ONNX and Running it using ONNX Runtime]]: All
+    It is important to call `model.eval()` or `model.train(False)` to turn the model to inference mode before exporting the model, because some operators' behaviour is different in training and inference modes.
 
 ### Week3
