@@ -2907,7 +2907,7 @@ Similar code would also work on _GraphProto_ or _FunctionProto_.
 
 ### Evaluation Step by Step
 A converting library takes an existing model trained with a machine learning framework (_pytorch_, _scikit-learn_, …) and converts the model into an ONNX graph. Complex models usually do not work on the first try and seeing intermediate results may help to find the part incorrectly converted. Parameter `verbose` displays information about intermediate results.
->  转换库将机器学习框架训练的现有模型转换为 ONNX 图，复杂的模型通常不会一次性正常工作，查看中介结果可以有助于找到转换错误的部分
+>  转换库将机器学习框架训练的现有模型转换为 ONNX 图，复杂的模型通常不会一次性正常工作，查看中间结果可以有助于找到转换错误的部分
 >  `ReferenceEvaluator` 的 `verbose` 参数可以用于控制显示关于中间结果的信息
 
 ```python

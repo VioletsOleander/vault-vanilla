@@ -82,13 +82,13 @@ print(pred_onx)
 ```
 
 ## API
-## API Overview
+### API Overview
 _ONNX Runtime_ loads and runs inference on a model in ONNX graph format, or ORT format (for memory and disk constrained environments).
 >  ONNX Runtime 加载并运行 ONNX 图格式的模型，或者 ORT 格式的模型 (在内存或磁盘空间受限的环境下)
 
 The data consumed and produced by the model can be specified and accessed in the way that best matches your scenario.
 
-### Load and run a model
+#### Load and run a model
 `InferenceSession` is the main class of ONNX Runtime. It is used to load and run an ONNX model, as well as specify environment and application configuration options.
 
 ```Python
@@ -132,11 +132,11 @@ session = onnxruntime.InferenceSession(
 )
 ```
 
-### Data inputs and outputs
+#### Data inputs and outputs
 The ONNX Runtime Inference Session consumes and produces data using its `OrtValue` class.
 >  ONNX Runtime 推理会话使用 `OrtValue` 类来包装输入和输出数据
 
-#### Data on CPU
+##### Data on CPU
 On CPU (the default), `OrtValues` can be mapped to and from native Python data structures: numpy arrays, dictionaries and lists of numpy arrays.
 >  在 CPU 上 (默认情况)，`OrtValues` 可以和原生 Python 数据结构——numpy 数组、字典、numpy 数组列表——互相转换
 
@@ -160,7 +160,7 @@ results = session.run(["Y"], {"X": ortvalue})
 By default, _ONNX Runtime_ always places input(s) and output(s) on CPU. Having the data on CPU may not optimal if the input or output is consumed and produced on a device other than CPU because it introduces data copy between CPU and the device.
 >  ONNX Runtime 默认总是将输入和输出放在 CPU 上
 
-#### Data on device
+##### Data on device
 _ONNX Runtime_ supports a custom data structure that supports all ONNX data formats that allows users to place the data backing these on a device, for example, on a CUDA supported device. In ONNX Runtime, this called `IOBinding`.
 >  ONNX Runtime 中的 `IOBinding` 支持所有 ONNX 数据格式，允许用户将这些数据结构的基础数据放在设备上
 
@@ -350,3 +350,6 @@ binding.bind_output(
     )
     session.run_with_iobinding(binding)
 ```
+
+### API Details
+(Ref to Original Doc)
