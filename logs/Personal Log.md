@@ -1134,3 +1134,4 @@ Date: 2025.2.3-2025.2.10
     It is important to call `model.eval()` or `model.train(False)` to turn the model to inference mode before exporting the model, because some operators' behaviour is different in training and inference modes.
 
 ### Week3
+Date: 2025.2.10-2025.2.17
