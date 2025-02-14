@@ -186,7 +186,7 @@ v_\pi(s)&=\mathbb E_\pi\left[G_t \mid S_t = s\right]\\
 &=\mathbb E_\pi\left[\sum_{k=0}^\infty\gamma^{k}R_{t+k+1}\mid S_t = s\right]\\
 &=\mathbb E_\pi \left[R_{t+1} + \gamma\cdot\sum_{k=0}^\infty\gamma^k R_{t+k+2}\mid S_t = s\right]\\
 &=\sum_{a}\pi(a\mid s)\sum_{s'}\sum_r p(s', r\mid s, a)\left[r + \gamma\mathbb E_{\pi}\left[\sum_{k=0}^\infty \gamma^k R_{t+k+2}\mid S_{t+1} = s' \right]\right]\\
-&=\sum_a\pi(a\mid s)\sum_{s', r}p(s',r\mid s, a)[r + \gamma v_\pi(s')]\tag{3.12}
+&=\sum_a\pi(a\mid s)\sum_{s', r}p(s',r\mid s, a)[r + \gamma v_\pi(s')]\qquad (3.12)
 \end{align}
 $$
 
@@ -201,65 +201,165 @@ Note how the final expression can be read very easily as an expected value. It i
 >  最后的表达式可以容易地解读为一个期望值，它实际上是对三个变量 $a, s', r$ 的所有取值的求和，对于每个三元组，我们计算其概率 $\pi(a\mid s) p(s', r\mid s, a)$，使用概率对 $r + \gamma v_\pi(s')$ 加权，然后求加权平均和得到期望
 
 Equation (3.12) is the Bellman equation for $v_{\pi}$ . It expresses a relationship between the value of a state and the values of its successor states. Think of looking ahead from one state to its possible successor states, as suggested by Figure 3.4a. Each open circle represents a state and each solid circle represents a state–action pair. Starting from state $s$ , the root node at the top, the agent could take any of some set of actions—three are shown in Figure 3.4a. From each of these, the environment could respond with one of several next states, $s^{\prime}$ , along with a reward, $r$ . The Bellman equation (3.12) averages over all the possibilities, weighting each by its probability of occurring. It states that the value of the start state must equal the (discounted) value of the expected next state, plus the reward expected along the way. 
+>  Eq 3.12 是状态价值函数 $v_\pi$ 的 Bellman 方程，该方程表示了当前状态的价值和其后继状态的价值之间的关系
+>  Bellman 方程遍历所有的可能性 (给定 $s$，可能发生的动作 $a$，以及后续可能的状态和奖励) 用概率作为权重求加权平均和。该方程说明了起始状态的价值必须等于下一个状态的期望 (折扣) 价值加上对应的期望奖励
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/651d493c3b2c94886e64b88c82b45730a0f68d34b2d6a793a212e548141a086e.jpg) 
+
 Figure 3.4: Backup diagrams for (a) $v_{\pi}$ and (b) $q_{\pi}$ . 
 
-The value function $v_{\pi}$ is the unique solution to its Bellman equation. We show in subsequent chapters how this Bellman equation forms the basis of a number of ways to compute, approximate, and learn $v_{\pi}$ . We call diagrams like those shown in Figure 3.4 backup diagrams because they diagram relationships that form the basis of the update or backup operations that are at the heart of reinforcement learning methods. These operations transfer value information back to a state (or a state–action pair) from its successor states (or state–action pairs). We use backup diagrams throughout the book to provide graphical summaries of the algorithms we discuss. (Note that unlike transition graphs, the state nodes of backup diagrams do not necessarily represent distinct states; for example, a state might be its own successor. We also omit explicit arrowheads because time always flows downward in a backup diagram.) 
+The value function $v_{\pi}$ is the unique solution to its Bellman equation. We show in subsequent chapters how this Bellman equation forms the basis of a number of ways to compute, approximate, and learn $v_{\pi}$ . 
+>  价值函数 $v_\pi$ 是其 Bellman 方程的唯一解
+
+We call diagrams like those shown in Figure 3.4 backup diagrams because they diagram relationships that form the basis of the update or backup operations that are at the heart of reinforcement learning methods. These operations transfer value information back to a state (or a state–action pair) from its successor states (or state–action pairs). We use backup diagrams throughout the book to provide graphical summaries of the algorithms we discuss. (Note that unlike transition graphs, the state nodes of backup diagrams do not necessarily represent distinct states; for example, a state might be its own successor. We also omit explicit arrowheads because time always flows downward in a backup diagram.) 
+>  如 Figure 3.4 的图称为备份图，这类图描绘了形成 RL 学习方法基础的更新或备份操作，这些操作将价值信息从后继状态/状态-动作对传递回先导状态/状态-动作对
+>  注意与转移图不同，备份图中的节点不一定表示不同的状态，因为一个状态的后继状态也可能是它自己
+
 Example 3.8: Gridworld Figure 3.5a uses a rectangular grid to illustrate value functions for a simple finite MDP. The cells of the grid correspond to the states of the environment. At each cell, four actions are possible: north, south, east, and west, which deterministically cause the agent to move one cell in the respective direction on the grid. Actions that would take the agent off the grid leave its location unchanged, but also result in a reward of $-1$ . Other actions result in a reward of 0, except those that move the agent out of the special states A and B. From state A, all four actions yield a reward of $+10$ and take the agent to $\mathrm{A}^{\prime}$ . From state B, all actions yield a reward of $+5$ and take the agent to $\mathrm{B^{\prime}}$ . 
+
 Suppose the agent selects all four actions with equal probability in all states. Figure 3.5b shows the value function, $v_{\pi}$ , for this policy, for the discounted reward case with $\gamma=0.9$ . This value function was computed by solving the system of equations (3.12). Notice the negative values near the lower edge; these are the result of the high probability of hitting the edge of the grid there under the random policy. State A is the best state to be in under this policy, but its expected return is less than 10, its immediate reward, because from A the agent is taken to $\mathrm{A}^{\prime}$ , from which it is likely to run into the edge of the grid. State B, on the other hand, is valued more than 5, its immediate reward, because from B the agent is taken to $\mathrm{B^{\prime}}$ , which has a positive value. From $\mathrm{B^{\prime}}$ the expected penalty (negative reward) for possibly running into an edge is more than compensated for by the expected gain for possibly stumbling onto A or B. 
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/d2a736ee309cc3ea7eea418bf42f988a546c36028d2a401689187c0f4e80637b.jpg) 
+
 Figure 3.5: Grid example: (a) exceptional reward dynamics; (b) state-value function for the equiprobable random policy. 
+
 Example 3.9: Golf To formulate playing a hole of golf as a reinforcement learning task, we count a penalty (negative reward) of $-1$ for each stroke until we hit the ball into the hole. The state is the location of the ball. The value of a state is the negative of the number of strokes to the hole from that location. Our actions are how we aim and swing at the ball, of course, and which club we select. Let us take the former as given and consider just the choice of club, which we assume is either a putter or a driver. The upper part of Figure 3.6 shows a possible state-value function, $v_{\mathrm{putt}}(s)$ , for the policy that always uses the putter. The terminal state in-the-hole has a value of 0. From anywhere on the green we assume we can make a putt; these states have value $-1$ . Off the green we cannot reach the hole by putting, and the value is greater. If we can reach the green from a state by putting, then that state must have value one less than the green’s value, that is, $-2$ . For simplicity, let us assume we can putt very precisely and deterministically, but with a limited range. This gives us the sharp contour line labeled $-2$ in the figure; all locations between that line and the green require exactly two strokes to complete the hole. Similarly, any location within putting range of the $-2$ contour line must have a value of $^{-3}$ , and so on to get all the contour lines shown in the figure. Putting doesn’t get us out of sand traps, so they have a value of $-\infty$ . Overall, it takes us six strokes to get from the tee to the hole by putting. 
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/2f79d9d17a82f91bb1a7e4a2d59b816fbb775b7dbbdf3fc3dca4e9253cc88ed2.jpg) 
+
 Figure 3.6: A golf example: the state-value function for putting (above) and the optimal action-value function for using the driver (below). 
+
 ## 3.8 Optimal Value Functions 
 Solving a reinforcement learning task means, roughly, finding a policy that achieves a lot of reward over the long run. For finite MDPs, we can precisely define an optimal policy in the following way. Value functions define a partial ordering over policies. A policy $\pi$ is defined to be better than or equal to a policy $\pi^{\prime}$ if its expected return is greater than or equal to that of $\pi^{\prime}$ for all states. In other words, $\pi\geq\pi^{\prime}$ if and only if $v_{\pi}(s)\geq v_{\pi^{\prime}}(s)$ for all $s\in\mathcal{S}$ . There is always at least one policy that is better than or equal to all other policies. This is an optimal policy. Although there may be more than one, we denote all the optimal policies by $\pi_{*}$ . They share the same state-value function, called the optimal state-value function, denoted $v_{*}$ , and defined as 
+
 $$
-v_{*}(s)=\operatorname*{max}_{\pi}v_{\pi}(s),
+v_{*}(s)=\operatorname*{max}_{\pi}v_{\pi}(s),\tag{3.13}
 $$ 
 for all $s\in\mathcal{S}$ . 
+
+>  求解一个 RL 问题大致意味着找到一个可以在长期执行下获得大量奖励的策略
+>  对于有限 MDP，可以确切地定义一个最优策略：价值函数定义了策略之间的一个偏序关系，对于所有的状态，如果一个策略 $\pi$ 的价值不小于另一个策略 $\pi'$ 的价值，就称策略 $\pi$ 相对于 $\pi'$ 是更优的或者至少是等价的，即 $\pi \ge \pi'$ 当且仅当 $v_\pi(s)\ge v_{\pi'}(s)\quad \forall s \in \mathcal S$
+>  有限 MDP 中，总是存在至少一个策略，它大于等于所有其他策略，该策略即最优策略，最优策略也不一定仅有一个，我们记所有最优策略为 $\pi_*$
+>  所有最优策略在价值函数层面等价，或者说它们共享相同的状态价值函数，最优策略的状态价值函数记作 $v_*(s)$，定义如上
+
 Optimal policies also share the same optimal action-value function, denoted $q_{*}$ , and defined as 
+
 $$
-q_{*}(s,a)=\operatorname*{max}_{\pi}q_{\pi}(s,a),
+q_{*}(s,a)=\operatorname*{max}_{\pi}q_{\pi}(s,a),\tag{3.14}
 $$ 
-for all $s\in\mathcal{S}$ and $a\in\mathcal{A}(s)$ . For the state–action pair $(s,a)$ , this function gives the expected return for taking action $a$ in state $s$ and thereafter following an optimal policy. Thus, we can write $q_{*}$ in terms of $v_{*}$ as follows: 
+for all $s\in\mathcal{S}$ and $a\in\mathcal{A}(s)$ . For the state–action pair $(s,a)$ , this function gives the expected return for taking action $a$ in state $s$ and thereafter following an optimal policy. 
+
+>  最优策略同样共享相同的动作价值函数，记作 $q_*$，定义如上
+>  该价值函数给出了在状态 $s$ 执行动作 $a$，之后遵循一个最优策略所能得到的期望回报
+
+Thus, we can write $q_{*}$ in terms of $v_{*}$ as follows: 
+
 $$
-q_{*}(s,a)=\mathbb{E}[R_{t+1}+\gamma v_{*}(S_{t+1})\mid S_{t}=s,A_{t}=a].
+\begin{align}
+q_{*}(s,a)=\mathbb{E}[R_{t+1}+\gamma v_{*}(S_{t+1})\mid S_{t}=s,A_{t}=a].\tag{3.15}
+\end{align}
 $$ 
+>  因此，最优动作价值函数和下一个状态的最优状态价值函数存在如上的关系 (这里的求期望实际上就是在对后继状态求期望)
+
 Example 3.10: Optimal Value Functions for Golf The lower part of Figure 3.6 shows the contours of a possible optimal action-value function $q_{*}(s,\mathtt{d r i v e r})$ . These are the values of each state if we first play a stroke with the driver and afterward select either the driver or the putter, whichever is better. The driver enables us to hit the ball farther, but with less accuracy. We can reach the hole in one shot using the driver only if we are already very close; thus the $-1$ contour for $q_{*}(s,\mathtt{d r i v e r})$ covers only a small portion of the green. If we have two strokes, however, then we can reach the hole from much farther away, as shown by the $-2$ contour. In this case we don’t have to drive all the way to within the small $-1$ contour, but only to anywhere on the green; from there we can use the putter. The optimal action-value function gives the values after committing to a particular first action, in this case, to the driver, but afterward using whichever actions are best. The $^{-3}$ contour is still farther out and includes the starting tee. From the tee, the best sequence of actions is two drives and one putt, sinking the ball in three strokes. 
-Because $v_{*}$ is the value function for a policy, it must satisfy the selfconsistency condition given by the Bellman equation for state values (3.12). Because it is the optimal value function, however, $v_{*}$ ’s consistency condition can be written in a special form without reference to any specific policy. This is the Bellman equation for $v_{*}$ , or the Bellman optimality equation. Intuitively, the Bellman optimality equation expresses the fact that the value of a state under an optimal policy must equal the expected return for the best action from that state: 
+
+Because $v_{*}$ is the value function for a policy, it must satisfy the self-consistency condition given by the Bellman equation for state values (3.12). Because it is the optimal value function, however, $v_{*}$ ’s consistency condition can be written in a special form without reference to any specific policy. This is the Bellman equation for $v_{*}$ , or the Bellman optimality equation. 
+>  最优状态价值函数 $v_*$ 也是某个最优策略的价值函数，故显然也满足 Bellman 方程给出的自一致条件
+>  $v_*$ 的一致性条件可以进一步写为不参照任意特定策略的特殊形式，即 $v_*$ 的 Bellman 方程，我们称为 Bellman 最优方程
+
+Intuitively, the Bellman optimality equation expresses the fact that the value of a state under an optimal policy must equal the expected return for the best action from that state: 
+
 $$
-\begin{array}{r l}{v_{*}(s)}&{=\underset{a\in A_{(t)}^{(k)}}{\operatorname*{max}}q_{\pi_{*}}(s,a)}\ &{=\underset{a}{\operatorname*{max}}\mathbb{E}_{\mathbf{z}^{*}}[G_{t}|S_{t}=s,A_{t}=a]}\ &{=\underset{a\in B_{(t)}^{(k)}}{\operatorname*{max}}\mathbb{E}_{\mathbf{z}^{*}}\Bigg[\underset{k=0}{\overset{\infty}{\sum}}\gamma^{k}R_{t+k+1}\Bigg|S_{t}=s,A_{t}=a\Bigg]}\ &{=\underset{a\in A_{(t)}^{k}}{\operatorname*{max}}\mathbb{E}_{\mathbf{z}^{*}}\Bigg[R_{t+1}+\gamma\underset{k=0}{\overset{\infty}{\sum}}\gamma^{k}R_{t+k+2}\Bigg|S_{t}=s,A_{t}=a\Bigg]}\ &{=\underset{a\in A_{(t)}^{k}}{\operatorname*{max}}\mathbb{E}[R_{t+1}+\gamma v_{*}(S_{t+1})|S_{t}=s,A_{t}=a]}\ &{=\underset{a\in A_{(t)}^{(k)}}{\operatorname*{max}}\underset{s\neq r}{\operatorname*{m}}p(s^{\prime},r|s,a)\big[r+\gamma v_{*}(s^{\prime})\big].}\end{array}
-$$ 
-The last two equations are two forms of the Bellman optimality equation for $v_{*}$ . The Bellman optimality equation for $q_{*}$ is 
+\begin{align}
+v_*(s) &= \max_{a\in \mathcal A(s)}q_{\pi_*}(s, a)\\
+&=\max_a \mathbb E_{\pi^*}[G_t\mid S_t = s, A_t = a]\\
+&=\max_a \mathbb E_{\pi^*}\left[\sum_{k=0}^\infty \gamma^k R_{t+k+1}\mid S_t = s, A_t = a\right]\\
+&=\max_a \mathbb E_{\pi^*}\left[R_{t+1} + \gamma\cdot\sum_{k=0}^\infty \gamma^{k} R_{t+k+2}\mid S_t = s, A_t = a\right]\\
+&=\max_a \mathbb E\left[R_{t+1} + \gamma v_*(S_{t+1})\mid S_t = s, A_t = a\right]\tag{3.16}\\
+&=\max_a \sum_{s',r}p(s',r'\mid s, a)[r + \gamma v_*(s')]\tag{3.17}
+\end{align}
 $$
-\begin{array}{r c l}{\displaystyle q_{*}(s,a)}&{=}&{\mathbb{E}\left[R_{t+1}+\gamma\operatorname*{max}_{a^{\prime}}q_{*}(S_{t+1},a^{\prime})~\middle|~S_{t}=s,A_{t}=a\right]}\ &{=}&{\displaystyle\sum_{s^{\prime},r}p(s^{\prime},r|s,a)\Big[r+\gamma\operatorname*{max}_{a^{\prime}}q_{*}(s^{\prime},a^{\prime})\Big].}\end{array}
-$$ 
+
+The last two equations are two forms of the Bellman optimality equation for $v_{*}$ . 
+
+>  直观上，Bellman 最优方程表明了最优策略下的状态价值一定等于从该状态采取最佳行动的期望回报
+
+The Bellman optimality equation for $q_{*}$ is 
+
+$$
+\begin{align}
+q_*(s, a) 
+&=\mathbb E_{\pi^*}\left[G_t\mid S_t = s, A_t = a\right]\\
+&=\mathbb E_{\pi^*}\left[\sum_{k=0}^\infty \gamma^kR_{t+k+1}\mid S_t = s, A_t = a\right]\\
+&=\mathbb E_{\pi^*}\left[R_{t+1} + \gamma\cdot \sum_{k=0}^\infty\gamma^k R_{t+k+2}\mid S_t = s, A_t = a\right]\\
+&=\mathbb E_{}\left[R_{t+1} + \gamma v_*(S_{t+1})\mid S_t = s, A_t = a\right]\\
+&= \mathbb E\left[R_{t+1} + \gamma\max_{a'} q_*(S_{t+1}, a')\mid S_t = s, A_t = a\right]\\
+&=\sum_{s',r}p(s',r\mid s, a)[r + \gamma \max_{a'}q_*(s', a')]
+\end{align}
+$$
+
+>  最优动作价值函数 $q_*$ 的 Bellman 最优方程如上
+
 The backup diagrams in Figure 3.7 show graphically the spans of future states and actions considered in the Bellman optimality equations for $v_{*}$ and $q_{*}$ . These are the same as the backup diagrams for $v_{\pi}$ and $q_{\pi}$ except that arcs have been added at the agent’s choice points to represent that the maximum over that choice is taken rather than the expected value given some policy. Figure 3.7a graphically represents the Bellman optimality equation (3.17). 
+>  Figure 3.7 展示了 Bellman 最优方程所考虑的未来状态和动作，图形和之前是相同的，差异在于为智能体的选择点添加了弧线，以表示智能体仅选择达到最大值的动作，而不是计算期望值
+
 For finite MDPs, the Bellman optimality equation (3.17) has a unique solution independent of the policy. The Bellman optimality equation is actually a system of equations, one for each state, so if there are $N$ states, then there are $N$ equations in $N$ unknowns. If the dynamics of the environment are known $(p(s^{\prime},r|s,a))$ , then in principle one can solve this system of equations for $v_{*}$ using any one of a variety of methods for solving systems of nonlinear equations. One can solve a related set of equations for $q_{*}$ . 
+>  对于有限 Markov 决策过程，Bellman 最优方程有独立于策略的唯一解
+>  Bellman 最优方程本质是一个方程组，每个状态贡献一个方程，如果有 $N$ 个状态，就有 $N$ 个未知数的 $N$ 个方程，如果环境动态 $p(s', r\mid s, a)$ 已知，则原则上可以求解该方程组以得到 $v_*$， $q_*$ 同理
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/b3b0bf249c33bdbaa61d946b8261f51a2cc318c1da400a346e20c36791969953.jpg) 
+
+
 Figure 3.7: Backup diagrams for (a) $v_{*}$ and (b) $q_{*}$ 
-Once one has $v_{*}$ , it is relatively easy to determine an optimal policy. For each state $s$ , there will be one or more actions at which the maximum is obtained in the Bellman optimality equation. Any policy that assigns nonzero probability only to these actions is an optimal policy. You can think of this as a one-step search. If you have the optimal value function, $v_{*}$ , then the actions that appear best after a one-step search will be optimal actions. Another way of saying this is that any policy that is greedy with respect to the optimal evaluation function $v_{*}$ is an optimal policy. The term greedy is used in computer science to describe any search or decision procedure that selects alternatives based only on local or immediate considerations, without considering the possibility that such a selection may prevent future access to even better alternatives. Consequently, it describes policies that select actions based only on their short-term consequences. The beauty of $v_{*}$ is that if one uses it to evaluate the short-term consequences of actions—specifically, the one-step consequences—then a greedy policy is actually optimal in the longterm sense in which we are interested because $v_{*}$ already takes into account the reward consequences of all possible future behavior. By means of $v_{*}$ , the optimal expected long-term return is turned into a quantity that is locally and immediately available for each state. Hence, a one-step-ahead search yields the long-term optimal actions. 
+
+Once one has $v_{*}$ , it is relatively easy to determine an optimal policy. For each state $s$ , there will be one or more actions at which the maximum is obtained in the Bellman optimality equation. Any policy that assigns nonzero probability only to these actions is an optimal policy. 
+>  解出最优状态价值函数 $v_*$ 之后，就容易决定最优策略：对于每个状态 $s$，会存在一组动作使得 Bellman 最优方程 $\max_a \mathbb E\left[R_{t+1} + \gamma v_*(S_{t+1})\mid S_t = s, A_t = a\right]$ 中的期望取到最大，任意对这组动作赋予非零概率值，对其余动作赋予零概率值的策略就都是最优策略
+
+You can think of this as a one-step search. If you have the optimal value function, $v_{*}$ , then the actions that appear best after a one-step search will be optimal actions. Another way of saying this is that any policy that is greedy with respect to the optimal evaluation function $v_{*}$ is an optimal policy. 
+>  这个过程可以视作一步搜索，已知最优状态价值函数 $v_*$ 之后，在一步搜索之后最优的动作就是最优策略会执行的动作
+>  换句话说，任意相对于最优状态价值函数 $v_*$ 是贪心的策略都是最优策略
+
+The term greedy is used in computer science to describe any search or decision procedure that selects alternatives based only on local or immediate considerations, without considering the possibility that such a selection may prevent future access to even better alternatives. Consequently, it describes policies that select actions based only on their short-term consequences. The beauty of $v_{*}$ is that if one uses it to evaluate the short-term consequences of actions—specifically, the one-step consequences—then a greedy policy is actually optimal in the long-term sense in which we are interested because $v_{*}$ already takes into account the reward consequences of all possible future behavior. By means of $v_{*}$ , the optimal expected long-term return is turned into a quantity that is locally and immediately available for each state. Hence, a one-step-ahead search yields the long-term optimal actions. 
+>  最优状态状态价值函数 $v_*$ 已经考虑了所有未来可能行为的奖励后果，因此基于 $v_*$ 进行贪心决策 (基于一步搜索的结果进行决策) 就能得到长期上最优的行动。$v_*$ 将最优的长期回报转化为可以局部地基于每个状态立即获得的量
+
 Having $q_{*}$ makes choosing optimal actions still easier. With $q_{*}$ , the agent does not even have to do a one-step-ahead search: for any state $s$ , it can simply find any action that maximizes $q_{*}(s,a)$ . The action-value function effectively caches the results of all one-step-ahead searches. It provides the optimal expected long-term return as a value that is locally and immediately available for each state–action pair. Hence, at the cost of representing a function of state–action pairs, instead of just of states, the optimal action-value function allows optimal actions to be selected without having to know anything about possible successor states and their values, that is, without having to know anything about the environment’s dynamics. 
+>  解出 $q_*$ 之后，仍然可以容易选择最优行动，对于任意状态 $s$ ，智能体只需要找到能够最大化 $q_*(s, a)$ 的动作
+>  动作价值函数有效存储了所有一步搜索 (即执行一次动作) 的结果，提供了局部地基于每个状态-动作对就可以知道的最优期望长期回报值
+>  因此基于最优动作价值函数可以在不需要知道可能的后继状态和其价值的情况下进行判断，也就是不需要知道环境动态
+
 Example 3.11: Bellman Optimality Equations for the Recycling Robot Using (3.17), we can explicitly give the Bellman optimality equation for the recycling robot example. To make things more compact, we abbreviate the states high and low, and the actions search, wait, and recharge respectively by h, l, s, w, and re. Since there are only two states, the Bellman optimality equation consists of two equations. The equation for $v_{*}(\mathtt{h})$ can be written as follows: 
+
 $$
-\begin{array}{r l}{\mathrm{\boldmath~\psi_*(h)~}=}&{\operatorname*{max}\left\{\begin{array}{l l}{p(\mathrm{h}|\mathbf{h},\mathbf{s})[r(\mathbf{h},\mathbf{s},\mathbf{h})+\gamma v_{*}(\mathbf{h})]+p(\mathrm{\mathbb{1}}|\mathbf{h},\mathbf{s})[r(\mathbf{h},\mathbf{s},\mathbf{1})+\gamma v_{*}(\mathbf{1})],}\ {p(\mathrm{h}|\mathbf{h},\mathbf{v})[r(\mathbf{h},\mathbf{v},\mathbf{h})+\gamma v_{*}(\mathbf{h})]+p(\mathrm{\mathbb{1}}|\mathbf{h},\mathbf{v})[r(\mathbf{h},\mathbf{w},\mathbf{1})+\gamma v_{*}(\mathbf{1})]}\end{array}\right\}}\ {=}&{\operatorname*{max}\left\{\begin{array}{l l}{\alpha[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{h})]+(1-\alpha)[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{1})],}\ {1[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{h})]+0[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{1})]}\end{array}\right\}}\ {=}&{\operatorname*{max}\left\{\begin{array}{l l}{r_{\mathbf{s}}+\gamma[\alpha v_{*}(\mathbf{h})+(1-\alpha)v_{*}(\mathbf{1})],}\ {r_{\mathbf{u}}+\gamma v_{*}(\mathbf{h})}\end{array}\right\}.}\end{array}
+\begin{array}{r l}{\mathrm{~\psi_*(h)~}=}&{\operatorname*{max}\left\{\begin{array}{l l}{p(\mathrm{h}|\mathbf{h},\mathbf{s})[r(\mathbf{h},\mathbf{s},\mathbf{h})+\gamma v_{*}(\mathbf{h})]+p(\mathrm{\mathbb{1}}|\mathbf{h},\mathbf{s})[r(\mathbf{h},\mathbf{s},\mathbf{1})+\gamma v_{*}(\mathbf{1})],}\ {p(\mathrm{h}|\mathbf{h},\mathbf{v})[r(\mathbf{h},\mathbf{v},\mathbf{h})+\gamma v_{*}(\mathbf{h})]+p(\mathrm{\mathbb{1}}|\mathbf{h},\mathbf{v})[r(\mathbf{h},\mathbf{w},\mathbf{1})+\gamma v_{*}(\mathbf{1})]}\end{array}\right\}}\ {=}&{\operatorname*{max}\left\{\begin{array}{l l}{\alpha[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{h})]+(1-\alpha)[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{1})],}\ {1[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{h})]+0[r_{\mathbf{s}}+\gamma v_{*}(\mathbf{1})]}\end{array}\right\}}\ {=}&{\operatorname*{max}\left\{\begin{array}{l l}{r_{\mathbf{s}}+\gamma[\alpha v_{*}(\mathbf{h})+(1-\alpha)v_{*}(\mathbf{1})],}\ {r_{\mathbf{u}}+\gamma v_{*}(\mathbf{h})}\end{array}\right\}.}\end{array}
 $$ 
 Following the same procedure for $v_{*}(1)$ yields the equation 
+
 $$
 v_{*}(1)=\operatorname*{max}\left\{\begin{array}{l}{\beta r_{\mathrm{s}}-3(1-\beta)+\gamma[(1-\beta)v_{*}(\mathrm{h})+\beta v_{*}(1)]}\ {r_{\mathrm{u}}+\gamma v_{*}(1),}\ {\gamma v_{*}(\mathrm{h})}\end{array}\right\}.
 $$ 
 For any choice of $r_{\mathrm{s}}$ , $r_{\mathrm{{w}}}$ , $\alpha$ , $\beta$ , and $\gamma$ , with $0\leq\gamma<1$ , $0\leq\alpha,\beta\leq1$ , there is exactly one pair of numbers, $v_{*}(\mathtt{h})$ and $v_{*}(1)$ , that simultaneously satisfy these two nonlinear equations. 
+
 Example 3.12: Solving the Gridworld Suppose we solve the Bellman equation for $v_{*}$ for the simple grid task introduced in Example 3.8 and shown again in Figure 3.8a. Recall that state A is followed by a reward of $+10$ and transition to state $\mathrm{A}^{\prime}$ , while state B is followed by a reward of $+5$ and transition to state $\mathrm{B^{\prime}}$ . Figure 3.8b shows the optimal value function, and Figure 3.8c shows the corresponding optimal policies. Where there are multiple arrows in a cell, any of the corresponding actions is optimal. 
+
 Explicitly solving the Bellman optimality equation provides one route to finding an optimal policy, and thus to solving the reinforcement learning problem. However, this solution is rarely directly useful. It is akin to an exhaustive search, looking ahead at all possibilities, computing their probabilities of occurrence and their desirabilities in terms of expected rewards. This solution relies on at least three assumptions that are rarely true in practice: (1) we accurately know the dynamics of the environment; (2) we have enough computational resources to complete the computation of the solution; and (3) the Markov property. For the kinds of tasks in which we are interested, one is generally not able to implement this solution exactly because various combinations of these assumptions are violated. For example, although the first and third assumptions present no problems for the game of backgammon, the second is a major impediment. Since the game has about $10^{20}$ states, it would take thousands of years on today’s fastest computers to solve the Bellman equation for $v_{*}$ , and the same is true for finding $q_{*}$ . In reinforcement learning one typically has to settle for approximate solutions. 
+>  获取最优策略的一种方式就是显示求解 Bellman 最优方程，但 Bellman 最优方程的求解要求遍历所有的可能性，且依赖于实践中较少成立的三个假设
+>  1. 确切知道环境动态
+>  2. 具有足够计算资源求解
+>  3. 满足 Markov 性质
+>  状态集合的大小往往是指数级别，因此确切求解 Bellman 最优方程往往不现实
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/70982c51cdbfc121197ae7db3f3f084106132d14fae4c14289a72c075209a8ab.jpg) 
+
 Figure 3.8: Optimal solutions to the gridworld example. 
+
 Many different decision-making methods can be viewed as ways of approximately solving the Bellman optimality equation. For example, heuristic search methods can be viewed as expanding the right-hand side of (3.17) several times, up to some depth, forming a “tree” of possibilities, and then using a heuristic evaluation function to approximate $v_{*}$ at the “leaf” nodes. (Heuristic search methods such as A∗ are almost always based on the episodic case.) The methods of dynamic programming can be related even more closely to the Bellman optimality equation. Many reinforcement learning methods can be clearly understood as approximately solving the Bellman optimality equation, using actual experienced transitions in place of knowledge of the expected transitions. We consider a variety of such methods in the following chapters. 
+>  许多决策过程可以视作近似求解 Bellman 最优方程，例如启发式搜索可以认为是多次展开 Eq 3.17 的 RHS，构成一个树，在叶子节点近似 $v_*$，又例如动态规划，以及许多 RL 方法
+
 ## 3.9 Optimality and Approximation 
 We have defined optimal value functions and optimal policies. Clearly, an agent that learns an optimal policy has done very well, but in practice this rarely happens. For the kinds of tasks in which we are interested, optimal policies can be generated only with extreme computational cost. A well-defined notion of optimality organizes the approach to learning we describe in this book and provides a way to understand the theoretical properties of various learning algorithms, but it is an ideal that agents can only approximate to varying degrees. As we discussed above, even if we have a complete and accurate model of the environment’s dynamics, it is usually not possible to simply compute an optimal policy by solving the Bellman optimality equation. For example, board games such as chess are a tiny fraction of human experience, yet large, custom-designed computers still cannot compute the optimal moves. A critical aspect of the problem facing the agent is always the computational power available to it, in particular, the amount of computation it can perform in a single time step. 
 The memory available is also an important constraint. A large amount of memory is often required to build up approximations of value functions, policies, and models. In tasks with small, finite state sets, it is possible to form these approximations using arrays or tables with one entry for each state (or state–action pair). This we call the tabular case, and the corresponding methods we call tabular methods. In many cases of practical interest, however, there are far more states than could possibly be entries in a table. In these cases the functions must be approximated, using some sort of more compact parameterized function representation. 
 Our framing of the reinforcement learning problem forces us to settle for approximations. However, it also presents us with some unique opportunities for achieving useful approximations. For example, in approximating optimal behavior, there may be many states that the agent faces with such a low probability that selecting suboptimal actions for them has little impact on the amount of reward the agent receives. Tesauro’s backgammon player, for example, plays with exceptional skill even though it might make very bad decisions on board configurations that never occur in games against experts. In fact, it is possible that TD-Gammon makes bad decisions for a large fraction of the game’s state set. The on-line nature of reinforcement learning makes it possible to approximate optimal policies in ways that put more effort into learning to make good decisions for frequently encountered states, at the expense of less effort for infrequently encountered states. This is one key property that distinguishes reinforcement learning from other approaches to approximately solving MDPs. 
+
 ## 3.10 Summary 
 Let us summarize the elements of the reinforcement learning problem that we have presented in this chapter. Reinforcement learning is about learning from interaction how to behave in order to achieve a goal. The reinforcement learning agent and its environment interact over a sequence of discrete time steps. The specification of their interface defines a particular task: the actions are the choices made by the agent; the states are the basis for making the choices; and the rewards are the basis for evaluating the choices. Everything inside the agent is completely known and controllable by the agent; everything outside is incompletely controllable but may or may not be completely known. A policy is a stochastic rule by which the agent selects actions as a function of states. The agent’s objective is to maximize the amount of reward it receives over time. 
 The return is the function of future rewards that the agent seeks to maximize. It has several different definitions depending upon the nature of the task and whether one wishes to discount delayed reward. The undiscounted formulation is appropriate for episodic tasks, in which the agent–environment interaction breaks naturally into episodes; the discounted formulation is appropriate for continuing tasks, in which the interaction does not naturally break into episodes but continues without limit. 
