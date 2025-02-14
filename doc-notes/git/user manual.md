@@ -90,6 +90,8 @@ Create a new branch head pointing to one of these versions and check it out usin
 $ git switch -c new v2.6.13
 ```
 
+>  `git switch` 用于切换分支以及创建新分支
+
 The working directory then reflects the contents that the project had when it was tagged v2.6.13, and [git-branch(1)](git-branch.html) shows two branches, with an asterisk marking the currently checked-out branch:
 
 ```
@@ -106,9 +108,12 @@ $ git reset --hard v2.6.17
 
 Note that if the current branch head was your only reference to a particular point in history, then resetting that branch may leave you with no way to find the history it used to point to; so use this command carefully.
 
+>  `git reset` 可以用于将当前分支强制设置为指向其他提交
+
 ## Understanding History: Commits
 Every change in the history of a project is represented by a commit. The [git-show(1)](git-show.html) command shows the most recent commit on the current branch:
 
+```
 $ git show
 commit 17cf781661e6d38f737f15f53ab552f1e95960d7
 Author: Linus Torvalds <torvalds@ppc970.osdl.org.(none)>
@@ -131,43 +136,51 @@ index 65898fa..b002dc6 100644
         int len, i;
 
         if (mkdir(".git", 0755) < 0) {
+```
+
+>  `git show` 展示当前分支最近的一次提交
 
 As you can see, a commit shows who made the latest change, what they did, and why.
 
 Every commit has a 40-hexdigit id, sometimes called the "object name" or the "SHA-1 id", shown on the first line of the `git show` output. You can usually refer to a commit by a shorter name, such as a tag or a branch name, but this longer name can also be useful. Most importantly, it is a globally unique name for this commit: so if you tell somebody else the object name (for example in email), then you are guaranteed that name will refer to the same commit in their repository that it does in yours (assuming their repository has that commit at all). Since the object name is computed as a hash over the contents of the commit, you are guaranteed that the commit can never change without its name also changing.
+>  每个提交由 40 位 16 进制 id 标识，可以称为“对象名”或“SHA-1 id”，该 id 是全局唯一的，本质是该提交信息的哈希值
 
-In fact, in [Chapter 7, _Git concepts_](#git-concepts "Chapter 7. Git concepts") we shall see that everything stored in Git history, including file data and directory contents, is stored in an object with a name that is a hash of its contents.
+In fact, in [Chapter 7, _Git concepts_]( #git-concepts "Chapter 7. Git concepts") we shall see that everything stored in Git history, including file data and directory contents, is stored in an object with a name that is a hash of its contents.
+>  Git 历史中所有存储的内容，包括文件数据、目录内容，都存储在由其内容的哈希值命名的对象中
 
 ### Understanding history: commits, parents, and reachability
-
 Every commit (except the very first commit in a project) also has a parent commit which shows what happened before this commit. Following the chain of parents will eventually take you back to the beginning of the project.
+>  除了初始提交，每个提交都有至少一个父提交
 
 However, the commits do not form a simple list; Git allows lines of development to diverge and then reconverge, and the point where two lines of development reconverge is called a "merge". The commit representing a merge can therefore have more than one parent, with each parent representing the most recent commit on one of the lines of development leading to that point.
+>  提交历史中，两条收敛的开发线称为“合并”，合并提交有两个父提交
 
 The best way to see how this works is using the [gitk(1)](gitk.html) command; running gitk now on a Git repository and looking for merge commits will help understand how Git organizes history.
+>  `gitk` 用于可视化仓库的提交历史
 
 In the following, we say that commit X is "reachable" from commit Y if commit X is an ancestor of commit Y. Equivalently, you could say that Y is a descendant of X, or that there is a chain of parents leading from commit Y to commit X.
+>  如果提交 X 是提交 Y 的祖先，称提交 X 对于提交 Y 是可达的
 
 ### Understanding history: History diagrams
+We will sometimes represent Git history using diagrams like the one below. Commits are shown as "o", and the links between them with lines drawn with - / and \\. Time goes left to right:
 
-We will sometimes represent Git history using diagrams like the one below. Commits are shown as "o", and the links between them with lines drawn with - / and \. Time goes left to right:
-
+```
          o--o--o <-- Branch A
         /
  o--o--o <-- master
         \
          o--o--o <-- Branch B
+```
 
 If we need to talk about a particular commit, the character "o" may be replaced with another letter or number.
 
 ### Understanding history: What is a branch?
-
 When we need to be precise, we will use the word "branch" to mean a line of development, and "branch head" (or just "head") to mean a reference to the most recent commit on a branch. In the example above, the branch head named "A" is a pointer to one particular commit, but we refer to the line of three commits leading up to that point as all being part of "branch A".
+>  "分支"用于指某一条开发线，“分支头/头”用于指对该分支上最近的一个提交的引用/指针
 
 However, when no confusion will result, we often just use the term "branch" both for branches and for branch heads.
 
 ## Manipulating branches
-
 Creating, deleting, and modifying branches is quick and easy; here’s a summary of the commands:
 
 `git branch`
