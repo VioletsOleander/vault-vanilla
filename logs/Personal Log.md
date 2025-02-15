@@ -1136,5 +1136,9 @@ Date: 2025.2.3-2025.2.10
 ### Week3
 Date: 2025.2.10-2025.2.17
 
+\[Book\]
+- [[book-notes/深度强化学习|深度强化学习]]: CH4, CH5
+- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH3
+
 \[Doc\]
 - [[doc-notes/pytorch/docs/developer-notes/Reproducibility|pytorch/docs/developer-notes/Reproducibility]]: All
