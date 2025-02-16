@@ -756,6 +756,7 @@ al\-i\-do\-cious.
 
 # 3 文档元素 
 在知道了如何输入文字后，我们将在本章了解一个结构化的文档所依赖的各种元素——章节、目录、列表、图表、交叉引用、脚注等等。 
+
 ## 3.1 章节和目录 
 ### 3.1.1 章节标题 
 一篇结构化的、条理清晰文档一定是层次分明的，通过不同的命令分割为章、节、小节。三个标准文档类 article、report 和 book提供了划分章节的命令： 
@@ -1071,36 +1072,85 @@ LaTeX 提供了基本的有序和无序列表环境 enumerate 和 itemize，两�
 \end{description}
 ```
 
-各级无序列表的符号由命令 \labelitemi 到 \label item iv 定义，可以简单地重新定义它 \renew command{ \labelitemi}{ \ddag}
-  \renew command{ \label item ii}{ \dag}
-  \begin{itemize}  \item First item  \begin{itemize}  \item Subitem  \item Subitem  \end{itemize}  \item Second item
-  \end{itemize} 
-‡ First item † Subitem † Subitem
- ‡ Second item 有序列表的符号由命令 \labelenumi 到 \label e num iv 定义，重新定义这些命令需要用到 8.3 节的计数器相关命令： 
- \renew command{ \labelenumi}% { \Alph{enumi}>}
- \begin{enumerate}  \item First item  \item Second item
-  \end{enumerate} 
-$ \mathrm{A} \!>$ First item
- $ \mathrm{B} \!>$ Second item 默认的列表间距比较宽， $ \mathrm{emptyset}$ 本身也未提供方便的定制功能，可用 enumitem 宏包定制各种列表间距。enumitem 宏包还提供了对列表标签、引用等的定制。有兴趣的读者可参考其帮助文档。 
+>  `description` 环境的用法和 `enumerate` 和 `itemize` 类似，差异在于 `description` 环境中 `\item` 命令的可选参数会以粗体显示
+
+各级无序列表的符号由命令 \labelitemi 到 \labelitemiv 定义，可以简单地重新定义它
+
+```latex
+\renewcommand{\labelitemi}{\ddag}
+\renewcommand{\labemitemii}{\dag}
+\begin{itemize}
+    \item First item
+    \begin{itemize}
+        \item Subitem
+        \item Subitem
+    \end{itemize}
+    \item Second item
+\end{itemize}
+```
+
+>  可以用 `\renewcommand` 重新定义无序列表的符号
+ 
+ 有序列表的符号由命令 \labelenumi 到 \labelenumiv 定义，重新定义这些命令需要用到 8.3 节的计数器相关命令： 
+
+ ```latex
+ \renewcommand{labelnumi}%
+     {\Alph{enumi}>}
+ \begin{enumerate}
+     \item First item
+     \item Second item
+ \end{enumerate}
+ ```
+
+ >  有序列表的符号也可以重新定义
+
+默认的列表间距比较宽， LaTeX 本身也未提供方便的定制功能，可用 enumitem 宏包定制各种列表间距。enumitem 宏包还提供了对列表标签、引用等的定制。有兴趣的读者可参考其帮助文档。 
  
 ### 3.5.2 对齐环境 
 center、flushleft 和 flushright 环境分别用于生成居中、左对齐和右对齐的文本环境。 
- \begin{center} …  \end{center}  \begin{flushleft} …  \end{flushleft}  \begin{flushright} …  \end{flushright} 
- \begin{center} Centered TeXt using a
-  \verb|center| environment.
-  \end{center}
-  \begin{flushleft} Left-aligned TeXt using a
-  \verb|flushleft| environment.
-  \end{flushleft}
-  \begin{flushright} Right-aligned TeXt using a
-  \verb|flushright| environment.
-  \end{flushright} 
-Centered TeXt using a center environment. Left-aligned TeXt using a flushleft environment. 
-Right-aligned TeXt using a flushright 除此之外，还可以用以下命令直接改变文字的对齐方式： 
- \centering  \ragged right  \raggedleft 
- \centering Centered TeXt paragraph.  \ragged right Left-aligned TeXt paragraph.  \raggedleft Right-aligned TeXt paragraph. 
-Centered TeXt paragraph. Left-aligned TeXt paragraph. Right-aligned TeXt paragraph. 
-三个命令和对应的环境经常被误用，有直接用所谓 \flushleft 命令或者 ragged right 环境的，都是不甚严格的用法 (即使它们可能有效)。有一点可以将两者区分开来：center 等环境会在上下文产生一个额外间距，而 \centering 等命令不产生，只是改变对齐方式。比如在浮动体环境 table 或 figure 内实现居中对齐，用 \centering 命令即可，没必要再用 center 环境。 
+
+```latex
+\begin{center} ... \end{center}
+\begin{flushleft} ... \end{flushleft}
+\begin{flushright} ... \end{flushright}
+```
+
+```latex
+\begin{center}
+Centered text using a \verb|center| environment
+\end{center}
+\begin{flushleft}
+Left-aligned text using a \verb|flushleft| environment
+\end{flushleft}
+\begin{flushright}
+Right-alighed text using a \verb|flushright| environment
+\end{flushright}
+```
+
+除此之外，还可以用以下命令直接改变文字的对齐方式： 
+
+```latex
+\centering
+\raggedright
+\raggedleft
+```
+
+```latex
+\centering
+Centered text paragraph
+
+\raagedright
+Left-aligned text paragraph
+
+\raagedleft
+Right-aligned text paragraph
+```
+
+三个命令和对应的环境经常被误用，有直接用所谓 \flushleft 命令或者 ragged right 环境的，都是不甚严格的用法 (即使它们可能有效)。
+有一点可以将两者区分开来：center 等环境会在上下文产生一个额外间距，而 \centering 等命令不产生，只是改变对齐方式。比如在浮动体环境 table 或 figure 内实现居中对齐，用 \centering 命令即可，没必要再用 center 环境。 
+
+>  `center` 等环境会在上下文产生一个额外的间距，`\centering` 等命令不产生，仅仅改变对齐方式
+
 ### 3.5.3 引用环境 
 LaTeX 提供了两种引用的环境：quote 用于引用较短的文字，首行不缩进；quotation 用于引用若干段文字，首行缩进。引用环境较一般文字有额外的左右缩进。 
 Francis Bacon says:  \begin{quote} Knowledge is power.  \end{quote} 
