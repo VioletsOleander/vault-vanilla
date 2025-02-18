@@ -21,6 +21,7 @@ Any line of the commit message cannot be longer 100 characters! This allows the 
 The footer should contain a [closing reference to an issue](https://help.github.com/articles/closing-issues-via-commit-messages/) if any.
 
 Samples: (even more [samples](https://github.com/angular/angular/commits/master))
+
 ```
 docs(changelog): update changelog to beta.5
 ```
@@ -31,7 +32,6 @@ fix(release): need to depend on latest rxjs and zone.js
 The version in our package.json gets copied to the one we publish, and users need the latest of these.
 ```
 ### Header
-
 #### Type
 > header 的 type 必须是以下类型的其中之一
 
