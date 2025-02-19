@@ -352,4 +352,162 @@ binding.bind_output(
 ```
 
 ### API Details
-(Ref to Original Doc)
+#### Inference Session
+
+```python
+class onnxruntime.InferenceSession
+```
+
+This is the main class used to run the model.
+
+#### Options
+##### RunOptions
+
+```python
+class onnxruntime.RunOptions
+```
+
+Configuration Information for a single run.
+
+##### SessionOptions
+
+```python
+class onnxruntime.SessionOptions
+```
+
+Configuration Information for a session.
+
+```python
+class onnxruntime.ExecutionMode
+class onnxruntime.ExecutionOrder
+class onnxruntime.GraphOptimizationLevel
+class onnxruntime.OrtAllocatorType
+class onnxruntime.OrtArenaCfg
+class onnxruntime.OrtMemeoryInfo
+class onnxruntime.OrtMemType
+```
+
+#### Functions
+##### Allocators
+
+```python
+onnxruntime.create_and_register_allocator() -> None
+onnxruntime.create_and_register_allocator_v2() -> None
+```
+
+##### Telemetry events
+
+```python
+onnxruntimme.disable_telemetry_events() -> None
+onnxruntimme.enable_telemetry_events() -> None
+```
+
+##### Providers
+
+```python
+onnxruntime.get_all_providers() -> list[str]
+onnxruntime.get_available_providers() -> list[str]
+```
+
+##### Build, Version
+
+```python
+onnxruntime.get_build_info() -> str
+onnxruntime.get_version_string() -> str
+onnxruntime.has_collecive_ops() -> bool
+```
+
+##### Device
+
+```python
+onnxruntime.get_device() -> str
+```
+
+Return the device used to compute the prediction (CPU, MKL, …)
+
+#### Logging
+
+```python
+onnxruntime.set_default_logger_severity() -> None
+```
+
+Sets the default logging severity. 0: Verbose, 1: Info, 2: Warning, 3: Error, 4:Fatal
+
+```python
+onnxruntime.set_default_logger_verbosity() -> None
+```
+
+Sets the default logging verbosity level. To activate the verbose log, you need to set the default logging severity to 0: Verbose level.
+
+#### Random
+
+```python
+onnxruntime.set_seed() -> None
+```
+
+Sets the seed used for random number generation in Onnxruntime.
+
+#### Data
+##### OrtValue
+
+```python
+class onnxruntime.OrtValue
+```
+
+A data structure that supports all ONNX data formats (tensors and non-tensors) that allows users to place the data backing these on a device, for example, on a CUDA supported device. This class provides APIs to construct and deal with OrtValues.
+
+##### SparseTensor
+
+```python
+class onnxruntime.SparseTensor
+```
+
+#### Devices
+##### IOBinding
+
+```python
+class onnxruntime.IOBinding
+```
+
+This class provides API to bind input/output to a specified device, e.g. GPU.
+
+```python
+class onnxruntime.SessionIOBinding
+```
+
+##### OrtDevice
+
+```python
+class onnxruntime.OrtDevice
+```
+
+#### Internal classes
+These classes cannot be instantiated by users but they are returned by methods or functions of this library.
+
+##### ModelMetaData
+
+```python
+class onnxruntime.ModelMetaData
+```
+
+##### NodeArg
+
+```python
+class onnxruntime.NodeArg
+```
+
+## Backend
+In addition to the regular API which is optimized for performance and usability, _ONNX Runtime_ also implements the [ONNX backend API](https://github.com/onnx/onnx/blob/main/docs/ImplementingAnOnnxBackend.md) for verification of _ONNX_ specification conformance. The following functions are supported:
+>  ONNX backend API 用于验证 ONNX 规范的一致性，包括以下函数
+
+```python
+onnxruntime.backend.is_compatible()
+onnxruntime.backend.prepare()
+onnxruntime.backend.run()
+onnxruntime.backend.support_device()
+```
+
+
+
+
+
