@@ -1138,10 +1138,33 @@ Date: 2025.2.10-2025.2.17
 
 \[Book\]
 - [[book-notes/深度强化学习|深度强化学习]]: CH4, CH5
-- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH3
+    CH4-DQN 与 Q 学习
+        最优动作价值函数 $Q_*(s, a)$ 可以用深度神经网络 $Q(s, a;\pmb w)$ 近似，该网络称为 DQN，DQN 的训练目标就是让近似函数 $Q(s, a;\pmb w)$ 尽可能接近最优动作价值函数 $Q_*(s, a)$
+        实践中，DQN 接受当前状态 $s$，直接输出 $|\mathcal A|$ 维的向量，给出了在动作空间所有可能动作下 $Q(s, a;\pmb w)$ 的预测
+        DQN 最常用的训练算法是时间差分 TD 算法，本质上 DQN 的训练目标就是让近似函数 $Q(s, a;\pmb w)$ 尽可能满足近似形式的最优 Bellman 方程，该近似方程的 RHS 就是 TD 目标，我们希望近似方程的 LHS 即 DQN 的预测尽可能接近 TD 目标，故损失函数可以定义为 DQN 的预测和 TD 目标的平方差，即 TD 误差的平方
+        DQN 依照 TD 算法训练时，需要的数据是四元组 $(s_t, a_t, r_t, s_{t+1})$，DQN 的训练和具体策略 $\pi$ 无关 (因为都是取最大)，唯一需要收集的事实反馈就是奖励，故收集数据时可以使用任意行为策略，例如 $\epsilon$ -greedy 策略
+        存储四元组 $(s_t, a_t, r_t, s_{t+1})$ 的数组称为经验回放数组
+        数据收集和 DQN 参数更新不一定要分离，可以同时进行，即收集一部分数据就更新
+        Q Learning 算法的目标是学习最优动作价值函数 $Q_*$，SARSA 算法的目标是学习特定策略的动作价值函数 $Q_\pi$
+        对于有限的状态空间和动作空间，最优动作价值函数 $Q_*(s, a)$ 可以表示为一个表格，每个状态-动作对都对应到表格中的一个确切的值，给定状态和动作，对应的价值可以直接在表格中搜索得到。在表格表示法下，Q Learning 的学习目标就是表格中的每一项数值，即直接根据 TD 误差对表格中的各项数值进行更新
+        同策略指用于收集经验/数据的行为策略和目标策略相同，异策略就是不同。使用 $\epsilon$ -greedy 作为行为策略就是异策略，像 $\epsilon$ -greedy 这样的带有随机性的行为策略的好处是可以探索更多的状态，同时可以通过让 $\epsilon$ 衰减来让随机性衰减
+    CH5-SARSA 算法
+        策略 $\pi$ 定义的动作价值函数 $Q_\pi(s, a)$ 可以用于判断策略的好坏
+        SARAS 算法的思想依旧是让近似函数 $q(s,a;\pmb w)$ 尽可能满足近似形式的 Bellman 方程，和 Q Learning 的差异在于，此时的近似 Bellman 方程涉及到了动作的采样值 $\tilde a_{t+1}$，该动作依赖于策略 $\pi$ 而采样
+        SARSA 算法需要的数据是五元组 $(s_t, a_t, r_t, s_{t+1}, \tilde a_{t+1})$，因此 SRSA 算法的行为策略只能是目标策略 $\pi$ 本身，不能任意
+        单步 TD 的 SARSA 算法可以进一步推广到多步 TD，其本质同样依赖于近似的 Bellman 方程
+        多步 TD 介于蒙特卡洛和自举之间，蒙特卡洛即采样到结束，自举即单步 TD，蒙特卡洛的好处是 $U_t$ 的估计是无偏的，坏处是方差大，自举的好处是采样少，方差少，坏处是有偏差
+- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH3.6-CH3.9
+    CH3-Finite Markov Decision Process
+        The Bellman equation average over all possibilities, weighting each by its probability of occurring. It states that the value of the start state must equal to the discounted value of the expected next state plus the expected reward along the way.
+        The value function $v_\pi$ is the only solution to its Bellman equation.
+        Bellman optimality equation states that the value of a state under an optimal policy equals to the expected return (value) for the best action from that state.
+        For finite MDP, Bellman optimality equation has a unique solution independent of the policy.
+        Bellman equation is actually a system of equations, one for each state. If the environment dynamics is known, the system of equation can be solved in principle.
+        After solving out the optimal value function, the optimal policy can be defined accordingly. Any policy that is greedy with respect to the optimal value function is optimal, because the optimal value function has considered all the possibilities in the future.
+        Explicitly solving the Bellman equation system requires three assumptions to hold: 1. environment dynamics known 2. sufficient computational resource 3. Markov property holds, which are generally violated in practice. Also, the cardinality of the state set is exponentially large. Therefore, explicitly solving the Bellman equation system is not realistic. We have to resort to approximate approaches.
 
 \[Doc\]
 - [[doc-notes/pytorch/docs/developer-notes/Reproducibility|pytorch/docs/developer-notes/Reproducibility]]: All
-
-
-
+    `torch.backends.cudnn.benchmark=False` will disable the benchmarking feature of cuDNN.
+    `torch.use_deterministic_algorithms()` will cause use the deterministic alternative of non-deterministic operations.
