@@ -196,6 +196,7 @@ That is, the probability that $\beta$ is true given that we know $\alpha$ is the
 The conditional probability given an event (say $\alpha$ ) satisfies the properties of definition 2.1 (see exercise 2.4), and thus it is a probability distribution by its own right. Hence, we can think of the conditioning operation as taking one distribution and returning another over the same probability space. 
 > 条件概率的定义满足定义 2.1 对于概率的定义，因此条件概率本身也是一个概率分布
 > 我们可以将条件运算视作输入一个概率分布，输出一个在相同概率空间的另一个概率分布
+
 #### 2.1.2.2 Chain Rule and Bayes Rule 
 From the definition of the conditional distribution, we immediately see that 
 
@@ -232,6 +233,7 @@ Example 2.2
 *Suppose that a tuberculosis (TB) skin test is 95 percent accurate. That is, if the patient is TB-infected, then the test will be positive with probability 0 . 95 , and if the patient is not infected, then the test will be negative with probability 0.95 . Now suppose that a person gets a positive test result. What is the probability that he is infected? Naive reasoning suggests that if the test result is wrong 5 percent of the time, then the probability that the subject is infected is 0.95 . That is, 95 percent of subjects with positive results have TB.* 
 
 *If we consider the problem by applying Bayes’ rule, we see that we need to consider the prior probability of TB infection, and the probability of getting positive test result. Suppose that 1 in 1000 of the subjects who get tested is infected. That is, $P(T B)=0.001$ . What is the probability of getting a positive t rom our description, we see that $0.001\cdot0.95$ positive result, and $0.999{\cdot}0.05$ · u $P(P o s i t i v e)=0.0509$ . Applying Bayes’ rule, we get that $P(T B\mid P o s i t i v e)=0.001\cdot0.95/0.0509\approx0.0187.$ Thus, although a subject with a positive test is much more probable to be TB-infected than is a random subject, fewer than 2 percent of these subjects are $T\!B$ -infected.* 
+
 ### 2.1.3 Random Variables and Joint Distributions 
 #### 2.1.3.1 Motivation 
 Our discussion of probability distributions deals with events. Formally, we can consider any event from the set of measurable events. The description of events is in terms of sets of outcomes. In many cases, however, it would be more natural to consider attributes of the outcome. For example, if we consider a patient, we might consider attributes such as “age,” “gender,” and “smoking history” that are relevant for assigning probability over possible diseases and symptoms. We would like then consider events such as “age $>55$ , heavy smoking history, and sufers from repeated cough.” 
@@ -274,6 +276,7 @@ For two assignments $\pmb x$ (to X)  and $\pmb y$ (to Y) , we say that $\pmb{x}\
 In many cases, the notation $P(X=x)$ is redundant, since the fact that $x$ is a value of X is already reported by our choice of letter. Thus, in many texts on probability, the identity of a random variable is not explicitly mentioned, but can be inferred through the notation used for its value. Thus, we use $P(x)$ as a shorthand for $P(X=x)$ when the identity of the random variable is clear from the context. 
 Another shorthand notation is that $\textstyle\sum x$ refers to a sum over all possible values that $X$ can take. Thus, the preceding statement will often appear as $\textstyle\sum_{x}P(x)=1$ . 
 Finally, another standard notation has to do with conjunction. Rather than write $P((X=x)\cap(Y=y))$  , we write $P(X=x,Y=y)$ , or just $P(x,y)$ . 
+
 #### 2.1.3.3 Marginal and Joint Distributions 
 Once we define a random variable $X$ , we can consider the distribution over events that can be described using $X$ . This distribution is often referred to as the marginal distribution over the random variable $X$ . We denote this distribution by $P(X)$ . 
 > 我们定义在随机变量上的边际分布为可以用随机变量描述的事件上的分布
@@ -323,7 +326,7 @@ P (X\mid Y)={\frac{P (X) P (Y\mid X)}{P (Y)}}.
 $$ 
 ### 2.1.4 Independence and Conditional Independence 
 #### 2.1.4.1 Independence 
-As we mentioned, we usually expect $P (\alpha\mid\beta)$ to be diferent from $P (\alpha)$ . That is, learning that $\beta$ is true changes our probability over α . However, in some situations equality can occur, so that $P (\alpha\mid\beta)=P (\alpha)$ . That is, learning that $\beta$ occurs did not change our probability of $\alpha$ . 
+As we mentioned, we usually expect $P (\alpha\mid\beta)$ to be different from $P (\alpha)$ . That is, learning that $\beta$ is true changes our probability over α . However, in some situations equality can occur, so that $P (\alpha\mid\beta)=P (\alpha)$ . That is, learning that $\beta$ occurs did not change our probability of $\alpha$ . 
 
 ***Definition 2.2*** 
 We say that an event $\alpha$ is independent of event $\beta$ in $P$ , denoted $P\vDash (\alpha\perp\beta).$  if $P (\alpha\mid\beta)=$ $P (\alpha)$ or if $P (\beta)=0$ . 
@@ -332,7 +335,7 @@ We say that an event $\alpha$ is independent of event $\beta$ in $P$ , denoted $
 We can also provide an alternative definition for the concept of independence: 
 
 ***Proposition 2.1*** 
-A distribution $P$ satifies $\alpha \perp \beta$ if and only if $P(\alpha \cap \beta) = P(\alpha) P(\beta)$
+A distribution $P$ satisfies $\alpha \perp \beta$ if and only if $P(\alpha \cap \beta) = P(\alpha) P(\beta)$
 
 Proof 
 Consider first the case where $P (\beta)\,=\, 0$ ; here, we also have $P (\alpha\cap\beta)\,=\, 0$ , and so the equivalence immediately hold 
@@ -348,6 +351,7 @@ As an immediate consequence of this alternative definition, we see that independ
 
 Example 2.3 
 *For example, suppose that we toss two coins, and let $\alpha$ be the event “the first toss results in a head” and $\beta$ the event “the second toss results in a head.” It is not hard to convince ourselves that we expect that these two events to be independent. Learning that $\beta$ is true would not change our probability of $\alpha$ . In this case, we see two diferent physical processes (that is, coin tosses) leading to the events, which makes it intuitive that the probabilities of the two are independent. In certain cases, the same process can lead to independent events. For example, consider the event $\alpha$ denoting “the die outcome is even” and the event $\beta$ denoting “the die outcome is 1 or $2.^{\prime\prime}$ It is easy to check that if the die is fair (each of the six possible outcomes has probability $\frac{1}{6}$ ), then these two events are independent.* 
+
 #### 2.1.4.2 Conditional Independence 
 **While independence is a useful property, it is not often that we encounter two independent events. A more common situation is when two events are independent given an additional event**. For example, suppose we want to reason about the chance that our student is accepted to graduate studies at Stanford or MIT. Denote by Stanford the event “admitted to Stanford” and by MIT the event “admitted to MIT.” In most reasonable distributions, these two events are not independent. If we learn that a student was admitted to Stanford, then our estimate of her probability of being accepted at MIT is now higher, since it is a sign that she is a promising student. 
 
@@ -489,8 +493,9 @@ $$
 where, in general, $\operatorname{arg\, max}_{x}f (x)$ represents the value of $x$ for which $f (x)$ is maximal. Note that there might be more than one assignment that has the highest posterior probability. In this case, we can either decide that the MAP task is to return the set of possible assignments, or to return an arbitrary member of that set. 
 > MAP 查询：在给定证据 $E=e$ 的情况下，变量子集 $W$ 最有可能的取值 $w$，注意取值可以不止一个
 
-It is important to understand the diference between MAP queries and probability queries. In a MAP query, we are finding the most likely joint assignment to $W$ . To find the most likely assignment to a single variable $A$ , we could simply compute $P (A\mid e)$ and then pick the most likely value. **However, the assignment where each variable individually picks its most likely value can be quite diferent from the most likely joint assignment to all variables simultaneously.** This phenomenon can occur even in the simplest case, where we have no evidence. 
+It is important to understand the diference between MAP queries and probability queries. In a MAP query, we are finding the most likely joint assignment to $W$ . To find the most likely assignment to a single variable $A$ , we could simply compute $P (A\mid e)$ and then pick the most likely value. **However, the assignment where each variable individually picks its most likely value can be quite different from the most likely joint assignment to all variables simultaneously.** This phenomenon can occur even in the simplest case, where we have no evidence. 
 > 一组随机变量最优可能的联合取值不同于各个随机变量各自最优可能的单独取值
+
 #### 2.1.5.3 Marginal MAP Queries 
 To motivate our second query type, let us return to the phenomenon demonstrated in example 2.4. 
 Now, consider a medical diagnosis problem, where the most likely disease has multiple possible symptoms, each of which occurs with some probability, but not an overwhelming probability. On the other hand, a somewhat rarer disease might have only a few symptoms, each of which is very likely given the disease. As in our simple example, the MAP assignment to the data and the symptoms might be higher for the second disease than for the first one. The solution here is to look for the most likely assignment to the disease variable (s) only, rather than the most likely assignment to both the disease and symptom variables. This approach suggests the use of a more general query type. 
@@ -509,11 +514,13 @@ Thus, marginal MAP queries contain both summations and maximizations; in a way, 
 
 Note that example 2.4 shows that marginal MAP assignments are not monotonic: the most $\operatorname{MAP}(Y_{1}\mid e)$ might be completely diferent from the assignment to $Y_{1}$ in $\operatorname{MAP}(\{Y_{1}, Y_{2}\}\mid e)$  . 
 Thus, in particular, we cannot use a MAP query to give us the correct answer to a marginal MAP query. 
+
 ### 2.1.6 Continuous Spaces 
 In the previous section, we focused on random variables that have a finite set of possible values. In many situations, we also want to reason about continuous quantities such as weight, height, duration, or cost that take real numbers in $I\!\! R$ . 
 > 我们还需要考虑取值是连续的随机变量
 
 When dealing with probabilities over continuous random variables, we have to deal with some technical issues. For example, suppose that we want to reason about a random variable $X$ that can take values in the range between 0 and 1 . That is, $V a l (X)$ is the interval $[0,1]$ . Moreover, assume that we want to assign each number in this range equal probability. What would be the probability of a number $x$ ? Clearly, since each $x$ has the same probability, and there are infinite number of values, we must have that $P (X=x)=0$ . This problem appears even if we do not require uniform probability. 
+
 #### 2.1.6.1 Probability Density Functions 
 How do we define probability over a continuous random variable? We say that a function $p: I\!\! R\mapsto I\!\! R$ is a probability density function or $(P D F)$ for $X$ if it is a nonnegative integrable function such that 
 > 概率密度函数定义为一个非负的可积函数，积分和是 1
@@ -596,6 +603,7 @@ $$
 To see ahy this equality holds, note that the event $a\leq X\leq b$ is, by definition, equal to the event “ ${}^{u}a\leq X\leq b$ and $-\infty\leq Y\leq\infty$ .” This rule is the direct analogue of marginalization for discrete variables. 
 Note that, as with discrete probability distributions, we abuse notation a bit and use $p$ to denote both the joint density of $X$ and $Y$ and the marginal density of $X$ . 
 In cases where the distinction is not clear, we use subscripts, so that $p_{X}$ will be the marginal density, of $X$ , and $p_{X, Y}$ the joint density. 
+
 #### 2.1.6.3 Conditional Density Functions 
 As with discrete random variables, we want to be able to describe conditional distributions of continuous variables. Suppose, for example, we want to define $P (Y\mid X=x)$ . Applying the definition of conditional distribution (equation (2.1)), we run into a problem, since $P (X=x)=$ 0 . Thus, the ratio of $P (Y, X=x)$ and $P (X=x)$ is undefined. 
 
@@ -609,7 +617,7 @@ When does this limit exist? If there is a continuous joint density function $p (
 $$
 \begin{array}{r c l}{P (a\leq Y\leq b\mid x-\epsilon\leq X\leq x+\epsilon)}&{=}&{\displaystyle\frac{P (a\leq Y\leq b, x-\epsilon\leq X\leq x+\epsilon)}{P (x-\epsilon\leq X\leq x+\epsilon)}}\\ &{=}&{\displaystyle\frac{\int_{a}^{b}\int_{x-\epsilon}^{x+\epsilon}p (x^{\prime}, y) d y d x^{\prime}}{\int_{x-\epsilon}^{x+\epsilon}p (x^{\prime}) d x^{\prime}}.}\end{array}
 $$ 
-When $\epsilon$ is sufciently small, we can approximate 
+When $\epsilon$ is sufficiently small, we can approximate 
 
 $$
 \int_{x-\epsilon}^{x+\epsilon}p (x^{\prime}) d x^{\prime}\approx2\epsilon p (x).
@@ -648,6 +656,7 @@ As a general statement, whenever we discuss joint distributions of continuous ra
 ***Definition 2.10***
 Let $X, Y$ , and $Z$ be sets of continuous random variables with joint density $p (X, Y, Z)$ . We say that $X$ is conditionally independent of $Y$ given $Z$ if 
 $p(x\mid z) = p(x\mid y, z)$ for all $x, y, z$ such that $p (z) > 0$
+
 ### 2.1.7 Expectation and Variance 
 #### 2.1.7.1 Expectation 
 Let $X$ be a discrete random variable that takes numerical values; then the expectation of $X$ under the distribution $P$ is 
