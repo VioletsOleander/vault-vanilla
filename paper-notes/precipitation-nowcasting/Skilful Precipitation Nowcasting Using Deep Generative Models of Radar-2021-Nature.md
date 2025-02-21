@@ -30,7 +30,7 @@ Ensemble numerical weather prediction (NWP) systems, which simulate coupled phys
 > 数据同化指观测数据融入数值模型，以改善初始条件，提高预报精度的过程，传统的数据同化方法假设误差服从高斯分布，这不一定符合实际
 
 Approaches based on deep learning have been developed that move beyond reliance on the advection equation. By training these models on large corpora of radar observations rather than relying on in-built physical assumptions, deep learning methods aim to better model traditionally difficult non-linear precipitation phenomena, such as convective initiation and heavy precipitation. This class of methods directly predicts precipitation rates at each grid location, and models have been developed for both deterministic and probabilistic forecasts. As a result of their direct optimization and fewer inductive biases, the forecast quality of deep learning methods—as measured by per-grid-cell metrics such as critical success index (CSI) at low precipitation levels (less than $2\,\mathsf{m m}\,\mathsf{h}^{-1}$) — has greatly improved. 
->  基于深度学习的方法不再依赖平流方程。基于深度学习的方法在大量雷达观测数据上训练模型，而不依赖内置物理假设，目标是更好模拟以往难以处理的非线性降水现象，例如平流启动和强降水
+>  基于深度学习的方法不再依赖平流方程。基于深度学习的方法在大量雷达观测数据上训练模型，而不依赖内置物理假设，目标是更好模拟以往难以处理的非线性降水现象，例如对流启动和强降水
 >  基于深度学习的方法直接预测每个网格的降水率，可以构建进行确定性预测的模型，也可以构建进行概率性预测的模型
 >  深度学习模型直接优化降水误差，且相较于平流方法具有较少的归纳偏置，故大大改善了在低降水水平上 (小于 2mm/h) 的预测性能
 

@@ -3,7 +3,7 @@ NowcastNet is a physics-conditional deep generative model, comprised of the gene
 
 ## A.1 Physics-conditioning mechanism
 We first inspect the physics-conditioning mechanism in NowcastNet, which adaptively controls the integration of physical knowledge from the evolution network into the generative network. Besides the default conditioning mechanism in NowcastNet, we investigate another two natural alternatives: weak conditioning and no conditioning.
->  NowcastNet 中的物理条件机制适应性地控制了演化网络地物理知识对生成网络地融入，我们将物理条件机制和弱条件以及无条件进行比较
+>  NowcastNet 中的物理条件机制适应性地控制了演化网络地物理知识对生成网络的融入，我们将物理条件机制和弱条件以及无条件进行比较
 
 In the weak conditioning model, we remove from NowcastNet the evolution conditioning module (Fig. 1a), which enables fuller integration of the evolution network predictions to multiple layers of the generative network; Namely, we simply take the predictions as another input to the U-Net based nowcast decoder. In principle, U-Net employs shortcut connections from the bottom layers to the top layers to deliver multiscale features, making the generative network weakly conditioned on the evolution network. 
 >  弱条件模型中，NowcastNet 的演化条件模块被移除，该模块在 NowcastNet 中负责将演化网络的预测进一步融合入生成网络的各个层，此时演化网络的输出仅仅是作为 Nowcast decoder 的另一个输入
@@ -108,4 +108,4 @@ Deep learning models inspired by physical principles are another class of relate
 >  PINN 最初被创建用于求解偏微分方程，PINN 将偏微分方程作为其目标函数，使用神经网络的梯度求解能力对其进行近似
 >  NODE (神经元常微分方程) 将前向传播替换为数值方法，建模连续过程
 >  [38] 结合物理知识和 DL 研究海洋平面温度场，它使用深度模型基于之前的观测预测单个时间步的运动场，使用运动场平流温度场，该过程自回归地重复执行
->  这一方法依赖于方程地自回归求解，会导致不可控制地累计误差，在极端降水预测中，这类自回归方法尚未有太大作用
+>  这一方法依赖于方程的自回归求解，会导致不可控制地累计误差，在极端降水预测中，这类自回归方法尚未有太大作用
