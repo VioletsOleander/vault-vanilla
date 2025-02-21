@@ -16,8 +16,9 @@ Extreme precipitation is a considerable contributor to meteorological disasters 
 > 当湿润空气被风吹向山脉或其他地形特征时，它被迫上升，在冷却过程中凝结形成云和降水，如果这种过程非常强烈，并且涉及大量水汽，就可能引发极端降水事件
 > 
 > Convection (对流) 指对流层内由于温度差异引起的热力驱动的**垂直**空气流动
-> 对流中，暖湿空气/热空气因为比周围冷空气轻而上升，在上升过程中冷却并凝结成云滴，最终可能发展成为雷暴云或积雨云，进而产生降雨
+> 对流中，暖湿空气/热空气因为比周围冷空气轻而上升，在上升过程中，空气中的水汽冷却并凝结成云滴，最终可能发展成为雷暴云或积雨云，进而产生降雨
 > 强对流活动可以迅速形成并带来猛烈的短时暴雨
+> 暖湿空气比冷空气轻是温度和湿度共同作用的结果：温度高使得空气中的分子运动加剧，单位体积内的分子数量减少，因此暖空气的密度小；湿度高使得空气中水蒸气的成分更多，而水蒸气的分子量 (18) 小于干燥空气中氮气 (28) 和氧气 (32) 的分子量，因此，湿空气也比干空气更轻
 
 # Introduction
 Nowcasting is defined by the World Meteorological Organization (WMO) as forecasting that yields local details across the mesoscale and small scale, over a period from the present up to 6 h ahead and which provides a detailed description of the present weather. Nowcasting is crucial in risk prevention and crisis management of extreme precipitation, commonly defined as the 95th percentile of the cumulative frequency distribution of daily precipitation. According to a recent report from the $\mathsf{W M O}$ , over the past 50 years, more than $34\%$ of all recorded disasters, $22\%$ of related deaths (1.01 million) and $57\%$ of related economic losses $\left({\tt U S \$2.84}\right.$ trillion) were consequences of extreme-precipitation events. 
@@ -148,7 +149,7 @@ NowcastNet enables multiscale nowcasting by conditioning the data-driven (stocha
 
 In atmospheric physics, the continuity equation is the fundamental conservation law governing the cloud transport and precipitation evolution. It has inspired a series of operational advection schemes, which model the precipitation evolution as a composition of advection by motion fields and addition by intensity residuals. 
 >  大气物理学中，连续性方程是支配云层运输和降水演化的基本守恒定律
->  连续性方程启发了一系列操作性平流方案，它们将降水演化建模为由运动场引起的平流和强度残差引起的 (降水) 增加的组合
+>  连续性方程启发了一系列业务性平流方案，它们将降水演化建模为由运动场引起的平流和强度残差引起的 (降水) 增加的组合
 >  (强度残差指实际观察到的降水量和平流模型预测的降水量之间的差异，这部分差异不能用平流模型解释，可能是由局部的气象过程，例如对流、凝结与蒸发，以及地形效应、城市热岛效应、植被覆盖变化等引起的)
 
 However, previous implementations of advection schemes, for example, pySTEPS, fall short in three respects: (1) their advection operation is not differentiable and thus cannot be embedded easily into an end-to-end neural framework for gradient-based optimization; (2) their steady-state assumption limits the implementations to linear regimes, failing to provide the nonlinear modelling capability crucial for precipitation simulations; and (3) their auto regressive nature prevents direct optimization of the forecast errors and errors arising from the estimation of the initial states, motion fields and intensity residuals will accumulate in an uncontrolled manner in the Lagrangian persistence model. 
@@ -377,6 +378,37 @@ $$
 >  因此，(2) 的 LHS 应该视作对 (3) 的近似，也就是对雷达观测场中，某个点在运动场的作用下，经过一段时间后，它的属性 (该点的综合反射率) 的变化率的近似
 >  在拉格朗日质点模型中，质点的属性不随着质点的转移而变化，因此 (2) 的 RHS 应该是 0，但是 (2) 引入了残差项 $\mathbf s$，它表示了平流作用 (运动场 $\mathbf v$) 以外的影响，例如对流作用，因此虽然假设了平流作用 (运动场 $\mathbf v$) 下，质点的属性不会改变，但实际的改变率不是零
 
+>  注意，连续性方程和流体的物质导数的形式是存在不同的
+>  令流体的密度 $\rho$ 是关于位置和时间的函数，连续性方程写为
+
+$$
+\frac {\partial\rho}{\partial t} + \nabla\cdot(\rho\mathbf v ) = 0
+$$
+
+>  其中，$\mathbf v \rho$ 表示的是质量通量，$\nabla \cdot (\mathbf v\rho)$ 表示的是质量通量的散度
+>  注意，nabla 算子 $\nabla$ 应用于标量场时，得到的是一个向量，表示标量场的梯度，而应用于矢量场时，得到的是一个标量，得到的是矢量场的散度，散度的计算即矢量场的各个偏导数求和
+>  质量通量的散度可以进一步写为
+
+$$
+\begin{align}
+&\nabla\cdot (\rho\mathbf v)\\
+=&\frac {\partial \rho\mathbf v }{\partial t} + \frac {\partial \rho\mathbf v}{\partial x} + \frac {\partial \rho\mathbf v}{\partial y}\\
+=&\frac {\partial \rho}{\partial t}\mathbf v_t + \rho \frac {\partial \mathbf v}{\partial t} + \frac {\partial \rho}{\partial x}\mathbf v_x + \rho \frac {\partial \mathbf v}{\partial x} +  \frac {\partial \rho}{\partial y}\mathbf v_y + \rho \frac {\partial \mathbf v}{\partial y}\\
+=&[\frac {\partial \rho}{\partial t}, \frac {\partial \rho}{\partial x}, \frac {\partial \rho}{\partial y}]\cdot \mathbf v + \rho \cdot(\frac {\partial \mathbf v}{\partial t} + \frac {\partial \mathbf v}{\partial x} + \frac {\partial \mathbf v}{\partial y})\\
+=&\nabla\rho\cdot\mathbf v + \rho\cdot\nabla\mathbf v
+\end{align}
+$$
+
+>  其中第一个 nabla 算子表示计算标量场  $\rho$ 的梯度，第二个 nabla 算子表示计算矢量场 $\mathbf v$ 的散度
+>  因此，连续性方程可以进一步写为
+
+$$
+\frac {\partial\rho}{\partial t} + (\mathbf v\cdot \nabla)\rho + \rho\cdot \nabla \mathbf v = 0
+$$
+
+>  显然，前面两项就是标量场 $\rho$ 的物质导数 (全导数)，连续性方程表示了，如果速度场的散度是零，这意味着在流体中任何一点，流入和流出该点的流量相等，即流体是不可压缩的
+>  不可压缩流体的另一个定义是密度为常数，不随时间空间变化，我们令 $\rho$ 为常数，代入连续性方程，容易发现此时 $\rho$ 的物质导数也是零，因为 $\rho$ 此时是常数
+
 According to the continuity equation, the temporal evolution of precipitation can be modelled as a composition of advection by motion fields and addition by intensity residuals, which is the evolution operator we design for the evolution network. We use deep neural networks to simultaneously predict all these fields based on past radar observations, which enables nonlinear modelling capability for the complex precipitation evolution. 
 >  根据连续性方程，降水的时序演变可以建模为由运动场引起的平流作用和强度残差叠加的组合
 >  我们基于该连续性方程设计演化算子，使用深度神经网络基于过去的雷达观测同时预测所有的这些场，使得模型可以非线性建模复杂降水演化
@@ -513,7 +545,7 @@ $$
 Overall, the objective for training the generative network (Fig. 1a) is 
 
 $$
-J_{\mathrm{generative}}=\beta J_{\mathrm{adv}}+\gamma J_{\mathrm{cool}}.\tag{12}
+J_{\mathrm{generative}}=\beta J_{\mathrm{adv}}+\gamma J_{\mathrm{pool}}.\tag{12}
 $$ 
 >  生成式网络的最终目标就是对抗损失和池化正则化项的加权求和
 
@@ -532,7 +564,7 @@ We use the Adam optimizer with a batch size of 16 and an initial learning rate o
 
 **Hyperparameter tuning.** We use the mean of CSI neighborhood (CSIN) over all prediction time steps at the rain levels of $16\,\mathrm{mm\,h^{-1}}$ , $32\,\mathrm{mm\,h^{-1}}$ and $64\,\mathrm{mm\,h^{-1}}$ when tuning the hyperparameters of the evolution network. We compute the criterion for hyperparameter tuning as the average of the quantities, $\frac{\mathsf{C S I N}_{16}+\mathsf{C S I N}_{32}+\mathsf{C S I N}_{64}}{3}$ . When tuning the hyperparameters of the generative network, we use the two main evaluation metrics, CSI neighbourhood and PSD. For each model with different hyperparameters, we first ensure that the PSD of the model is no worse than that of pySTEPS. Then we use the average CSI neighbourhood criterion $\frac{\mathsf{C S I N}_{16}+\mathsf{C S I N}_{32}+\mathsf{C S I N}_{64}}{3}$ to determine the final hyperparameters. 
 >  超参数调节
->  调节演化网络超参数时，使用不同降雨等级下所有时间步的平均 CSI 邻域作为指标，调节生成网络超参数时，使用平均 CSI 邻域和 PSD 作为指标，我们先保证模型的 PSD 指标不低于 pySTEPS 决定初始超参数，然后使用平均 CSI 邻域指标决定最终超参数
+>  调节演化网络超参数时，使用不同降雨等级下所有时间步的平均 CSI 邻域作为指标，调节生成网络超参数时，使用平均 CSI 邻域和 PSD 作为指标，我们先保证模型的 PSD 指标不低于 pySTEPS 来决定初始超参数，然后使用平均 CSI 邻域指标来决定最终超参数
 
 ## Baselines 
 We describe the four baselines used in the comparative study. There is a rich literature of relevant work and we discuss them as further background in Supplementary Information section E. 
@@ -693,7 +725,7 @@ Within a chosen coordinate system, $\mathbf x_0$ and $\mathbf x$ are referre
 Main article: [Material derivative](https://en.wikipedia.org/wiki/Material_derivative "Material derivative")
 
 The Lagrangian and Eulerian specifications of the [kinematics](https://en.wikipedia.org/wiki/Kinematics "Kinematics") and [dynamics](https://en.wikipedia.org/wiki/Dynamics_(physics) "Dynamics (physics)") of the flow field are related by the [material derivative](https://en.wikipedia.org/wiki/Material_derivative "Material derivative") (also called the Lagrangian derivative, convective derivative, substantial derivative, or particle derivative).
->  拉格朗日和欧拉描述下的流场的运动学和动力学通过材料导数关联
+>  拉格朗日和欧拉描述下的流场的运动学和动力学通过物质导数关联
 
 Suppose we have a flow field $\mathbf u$, and we are also given a generic field with Eulerian specification $\mathbf F(\mathbf x, t)$. Now one might ask about the total rate of change of $\mathbf F$ experienced by a specific flow parcel. This can be computed
 
