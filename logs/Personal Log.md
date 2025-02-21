@@ -11,7 +11,7 @@ Date: 2024.7.29-2024.8.5
         3. Coarsening (Optional)
 - [[CUDA C++ Programming Guide v12.5-2024|CUDA C++ Programming Guide v12.5]]: CH5-CH11, CH19
     Derived Ideas:
-        1. Avoid Bank Conflict: 数据访问对齐32bit 的 Bank Size
+        1. Avoid Bank Conflict: 数据访问对齐 32bit 的 Bank Size
         2. Occupancy Calculator: 利用工具计算一下合适的 Blocksize 和 Gridsize
         3. Coalescing: Warp 对 Shared Memory 的访问同样可以进行合并优化
         4. `memcpy_async()` (Questioned): 异步访问，访存与计算流水线
@@ -190,7 +190,7 @@ Date: 2024.10.7-2024.10.14
         Markov Network's parameterization: the idea was derived from statistical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of particular configuration; separation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
 
 \[Doc\]
-- [[doc-notes/python/packages/ultralytics]] : Quickstart, Usage(Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
+- [[doc-notes/python/packages/ultralytics]] : Quickstart, Usage (Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
     Brief Introduction to YOLO model's python API, which is pretty simple
 
 ### Week 3
@@ -292,7 +292,7 @@ Date: 2024.11.4-2024.11.11
         PagedAttention Manage KV cache blockwisely, allocating physical memory in block granularity, thus reducing internal fragmentation and eliminate external fragmentation, and also enable KV cache sharing between requests in block granularity.
         By increasing GPU DRAM utilization rate significantly, PagedAttention significantly improve the batch size of requests, thus in turn improve the throughtput.
     Sec2-Background:
-        Prompt phase: Process user input, generating KV cache. Use Matrix-Matrix multiplication(use masked self-attention to implement causal attention).
+        Prompt phase: Process user input, generating KV cache. Use Matrix-Matrix multiplication (use masked self-attention to implement causal attention).
         Auto regressive generation phase: Iteratively generate new tokens. Use Vector-Matrix multiplication.
     Sec3-Memory Challenges in LLM Serving:
         LLM service is bounded by memory, especially by the space reserved for KV cache.
@@ -539,7 +539,7 @@ Date: 2024.11.25-2024.12.2
         CH12.3-Markov Chain Monte Carlo Methods
             In likelihood weighting, the evidence will only affect the sampling process for the decedents, so the non-decedents are essentially sampled from the prior instead of the posterior. If the divergence between the prior and the posterior is too large, the weight is not enough to compensate for it.
             The MCMC method adopts an entirely different pattern from the weighting methods. The MCMC methods is inspired by a physical observation, which says an particle's state evolves in a Markov chain, and its distribution will converge to a stationary distribution as the Markov chain proceeds.
-            The MCMC method defines a Markov chain whose stationary distribution is the desire sampling distribution $P$, and make the sample generated from the initial distribution (usually the prior) keep evolve its assignment(state) in the Markov chain. Because the Markov chain's state distribution will eventually converge to its stationary distribution, the distribution that the sample conforms to will eventually converge to the desired sampling distribution. Thus we can eventually treat the sample as sampled from the desired sampling distribution. In the process, the sample's distribution will gradually get closer to the desired sampling distribution.
+            The MCMC method defines a Markov chain whose stationary distribution is the desire sampling distribution $P$, and make the sample generated from the initial distribution (usually the prior) keep evolve its assignment (state) in the Markov chain. Because the Markov chain's state distribution will eventually converge to its stationary distribution, the distribution that the sample conforms to will eventually converge to the desired sampling distribution. Thus we can eventually treat the sample as sampled from the desired sampling distribution. In the process, the sample's distribution will gradually get closer to the desired sampling distribution.
             To ensure the Markov chain has an unique stationary distribution, the state space should be ergodic (i.e. the transition matrix should have all its entries positive).
             Gibbs sampling algorithm is an implementation of the MCMC method. It constructs a separate transition model for each variable (as the posterior in $P$ as this variable given all other variables' current sampled value ), and combines them as a whole transition model for the Markov chain. This construction is proved to make the Markov chain converge to the desired distribution $P$.
             If a Markov chain $\mathcal T$ satisfies the detailed balance equation with respect to some distribution $\pi$, then $\mathcal T$ is reversible, and $\pi$ is a stationary distribution. If $\mathcal T$ is regular, then $\pi$ is the unique one.
@@ -925,7 +925,7 @@ Date: 2024.12.30-2025.1.6
                 In variational EM, the E-step is to find the optimal variational $Q$ for each instance. Each instance's optimal variational posterior is different. The algorithm is essentially performing coordinate-wise ascent alternating between optimization of $Q$ and $\pmb \theta$. Therefore it is not necessarily to take too many steps to find best variational $Q$ in one iteration.
                 In variational EM, the energy functional is not necessarily a tight lower bound of the actual log-likelihood. It depends on the choice of the variational distribution family. Therefore, variational EM has no convergence guarantee and it is easy to get oscillations both within a E-step and over several steps.
 
-### Week2
+### Week 2
 Date: 2025.1.6-2025.1.13
 
 \[Paper\]
@@ -1039,7 +1039,7 @@ Date: 2025.1.13-2025.1.20
             During evaluation, full radar observation of size 1535 x 1280 and latent variables with height and width 1/32 of radar observation is used as inputs. 
         Sec7.3-Performance evaluation
 
-### Week4
+### Week 4
 Date: 2025.1.20-2025.1.27
 
 \[Doc\]
@@ -1075,7 +1075,7 @@ Date: 2025.1.20-2025.1.27
 - NowcastNet rewritten project
 
 ## February
-### Week1
+### Week 1
 Date: 2025.1.27-2025.2.3
 
 \[Doc\]
@@ -1087,7 +1087,7 @@ Date: 2025.1.27-2025.2.3
 \[Code\]
 - NowcastNet rewritten project
 
-### Week2
+### Week 2
 Date: 2025.2.3-2025.2.10
 
 \[Book\]
@@ -1133,7 +1133,7 @@ Date: 2025.2.3-2025.2.10
 - [[doc-notes/pytorch/tutorials/advanced/Exporting a Model from PyTorch to ONNX and Running it using ONNX Runtime|pytorch/tutorials/advanced/Exporting a Model from PyTorch to ONNX and Running it using ONNX Runtime]]: All
     It is important to call `model.eval()` or `model.train(False)` to turn the model to inference mode before exporting the model, because some operators' behaviour is different in training and inference modes.
 
-### Week3
+### Week 3
 Date: 2025.2.10-2025.2.17
 
 \[Book\]
@@ -1168,3 +1168,5 @@ Date: 2025.2.10-2025.2.17
 - [[doc-notes/pytorch/docs/developer-notes/Reproducibility|pytorch/docs/developer-notes/Reproducibility]]: All
     `torch.backends.cudnn.benchmark=False` will disable the benchmarking feature of cuDNN.
     `torch.use_deterministic_algorithms()` will cause use the deterministic alternative of non-deterministic operations.
+
+### Week 4
