@@ -1172,3 +1172,5 @@ Date: 2025.2.10-2025.2.17
 ### Week 4
 Date: 2025.2.17-2025.2.24
 
+\[Paper\]
+- [[paper-notes/distributed-system/MapReduce Simplified Data Processing on Large Clusters-2004-OSDI|2004-OSDI-MapReduce Simplified Data Processing on Large Clusters]]: All
