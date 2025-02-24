@@ -33,7 +33,7 @@ Section 2 describes the basic programming model and gives several examples. Sect
 # 2 Programming Model 
 The computation takes a set of input key/value pairs, and produces a set of output key/value pairs. The user of the MapReduce library expresses the computation as two functions: Map and Reduce. 
 >  MapReduce 计算接受一组输入键值对，然后产生一组输出键值对
->  MapReduce 库的用于通过两个函数：Map 和 Reduce 来表达计算
+>  MapReduce 库的用户通过两个函数：Map 和 Reduce 来表达计算
 
 Map, written by the user, takes an input pair and produces a set of intermediate key/value pairs. The MapReduce library groups together all intermediate values associated with the same intermediate key $I$ and passes them to the Reduce function. 
 >  Map 函数由用户编写，它接受一个输入对，产生一组中间键值对
@@ -223,7 +223,7 @@ When the user-supplied map and reduce operators are deterministic functions of t
 
 We rely on atomic commits of map and reduce task outputs to achieve this property. Each in-progress task writes its output to private temporary files. A reduce task produces one such file, and a map task produces $R$ such files (one per reduce task). When a map task completes, the worker sends a message to the master and includes the names of the $R$ temporary files in the message. If the master receives a completion message for an already completed map task, it ignores the message. Otherwise, it records the names of $R$ files in a master data structure. 
 >  这一性质的实现依赖于 map 和 reduce 任务输出的原子提交
->  每个执行中的任务都会将其输出写入一个私有的临时文件，一个 reducer 任务生成一个这样的文件，一个 map 任务生成 R 个这样的任务 (对应 R 个 reduce 任务)。当一个 map 任务完成后，worker 向 master 发送消息，消息包含了这 R 个临时文件的名称，如果 master 收到的是完成消息，则忽略这条消息，否则在 master 的数据结构中记录这 R 个文件
+>  每个执行中的任务都会将其输出写入一个私有的临时文件，一个 reducer 任务生成一个这样的文件，一个 map 任务生成 R 个这样的文件 (对应 R 个 reduce 任务)。当一个 map 任务完成后，worker 向 master 发送消息，消息包含了这 R 个临时文件的名称，如果 master 收到的是完成消息，则忽略这条消息，否则在 master 的数据结构中记录这 R 个文件
 
 When a reduce task completes, the reduce worker atomically renames its temporary output file to the final output file. If the same reduce task is executed on multiple machines, multiple rename calls will be executed for the same final output file. We rely on the atomic rename operation provided by the underlying file system to guarantee that the final file system state contains just the data produced by one execution of the reduce task. 
 >  当一个 reduce 任务完成后，reduce worker 自动将其临时输出文件重命名为最终输出文件
@@ -545,7 +545,6 @@ TACC [7] is a system designed to simplify construction of highly-available netwo
 ## 8 Conclusions 
 The MapReduce programming model has been successfully used at Google for many different purposes. We attribute this success to several reasons. First, the model is easy to use, even for programmers without experience with parallel and distributed systems, since it hides the details of parallelization, fault-tolerance, locality optimization, and load balancing. Second, a large variety of problems are easily expressible as MapReduce computations. For example, MapReduce is used for the generation of data for Google’s production web search service, for sorting, for data mining, for machine learning, and many other systems. Third, we have developed an implementation of MapReduce that scales to large clusters of machines comprising thousands of machines. The implementation makes efficient use of these machine resources and therefore is suitable for use on many of the large computational problems encountered at Google. 
 >  MapReduce 编程模型已在谷歌成功应用于许多不同的目的。我们认为这一成功的几个原因是：首先，该模型易于使用，即使是那些没有并行和分布式系统经验的程序员也能轻松上手，因为它隐藏了并行化、容错、局部性优化和负载均衡的细节。其次，大量问题可以很容易地表达为 MapReduce 计算。例如，MapReduce 被用于生成谷歌生产网络搜索服务的数据、排序、数据挖掘、机器学习等众多系统。第三，我们开发了一种可扩展到由数千台机器组成的大型集群的 MapReduce 实现。该实现有效地利用了这些机器资源，因此适用于谷歌遇到的许多大型计算问题。
-
 
 We have learned several things from this work. First, restricting the programming model makes it easy to parallelize and distribute computations and to make such computations fault-tolerant. Second, network bandwidth is a scarce resource. A number of optimizations in our system are therefore targeted at reducing the amount of data sent across the network: the locality optimization allows us to read data from local disks, and writing a single copy of the intermediate data to local disk saves network bandwidth. Third, redundant execution can be used to reduce the impact of slow machines, and to handle machine failures and data loss. 
 >  从这项工作中，我们学到了几件事。首先，限制编程模型使得计算和分布计算以及使这些计算具有容错性的过程变得简单。其次，网络带宽是一种稀缺资源。因此，我们系统的许多优化都是针对减少跨网络传输的数据量：局部性优化允许我们从本地磁盘读取数据，并将中间数据写入本地磁盘以节省网络带宽。第三，冗余执行可用于减少慢速机器的影响，并处理机器故障和数据丢失。
