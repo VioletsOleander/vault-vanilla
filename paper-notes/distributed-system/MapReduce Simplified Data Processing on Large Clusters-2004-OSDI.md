@@ -542,7 +542,7 @@ BAD-FS [5] has a very different programming model from MapReduce, and unlike Map
 TACC [7] is a system designed to simplify construction of highly-available networked services. Like MapReduce, it relies on re-execution as a mechanism for implementing fault-tolerance. 
 >  TACC [7] 是一个旨在简化高度可用的网络服务构建的系统。与 MapReduce 类似，它依赖于重新执行作为实现容错机制的方法。
 
-## 8 Conclusions 
+# 8 Conclusions 
 The MapReduce programming model has been successfully used at Google for many different purposes. We attribute this success to several reasons. First, the model is easy to use, even for programmers without experience with parallel and distributed systems, since it hides the details of parallelization, fault-tolerance, locality optimization, and load balancing. Second, a large variety of problems are easily expressible as MapReduce computations. For example, MapReduce is used for the generation of data for Google’s production web search service, for sorting, for data mining, for machine learning, and many other systems. Third, we have developed an implementation of MapReduce that scales to large clusters of machines comprising thousands of machines. The implementation makes efficient use of these machine resources and therefore is suitable for use on many of the large computational problems encountered at Google. 
 >  MapReduce 编程模型已在谷歌成功应用于许多不同的目的。我们认为这一成功的几个原因是：首先，该模型易于使用，即使是那些没有并行和分布式系统经验的程序员也能轻松上手，因为它隐藏了并行化、容错、局部性优化和负载均衡的细节。其次，大量问题可以很容易地表达为 MapReduce 计算。例如，MapReduce 被用于生成谷歌生产网络搜索服务的数据、排序、数据挖掘、机器学习等众多系统。第三，我们开发了一种可扩展到由数千台机器组成的大型集群的 MapReduce 实现。该实现有效地利用了这些机器资源，因此适用于谷歌遇到的许多大型计算问题。
 
