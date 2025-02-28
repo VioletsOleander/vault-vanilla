@@ -1255,3 +1255,6 @@ Date: 2025.2.24-2025.3.3
 
 \[Paper\]
 - [[paper-notes/Scalability But at what COST-2015-HotOS|2015-HotOS-Scalability But at what COST]]: All
+
+\[Book\]
+- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]
