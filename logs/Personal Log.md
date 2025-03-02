@@ -1262,3 +1262,4 @@ Date: 2025.2.24-2025.3.3
 \[Doc\]
 - [[doc-notes/go/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
 - [[doc-notes/go/A Tour of Go|go/A Tour of Go]]
+- [[doc-notes/python/packaging/Overview of Python Packaging|Overview of Python Packaging]]
