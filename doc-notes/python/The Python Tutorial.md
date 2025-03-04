@@ -2290,7 +2290,7 @@ When a module named `spam` is imported, the interpreter first searches for a b
 > Python 在 import 中优先搜索内建模块名，然后在变量 `sys.path` 指定的路径中搜索模块名，`sys.path` 初始包括
 
 - The directory containing the input script (or the current directory when no file is specified).
-> 当前目录 
+> 包含了输入脚本的当前目录 
 - [`PYTHONPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH) (a list of directory names, with the same syntax as the shell variable `PATH`).
 > `PYTHONPATH` 
 - The installation-dependent default (by convention including a `site-packages` directory, handled by the [`site`](https://docs.python.org/3/library/site.html#module-site "site: Module responsible for site-specific configuration.") module).
@@ -3106,7 +3106,7 @@ The [`try`](https://docs.python.org/3/reference/compound_stmts.html#try) state
 - If an exception occurs which does not match the exception named in the _except clause_, it is passed on to outer [`try`](https://docs.python.org/3/reference/compound_stmts.html#try) statements; if no handler is found, it is an _unhandled exception_ and execution stops with an error message.
 > `try` 语句的工作方式：
 > 首先执行 try clause
-> 若没有异常发生，跳过 except clause，try 语句的执行完成
+> 若没有异常发生，跳过 except clause, try 语句的执行完成
 > 若异常发生，跳过剩余的 try clause，如果异常类型匹配 except 之后指定的异常，执行 except clause，如果没有匹配，跳往 try 语句之外，如果没有找到异常处理语句，则作为未处理的异常被抛出
 
 A [`try`](https://docs.python.org/3/reference/compound_stmts.html#try) statement may have more than one _except clause_, to specify handlers for different exceptions. At most one handler will be executed. Handlers only handle exceptions that occur in the corresponding _try clause_, not in other handlers of the same `try` statement. An _except clause_ may name multiple exceptions as a parenthesized tuple, for example:
