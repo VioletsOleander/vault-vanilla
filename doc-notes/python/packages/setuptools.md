@@ -116,6 +116,7 @@ Of course, before you release your project to [PyPI](https://pypi.org/), you’
 > setuptools 提供了使用 `setup.py` 文件作为配置机制的首要支持
 > 但不建议将该文件作为脚本运行，其许多命令行界面将被弃用
 > 我们建议将尽可能多的配置以声明的方式展现在 `pyproject.toml` 或 `setup.cfg` ，保持 `setup.py` 最小，仅用于动态部分，甚至完全不使用它
+
 ### Overview
 #### Package discovery
 For projects that follow a simple directory structure, `setuptools` should be able to automatically detect all [packages](https://docs.python.org/3.11/glossary.html#term-package "(in Python v3.11)") and [namespaces](https://docs.python.org/3.11/glossary.html#term-namespace "(in Python v3.11)"). However, complex projects might include additional folders and supporting files that not necessarily should be distributed (or that can confuse `setuptools` auto discovery algorithm).
@@ -416,7 +417,7 @@ project_root_directory
 If the automatic discovery does not work for you (e.g., you want to _include_ in the distribution top-level packages with reserved names such as `tasks`, `example` or `docs`, or you want to _exclude_ nested packages that would be otherwise included), you can use the provided tools for package discovery:
 > 我们还可以使用 setuptools 提供的工具进行自定义包查找
 
-pyproject. toml
+pyproject.toml
 ```toml
 # ...
 [tool.setuptools.packages]
@@ -597,6 +598,145 @@ The project layout remains the same and `pyproject.toml/setup.cfg` remains the
 [1](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#id1) [https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure](https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure)
 
 [2](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#id2) [https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/](https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/)
+
+## 1.3 Development Mode (a.k.a. “Editable Installs”)
+When creating a Python project, developers usually want to implement and test changes iteratively, before cutting a release and preparing a distribution archive.
+
+In normal circumstances this can be quite cumbersome and require the developers to manipulate the `PYTHONPATH` environment variable or to continuously re-build and re-install the project.
+
+To facilitate iterative exploration and experimentation, setuptools allows users to instruct the Python interpreter and its import machinery to load the code under development directly from the project folder without having to copy the files to a different location in the disk. This means that changes in the Python source code can immediately take place without requiring a new installation.
+>  setuptools 允许用户指示 Python 解释器和其导入机制，令其直接从项目文件夹中加载正在开发中的代码，而无序将文件拷贝到磁盘中的其他位置，这意味着源代码中的更改可以立即生效，而不需要重新安装
+
+You can enter this “development mode” by performing an [editable installation](https://pip.pypa.io/en/latest/topics/local-project-installs/ "(in pip v25.1)") inside of a [virtual environment](https://docs.python.org/3.11/glossary.html#term-virtual-environment "(in Python v3.11)"), using [pip’s](https://pip.pypa.io/en/latest/cli/pip_install/ "(in pip v25.1)") `-e/--editable` flag, as shown below:
+>  为此，我们需要执行 pip 的可编辑安装
+
+```
+$ cd your-python-project
+$ python -m venv .venv
+# Activate your environment with:
+#      `source .venv/bin/activate` on Unix/macOS
+# or   `.venv\Scripts\activate` on Windows
+
+$ pip install --editable .
+
+# Now you have access to your package
+# as if it was installed in .venv
+$ python -c "import your_python_project"
+```
+
+An “editable installation” works very similarly to a regular install with `pip install .`, except that it only installs your package dependencies, metadata and wrappers for [console and GUI scripts](https://setuptools.pypa.io/en/latest/userguide/entry_point.html#console-scripts). Under the hood, setuptools will try to create a special [`.pth file`](https://docs.python.org/3.11/library/site.html#module-site "(in Python v3.11)") in the target directory (usually `site-packages`) that extends the `PYTHONPATH` or install a custom [import hook](https://docs.python.org/3.11/reference/import.html "(in Python v3.11)").
+>  可编辑安装和 `pip install .` 进行的常规安装非常类似，差异在于可编辑安装仅安装软件包的依赖项、元数据和控制台脚本的包装器
+>  setuptools 会尝试在目标目录 (通常是 `site-packages`) 创建一个特殊的 `.pth` 文件来拓展 `PYTHONPATH` ，或者安装一个自定义的导入钩子
+
+When you’re done with a given development task, you can simply uninstall your package (as you would normally do with `pip uninstall <package name>`).
+>  完成开发后，可以直接 `pip uninstall` 卸载软件包
+
+Please note that, by default an editable install will expose at least all the files that would be available in a regular installation. However, depending on the file and directory organization in your project, it might also expose as a side effect files that would not be normally available. This is allowed so you can iteratively create new Python modules. Please have a look on the following section if you are looking for a different behaviour.
+>  默认情况下，可编辑安装将至少暴露常规安装中所有可用的文件，并且可能暴露一些通常不会暴露的文件，以方便我们迭代式创建新的 Python 模块
+
+Virtual Environments
+You can think about virtual environments as “isolated Python runtime deployments” that allow users to install different sets of libraries and tools without messing with the global behaviour of the system.
+
+They are a safe way of testing new projects and can be created easily with the [`venv`](https://docs.python.org/3.11/library/venv.html#module-venv "(in Python v3.11)") module from the standard library.
+
+Please note however that depending on your operating system or distribution, `venv` might not come installed by default with Python. For those cases, you might need to use the OS package manager to install it. For example, in Debian/Ubuntu-based systems you can obtain it via:
+
+sudo apt install python3-venv
+
+Alternatively, you can also try installing [virtualenv](https://pypi.org/project/virtualenv). More information is available on the Python Packaging User Guide on [Install packages in a virtual environment using pip and venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/ "(in Python Packaging User Guide)").
+
+Note
+Changed in version v64.0.0: Editable installation hooks implemented according to [**PEP 660**](https://peps.python.org/pep-0660/). Support for [**namespace packages**](https://peps.python.org/pep-0420/) is still **EXPERIMENTAL**.
+
+## “Strict” editable installs
+When thinking about editable installations, users might have the following expectations:
+
+1. It should allow developers to add new files (or split/rename existing ones) and have them automatically exposed.
+2. It should behave as close as possible to a regular installation and help users to detect problems (e.g. new files not being included in the distribution).
+
+>  用户对于可编辑安装的期望一般有：
+>  1. 允许开发者添加新文件，以及拆分、重命名现有文件，并自动暴露这些文件
+>  2. 行为尽可能接近常规安装，帮助开发者发现问题 (例如新文件未包含在分发中)
+
+Unfortunately these expectations are in conflict with each other. To solve this problem `setuptools` allows developers to choose a more _“strict”_ mode for the editable installation. This can be done by passing a special _configuration setting_ via [pip](https://pypi.org/project/pip), as indicated below:
+
+```
+pip install -e . --config-settings editable_mode=strict
+```
+
+In this mode, new files **won’t** be exposed and the editable installs will try to mimic as much as possible the behavior of a regular install. Under the hood, `setuptools` will create a tree of file links in an auxiliary directory (`$your_project_dir/build`) and add it to `PYTHONPATH` via a [`.pth file`](https://docs.python.org/3.11/library/site.html#module-site "(in Python v3.11)"). (Please be careful to not delete this repository by mistake otherwise your files may stop being accessible).
+
+>  但是这两个期望存在冲突，setuptools 允许开发者选择更严格的模式，该模式下，新文件不会被暴露，可编辑安装将尽可能模仿常规安装的行为
+>  setuptools 将在辅助目录 `$project_dir/build` 中创建一个文件链接树，然后通过 `.pth` 文件将它添加到 `PYTHONPATH` 中，注意不要删除这一辅助目录
+
+Warning
+Strict editable installs require auxiliary files to be placed in a `build/__editable__.*` directory (relative to your project root).
+
+Please be careful to not remove this directory while testing your project, otherwise your editable installation may be compromised.
+
+You can remove the `build/__editable__.*` directory after uninstalling.
+
+>  注意，严格的可编辑安装要求辅助文件放在 `build/__editable__.*` 目录中，在开发中不要移除这一目录，可以在卸载后移除
+
+Note
+Added in version v64.0.0: Added new _strict_ mode for editable installations. The exact details of how this mode is implemented may vary.
+
+## Limitations
+- The _editable_ term is used to refer only to Python modules inside the package directories. Non-Python files, external (data) files, executable script files, binary extensions, headers and metadata may be exposed as a _snapshot_ of the version they were at the moment of the installation.
+- Adding new dependencies, entry-points or changing your project’s metadata require a fresh “editable” re-installation.
+- Console scripts and GUI scripts **MUST** be specified via [entry-points](https://setuptools.pypa.io/en/latest/userguide/entry_point.html) to work properly.
+- _Strict_ editable installs require the file system to support either [symbolic](https://wikipedia.org/wiki/symbolic%20link) or [hard links](https://wikipedia.org/wiki/hard%20link). This installation mode might also generate auxiliary files under the project directory.
+- There is _no guarantee_ that the editable installation will be performed using a specific technique. Depending on each project, `setuptools` may select a different approach to ensure the package is importable at runtime.
+- There is _no guarantee_ that files outside the top-level package directory will be accessible after an editable install.
+- There is _no guarantee_ that attributes like `__path__` or `__file__` will correspond to the exact location of the original files (e.g., `setuptools` might employ file links to perform the editable installation). Users are encouraged to use tools like [`importlib.resources`](https://docs.python.org/3.11/library/importlib.resources.html#module-importlib.resources "(in Python v3.11)") or [`importlib.metadata`](https://docs.python.org/3.11/library/importlib.metadata.html#module-importlib.metadata "(in Python v3.11)") when trying to access package files directly.
+- Editable installations may not work with [namespaces created with pkgutil or pkg_resources](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/ "(in Python Packaging User Guide)"). Please use [**PEP 420**](https://peps.python.org/pep-0420/) -style implicit namespaces [1](https://setuptools.pypa.io/en/latest/userguide/development_mode.html#namespaces).
+- Support for [**PEP 420**](https://peps.python.org/pep-0420/) -style implicit namespace packages for projects structured using [flat-layout](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#flat-layout) is still **experimental**. If you experience problems, you can try converting your package structure to the [src-layout](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout).
+- File system entries in the current working directory whose names coincidentally match installed packages may take precedence in [Python’s import system](https://docs.python.org/3.11/reference/import.html "(in Python v3.11)"). Users are encouraged to avoid such scenarios [2](https://setuptools.pypa.io/en/latest/userguide/development_mode.html#cwd).
+- Setuptools will try to give the right precedence to modules in an editable install. However this is not always an easy task. If you have a particular order in `sys.path` or some specific import precedence that needs to be respected, the editable installation as supported by Setuptools might not be able to fulfil this requirement, and therefore it might not be the right tool for your use case.
+
+> - 可编辑仅适用于包目录内的 Python 模块。非 Python 文件、外部（数据）文件、可执行脚本文件、二进制扩展、头文件和元数据可能作为安装时的快照被公开
+> - 添加新的依赖项、入口点或更改项目的元数据需要进行一次全新的可编辑安装
+> - 控制台脚本和GUI脚本必须通过[入口点（entry-points）](https://setuptools.pypa.io/en/latest/userguide/entry_point.html)来正确工作。
+> - 严格的可编辑安装要求文件系统支持符号链接（[symbolic link](https://wikipedia.org/wiki/symbolic%20link)）或硬链接（[hard link](https://wikipedia.org/wiki/hard%20link)）。这种安装模式也可能在项目目录下生成辅助文件。
+> - 不保证可编辑安装会使用特定的技术进行。根据每个项目，`setuptools` 可能会选择不同的方法以确保软件包在运行时可以导入。
+> - 不保证在可编辑安装后，顶级包目录之外的文件可以访问。
+> - 不保证属性如 `__path__` 或 `__file__` 将对应于原始文件的确切位置（例如，`setuptools` 可能会使用文件链接来执行可编辑安装）。当尝试直接访问包文件时，建议用户使用工具如[`importlib.resources`](https://docs.python.org/3.11/library/importlib.resources.html#module-importlib.resources "(in Python v3.11)")或[`importlib.metadata`](https://docs.python.org/3.11/library/importlib.metadata.html#module-importlib.metadata "(in Python v3.11)")。
+> - 可编辑安装可能不适用于由`pkgutil`或`pkg_resources`创建的命名空间。请使用[**PEP 420**](https://peps.python.org/pep-0420/)风格的隐式命名空间[1](https://setuptools.pypa.io/en/latest/userguide/development_mode.html#namespaces)。
+> - 对于使用[扁平布局（flat-layout）](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#flat-layout)结构的项目，支持[**PEP 420**](https://peps.python.org/pep-0420/)风格的隐式命名空间包仍然是**实验性的**。如果你遇到问题，你可以尝试将你的包结构转换为[src-layout](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout)。
+> - 当前工作目录中与已安装包名称巧合相同的文件系统条目可能在[Python的导入系统](https://docs.python.org/3.11/reference/import.html "(in Python v3.11)")中优先。建议用户避免此类情况[2](https://setuptools.pypa.io/en/latest/userguide/development_mode.html#cwd)。
+> - `setuptools` 将尝试在可编辑安装中给予模块正确的优先级。然而这并不总是容易的任务。如果你在`sys.path`中有特定的顺序，或者有一些需要遵守的具体导入优先级，那么由`setuptools`支持的可编辑安装可能无法满足这些要求，因此可能不是你用例中的合适工具。
+
+Attention
+Editable installs are **not a perfect replacement for regular installs** in a test environment. When in doubt, please test your projects as installed via a regular wheel. There are tools in the Python ecosystem, like [tox](https://pypi.org/project/tox) or [nox](https://pypi.org/project/nox), that can help you with that (when used with appropriate configuration).
+
+## Legacy Behavior
+If your project is not compatible with the new “editable installs” or you wish to replicate the legacy behavior, for the time being you can also perform the installation in the `compat` mode:
+
+```
+pip install -e . --config-settings editable_mode=compat
+```
+
+This installation mode will try to emulate how `python setup.py develop` works (still within the context of [**PEP 660**](https://peps.python.org/pep-0660/)).
+
+Warning
+The `compat` mode is _transitional_ and will be removed in future versions of `setuptools`, it exists only to help during the migration period. Also note that support for this mode is limited: it is safe to assume that the `compat` mode is offered “as is”, and improvements are unlikely to be implemented. Users are encouraged to try out the new editable installation techniques and make the necessary adaptations.
+
+Note
+Newer versions of `pip` no longer run the fallback command `python setup.py develop` when the `pyproject.toml` file is present. This means that setting the environment variable `SETUPTOOLS_ENABLE_FEATURES="legacy-editable"` will have no effect when installing a package with `pip`.
+
+## How editable installations work
+_Advanced topic_
+
+There are many techniques that can be used to expose packages under development in such a way that they are available as if they were installed. Depending on the project file structure and the selected mode, `setuptools` will choose one of these approaches for the editable installation [3](https://setuptools.pypa.io/en/latest/userguide/development_mode.html#criteria).
+
+A non-exhaustive list of implementation mechanisms is presented below. More information is available on the text of [**PEP 660**](https://peps.python.org/pep-0660/#what-to-put-in-the-wheel).
+
+- A static `.pth` file [4](https://setuptools.pypa.io/en/latest/userguide/development_mode.html#static-pth) can be added to one of the directories listed in [`site.getsitepackages()`](https://docs.python.org/3.11/library/site.html#site.getsitepackages "(in Python v3.11)") or [`site.getusersitepackages()`](https://docs.python.org/3.11/library/site.html#site.getusersitepackages "(in Python v3.11)") to extend [`sys.path`](https://docs.python.org/3.11/library/sys.html#sys.path "(in Python v3.11)").
+- A directory containing a _farm of file links_ that mimic the project structure and point to the original files can be employed. This directory can then be added to [`sys.path`](https://docs.python.org/3.11/library/sys.html#sys.path "(in Python v3.11)") using a static `.pth` file.
+- A dynamic `.pth` file [5](https://setuptools.pypa.io/en/latest/userguide/development_mode.html#dynamic-pth) can also be used to install an “import [finder](https://docs.python.org/3.11/glossary.html#term-finder "(in Python v3.11)")” ([`MetaPathFinder`](https://docs.python.org/3.11/library/importlib.html#importlib.abc.MetaPathFinder "(in Python v3.11)") or [`PathEntryFinder`](https://docs.python.org/3.11/library/importlib.html#importlib.abc.PathEntryFinder "(in Python v3.11)")) that will hook into Python’s [import system](https://docs.python.org/3.11/reference/import.html "(in Python v3.11)") machinery.
+
+Attention
+`Setuptools` offers **no guarantee** of which technique will be used to perform an editable installation. This will vary from project to project and may change depending on the specific version of `setuptools` being used.
 
 ## 1.5 Entry Points
 Entry points are a type of metadata that can be exposed by packages on installation. They are a very useful feature of the Python ecosystem, and come specially handy in two scenarios:
