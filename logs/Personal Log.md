@@ -1254,12 +1254,61 @@ Date: 2025.2.17-2025.2.24
 Date: 2025.2.24-2025.3.3
 
 \[Paper\]
-- [[paper-notes/Scalability But at what COST-2015-HotOS|2015-HotOS-Scalability But at what COST]]: All
+- [[paper-notes/distributed-system/Scalability But at what COST-2015-HotOS|2015-HotOS-Scalability But at what COST]]: All
+    Abstract
+        COST (Configuration that Outperforms a Single Thread) of a given platform for a given problem is the hardware overhead requires that the platform outperforms a single-thread implementation.
+        COST weighs a system's scalability against the overhead brought by the system. Systems with high scalability at the expense of introducing substantial overhead will have high COST.
+        Before requiring more resources, please first consider whether you have fully utilized the current resources at hand.
+    Introduction
+        We should consider to what extent the distributed systems truly improves the performance as opposed to just parallelizing the overheads that they introduce.
+        A system with unbounded COST means that there is no configuration for that system to outperforms the best single-thread implementation for the target problem.
+    Basic Graph Computations
+    Better Baselines
+        In some cases, the appealing scaling property of an algorithm essentially originate from the algorithm's inherent sub-optimality.
+    Applying COST to prior work
+    Lessons Learned
+        The implementation of a distributed system may introduce overheads that single-thread implementation does not have. To properly assess a system's capability, the overheads introduced by it should be also understood.
+    Future directions
 
 \[Book\]
-- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]
+- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH4.1-CH4.4, CH4.6
+    CH4-Dynamic Programming
+        Classical dynamic programming algorithm needs a perfect model and have great computational expense.
+        We assume the environment is finite MDP, that is, the state, action, and reward set are all finite set. Roughly speaking, DP is only applicable in finite MDP.
+        The key idea of DP is to use the value function to organize policy, that is, we use DP to compute the optimal value function, and use the optimal value function to define the optimal policy.
+        DP algorithm turns Bellman equation to assignment, or to say, the update rule for improving the approximating value function.
+        CH4.1-Policy Evaluation
+            In DP, policy evaluation refers to compute the state-value function $v_\pi$ for a policy $\pi$. According to the Bellman equation, if the environment dynamics are known, solving $v_\pi$ can be formulated to solving a linear system of $|\mathcal S|$ equations. As long as $\gamma<1$ or the eventual termination is guaranteed from all states under $\pi$. The existence and uniqueness of $v_\pi$ is guaranteed.
+            Iterative methods are suitable solution for this problem. This method turns the Bellman equation into an update rule for all $s\in \mathcal S$ to iteratively improve the approximating value function. Obviously, $v_k = v_\pi$ is a fixed point for this updating rule. It can be shown that under the same condition that guarantee the existence of $v_\pi$, sequence $\{v_k\}$ will converge to $v_\pi$ as $k\to \infty$.
+            This algorithm is called iterative policy evaluation.
+            To produce $v_{k+1}$ from $v_k$, iterative policy evaluation applies the same operation to each state $s$: replace the old approximating value with the new value, which is computed according to all possible one-step environment dynamic and rewards. This kind of operation is called full backup.
+            Every iteration of iterative policy evaluation backs up the value of each state, and get the new approximating value function.
+            All backups in DP is full backup, which means they are based on all possible next states rather a sample next state.
+            The order by which the state space is traversed in each iteration has a significant impact on the convergence rate of the in-place iterative policy iteration.
+        CH4.2-Policy Improvement
+            After policy evaluation, we have known $v_\pi$ for $\pi$. Therefore, we have known that from $s$, following $\pi$, we are expected to get return $v_\pi(s)$. Next, we need to improve $\pi$ , to get more expected return for the same starting state.
+            The policy improvement theorem states that, for any pair of deterministic policies $\pi, \pi'$ such that for all $s\in \mathcal S$: $q_\pi(s, \pi'(s))\ge v_\pi(s)$. Then $\pi'$ is at least a better policy than $\pi'$, which means for all $s\in \mathcal S$: $v_{\pi'}(s)\ge v_\pi(s)$
+            Therefore, we can define $\pi'$ as follows: known $v_\pi$ and environment dynamics, we can compute $q_\pi(s, a)$, and known $q_\pi(s, a)$, we just modify $\pi$ to deterministically choose $\max_a q_\pi(s, a)$ at $s$ for all $s\in \mathcal S$. In this way, by the policy improvement theorem, $\pi'$ is at least a better policy than $\pi$.
+            In other words, the new policy is greedy to $v_\pi$. This policy satisfies the conditions of the policy improvement theorem, and is at least as good as the original policy. This process is called policy improvement.
+            When the new policy is as good as the old policy, or to say $v_\pi = v_{\pi'}$, according to the Bellman optimal equation, the value function will be the optimal value function. Therefore, the policy improvement process will give a strictly better policy unless the original policy is optimal.
+        CH4.3-Policy Iteration
+            Once a policy have been improved, we can recalculate its value function by value iteration, and apply policy improvement. Repeating this process yields a sequence of monotonically improving policies and value functions. Each policy in the sequence is strictly better than the previous one. Because finite MDP has only a finite number of policies, this process must converge to an optimal policy and optimal value in a finite number of iterations.
+            This algorithm is called policy iteration. Notice that in policy iteration, the new policy's evaluation can start from the previous policy's value function to speed up convergence. Policy iteration often converges in a few iterations.
+        Ch4.4-Value Iteration
+            Value iteration can be understood as a special version of policy iteration wherein the policy evaluation is stopped after just one sweep (one backup of each state). The convergence of value iteration is also guaranteed.
+            An other way to understand value iteration is to view Bellman optimal equation as the updating rule.
+        CH4.6-Generalized Policy Iteration
+            In policy iteration, the policy evaluation and policy improvement process can interact in more different ways. The ultimate results is the same: convergence to the optimal value function and an optimal policy.
+
 
 \[Doc\]
 - [[doc-notes/go/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
 - [[doc-notes/go/A Tour of Go|go/A Tour of Go]]
 - [[doc-notes/python/packaging/Overview of Python Packaging|Overview of Python Packaging]]
+
+## Week 2
+Date: 2025.3.3-2025.3.10
+
+\[Book\]
+- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH7.1-CH7.3
+ 
