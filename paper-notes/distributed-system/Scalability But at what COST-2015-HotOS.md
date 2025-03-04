@@ -1,4 +1,4 @@
-## Abstract 
+# Abstract 
 We offer a new metric for big data platforms, COST, or the Configuration that Outperforms a Single Thread. The COST of a given platform for a given problem is the hardware configuration required before the platform outperforms a competent single-threaded implementation. COST weighs a system’s scalability against the overheads introduced by the system, and indicates the actual performance gains of the system, without rewarding systems that bring substantial but parallelizable overheads. 
 >  我们为大数据平台提出新的度量 COST (Configuration that Outperforms a Single Thread)，即优于单线程配置
 >  对于给定的问题，给定平台的 COST 指在该平台上，能使得并行程序性能超过一个优秀的单线程实现所需要的硬件配置
@@ -7,13 +7,13 @@ We offer a new metric for big data platforms, COST, or the Configuration that Ou
 We survey measurements of data-parallel systems recently reported in SOSP and OSDI, and find that many systems have either a surprisingly large COST, often hundreds of cores, or simply underperform one thread for all of their reported configurations. 
 >  我们调查了最近 SOSP 和 OSDI 上的数据并行系统，发现许多系统要么有非常高的 COST，通常为数百个核心，要么其性能在其所有报告的配置下实际上都低于优秀的单线程程序性能
 
-### 1 Introduction 
+# 1 Introduction 
 “You can have a second computer once you’ve shown you know how to use the first one.”  –Paul Barham 
 
 >  这句话的观点是：在获得更多资源和工具之前，首先考虑是否已经充分利用了现有的资源
 
 The published work on big data systems has fetishized scalability as the most important feature of a distributed data processing platform. While nearly all such publications detail their system’s impressive scalability, few directly evaluate their absolute performance against reasonable benchmarks. To what degree are these systems truly improving performance, as opposed to parallelizing overheads that they themselves introduce? 
->  以发表的大数据系统将可拓展性视作分布式数据处理平台最重要的特性，但尽管几乎所有的工作都详细介绍了其系统优秀的可拓展性，但很少有工作将其系统的绝对性能和较为合理的基准进行比较
+>  已发表的大数据系统将可拓展性视作分布式数据处理平台最重要的特性，但尽管几乎所有的工作都详细介绍了其系统优秀的可拓展性，但很少有工作将其系统的绝对性能和较为合理的基准进行比较
 >  我们需要考虑：这些系统在多大程度上真正提高了其性能，而不是仅仅并行化它们自己引入的开销
 
 ![[pics/COST-Fig1.png]]
@@ -35,7 +35,6 @@ The comparisons are neither perfect nor always fair, but the conclusions are suf
 We stress that these problems lie not necessarily with the systems themselves, which may be improved with time, but rather with the measurements that the authors provide and the standard that reviewers and readers demand. Our hope is to shed light on this issue so that future research is directed toward distributed systems whose scalability comes from advances in system design rather than poor baselines and low expectations. 
 >  这些问题出现在作者所提供的和审稿人所期望的度量标准上，即可拓展性
 >  分布式系统的可拓展性应该来自于系统设计的进步，而不是糟糕的基准和低期望值
-
 
 # 2 Basic Graph Computations 
 Graph computation has featured prominently in recent SOSP and OSDI conferences, and represents one of the simplest classes of data-parallel computation that is not trivially parallelized. Conveniently, Gonzalez et al. [10] evaluated the latest versions of several graph-processing systems in 2014. We implement each of their tasks using single-threaded C# code, and evaluate the implementations on the same datasets they use (see Table 1). 
@@ -84,7 +83,7 @@ The connected components of an undirected graph are disjoint sets of vertices su
 >  无向图的连通成分是互相不相交的节点集合，同一个连通成分中的节点互相两两可达
 
 In the distributed setting, the most common algorithm for computing connectivity is label propagation [11] (Figure 3). In label propagation, each vertex maintains a label (initially its own ID), and iteratively updates its label to be the minimum of all its neighbors’ labels and its current label. The process propagates the smallest label in each component to all vertices in the component, and the iteration converges once this happens in every component. The updates are commutative and associative, and consequently admit a scalable implementation [7]. 
->  分布式设定下，计算连通性最常用的算法时标签传播，该算法中，每个节点维护一个标签 (初始值为其 ID)，然后迭代式地将其标签更新为其所有邻居的标签和其自己的标签中的最小值
+>  分布式设定下，计算连通性最常用的算法是标签传播，该算法中，每个节点维护一个标签 (初始值为其 ID)，然后迭代式地将其标签更新为其所有邻居的标签和其自己的标签中的最小值
 >  该过程会将每个连通成分中的最小标签传播到连通成分中的所有节点上，当所有连通分量中都出现这种情况，算法收敛
 >  该算法执行的更新是可交换和可结合的，因此可以进行可拓展的实现
 
@@ -208,7 +207,7 @@ There are many good reasons why a system might have a high COST when compared wi
 >  和最快的专用单线程实现相比，分布式系统也存在具有高 COST 的合适理由，例如系统针对的是另一个问题集，适合不同的部署环境，或者是一个旨在评估完整系统组件的原型。该系统还可能提供其他质量优势，包括与现有生态系统集成、高可用性或安全性，而这些是简单解决方案无法提供的。
 >  正如第 4 节所展示的，评估 COST 仍然是重要的，这不仅是为了说明高 COST 是否是系统固有的特性，并且还因为这可以突出避免的低效性，并因此推动系统的性能改进。 
 
-### 6 Future directions (for the area) 
+# 6 Future directions (for the area) 
 While this note may appear critical of research in distributed systems, we believe there is still good work to do, and our goal is to provide a framework for measuring and making the best forward progress. 
 
 There are numerous examples of scalable algorithms and computational models; one only needs to look back to the parallel computing research of decades past. Borivka's algorithm [1] is nearly ninety years old, parallelizes cleanly, and solves a more general problem than label propagation. The Bulk Synchronous Parallel model [24] is surprisingly more general than most related work sections would have you believe. These algorithms and models are richly detailed, analyzed, and in many cases already implemented. 
