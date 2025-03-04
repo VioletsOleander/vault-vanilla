@@ -117,7 +117,7 @@ The single-threaded implementations we have presented were chosen to be the simp
 ## 3.1 Improving graph layout 
 Our single-threaded algorithms take as inputs edge iterators, and while they have no requirements on the order in which edges are presented, the order does affect performance. Up to this point, our single-threaded implementations have enumerated edges in vertex order, whereby all edges for one vertex are presented before moving on to the next vertex. Both GraphLab and GraphX instead partition the edges among workers, without requiring that all edges from a single vertex belong to the same worker, which enables those systems to exchange less data [9, 10]. 
 >  我们的单线程算法以边迭代器作为输入，并没有考虑边的顺序，而顺序会影响性能
->  我们的单线程实现按照节点顺序美剧边，即处理下一个顶点之前，会枚举出当前顶点相关的所有边
+>  我们的单线程实现按照节点顺序枚举边，即处理下一个顶点之前，会枚举出当前顶点相关的所有边
 >  GraphLab 和 GraphX 在 workers 中划分边，不要求来自于单个节点的所有边属于同一个 worker，这使得系统可以交换更少的数据
 
 A single-threaded graph algorithm does not perform explicit communication, but edge ordering can have a pronounced effect on the cache behavior. For example, the edge ordering described by a Hilbert curve [2], akin to ordering edges $(a, b)$ by the interleaving of the bits of $a$ and $b$ , exhibits locality in both $a$ and $b$ rather than just $a$ as in the vertex ordering. Table 4 compares the running times of single-threaded PageRank with edges presented in Hilbert curve order against other implementations, where we see that it improves over all of them. 

@@ -378,7 +378,7 @@ A well-defined notion of optimality organizes the approach to learning we descri
 The term dynamic programming (DP) refers to a collection of algorithms that can be used to compute optimal policies given a perfect model of the environment as a Markov decision process (MDP). Classical DP algorithms are of limited utility in reinforcement learning both because of their assumption of a perfect model and because of their great computational expense, but they are still important theoretically. DP provides an essential foundation for the understanding of the methods presented in the rest of this book. In fact, all of these methods can be viewed as attempts to achieve much the same effect as DP, only with less computation and without assuming a perfect model of the environment. 
 >  动态规划指在环境被完美建模为 MDP 问题下用于计算最优策略的一类算法
 >  经典的动态规划算法需要完美的模型，并且计算开销较大，因此应用有限，但具有理论价值
->  之后介绍的方法都可以视作一更少的计算或者不假设环境具有完美模型的情况下，尝试达到和 DP 相同的效果
+>  之后介绍的方法都可以视作以更少的计算或者不假设环境具有完美模型的情况下，尝试达到和 DP 相同的效果
 
 Starting with this chapter, we usually assume that the environment is a finite MDP. That is, we assume that its state, action, and reward sets, $\mathcal S$, ${\mathcal{A}}(s)$ , and $\mathcal{R}$ , for $s\in\mathcal{S}$ , are finite, and that its dynamics are given by a set of probabilities $p(s^{\prime},r|s,a)$ , for all $s\in\mathcal S$ , $a\in\mathcal A(s)$ , $r\in\mathcal R$ , and $s^{\prime}\in\mathcal{S}^{+}$ ( $\mathcal{S}^{+}$ is $\mathcal S$ plus a terminal state if the problem is episodic). Although DP ideas can be applied to problems with continuous state and action spaces, exact solutions are possible only in special cases. A common way of obtaining approximate solutions for tasks with continuous states and actions is to quantize the state and action spaces and then apply finite-state DP methods. The methods we explore in Chapter 9 are applicable to continuous problems and are a significant extension of that approach. 
 >  我们假设环境是有限 MDP，即其状态集合、动作集合、奖励集合 $\mathcal S, \mathcal A(s)\ \text{for}\ s\in \mathcal S, \mathcal R$ 都是有限集合。MDP 的动态由一组概率 $p(s', r\mid s, a)\ \text{for all}\ a\in \mathcal S, a\in \mathcal A(s), r\in \mathcal R, s' \in \mathcal S^+$ ($\mathcal S^+$ 为 $\mathcal S$ 再加上一个终止状态)
@@ -387,7 +387,7 @@ Starting with this chapter, we usually assume that the environment is a finite M
 The key idea of DP, and of reinforcement learning generally, is the use of value functions to organize and structure the search for good policies. In this chapter we show how DP can be used to compute the value functions defined in Chapter 3. As discussed there, we can easily obtain optimal policies once we have found the optimal value functions, $v_{*}$ or $q_{*}$ , which satisfy the Bellman optimality equations: 
 >  DP 的关键思想是用价值函数来组织和结构化对策略的搜索，即我们用 DP 计算最优价值函数，根据最优价值函数定义策略
 
->  最状态优价值函数和最优动作价值函数对于所有的 $s\in \mathcal S, a\in \mathcal A(s), s' \in \mathcal S^+$ 满足 Bellman 最优方程，如下所示：
+>  最优状态价值函数和最优动作价值函数对于所有的 $s\in \mathcal S, a\in \mathcal A(s), s' \in \mathcal S^+$ 满足 Bellman 最优方程，如下所示：
 
 $$
 \begin{align}
@@ -519,7 +519,7 @@ Moreover, if there is strict inequality of (4.7) at any state, then there must b
 
 >  以上的讨论实际上就是策略提升定理的一个一般性结果
 >  令 $\pi$ 和 $\pi'$ 是任意的一对确定性策略，二者对于任意的 $s\in \mathcal S$ 满足 Eq (4.7)，即在遇到任意状态 $s$ 时，根据 $\pi'$ 选择动作得到的价值会优于根据 $\pi$ 选择动作得到的价值。那么，策略 $\pi'$ 一定是一个不差于 $\pi$ 的策略，即对于所有的状态 $s\in \mathcal S$，都有 Eq 4.8 成立
->  并且，如果 Eq 4.7 在任意状态是严格的不等式，则 Eq 4.8 在至少一个状态下也是严格的不等式
+>  并且，如果 Eq 4.7 在任意一个状态是严格的不等式，则 Eq 4.8 在至少一个状态下也是严格的不等式
 
 This result applies in particular to the two policies that we considered in the previous paragraph, an original deterministic policy, $\pi$ , and a changed policy, $\pi^{\prime}$ , that is identical to $\pi$ except that $\pi^{\prime}(s)=a\neq\pi(s)$ . Obviously, (4.7) holds at all states other than $s$ . Thus, if $q_{\pi}(s,a)>v_{\pi}(s)$ , then the changed policy is indeed better than $\pi$ . 
 >  显然，我们之前讨论的两个策略：原来的策略 $\pi$ 和修改后的策略 $\pi'$ 满足策略提升定理，其中修改后的策略定义为： $\pi'(s) = a \ne \pi(s)$，其他情况都与 $\pi$ 一致
@@ -562,7 +562,7 @@ $$
 where $\mathrm{arg}\operatorname*{max}_{a}$ denotes the value of $a$ at which the expression that follows is maximized (with ties broken arbitrarily). The greedy policy takes the action that looks best in the short term—after one step of lookahead—according to $v_{\pi}$ . By construction, the greedy policy meets the conditions of the policy improvement theorem (4.7), so we know that it is as good as, or better than, the original policy. The process of making a new policy that improves on an original policy, by making it greedy with respect to the value function of the original policy, is called policy improvement. 
 
 >  换句话说，我们考虑如 Eq 4.9 的贪心策略，它选择动作的依据是原策略的动作价值函数 $q_\pi(s, a)$
->  该贪心策略选择短期 (经过一步探查) 来看最优的 (根据 $v_\pi$) 动作，容易证明，该叹息策略满足策略改进定理的条件 (Eq 4.7)，因此该策略不会差于原策略
+>  该贪心策略选择短期 (经过一步探查) 来看最优的 (根据 $v_\pi$) 动作，容易证明，该贪心策略满足策略改进定理的条件 (Eq 4.7)，因此该策略不会差于原策略
 >  基于原策略的价值函数定义贪心的新策略的这一过程称为策略改进
 
 Suppose the new greedy policy, $\pi^{\prime}$ , is as good as, but not better than, the old policy $\pi$ . Then $v_{\pi}=v_{\pi^{\prime}}$ , and from (4.9) it follows that for all $s\in\mathcal{S}$ : 
