@@ -10,7 +10,7 @@ Generative adversarial networks (GANs) (Goodfellow et al., 2014) have been enjoy
 
 In a nutshell, GANs are a framework to produce a model distribution that mimics a given target distribution, and it consists of a generator that produces the model distribution and a discriminator that distinguishes the model distribution from the target. The concept is to consecutively train the model distribution and the discriminator in turn, with the goal of reducing the difference between the model distribution and the target distribution measured by the best discriminator possible at each step of the training. 
 >  简而言之，GAN 是一类框架，它生成模仿目标分布的模型分布
->  GAN 由一个生成模型分布的生成器和一个区分模型分布和目标分布的判别器组成，GAN 交替训练判别器和生成器，目标是在每一步训练减少当前最优的判别器所度量了模型分布和目标分布的差异
+>  GAN 由一个生成模型分布的生成器和一个区分模型分布和目标分布的判别器组成，GAN 交替训练判别器和生成器，目标是在每一步训练减少当前最优的判别器所度量的模型分布和目标分布的差异
 
 GANs have been drawing attention in the machine learning community not only for its ability to learn highly structured probability distribution but also for its theoretically interesting aspects. For example, (Nowozin et al., 2016; Uehara et al., 2016; Mohamed & Lakshminarayanan, 2017) revealed that the training of the discriminator amounts to the training of a good estimator for the density ratio between the model distribution and the target. This is a perspective that opens the door to the methods of implicit models (Mohamed & Lakshminarayanan, 2017; Tran et al., 2017) that can be used to carry out variational optimization without the direct knowledge of the density function. 
 >  (Nowozin et al., 2016; Uehara et al., 2016; Mohamed & Lakshminarayanan, 2017) 揭示了判别器的训练等价于训练一个密度比 (模型分布比去目标分布) 估计器，该视角引出了隐式模型方法，这些方法可以用于在没有密度函数的直接知识的情况下执行变分优化
@@ -224,6 +224,8 @@ $$
 
 where $E_{i j}$ is the matrix whose $(i,j)$ -th entry is 1 and zero everywhere else, and $\pmb{u}_{1}$ and $\pmb{v}_{1}$ are respectively the first left and right singular vectors of $W$ . 
 
+>  谱规范化后的输出 $\bar W_{SN}(W)$ 相对于输入 $W_{ij}$ 的梯度形式如上，其中 $E_{ij}$ 为除了 $(i, j)$ 处是 1，其它处都是 0 的矩阵，$\pmb u_1, \pmb v_1$ 分别是 $W$ 的第一左右奇异值向量
+
 >  推导
 
 $$
@@ -340,10 +342,12 @@ This paper proposes spectral normalization as a stabilizer of training of GANs. 
 
 # A The Algorithm of Spectral Normalization
 Let us describe the shortcut in Section 2.1 in more detail. We begin with vectors $\tilde{\pmb{u}}$ that is randomly initialized for each weight. If there is no multiplicity in the dominant singular values and if $\tilde{\pmb u}$ is not orthogonal to the first left singular vectors7, we can appeal to the principle of the power method and produce the first left and right singular vectors through the following update rule: 
+
 $$
-\begin{array}{r}{\tilde{{\boldsymbol{v}}}\leftarrow{\boldsymbol{W}}^{\mathrm{T}}\tilde{{\boldsymbol{u}}}/\|{\boldsymbol{W}}^{\mathrm{T}}\tilde{{\boldsymbol{u}}}\|_{2},\;\tilde{{\boldsymbol{u}}}\leftarrow{\boldsymbol{W}}\tilde{{\boldsymbol{v}}}/\|{\boldsymbol{W}}\tilde{{\boldsymbol{v}}}\|_{2}.}\end{array}
+\begin{array}{r}{\tilde{{\boldsymbol{v}}}\leftarrow{\boldsymbol{W}}^{\mathrm{T}}\tilde{{\boldsymbol{u}}}/\|{\boldsymbol{W}}^{\mathrm{T}}\tilde{{\boldsymbol{u}}}\|_{2},\;\tilde{{\boldsymbol{u}}}\leftarrow{\boldsymbol{W}}\tilde{{\boldsymbol{v}}}/\|{\boldsymbol{W}}\tilde{{\boldsymbol{v}}}\|_{2}.}\end{array}\tag{18}
 $$ 
-oximate the spectral norm of $W$ with the pair of so-approximated singul 
+We can then approximate the spectral norm of $W$ with the pair of so-approximated singular vectors:
+
 $$
 \boldsymbol{\sigma}(\boldsymbol{W})\approx\tilde{\boldsymbol{u}}^{\mathrm{T}}\boldsymbol{W}\tilde{\boldsymbol{v}}.
 $$ 
@@ -660,6 +664,48 @@ For matrix $A\in\mathbb{R}^{m\times n}$ of rank $r$ , the following inequalities
 - ${\|A\|_{\operatorname*{max}}\leq\|A\|_{2}\leq\sqrt{m n}\|A\|_{\operatorname*{max}}}$
 - ${\frac{1}{\sqrt{n}}\|A\|_{\infty}\leq\|A\|_{2}\leq\sqrt{m}\|A\|_{\infty}}$
 - ${\frac{1}{\sqrt{m}}\|A\|_{1}\leq\|A\|_{2}\leq\sqrt{n}\|A\|_{1}.}$
+
+## Power Iteration
+幂迭代算法是用于求解可对角化矩阵 $A$ 的最大特征值和特征向量的一种数值方法，该算法接受一个可对角化的矩阵 $A$ 作为输入，输出一个特征值 $\lambda$ 和特征向量 $v$，它们近似满足 $Av = \lambda v$，并且 $\lambda$ 是 $A$ 的最大的特征向量
+
+**算法流程：**
+幂迭代的算法流程简单，给定矩阵 $A$、预定的迭代次数、一个初始的随机向量 $b_0$，算法从迭代 $k=0$ 开始，在每次迭代 $k$ 执行 
+
+$$b_{k+1} = \frac {Ab_{k}}{\|Ab_k\|}$$
+
+直到 $k$ 达到预定的迭代次数，最后得到的 $b_k$ 就是所求的近似特征向量，其对应的特征值可以通过 $\lambda = \frac {\|Ab_{k}\|}{\|b_k\|}$ 计算得到
+
+容易证明，$b_k = \frac {Ab_{k-1}}{\|Ab_{k-1}\|} = \frac {A^kb_0}{\|A^kb_0\|}$，根据该式，迭代式运算可以进行一定的简化，即直接计算多次迭代后的结果 (如果数值不会溢出的话，注意如果 $\det(A) > 0$，$\|A^kb_0\|$ 将随着 $k$ 增大而增大)
+
+**收敛性分析：**
+给定一个可对角化的矩阵 $A$，它可以按照如下形式对角化：
+
+$$
+A = V\Lambda V^{-1}
+$$
+
+其中 $V$ 是由 $A$ 的特征向量 $v_1, \dots, v_n$ 构成的正交阵，$\Lambda$ 是由对应的特征值 $\lambda_1, \dots, \lambda_n$ 构成的对角阵 ($\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n$)
+
+$A$ 的特征向量 $v_1, \dots, v_n$ 构成了 $\mathbb R^n$ 中的一组正交基， $\mathbb R^n$ 中的任意一个向量都可以表示为 $v_1, \dots v_n$ 的线性组合，进而可以将初始的随机向量 $b_0$ 表示为
+
+$$
+b_0 = c_1v_1 + \cdots + c_nv_n
+$$
+
+在幂迭代运算中，经过 $k$ 次迭代，我们得到的是为 $b_0$ 左乘 $k$ 次 $A$ 得到的是
+
+$$
+\begin{align}
+A^kb_0  &= A^k(c_1v_1 + \cdots + c_nv_n)\\
+&=c_1A^kv_1 + \cdots + c_n A^k v_n\\
+&=c_1\lambda_1^k v_1 + \cdots + c_n\lambda_n^k v_n\\
+&=c_1\lambda_1^k\left( v_1 + \frac {c_2}{c_1}\left(\frac{\lambda_2}{\lambda_1}\right)^kv_2 + \cdots + \frac {c_n}{c_1}\left(\frac {\lambda_n}{\lambda_1}\right)^k v_n\right)\\
+\end{align}
+$$
+
+显然，随着 $k\to \infty$，$A^k b_0$ 将趋近于 $c_1\lambda_1^k v_1$
+
+因此，随着 $k \to \infty$，$b_k = \frac {A^kb_0}{\|A^kb_0\|}$ 将趋近于 $v_1$，即 $A$ 的第一单位特征向量
 
 ## Proof of Inequality
 不等式：对于任意向量 $\pmb h$，有 $\|A\pmb h\|_2 \le \sigma(A)\|\pmb h\|_2$
