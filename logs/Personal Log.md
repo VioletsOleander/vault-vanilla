@@ -834,7 +834,7 @@ Date: 2024.12.16-2024.12.23-2024.12.30
     CH7-Polya 计数理论
 
 \[Doc\]
-- [[doc-notes/mlir/Toy Tutorial|mlir/Toy Tutorial]]: CH1-CH2
+- [[doc-notes/mlir/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH1-CH2
     CH1-Toy Language and AST
         unranked tensor parameter: the dimension is unknown, and will be specialized at call sites
     CH2-Emitting Basic MLIR
@@ -1306,7 +1306,7 @@ Date: 2025.2.24-2025.3.3
 - [[doc-notes/go/A Tour of Go|go/A Tour of Go]]
 - [[doc-notes/python/packaging/Overview of Python Packaging|Overview of Python Packaging]]
 
-## Week 2
+### Week 2
 Date: 2025.3.3-2025.3.10
 
 \[Book\]
