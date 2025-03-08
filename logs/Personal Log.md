@@ -1318,3 +1318,4 @@ Date: 2025.3.3-2025.3.10
 
 \[Doc\]
 - [[doc-notes/go/How to Write Go Code|go/How to Write Go Code]]
+- [[doc-notes/mlir/tutorials/Toy Tutorial|mlir/Toy Tutorial]]
