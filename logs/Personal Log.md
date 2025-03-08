@@ -1304,7 +1304,11 @@ Date: 2025.2.24-2025.3.3
 \[Doc\]
 - [[doc-notes/go/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
 - [[doc-notes/go/A Tour of Go|go/A Tour of Go]]
-- [[doc-notes/python/packaging/Overview of Python Packaging|Overview of Python Packaging]]
+- [[doc-notes/python/packaging/Overview of Python Packaging|python/packaging/Overview of Python Packaging]]
+
+\[Code\]
+- NowcastNet rewritten project
+    evaluation framework
 
 ### Week 2
 Date: 2025.3.3-2025.3.10
@@ -1312,4 +1316,5 @@ Date: 2025.3.3-2025.3.10
 \[Book\]
 - [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH7.1-CH7.3
 
-
+\[Doc\]
+- [[doc-notes/go/How to Write Go Code|go/How to Write Go Code]]
