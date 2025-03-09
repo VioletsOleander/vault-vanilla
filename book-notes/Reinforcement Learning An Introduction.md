@@ -1,3 +1,173 @@
+#  2 Multi-arm Bandits 
+The most important feature distinguishing reinforcement learning from other types of learning is that it uses training information that evaluates the actions taken rather than instructs by giving correct actions. This is what creates the need for active exploration, for an explicit trial-and-error search for good behavior. Purely evaluative feedback indicates how good the action taken is, but not whether it is the best or the worst action possible. Evaluative feedback is the basis of methods for function optimization, including evolutionary methods. Purely instructive feedback, on the other hand, indicates the correct action to take, independently of the action actually taken. This kind of feedback is the basis of supervised learning, which includes large parts of pattern classification, artificial neural networks, and system identification. In their pure forms, these two kinds of feedback are quite distinct: evaluative feedback depends entirely on the action taken, whereas instructive feedback is independent of the action taken. There are also interesting intermediate cases in which evaluation and instruction blend together. 
+In this chapter we study the evaluative aspect of reinforcement learning in a simplified setting, one that does not involve learning to act in more than one situation. This nonassociative setting is the one in which most prior work involving evaluative feedback has been done, and it avoids much of the complexity of the full reinforcement learning problem. Studying this case will enable us to see most clearly how evaluative feedback differs from, and yet can be combined with, instructive feedback. 
+The particular nonassociative, evaluative feedback problem that we explore is a simple version of the $n$ -armed bandit problem. We use this problem to introduce a number of basic learning methods which we extend in later chapters to apply to the full reinforcement learning problem. At the end of this chapter, we take a step closer to the full reinforcement learning problem by discussing what happens when the bandit problem becomes associative, that is, when actions are taken in more than one situation. 
+## 2.1 An $n$ -Armed Bandit Problem 
+Consider the following learning problem. You are faced repeatedly with a choice among $n$ different options, or actions. After each choice you receive a numerical reward chosen from a stationary probability distribution that depends on the action you selected. Your objective is to maximize the expected total reward over some time period, for example, over 1000 action selections, or time steps. 
+This is the original form of the $n$ -armed bandit problem, so named by analogy to a slot machine, or “one-armed bandit,” except that it has $n$ levers instead of one. Each action selection is like a play of one of the slot machine’s levers, and the rewards are the payoffs for hitting the jackpot. Through repeated action selections you are to maximize your winnings by concentrating your actions on the best levers. Another analogy is that of a doctor choosing between experimental treatments for a series of seriously ill patients. Each action selection is a treatment selection, and each reward is the survival or well-being of the patient. Today the term “ $^{n}$ -armed bandit problem” is sometimes used for a generalization of the problem described above, but in this book we use it to refer just to this simple case. 
+In our $n$ -armed bandit problem, each action has an expected or mean reward given that that action is selected; let us call this the value of that action. If you knew the value of each action, then it would be trivial to solve the $n$ -armed bandit problem: you would always select the action with highest value. We assume that you do not know the action values with certainty, although you may have estimates. 
+If you maintain estimates of the action values, then at any time step there is at least one action whose estimated value is greatest. We call this a greedy action. If you select a greedy action, we say that you are exploiting your current knowledge of the values of the actions. If instead you select one of the nongreedy actions, then we say you are exploring, because this enables you to improve your estimate of the nongreedy action’s value. Exploitation is the right thing to do to maximize the expected reward on the one step, but exploration may produce the greater total reward in the long run. For example, suppose the greedy action’s value is known with certainty, while several other actions are estimated to be nearly as good but with substantial uncertainty. The uncertainty is such that at least one of these other actions probably is actually better than the greedy action, but you don’t know which one. If you have many time steps ahead on which to make action selections, then it may be better to explore the nongreedy actions and discover which of them are better than the greedy action. Reward is lower in the short run, during exploration, but higher in the long run because after you have discovered the better actions, you can exploit them many times. Because it is not possible both to explore and to exploit with any single action selection, one often refers to the “conflict” between exploration and exploitation. 
+In any specific case, whether it is better to explore or exploit depends in a complex way on the precise values of the estimates, uncertainties, and the number of remaining steps. There are many sophisticated methods for balancing exploration and exploitation for particular mathematical formulations of the $n$ -armed bandit and related problems. However, most of these methods make strong assumptions about stationarity and prior knowledge that are either violated or impossible to verify in applications and in the full reinforcement learning problem that we consider in subsequent chapters. The guarantees of optimality or bounded loss for these methods are of little comfort when the assumptions of their theory do not apply. 
+In this book we do not worry about balancing exploration and exploitation in a sophisticated way; we worry only about balancing them at all. In this chapter we present several simple balancing methods for the $n$ -armed bandit problem and show that they work much better than methods that always exploit. The need to balance exploration and exploitation is a distinctive challenge that arises in reinforcement learning; the simplicity of the $n$ -armed bandit problem enables us to show this in a particularly clear form. 
+## 2.2 Action-Value Methods 
+We begin by looking more closely at some simple methods for estimating the values of actions and for using the estimates to make action selection decisions. In this chapter, we denote the true (actual) value of action $a$ as $q(a)$ , and the estimated value on the $t$ th time step as $Q_{t}(a)$ . Recall that the true value of an action is the mean reward received when that action is selected. One natural way to estimate this is by averaging the rewards actually received when the action was selected. In other words, if by the $t$ th time step action $a$ has been chosen $N_{t}(a)$ times prior to $t$ , yielding rewards $R_{1},R_{2},\ldots,R_{N_{t}(a)}$ , then its value is estimated to be 
+$$
+Q_{t}(a)={\frac{R_{1}+R_{2}+\cdot\cdot\cdot+R_{N_{t}(a)}}{N_{t}(a)}}.
+$$ 
+If $N_{t}(a)=0$ , then we define $Q_{t}(a)$ instead as some default value, such as $Q_{1}(a)=0$ . As $N_{t}(a)\to\infty$ , by the law of large numbers, $Q_{t}(a)$ converges to $q(a)$ . We call this the sample-average method for estimating action values because each estimate is a simple average of the sample of relevant rewards. Of course this is just one way to estimate action values, and not necessarily the best one. Nevertheless, for now let us stay with this simple estimation method and turn to the question of how the estimates might be used to select actions. 
+The simplest action selection rule is to select the action (or one of the actions) with highest estimated action value, that is, to select at step $t$ one of the greedy actions, $A_{t}^{*}$ , for which $Q_{t}(A_{t}^{*})=\operatorname*{max}_{a}Q_{t}(a)$ . This greedy action selection method can be written as 
+$$
+A_{t}=\operatorname*{argmax}_{a}Q_{t}(a),
+$$ 
+where $\mathrm{arg}\mathrm{max}_{a}$ denotes the value of $a$ at which the expression that follows is maximized (with ties broken arbitrarily). Greedy action selection always exploits current knowledge to maximize immediate reward; it spends no time at all sampling apparently inferior actions to see if they might really be better. A simple alternative is to behave greedily most of the time, but every once in a while, say with small probability $\boldsymbol{\varepsilon}$ , instead to select randomly from amongst all the actions with equal probability independently of the actionvalue estimates. We call methods using this near-greedy action selection rule $\varepsilon$ -greedy methods. An advantage of these methods is that, in the limit as the number of plays increases, every action will be sampled an infinite number of times, guaranteeing that $N_{t}(a)\to\infty$ for all $a$ , and thus ensuring that all the $Q_{t}(a)$ converge to $q(a)$ . This of course implies that the probability of selecting the optimal action converges to greater than $1-\varepsilon$ , that is, to near certainty. These are just asymptotic guarantees, however, and say little about the practical effectiveness of the methods. 
+To roughly assess the relative effectiveness of the greedy and $\varepsilon$ -greedy methods, we compared them numerically on a suite of test problems. This was a set of 2000 randomly generated $n$ -armed bandit tasks with $n=10$ . For each bandit, the action values, $q(a)$ , $a=1,\ldots,10$ , were selected according to a normal (Gaussian) distribution with mean 0 and variance 1. On $t$ th time step with a given bandit, the actual reward $R_{t}$ was the $q(A_{t})$ for the bandit (where $A_{t}$ was the action selected) plus a normally distributed noise term that was mean 0 and variance 1. Averaging over bandits, we can plot the performance and behavior of various methods as they improve with experience over 1000 steps, as in Figure 2.1. We call this suite of test tasks the 10-armed testbed. 
+Figure 2.1 compares a greedy method with two $\boldsymbol{\varepsilon}$ -greedy methods ( $\varepsilon=0.01$ and $\varepsilon=0.1$ ), as described above, on the 10-armed testbed. Both methods formed their action-value estimates using the sample-average technique. The upper graph shows the increase in expected reward with experience. The greedy method improved slightly faster than the other methods at the very beginning, but then leveled off at a lower level. It achieved a reward per step of only about 1, compared with the best possible of about 1.55 on this testbed. The greedy method performs significantly worse in the long run because it often gets stuck performing suboptimal actions. The lower graph shows that the greedy method found the optimal action in only approximately one-third of the tasks. In the other two-thirds, its initial samples of the optimal action were disappointing, and it never returned to it. The $\varepsilon$ -greedy methods eventually perform better because they continue to explore, and to improve their chances of recognizing the optimal action. The $\varepsilon=0.1$ method explores more, and usually finds the optimal action earlier, but never selects it more than $91\%$ of the time. The $\varepsilon~=~0.01$ method improves more slowly, but eventually performs better than the $\varepsilon=0.1$ method on both performance measures. It is also possible to reduce $\varepsilon$ over time to try to get the best of both high and low values. 
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/86e8e8e3a9eb957248009ff0844849e2b415bea455948172748a2c84217f73ab.jpg) 
+Figure 2.1: Average performance of $\varepsilon$ -greedy action-value methods on the 10-armed testbed. These data are averages over 2000 tasks. All methods used sample averages as their action-value estimates. The detailed structure at the beginning of these curves depends on how actions are selected when multiple actions have the same maximal action value. Here such ties were broken randomly. An alternative that has a similar effect is to add a very small amount of randomness to each of the initial action values, so that ties effectively never happen. 
+The advantage of $\boldsymbol{\varepsilon}$ -greedy over greedy methods depends on the task. For example, suppose the reward variance had been larger, say 10 instead of 1. With noisier rewards it takes more exploration to find the optimal action, and $\varepsilon$ -greedy methods should fare even better relative to the greedy method. On the other hand, if the reward variances were zero, then the greedy method would know the true value of each action after trying it once. In this case the greedy method might actually perform best because it would soon find the optimal action and then never explore. But even in the deterministic case, there is a large advantage to exploring if we weaken some of the other assumptions. For example, suppose the bandit task were nonstationary, that is, that the true values of the actions changed over time. In this case exploration is needed even in the deterministic case to make sure one of the nongreedy actions has not changed to become better than the greedy one. As we will see in the next few chapters, effective nonstationarity is the case most commonly encountered in reinforcement learning. Even if the underlying task is stationary and deterministic, the learner faces a set of banditlike decision tasks each of which changes over time due to the learning process itself. Reinforcement learning requires a balance between exploration and exploitation. 
+## 2.3 Incremental Implementation 
+The action-value methods we have discussed so far all estimate action values as sample averages of observed rewards. The obvious implementation is to 
+maintain, for each action $a$ , a record of all the rewards that have followed the selection of that action. Then, when the estimate of the value of action a is needed at time $t$ , it can be computed according to (2.1), which we repeat here: 
+$$
+Q_{t}(a)={\frac{R_{1}+R_{2}+\cdot\cdot\cdot+R_{N_{t}(a)}}{N_{t}(a)}},
+$$ 
+where here $R_{1},\ldots,R_{N_{t}(a)}$ are all the rewards received following all selections of action $a$ prior to play $t$ . A problem with this straightforward implementation is that its memory and computational requirements grow over time without bound. That is, each additional reward following a selection of action $a$ requires more memory to store it and results in more computation being required to determine $Q_{t}(a)$ . 
+As you might suspect, this is not really necessary. It is easy to devise incremental update formulas for computing averages with small, constant computation required to process each new reward. For some action, let $Q_{k}$ denote the estimate for its $k$ th reward, that is, the average of its first $k-1$ rewards. Given this average and a $k$ th reward for the action, $R_{k}$ , then the average of all $k$ rewards can be computed by 
+$$
+{\begin{array}{r l}{Q_{k+1}}&{=}&{{\cfrac{1}{k}}\displaystyle\sum_{i=1}^{k}R_{i}}\ &{=}&{{\cfrac{1}{k}}\left(R_{k}+\displaystyle\sum_{i=1}^{k-1}R_{i}\right)}\ &{=}&{{\cfrac{1}{k}}\left(R_{k}+(k-1)Q_{k}+Q_{k}-Q_{k}\right)}\ &{=}&{{\cfrac{1}{k}}\left(R_{k}+k Q_{k}-Q_{k}\right)}\ &{=}&{Q_{k}+{\cfrac{1}{k}}\left[R_{k}-Q_{k}\right],}\end{array}}
+$$ 
+which holds even for $k=1$ , obtaining ${\cal Q}_{2}=R_{1}$ for arbitrary $Q_{1}$ . This implementation requires memory only for $Q_{k}$ and $k$ , and only the small computation (2.3) for each new reward. 
+The update rule (2.3) is of a form that occurs frequently throughout this book. The general form is 
+$$
+N e w E s t i m a t e\leftarrow O l d E s t i m a t e+S t e p S i z e\left[T a r g e t-O l d E s t i m a t e\right].
+$$ 
+The expression $\lfloor\mathit{T a r g e t}-\mathit{O l d E s t i m a t e}\rfloor$ is an error in the estimate. It is reduced by taking a step toward the “Target.” The target is presumed to indicate a desirable direction in which to move, though it may be noisy. In the case above, for example, the target is the $k$ th reward. 
+Note that the step-size parameter $(S t e p S i z e)$ used in the incremental method described above changes from time step to time step. In processing the $k$ th reward for action $a$ , that method uses a step-size parameter of $\frac{1}{k}$ . In this book we denote the step-size parameter by the symbol $\alpha$ or, more generally, by $\alpha_{t}(a)$ . We sometimes use the informal shorthand $\begin{array}{r}{\alpha=\frac{1}{k}}\end{array}$ to refer to this case, leaving the dependence of $k$ on the action implicit. 
+## 2.4 Tracking a Nonstationary Problem 
+The averaging methods discussed so far are appropriate in a stationary environment, but not if the bandit is changing over time. As noted earlier, we often encounter reinforcement learning problems that are effectively nonstationary. In such cases it makes sense to weight recent rewards more heavily than long-past ones. One of the most popular ways of doing this is to use a constant step-size parameter. For example, the incremental update rule (2.3) for updating an average $Q_{k}$ of the $k-1$ past rewards is modified to be 
+
+$$
+Q_{k+1}=Q_{k}+\alpha\Big[R_{k}-Q_{k}\Big],\tag{2.5}
+$$ 
+where the step-size parameter $\alpha\in(0,1]$ is constant. 
+
+>  求平均的方法适合于静态环境，但不适合动态环境
+>  动态环境中，需要为最近的奖励赋予相对于更早的奖励更多的权重，一种实现方法是使用常数步长参数
+
+This results in $\mathit{Q}_{k+1}$ being a weighted average of past rewards and the initial estimate $Q_{1}$ : 
+
+$$\begin{align*}
+Q_{k+1} &= Q_{k} + \alpha [R_{k} - Q_{k}] \\
+        &= \alpha R_{k} + (1 - \alpha) Q_{k} \\
+        &= \alpha R_{k} + (1 - \alpha) [\alpha R_{k-1} + (1 - \alpha) Q_{k-1}] \\
+        &= \alpha R_{k} + (1 - \alpha) \alpha R_{k-1} + (1 - \alpha)^{2} Q_{k-1} \\
+        &= \alpha R_{k} + (1 - \alpha) \alpha R_{k-1} + (1 - \alpha)^{2} \alpha R_{k-2} + \cdots + (1 - \alpha)^{k-1} \alpha R_{1} + (1 - \alpha)^{k} Q_{1} \\
+        &= (1 - \alpha)^{k} Q_{1} + \sum_{i=1}^{k} \alpha (1 - \alpha)^{k-i} R_{i}.
+\end{align*}$$
+
+We call this a weighted average because the sum of the weights is $(1-\alpha)^{k}+$ $\textstyle\sum_{i=1}^{k}\alpha(1-\alpha)^{k-i}=1$ , as you can check yourself. Note that the weight, $\alpha(1-$ $\alpha)^{k-i}$ , given to the reward $R_{i}$ depends on how many rewards ago, $k-i$ , it was observed. The quantity $1-\alpha$ is less than 1, and thus the weight given to $R_{i}$ decreases as the number of intervening rewards increases. In fact, the weight decays exponentially according to the exponent on $1-\alpha$ . (If $1-\alpha=0$ , then all the weight goes on the very last reward, $R_{k}$ , because of the convention that $0^{0}=1$ .) Accordingly, this is sometimes called an exponential, recency-weighted average. 
+
+>  其中所有权重的和 $(1-\alpha)^k + \sum_{i=1}^k \alpha(1-\alpha)^{k-i}=1$
+>  $R_i$ 的权重将随着奖励数量的增多而指数性下降，该方法也称为指数近期加权平均
+
+Sometimes it is convenient to vary the step-size parameter from step to step. Let $\alpha_{k}(a)$ denote the step-size parameter used to process the reward received after the $k$ th selection of action $a$ . As we have noted, the choice $\begin{array}{r}{\alpha_{k}(a)=\frac{1}{k}}\end{array}$ results in the sample-average method, which is guaranteed to converge to the true action values by the law of large numbers. But of course convergence is not guaranteed for all choices of the sequence $\{\alpha_{k}(a)\}$ . A well-known result in stochastic approximation theory gives us the conditions required to assure convergence with probability 1: 
+
+$$
+\sum_{k=1}^{\infty}\alpha_{k}(a)=\infty\qquad\mathrm{~and~}\qquad\sum_{k=1}^{\infty}\alpha_{k}^{2}(a)<\infty.\tag{2.7}
+$$ 
+The first condition is required to guarantee that the steps are large enough to eventually overcome any initial conditions or random fluctuations. The second condition guarantees that eventually the steps become small enough to assure convergence. 
+
+>  随着步数的前进，我们也可以更改步长参数
+>  要确保收敛，步长参数需要满足以上条件，第一个条件是确保步长足够大，使得可以最终克服初始随机状态，第二个条件确保步长足够小以确保收敛
+
+Note that both convergence conditions are met for the sample-average case, $\begin{array}{r}{\alpha_{k}(a)=\frac{1}{k}}\end{array}$ , but not for the case of constant step-size parameter, $\alpha_{k}(a)=\alpha$ . In the latter case, the second condition is not met, indicating that the estimates never completely converge but continue to vary in response to the most recently received rewards. As we mentioned above, this is actually desirable in a nonstationary environment, and problems that are effectively nonstationary are the norm in reinforcement learning. In addition, sequences of step-size parameters that meet the conditions (2.7) often converge very slowly or need considerable tuning in order to obtain a satisfactory convergence rate. Although sequences of step-size parameters that meet these convergence conditions are often used in theoretical work, they are seldom used in applications and empirical research. 
+>  需要注意的是，样本平均情况下，$\alpha_k(\alpha) = \frac 1 k$，这两个收敛条件均得以满足，但对于固定步长参数的情况，$\alpha_k(\alpha)=\alpha$，则不满足。在后者中，第二个条件未能满足，这表明估计值不会完全收敛，而是会持续根据最近收到的奖励发生变化。正如我们之前所提到的，在非平稳环境中，这种情况实际上是可取的，而在强化学习中，实际上是非平稳的问题才是常态。此外，满足条件（2.7）的步长参数序列往往收敛非常缓慢，或者需要大量的调整才能获得令人满意的收敛速度。尽管在理论工作中经常使用满足这些收敛条件的步长参数序列，但在实际应用和经验研究中却很少使用。
+
+## 2.5 Optimistic Initial Values 
+All the methods we have discussed so far are dependent to some extent on the initial action-value estimates, $Q_{1}(a)$ . In the language of statistics, these methods are biased by their initial estimates. For the sample-average methods, the bias disappears once all actions have been selected at least once, but for methods with constant $\alpha$ , the bias is permanent, though decreasing over time as given by (2.6). In practice, this kind of bias is usually not a problem, and can sometimes be very helpful. The downside is that the initial estimates become, in effect, a set of parameters that must be picked by the user, if only to set them all to zero. The upside is that they provide an easy way to supply some prior knowledge about what level of rewards can be expected. 
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/144d8b770300d621fa0945502a26785c54da88a1bcba270edad712cf170d5c45.jpg) 
+Figure 2.2: The effect of optimistic initial action-value estimates on the 10- armed testbed. Both methods used a constant step-size parameter, $\alpha=0.1$ . 
+Initial action values can also be used as a simple way of encouraging exploration. Suppose that instead of setting the initial action values to zero, as we did in the 10-armed testbed, we set them all to $+5$ . Recall that the $q(a)$ in this problem are selected from a normal distribution with mean 0 and variance 1. An initial estimate of $+5$ is thus wildly optimistic. But this optimism encourages action-value methods to explore. Whichever actions are initially selected, the reward is less than the starting estimates; the learner switches to other actions, being “disappointed” with the rewards it is receiving. The result is that all actions are tried several times before the value estimates converge. The system does a fair amount of exploration even if greedy actions are selected all the time. 
+Figure 2.2 shows the performance on the 10-armed bandit testbed of a greedy method using $Q_{1}(a)=+5$ , for all $a$ . For comparison, also shown is an $\varepsilon$ -greedy method with $Q_{1}(a)=0$ . Initially, the optimistic method performs worse because it explores more, but eventually it performs better because its exploration decreases with time. We call this technique for encouraging exploration optimistic initial values. We regard it as a simple trick that can be quite effective on stationary problems, but it is far from being a generally useful approach to encouraging exploration. For example, it is not well suited to nonstationary problems because its drive for exploration is inherently temporary. If the task changes, creating a renewed need for exploration, this method cannot help. Indeed, any method that focuses on the initial state in any special way is unlikely to help with the general nonstationary case. The beginning of time occurs only once, and thus we should not focus on it too much. This criticism applies as well to the sample-average methods, which also treat the beginning of time as a special event, averaging all subsequent rewards with equal weights. Nevertheless, all of these methods are very simple, and one of them or some simple combination of them is often adequate in practice. In the rest of this book we make frequent use of several of these simple exploration techniques. 
+## 2.6 Upper-Confidence-Bound Action Selection 
+Exploration is needed because the estimates of the action values are uncertain. The greedy actions are those that look best at present, but some of the other actions may actually be better. $\boldsymbol{\varepsilon}$ -greedy action selection forces the non-greedy actions to be tried, but indiscriminately, with no preference for those that are nearly greedy or particularly uncertain. It would be better to select among the non-greedy actions according to their potential for actually being optimal, taking into account both how close their estimates are to being maximal and the uncertainties in those estimates. One effective way of doing this is to select actions as 
+$$
+A_{t}=\underset{a}{\operatorname{\argmax}}\left[Q_{t}(a)+c\sqrt{\frac{\ln t}{N_{t}(a)}}\right],
+$$ 
+where $\ln t$ denotes the natural logarithm of $t$ (the number that $e\approx2.71828$ would have to be raised to in order to equal $t$ ), and the number $c>0$ controls the degree of exploration. If $N_{t}(a)=0$ , then $a$ is considered to be a maximizing action. 
+The idea of this upper confidence bound (UCB) action selection is that the square-root term is a measure of the uncertainty or variance in the estimate of $a$ ’s value. The quantity being max’ed over is thus a sort of upper bound on the possible true value of action $a$ , with the $c$ parameter determining the confidence level. Each time $a$ is selected the uncertainty is presumably reduced; $N_{t}(a)$ is incremented and, as it appears in the denominator of the uncertainty term, the term is decreased. On the other hand, each time an action other $a$ is selected $t$ is increased; as it appears in the numerator the uncertainty estimate is increased. The use of the natural logarithm means that the increase gets smaller over time, but is unbounded; all actions will eventually be selected, but as time goes by it will be a longer wait, and thus a lower selection frequency, for actions with a lower value estimate or that have already been selected more times. 
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/91eb41f2d367fedff5b2e9ac78a40390abe8c8f96b628767b41d28f0bae238b0.jpg) 
+Figure 2.3: Average performance of UCB action selection on the 10-armed testbed. As shown, UCB generally performs better that $\varepsilon$ -greedy action selection, except in the first $n$ plays, when it selects randomly among the as-yetunplayed actions. UCB with $c=1$ would perform even better but would not show the prominent spike in performance on the 11th play. Can you think of an explanation of this spike? 
+Results with UCB on the 10-armed testbed are shown in Figure 2.3. UCB will often perform well, as shown here, but is more difficult than $\varepsilon$ -greedy to extend beyond bandits to the more general reinforcement learning settings considered in the rest of this book. One difficulty is in dealing with nonstationary problems; something more complex than the methods presented in Section 2.4 would be needed. Another difficulty is dealing with large state spaces, particularly function approximation as developed in Part III of this book. In these more advanced settings there is currently no known practical way of utilizing the idea of UCB action selection. 
+## 2.7 Gradient Bandits 
+So far in this chapter we have considered methods that estimate action values and use those estimates to select actions. This is often a good approach, but it is not the only one possible. In this section we consider learning a numerical preference $H_{t}(a)$ for each action $a$ . The larger the preference, the more often that action is taken, but the preference has no interpretation in terms of reward. Only the relative preference of one action over another is important; if we add 1000 to all the preferences there is no affect on the action probabilities, which are determined according to a soft-max distribution (i.e., Gibbs or Boltzmann distribution) as follows: 
+$$
+\operatorname*{Pr}\{A_{t}=a\}={\frac{e^{H_{t}(a))}}{\sum_{b=1}^{n}e^{H_{t}(b)}}}=\pi_{t}(a),
+$$ 
+where here we have also introduced a useful new notation $\pi_{t}(a)$ for the probability of taking action $a$ at time $t$ . Initially all preferences are the same (e.g., $H_{1}(a)=0,\forall a,$ so that all actions have an equal probability of being selected. 
+There is a natural learning algorithm for this setting based on the idea of stochastic gradient ascent. On each step, after selecting the action $A_{t}$ and receiving the reward $R_{t}$ , the preferences are updated by: 
+$$
+\begin{array}{r l r}&{H_{t+1}(A_{t})=H_{t}(A_{t})+\alpha\big(R_{t}-\bar{R}_{t}\big)\big(1-\pi_{t}(A_{t})\big),}&{\quad\mathrm{and}}\ &{\quad H_{t+1}(a)=H_{t}(a)-\alpha\big(R_{t}-\bar{R}_{t}\big)\pi_{t}(a),}&{\quad\forall a\ne A_{t},}\end{array}
+$$ 
+where $\alpha>0$ is a step-size parameter, and $R_{t}\in\mathbb{R}$ is the average of all the rewards up through and including time $t$ , which can be computed incrementally as described in Section 2.3 (or Section 2.4 if the problem is nonstationary). The $R_{t}$ term serves as a baseline with which the reward is compared. If the reward is higher than the baseline, then the probability of taking $A_{t}$ in the future is increased, and if the reward is below baseline, then probability is decreased. The non-selected actions move in the opposite direction. 
+Figure 2.4 shows results with the gradient-bandit algorithm on a variant of the 10-armed testbed in which the true expected rewards were selected according to a normal distribution with a mean of +4 instead of zero (and with unit variance as before). This shifting up of all the rewards has absolutely no affect on the gradient-bandit algorithm because of the reward baseline term, which instantaneously adapts to the new level. But if the baseline were omitted (that is, if $R_{t}$ was taken to be constant zero in (2.10)), then performance would be significantly degraded, as shown in the figure. 
+One can gain a deeper insight into this algorithm by understanding it as a stochastic approximation to gradient ascent. In exact gradient ascent, each preference $H_{t}(a)$ would be incrementing proportional to the increment’s effect on performance: 
+$$
+H_{t+1}(a)=H_{t}(a)+\alpha\frac{\partial\mathbb{E}\left[R_{t}\right]}{\partial H_{t}(a)},
+$$ 
+where the measure of performance here is the expected reward: 
+$$
+\mathbb{E}[R_{t}]=\sum_{b}\pi_{t}(b)q(b).
+$$ 
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/b4cb97cc9f719102b2aa107b2aec65400bf5dfdb0196cc56c8eb0011381a4b6a.jpg) 
+Figure 2.4: Average performance of the gradient-bandit algorithm with and without a reward baseline on the 10-armed testbed with $\mathbb{E}[q(a)]=4$ . 
+Of course, it is not possible to implement gradient ascent exactly in our case because by assumption we do not know the $q(b)$ , but in fact the updates of our algorithm (2.10) are equal to (2.11) in expected value, making the algorithm an instance of stochastic gradient ascent. 
+The calculations showing this require only beginning calculus, but take several steps. If you are mathematically inclined, then you will enjoy the rest of this section in which we go through these steps. First we take a closer look at the exact performance gradient: 
+$$
+\begin{array}{l}{\displaystyle\frac{\partial\mathbb{E}[R_{t}]}{\partial H_{t}(a)}=\frac{\partial}{\partial H_{t}(a)}\left[\sum_{b}\pi_{t}(b)q(b)\right]}\ {\displaystyle=\sum_{b}q(b)\frac{\partial\pi_{t}(b)}{\partial H_{t}(a)}}\ {\displaystyle=\sum_{b}\big(q(b)-X_{t}\big)\frac{\partial\pi_{t}(b)}{\partial H_{t}(a)},}\end{array}
+$$ 
+where $X_{t}$ can be any scalar that does not depend on $b$ . We can include it here because the gradient sums to zero over the all the actions, b ∂∂Hπtt((ba)) . As $H_{t}(a)$ is changed, some actions’ probabilities go up and some down, but the sum of the changes must be zero because the sum of the probabilities must 
+remain one. 
+$$
+=\sum_{b}\pi_{t}(b)\left(q(b)-X_{t}\right)\frac{\partial\pi_{t}(b)}{\partial H_{t}(a)}/\pi_{t}(b)
+$$ 
+The equation is now in the form of an expectation, summing over all possible values $b$ of the random variable $A_{t}$ , then multiplying by the probability of taking those values. Thus: 
+$$
+\begin{array}{r l}&{=\mathbb{E}\bigg[\big(q(A_{t})-X_{t}\big)\frac{\partial\pi_{t}(A_{t})}{\partial H_{t}(a)}/\pi_{t}(A_{t})\bigg]}\ &{=\mathbb{E}\bigg[\big(R_{t}-\bar{R}_{t}\big)\frac{\partial\pi_{t}(A_{t})}{\partial H_{t}(a)}/\pi_{t}(A_{t})\bigg],}\end{array}
+$$ 
+where here we have chosen $X_{t}\:=\:R_{t}$ and substituted $R_{t}$ for $q(A_{t})$ , which is permitted because $\mathbb{E}[R_{t}]\:=\:q(A_{t})$ and because all the other factors are nonrandom. Shortly we will establish that $\begin{array}{r}{\frac{\partial\pi_{t}(b)}{\partial H_{t}(a)}=\pi_{t}(b)\left(\mathbb{I}_{a=b}-\pi_{t}(a)\right)}\end{array}$ , where $\mathbb{I}_{a=b}$ is defined to be 1 if $a=b$ , else $0$ . Assuming that for now we have 
+$$
+\begin{array}{r l}&{=\mathbb{E}\left[\left(R_{t}-\bar{R}_{t}\right)\pi_{t}(A_{t})\left(\mathbb{I}_{a=A_{t}}-\pi_{t}(a)\right)/\pi_{t}(A_{t})\right]}\ &{=\mathbb{E}\left[\left(R_{t}-\bar{R}_{t}\right)\left(\mathbb{I}_{a=A_{t}}-\pi_{t}(a)\right)\right].}\end{array}
+$$ 
+Recall that our plan has been to write the performance gradient as an expectation of something that we can sample on each step, as we have just done, and then update on each step proportional to the sample. Substituting a sample of the expectation above for the performance gradient in (2.11) yields: 
+$$
+H_{t+1}(a)=H_{t}(a)+\alpha{\bigl(}R_{t}-{\bar{R}}_{t}{\bigr)}{\bigl(}\mathbb{I}_{a-A_{t}}-\pi_{t}(a){\bigr)},\qquad\forall a,
+$$ 
+which you will recognize as being equivalent to our original algorithm (2.10). 
+Thus it remains only to show that $\begin{array}{r}{\frac{\partial\pi_{t}(b)}{\partial H_{t}(a)}=\pi_{t}(b)\big(\mathbb{I}_{a=b}-\pi_{t}(a)\big)}\end{array}$ , as we assumed earlier. Recall the standard quotient rule for derivatives: 
+$$
+{\frac{\partial}{\partial x}}\left[{\frac{f(x)}{g(x)}}\right]={\frac{{\frac{\partial f(x)}{\partial x}}g(x)-f(x){\frac{\partial g(x)}{\partial x}}}{g(x)^{2}}}.
+$$ 
+Using this, we can write 
+$$
+\begin{array}{r l}{\lefteqn{\frac{\partial\pi_{\ell}(k)}{\partial H_{\ell}(a)}=\frac{\partial}{\partial H_{\ell}(a)}\pi_{\ell}(b)}}\ &{=\frac{\partial}{\partial H_{\ell}(a)}\left[\sum_{\sum_{n=1}^{n}\in H_{\ell}(k)}^{\ell\lfloor(k)\ell\rfloor}\right]}\ &{=\frac{\frac{\partial H_{\ell}(a)}{\partial H_{\ell}(a)}\sum_{n=1}^{n}e^{H_{\ell}(a)}-e^{H_{\ell}(a)}\left[\theta\right]^{2}}{\left(\sum_{n=1}^{n}e^{H_{\ell}(a)}\right)^{2}}}\ &{=\frac{\frac{\prod_{a=0}\nu_{\ell}H_{\ell}(a)}{\sum_{n=1}^{n}e^{H_{\ell}(a)}\sum_{n=1}^{n}e^{H_{\ell}(a)}-e^{H_{\ell}(b)}e^{H_{\ell}(a)}}}{\left(\sum_{n=1}^{n}e^{H_{\ell}(b)}\right)^{2}}}\ &{=\frac{\prod_{a=0}e^{H_{\ell}(b)}\left(\sum_{n=1}^{n}e^{H_{\ell}(b)}-e^{H_{\ell}(b)}e^{H_{\ell}(a)}\right)}{\sum_{n=1}e^{H_{\ell}(b)}\left(\sum_{n=1}^{n}e^{H_{\ell}(b)}\right)^{2}}}\ &{=\frac{\prod_{a=0}e^{H_{\ell}(b)}}{\sum_{n=1}e^{H_{\ell}(b)}\left(\sum_{n=1}^{n}e^{H_{\ell}(b)}+\left(\sum_{n=1}^{n}e^{H_{\ell}(b)}\right)^{2}\right)}}\ &{=\mathbb{I}_{a\to\infty}e_{\ell}(b)\left(\sum_{n=\ell}\nu_{\ell}(a)\right).}\end{array}
+$$ 
+(by the quotient rule) 
+We have just shown that the expected update of the gradient-bandit algorithm is equal to the gradient of expected reward, and thus that the algorithm is an instance of stochastic gradient ascent. This assures us that the algorithm has robust convergence properties. 
+Note that we did not require anything of the reward baseline other than that it not depend on the selected action. For example, we could have set is to zero, or to 1000, and the algorithm would still have been an instance of stochastic gradient ascent. The choice of the baseline does not affect the expected update of the algorithm, but it does affect the variance of the update and thus the rate of convergence (as shown, e.g., in Figure 2.4). Choosing it as the average of the rewards may not be the very best, but it is simple and works well in practice. 
+## 2.8 Associative Search (Contextual Bandits) 
+So far in this chapter we have considered only nonassociative tasks, in which there is no need to associate different actions with different situations. In these tasks the learner either tries to find a single best action when the task is stationary, or tries to track the best action as it changes over time when the task is nonstationary. However, in a general reinforcement learning task there is more than one situation, and the goal is to learn a policy: a mapping from situations to the actions that are best in those situations. To set the stage for the full problem, we briefly discuss the simplest way in which nonassociative tasks extend to the associative setting. 
+As an example, suppose there are several different $n$ -armed bandit tasks, and that on each play you confront one of these chosen at random. Thus, the bandit task changes randomly from play to play. This would appear to you as a single, nonstationary $n$ -armed bandit task whose true action values change randomly from play to play. You could try using one of the methods described in this chapter that can handle nonstationarity, but unless the true action values change slowly, these methods will not work very well. Now suppose, however, that when a bandit task is selected for you, you are given some distinctive clue about its identity (but not its action values). Maybe you are facing an actual slot machine that changes the color of its display as it changes its action values. Now you can learn a policy associating each task, signaled by the color you see, with the best action to take when facing that task—for instance, if red, play arm 1; if green, play arm 2. With the right policy you can usually do much better than you could in the absence of any information distinguishing one bandit task from another. 
+This is an example of an associative search task, so called because it involves both trial-and-error learning in the form of search for the best actions and association of these actions with the situations in which they are best.2 Associative search tasks are intermediate between the $n$ -armed bandit problem and the full reinforcement learning problem. They are like the full reinforcement learning problem in that they involve learning a policy, but like our version of the $n$ -armed bandit problem in that each action affects only the immediate reward. If actions are allowed to affect the next situation as well as the reward, then we have the full reinforcement learning problem. We present this problem in the next chapter and consider its ramifications throughout the rest of the book. 
+## 2.9 Summary 
+We have presented in this chapter several simple ways of balancing exploration and exploitation. The $\boldsymbol{\varepsilon}$ -greedy methods choose randomly a small fraction of the time, whereas UCB methods choose deterministically but achieve exploration by subtly favoring at each step the actions that have so far received fewer samples. Gradient-bandit algorithms estimate not action values, but action preferences, and favor the more preferred actions in a graded, probabalistic manner using a soft-max distribution. The simple expedient of initializing estimates optimistically causes even greedy methods to explore significantly. 
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/912f29eb3df2c09d80f2742ae0a6daf43e3736829ce0457164843dfc35c7cb21.jpg) 
+Figure 2.5: A parameter study of the various bandit algorithms presented in this chapter. Each point is the average reward obtained over 1000 steps with a particular algorithm at a particular setting of its parameter. 
+It is natural to ask which of these methods is best. Although this is a difficult question to answer in general, we can certainly run them all on the 10-armed testbed that we have used throughout this chapter and compare their performances. A complication is that they all have a parameter; to get a meaningful comparison we will have to consider their performance as a function of their parameter. Our graphs so far have shown the course of learning over time for each algorithm and parameter setting, but it would be too visually confusing to show such a learning curve for each algorithm and parameter value. Instead we summarize a complete learning curve by its average value over the 1000 steps; this value is proportional to the area under the learning curves we have shown up to now. Figure 2.5 shows this measure for the various bandit algorithms from this chapter, each as a function of its own parameter shown on a single scale on the x-axis. Note that the parameter values are varied by factors of two and presented on a log scale. Note also the characteristic inverted-U shapes of each algorithm’s performance; all the algorithms perform best at an intermediate value of their parameter, neither too large nor too big. In assessing an method, we should attend not just to how well it does at its best parameter setting, but also to how sensitive it is to its parameter value. All of these algorithms are fairly insensitive, performing well over a range of parameter values varying by about an order of magnitude. Overall, on this problem, UCB seems to perform best. 
+Despite their simplicity, in our opinion the methods presented in this chapter can fairly be considered the state of the art. There are more sophisticated methods, but their complexity and assumptions make them impractical for the full reinforcement learning problem that is our real focus. Starting in Chapter 5 we present learning methods for solving the full reinforcement learning problem that use in part the simple methods explored in this chapter. 
+Although the simple methods explored in this chapter may be the best we can do at present, they are far from a fully satisfactory solution to the problem of balancing exploration and exploitation. 
+The classical solution to balancing exploration and exploitation in $n$ -armed bandit problems is to compute special functions called Gittins indices. These provide an optimal solution to a certain kind of bandit problem more general than that considered here but that assumes the prior distribution of possible problems is known. Unfortunately, neither the theory nor the computational tractability of this method appear to generalize to the full reinforcement learning problem that we consider in the rest of the book. 
+There is also a well-known algorithm for computing the Bayes optimal way to balance exploration and exploitation. This method is computationally intractable when done exactly, but there may be efficient ways to approximate it. In this method we assume that we know the distribution of problem instances, that is, the probability of each possible set of true action values. Given any action selection, we can then compute the probability of each possible immediate reward and the resultant posterior probability distribution over action values. This evolving distribution becomes the information state of the problem. Given a horizon, say 1000 plays, one can consider all possible actions, all possible resulting rewards, all possible next actions, all next rewards, and so on for all 1000 plays. Given the assumptions, the rewards and probabilities of each possible chain of events can be determined, and one need only pick the best. But the tree of possibilities grows extremely rapidly; even if there are only two actions and two rewards, the tree will have $2^{2000}$ leaves. This approach effectively turns the bandit problem into an instance of the full reinforcement learning problem. In the end, we may be able to use reinforcement learning methods to approximate this optimal solution. But that is a topic for current research and beyond the scope of this book. 
 # 3 Finite Markov Decision Processes 
 In this chapter we introduce the problem that we try to solve in the rest of the book. For us, this problem defines the field of reinforcement learning: any method that is suited to solving this problem we consider to be a reinforcement learning method. 
 Our objective in this chapter is to describe the reinforcement learning problem in a broad sense. We try to convey the wide range of possible applications that can be framed as reinforcement learning tasks. We also describe mathematically idealized forms of the reinforcement learning problem for which precise theoretical statements can be made. We introduce key elements of the problem’s mathematical structure, such as value functions and Bellman equations. As in all of artificial intelligence, there is a tension between breadth of applicability and mathematical tractability. In this chapter we introduce this tension and discuss some of the trade-offs and challenges that it implies. 
@@ -784,9 +954,10 @@ Example 5.1: Blackjack The object of the popular casino card game of blackjack i
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/8bcf013cb2ce2d0ac9fc986c41db7f490be813b32f2c5e9754a1f1555477c19a.jpg) 
 Figure 5.2: Approximate state-value functions for the blackjack policy that sticks only on 20 or 21, computed by Monte Carlo policy evaluation. 
+
 Playing blackjack is naturally formulated as an episodic finite MDP. Each game of blackjack is an episode. Rewards of $+1$ , $-1$ , and 0 are given for winning, losing, and drawing, respectively. All rewards within a game are zero, and we do not discount ( $\gamma=1$ ); therefore these terminal rewards are also the returns. The player’s actions are to hit or to stick. The states depend on the player’s cards and the dealer’s showing card. We assume that cards are dealt from an infinite deck (i.e., with replacement) so that there is no advantage to keeping track of the cards already dealt. If the player holds an ace that he could count as 11 without going bust, then the ace is said to be usable. In this case it is always counted as 11 because counting it as 1 would make the sum 11 or less, in which case there is no decision to be made because, obviously, the player should always hit. Thus, the player makes decisions on the basis of three variables: his current sum (12–21), the dealer’s one showing card (ace–10), and whether or not he holds a usable ace. This makes for a total of 200 states. 
 
-Consider the policy that sticks if the player’s sum is 20 or 21, and otherwise hits. To find the state-value function for this policy by a Monte Carlo approach, one simulates many blackjack games using the policy and averages the returns following each state. Note that in this task the same state never recurs within one episode, so there is no difference between first-visit and every-visit MC methods. In this way, we obtained the estimates of the statevalue function shown in Figure 5.2. The estimates for states with a usable ace are less certain and less regular because these states are less common. In any event, after 500,000 games the value function is very well approximated. 
+Consider the policy that sticks if the player’s sum is 20 or 21, and otherwise hits. To find the state-value function for this policy by a Monte Carlo approach, one simulates many blackjack games using the policy and averages the returns following each state. Note that in this task the same state never recurs within one episode, so there is no difference between first-visit and every-visit MC methods. In this way, we obtained the estimates of the state-value function shown in Figure 5.2. The estimates for states with a usable ace are less certain and less regular because these states are less common. In any event, after 500,000 games the value function is very well approximated. 
 
 Although we have complete knowledge of the environment in this task, it would not be easy to apply DP methods to compute the value function. DP methods require the distribution of next events—in particular, they require the quantities $p(s^{\prime},r|s,a)$ —and it is not easy to determine these for blackjack. For example, suppose the player’s sum is 14 and he chooses to stick. What is his expected reward as a function of the dealer’s showing card? All of these expected rewards and transition probabilities must be computed before DP can be applied, and such computations are often complex and error-prone. In contrast, generating the sample games required by Monte Carlo methods is easy. This is the case surprisingly often; the ability of Monte Carlo methods to work with sample episodes alone can be a significant advantage even when one has complete knowledge of the environment’s dynamics. ■ 
 
@@ -803,7 +974,7 @@ An important fact about Monte Carlo methods is that the estimates for each state
 
 In particular, note that the computational expense of estimating the value of a single state is independent of the number of states. This can make Monte Carlo methods particularly attractive when one requires the value of only one or a subset of states. One can generate many sample episodes starting from the states of interest, averaging returns from only these states ignoring all others. This is a third advantage Monte Carlo methods can have over DP methods (after the ability to learn from actual experience and from simulated experience). 
 >  特别注意，估计单个状态价值的计算开销与状态数量无关。这使得蒙特卡洛方法在只需要一个或一组状态的价值时特别有吸引力。可以从感兴趣的那些状态生成许多样本回合，仅从这些状态计算回报并忽略所有其他状态。
->  这是蒙特卡洛方法相对于DP方法的第三个优势（除了能够从实际经验和模拟经验中学习之外）。
+>  这是蒙特卡洛方法相对于 DP 方法的第三个优势（除了能够从实际经验和模拟经验中学习之外）。
 
 Example 5.2: Soap Bubble 
 Suppose a wire frame forming a closed loop is dunked in soapy water to form a soap surface or bubble conforming at its edges to the wire frame. If the geometry of the wire frame is irregular but known, how can you compute the shape of the surface? The shape has the property that the total force on each point exerted by neighboring points is zero (or else the shape would change). This means that the surface’s height at any point is the average of its heights at points in a small circle around that point. In addition, the surface must meet at its boundaries with the wire frame. The usual approach to problems of this kind is to put a grid over the area covered by the surface and solve for its height at the grid points by an iterative computation. Grid points at the boundary are forced to the wire frame, and all others are adjusted toward the average of the heights of their four nearest neighbors. This process then iterates, much like DP’s iterative policy evaluation, and ultimately converges to a close approximation to the desired surface. 
@@ -815,72 +986,208 @@ This is similar to the kind of problem for which Monte Carlo methods were origin
 
 ## 5.2 Monte Carlo Estimation of Action Values 
 If a model is not available, then it is particularly useful to estimate action values (the values of state–action pairs) rather than state values. With a model, state values alone are sufficient to determine a policy; one simply looks ahead one step and chooses whichever action leads to the best combination of reward and next state, as we did in the chapter on DP. Without a model, however, state values alone are not sufficient. One must explicitly estimate the value of each action in order for the values to be useful in suggesting a policy. Thus, one of our primary goals for Monte Carlo methods is to estimate $q_{*}$ . To achieve this, we first consider the policy evaluation problem for action values. 
-The policy evaluation problem for action values is to estimate $q_{\pi}(s,a)$ , the expected return when starting in state $s$ , taking action $a$ , and thereafter following policy $\pi$ . The Monte Carlo methods for this are essentially the same as just presented for state values, except now we talk about visits to a state– action pair rather than to a state. A state–action pair $s,a$ is said to be visited in an episode if ever the state $s$ is visited and action $a$ is taken in it. The everyvisit MC method estimates the value of a state–action pair as the average of the returns that have followed visits all the visits to it. The first-visit MC method averages the returns following the first time in each episode that the state was visited and the action was selected. These methods converge quadratically, as before, to the true expected values as the number of visits to each state–action pair approaches infinity. 
+>  如果没有模型 (没有环境动态)，则估计动作价值比估计状态价值更加重要
+>  有模型时，状态价值足以用于决定一个策略，我们只需要向前看一步，选择能够带来最大回报的动作
+>  没有模型时，必须明确估计每个动作的值
+>  因此 MC 方法的主要目标其实是估计 $q_*$，为此，我们需要考虑动作价值函数的策略评估问题
+
+The policy evaluation problem for action values is to estimate $q_{\pi}(s,a)$ , the expected return when starting in state $s$ , taking action $a$ , and thereafter following policy $\pi$ . The Monte Carlo methods for this are essentially the same as just presented for state values, except now we talk about visits to a state–action pair rather than to a state. 
+>  动作价值的策略评估问题即估计策略 $\pi$ 的动作价值函数 $q_\pi(s, a)$，它表示从 $s$ 开始，执行 $a$，然后遵循 $\pi$ 能得到的期望奖励
+>  MC 方法对该函数的评估本质还是采样，求均值，此时的样本是状态-动作对，而不仅仅是状态
+
+A state–action pair $s,a$ is said to be visited in an episode if ever the state $s$ is visited and action $a$ is taken in it. The everyvisit MC method estimates the value of a state–action pair as the average of the returns that have followed visits all the visits to it. The first-visit MC method averages the returns following the first time in each episode that the state was visited and the action was selected. These methods converge quadratically, as before, to the true expected values as the number of visits to each state–action pair approaches infinity. 
+>  first-visit MC 方法使用每个回合首次对 $(s, a)$ 的访问得到的回报的均值作为估计，every-visit MC 方法使用所有对 $(s, a)$ 的访问得到的回报的均值作为估计
+>  随着对 $(s, a)$ 的访问次数趋近于无穷大，估计值二次收敛到真实值
+
 The only complication is that many state–action pairs may never be visited. If $\pi$ is a deterministic policy, then in following $\pi$ one will observe returns only for one of the actions from each state. With no returns to average, the Monte Carlo estimates of the other actions will not improve with experience. This is a serious problem because the purpose of learning action values is to help in choosing among the actions available in each state. To compare alternatives we need to estimate the value of all the actions from each state, not just the one we currently favor. 
+>  一个问题是许多 $s, a$ 对可能永远不会被访问
+>  如果 $\pi$ 是确定性策略，则遵循 $\pi$，对于每个状态 $s$，我们只能观察到它和一个动作 $a$ 得到的回报
+
 This is the general problem of maintaining exploration, as discussed in the context of the $n$ -armed bandit problem in Chapter 2. For policy evaluation to work for action values, we must assure continual exploration. One way to do this is by specifying that the episodes start in a state–action pair, and that every pair has a nonzero probability of being selected as the start. This guarantees that all state–action pairs will be visited an infinite number of times in the limit of an infinite number of episodes. We call this the assumption of exploring starts. 
+>  该问题属于 maintain exploration 的范围，我们必须确保持续的探索，以估计动作价值函数
+>  一种方法是指定回合直接从状态-动作对开始，在开始时每个状态-动作对都有非零的概率被选中，在回合数趋近于无穷时，可以确保所有状态-动作对被访问
+>  我们称之为探索开始假设
+
 The assumption of exploring starts is sometimes useful, but of course it cannot be relied upon in general, particularly when learning directly from actual interaction with an environment. In that case the starting conditions are unlikely to be so helpful. The most common alternative approach to assuring that all state–action pairs are encountered is to consider only policies that are stochastic with a nonzero probability of selecting all actions in each state. We discuss two important variants of this approach in later sections. For now, we retain the assumption of exploring starts and complete the presentation of a full Monte Carlo control method. 
+>  但在从和环境的真实交互中学习时，探索开始假设则没用，因为难以遍历所有起始状态
+>  此时，最常考虑的方法是使用一个随机策略，它在每个状态选择每个动作都有非零的概率
+
 ## 5.3 Monte Carlo Control 
 We are now ready to consider how Monte Carlo estimation can be used in control, that is, to approximate optimal policies. The overall idea is to proceed according to the same pattern as in the DP chapter, that is, according to the idea of generalized policy iteration (GPI). In GPI one maintains both an approximate policy and an approximate value function. The value function is repeatedly altered to more closely approximate the value function for the current policy, and the policy is repeatedly improved with respect to the current value function: 
+>  我们考虑用 MC 估计最优策略
+>  总体的思路和 DP 章节类似，使用广义策略迭代的思想，维护一个近似策略和近似价值函数，价值函数在策略评估中不断迭代，以接近当前策略的真实价值函数，策略相对于当前价值函数不断改进
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/0a4ec9a2da660666c698d56a07ac6f1913e8fce5b71c0196ce73073ba3c50d97.jpg) 
-These two kinds of changes work against each other to some extent, as each creates a moving target for the other, but together they cause both policy and 
-value function to approach optimality. 
+
+These two kinds of changes work against each other to some extent, as each creates a moving target for the other, but together they cause both policy and value function to approach optimality. 
+>  这两个目标在某种程度上对抗，但整体上看它们会使得策略和价值函数都趋向于最优
+
 To begin, let us consider a Monte Carlo version of classical policy iteration. In this method, we perform alternating complete steps of policy evaluation and policy improvement, beginning with an arbitrary policy $\pi_{0}$ and ending with the optimal policy and optimal action-value function: 
+
 $$
 \pi_{0}\stackrel{\mathrm{\tiny~E}}{\longrightarrow}q_{\pi_{0}}\stackrel{\mathrm{\tiny~I}}{\longrightarrow}\pi_{1}\stackrel{\mathrm{\tiny~E}}{\longrightarrow}q_{\pi_{1}}\stackrel{\mathrm{\tiny~I}}{\longrightarrow}\pi_{2}\stackrel{\mathrm{\tiny~E}}{\longrightarrow}\cdot\cdot\cdot\stackrel{\mathrm{\tiny~I}}{\longrightarrow}\pi_{*}\stackrel{\mathrm{\tiny~E}}{\longrightarrow}q_{*},
 $$ 
-where $\xrightarrow{\textrm{E}}$ denotes a complete policy evaluation and $\xrightarrow{\mathrm{~I~}}$ denotes a complete policy improvement. Policy evaluation is done exactly as described in the preceding section. Many episodes are experienced, with the approximate actionvalue function approaching the true function asymptotically. For the moment, let us assume that we do indeed observe an infinite number of episodes and that, in addition, the episodes are generated with exploring starts. Under these assumptions, the Monte Carlo methods will compute each $q_{\pi_{k}}$ exactly, for arbitrary $\pi_{k}$ . 
-Policy improvement is done by making the policy greedy with respect to the current value function. In this case we have an action-value function, and therefore no model is needed to construct the greedy policy. For any actionvalue function $q$ , the corresponding greedy policy is the one that, for each $s\in\mathcal{S}$ , deterministically chooses an action with maximal action-value: 
+where $\xrightarrow{\textrm{E}}$ denotes a complete policy evaluation and $\xrightarrow{\mathrm{~I~}}$ denotes a complete policy improvement. Policy evaluation is done exactly as described in the preceding section. Many episodes are experienced, with the approximate action-value function approaching the true function asymptotically. 
+>  策略迭代中，策略评估使用 MC 执行
+
+For the moment, let us assume that we do indeed observe an infinite number of episodes and that, in addition, the episodes are generated with exploring starts. Under these assumptions, the Monte Carlo methods will compute each $q_{\pi_{k}}$ exactly, for arbitrary $\pi_{k}$ . 
+>  我们假设有无限个回合的样本，这些回合基于探索开始假设，则 MC 方法将准确地为任意 $\pi_k$ 计算出 $q_{\pi_k}$
+
+Policy improvement is done by making the policy greedy with respect to the current value function. In this case we have an action-value function, and therefore no model is needed to construct the greedy policy. For any action-value function $q$ , the corresponding greedy policy is the one that, for each $s\in\mathcal{S}$ , deterministically chooses an action with maximal action-value: 
+
 $$
-\pi(s)=\arg\operatorname*{max}_{a}q(s,a).
+\pi(s)=\arg\operatorname*{max}_{a}q(s,a).\tag{5.1}
 $$ 
+>  策略改进让策略相对于当前价值函数贪心，注意此时价值函数是动作价值函数，故此时的策略改进不需要环境动态，(回忆起如果价值函数是状态价值函数时，我们需要用环境动态先计算出动作价值函数，再进行选择，此时可以认为 MC 估计出的动作价值函数中已经包含了环境动态的信息) 我们直接根据 $q(s, a)$ 确定性地选择出 $\arg\max_a q(s, a)$
+
 Policy improvement then can be done by constructing each $\pi_{k+1}$ as the greedy policy with respect to $q_{\pi_{k}}$ . The policy improvement theorem (Section 4.2) then applies to $\pi_{k}$ and $\pi_{k+1}$ because, for all $s\in\mathcal{S}$ , 
+
 $$
-\begin{array}{l c l}{{q_{\pi_{k}}(s,\pi_{k+1}(s))}}&{{=}}&{{q_{\pi_{k}}(s,\arg\operatorname*{max}q_{\pi_{k}}(s,a))}}\ {{}}&{{=}}&{{\displaystyle\operatorname*{max}q_{\pi_{k}}(s,a)}}\ {{}}&{{\geq}}&{{q_{\pi_{k}}(s,\pi_{k}(s))}}\ {{}}&{{=}}&{{v_{\pi_{k}}(s).}}\end{array}
-$$ 
+\begin{align}
+q_{\pi_k}(s, \pi_{k+1}(s)) &= q_{\pi_k}(s, \arg\max_a q_{\pi_k}(s, a))\\
+&=\max_a q_{\pi_k}(s, a)\\
+&\ge q_{\pi_k}(s, \pi_k(s))\\
+&=v_{\pi_k}(s)
+\end{align}
+$$
+
+>  此时，策略改进定理仍然是成立的
+
 As we discussed in the previous chapter, the theorem assures us that each $\pi_{k+1}$ is uniformly better than $\pi_{k}$ , or just as good as $\pi_{k}$ , in which case they are both optimal policies. This in turn assures us that the overall process converges to the optimal policy and optimal value function. In this way Monte Carlo methods can be used to find optimal policies given only sample episodes and no other knowledge of the environment’s dynamics. 
+>  该定理确保了 $\pi_{k+1}$ 会严格优于 $\pi_k$，除非已经是最优，因此整个策略迭代过程也保证是收敛的
+>  因此，在没有对环境动态的知识下，仅给定回合样本，MC 方法也可以用于找到最优策略
+>  (和 DP 的差异仅在于策略评估环节中，DP 利用环境动态计算状态价值函数，进而计算动作价值函数，MC 则使用样本直接估计动作价值函数)
+
 We made two unlikely assumptions above in order to easily obtain this guarantee of convergence for the Monte Carlo method. One was that the episodes have exploring starts, and the other was that policy evaluation could be done with an infinite number of episodes. To obtain a practical algorithm we will have to remove both assumptions. We postpone consideration of the first assumption until later in this chapter. 
-For now we focus on the assumption that policy evaluation operates on an infinite number of episodes. This assumption is relatively easy to remove. In fact, the same issue arises even in classical DP methods such as iterative policy evaluation, which also converge only asymptotically to the true value function. In both DP and Monte Carlo cases there are two ways to solve the problem. One is to hold firm to the idea of approximating $q_{\pi_{k}}$ in each policy evaluation. Measurements and assumptions are made to obtain bounds on the magnitude and probability of error in the estimates, and then sufficient steps are taken during each policy evaluation to assure that these bounds are sufficiently small. This approach can probably be made completely satisfactory in the sense of guaranteeing correct convergence up to some level of approximation. However, it is also likely to require far too many episodes to be useful in practice on any but the smallest problems. 
+>  但我们做了两个假设，其一是回合都具有探索性起始，其二是策略评估可以用无限的回合样本执行
+>  实践中需要移除这两个假设
+
+For now we focus on the assumption that policy evaluation operates on an infinite number of episodes. This assumption is relatively easy to remove. In fact, the same issue arises even in classical DP methods such as iterative policy evaluation, which also converge only asymptotically to the true value function. 
+>  现在我们假设策略评估仅涉及有限数量的回合
+>  实际上，经典 DP 中的迭代式策略评估也有类似的情况，回忆起 DP 中的策略评估是在渐进情况下收敛到真实值
+
+In both DP and Monte Carlo cases there are two ways to solve the problem. One is to hold firm to the idea of approximating $q_{\pi_{k}}$ in each policy evaluation. Measurements and assumptions are made to obtain bounds on the magnitude and probability of error in the estimates, and then sufficient steps are taken during each policy evaluation to assure that these bounds are sufficiently small. This approach can probably be made completely satisfactory in the sense of guaranteeing correct convergence up to some level of approximation. However, it is also likely to require far too many episodes to be useful in practice on any but the smallest problems. 
+>  这样的问题有两种方式解决，一种是在每一步中尽可能近似，使得误差足够小，这种方法可以在某种意义上确保收敛到一定的近似水平，但每一步需要的回合数太多，不现实
+
 The second approach to avoiding the infinite number of episodes nominally required for policy evaluation is to forgo trying to complete policy evaluation before returning to policy improvement. On each evaluation step we move the value function toward $q_{\pi_{k}}$ , but we do not expect to actually get close except over many steps. We used this idea when we first introduced the idea of GPI in Section 4.6. One extreme form of the idea is value iteration, in which only one iteration of iterative policy evaluation is performed between each step of policy improvement. The in-place version of value iteration is even more extreme; there we alternate between improvement and evaluation steps for single states. 
+>  第二种是不尽可能近似，执行一定步数后就进行策略改进
+>  这类方法的一个极限情况就是价值迭代，其中迭代式策略评估仅执行一次迭代，原地的价值迭代是更极端的版本，我们在其中的每一步都在策略改进和评估之间切换
+
 For Monte Carlo policy evaluation it is natural to alternate between evaluation and improvement on an episode-by-episode basis. After each episode, the observed returns are used for policy evaluation, and then the policy is improved at all the states visited in the episode. A complete simple algorithm along these lines is given in Figure 5.4. We call this algorithm Monte Carlo $E S$ , for Monte Carlo with Exploring Starts. 
-In Monte Carlo ES, all the returns for each state–action pair are accumulated and averaged, irrespective of what policy was in force when they were observed. It is easy to see that Monte Carlo ES cannot converge to any suboptimal policy. If it did, then the value function would eventually converge to the value function for that policy, and that in turn would cause the policy to change. Stability is achieved only when both the policy and the value function are optimal. Convergence to this optimal fixed point seems inevitable as the changes to the action-value function decrease over time, but has not yet been formally proved. In our opinion, this is one of the most fundamental open theoretical questions in reinforcement learning (for a partial solution, see Tsitsiklis, 2002). 
+>  MC 策略评估中，可以以回合为单位，切换策略评估和策略改进，即每次策略评估仅使用一个回合的数据，对该回合中访问的所有状态执行策略评估，然后对该回合中访问的所有状态执行策略改进
+>  该算法称为 MC ES，即具有探索起点的 MC 方法
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/ebd59b706cc7d8e1ae02c0b95ad319dad4dea9bffae343b62fc1823a18f32b21.jpg) 
+
 Figure 5.4: Monte Carlo ES: A Monte Carlo control algorithm assuming exploring starts and that episodes always terminate for all policies. 
+
+In Monte Carlo ES, all the returns for each state–action pair are accumulated and averaged, irrespective of what policy was in force when they were observed. It is easy to see that Monte Carlo ES cannot converge to any suboptimal policy. If it did, then the value function would eventually converge to the value function for that policy, and that in turn would cause the policy to change. Stability is achieved only when both the policy and the value function are optimal. Convergence to this optimal fixed point seems inevitable as the changes to the action-value function decrease over time, but has not yet been formally proved. In our opinion, this is one of the most fundamental open theoretical questions in reinforcement learning (for a partial solution, see Tsitsiklis, 2002). 
+>  MC ES 不会收敛到任意次优的策略，如果有，则价值函数会最终收敛到该策略的价值函数，而这会进而让该策略被改进，MC ES 过程仅在策略和价值函数都达到最优时稳定
+>  MC ES 到这一固定点的收敛性直观容易看出，因为价值函数的改变将逐渐减小，但尚未被证明
+
 Example 5.3: Solving Blackjack It is straightforward to apply Monte Carlo ES to blackjack. Since the episodes are all simulated games, it is easy to arrange for exploring starts that include all possibilities. In this case one simply picks the dealer’s cards, the player’s sum, and whether or not the player has a usable ace, all at random with equal probability. As the initial policy we use the policy evaluated in the previous blackjack example, that which sticks only on 20 or 21. The initial action-value function can be zero for all state–action pairs. Figure 5.5 shows the optimal policy for blackjack found by Monte Carlo ES. This policy is the same as the “basic” strategy of Thorp (1966) with the sole exception of the leftmost notch in the policy for a usable ace, which is not present in Thorp’s strategy. We are uncertain of the reason for this discrepancy, but confident that what is shown here is indeed the optimal policy for the version of blackjack we have described. 
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/1e8f8ba32e94330fa12daebe16c26e17939cac58db0b3be3bf04dcef5a6d64f7.jpg) 
+
 Figure 5.5: The optimal policy and state-value function for blackjack, found by Monte Carlo ES (Figure 5.4). The state-value function shown was computed from the action-value function found by Monte Carlo ES. 
-## 5.4 Monte DCeaalerr lshoow inCg ontrol without Exploring Starts 
-How can we avoid the unlikely assumption of exploring starts? The only general way to ensure that all actions are selected infinitely often is for the agent to continue to select them. There are two approaches to ensuring this, resulting in what we call on-policy methods and off-policy methods. Onpolicy methods attempt to evaluate or improve the policy that is used to make decisions, whereas off-policy methods evaluate or improve a policy different from that used to generate the data. The Monte Carlo ES method developed above is an example of an on-policy method. In this section we show how an on-policy Monte Carlo control method can be designed that does not use the unrealistic assumption of exploring starts. Off-policy methods are considered in the next section. 
+
+## 5.4 Monte Carlo in Control without Exploring Starts 
+How can we avoid the unlikely assumption of exploring starts? The only general way to ensure that all actions are selected infinitely often is for the agent to continue to select them. There are two approaches to ensuring this, resulting in what we call on-policy methods and off-policy methods. On-policy methods attempt to evaluate or improve the policy that is used to make decisions, whereas off-policy methods evaluate or improve a policy different from that used to generate the data. The Monte Carlo ES method developed above is an example of an on-policy method. In this section we show how an on-policy Monte Carlo control method can be designed that does not use the unrealistic assumption of exploring starts. Off-policy methods are considered in the next section. 
+>  考虑避免探索起点假设
+>  为了确保所有动作可能被无限次选择，有两种方法：同策略和异策略
+>  同策略方法试图评估和改进用于决策的策略，异策略方法中，生成数据的和评估、改进用于决策的策略则不同
+>  MC ES 属于同策略方法
+
 In on-policy control methods the policy is generally soft, meaning that $\pi(a|s)>0$ for all $s\in\mathcal{S}$ and all $a\in\mathcal{A}(s)$ , but gradually shifted closer and closer to a deterministic optimal policy. Many of the methods discussed in Chapter 2 provide mechanisms for this. The on-policy method we present in this section uses $\boldsymbol{\varepsilon}$ -greedy policies, meaning that most of the time they choose an action that has maximal estimated action value, but with probability $\boldsymbol{\varepsilon}$ they instead select an action at random. That is, all nongreedy actions are given the minimal probability of selection, $\frac{\epsilon}{|\mathcal{A}(s)|}$ , and the remaining bulk of the probability, $\begin{array}{r}{1-\varepsilon+\frac{\epsilon}{|\mathcal{A}(s)|}}\end{array}$ , is given to the greedy action. The $\varepsilon$ -greedy policies are examples of $\boldsymbol{\varepsilon}$ -soft policies, defined as policies for which $\pi(a|s)\geq{\frac{\epsilon}{|{\mathcal{A}}(s)|}}$ for all states and actions, for some $\varepsilon>0$ . Among $\varepsilon$ -soft policies, $\varepsilon\cdot$ -greedy policies are in some sense those that are closest to greedy. 
+>  同策略控制方法中，策略通常是 soft 的，即对于所有的 $s\in \mathcal S$ 和 $a\in \mathcal A(s)$ 都有 $\pi(a\mid s) > 0$
+>  我们在本节讨论 $\epsilon$ -greedy 策略，该策略在大多数时候会选择最大化动作价值函数的动作，但会有 $\epsilon$ 的概率随机选择一个动作，也就是说其他非贪心的动作会有 $\frac {\epsilon}{|\mathcal A(s)|}$ 的概率被选中，贪心动作会有 $1-\epsilon + \frac {\epsilon}{|\mathcal A(s)|}$ 的概率被选中
+>  $\epsilon$ -greedy 策略属于 $\epsilon$ soft 策略，$\epsilon$ -soft 策略定义为对于所有状态和任意动作，都有 $\pi(a\mid s)\ge \frac {\epsilon}{|\mathcal A(s)|}$ 的概率被选中 ($\epsilon > 0$)，$\epsilon$ -greedy 是 $\epsilon$ -soft 策略中最接近贪心的策略
+
 The overall idea of on-policy Monte Carlo control is still that of GPI. As in Monte Carlo $\mathrm{ES}$ , we use first-visit MC methods to estimate the action-value function for the current policy. Without the assumption of exploring starts, however, we cannot simply improve the policy by making it greedy with respect to the current value function, because that would prevent further exploration of nongreedy actions. Fortunately, GPI does not require that the policy be taken all the way to a greedy policy, only that it be moved toward a greedy policy. In our on-policy method we will move it only to an $\varepsilon$ -greedy policy. For any $\boldsymbol{\varepsilon}$ -soft policy, $\pi$ , any $\boldsymbol{\varepsilon}$ -greedy policy with respect to $q_{\pi}$ is guaranteed to be better than or equal to $\pi$ . 
-That any $\varepsilon$ -greedy policy with respect to $q_{\pi}$ is an improvement over any $\varepsilon$ -soft policy $\pi$ is assured by the policy improvement theorem. Let $\pi^{\prime}$ be the $\varepsilon$ -greedy policy. The conditions of the policy improvement theorem apply because for any $s\in\mathcal{S}$ : 
+>  同策略 MC 的思想仍然是 GPI，我们使用首次访问 MC 方法为当前策略估计动作价值函数，但在没有探索性开始的假设下，我们在策略改进时不能简单让下一个策略对当前价值函数贪心，这会防止对非贪心策略的进一步探索
+>  GPI 并不要求策略改进时完全使用贪心，而是可以朝向贪心的方向改进，在同策略方法中，我们在策略改进时将策略改进为 $\epsilon$ -greedy 策略
+>  对于任意的 $\epsilon$ -soft 策略 $\pi$，任意相对于 $q_\pi$ 的 $\epsilon$ -greedy 策略都保证不差于 $\pi$
+
+That any $\varepsilon$ -greedy policy with respect to $q_{\pi}$ is an improvement over any $\varepsilon$ -soft policy $\pi$ is assured by the policy improvement theorem. 
+>  任意相对于 $q_\pi$ 的 $\epsilon$ -贪心策略相对于任意的 $\epsilon$ -soft 策略 $\pi$ 都保证是其提升，这一结论仍然由策略改进定理给出，证明如下
+
+Let $\pi^{\prime}$ be the $\varepsilon$ -greedy policy. The conditions of the policy improvement theorem apply because for any $s\in\mathcal{S}$ : 
+
 $$
-\begin{array}{r c l}{\displaystyle q_{\pi}(s,\pi^{\prime}(s))}&{=}&{\displaystyle\sum_{a}\pi^{\prime}(a|s)q_{\pi}(s,a)}\ &{=}&{\displaystyle\frac{\epsilon}{|\mathcal{A}(s)|}\sum_{a}q_{\pi}(s,a)~+~(1-\varepsilon)\operatorname*{max}_{a}q_{\pi}(s,a)}\ &{\geq}&{\displaystyle\frac{\epsilon}{|\mathcal{A}(s)|}\sum_{a}q_{\pi}(s,a)~+~(1-\varepsilon)\sum_{a}\frac{\pi(a|s)-\frac{\epsilon}{|\mathcal{A}(s)|}}{1-\varepsilon}q_{\pi}(s,a)}\end{array}
-$$ 
+\begin{align}
+q_\pi(s, \pi'(s)) &=\sum_a\pi'(a\mid s)q_\pi(s, a)\\
+&=\frac {\epsilon}{|\mathcal A(s)|}\sum_a q_\pi(s, a) + (1-\epsilon)\max_a q_\pi(s, a)\\
+&\ge\frac {\epsilon}{|\mathcal A(s)|}\sum_a q_\pi(s, a) + (1-\epsilon)\sum_a\frac {\pi(a\mid s) - \frac {\epsilon}{|\mathcal A(s)|}}{1-\epsilon}q_\pi(s, a)\\
+\end{align}\tag{5.2}
+$$
+
 (the sum is a weighted average with nonnegative weights summing to $1$ , and as such it must be less than or equal to the largest number averaged) 
+
 $$
-\begin{array}{r c l}{{}}&{{=}}&{{\displaystyle\frac{\epsilon}{|{\mathcal A}(s)|}\sum_{a}q_{\pi}(s,a)-\frac{\epsilon}{|{\mathcal A}(s)|}\sum_{a}q_{\pi}(s,a)+\sum_{a}\pi(a|s)q_{\pi}(s,a)}}\ {{}}&{{=}}&{{v_{\pi}(s).}}\end{array}
-$$ 
-Thus, by the policy improvement theorem, $\pi^{\prime}\geq\pi$ (i.e., $v_{\pi^{\prime}}(s)\geq v_{\pi}(s)$ , for all $s\in{\mathcal{S}}$ ). We now prove that equality can hold only when both $\pi^{\prime}$ and $\pi$ are optimal among the $\varepsilon$ -soft policies, that is, when they are better than or equal to all other $\boldsymbol{\varepsilon}$ -soft policies. 
-Consider a new environment that is just like the original environment, except with the requirement that policies be $\boldsymbol{\varepsilon}$ -soft “moved inside” the environment. The new environment has the same action and state set as the original and behaves as follows. If in state $s$ and taking action $a$ , then with probability $1-\varepsilon$ the new environment behaves exactly like the old environment. With probability $\boldsymbol{\varepsilon}$ it repicks the action at random, with equal probabilities, and then behaves like the old environment with the new, random action. The best one can do in this new environment with general policies is the same as the best one could do in the original environment with $\varepsilon$ -soft policies. Let $\widetilde{v}_{*}$ and $\widetilde{q}_{*}$ denote the optimal value functions for the new environment. Then a epolicy $\pi$ is optimal among $\boldsymbol{\varepsilon}$ -soft policies if and only if $v_{\pi}=\widetilde{v}_{*}$ . From the definition of $\widetilde{v}_{*}$ we know that it is the unique solution to 
+\begin{align}
+&=\frac {\epsilon}{|\mathcal A(s)|}\sum_a q_\pi(s, a) - \frac {\epsilon}{|\mathcal A(s)|}\sum_{a}q_\pi(s, a) + \sum_a \pi(a\mid s)q_\pi(s, a)\\
+&=v_\pi(s)
+\end{align}
 $$
-\begin{array}{r c l}{\widetilde v_{*}(s)}&{=}&{(1-\varepsilon)\displaystyle\operatorname*{max}_{a}\widetilde q_{*}(s,a)+\frac{\epsilon}{|\mathcal{A}(s)|}\sum_{a}\widetilde q_{*}(s,a)}\ &{=}&{(1-\varepsilon)\displaystyle\operatorname*{max}_{a}\sum_{s^{\prime},r}p(s^{\prime},r|s,a)\Big[r+\gamma\widetilde v_{*}(s^{\prime})\Big]}\ &{+}&{\frac{\epsilon}{|\mathcal{A}(s)|}\sum_{a}\sum_{s^{\prime},r}p(s^{\prime},r|s,a)\Big[r+\gamma\widetilde v_{*}(s^{\prime})\Big].}\end{array}
-$$ 
+
+Thus, by the policy improvement theorem, $\pi^{\prime}\geq\pi$ (i.e., $v_{\pi^{\prime}}(s)\geq v_{\pi}(s)$ , for all $s\in{\mathcal{S}}$ ). 
+>  根据策略改进定理，我们进而知道对于所有的 $s\in \mathcal S$，都有 $\pi' \ge \pi$
+
+We now prove that equality can hold only when both $\pi^{\prime}$ and $\pi$ are optimal among the $\varepsilon$ -soft policies, that is, when they are better than or equal to all other $\boldsymbol{\varepsilon}$ -soft policies. 
+>  我们进而证明只有在 $\pi', \pi$ 都是 $\epsilon$ -soft 策略中最优的那个时，等号成立
+
+Consider a new environment that is just like the original environment, except with the requirement that policies be $\boldsymbol{\varepsilon}$ -soft “moved inside” the environment. The new environment has the same action and state set as the original and behaves as follows. If in state $s$ and taking action $a$ , then with probability $1-\varepsilon$ the new environment behaves exactly like the old environment. With probability $\boldsymbol{\varepsilon}$ it repicks the action at random, with equal probabilities, and then behaves like the old environment with the new, random action. The best one can do in this new environment with general policies is the same as the best one could do in the original environment with $\varepsilon$ -soft policies. Let $\widetilde{v}_{*}$ and $\widetilde{q}_{*}$ denote the optimal value functions for the new environment. Then a policy $\pi$ is optimal among $\boldsymbol{\varepsilon}$ -soft policies if and only if $v_{\pi}=\widetilde{v}_{*}$ . 
+>  考虑一个新环境，在该环境中，如果 $s$ 执行了 $a$，则有 $1-\epsilon$ 的概率新环境的行为和旧环境一致，有 $\epsilon$ 的概率新环境重新随机按照均匀分布选择一个动作
+>  在新环境中，旧环境最优的策略会变为 $\epsilon$ -soft 的形式
+>  令 $\tilde v_*$ 和 $\tilde q_*$ 表示新环境中最优的价值函数，则一个 $\epsilon$ -soft 策略 $\pi$ 当且仅当 $v_\pi = \tilde v_*$ 时，它是最优的
+
+From the definition of $\widetilde{v}_{*}$ we know that it is the unique solution to 
+
+$$\begin{align*}
+\tilde{v}_*(s) &= (1-\varepsilon)\max_a \tilde{q}_*(s, a) + \frac{\varepsilon}{|\mathcal{A}(s)|}\sum_a \tilde{q}_*(s, a) \\
+&= (1-\varepsilon)\max_a \sum_{s', r} p (s', r | s, a) \Big[r + \gamma \tilde{v}_*(s')\Big] \\
+&\quad + \frac{\varepsilon}{|\mathcal{A}(s)|}\sum_a \sum_{s', r} p (s', r | s, a) \Big[r + \gamma \tilde{v}_*(s')\Big].
+\end{align*}$$
+
+>  在该环境下，$\tilde v_*(s)$ 和 $\tilde q_*(s, a)$ 满足如上的 Bellman equation
+
 When equality holds and the $\boldsymbol{\varepsilon}$ -soft policy $\pi$ is no longer improved, then we also know, from (5.2), that 
-$$
-\begin{array}{r c l}{{\displaystyle v_{\pi}(s)}}&{{=}}&{{(1-\varepsilon)\operatorname*{max}_{a}q_{\pi}(s,a)+\frac{\epsilon}{\vert\mathcal{A}(s)\vert}\sum_{a}q_{\pi}(s,a)}}\ {{}}&{{=}}&{{(1-\varepsilon)\operatorname*{max}_{a}\displaystyle\sum_{s^{\prime},r}p(s^{\prime},r\vert s,a)\Big[r+\gamma v_{\pi}(s^{\prime})\Big]}}\ {{}}&{{}}&{{+}}&{{\frac{\epsilon}{\vert\mathcal{A}(s)\vert}\displaystyle\sum_{a}\sum_{s^{\prime},r}p(s^{\prime},r\vert s,a)\Big[r+\gamma v_{\pi}(s^{\prime})\Big].}}\end{array}
-$$ 
+
+$$\begin{align*}
+v_{\pi}(s) &= (1-\varepsilon)\operatorname*{max}_{a}q_{\pi}(s, a) + \frac{\epsilon}{|\mathcal{A}(s)|}\sum_{a}q_{\pi}(s, a) \\
+&= (1-\varepsilon)\operatorname*{max}_{a}\sum_{s', r}p (s', r|s, a)\Big[r+\gamma v_{\pi}(s')\Big] \\
+&\quad + \frac{\epsilon}{|\mathcal{A}(s)|}\sum_{a}\sum_{s', r}p (s', r|s, a)\Big[r+\gamma v_{\pi}(s')\Big].
+\end{align*}$$
+
 However, this equation is the same as the previous one, except for the substitution of $v_{\pi}$ for $\widetilde{v}_{*}$ . Since $\widetilde{v}_{*}$ is the unique solution, it must be that $v_{\pi}=\widetilde{v}_{*}$ . 
-In essence, w ee have sh oewn in the last few pages that policy iteration weorks for $\varepsilon$ -soft policies. Using the natural notion of greedy policy for $\boldsymbol{\varepsilon}$ -soft policies, one is assured of improvement on every step, except when the best policy has been found among the $\boldsymbol{\varepsilon}$ -soft policies. This analysis is independent of how the action-value functions are determined at each stage, but it does assume that they are computed exactly. This brings us to roughly the same point as in the previous section. Now we only achieve the best policy among the $\boldsymbol{\varepsilon}$ -soft policies, but on the other hand, we have eliminated the assumption of exploring starts. The complete algorithm is given in Figure 5.6. 
+
+>  而如果策略改进过程稳定了，根据 Eq 5.2，$\pi$ 的状态价值函数和动作价值函数之间也满足相同形式的方程
+>  因此，策略改进过程的固定点就是最优的 $\epsilon$ -soft 策略
+
+
+In essence, we have shown in the last few pages that policy iteration works for $\varepsilon$ -soft policies. Using the natural notion of greedy policy for $\boldsymbol{\varepsilon}$ -soft policies, one is assured of improvement on every step, except when the best policy has been found among the $\boldsymbol{\varepsilon}$ -soft policies. 
+>  我们上述的讨论就是说明了策略迭代对于 $\epsilon$ -soft 策略也是有效的
+
+This analysis is independent of how the action-value functions are determined at each stage, but it does assume that they are computed exactly. This brings us to roughly the same point as in the previous section. Now we only achieve the best policy among the $\boldsymbol{\varepsilon}$ -soft policies, but on the other hand, we have eliminated the assumption of exploring starts. 
+>  分析过程独立于动作价值函数的具体定义，但假设了动作价值函数会被准确计算，该过程能够带来 $\epsilon$ -soft 策略中的最优策略，但帮助我们消除了探索性开始的假设
+
+The complete algorithm is given in Figure 5.6. 
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/0f7e0adc617635bdd42b15f6c97b3be9c1b1839f780fcc6d7fb0013a3cfea8c3.jpg) 
+
 Figure 5.6: An on-policy first-visit MC control algorithm for $\boldsymbol{\varepsilon}$ -soft policies. 
+
 ## 5.5 Off-policy Prediction via Importance Sampling 
 So far we have considered methods for estimating the value functions for a policy given an infinite supply of episodes generated using that policy. Suppose now that all we have are episodes generated from a different policy. That is, suppose we wish to estimate $v_{\pi}$ or $q_{\pi}$ , but all we have are episodes following another policy $\mu$ , where $\mu\neq\pi$ . We call $\pi$ the target policy because learning its value function is the target of the learning process, and we call $\mu$ the behavior policy because it is the policy controlling the agent and generating behavior. The overall problem is called off-policy learning because it is learning about a policy given only experience “off” (not following) that policy. 
+
 In order to use episodes from $\mu$ to estimate values for $\pi$ , we must require that every action taken under $\pi$ is also taken, at least occasionally, under $\mu$ . That is, we require that $\pi(a|s)>0$ implies $\mu(a|s)>0$ . This is called the assumption of coverage. It follows from coverage that $\mu$ must be stochastic in states where it is not identical to $\pi$ . The target policy $\pi$ , on the other hand, may be deterministic, and, in fact, this is a case of particular interest. Typically the target policy is the deterministic greedy policy with respect to the current action-value function estimate. This policy we hope becomes a deterministic optimal policy while the behavior policy remains stochastic and more exploratory, for example, an $\varepsilon$ -greedy policy. 
+
 Importance sampling is a general technique for estimating expected values under one distribution given samples from another. We apply this technique to off-policy learning by weighting returns according to the relative probability of their trajectories occurring under the target and behavior policies, called the importance-sampling ratio. Given a starting state $S_{t}$ , the probability of the subsequent state–action trajectory, $A_{t},S_{t+1},A_{t+1},...,S_{T}$ , occurring under any policy $\pi$ is 
+
 $$
 \prod_{k=t}^{T-1}\pi(A_{k}|S_{k})p(S_{k+1}|S_{k},A_{k}),
 $$ 
 where $p$ is the state-transition probability function defined by (3.8). Thus, the relative probability of the trajectory under the target and behavior policies (the importance-sampling ratio) is 
+
 $$
 \rho_{t}^{T}=\frac{\prod_{k=t}^{T-1}\pi(A_{k}|S_{k})p(S_{k+1}|S_{k},A_{k})}{\prod_{k=t}^{T-1}\mu(A_{k}|S_{k})p(S_{k+1}|S_{k},A_{k})}=\prod_{k=t}^{T-1}\frac{\pi(A_{k}|S_{k})}{\mu(A_{k}|S_{k})}.
 $$ 
@@ -891,19 +1198,23 @@ V(s)=\frac{\sum_{t\in\mathbb{T}(s)}\rho_{t}^{T(t)}G_{t}}{|\mathbb{T}(s)|}.
 $$ 
 When importance sampling is done as a simple average in this way it is called ordinary importance sampling. 
 An important alternative is weighted importance sampling, which uses a weighted average, defined as 
+
 $$
 V(s)=\frac{\sum_{t\in\mathbb{T}(s)}\rho_{t}^{T(t)}G_{t}}{\sum_{t\in\mathbb{T}(s)}\rho_{t}^{T(t)}},
 $$ 
 or zero if the denominator is zero. To understand these two varieties of importance sampling, consider their estimates after observing a single return. In the weighted-average estimate, the ratio ρtT(t) for the single return cancels in the numerator and denominator, so that the estimate is equal to the observed return independent of the ratio (assuming the ratio is nonzero). Given that this return was the only one observed, this is a reasonable estimate, but of course its expectation is $v_{\mu}(s)$ rather than $v_{\pi}(s)$ , and in this statistical sense it is biased. In contrast, the simple average (5.4) is always $v_{\pi}(s)$ in expectation (it is unbiased), but it can be extreme. Suppose the ratio were ten, indicating that the trajectory observed is ten times as likely under the target policy as under the behavior policy. In this case the ordinary importance-sampling estimate would be ten times the observed return. That is, it would be quite far from the observed return even though the episode’s trajectory is considered very representative of the target policy. 
 Formally, the difference between the two kinds of importance sampling is expressed in their variances. The variance of the ordinary importancesampling estimator is in general unbounded because the variance of the ratios is unbounded, whereas in the weighted estimator the largest weight on any single return is one. In fact, assuming bounded returns, the variance of the weighted importance-sampling estimator converges to zero even if the variance of the ratios themselves is infinite (Precup, Sutton, and Dasgupta 2001). In practice, the weighted estimator usually has dramatically lower variance and is strongly preferred. A complete every-visit MC algorithm for off-policy policy evaluation using weighted importance sampling is given at the end of the next section in Figure 5.9. 
-## Example 5.4: Off-policy Estimation of a Blackjack State Value 
+
+Example 5.4: Off-policy Estimation of a Blackjack State Value 
 We applied both ordinary and weighted importance-sampling methods to estimate the value of a single blackjack state from off-policy data. Recall that one of the advantages of Monte Carlo methods is that they can be used to evaluate a single state without forming estimates for any other states. In this example, we evaluated the state in which the dealer is showing a deuce, the sum of the player’s cards is 13, and the player has a usable ace (that is, the player holds an ace and a deuce, or equivalently three aces). The data was generated by starting in this state then choosing to hit or stick at random with equal probability (the behavior policy). The target policy was to stick only on a sum of 20 or 21, as in Example 5.1. The value of this state under the target policy is approximately −0.27726 (this was determined by separately generating one-hundred million episodes using the target policy and averaging their returns). Both off-policy methods closely approximated this value after 1000 off-policy episodes using the random policy. Figure 5.7 shows the mean squared error (estimated from 100 independent runs) for each method as a function of number of episodes. The weighted importance-sampling method has much lower overall error in this example, as is typical in practice. 
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/20ecff6b36b9bb246243021220824893024a5dc1b49baf224ee43355f79f06f4.jpg) 
 Figure 5.7: Weighted importance sampling produces lower error estimates of the value of a single blackjack state from off-policy episodes (see Example 5.4). 
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/fd96f5df9e53f368ab3a92b1eb40d3f05cdc66d073a89742863df9966b2aabb6.jpg) 
 Figure 5.8: Ordinary importance sampling produces surprisingly unstable estimates on the one-state MDP shown inset (Example 5.5). The correct estimate here is 1, and, even though this is the expected value of a sample return (after importance sampling), the variance of the samples is infinite, and the estimates do not convergence to this value. These results are for off-policy first-visit MC. 
-## Example 5.5: Infinite Variance 
+
+Example 5.5: Infinite Variance 
 The estimates of ordinary importance sampling will typically have infinite variance, and thus unsatisfactory convergence properties, whenever the scaled returns have infinite variance—and this can easily happen in off-policy learning when trajectories contain loops. A simple example is shown inset in Figure 5.8. There is only one nonterminal state $s$ and two actions, end and back. The end action causes a deterministic transition to termination, whereas the back action transitions, with probability 0.9, back to $s$ or, with probability 0.1, on to termination. The rewards are $+1$ on the latter transition and otherwise zero. Consider the target policy that always selects back. All episodes under this policy consist of some number (possibly zero) of transitions back to $s$ followed by termination with a reward and return of $+1$ . Thus the value of $s$ under the target policy is thus 1. Suppose we are estimating this value from off-policy data using the behavior policy that selects end and back with equal probability. The lower part of Figure 5.8 shows ten independent runs of the first-visit MC algorithm using ordinary importance sampling. Even after millions of episodes, the estimates fail to converge to the correct value of 1. In contrast, the weighted importance-sampling algorithm would give an estimate of exactly 1 everafter the first episode that was consistent with the target policy (i.e., that ended with the back action). This is clear because that algorithm produces a weighted average of the returns consistent with the target policy, all of which would be exactly 1. 
+
 We can verify that the variance of the importance-sampling-scaled returns is infinite in this example by a simple calculation. The variance of any random variable $X$ is the expected value of the deviation from its mean $X$ , which can be written 
 $$
 \operatorname{Var}[X]=\operatorname{\mathbb{E}}\left[\left(X-{\bar{X}}\right)^{2}\right]=\operatorname{\mathbb{E}}\left[X^{2}-2X{\bar{X}}+{\bar{X}}^{2}\right]=\operatorname{\mathbb{E}}\left[X^{2}\right]-{\bar{X}}^{2}.
@@ -921,12 +1232,16 @@ $$
 (the length 3 episode) 
 ## 5.6 Incremental Implementation 
 Monte Carlo prediction methods can be implemented incrementally, on an episode-by-episode basis, using extensions of the techniques described in Chapter 2. Whereas in Chapter 2 we averaged rewards, in Monte Carlo methods we average returns. In all other respects exactly the same methods as used in Chapter 2 can be used for on-policy Monte Carlo methods. For off-policy Monte Carlo methods, we need to separately consider those that use ordinary importance sampling and those that use weighted importance sampling. 
+
 In ordinary importance sampling, the returns are scaled by the importance sampling ratio ρt (5.3), then simply averaged. For these methods we can again use the incremental methods of Chapter 2, but using the scaled returns in place of the rewards of that chapter. This leaves the case of off-policy methods using weighted importance sampling. Here we have to form a weighted average of the returns, and a slightly different incremental algorithm is required. 
+
 Suppose we have a sequence of returns $G_{1},G_{2},\dots,G_{n-1}$ , all starting in the same state and each with a corresponding random weight $W_{i}$ (e.g., $W_{i}=\rho_{t}^{T(t)}$ ρT (t)). We wish to form the estimate 
+
 $$
 V_{n}={\frac{\sum_{k=1}^{n-1}W_{k}G_{k}}{\sum_{k=1}^{n-1}W_{k}}},\qquadn\geq2,
 $$ 
 and keep it up-to-date as we obtain a single additional return $G_{n}$ . In addition to keeping track of $V_{n}$ , we must maintain for each state the cumulative sum $C_{n}$ of the weights given to the first $n$ returns. The update rule for $V_{n}$ is 
+
 $$
 V_{n+1}=V_{n}+{\frac{W_{n}}{C_{n}}}\Big[G_{n}-V_{n}\Big],\qquadn\ge1,
 $$ 
@@ -935,15 +1250,21 @@ $$
 C_{n+1}=C_{n}+W_{n+1},
 $$ 
 where $C_{0}=0$ (and $V_{1}$ is arbitrary and thus need not be specified). Figure 5.9 gives a complete episode-by-episode incremental algorithm for Monte Carlo policy evaluation. The algorithm is nominally for the off-policy case, using weighted importance sampling, but applies as well to the on-policy case just by choosing the target and behavior policies as the same. 
+o
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/c3789a12f13b300342e48dbae08e322ddc014ef666b3b4c584c73075d737d317.jpg) 
+
 Figure 5.9: An incremental every-visit MC policy-evaluation algorithm, using weighted importance sampling. The approximation $Q$ converges to $q_{\pi}$ (for all encountered state–action pairs) even though all actions are selected according to a potentially different policy, $\mu$ . In the on-policy case ( $\pi=\mu$ ), $W$ is always 1. 
 ## 5.7 Off-Policy Monte Carlo Control 
 We are now ready to present an example of the second class of learning control methods we consider in this book: off-policy methods. Recall that the distinguishing feature of on-policy methods is that they estimate the value of a policy while using it for control. In off-policy methods these two functions are separated. The policy used to generate behavior, called the behavior policy, may in fact be unrelated to the policy that is evaluated and improved, called the target policy. An advantage of this separation is that the target policy may be deterministic (e.g., greedy), while the behavior policy can continue to sample all possible actions. 
+
 Off-policy Monte Carlo control methods use one of the techniques presented in the preceding two sections. They follow the behavior policy while learning about and improving the target policy. These techniques requires that the behavior policy has a nonzero probability of selecting all actions that might be selected by the target policy (coverage). To explore all possibilities, we require that the behavior policy be soft (i.e., that it select all actions in all states with nonzero probability). 
+
 Figure 5.10 shows an off-policy Monte Carlo method, based on GPI and weighted importance sampling, for estimating $q_{*}$ . The target policy $\pi$ is the greedy policy with respect to $Q$ , which is an estimate of $q_{\pi}$ . The behavior policy $\mu$ can be anything, but in order to assure convergence of $\pi$ to the optimal policy, an infinite number of returns must be obtained for each pair of state and action. This can be assured by choosing $\mu$ to be $\boldsymbol{\varepsilon}$ -soft. 
 A potential problem is that this method learns only from the tails of episodes, after the last nongreedy action. If nongreedy actions are frequent, then learning will be slow, particularly for states appearing in the early portions of long episodes. Potentially, this could greatly slow learning. There has been insufficient experience with off-policy Monte Carlo methods to assess how serious this problem is. If it is serious, the most important way to address it is probably by incorporating temporal-difference learning, the algorithmic idea developed in the next chapter. Alternatively, if $\gamma$ is less than 1, then the idea developed in the next section may also help significantly. 
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/eec714aad93b30c23662168d8535d7fdc4280f8033273ebda1683853d4cbd335.jpg) 
 Figure 5.10: An off-policy every-visit MC control algorithm, using weighted importance sampling. The policy $\pi$ converges to optimal at all encountered states even though actions are selected according to a different soft policy $\mu$ , which may change between or even within episodes. 
+
 ## 5.8 Importance Sampling on Truncated Returns \*
 So far our off-policy methods have formed importance-sampling ratios for returns considered as unitary wholes. This is clearly the right thing for a Monte Carlo method to do in the absence of discounting (i.e., if $\gamma\:=\:1$ ), but if $\gamma<1$ then there may be something better. Consider the case where episodes are long and $\gamma$ is significantly less than 1. For concreteness, say that episodes last 100 steps and that $\gamma=0$ . The return from time 0 will then be $G_{0}=R_{1}$ , and its importance sampling ratio will be a product of 100 factors, ${\frac{\pi(A_{0}|S_{0})}{\mu(A_{0}|S_{0})}}{\frac{\pi(A_{1}|S_{1})}{\mu(A_{1}|S_{1})}}\cdot\cdot\cdot{\frac{\pi(A_{99}|S_{99})}{\mu(A_{99}|S_{99})}}$ . In ordinary importance sampling, the return will be scaled by the entire product, but it is really only necessary to scale by the first factor, by $\frac{\pi(A_{0}|S_{0})}{\mu(A_{0}|S_{0})}$ . The other 99 factors ${\frac{\pi(A_{1}|S_{1})}{\mu(A_{1}|S_{1})}}\cdot\cdot\cdot\frac{\pi(A_{99}|S_{99})}{\mu(A_{99}|S_{99})}$ are irrelevant because after the first reward the return has already been determined. These later factors are all independent of the return and of expected value 1; they do not change the expected update, but they add enormously to its variance. In some cases they could even make the variance infinite. Let us now consider an idea for avoiding this large extraneous variance. 
 The essence of the idea is to think of discounting as determining a probability of termination or, equivalently, a degree of partial termination. For any $\gamma\in[0,1)$ , we can think of the return $G_{0}$ as partly terminating in one step, to the degree $1-\gamma$ , producing a return of just the first reward, $R_{1}$ , and as partly terminating after two steps, to the degree $(1-\gamma)\gamma$ , producing a return of $R_{1}+R_{2}$ , and so on. The latter degree corresponds to terminating on the second step, $1-\gamma$ , and not having already terminated on the first step, $\gamma$ . The degree of termination on the third step is thus $(1-\gamma)\gamma^{2}$ , with the $\gamma^{2}$ reflecting that termination did not occur on either of the first two steps. The partial returns here are called flat partial returns: 
@@ -964,11 +1285,274 @@ V(s)=\frac{\sum_{t\in\Upsilon(s)}\left(\gamma^{T(t)-t-1}\rho_{t}^{T(t)}\bar{G}_{
 $$ 
 ## 5.9 Summary 
 The Monte Carlo methods presented in this chapter learn value functions and optimal policies from experience in the form of sample episodes. This gives them at least three kinds of advantages over DP methods. First, they can be used to learn optimal behavior directly from interaction with the environment, with no model of the environment’s dynamics. Second, they can be used with simulation or sample models. For surprisingly many applications it is easy to simulate sample episodes even though it is difficult to construct the kind of explicit model of transition probabilities required by DP methods. Third, it is easy and efficient to focus Monte Carlo methods on a small subset of the states. A region of special interest can be accurately evaluated without going to the expense of accurately evaluating the rest of the state set (we explore this further in Chapter 8). 
+
 A fourth advantage of Monte Carlo methods, which we discuss later in the book, is that they may be less harmed by violations of the Markov property. This is because they do not update their value estimates on the basis of the value estimates of successor states. In other words, it is because they do not bootstrap. 
+
 In designing Monte Carlo control methods we have followed the overall schema of generalized policy iteration (GPI) introduced in Chapter 4. GPI involves interacting processes of policy evaluation and policy improvement. Monte Carlo methods provide an alternative policy evaluation process. Rather than use a model to compute the value of each state, they simply average many returns that start in the state. Because a state’s value is the expected return, this average can become a good approximation to the value. In control methods we are particularly interested in approximating action-value functions, because these can be used to improve the policy without requiring a model of the environment’s transition dynamics. Monte Carlo methods intermix policy evaluation and policy improvement steps on an episode-by-episode basis, and can be incrementally implemented on an episode-by-episode basis. 
+
 Maintaining sufficient exploration is an issue in Monte Carlo control methods. It is not enough just to select the actions currently estimated to be best, because then no returns will be obtained for alternative actions, and it may never be learned that they are actually better. One approach is to ignore this problem by assuming that episodes begin with state–action pairs randomly selected to cover all possibilities. Such exploring starts can sometimes be arranged in applications with simulated episodes, but are unlikely in learning from real experience. In on-policy methods, the agent commits to always exploring and tries to find the best policy that still explores. In off-policy methods, the agent also explores, but learns a deterministic optimal policy that may be unrelated to the policy followed. 
+
 Off-policy Monte Carlo prediction refers to learning the value function of a target policy from data generated by a different behavior policy. Such learning methods are all based on some form of importance sampling, that is, on weighting returns by the ratio of the probabilities of taking the observed actions under the two policies. Ordinary importance sampling uses a simple average of the weighted returns, whereas weighted importance sampling uses a weighted average. Ordinary importance sampling produces unbiased estimates, but has larger, possibly infinite, variance, whereas weighted importance sampling always has finite variance and are preferred in practice. Despite their conceptual simplicity, off-policy Monte Carlo methods for both prediction and control remain unsettled and a subject of ongoing research. 
+
 The Monte Carlo methods treated in this chapter differ from the DP methods treated in the previous chapter in two major ways. First, they operate on sample experience, and thus can be used for direct learning without a model. Second, they do not bootstrap. That is, they do not update their value estimates on the basis of other value estimates. These two differences are not tightly linked, and can be separated. In the next chapter we consider methods that learn from experience, like Monte Carlo methods, but also bootstrap, like DP methods. 
+
+# 6 Temporal-Difference Learning 
+If one had to identify one idea as central and novel to reinforcement learning, it would undoubtedly be temporal-difference (TD) learning. TD learning is a combination of Monte Carlo ideas and dynamic programming (DP) ideas. Like Monte Carlo methods, TD methods can learn directly from raw experience without a model of the environment’s dynamics. Like DP, TD methods update estimates based in part on other learned estimates, without waiting for a final outcome (they bootstrap). The relationship between TD, DP, and Monte Carlo methods is a recurring theme in the theory of reinforcement learning. This chapter is the beginning of our exploration of it. Before we are done, we will see that these ideas and methods blend into each other and can be combined in many ways. In particular, in Chapter 7 we introduce the TD( $\lambda$ ) algorithm, which seamlessly integrates TD and Monte Carlo methods. 
+>  TD 是 DP 和 MC 思想的结合
+>  类似 MC 方法，TD 可以直接从经验学习，不需要环境动态模型，类似 DP 方法，TD 基于另一个估计更新当前估计，而不是等待最终的结果 (也就是 DP 和 TD 都自举)
+
+As usual, we start by focusing on the policy evaluation or prediction problem, that of estimating the value function $v_{\pi}$ for a given policy $\pi$ . 
+
+For the control problem (finding an optimal policy), DP, TD, and Monte Carlo methods all use some variation of generalized policy iteration (GPI). The differences in the methods are primarily differences in their approaches to the prediction problem. 
+>  对于控制问题 (寻找最优策略)，DP, TD, MC 都使用 GPI 的变体，它们的差异主要体现在它们对预测问题的求解，即如何进行策略评估 (计算价值函数)
+
+## 6.1 TD Prediction 
+Both TD and Monte Carlo methods use experience to solve the prediction problem. Given some experience following a policy $\pi$ , both methods update their estimate $\upsilon$ of $v_{\pi}$ for the nonterminal states $S_{t}$ occurring in that experience. 
+>  TD 和 MC 都使用经验来求解预测问题
+>  给定遵循策略 $\pi$ 得到的经验，TD 和 MC 根据经验中出现的非终止状态 $S_t$ 更新它们对 $v_\pi$ 的预测
+
+Roughly speaking, Monte Carlo methods wait until the return following the visit is known, then use that return as a target for $V(S_{t})$ . A simple every-visit Monte Carlo method suitable for nonstationary environments is 
+
+$$
+V(S_{t})\leftarrow V(S_{t})+\alpha\Big[G_{t}-V(S_{t})\Big],\tag{6.1}
+$$ 
+where $G_{t}$ is the actual return following time $t$ , and $\alpha$ is a constant stepsize parameter (c.f., Equation 2.4). Let us call this method constant- $\alpha$ MC. 
+
+>  MC 方法会等待到某个状态访问的最终回报已知，一个 every-visit MC 方法对于目标 $V(S_t)$ 的更新如上，其中 $G_t$ 是实际回报，$\alpha$ 是步长参数
+>  该方法称为 constant- $\alpha$ MC
+
+Whereas Monte Carlo methods must wait until the end of the episode to determine the increment to $V(S_{t})$ (only then is $G_{t}$ known), TD methods need wait only until the next time step. At time $t+1$ they immediately form a target and make a useful update using the observed reward $R_{t+1}$ and the estimate $V(S_{t+1})$ . The simplest TD method, known as $T D({{0}})$ , is 
+
+$$
+V(S_{t})\leftarrow V(S_{t})+\alpha\Big[R_{t+1}+\gamma V(S_{t+1})-V(S_{t})\Big].\tag{6.2}
+$$
+
+In effect, the target for the Monte Carlo update is $G_{t}$ , whereas the target for the TD update is $R_{t+1}+\gamma V(S_{t+1})$ . 
+
+>  TD 方法不会等到结束，TD(0) 仅等待一个时间步，然后用估计 $V(S_{t+1})$ 和奖励 $R_{t+1}$ 近似 $G_t$，然后执行更新
+>  MC 更新的目标是 $G_t$，TD 更新的目标是 $R_{t+1} + \gamma V_{S_{t+1}}$
+
+Because the TD method bases its update in part on an existing estimate, we say that it is a bootstrapping method, like DP. 
+>  TD 方法基于现存估计更新，故它和 DP 一样是自举方法
+
+We know from Chapter 3 that 
+
+$$\begin{align*}
+v_{\pi}(s) &= \mathbb{E}_{\pi}\big[G_{t}\mid S_{t}=s\big]\tag{6.2} \\
+           &= \mathbb{E}_{\pi}\bigg[\sum_{k=0}^{\infty}\gamma^{k}R_{t+k+1}\biggm\vert S_{t}=s\bigg] \\
+           &= \mathbb{E}_{\pi}\bigg[R_{t+1}+\gamma\sum_{k=0}^{\infty}\gamma^{k}R_{t+k+2}\biggm\vert S_{t}=s\bigg] \\
+           &= \mathbb{E}_{\pi}\big[R_{t+1}+\gamma v_{\pi}\big (S_{t+1}\bigm)\mid S_{t}=s\big].\tag{6.4}
+\end{align*}$$
+
+Roughly speaking, Monte Carlo methods use an estimate of (6.3) as a target, whereas DP methods use an estimate of (6.4) as a target. The Monte Carlo target is an estimate because the expected value in (6.3) is not known; a sample return is used in place of the real expected return. The DP target is an estimate not because of the expected values, which are assumed to be completely provided by a model of the environment, but because $v_{\pi}(S_{t+1})$ is not known and the current estimate, $V(S_{t+1})$ , is used instead. The TD target is an estimate for both reasons: it samples the expected values in (6.4) and it uses the current estimate $V$ instead of the true $v_{\pi}$ . Thus, TD methods combine the sampling of Monte Carlo with the bootstrapping of DP. As we shall see, with care and imagination this can take us a long way toward obtaining the advantages of both Monte Carlo and DP methods. 
+
+>  MC 方法使用对 Eq 6.3 的估计作为目标，DP 方法使用对 Eq 6.4 的估计作为目标
+>  MC 方法的“估计”来源于用样本回报估计实际的期望回报
+>  DP 方法的“估计”来源于 $v_\pi(S_{t+1})$ 未知，使用 $V(S_{t+1})$ 代替，而不是来源于期望，DP 会根据环境动态计算出期望
+>  TD 则二者的“估计”兼有，TD 在 Eq 6.4 使用样本替代期望，并且用 $V$ 替代 $v_\pi$
+>  因此，TD 结合了 MC 的采样和 DP 的自举
+
+Figure 6.1 specifies TD(0) completely in procedural form, and Figure 6.2 shows its backup diagram. The value estimate for the state node at the top of the backup diagram is updated on the basis of the one sample transition from it to the immediately following state. 
+>  TD(0) 中，当前状态节点的价值估计根据一个后继状态的样本更新
+
+We refer to TD and Monte Carlo updates as sample backups because they involve looking ahead to a sample successor state (or state–action pair), using the value of the successor and the reward along the way to compute a backed-up value, and then changing the value of the original state (or state–action pair) accordingly. Sample backups differ from the full backups of DP methods in that they are based on a single sample successor rather than on a complete distribution of all possible successors. 
+>  TD 和 MC 更新都称为样本回溯更新，因为涉及到了采样
+>  DP 则是全回溯更新，基于所有可能后继的完整分布更新
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/413ef04ea3450200d58dfa1bd00f41ffe32b5b1af3f732ab342a84a8f1b75dec.jpg) 
+
+Figure 6.1: Tabular $\mathrm{TD}(0)$ for estimating $v_{\pi}$ . 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/b9fa09f5cd8ea5846133c75b64d7e948999edce39f6c0d5e8c22267958663759.jpg) 
+
+Figure 6.2: The backup diagram for TD(0). 
+
+Example 6.1: Driving Home Each day as you drive home from work, you try to predict how long it will take to get home. When you leave your office, you note the time, the day of week, and anything else that might be relevant. Say on this Friday you are leaving at exactly 6 o’clock, and you estimate that it will take 30 minutes to get home. As you reach your car it is 6:05, and you notice it is starting to rain. Traffic is often slower in the rain, so you re-estimate that it will take 35 minutes from then, or a total of 40 minutes. Fifteen minutes later you have completed the highway portion of your journey in good time. As you exit onto a secondary road you cut your estimate of total travel time to 35 minutes. Unfortunately, at this point you get stuck behind a slow truck, and the road is too narrow to pass. You end up having to follow the truck until you turn onto the side street where you live at 6:40. Three minutes later you are home. The sequence of states, times, and predictions is 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/d9f0c8e91d1617dbd2c33e64be11472709b1635a66967c631bb3f8420bac8fac.jpg) 
+Figure 6.3: Changes recommended by Monte Carlo methods in the driving home example. 
+
+thus as follows: 
+<html><body><table><tr><td></td><td>ElapsedTime</td><td>Predicted</td><td>Predicted TotalTime</td></tr><tr><td>leaving office, friday at 6</td><td>minutes) 0</td><td>TimetoGo 30</td><td>30</td></tr><tr><td>reach car, raining</td><td>5</td><td>35</td><td>40</td></tr><tr><td>exiting highway</td><td>20</td><td>15</td><td>35</td></tr><tr><td>2ndary road, behind truck</td><td>30</td><td>10</td><td>40</td></tr><tr><td>entering home street</td><td>40</td><td>3</td><td>43</td></tr><tr><td>arrive home</td><td>43</td><td>0</td><td>43</td></tr></table></body></html> 
+
+The rewards in this example are the elapsed times on each leg of the journey.1 We are not discounting ( $\gamma=1$ ), and thus the return for each state is the actual time to go from that state. The value of each state is the expected time to go. The second column of numbers gives the current estimated value for each state encountered. 
+
+A simple way to view the operation of Monte Carlo methods is to plot the predicted total time (the last column) over the sequence, as in Figure 6.3. The arrows show the changes in predictions recommended by the constant- $\alpha$ MC method (6.1), for $\alpha=1$ . These are exactly the errors between the estimated value (predicted time to go) in each state and the actual return (actual time to go). For example, when you exited the highway you thought it would take only 15 minutes more to get home, but in fact it took 23 minutes. Equation 6.1 applies at this point and determines an increment in the estimate of time to go after exiting the highway. The error, $G_{t}-V(S_{t})$ , at this time is eight minutes. Suppose the step-size parameter, $\alpha$ , is $1/2$ . Then the predicted time to go after exiting the highway would be revised upward by four minutes as a result of this experience. This is probably too large a change in this case; the truck was probably just an unlucky break. In any event, the change can only be made off-line, that is, after you have reached home. Only at this point do you know any of the actual returns. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/ea54344e4da5144d417a0d924fa8716273e58c224e80dfff5a474423e3b35d1c.jpg) 
+
+Figure 6.4: Changes recommended by TD methods in the driving home example. 
+
+Is it necessary to wait until the final outcome is known before learning can begin? Suppose on another day you again estimate when leaving your office that it will take 30 minutes to drive home, but then you become stuck in a massive traffic jam. Twenty-five minutes after leaving the office you are still bumper-to-bumper on the highway. You now estimate that it will take another 25 minutes to get home, for a total of 50 minutes. As you wait in traffic, you already know that your initial estimate of 30 minutes was too optimistic. Must you wait until you get home before increasing your estimate for the initial state? According to the Monte Carlo approach you must, because you don’t yet know the true return. 
+
+According to a TD approach, on the other hand, you would learn immediately, shifting your initial estimate from 30 minutes toward 50. In fact, each estimate would be shifted toward the estimate that immediately follows it. Returning to our first day of driving, Figure 6.4 shows the same predictions as Figure 6.3, except with the changes recommended by the TD rule (6.2) (these are the changes made by the rule if $\alpha=1$ ). Each error is proportional to the change over time of the prediction, that is, to the temporal differences in predictions. 
+
+Besides giving you something to do while waiting in traffic, there are several computational reasons why it is advantageous to learn based on your current predictions rather than waiting until termination when you know the actual return. We briefly discuss some of these next. 
+
+## 6.2 Advantages of TD Prediction Methods 
+TD methods learn their estimates in part on the basis of other estimates. They learn a guess from a guess—they bootstrap. Is this a good thing to do? What advantages do TD methods have over Monte Carlo and DP methods? Developing and answering such questions will take the rest of this book and more. In this section we briefly anticipate some of the answers. 
+
+Obviously, TD methods have an advantage over DP methods in that they do not require a model of the environment, of its reward and next-state probability distributions. 
+>  TD 优于 DP 的点在于它不需要环境动态
+
+The next most obvious advantage of TD methods over Monte Carlo methods is that they are naturally implemented in an on-line, fully incremental fashion. With Monte Carlo methods one must wait until the end of an episode, because only then is the return known, whereas with TD methods one need wait only one time step. Surprisingly often this turns out to be a critical consideration. Some applications have very long episodes, so that delaying all learning until an episode’s end is too slow. Other applications are continuing tasks and have no episodes at all. Finally, as we noted in the previous chapter, some Monte Carlo methods must ignore or discount episodes on which experimental actions are taken, which can greatly slow learning. TD methods are much less susceptible to these problems because they learn from each transition regardless of what subsequent actions are taken. 
+>  TD 优于 MC 的点在于 TD 可以自然地实现为在线的、增量更新的形式
+>  MC 必须等待回合的结束，TD 只需要等待一个时间步，要知道一些应用的回合很长，一些应用根本没有回合的概念
+
+But are TD methods sound? Certainly it is convenient to learn one guess from the next, without waiting for an actual outcome, but can we still guarantee convergence to the correct answer? Happily, the answer is yes. For any fixed policy $\pi$ , the TD algorithm described above has been proved to converge to $v_{\pi}$ , in the mean for a constant step-size parameter if it is sufficiently small, and with probability 1 if the step-size parameter decreases according to the usual stochastic approximation conditions (2.7). Most convergence proofs apply only to the table-based case of the algorithm presented above (6.2), but some also apply to the case of general linear function approximation. These results are discussed in a more general setting in the next two chapters. 
+>  TD 方法仍然保证可以正确收敛，对于任意固定策略 $\pi$，TD 保证可以收敛到 $v_\pi$
+
+If both TD and Monte Carlo methods converge asymptotically to the correct predictions, then a natural next question is “Which gets there first?” In other words, which method learns faster? Which makes the more efficient use of limited data? At the current time this is an open question in the sense that no one has been able to prove mathematically that one method converges faster than the other. In fact, it is not even clear what is the most appropriate formal way to phrase this question! In practice, however, TD methods have usually been found to converge faster than constant- $\alpha$ MC methods on stochastic tasks, as illustrated in the following example. 
+>  虽然没有理论证明，在实践中经常发现 TD 方法收敛得比 constant- $\alpha$ MC 方法更快
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/916e7702e165ca38798dd7c2fbe745414520c99c9d092c65b4629a4817ada7e7.jpg) 
+
+Figure 6.5: A small Markov process for generating random walks. 
+
+Example 6.2: Random Walk In this example we empirically compare the prediction abilities of TD(0) and constant- $\alpha$ MC applied to the small Markov process shown in Figure 6.5. All episodes start in the center state, C, and proceed either left or right by one state on each step, with equal probability. This behavior is presumably due to the combined effect of a fixed policy and an environment’s state-transition probabilities, but we do not care which; we are concerned only with predicting returns however they are generated. Episodes terminate either on the extreme left or the extreme right. When an episode terminates on the right a reward of $+1$ occurs; all other rewards are zero. For example, a typical walk might consist of the following state and reward sequence: ${\mathsf{C}},0,\mathsf{B},0,{\mathsf{C}},0,\mathsf{D},0,\mathsf{E},1$ . Because this task is undiscounted and episodic, the true value of each state is the probability of terminating on the right if starting from that state. Thus, the true value of the center state is $v_{\pi}(\mathsf{C})=0.5$ . The true values of all the states, $\mathsf{A}$ through $\mathsf{E}$ , are $\frac{1}{6},\frac{2}{6},\frac{3}{6},\frac{4}{6}$ , and $\frac{5}{6}$ . Figure 6.6 shows the values learned by TD(0) approaching the true values as more episodes are experienced. Averaging over many episode sequences, Figure 6.7 shows the average error in the predictions found by $\mathrm{TD}(0)$ and constant- $\alpha$ MC, for a variety of values of $\alpha$ , as a function of number of episodes. In all cases the approximate value function was initialized to the intermediate value $V(s)=0.5$ , for all $s$ . The TD method is consistently better than the MC method on this task over this number of episodes. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/69ffc61068a6bac9350710804b3a91d9d7ac27d482d899b9bea6240067ae8258.jpg) 
+
+Figure 6.6: Values learned by TD(0) after various numbers of episodes. The final estimate is about as close as the estimates ever get to the true values. With a constant step-size parameter ( $\alpha=0.1$ in this example), the values fluctuate indefinitely in response to the outcomes of the most recent episodes. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/c3e083119cfb43564d3c45dcd45fb0a25114594b67d9102555911660a8d743a3.jpg) 
+
+Figure 6.7: Learning curves for TD(0) and constant- $\alpha$ MC methods, for various values of $\alpha$ , on the prediction problem for the random walk. The performance measure shown is the root mean-squared (RMS) error between the value function learned and the true value function, averaged over the five states. These data are averages over 100 different sequences of episodes. 
+
+## 6.3 Optimality of TD(0) 
+Suppose there is available only a finite amount of experience, say 10 episodes or 100 time steps. In this case, a common approach with incremental learning methods is to present the experience repeatedly until the method converges upon an answer. 
+>  假设经验的数量是有限的，例如只有 10 个回合或 100 个时间步
+>  此时，常用的方法是反复使用这些经验进行增量学习，直到收敛
+
+Given an approximate value function, $V$ , the increments specified by (6.1) or (6.2) are computed for every time step $t$ at which a nonterminal state is visited, but the value function is changed only once, by the sum of all the increments. Then all the available experience is processed again with the new value function to produce a new overall increment, and so on, until the value function converges. We call this batch updating because updates are made only after processing each complete batch of training data. 
+>  给定近似价值函数 $V$，我们计算经验中所有时间步 $t$ 的增量 (TD 误差)，然后用累积的 TD 误差更新一次价值函数
+>  然后，我们再重复这一过程，不断反复利用经验更新价值函数，直到收敛
+>  这称为批量更新，因为仅在处理完每个批量的训练数据之后才执行更新
+
+Under batch updating, TD (0) converges deterministically to a single answer independent of the step-size parameter, $\alpha$ , as long as $\alpha$ is chosen to be sufficiently small. The constant- $\alpha$ MC method also converges deterministically under the same conditions, but to a different answer. 
+>  使用批量更新的 TD(0) 会确定性地收敛到独立于步长参数 $\alpha$ 的一个结果，只要 $\alpha$ 足够小。同一条件下，constant- $\alpha$ MC 方法也会确定性收敛到另一个结果
+
+Understanding these two answers will help us understand the difference between the two methods. Under normal updating the methods do not move all the way to their respective batch answers, but in some sense they take steps in these directions. Before trying to understand the two answers in general, for all possible tasks, we first look at a few examples. 
+
+Example 6.3 Random walk under batch updating. Batch-updating versions of TD(0) and constant- $\alpha$ MC were applied as follows to the random walk prediction example (Example 6.2). After each new episode, all episodes seen so far were treated as a batch. They were repeatedly presented to the algorithm, either TD(0) or constant- $\alpha$ MC, with $\alpha$ sufficiently small that the value function converged. The resulting value function was then compared with $v_{\pi}$ , and the average root mean-squared error across the five states (and across 100 independent repetitions of the whole experiment) was plotted to obtain the learning curves shown in Figure 6.8. Note that the batch TD method was consistently better than the batch Monte Carlo method. ■ 
+
+Under batch training, constant- $\alpha$ MC converges to values, $V(s)$ , that are sample averages of the actual returns experienced after visiting each state $s$ . These are optimal estimates in the sense that they minimize the mean-squared error from the actual returns in the training set. In this sense it is surprising that the batch TD method was able to perform better according to the root mean-squared error measure shown in Figure 6.8. How is it that batch TD was able to perform better than this optimal method? The answer is that the Monte Carlo method is optimal only in a limited way, and that TD is optimal in a way that is more relevant to predicting returns. But first let’s develop our intuitions about different kinds of optimality through another example. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/e60a2bccb7ef3c50db1536cea2907ca6158128643ea071c5baf77830430be356.jpg) 
+Figure 6.8: Performance of TD(0) and constant- $\alpha$ MC under batch training on the random walk task. 
+Example 6.4: You are the Predictor Place yourself now in the role of the predictor of returns for an unknown Markov reward process. Suppose you observe the following eight episodes: 
+This means that the first episode started in state A, transitioned to $\textsf{B}$ with a reward of 0, and then terminated from $\textsf{B}$ with a reward of 0. The other seven episodes were even shorter, starting from $\textsf{B}$ and terminating immediately. Given this batch of data, what would you say are the optimal predictions, the best values for the estimates $V(\mathsf{A})$ and $V(\mathsf{B})$ ? Everyone would probably agree that the optimal value for $V(\mathsf{B})$ is $\textstyle{\frac{3}{4}}$ , because six out of the eight times in state $\textsf{B}$ the process terminated immediately with a return of 1, and the other two times in $\textsf{B}$ the process terminated immediately with a return of $0$ . 
+But what is the optimal value for the estimate $V(\mathsf{A})$ given this data? Here there are two reasonable answers. One is to observe that $100\%$ of the times the process was in state A it traversed immediately to $\textsf{B}$ (with a reward of $0$ ); and since we have already decided that $\textsf{B}$ has value $\textstyle{\frac{3}{4}}$ , therefore A must have value $\textstyle{\frac{3}{4}}$ as well. One way of viewing this answer is that it is based on first modeling the Markov process, in this case as 
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/847a1858d6224fcf718e70acc682108805ad180b761842bffbb6e26b06a8b533.jpg) 
+and then computing the correct estimates given the model, which indeed in this case gives $\begin{array}{r}{V(\mathsf{A})=\frac{3}{4}}\end{array}$ . This is also the answer that batch TD(0) gives. 
+The other reasonable answer is simply to observe that we have seen A once and the return that followed it was 0; we therefore estimate $V(\mathsf{A})$ as 0. This is the answer that batch Monte Carlo methods give. Notice that it is also the answer that gives minimum squared error on the training data. In fact, it gives zero error on the data. But still we expect the first answer to be better. If the process is Markov, we expect that the first answer will produce lower error on future data, even though the Monte Carlo answer is better on the existing data. 
+
+The above example illustrates a general difference between the estimates found by batch TD(0) and batch Monte Carlo methods. Batch Monte Carlo methods always find the estimates that minimize mean-squared error on the training set, whereas batch TD(0) always finds the estimates that would be exactly correct for the maximum-likelihood model of the Markov process.
+>  批量 MC 方法一般收敛到最小化训练集均方误差的估计，批量 TD(0) 方法一般收敛到 Markov 过程的准确极大似然模型
+ 
+ In general, the maximum-likelihood estimate of a parameter is the parameter value whose probability of generating the data is greatest. In this case, the maximum-likelihood estimate is the model of the Markov process formed in the obvious way from the observed episodes: the estimated transition probability from $i$ to $j$ is the fraction of observed transitions from $i$ that went to $j$ , and the associated expected reward is the average of the rewards observed on those transitions. Given this model, we can compute the estimate of the value function that would be exactly correct if the model were exactly correct. This is called the certainty-equivalence estimate because it is equivalent to assuming that the estimate of the underlying process was known with certainty rather than being approximated. In general, batch TD(0) converges to the certainty equivalence estimate. 
+ 
+This helps explain why TD methods converge more quickly than Monte Carlo methods. In batch form, TD(0) is faster than Monte Carlo methods because it computes the true certainty-equivalence estimate. This explains the advantage of TD(0) shown in the batch results on the random walk task (Figure 6.8). The relationship to the certainty-equivalence estimate may also explain in part the speed advantage of nonbatch TD(0) (e.g., Figure 6.7). Although the nonbatch methods do not achieve either the certainty-equivalence or the minimum squared-error estimates, they can be understood as moving roughly in these directions. Nonbatch TD(0) may be faster than constant- $\alpha$ MC because it is moving toward a better estimate, even though it is not getting all the way there. At the current time nothing more definite can be said about the relative efficiency of on-line TD and Monte Carlo methods. 
+
+Finally, it is worth noting that although the certainty-equivalence estimate is in some sense an optimal solution, it is almost never feasible to compute it directly. If $N$ is the number of states, then just forming the maximum likelihood estimate of the process may require $N^{2}$ memory, and computing the corresponding value function requires on the order of $N^{3}$ computational steps if done conventionally. In these terms it is indeed striking that TD methods can approximate the same solution using memory no more than $N$ and repeated computations over the training set. On tasks with large state spaces, TD methods may be the only feasible way of approximating the certainty equivalence solution. 
+
+## 6.4 Sarsa: On-Policy TD Control 
+We turn now to the use of TD prediction methods for the control problem. As usual, we follow the pattern of generalized policy iteration (GPI), only this time using TD methods for the evaluation or prediction part. As with Monte Carlo methods, we face the need to trade off exploration and exploitation, and again approaches fall into two main classes: on-policy and off-policy. In this section we present an on-policy TD control method. 
+>  我们考虑控制问题，仍然遵循 GPI 的模式，此时我们用 TD 方法进行策略评估
+
+The first step is to learn an action-value function rather than a state-value function. In particular, for an on-policy method we must estimate $q_{\pi}(s,a)$ for the current behavior policy $\pi$ and for all states $s$ and actions $a$ . This can be done using essentially the same TD method described above for learning $v_{\pi}$ . 
+>  我们需要学习动作价值函数而非状态价值函数，在同策略方法下，我们需要为当前的行为策略 $\pi$ 估计 $q_\pi(s, a)$，我们使用之前描述的学习 $v_\pi$ 的相同 TD 方法对其进行估计
+
+Recall that an episode consists of an alternating sequence of states and state–action pairs: 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/e26bddff3eb36635e810576e47d8e0d12884ad99547f43ba420351f352149b62.jpg) 
+
+
+In the previous section we considered transitions from state to state and learned the values of states. Now we consider transitions from state–action pair to state–action pair, and learn the value of state–action pairs. Formally these cases are identical: they are both Markov chains with a reward process. 
+>  在之前，我们考虑的是从状态到状态的转移，以学习状态的价值
+>  现在，我们考虑从状态-动作对到状态-动作对的转移，以学习状态-动作对的价值
+>  形式上，二者都是相同的，都属于带有奖励的 Markov 过程
+
+The theorems assuring the convergence of state values under TD(0) also apply to the corresponding algorithm for action values: 
+
+$$
+Q(S_{t},A_{t})\xleftarrow{}Q(S_{t},A_{t})+\alpha\Big[R_{t+1}+\gamma Q(S_{t+1},A_{t+1})-Q(S_{t},A_{t})\Big].\tag{6.5}
+$$
+
+This update is done after every transition from a nonterminal state $S_{t}$ . If $S_{t+1}$ is terminal, then $Q(S_{t+1},A_{t+1})$ is defined as zero. This rule uses every element of the quintuple of events, $(S_{t},A_{t},R_{t+1},S_{t+1},A_{t+1})$ , that make up a transition from one state–action pair to the next. This quintuple gives rise to the name Sarsa for the algorithm. 
+
+>  使用 TD(0) 对动作价值函数的更新如 Eq 6.5 所示
+>  更新在每次转移后执行，如果 $S_{t+1}$ 是终止状态，则其动作价值定义为 0
+>  这一更新规则需要利用五元组 $(S_t, A_t, R_{t+1}, S_{t+1}, A_{t+1})$，该五元组表示了从一个状态-动作对到下一个状态-动作对的转移
+
+It is straightforward to design an on-policy control algorithm based on the Sarsa prediction method. As in all on-policy methods, we continually estimate $q_{\pi}$ for the behavior policy $\pi$ , and at the same time change $\pi$ toward greediness with respect to $q_{\pi}$ . The general form of the Sarsa control algorithm is given in Figure 6.9. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/3d4bf63e45060b80b69296d2a01f1aaa7df62aa502d00cbbdc93a01ce7e3a229.jpg) 
+
+Figure 6.9: Sarsa: An on-policy TD control algorithm. 
+
+The convergence properties of the Sarsa algorithm depend on the nature of the policy’s dependence on $q$ . For example, one could use $\varepsilon$ -greedy or $\varepsilon$ - soft policies. According to Satinder Singh (personal communication), Sarsa converges with probability 1 to an optimal policy and action-value function as long as all state–action pairs are visited an infinite number of times and the policy converges in the limit to the greedy policy (which can be arranged, for example, with $\boldsymbol{\varepsilon}$ -greedy policies by setting $\varepsilon=1/t$ ), but this result has not yet been published in the literature. 
+
+Example 6.5: Windy Gridworld Figure 6.10 shows a standard gridworld, with start and goal states, but with one difference: there is a crosswind upward through the middle of the grid. The actions are the standard four—up, down, right, and left—but in the middle region the resultant next states are shifted upward by a “wind,” the strength of which varies from column to column. The strength of the wind is given below each column, in number of cells shifted upward. For example, if you are one cell to the right of the goal, then the action left takes you to the cell just above the goal. Let us treat this as an undiscounted episodic task, with constant rewards of $-1$ until the goal state is reached. Figure 6.11 shows the result of applying $\boldsymbol{\varepsilon}$ -greedy Sarsa to this task, with $\varepsilon=0.1$ , $\alpha=0.5$ , and the initial values $Q(s,a)=0$ for all $s,a$ . The increasing slope of the graph shows that the goal is reached more and more quickly over time. By 8000 time steps, the greedy policy (shown inset) was long since optimal; continued $\boldsymbol{\varepsilon}$ -greedy exploration kept the average episode length at about 17 steps, two more than the minimum of 15. Note that Monte Carlo methods cannot easily be used on this task because termination is not guaranteed for all policies. If a policy was ever found that caused the agent to stay in the same state, then the next episode would never end. Step-by-step learning methods such as Sarsa do not have this problem because they quickly learn during the episode that such policies are poor, and switch to something else. ■ 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/01042f47e5c5223191effb5d0817df6973e47ab237eeca3de3164158e505e62a.jpg) 
+
+Figure 6.10: Gridworld in which movement is altered by a location-dependent, upward “wind.” 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/37e0976a6c9674cd806294334446e2021936161c931c11b539d864a052687a4a.jpg) 
+
+Figure 6.11: Results of Sarsa applied to the windy gridworld. 
+
+## 6.5 Q-Learning: Off-Policy TD Control 
+One of the most important breakthroughs in reinforcement learning was the development of an off-policy TD control algorithm known as $Q$ -learning (Watkins, 1989). Its simplest form, one-step Q-learning, is defined by 
+
+$$
+Q(S_{t},A_{t})\xleftarrow{}Q(S_{t},A_{t})+\alpha\Big[R_{t+1}+\gamma\operatorname*{max}_{a}Q(S_{t+1},a)-Q(S_{t},A_{t})\Big].\tag{6.6}
+$$ 
+In this case, the learned action-value function, $Q$ , directly approximates $q_{*}$ , the optimal action-value function, independent of the policy being followed. This dramatically simplifies the analysis of the algorithm and enabled early convergence proofs. The policy still has an effect in that it determines which state–action pairs are visited and updated. However, all that is required for correct convergence is that all pairs continue to be updated. 
+>  异策略的 TD 控制算法称为 Q-Learning，一步 Q Learning 的更新如 Eq 6.6 所示
+>  按照 Eq 6.6 学习的动作价值函数 $Q$ 是对 $q_*$ 的直接近似，独立于使用什么策略
+>  行为策略仍然存在影响，它会决定哪个状态-动作对被访问且更新，但 Q-Learning 对于收敛的要求仅仅是所有的状态-动作对都会被继续更新
+
+As we observed in Chapter 5, this is a minimal requirement in the sense that any method guaranteed to find optimal behavior in the general case must require it. Under this assumption and a variant of the usual stochastic approximation conditions on the sequence of step-size parameters, $Q$ has been shown to converge with probability 1 to $q_{*}$ . The Q-learning algorithm is shown in procedural form in Figure 6.12. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/2507a1a1262ca99d5c9d36e277ef8fd7af6a5e504142fb45fded9a54f0ef00e5.jpg) 
+
+Figure 6.12: Q-learning: An off-policy TD control algorithm. 
+
+What is the backup diagram for Q-learning? The rule (6.6) updates a state–action pair, so the top node, the root of the backup, must be a small, filled action node. The backup is also from action nodes, maximizing over all those actions possible in the next state. Thus the bottom nodes of the backup diagram should be all these action nodes. Finally, remember that we indicate taking the maximum of these “next action” nodes with an arc across them (Figure 3.7). Can you guess now what the diagram is? If so, please do make a guess before turning to the answer in Figure 6.14. 
+>  Q-Learning 的回溯更新图如下所示
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/9d6f0f31458d46881c0482bfc17198eb64865ee818f16843d0239ab80bd15d5f.jpg) 
+
+Figure 6.14: The backup diagram for Q-learning. 
+
+Example 6.6: Cliff Walking This gridworld example compares Sarsa and Q-learning, highlighting the difference between on-policy (Sarsa) and offpolicy (Q-learning) methods. Consider the gridworld shown in the upper part of Figure 6.13. This is a standard undiscounted, episodic task, with start and goal states, and the usual actions causing movement up, down, right, and left. Reward is $-1$ on all transitions except those into the the region marked “The Cliff.” Stepping into this region incurs a reward of $-100$ and sends the agent instantly back to the start. The lower part of the figure shows the performance of the Sarsa and Q-learning methods with $\varepsilon$ -greedy action selection, $\varepsilon=0.1$ . After an initial transient, Q-learning learns values for the optimal policy, that which travels right along the edge of the cliff. Unfortunately, this results in its occasionally falling off the cliff because of the $\varepsilon$ -greedy action selection. Sarsa, on the other hand, takes the action selection into account and learns the longer but safer path through the upper part of the grid. Although Qlearning actually learns the values of the optimal policy, its on-line performance is worse than that of Sarsa, which learns the roundabout policy. Of course, if $\boldsymbol{\varepsilon}$ were gradually reduced, then both methods would asymptotically converge to the optimal policy. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/25ded17a7073872d279b0833e9902adb37cfe4657499cf5f4a23f4e761b39bcd.jpg) 
+
+Figure 6.13: The cliff-walking task. The results are from a single run, but smoothed. 
+
+
+## 6.6 Games, Afterstates, and Other Special Cases 
+In this book we try to present a uniform approach to a wide class of tasks, but of course there are always exceptional tasks that are better treated in a specialized way. For example, our general approach involves learning an action-value function, but in Chapter 1 we presented a TD method for learning to play tic-tac-toe that learned something much more like a state-value function. If we look closely at that example, it becomes apparent that the function learned there is neither an action-value function nor a state-value function in the usual sense. A conventional state-value function evaluates states in which the agent has the option of selecting an action, but the state-value function used in tic-tac-toe evaluates board positions after the agent has made its move. Let us call these afterstates, and value functions over these, afterstate value functions. Afterstates are useful when we have knowledge of an initial part of the environment’s dynamics but not necessarily of the full dynamics. For example, in games we typically know the immediate effects of our moves. We know for each possible chess move what the resulting position will be, but not how our opponent will reply. Afterstate value functions are a natural way to take advantage of this kind of knowledge and thereby produce a more efficient learning method. 
+
+The reason it is more efficient to design algorithms in terms of afterstates is apparent from the tic-tac-toe example. A conventional action-value function would map from positions and moves to an estimate of the value. But many position–move pairs produce the same resulting position, as in this example: 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/14decc69bc475dfffc50d75bcc2bac195a83b6f04e70e2765406a0e154c0066c.jpg) 
+
+In such cases the position–move pairs are different but produce the same “afterposition,” and thus must have the same value. A conventional action-value function would have to separately assess both pairs, whereas an afterstate value function would immediately assess both equally. Any learning about the position–move pair on the left would immediately transfer to the pair on the right. 
+
+Afterstates arise in many tasks, not just games. For example, in queuing tasks there are actions such as assigning customers to servers, rejecting customers, or discarding information. In such cases the actions are in fact defined in terms of their immediate effects, which are completely known. For example, in the access-control queuing example described in the previous section, a more efficient learning method could be obtained by breaking the environment’s dynamics into the immediate effect of the action, which is deterministic and completely known, and the unknown random processes having to do with the arrival and departure of customers. The afterstates would be the number of free servers after the action but before the random processes had produced the next conventional state. Learning an afterstate value function over the afterstates would enable all actions that produced the same number of free servers to share experience. This should result in a significant reduction in learning time. 
+
+It is impossible to describe all the possible kinds of specialized problems and corresponding specialized learning algorithms. However, the principles developed in this book should apply widely. For example, afterstate methods are still aptly described in terms of generalized policy iteration, with a policy and (afterstate) value function interacting in essentially the same way. In many cases one will still face the choice between on-policy and off-policy methods for managing the need for persistent exploration. 
+
+## 6.7 Summary 
+In this chapter we introduced a new kind of learning method, temporaldifference (TD) learning, and showed how it can be applied to the reinforcement learning problem. As usual, we divided the overall problem into a prediction problem and a control problem. TD methods are alternatives to Monte Carlo methods for solving the prediction problem. In both cases, the extension to the control problem is via the idea of generalized policy iteration (GPI) that we abstracted from dynamic programming. This is the idea that approximate policy and value functions should interact in such a way that they both move toward their optimal values. 
+One of the two processes making up GPI drives the value function to accurately predict returns for the current policy; this is the prediction problem. The other process drives the policy to improve locally (e.g., to be $\boldsymbol{\varepsilon}$ -greedy) with respect to the current value function. When the first process is based on experience, a complication arises concerning maintaining sufficient exploration. We have grouped the TD control methods according to whether they deal with this complication by using an on-policy or off-policy approach. Sarsa and actor–critic methods are on-policy methods, and Q-learning and R-learning 
+are off-policy methods. 
+The methods presented in this chapter are today the most widely used reinforcement learning methods. This is probably due to their great simplicity: they can be applied on-line, with a minimal amount of computation, to experience generated from interaction with an environment; they can be expressed nearly completely by single equations that can be implemented with small computer programs. In the next few chapters we extend these algorithms, making them slightly more complicated and significantly more powerful. All the new algorithms will retain the essence of those introduced here: they will be able to process experience on-line, with relatively little computation, and they will be driven by TD errors. The special cases of TD methods introduced in the present chapter should rightly be called one-step, tabular, modelfree TD methods. In the next three chapters we extend them to multistep forms (a link to Monte Carlo methods), forms using function approximation rather than tables (a link to artificial neural networks), and forms that include a model of the environment (a link to planning and dynamic programming). 
+Finally, in this chapter we have discussed TD methods entirely within the context of reinforcement learning problems, but TD methods are actually more general than this. They are general methods for learning to make longterm predictions about dynamical systems. For example, TD methods may be relevant to predicting financial data, life spans, election outcomes, weather patterns, animal behavior, demands on power stations, or customer purchases. It was only when TD methods were analyzed as pure prediction methods, independent of their use in reinforcement learning, that their theoretical properties first came to be well understood. Even so, these other potential applications of TD learning methods have not yet been extensively explored. 
 
 # 7 Eligibility Traces 
 Eligibility traces are one of the basic mechanisms of reinforcement learning. For example, in the popular TD( $\lambda$ ) algorithm, the $\lambda$ refers to the use of an eligibility trace. Almost any temporal-difference (TD) method, such as Q-learning or Sarsa, can be combined with eligibility traces to obtain a more general method that may learn more efficiently. 
