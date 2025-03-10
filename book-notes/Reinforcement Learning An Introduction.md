@@ -805,7 +805,7 @@ In fact, the policy evaluation step of policy iteration can be truncated in seve
 
 $$
 \begin{align}
-v_{k+1}(s)&=\max_a\mathbb E[R_{t+1} + \gamma v_k(S_{t+1})\mid S_t = a, A_t = a]\tag{4.10}\\
+v_{k+1}(s)&=\max_a\mathbb E[R_{t+1} + \gamma v_k(S_{t+1})\mid S_t = s, A_t = a]\tag{4.10}\\
 &=\max_a\sum_{s',r}p(s',r\mid s, a)[r + \gamma v_k(s')]
 \end{align}
 $$
@@ -815,6 +815,12 @@ for all $s\in\mathcal{S}$ . For arbitrary $v_{0}$ , the sequence $\{v_{k}\}$ can
 >  实践中，策略迭代中的策略评估可以通过多种方式截断，同时不失去策略迭代的收敛保证
 >  一个重要的特例就是在策略评估遍历了一轮 (每个状态一次回溯更新) 之后就停止，该算法称为价值迭代，价值迭代的更新公式如 Eq 4.10 所示
 >  对于任意的 $v_0$，可以证明序列 $\{v_k\}$ 会在 $v_*$ 存在的相同条件下收敛到 $v_*$
+
+>  (4.10) 包括了
+>  1. 一步的策略评估更新，得到新的状态价值函数 $v_k'(s)=\mathbb E_\pi[R_{t+1} + \gamma v_k(S_{t+1})\mid S_t = s]$
+>  2. 根据 $v_k'(s)$ 计算动作价值函数 $q_k'(s, a) = \mathbb E_\pi[R_{t+1} + \gamma v_k(S_{t+1})\mid S_t = s, A_t = a]$
+>  3. 策略改进，得到新策略 $\pi'$，动作选择依据是 $\arg\max_a q_k'(s, a) = \arg\max_a \mathbb E[R_{t+1} + \gamma v_k(S_{t+1})\mid S_t = a, A_t = a]$
+>  4. 直接让 $\max_a q_k'(s, a)$ 作为新的策略的状态价值函数 $v_{k+1}(s)$，这等价于让 $v_k(s)$ 作为 $\pi'$ 的价值函数的初始值，对它执行一步的策略评估更新，即 $v_{k+1}(s) = \mathbb E_{\pi'}[R_{t+1} +\gamma v_k(S_{t+1})\mid S_t=  s]= \max_a \mathbb E[R_{t+1} + \gamma v_k(S_{t+1})\mid S_t = s, A_t = a]$
 
 Another way of understanding value iteration is by reference to the Bellman optimality equation (4.1). Note that value iteration is obtained simply by turning the Bellman optimality equation into an update rule. Also note how the value iteration backup is identical to the policy evaluation backup (4.5) except that it requires the maximum to be taken over all actions. Another way of seeing this close relationship is to compare the backup diagrams for these algorithms: Figure 3.4a shows the backup diagram for policy evaluation and Figure 3.7a shows the backup diagram for value iteration. These two are the natural backup operations for computing $v_{\pi}$ and $v_{*}$ . 
 >  另一个理解价值迭代的方式是 Bellman 最优方程，即将 Bellman 最优方程转化为一个更新规则
