@@ -101,6 +101,7 @@ func.func @multiply(%A: memref<100x?xf32>, %B: memref<?x50xf32>)
 
 ## Notation
 MLIR has a simple and unambiguous grammar, allowing it to reliably round-trip through a textual form. This is important for development of the compiler - e.g. for understanding the state of code as it is being transformed and writing test cases.
+>  MLIR 的语法简单且无二义性，因此可以可靠地往返于文本形式
 
 This document describes the grammar using [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form).
 
@@ -126,6 +127,7 @@ example ::= `b` (`an` | `om`)* `a`
 
 ### Common syntax 
 The following core grammar productions are used in this document:
+>  本文档中使用以下核心语法产生式/语法规则
 
 ```
 // TODO: Clarify the split between lexing (tokens) and parsing (grammar).
@@ -142,18 +144,19 @@ string-literal  ::= `"` [^"\n\f\v\r]* `"`   TODO: define escaping rules
 ```
 
 Not listed here, but MLIR does support comments. They use standard BCPL syntax, starting with a `//` and going until the end of the line.
+>  MLIR 支持注释，注释形式和 C++ 一样，以 `//` 开头，直到本行末尾
 
 ### Top level Productions 
-
 ```
 // Top level production
 toplevel := (operation | attribute-alias-def | type-alias-def)*
 ```
 
 The production `toplevel` is the top level production that is parsed by any parsing consuming the MLIR syntax. [Operations](https://mlir.llvm.org/docs/LangRef/#operations), [Attribute aliases](https://mlir.llvm.org/docs/LangRef/#attribute-value-aliases), and [Type aliases](https://mlir.llvm.org/docs/LangRef/#type-aliases) can be declared on the toplevel.
+>  `toplevel` 是顶级的产生式，任意解析 MLIR 语法的解析器都会解析该产生式
+>  `toplevel` 中可以声明操作、属性别名和类型别名
 
 ### Identifiers and keywords 
-
 Syntax:
 
 ```
@@ -173,17 +176,29 @@ value-use-list ::= value-use (`,` value-use)*
 ```
 
 Identifiers name entities such as values, types and functions, and are chosen by the writer of MLIR code. Identifiers may be descriptive (e.g. `%batch_size`, `@matmul`), or may be non-descriptive when they are auto-generated (e.g. `%23`, `@func42`). Identifier names for values may be used in an MLIR text file but are not persisted as part of the IR - the printer will give them anonymous names like `%42`.
+>  标识符命名了像值、类型和函数这样的实体，MLIR 代码的编写者选择合适的标识符表达实体
+>  标识符可以具有描述性 (即其中的 `bare-id` 具有描述性)，例如 `%batch_size, @matmul` ，也可以是自动生成的，不具有描述性，例如 `%23, @func42`
+>  值的标识符名称只能用于 MLIR 文本文件中，不会作为 IR 的一部分 persist, print 会给值赋予匿名的名称例如 `%42`
 
 MLIR guarantees identifiers never collide with keywords by prefixing identifiers with a sigil (e.g. `%`, `#`, `@`, `^`, `!`). In certain unambiguous contexts (e.g. affine expressions), identifiers are not prefixed, for brevity. New keywords may be added to future versions of MLIR without danger of collision with existing identifiers.
+>  MLIR 在标识符前添加符号 (例如 `%, #, @, ^, !`) 以确保标识符不和关键字冲突
+>  在某些明确的上下文中 (例如仿射表达式)，标识符可以没有前缀符号
 
 Value identifiers are only [in scope](https://mlir.llvm.org/docs/LangRef/#value-scoping) for the (nested) region in which they are defined and cannot be accessed or referenced outside of that region. Argument identifiers in mapping functions are in scope for the mapping body. Particular operations may further limit which identifiers are in scope in their regions. For instance, the scope of values in a region with [SSA control flow semantics](https://mlir.llvm.org/docs/LangRef/#control-flow-and-ssacfg-regions) is constrained according to the standard definition of [SSA dominance](https://en.wikipedia.org/wiki/Dominator_%5c%28graph_theory%5c%29). Another example is the [IsolatedFromAbove trait](https://mlir.llvm.org/docs/Traits/#isolatedfromabove), which restricts directly accessing values defined in containing regions.
+>  值标识符仅在其定义的 (嵌套) 区域内有效，不能在该区域外访问或引用
+>  映射函数中的参数标识符仅在映射体中有效
+>  特定的操作可能会进一步限制其区域内有效的标识符，例如，在具有 SSA 控制流语义的区域中，值的作用域会根据 SSA 支配性限制。另一例子是 `IsolatedFromAbove` 特性，它限制直接访问定义在包含区域中的值
 
 Function identifiers and mapping identifiers are associated with [Symbols](https://mlir.llvm.org/docs/SymbolsAndSymbolTables/) and have scoping rules dependent on symbol attributes.
+>  函数标识符和映射标识符和符号关联，它们的范围规则取决于符号属性
 
 ## Dialects 
 Dialects are the mechanism by which to engage with and extend the MLIR ecosystem. They allow for defining new [operations](https://mlir.llvm.org/docs/LangRef/#operations), as well as [attributes](https://mlir.llvm.org/docs/LangRef/#attributes) and [types](https://mlir.llvm.org/docs/LangRef/#type-system). Each dialect is given a unique `namespace` that is prefixed to each defined attribute/operation/type. For example, the [Affine dialect](https://mlir.llvm.org/docs/Dialects/Affine/) defines the namespace: `affine`.
+>  方言是参与和拓展 MLIR 生态的机制，方言允许我们定义新的操作、属性和类型，每个方言都由一个唯一的 `namespace` ，其定义的属性、操作、类型都以该 `namespace` 作为前缀
 
 MLIR allows for multiple dialects, even those outside of the main tree, to co-exist together within one module. Dialects are produced and consumed by certain passes. MLIR provides a [framework](https://mlir.llvm.org/docs/DialectConversion/) to convert between, and within, different dialects.
+>  MLIR 允许多个方言在同一模块中共存，某些 passes 会生成和接受方言
+>  MLIR 提供了一个框架便于方言之间和同一方言内部的转换
 
 A few of the dialects supported by MLIR:
 
@@ -194,9 +209,11 @@ A few of the dialects supported by MLIR:
 - [SPIR-V dialect](https://mlir.llvm.org/docs/Dialects/SPIR-V/)
 - [Vector dialect](https://mlir.llvm.org/docs/Dialects/Vector/)
 
-### Target specific operations [¶](https://mlir.llvm.org/docs/LangRef/#target-specific-operations)
-
+### Target specific operations 
 Dialects provide a modular way in which targets can expose target-specific operations directly through to MLIR. As an example, some targets go through LLVM. LLVM has a rich set of intrinsics for certain target-independent operations (e.g. addition with overflow check) as well as providing access to target-specific operations for the targets it supports (e.g. vector permutation operations). LLVM intrinsics in MLIR are represented via operations that start with an “llvm.” name.
+>  方言提供了一种模块化的方式，使目标可以通过 MLIR 直接暴露特定于目标的操作
+>  例如，一些目标通过 LLVM 实现，LLVM 有一组丰富的内建函数用于独立于目标的操作 (例如带溢出检查的加法)，同时也提供了对其支持的目标的特定于目标的操作 (例如向量排列操作)
+>  MLIR 中 LLVM 内建函数以 `llvm.` 开头
 
 Example:
 
@@ -207,8 +224,7 @@ Example:
 
 These operations only work when targeting LLVM as a backend (e.g. for CPUs and GPUs), and are required to align with the LLVM definition of these intrinsics.
 
-## Operations [¶](https://mlir.llvm.org/docs/LangRef/#operations)
-
+## Operations 
 Syntax:
 
 ```
@@ -252,12 +268,10 @@ Example:
 
 In addition to the basic syntax above, dialects may register known operations. This allows those dialects to support _custom assembly form_ for parsing and printing operations. In the operation sets listed below, we show both forms.
 
-### Builtin Operations [¶](https://mlir.llvm.org/docs/LangRef/#builtin-operations)
-
+### Builtin Operations 
 The [builtin dialect](https://mlir.llvm.org/docs/Dialects/Builtin/) defines a select few operations that are widely applicable by MLIR dialects, such as a universal conversion cast operation that simplifies inter/intra dialect conversion. This dialect also defines a top-level `module` operation, that represents a useful IR container.
 
-## Blocks [¶](https://mlir.llvm.org/docs/LangRef/#blocks)
-
+## Blocks 
 Syntax:
 
 ```
@@ -308,10 +322,8 @@ func.func @simple(i64, i1) -> i64 {
 
 **Context:** The “block argument” representation eliminates a number of special cases from the IR compared to traditional “PHI nodes are operations” SSA IRs (like LLVM). For example, the [parallel copy semantics](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.524.5461&rep=rep1&type=pdf) of SSA is immediately apparent, and function arguments are no longer a special case: they become arguments to the entry block [ [more rationale](https://mlir.llvm.org/docs/Rationale/Rationale/#block-arguments-vs-phi-nodes)]. Blocks are also a fundamental concept that cannot be represented by operations because values defined in an operation cannot be accessed outside the operation.
 
-## Regions [¶](https://mlir.llvm.org/docs/LangRef/#regions)
-
-### Definition [¶](https://mlir.llvm.org/docs/LangRef/#definition)
-
+## Regions 
+### Definition 
 A region is an ordered list of MLIR [Blocks](https://mlir.llvm.org/docs/LangRef/#blocks). The semantics within a region is not imposed by the IR. Instead, the containing operation defines the semantics of the regions it contains. MLIR currently defines two kinds of regions: [SSACFG regions](https://mlir.llvm.org/docs/LangRef/#control-flow-and-ssacfg-regions), which describe control flow between blocks, and [Graph regions](https://mlir.llvm.org/docs/LangRef/#graph-regions), which do not require control flow between block. The kinds of regions within an operation are described using the [RegionKindInterface](https://mlir.llvm.org/docs/Interfaces/#regionkindinterfaces).
 
 Regions do not have a name or an address, only the blocks contained in a region do. Regions must be contained within operations and have no type or attributes. The first block in the region is a special block called the ’entry block’. The arguments to the entry block are also the arguments of the region itself. The entry block cannot be listed as a successor of any other block. The syntax for a region is as follows:
@@ -325,8 +337,7 @@ A function body is an example of a region: it consists of a CFG of blocks and ha
 
 An _entry block_ is a block with no label and no arguments that may occur at the beginning of a region. It enables a common pattern of using a region to open a new scope.
 
-### Value Scoping [¶](https://mlir.llvm.org/docs/LangRef/#value-scoping)
-
+### Value Scoping 
 Regions provide hierarchical encapsulation of programs: it is impossible to reference, i.e. branch to, a block which is not in the same region as the source of the reference, i.e. a terminator operation. Similarly, regions provides a natural scoping for value visibility: values defined in a region don’t escape to the enclosing region, if any. By default, operations inside a region can reference values defined outside of the region whenever it would have been legal for operands of the enclosing operation to reference those values, but this can be restricted using traits, such as [OpTrait::IsolatedFromAbove](https://mlir.llvm.org/docs/Traits/#isolatedfromabove), or a custom verifier.
 
 Example:
@@ -549,7 +560,6 @@ Example:
 ```
 
 ### Dialect Attribute Values [¶](https://mlir.llvm.org/docs/LangRef/#dialect-attribute-values)
-
 Similarly to operations, dialects may define custom attribute values.
 
 ```
