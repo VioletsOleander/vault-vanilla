@@ -1300,10 +1300,42 @@ Date: 2025.2.24-2025.3.3
         CH4.6-Generalized Policy Iteration
             In policy iteration, the policy evaluation and policy improvement process can interact in more different ways. The ultimate results is the same: convergence to the optimal value function and an optimal policy.
 
-
 \[Doc\]
 - [[doc-notes/go/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
 - [[doc-notes/go/A Tour of Go|go/A Tour of Go]]
+    Basics
+        In Go, a name is exported if it begins with a capital letter. When a package is imported, only its exported names can be used.
+        A function can return any number of results. The return values can be named, and a naked return statement will return the named values.
+        Inside a function, `xxx := value` is equivalent to `var xxx = value`. Outside the function, every statement should begin with a keyword, therefore `:=` is not available.
+        Expression `T(v)` converts value `v` to type `T`. In Go, assignments between items of different types requires explicit type conversion.
+        `for` without any semicolons is equivalent to `while`
+        `defer` defers execution of a function until the surrounding function returns. The argument of deferred function will be evaluated immediately. The deferred functions are stored in a stack, and will be executed in a last-in-first-out way.
+        Type `[]T` represents a slice with elements of type `T`. Slices have dynamic length, and slices does not store data, just referencing.
+        Slice literal means first creating an array, and then reference it.
+        The length of a slice refers to the number of elements it contains, and the capacity of a slice refers to the number of elements in the underlying array, counting from the first element in the slice.
+        By re-slicing itself, slice can extend its length under the range of capacity.
+        Slices can be created by `make()`
+        Slices can be iterated by `range`
+        Maps can be created by `make()`
+        Functions are values too, and can be passed around and returned.
+        A closure is a function value that references variables outside of the function body. The function can access and assign those variables, that is, the function is bound to the variables.
+    Methods and interface
+        In Go, we can define methods for types. Methods are functions with a special receiver argument. We can only declare a method for types defined in the same package.
+        Receivers can be pointer, because Go only pass values, to modify the receiver's values in the method, we must use the pointer receiver.
+        An interface type is defined as a set of method signatures. A value of interface type can hold any value whose type implements those methods. A type implements an interface by implementing its methods. Calling a method on an interface value executes the method of the same name on its underlying type.
+        The interface type that specifies zero methods is the empty interface. An empty interface can hold values of any type, because every type implements at least zero methods.
+        Type assertion can be used to judge an interface value's concrete type.
+    Generics
+        In Go, we can define generic functions by using type parameters. Go also supports generic types, that is, a type can be parameterized with a type parameter.
+    Concurrency
+        A go routine is a lightweight thread managed by Go runtime. State `go ...` can start a new go routine. The evaluation of function arguments happened in current routine. The execution happened in the new routine.
+        Go routines run in the same address space, so accesses to the shared memory must be synchronized.
+        Channels are typed conduit. We use channels to send and receive values between go routines. Channels can be created by `make()` .
+        By default, send and receive block until the other side is ready.
+        Channels can be buffered. Sends to a buffered channel block only when the channel is full. Receives from a buffered channel block only when the channel is empty.
+        A sender can `close` a channel to indicate that there is no more values to sent.
+        `select` statement lets a go routine wait on multiple communication operations. It will blocks until one of its case can run, then executes it. The `default` case can run if no other case is ready.
+        To guarantee a variable is accessed by only one routine at each time. We should use `sync.Mutex`.
 - [[doc-notes/python/packaging/Overview of Python Packaging|python/packaging/Overview of Python Packaging]]
 
 \[Code\]
@@ -1316,8 +1348,29 @@ Date: 2025.3.3-2025.3.10
 \[Book\]
 - [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH5, CH6, CH7.1-CH7.3
 - [[book-notes/深度强化学习|深度强化学习]]: CH7
+    CH7-策略梯度方法
+        策略网络直接近似策略 $\pi(a\mid s;\pmb \theta)$，接受状态作为输入，输出 $|\mathcal A|$ 个概率值
+        策略所定义的价值函数衡量了策略的优劣程度，故策略网络学习的目标函数 $J(\pmb \theta)$ 定义为策略 $\pi(a\mid ;\pmb \theta)$ 的价值函数的期望，即 $J(\pmb \theta) = \mathbb E_S[V_\pi(S)]$，$J(\pmb \theta)$ 相对于 $\pmb \theta$ 的梯度称为策略梯度
+        策略梯度定理给出了策略梯度的详细形式，可以看出策略梯度的计算和策略从动作价值函数相关。策略梯度定理基于 Markov chain 已经达到稳态的假设，此时状态从属于 Markov chain 的稳态分布
+        策略梯度的形式是一个期望，需要 Monte Carlo 近似，这涉及到从稳态分布中对状态采样以及根据策略网络对动作采样。并且还需要对策略的动作价值进行近似。
+        REINFORCE 直接使用 Monte Carlo 方法近似动作价值，即直接将 $Q_\pi(s, a)$ 替换为实际回报 $u$
+        Actor-Critic 使用另外的价值网络近似动作价值函数，价值网络使用 SARSA 和策略网络一起训练
+        价值网络的训练涉及到了自举，因此也可以采用目标网络方法缓解自举造成的误差传播问题
 
 \[Doc\]
 - [[doc-notes/go/How to Write Go Code|go/How to Write Go Code]]
-- [[doc-notes/mlir/tutorials/Toy Tutorial|mlir/Toy Tutorial]]
+    Code Organization 
+        Go programs are organized into packages. A package is a collection of source files in the same directory that are compiled together. Functions, variables, constants are all visible to other source files within the same package.
+        A repository contains one or more modules. A module is a collection of packages to be released together. Typically, a Go repository contains only one module, located in the root directory of the repo.
+        `go.mod` in the repo root declares the module path, which is the path prefix for all packages within the module. The module path also directs `go` command where to install it. For example, `go` will consult `https://golang.org/x/tools` to install the module whose path is `golang.org/x/tools`.
+        The import path for a package is its module path + its subdirectory within the module
+    Your first program
+        The first statement in a Go source file must be `package name`. Executable commands must always use `package main`
+        To build and install the program, use `go install`
+        The install directory is controlled by the `GOPATH, GOBIN` environment variables. 
+        To test the packages compiles, use `go build` . This won't produce an output file but saves the compiled package in the local build cache. When built, the packages can be imported.
+        `go mod tidy` will automatically manage dependencies on external modules.
+    Testing
+- [[doc-notes/mlir/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH3-CH7
+- [[doc-notes/python/packages/gymnasium/Introduction|python/packages/gymnasium/Introduction]]
 
