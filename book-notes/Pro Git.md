@@ -527,116 +527,224 @@ git config --global alias.st status
 
 如果要作别名的命令不是Git的子命令，而是外部的命令，需要在命令前加上 `!` 符号，例如 `git config --global alias.visual '!gitk'`
 # 3 Git Branching
+Nearly every VCS has some form of branching support. Branching means you diverge from the main line of development and continue to do work without messing with that main line. In many VCS tools, this is a somewhat expensive process, often requiring you to create a new copy of your source code directory, which can take a long time for large projects.
+
+Some people refer to Git’s branching model as its “killer feature,” and it certainly sets Git apart in the VCS community. Why is it so special? The way Git branches is incredibly lightweight, making branching operations nearly instantaneous, and switching back and forth between branches generally just as fast. Unlike many other VCSs, Git encourages workflows that branch and merge often, even multiple times in a day. Understanding and mastering this feature gives you a powerful and unique tool and can entirely change the way that you develop.
+
 ## 3.1 Branches in a NutShell
-我们知道，Git不用一系列的修改集或差异集的方式存储数据，而是以一系列快照的方式存储数据
+To really understand the way Git does branching, we need to take a step back and examine how Git stores its data.
 
-当执行一次提交后，Git会存储一个提交对象(commit object)，对象中包含了一个指针，指向我们暂存的内容的快照；包含了作者名和邮箱地址；包含了提交信息；包含了指向该提交之间的提交的指针(它的父提交)
-初始提交没有父提交，普通的提交有一个父提交，由多个分支合并产生的提交有多个父提交
+As you may remember from [What is Git?](https://git-scm.com/book/en/v2/ch00/what_is_git_section), Git doesn’t store data as a series of changesets or differences, but instead as a series of _snapshots_.
+>  我们知道，Git 不用一系列的修改集或差异集的方式存储数据，而是以一系列快照的方式存储数据
 
-假设我们有一个包含了三个文件的目录，我们将它们全部暂存然后提交，
-暂存文件时，Git做的事情包括：为每个文件计算SHA-1检验和，将该版本的文件存入Git仓库中(Git称其为二进制大对象/blobs)，然后将检验和加入暂存区
+When you make a commit, Git stores a commit object that contains a pointer to the snapshot of the content you staged. This object also contains the author’s name and email address, the message that you typed, and pointers to the commit or commits that directly came before this commit (its parent or parents): zero parents for the initial commit, one parent for a normal commit, and multiple parents for a commit that results from a merge of two or more branches.
+>  当执行一次提交后，Git会存储一个提交对象(commit object)，对象中包含了一个指针，指向我们暂存的内容的快照；包含了作者名和邮箱地址；包含了提交信息；包含了指向该提交之间的提交的指针(它的父提交)
+ > 初始提交没有父提交，普通的提交有一个父提交，由多个分支合并产生的提交有多个父提交
 
-当我们用 `git commit` 提交时，Git会为每个子目录计算检验和(在本例中，只有项目根目录)，然后在Git仓库中存储一个树对象(tree object)，树对象包含了目录的内容(目录结构以及文件名)和指向各个blob的指针，之后创建一个包含了元数据和指向树对象的指针的提交对象
+To visualize this, let’s assume that you have a directory containing three files, and you stage them all and commit. 
+>  假设我们有一个包含了三个文件的目录，我们将它们全部暂存然后提交，
 
-此时Git仓库中有5个对象：三个blobs，其中每个都包含了对应文件的内容；一个树对象，包含了目录的内容，并将文件名和对应的blob关联；一个提交对象，包含了元数据和指向树对象的指针
+Staging the files computes a checksum for each one (the SHA-1 hash we mentioned in [What is Git?](https://git-scm.com/book/en/v2/ch00/what_is_git_section)), stores that version of the file in the Git repository (Git refers to them as _blobs_), and adds that checksum to the staging area:
+>  暂存文件时，Git 做的事情包括：为每个文件计算 SHA-1 检验和，将该版本的文件存入 Git 仓库中 (Git 称其为二进制大对象/blobs)，然后将检验和加入暂存区
+
+```
+$ git add README test.rb LICENSE
+$ git commit -m 'Initial commit'
+```
+
+When you create the commit by running `git commit`, Git checksums each subdirectory (in this case, just the root project directory) and stores them as a tree object in the Git repository. Git then creates a commit object that has the metadata and a pointer to the root project tree so it can re-create that snapshot when needed.
+>  当我们用 `git commit` 提交时，Git 会为每个子目录计算检验和 (在本例中，只有项目根目录)，然后在 Git 仓库中存储一个树对象 (tree object)，树对象包含了目录的内容 (目录结构以及文件名) 和指向各个 blob 的指针，之后创建一个包含了元数据和指向树对象的指针的提交对象
+
+Your Git repository now contains five objects: three _blobs_ (each representing the contents of one of the three files), one _tree_ that lists the contents of the directory and specifies which file names are stored as which blobs, and one _commit_ with the pointer to that root tree and all the commit metadata.
+>  此时 Git 仓库中有 5 个对象：三个 blobs，其中每个都包含了对应文件的内容；一个树对象，包含了目录的内容，并将文件名和对应的 blob 关联；一个提交对象，包含了元数据和指向树对象的指针
 ![[ProGit-Fig9.png]]
 
-如果我们在此次提交后再进行了一些修改，然后再进行一次提交，下一次的提交会存储指向本次提交(它的前一个提交)的指针
 
-Git中的分支本质上就是一个轻量的可移动的指针，指针指向这些提交中的其中一个提交，Git中默认的分支名称是 `master` ，我们在Git仓库开始进行提交时，就会得到一个指向我们最近的提交的名为 `master` 的分支，每次我们进行提交，`master` 分支指针也会自动向前移动
+If you make some changes and commit again, the next commit stores a pointer to the commit that came immediately before it.
+>  如果我们在此次提交后再进行了一些修改，然后再进行一次提交，下一次的提交会存储指向本次提交(它的前一个提交)的指针
 
-注意 `master` 分支和其他任何分支没有区别，不存在特殊性，近乎所有Git仓库都有 `master` 分支的原因是 `git init` 命令在默认情况下会创建名为 `master` 的分支
-### 3.1.1 Creating a New Branch
-在我们创建新分支的时候，Git会为我们创建一个可以四处移动的新指针，
-例如，我们想创建名为 `testing` 的新分支，通过 `git branch` 命令：
-`git branch testing`
+A branch in Git is simply a lightweight movable pointer to one of these commits. The default branch name in Git is `master`. As you start making commits, you’re given a `master` branch that points to the last commit you made. Every time you commit, the `master` branch pointer moves forward automatically.
+>  Git 中的分支本质上就是一个轻量的可移动的指针，指针指向这些提交中的其中一个提交，Git 中默认的分支名称是 `master` ，我们在 Git 仓库开始进行提交时，就会得到一个指向我们最近的提交的名为 `master` 的分支，每次我们进行提交，`master` 分支指针也会自动向前移动
 
-这会创建一个新的指针，指向我们当前处于的提交
+The “master” branch in Git is not a special branch. It is exactly like any other branch. The only reason nearly every repository has one is that the `git init` command creates it by default and most people don’t bother to change it.
+>  注意： `master` 分支和其他任何分支没有区别，不存在特殊性，近乎所有 Git 仓库都有 `master` 分支的原因是 `git init` 命令在默认情况下会创建名为 `master` 的分支
+
+### Creating a New Branch
+What happens when you create a new branch? Well, doing so creates a new pointer for you to move around. Let’s say you want to create a new branch called `testing`. You do this with the `git branch` command:
+>  在我们创建新分支的时候，Git 会为我们创建一个可以四处移动的新指针，
+>  例如，我们想创建名为 `testing` 的新分支，通过 `git branch` 命令：
+
+```
+git branch testing
+```
+
+This creates a new pointer to the same commit you’re currently on.
+>  这会创建一个新的指针，指向我们当前处于的提交
 ![[ProGit-Fig12.png]]
 
-Git本身会维护一个特殊的指针，称为 `HEAD`，`HEAD` 指针指向我们目前所处的本地分支，因此Git通过 `HEAD` 指针知道我们当前所处的分支是什么
+How does Git know what branch you’re currently on? It keeps a special pointer called `HEAD`. Note that this is a lot different than the concept of `HEAD` in other VCSs you may be used to, such as Subversion or CVS. In Git, this is a pointer to the local branch you’re currently on. In this case, you’re still on `master`. The `git branch` command only _created_ a new branch — it didn’t switch to that branch.
+>  Git 本身会维护一个特殊的指针，称为 `HEAD`，`HEAD` 指针指向我们目前所处的本地分支，因此 Git 通过 `HEAD` 指针知道我们当前所处的分支是什么
+>  我们创建了 `testing` 分支以后，我们其实仍处于 `master` 分支上，因为 `git branch` 命令只创建一个新的分支，但不会切换到那个分支
+
 ![[ProGit-Fig13.png]]
 
 
-我们创建了 `testing` 分支以后，我们其实仍处于 `master` 分支上，因为 `git branch` 命令只创建一个新的分支，但不会切换到那个分支
+You can easily see this by running a simple `git log` command that shows you where the branch pointers are pointing. This option is called `--decorate`.
+>  我们可以用 `git log` 查看各个分支指针现在指向哪个提交：
 
-我们可以用 `git log` 查看各个分支指针现在指向哪个提交：
-`git log --oneline --decorate`
-### 3.1.2 Switching Branches
-`git checkout` 命令用于切换到一个现存的分支，例如：
-`git checkout testing`
-这使得 `HEAD` 指针指向 `testing` 分支
+```
+git log --oneline --decorate
+f30ab (HEAD -> master, testing) Add feature #32 - ability to add new formats to the central interface
+34ac2 Fix bug #1328 - stack overflow under certain conditions
+98ca9 Initial commit
+```
+
+You can see the `master` and `testing` branches that are right there next to the `f30ab` commit.
+
+### Switching Branches
+To switch to an existing branch, you run the `git checkout` command. Let’s switch to the new `testing` branch:
+>  `git checkout` 命令用于切换到一个现存的分支，例如：
+
+```
+git checkout testing
+```
+
+This moves `HEAD` to point to the `testing` branch.
+>  这使得 `HEAD` 指针指向 `testing` 分支
+
 ![[ProGit-Fig14.png]]
-切换到新的分支以后，我们做一次新的提交
+
+What is the significance of that? Well, let’s do another commit:
+>  切换到新的分支以后，我们做一次新的提交
+
+```
+vim test.rb
+git commit -a -m 'Make a Change'
+```
+
 ![[ProGit-Fig15.png]]
-可以看到 `testing` 分支指向了新的提交，也就是向前移动了，而 `master` 分支还指向了我们运行 `git checkout` 时它所处的提交
 
-注意 `git log` 命令默认情况下只会展示我们当前所处的分支的提交历史，如果我们需要查看特定分支的提交历史，则显式地使用 `git log <branch-name>` ，要展示所有分支的提交历史，添加 `--all` 选项
+This is interesting, because now your `testing` branch has moved forward, but your `master` branch still points to the commit you were on when you ran `git checkout` to switch branches. 
+>  可以看到 `testing` 分支指向了新的提交，也就是向前移动了，而 `master` 分支还指向了我们运行 `git checkout` 时它所处的提交
 
-我们再切换回 `master` 分支：
-`git checkout master`
+`git log` doesn’t show _all_ the branches _all_ the time
+If you were to run `git log` right now, you might wonder where the "testing" branch you just created went, as it would not appear in the output.
+The branch hasn’t disappeared; Git just doesn’t know that you’re interested in that branch and it is trying to show you what it thinks you’re interested in. In other words, by default, `git log` will only show commit history below the branch you’ve checked out.
+To show commit history for the desired branch you have to explicitly specify it: `git log testing`. To show all of the branches, add `--all` to your `git log` command
+>  注意： `git log` 命令默认情况下只会展示我们当前所处的分支的提交历史，如果我们需要查看特定分支的提交历史，则显式地使用 `git log <branch-name>` ，要展示所有分支的提交历史，添加 `--all` 选项
+
+Let’s switch back to the `master` branch:
+>  我们再切换回 `master` 分支：
+
+
+```
+git checkout master
+```
+
 ![[ProGit-Fig16.png]]
-此时该命令做了两件事：它将 `HEAD` 指针改变，使其指向了 `master` 分支；它将我们工作目录中的文件复原为 `master` 分支所指向的快照
 
-此时我们再进行一些修改并进行提交，我们的项目就会出现分歧(diverge)，朝向两个不同的方向
+That command did two things. It moved the HEAD pointer back to point to the `master` branch, and it reverted the files in your working directory back to the snapshot that `master` points to. This also means the changes you make from this point forward will diverge from an older version of the project. It essentially rewinds the work you’ve done in your `testing` branch so you can go in a different direction.
+>  此时该命令做了两件事：它将 `HEAD` 指针改变，使其指向了 `master` 分支；它将我们工作目录中的文件复原为 `master` 分支所指向的快照
+
+Let’s make a few changes and commit again:
+
+Now your project history has diverged (see [Divergent history](https://git-scm.com/book/en/v2/ch00/divergent_history)). You created and switched to a branch, did some work on it, and then switched back to your main branch and did other work. Both of those changes are isolated in separate branches: you can switch back and forth between the branches and merge them together when you’re ready. And you did all that with simple `branch`, `checkout`, and `commit` commands.
+
+>  此时我们再进行一些修改并进行提交，我们的项目就会出现分歧(diverge)，朝向两个不同的方向
 ![[ProGit-Fig17.png]]
-`git log --oneline --decorate --graph --all` 可以在命令行展示类似的图像
 
-在Git中，一个分支仅仅是一个包含了它所指向的提交的40个字符的SHA-1检验和的简单文件，因此创建或删除分支都是很廉价的，创建一个新分支等价于为一个文件写入41个字符(40个字符的检验和以及一个换行符)
+You can also see this easily with the `git log` command. If you run `git log --oneline --decorate --graph --all` it will print out the history of your commits, showing where your branch pointers are and how your history has diverged.
+>  `git log --oneline --decorate --graph --all` 可以在命令行展示类似的图像
 
-另外，由于我们在提交时都会记录父提交，因此在合并时，Git可以自动找到恰当的合并基(merging base)，这些特性鼓励开发者多使用分支
+Because a branch in Git is actually a simple file that contains the 40 character SHA-1 checksum of the commit it points to, branches are cheap to create and destroy. Creating a new branch is as quick and simple as writing 41 bytes to a file (40 characters and a newline).
+>  在 Git 中，一个分支仅仅是一个包含了它所指向的提交的 40 个字符的 SHA-1 检验和的简单文件，因此创建或删除分支都是很廉价的，创建一个新分支等价于为一个文件写入 41 个字符 (40 个字符的检验和以及一个换行符)
 
-如果我们要创建新分支，同时切换到这一分支，我们可以使用
-`git checkout -b <newbranchname>`
+This is in sharp contrast to the way most older VCS tools branch, which involves copying all of the project’s files into a second directory. This can take several seconds or even minutes, depending on the size of the project, whereas in Git the process is always instantaneous. 
+
+Also, because we’re recording the parents when we commit, finding a proper merge base for merging is automatically done for us and is generally very easy to do. These features help encourage developers to create and use branches often.
+>  另外，由于我们在提交时都会记录父提交，因此在合并时，Git 可以自动找到恰当的合并基 (merging base)，这些特性鼓励开发者多使用分支
+
+
+
+Creating a new branch and switching to it at the same time
+It’s typical to create a new branch and want to switch to that new branch at the same time — this can be done in one operation with `git checkout -b <newbranchname>`.
+>  如果我们要创建新分支，同时切换到这一分支，我们可以使用
+>  `git checkout -b <newbranchname>`
 
 Git 2.23版本以后，我们可以使用 `git switch` 替代 `git checkout` ：
 - 切换到一个现存的分支：`git switch <branch-name>`
 - 创建新分支并切换到它：`git switch -c <new-branch-name>` ，其中 `-c` 标志表示创建，我们也可以用全称 `--create`
-- 回到之前检出(check out)的分支：`git switch -`
+- 回到之前检出 (check out) 的分支：`git switch -`
+
 ## 3.2 Basic Branching and Merging
-### 3.2.1 Basic Branching
-假设我们有一个项目，在 `master` 分支上已经有了几个提交
+### Basic Branching
+First, let’s say you’re working on your project and have a couple of commits already on the `master` branch.
+>  假设我们有一个项目，在 `master` 分支上已经有了几个提交
 ![[ProGit-Fig18.png]]
 
-此时我们需要解决issue53，因此我们创建新的分支并切换到该分支
-`git checkout -b iss53`
-这等价于
-`git branch iss53`
-`git checkout iss53`
 
-此时我们进行了一些修改，并提交，`iss53` 分支向前移动
+You’ve decided that you’re going to work on issue #53 in whatever issue-tracking system your company uses. To create a new branch and switch to it at the same time, you can run the `git checkout` command with the `-b` switch:
+>  此时我们需要解决 issue53，因此我们创建新的分支并切换到该分支
+>  `git checkout -b iss53`
+>  这等价于
+>  `git branch iss53`
+>  `git checkout iss53`
+
+You work on your website and do some commits. Doing so moves the `iss53` branch forward, because you have it checked out (that is, your `HEAD` is pointing to it):
+>  此时我们进行了一些修改，并提交，`iss53` 分支向前移动
+
 ![[ProGit-Fig20.png]]
 
-此时，我们又需要解决一个新的需求，我们需要首先切换回 `master` 分支，
-需要注意的是，在Git中，在切换分支的时候，如果我们的工作目录或暂存区域中有和我们即将检出的分支相冲突的修改，Git会阻止我们切换分支
-因此，在切换分支的时候，需要保证有干净的工作状态(clean working state)，对应的方法有stash和commit amend
 
-此时，因为我们已经提交了所有的修改，未做更多的修改，我们可以顺利切换到 `master` 分支
-`git checkout master`
-此时我们会发现工作目录的状态回到了 `master` 分支最后一次提交的状态
+Now you get the call that there is an issue with the website, and you need to fix it immediately. With Git, you don’t have to deploy your fix along with the `iss53` changes you’ve made, and you don’t have to put a lot of effort into reverting those changes before you can work on applying your fix to what is in production. All you have to do is switch back to your `master` branch.
+>  此时，我们又需要解决一个新的需求，我们需要首先切换回 `master` 分支，
 
-现在，我们创建一个新的分支
-`git checkout -b hotfix`
-然后我们进行一些修改然后提交
+However, before you do that, note that if your working directory or staging area has uncommitted changes that conflict with the branch you’re checking out, Git won’t let you switch branches. It’s best to have a clean working state when you switch branches. There are ways to get around this (namely, stashing and commit amending) that we’ll cover later on, in [Stashing and Cleaning](https://git-scm.com/book/en/v2/ch00/_git_stashing).
+>  需要注意的是，在 Git 中，在切换分支的时候，如果我们的工作目录或暂存区域中有和我们即将检出的分支相冲突的修改，Git 会阻止我们切换分支
+>  因此，在切换分支的时候，需要保证有干净的工作状态 (clean working state)，对应的方法有 stash 和 commit amend
+ 
+For now, let’s assume you’ve committed all your changes, so you can switch back to your `master` branch:
+>  此时，因为我们已经提交了所有的修改，未做更多的修改，我们可以顺利切换到 `master` 分支
+>  `git checkout master`
+
+At this point, your project working directory is exactly the way it was before you started working on issue #53, and you can concentrate on your hotfix. This is an important point to remember: when you switch branches, Git resets your working directory to look like it did the last time you committed on that branch. It adds, removes, and modifies files automatically to make sure your working copy is what the branch looked like on your last commit to it.
+>  此时我们会发现工作目录的状态回到了 `master` 分支最后一次提交的状态
+
+Next, you have a hotfix to make. Let’s create a `hotfix` branch on which to work until it’s completed:
+>  现在，我们创建一个新的分支
+>  `git checkout -b hotfix`
+>  然后我们进行一些修改然后提交
+
 ![[ProGit-Fig21.png]]
 
-之后我们对该提交进行了测试，确认无误后，希望将这个分支合并到 `master` 分支，我们需要使用 `git merge` 命令
-`git checkout master`
-`git merge hotfix`
 
-因为我们要合并的分支 `hotfix` 所指向的提交 `C4` 直接在我们当前所处的提交 `C2` 的前面，因此，Git所做的就是简单地将指针前移
+You can run your tests, make sure the hotfix is what you want, and finally merge the `hotfix` branch back into your `master` branch to deploy to production. You do this with the `git merge` command:
+>  之后我们对该提交进行了测试，确认无误后，希望将这个分支合并到 `master` 分支，我们需要使用 `git merge` 命令
+>  `git checkout master` (先检出 `master` 再 merge)
+>  `git merge hotfix`
+
+You’ll notice the phrase “fast-forward” in that merge. Because the commit `C4` pointed to by the branch `hotfix` you merged in was directly ahead of the commit `C2` you’re on, Git simply moves the pointer forward. To phrase that another way, when you try to merge one commit with a commit that can be reached by following the first commit’s history, Git simplifies things by moving the pointer forward because there is no divergent work to merge together — this is called a “fast-forward.”
+>  因为我们要合并的分支 `hotfix` 所指向的提交 `C4` 直接在我们当前所处的提交 `C2` 的前面，因此，Git 所做的就是简单地将指针前移
+>  在 Git 中，如果我们想要将一个提交合并入当前提交，如果要合并的提交可以直接通过提交历史回溯到当前提交，Git 就会简单地将当前分支的指针前移到要合并的提交，因为此时不存在分歧的工作 (divergent work)，这被称为“快速前移 fast forward” 
+
 ![[ProGit-Fig22.png]]
-在Git中，如果我们想要将一个提交合并入当前提交，如果要合并的提交可以直接通过提交历史回溯到当前提交，Git就会简单地将当前分支的指针前移到要合并的提交，因为此时不存在分歧的工作(divergent work)，这被称为“快速前移 fast forward”
 
-在合并之后，我们可以删除 `hotfix` 分支了，因为已经不再需要它了，`master` 现在和它指向同一位置，我们通过 `-d` 选项删除分支
-`git branch -d hotfix`
 
-此时我们可以切换回 `iss53` 分支，继续之前的工作
-`git checkout iss53`
+
+After your super-important fix is deployed, you’re ready to switch back to the work you were doing before you were interrupted. However, first you’ll delete the `hotfix` branch, because you no longer need it — the `master` branch points at the same place. You can delete it with the `-d` option to `git branch`:
+>  在合并之后，我们可以删除 `hotfix` 分支了，因为已经不再需要它了，`master` 现在和它指向同一位置，我们通过 `-d` 选项删除分支
+>  `git branch -d hotfix`
+
+Now you can switch back to your work-in-progress branch on issue #53 and continue working on it.
+>  此时我们可以切换回 `iss53` 分支，继续之前的工作
+>  `git checkout iss53`
+
 ![[ProGit-Fig23.png]]
 
-值得注意的是我们在 `hotfix` 分支所做的工作并不会在 `iss53` 中包含，如果我们需要在 `iss53` 中也包含 `hotfix` 所做的工作，则需要将 `master` 分支合并到 `iss53` 分支，通过
-`git merge master`
+It’s worth noting here that the work you did in your `hotfix` branch is not contained in the files in your `iss53` branch. If you need to pull it in, you can merge your `master` branch into your `iss53` branch by running `git merge master`, or you can wait to integrate those changes until you decide to pull the `iss53` branch back into `master` later.
+>  值得注意的是我们在 `hotfix` 分支所做的工作并不会在 `iss53` 中包含，如果我们需要在 `iss53` 中也包含 `hotfix` 所做的工作，则需要将 `master` 分支合并到 `iss53` 分支，通过
+>  `git merge master`
+
 ### 3.2.2 Basic Merging
 假设我们完成了在 `iss53` 中的工作，决定将其合并入 `master` 分支，通过
 `git checkout master`
@@ -649,7 +757,7 @@ Git根据这次三路合并创建一个新的快照，并创建一个指向这�
 
 合并了我们的工作后，我们就不再需要 `iss53` 分支了，因此我们可以在我们的问题跟踪系统(issue-tracking system)中关闭这个issue，然后删除该分支：
 `git branch -d iss53`
-### 3.2.3 Basic Merge Conlicts
+### 3.2.3 Basic Merge Conflicts
 有时我们的合并难以直接顺利进行，例如我们在两个要合并的分支中以不同的方式更改了同一个文件的同一部分，Git就将无法干净地合并它们
 
 例如，如果我们要将 `iss53` 合并入 `master` ，但两个分支存在冲突，我们就会得到：
