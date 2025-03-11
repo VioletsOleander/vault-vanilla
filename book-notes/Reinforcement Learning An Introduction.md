@@ -593,7 +593,8 @@ $$
 
 where $\pi(a|s)$ is the probability of taking action $a$ in state $s$ under policy $\pi$ , and the expectations are subscripted by $\pi$ to indicate that they are conditional on $\pi$ being followed. The existence and uniqueness of $v_{\pi}$ are guaranteed as long as either $\gamma<1$ or eventual termination is guaranteed from all states under the policy $\pi$ . 
 >  考虑为任意策略 $\pi$ 计算其状态价值函数 $v_\pi$，DP 中称为策略评估 (注意策略评估的目标是计算策略的状态价值函数)
->  我们知道 $v_\pi$ 满足 Eq 4.3 和 Eq 4.4 描述的 Bellman 方程，只要折扣因子 $\gamma < 1$ 或者在策略 $\pi$ 下，从任意状态开始都可以达到终止状态，$v_\pi$ 的存在性和唯一性就可以保证
+>  我们知道 $v_\pi$ 满足 Eq 4.3 和 Eq 4.4 描述的 Bellman 方程，只要折扣因子 $\gamma < 1$ 或者在策略 $\pi$ 下，从任意状态开始都可以达到终止状态，$v_\pi$ 的存在性和唯一性就可以保证 
+>  ($v_\pi$ 的计算展开来实际上是一个级数，如果 $\gamma< 1$，即便没有确定的终止状态，该级数也会收敛，故 $v_\pi$ 的存在性可以保证；而如果能在有限步终止，则 $v_\pi$ 就不是无穷级数，故 $v_\pi$ 的存在性也可以保证，即便此时 $\gamma$ 不一定 $<1$)
 
 If the environment’s dynamics are completely known, then (4.4) is a system of $|\mathcal S|$ simultaneous linear equations in $|\mathcal S|$ unknowns (the $v_{\pi}(s)$ , $s\in\mathcal{S}$ ). In principle, its solution is a straightforward, if tedious, computation. For our purposes, iterative solution methods are most suitable. 
 >  如果环境动态完全已知，则 (4.4) 就是包含了 $|\mathcal S|$ 个未知数 (这些未知数是 $v_\pi(s), s\in \mathcal S$) 和 $|\mathcal S|$ 个线性方程的方程组
