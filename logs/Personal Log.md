@@ -1314,7 +1314,7 @@ Date: 2025.2.24-2025.3.3
 Date: 2025.3.3-2025.3.10
 
 \[Book\]
-- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH7.1-CH7.3
+- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH5, CH6, CH7.1-CH7.3
 - [[book-notes/深度强化学习|深度强化学习]]: CH7
 
 \[Doc\]
