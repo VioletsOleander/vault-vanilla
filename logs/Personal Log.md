@@ -1315,7 +1315,9 @@ Date: 2025.3.3-2025.3.10
 
 \[Book\]
 - [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH7.1-CH7.3
+- [[book-notes/深度强化学习|深度强化学习]]: CH7
 
 \[Doc\]
 - [[doc-notes/go/How to Write Go Code|go/How to Write Go Code]]
 - [[doc-notes/mlir/tutorials/Toy Tutorial|mlir/Toy Tutorial]]
+
