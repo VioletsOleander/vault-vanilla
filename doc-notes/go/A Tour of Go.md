@@ -1825,7 +1825,7 @@ An interface value holds a value of a specific underlying concrete type.
 Calling a method on an interface value executes the method of the same name on its underlying type.
 
 >  可以认为接口值实际上是一个元组 `(value, type)`，它存储了值和具体的类型
->  调用一个接口值得方法会执行其实际类型的对应方法
+>  调用一个接口值的方法会执行其实际类型的对应方法
 
 ```go
 package main

@@ -883,7 +883,7 @@ At this point, MLIR knows about our Toy dialect and operations. In the [next ch
 # 3 High-level Language-Specific Analysis and Transformation
 Creating a dialect that closely represents the semantics of an input language enables analyses, transformations and optimizations in MLIR that require high-level language information and are generally performed on the language AST. For example, `clang` has a fairly [heavy mechanism](https://clang.llvm.org/doxygen/classclang_1_1TreeTransform.html) for performing template instantiation in C++.
 >  创建一个和输入语言语义紧密匹配的方言，可以实现在 MLIR 中进行需要高级语言信息且通常需要在语言 AST 上执行的分析、转化和优化
->  例如，`clange` 为了在 C++ 中实现模板实例化，有相当复杂的机制
+>  例如，`clang` 为了在 C++ 中实现模板实例化，有相当复杂的机制
 
 We divide compiler transformations into two categories: local and global. In this chapter, we focus on how to leverage the Toy Dialect and its high-level semantics to perform local pattern-match transformations that would be difficult in LLVM. For this, we use MLIR’s [Generic DAG Rewriter](https://mlir.llvm.org/docs/PatternRewriter/).
 >  我们将编译器分为两类：局部和全局
