@@ -834,7 +834,7 @@ Date: 2024.12.16-2024.12.23-2024.12.30
     CH7-Polya 计数理论
 
 \[Doc\]
-- [[doc-notes/mlir/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH1-CH2
+- [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH1-CH2
     CH1-Toy Language and AST
         unranked tensor parameter: the dimension is unknown, and will be specialized at call sites
     CH2-Emitting Basic MLIR
@@ -1371,6 +1371,12 @@ Date: 2025.3.3-2025.3.10
         To test the packages compiles, use `go build` . This won't produce an output file but saves the compiled package in the local build cache. When built, the packages can be imported.
         `go mod tidy` will automatically manage dependencies on external modules.
     Testing
-- [[doc-notes/mlir/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH3-CH7
+- [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH3-CH7
 - [[doc-notes/python/packages/gymnasium/Introduction|python/packages/gymnasium/Introduction]]
 
+### Week 3
+Date: 2025.3.10-2025.3.17
+
+\[Doc\]
+- [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/tutorials/Understanding the IR Structure]]
+- [[doc-notes/python/packages/hydra/Tutorials|python/packages/hydra/Tutorials]]
