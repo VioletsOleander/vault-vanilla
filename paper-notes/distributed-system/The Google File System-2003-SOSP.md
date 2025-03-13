@@ -465,135 +465,323 @@ In a similar regular scan of the chunk namespace, the master identifies orphaned
 
 ### 4.4.2 Discussion 
 Although distributed garbage collection is a hard problem that demands complicated solutions in the context of programming languages, it is quite simple in our case. We can easily identify all references to chunks: they are in the file-to-chunk mappings maintained exclusively by the master. We can also easily identify all the chunk replicas: they are Linux files under designated directories on each chunkserver. Any such replica not known to the master is “garbage.” 
+>  GFS 中，master 通过它维护的 file-to-chunk 映射确定各个 chunks 的所有引用，因此可以识别确定所有的 chunk 副本 (chunk 副本本质是每个 chunkserver 的指定目录下的 Linux 文件)，如果存在 master 未知的 chunk 副本，就会视为垃圾
 
 The garbage collection approach to storage reclamation offers several advantages over eager deletion. First, it is simple and reliable in a large-scale distributed system where component failures are common. Chunk creation may succeed on some chunkservers but not others, leaving replicas that the master does not know exist. Replica deletion messages may be lost, and the master has to remember to resend them across failures, both its own and the chunkserver’s. Garbage collection provides a uniform and dependable way to clean up any replicas not known to be useful. Second, it merges storage reclamation into the regular background activities of the master, such as the regular scans of namespaces and handshakes with chunkservers. Thus, it is done in batches and the cost is amortized. Moreover, it is done only when the master is relatively free. The master can respond more promptly to client requests that demand timely attention. Third, the delay in reclaiming storage provides a safety net against accidental, irreversible deletion. 
+>  垃圾回收方法相较于主动删除方法，在存储回收方面提供了几大优势：
+>  1. 在组件故障很常见的大规模分布式系统中，垃圾回收方法简单且可靠。chunk 创建操作可能在某些 chunkserver 失败，这会导致这些副本将对于 master 不可知。副本删除消息可能丢失，master 需要记住在故障后 (无论是它自己的还是 chunkserver 的重新发送它们)。
+>  2. 垃圾回收方法将存储回收和 master 常规的后台活动合并，例如定期扫描命名空间和与 chunkservers 的 handshakes。因此，垃圾回收是按批量执行的，并且成本会被摊销。此外，只有在 master 相对空闲时才会执行此操作，master 可以更及时相应需要立即关注的 client 请求
+>  3. 存储回收的延迟可以一定程度上避免意外的、不可逆的删除
 
-In our experience, the main disadvantage is that the delay sometimes hinders user effort to fine tune usage when storage is tight. Applications that repeatedly create and delete temporary files may not be able to reuse the storage right away. We address these issues by expediting storage reclamation if a deleted file is explicitly deleted again. We also allow users to apply different replication and reclamation policies to different parts of the namespace. For example, users can specify that all the chunks in the files within some directory tree are to be stored without replication, and any deleted files are immediately and irrevocably removed from the file system state. 
+In our experience, the main disadvantage is that the delay sometimes hinders user effort to fine tune usage when storage is tight. Applications that repeatedly create and delete temporary files may not be able to reuse the storage right away. We address these issues by expediting storage reclamation if a deleted file is explicitly deleted again. 
+>  垃圾回收的延迟的主要劣势是会妨碍用户在存储空间紧张时对使用方式进行微调，那些反复创建并删除临时文件的应用可能无法立即重用存储空间
+>  为了解决这个问题，当一个被删除的文件又被显式删除时，我们会加快存储回收。
+ 
+We also allow users to apply different replication and reclamation policies to different parts of the namespace. For example, users can specify that all the chunks in the files within some directory tree are to be stored without replication, and any deleted files are immediately and irrevocably removed from the file system state. 
+>  我们还允许用户为命名空间的不同部分应用不同的拷贝和回收策略
+>  例如，用户可以指定某个目录树下的文件的 chunks 不需要拷贝，并且任何被删除的文件都会立即并且不可撤销地从文件系统状态中删除
 
 ## 4.5 Stale Replica Detection 
 Chunk replicas may become stale if a chunkserver fails and misses mutations to the chunk while it is down. For each chunk, the master maintains a chunk version number to distinguish between up-to-date and stale replicas. 
+>  如果 chunkserver 故障，故错过了对 chunk 的变更，其 chunk 副本会过期
+>  master 对于每个 chunk 维护一个 chunk 版本号，以区分最新的和过期的版本
 
 Whenever the master grants a new lease on a chunk, it increases the chunk version number and informs the up-to-date replicas. The master and these replicas all record the new version number in their persistent state. This occurs before any client is notified and therefore before it can start writing to the chunk. If another replica is currently unavailable, its chunk version number will not be advanced. The master will detect that this chunkserver has a stale replica when the chunkserver restarts and reports its set of chunks and their associated version numbers. If the master sees a version number greater than the one in its records, the master assumes that it failed when granting the lease and so takes the higher version to be up-to-date. 
+>  当 master 为一个 chunk 授予新的租约时，它会增加其版本号，并且通知所有最新的副本。master 和这些副本都会在其持久化状态 (磁盘存储) 中记录新的版本号，如果有副本不可用，则其 chunk 版本号不会更新
+>  这一过程早于任何 client 被通知之前，因此也早于 client 开始向 chunk 的写入操作
+>  当故障的 chunkserver 重启并向 master 报告其 chunk 副本的版本号时，master 会检测到 chunkserver 是否有过期的副本，如果 master 发现 chunkserver 有版本号高于自己记录的版本号，它会认为在授予租约的时候自身发生了故障，进而会将较高的版本号视为最新版本
 
 The master removes stale replicas in its regular garbage collection. Before that, it effectively considers a stale replica not to exist at all when it replies to client requests for chunk information. As another safeguard, the master includes the chunk version number when it informs clients which chunkserver holds a lease on a chunk or when it instructs a chunkserver to read the chunk from another chunkserver in a cloning operation. The client or the chunkserver verifies the version number when it performs the operation so that it is always accessing up-to-date data. 
+>  master 在其常规垃圾回收时会移除过期的副本，在此之前，master 在回应 client 关于 chunk 信息的请求时，会直接认为过期的副本不存在 (故不会报告任何过期副本的信息)
+>  并且，master 在回复 client 哪个 chunkservers 持有对应 chunk 的租约时、或者在指示 chunkserver 在克隆操作中从另一个 chunkserver 读取 chunk 时，会附带上 chunk 的版本号，则 client 和 chunkserver 就可以借由版本号判断它访问的是否是最新数据
 
 # 5 Fault Tolerance and Diagnosis
-One of our greatest challenges in designing the system is dealing with frequent component failures. The quality and quantity of components together make these problems more the norm than the exception: we cannot completely trust the machines, nor can we completely trust the disks. Component failures can result in an unavailable system or, worse, corrupted data. We discuss how we meet these challenges and the tools we have built into the system to diagnose problems when they inevitably occur. 
+One of our greatest challenges in designing the system is dealing with frequent component failures. The quality and quantity of components together make these problems more the norm than the exception: we cannot completely trust the machines, nor can we completely trust the disks. 
+>  GFS 设计时最大的挑战在于处理频繁的组件故障
+>  集群的组件数量过大，且质量一般，故组件故障的情况很常见，我们无法完全信任机器、硬盘
+
+Component failures can result in an unavailable system or, worse, corrupted data. We discuss how we meet these challenges and the tools we have built into the system to diagnose problems when they inevitably occur. 
 
 ## 5.1 High Availability 
 Among hundreds of servers in a GFS cluster, some are bound to be unavailable at any given time. We keep the overall system highly available with two simple yet effective strategies: fast recovery and replication. 
+>  GFS 保持高度可用性的策略有：快速恢复和复制
 
 ### 5.1.1 Fast Recovery 
 Both the master and the chunkserver are designed to restore their state and start in seconds no matter how they terminated. In fact, we do not distinguish between normal and abnormal termination; servers are routinely shut down just by killing the process. Clients and other servers experience a minor hiccup as they time out on their outstanding requests, reconnect to the restarted server, and retry. Section 6.2.2 reports observed startup times. 
+>  master 和 chunkserver 都被设计为无论是如何终止的，都可以在几秒内恢复其状态并启动
+>  我们并不区分正常和异常的终止，服务器通常只是通过杀死进程 (服务进程) 来关闭，clients 和其他 servers 会在它们的请求超时未完成后，略微等待，然后重新连接到重启后的服务器，并重试操作
 
 ### 5.1.2 Chunk Replication 
-As discussed earlier, each chunk is replicated on multiple chunkservers on different racks. Users can specify different replication levels for different parts of the file namespace. The default is three. The master clones existing replicas as needed to keep each chunk fully replicated as chunkservers go offline or detect corrupted replicas through checksum verification (see Section 5.2). Although replication has served us well, we are exploring other forms of cross-server redundancy such as parity or erasure codes for our increasing readonly storage requirements. We expect that it is challenging but manageable to implement these more complicated redundancy schemes in our very loosely coupled system because our traffic is dominated by appends and reads rather than small random writes. 
+As discussed earlier, each chunk is replicated on multiple chunkservers on different racks. Users can specify different replication levels for different parts of the file namespace. The default is three. The master clones existing replicas as needed to keep each chunk fully replicated as chunkservers go offline or detect corrupted replicas through checksum verification (see Section 5.2). 
+>  每个 chunk 都会在不同机架上的多个 chunkservers 中具有副本，用户可以为文件命名空间的不同部分指定不同的拷贝级别
+>  master 会在 chunkserver 下线或者检查到损坏的副本 (通过校验和验证) 时，按需克隆现存的副本
+
+Although replication has served us well, we are exploring other forms of cross-server redundancy such as parity or erasure codes for our increasing read-only storage requirements. We expect that it is challenging but manageable to implement these more complicated redundancy schemes in our very loosely coupled system because our traffic is dominated by appends and reads rather than small random writes. 
+>  尽管复制方法对我们一直很有效，但我们正在探索其他形式的跨服务器冗余方案，例如奇偶校验或纠删码，以满足日益增长的只读存储需求。
+>  我们预计，在我们的非常松散耦合的系统中实现这些更为复杂的冗余方案具有挑战性但可以管理，因为我们的流量主要由追加操作和读取操作组成，而不是小范围的随机写入操作。
 
 ### 5.1.3 Master Replication 
-The master state is replicated for reliability. Its operation log and checkpoints are replicated on multiple machines. A mutation to the state is considered committed only after its log record has been flushed to disk locally and on all master replicas. For simplicity, one master process remains in charge of all mutations as well as background activities such as garbage collection that change the system internally. When it fails, it can restart almost instantly. If its machine or disk fails, monitoring infrastructure outside GFS starts a new master process elsewhere with the replicated operation log. Clients use only the canonical name of the master (e.g. gfs-test), which is a DNS alias that can be changed if the master is relocated to another machine. 
+The master state is replicated for reliability. Its operation log and checkpoints are replicated on multiple machines. A mutation to the state is considered committed only after its log record has been flushed to disk locally and on all master replicas.
+>  master 状态也会拷贝，其操作日志和检查点会拷贝到多个机器上，对于其状态的变更只有在更新到全部的拷贝后才视作完全提交
+ 
+For simplicity, one master process remains in charge of all mutations as well as background activities such as garbage collection that change the system internally. When it fails, it can restart almost instantly. If its machine or disk fails, monitoring infrastructure outside GFS starts a new master process elsewhere with the replicated operation log. Clients use only the canonical name of the master (e.g. gfs-test), which is a DNS alias that can be changed if the master is relocated to another machine. 
+>  为了简单起见，全部的变更以及后台活动例如垃圾收集这样内部改变系统状态的活动仍然由单个 master 进程管理
+>  当该进程故障，它可以几乎瞬时重启。如果其机器或磁盘故障，GFS 外的监控程序会在具有操作日志拷贝的机器上启动一个新的 master 进程
+>  clients 是通过 master 的名称与其通信的，其名称只是一个 DNS 别名，如果 master 在新的机器上启动，这也会相应改变
+ 
 Moreover, “shadow” masters provide read-only access to the file system even when the primary master is down. They are shadows, not mirrors, in that they may lag the primary slightly, typically fractions of a second. They enhance read availability for files that are not being actively mutated or applications that do not mind getting slightly stale results. In fact, since file content is read from chunkservers, applications do not observe stale file content. What could be stale within short windows is file metadata, like directory contents or access control information. 
+>  此外，shadow masters 会在主 master 故障时提供对文件系统的只读访问，shadow 不是镜像，因此可能会比主 master 稍微滞后，通常是几秒钟
+>  shadow masters 增强了对于哪些不被活跃变更的文件或不在意读取略微过时的信息的应用程序的可读性
+>  实际上，由于文件内容是从 chunkserver 读取的，应用程序不会观察到过期的文件内容，在短时间内过期的可能是文件元数据，例如目录内容或访问控制信息
+
 To keep itself informed, a shadow master reads a replica of the growing operation log and applies the same sequence of changes to its data structures exactly as the primary does. Like the primary, it polls chunkservers at startup (and infrequently thereafter) to locate chunk replicas and exchanges frequent handshake messages with them to monitor their status. It depends on the primary master only for replica location updates resulting from the primary’s decisions to create and delete replicas. 
+>  shadow master 通过读取 master 的操作日志，并将其应用到自己的数据结构中，以更新自身信息
+>  shadow master 和 primary master 一样，在启动时会轮询 chunkservers，以定位 chunk 副本的位置，并且也会频繁与 chunkservers 交换握手消息，以监控其状态
+>  shadow master 仅依赖于 primary master 来获取由于 primary master 决定创建或删除副本而导致的副本位置更新
 
 ## 5.2 Data Integrity 
 Each chunkserver uses checksumming to detect corruption of stored data. Given that a GFS cluster often has thousands of disks on hundreds of machines, it regularly experiences disk failures that cause data corruption or loss on both the read and write paths. (See Section 7 for one cause.) We can recover from corruption using other chunk replicas, but it would be impractical to detect corruption by comparing replicas across chunkservers. Moreover, divergent replicas may be legal: the semantics of GFS mutations, in particular atomic record append as discussed earlier, does not guarantee identical replicas. Therefore, each chunkserver must independently verify the integrity of its own copy by maintaining checksums. 
+>  每个 chunkserver 都使用校验和来检查数据损坏
+>  GFS 集群经常出现磁盘故障，导致数据损坏或丢失，通过比较不同 chunkservers 中的副本来检查数据损坏较不现实，并且即便副本存在不同，也不一定是数据损坏的原因 (GFS 变更语义、原子追加操作并不保证所有副本完全相同)
+>  因此，每个 chunkserver 必须独立地通过校验和验证它自己的拷贝的完整性
+
 A chunk is broken up into 64 KB blocks. Each has a corresponding 32 bit checksum. Like other metadata, checksums are kept in memory and stored persistently with logging, separate from user data. 
+>  chunk 被拆分成 64 KB 的块，每个块都有相应的 32 bit 校验和
+>  校验和存储保留在内存中，并且会随着日志持久化保留
+
 For reads, the chunkserver verifies the checksum of data blocks that overlap the read range before returning any data to the requester, whether a client or another chunkserver. Therefore chunkservers will not propagate corruptions to other machines. If a block does not match the recorded checksum, the chunkserver returns an error to the requestor and reports the mismatch to the master. In response, the requestor will read from other replicas, while the master will clone the chunk from another replica. After a valid new replica is in place, the master instructs the chunkserver that reported the mismatch to delete its replica. 
+>  在读时，在回复之前，chunkserver 要验证覆盖了要读的范围的部分的数据块的校验和，避免传播损坏的数据
+>  如果发现校验和检验不过，chunkserver 返回错误给请求者，并向 master 报告，请求者向其他 chunkserver 请求，master 从其他 chunkserver 克隆一份给该 server，并且指示该 server 删除损坏的数据
+
 Checksumming has little effect on read performance for several reasons. Since most of our reads span at least a few blocks, we need to read and checksum only a relatively small amount of extra data for verification. GFS client code further reduces this overhead by trying to align reads at checksum block boundaries. Moreover, checksum lookups and comparison on the chunkserver are done without any I/O, and checksum calculation can often be overlapped with I/Os. 
+>  计算校验和对于读性能影响不大，因为 GFS 面临的多数读操作会涉及多个块，chunkserver 只需要为额外的 (不超过一个块) 少量数据额外计算校验和
+>  GFS client 会尝试尽量将读取对齐到校验和边界，这进一步降低了开销
+>  此外，在 chunkserver 上的校验和查找和比较工作不需要 IO，且校验和计算可以和 IO 重叠
+
 Checksum computation is heavily optimized for writes that append to the end of a chunk (as opposed to writes that overwrite existing data) because they are dominant in our workloads. We just incrementally update the checksum for the last partial checksum block, and compute new checksums for any brand new checksum blocks filled by the append. Even if the last partial checksum block is already corrupted and we fail to detect it now, the new checksum value will not match the stored data, and the corruption will be detected as usual when the block is next read. 
+>  校验和计算针对追加写入进行了优化，我们只需增量更新最后一个 partial block 的校验和，并且为追加操作填满的块计算新的校验和
+
 In contrast, if a write overwrites an existing range of the chunk, we must read and verify the first and last blocks of the range being overwritten, then perform the write, and finally compute and record the new checksums. If we do not verify the first and last blocks before overwriting them partially, the new checksums may hide corruption that exists in the regions not being overwritten. 
+
 During idle periods, chunkservers can scan and verify the contents of inactive chunks. This allows us to detect corruption in chunks that are rarely read. Once the corruption is detected, the master can create a new uncorrupted replica and delete the corrupted replica. This prevents an inactive but corrupted chunk replica from fooling the master into thinking that it has enough valid replicas of a chunk. 
+>  在空闲时段，ChunkServer 可以扫描并验证不活跃 Chunk 的内容。这使得我们能够检测到很少被读取的 Chunk 中的损坏情况。一旦发现损坏，主服务器可以创建一个新的未损坏的副本并删除损坏的副本。这样可以防止一个不活跃但已损坏的 Chunk 副本欺骗主服务器，使其误以为该 Chunk 已有足够的有效副本。
 
 ## 5.3 Diagnostic Tools 
-Extensive and detailed diagnostic logging has helped immeasurably in problem isolation, debugging, and performance analysis, while incurring only a minimal cost. Without logs, it is hard to understand transient, non-repeatable interactions between machines. GFS servers generate diagnostic logs that record many significant events (such as chunkservers going up and down) and all RPC requests and replies. These diagnostic logs can be freely deleted without affecting the correctness of the system. However, we try to keep these logs around as far as space permits. 
+Extensive and detailed diagnostic logging has helped immeasurably in problem isolation, debugging, and performance analysis, while incurring only a minimal cost. 
+
+Without logs, it is hard to understand transient, non-repeatable interactions between machines. GFS servers generate diagnostic logs that record many significant events (such as chunkservers going up and down) and all RPC requests and replies. These diagnostic logs can be freely deleted without affecting the correctness of the system. However, we try to keep these logs around as far as space permits. 
+>  如果没有日志，就很难理解机器之间短暂且不可重复的交互。
+>  GFS服务器会生成诊断日志，记录许多重要事件（例如ChunkServer的上线和下线）以及所有的RPC请求和响应。这些诊断日志可以自由删除而不影响系统的正确性。然而，只要空间允许，我们尽量保留这些日志。
+
 The RPC logs include the exact requests and responses sent on the wire, except for the file data being read or written. By matching requests with replies and collating RPC records on different machines, we can reconstruct the entire interaction history to diagnose a problem. The logs also serve as traces for load testing and performance analysis. 
+>  RPC 日志包含了在通信线路上发送的精确请求和响应，但不包括正在读取或写入的文件数据。通过将请求与回复匹配，并在不同机器上整合 RPC 记录，我们可以重建整个交互历史以诊断问题。这些日志还可用于负载测试和性能分析。
+
 The performance impact of logging is minimal (and far outweighed by the benefits) because these logs are written sequentially and asynchronously. The most recent events are also kept in memory and available for continuous online monitoring. 
-## 6. MEASUREMENTS 
+>  日志记录对性能的影响微乎其微（且远远被其带来的好处所抵消），因为这些日志是按顺序异步写入的。最近发生的事件也会保留在内存中，可供持续的在线监控使用。
+
+# 6 Measurements
 In this section we present a few micro-benchmarks to illustrate the bottlenecks inherent in the GFS architecture and implementation, and also some numbers from real clusters in use at Google. 
-### 6.1 Micro-benchmarks 
+
+## 6.1 Micro-benchmarks 
 We measured performance on a GFS cluster consisting of one master, two master replicas, 16 chunkservers, and 16 clients. Note that this configuration was set up for ease of testing. Typical clusters have hundreds of chunkservers and hundreds of clients. 
+>  我们在一个 GFS 集群上测量了性能，该集群包含一个 master、两个 master replicas、16 个块服务器（chunkservers）和 16 个客户端。请注意，这个配置是为了便于测试而设置的。典型的集群会有数百个块服务器和数百个客户端。
+
 All the machines are configured with dual 1.4 GHz PIII processors, 2 GB of memory, two 80 GB 5400 rpm disks, and a 100 Mbps full-duplex Ethernet connection to an HP 2524 switch. All 19 GFS server machines are connected to one switch, and all 16 client machines to the other. The two switches are connected with a 1 Gbps link. 
-#### 6.1.1 Reads 
+>  所有机器都配备了双核 1.4 GHz 的 PIII 处理器、2GB 内存、两个 80GB 转速为 5400rpm 的硬盘，以及通过 HP 2524 交换机连接的 100Mbps 全双工以太网连接。
+>  所有 19 台 GFS 服务器机器连接到一个交换机，而所有 16 台客户端机器连接到另一个交换机。这两个交换机之间通过一条 1Gbps 链路相连。
+
+### 6.1.1 Reads 
 $N$ clients read simultaneously from the file system. Each client reads a randomly selected 4 MB region from a 320 GB file set. This is repeated 256 times so that each client ends up reading 1 GB of data. The chunkservers taken together have only 32 GB of memory, so we expect at most a $10\%$ hit rate in the Linux buffer cache. Our results should be close to cold cache results. 
-Figure 3(a) shows the aggregate read rate for $N$ clients and its theoretical limit. The limit peaks at an aggregate of 125 MB/s when the 1 Gbps link between the two switches is saturated, or 12.5 MB/s per client when its 100 Mbps network interface gets saturated, whichever applies. The observed read rate is $10~\mathrm{MB/s}$ , or $80\%$ of the per-client limit, when just one client is reading. The aggregate read rate reaches 94 MB/s, about $75\%$ of the 125 MB/s link limit, for 16 readers, or 6 MB/s per client. The efficiency drops from $80\%$ to $75\%$ because as the number of readers increases, so does the probability that multiple readers simultaneously read from the same chunkserver. 
-#### 6.1.2 Writes 
+>  有 $N$ 个客户端同时从文件系统中读取数据。每个客户端随机从一个 320 GB 的文件集合选择一个 4 MB 的区域中进行读取。这个过程重复 256 次，使得每个客户端最终读取了 1 GB 的数据。
+>  所有 ChunkServer 合计只有 32 GB 的内存，因此我们预计 Linux 缓冲区缓存的命中率最多为 $10\%$。我们的结果应该接近冷缓存的结果。
+
+![[pics/GFS-Fig3.png]]
+
+Figure 3(a) shows the aggregate read rate for $N$ clients and its theoretical limit. The limit peaks at an aggregate of 125 MB/s when the 1 Gbps link between the two switches is saturated, or 12.5 MB/s per client when its 100 Mbps network interface gets saturated, whichever applies. 
+> 图 3 (a) 展示了 $N$ 个客户端的聚合读取速率及其理论极限。当两个交换机之间的 1 Gbps 链路达到饱和时，该极限在 125 MB/s 处达到峰值；或者当每个客户端的 100 Mbps 网络接口饱和时，每客户端为 12.5 MB/s，以两者中较低者为准。
+
+The observed read rate is $10~\mathrm{MB/s}$ , or $80\%$ of the per-client limit, when just one client is reading. The aggregate read rate reaches 94 MB/s, about $75\%$ of the 125 MB/s link limit, for 16 readers, or 6 MB/s per client. The efficiency drops from $80\%$ to $75\%$ because as the number of readers increases, so does the probability that multiple readers simultaneously read from the same chunkserver. 
+> 当只有一个客户端进行读取时，观察到的读取速率为 $10~\mathrm{MB/s}$，即每客户端限制的 $80\%$。对于 16 个读者，聚合读取速率达到 94 MB/s，约为 125 MB/s 链路限制的 $75\%$，即每个客户端 6 MB/s。效率从 $80\%$ 下降到 $75\%$ 的原因是，随着读者数量的增加，多个读者同时从同一个 ChunkServer 读取数据的概率也随之增加。
+
+### 6.1.2 Writes 
 $N$ clients write simultaneously to $N$ distinct files. Each client writes 1 GB of data to a new file in a series of 1 MB writes. The aggregate write rate and its theoretical limit are shown in Figure 3(b). The limit plateaus at 67 MB/s because we need to write each byte to 3 of the 16 chunkservers, each with a 12.5 MB/s input connection. 
+>  $N$ 个客户端同时向 $N$ 个不同的文件写入数据。每个客户端以一系列 1 MB 的写操作向新文件写入 1 GB 的数据。 图 3(b) 显示了聚合写入速率及其理论极限值。该极限在 67 MB/s 处趋于平稳，因为我们需要将每个字节写入到 16 个分片服务器中的 3 个，而每个分片服务器的输入连接速率为 12.5 MB/s。
+
 The write rate for one client is 6.3 MB/s, about half of the limit. The main culprit for this is our network stack. It does not interact very well with the pipelining scheme we use for pushing data to chunk replicas. Delays in propagating data from one replica to another reduce the overall write rate. 
+>  单个客户端的写入速率为 6.3 MB/s，约为极限值的一半。主要原因是我们的网络栈与用于将数据推送到分片副本的流水线方案不兼容。从一个副本传播数据到另一个副本的延迟降低了整体写入速率。
+
 Aggregate write rate reaches 35 MB/s for 16 clients (or 2.2 MB/s per client), about half the theoretical limit. As in the case of reads, it becomes more likely that multiple clients write concurrently to the same chunkserver as the number of clients increases. Moreover, collision is more likely for 16 writers than for 16 readers because each write involves three different replicas. 
+>  对于 16 个客户端，聚合写入速率达到了 35 MB/s（即每个客户端 2.2 MB/s），约为理论极限值的一半。与读取的情况类似，随着客户端数量的增加，多个客户端更有可能并发地向同一个分片服务器写入数据。
+>  此外，由于每个写入涉及三个不同的副本，因此对于 16 个写入者来说，冲突的可能性比 16 个读取者更高。
+
 Writes are slower than we would like. In practice this has not been a major problem because even though it increases the latencies as seen by individual clients, it does not significantly affect the aggregate write bandwidth delivered by the system to a large number of clients. 
-#### 6.1.3 Record Appends 
+>  写入速度比我们预期的要慢。但在实际应用中，这并不是一个主要问题，因为尽管它增加了单个客户端的延迟，但并未显著影响系统向大量客户端提供的聚合写入带宽。
+
+### 6.1.3 Record Appends 
 Figure 3(c) shows record append performance. $N$ clients append simultaneously to a single file. Performance is limited by the network bandwidth of the chunkservers that store the last chunk of the file, independent of the number of clients. It starts at 6.0 MB/s for one client and drops to 4.8 MB/s for 16 clients, mostly due to congestion and variances in network transfer rates seen by different clients. 
+>  图 3 (c) 展示了记录追加性能。$N$ 个客户端同时向一个文件追加数据。性能受存储文件最后一个块的 chunkserver 的网络带宽限制，与客户端的数量无关。
+>  对于一个客户端时性能为 6.0 MB/s，而当有 16 个客户端时下降到 4.8 MB/s，这主要是由于拥塞以及不同客户端观察到的网络传输速率的变化。
+
 Our applications tend to produce multiple such files concurrently. In other words, $N$ clients append to $M$ shared files simultaneously where both $N$ and $M$ are in the dozens or hundreds. Therefore, the chunkserver network congestion in our experiment is not a significant issue in practice because a client can make progress on writing one file while the chunkservers for another file are busy. 
-### 6.2 Real World Clusters 
+>  我们的应用程序倾向于并发生成多个这样的文件。换句话说，$N$ 个客户端同时向 $M$ 个共享文件追加数据，其中 $N$ 和 $M$ 的数量都在几十到几百之间。因此，在我们的实验中，chunkserver 的网络拥塞在实际应用中并不是一个重要问题，因为一个客户端可以在写入一个文件时，而另一个文件的 chunkserver 正忙于处理其他任务。
+
+## 6.2 Real World Clusters 
 We now examine two clusters in use within Google that are representative of several others like them. Cluster A is used regularly for research and development by over a hundred engineers. A typical task is initiated by a human user and runs up to several hours. It reads through a few MBs to a few TBs of data, transforms or analyzes the data, and writes the results back to the cluster. Cluster B is primarily used for production data processing. The tasks last much longer and continuously generate and process multi-TB data sets with only occasional human intervention. In both cases, a single “task” consists of many processes on many machines reading and writing many files simultaneously. 
-Table 2: Characteristics of two GFS clusters 
-<html><body><table><tr><td>Cluster</td><td>A</td><td>B</td></tr><tr><td>Chunkservers</td><td>342</td><td>227</td></tr><tr><td>Availablediskspace Useddiskspace</td><td>72 TB 55 TB</td><td>180 ）TB 155 TB</td></tr><tr><td>NumberofFiles NumberofDeadfiles NumberofChunks</td><td>735 22 992</td><td>737 k 232 k 1550 k</td></tr><tr><td>Metadataatchunkservers Metadataatmaster</td><td>13GB 48 MB</td><td>21GB 60 MB</td></tr></table></body></html> 
-#### 6.2.1 Storage 
+>  我们现在研究谷歌内部正在使用的两个典型的集群，它们代表了许多类似的集群。集群 A 经常被一百多名工程师用于研发工作。一个典型的任务由人类用户发起，并运行数小时。它会读取几 MB 到几 TB 的数据，对数据进行转换或分析，并将结果写回集群。集群 B 主要用于生产数据处理。任务持续时间更长，并且会连续生成和处理多 TB 的数据集，只有偶尔需要人工干预。
+>  在这两种情况下，一个“任务”由许多机器上的多个进程同时读写多个文件组成
+
+### 6.2.1 Storage 
+![[pics/GFS-Table2.png]]
+
 As shown by the first five entries in the table, both clusters have hundreds of chunkservers, support many TBs of disk space, and are fairly but not completely full. “Used space” includes all chunk replicas. Virtually all files are replicated three times. Therefore, the clusters store 18 TB and 52 TB of file data respectively. 
+>  如表格中前五个条目所示，这两个集群都拥有数百个 ChunkServer，支持数 TB 的磁盘空间，并且已经相当但并未完全填满。“已用空间”包括所有副本的 Chunk。几乎所有文件都是三副本存储。因此，这两个集群分别存储了 18TB 和 52TB 的文件数据。
+
 The two clusters have similar numbers of files, though B has a larger proportion of dead files, namely files which were deleted or replaced by a new version but whose storage have not yet been reclaimed. It also has more chunks because its files tend to be larger. 
-#### 6.2.2 Metadata 
+>  这两个集群的文件数量大致相同，不过 B 集群中有更高比例的“死文件”，即已被删除或被新版本替换但其存储空间尚未被回收的文件。此外，B 集群中的 Chunk 数量更多，因为其文件的平均大小较大。
+
+### 6.2.2 Metadata 
 The chunkservers in aggregate store tens of GBs of metadata, mostly the checksums for 64 KB blocks of user data. The only other metadata kept at the chunkservers is the chunk version number discussed in Section 4.5. 
+>  总体而言，chunkserver 存储了数十 GB 的元数据，主要是用户数据 64KB 块的校验和。chunkserver 上唯一保存的其他元数据是第 4.5 节中提到的块版本号。
+
 The metadata kept at the master is much smaller, only tens of MBs, or about 100 bytes per file on average. This agrees with our assumption that the size of the master’s memory does not limit the system’s capacity in practice. Most of the per-file metadata is the file names stored in a prefix-compressed form. Other metadata includes file ownership and permissions, mapping from files to chunks, and each chunk’s current version. In addition, for each chunk we store the current replica locations and a reference count for implementing copy-on-write. 
+>  主服务器存储的元数据要少得多，只有几十 MB，平均每个文件大约 100 字节。这与我们的假设一致，即主服务器内存的大小实际上并不会限制系统的容量。大多数文件级别的元数据是以前缀压缩的形式存储的文件名。其他元数据包括文件的所有权和权限、文件到块的映射关系以及每个块的当前版本号。此外，对于每个块，我们还存储当前副本的位置信息以及用于写时复制的引用计数。
+
 Each individual server, both chunkservers and the master, has only 50 to 100 MB of metadata. Therefore recovery is fast: it takes only a few seconds to read this metadata from disk before the server is able to answer queries. However, the master is somewhat hobbled for a period – typically 30 to 60 seconds – until it has fetched chunk location information from all chunkservers. 
-#### 6.2.3 Read and Write Rates 
+>  每个单独的服务器（无论是数据块服务器还是主服务器）只有 50 到 100MB 的元数据。因此恢复速度很快：服务器只需从磁盘读取这些元数据几秒钟即可开始响应查询。然而，在主服务器从所有数据块服务器获取块位置信息之前，通常需要 30 到 60 秒的时间，这段时间内主服务器的功能会受到一定限制。
+
+### 6.2.3 Read and Write Rates 
+
+![[pics/GFS-Table3.png]]
+
 Table 3 shows read and write rates for various time periods. Both clusters had been up for about one week when these measurements were taken. (The clusters had been restarted recently to upgrade to a new version of GFS.) 
+>  表 3 显示了不同时间段的读取和写入速率。这些测量数据是在两个集群运行大约一周后采集的。（这两个集群最近已重启以升级到 GFS 的新版本。）
+
 The average write rate was less than 30 MB/s since the restart. When we took these measurements, B was in the middle of a burst of write activity generating about 100 MB/s of data, which produced a 300 MB/s network load because writes are propagated to three replicas. 
-![](https://cdn-mineru.openxlab.org.cn/extract/132fd48b-6db7-4eb2-9c84-80ed121376be/9c547fe9ad6197b45cf3a38bbff6ab1c4784a0f34dabe4b15cd51bd31a1ce523.jpg) 
-Figure 3: Aggregate Throughputs. Top curves show theoretical limits imposed by our network topology. Bottom curves show measured throughputs. They have error bars that show $95\%$ confidence intervals, which are illegible in some cases because of low variance in measurements. 
-Table 3: Performance Metrics for Two GFS Clusters 
-<html><body><table><tr><td colspan="2">Cluster</td><td>A</td><td>B</td></tr><tr><td>Readrate</td><td>(lastminute</td><td>583 MB S</td><td>380 MB</td></tr><tr><td>Read rate</td><td>(lasthour)</td><td>562 MB</td><td>384 MB</td></tr><tr><td>Read rate</td><td>since restart</td><td>589 MB</td><td>49 MB</td></tr><tr><td>Writerate</td><td>(lastminute</td><td>1 MB</td><td>101 MB S</td></tr><tr><td>Writerate</td><td>(lasthour)</td><td>2 MB</td><td>117 MB S</td></tr><tr><td>Writerate</td><td>sincerestart</td><td>25 MB S</td><td>13 MB S</td></tr><tr><td>Master ops</td><td>(lastminute)</td><td>325 Ops</td><td>533 sdo S</td></tr><tr><td>Master rops</td><td>(lasthour)</td><td>381 Ops/s</td><td>518 Ops/s</td></tr><tr><td>Master ops</td><td>since restart</td><td>202 sdo</td><td>347 Ops</td></tr></table></body></html> 
+>  自重启以来，平均写入速率低于 30 MB/s。在我们进行这些测量时，B 集群正处于一次写入活动的爆发期，生成了约 100 MB/s 的数据，由于写入操作需要传播到三个副本，这导致了 300 MB/s 的网络负载。
+
 The read rates were much higher than the write rates. The total workload consists of more reads than writes as we have assumed. Both clusters were in the middle of heavy read activity. In particular, A had been sustaining a read rate of 580 MB/s for the preceding week. Its network configuration can support 750 MB/s, so it was using its resources efficiently. Cluster B can support peak read rates of 1300 MB/s, but its applications were using just 380 MB/s. 
-#### 6.2.4 Master Load 
+>  读取速率远高于写入速率。正如我们所假设的那样，总工作负载中读取量多于写入量。两个集群都处于大量读取活动之中。特别是，A 集群在过去的一周内一直保持 580 MB/s 的读取速率。其网络配置可以支持高达 750 MB/s 的速率，因此它使用资源非常高效。B 集群的峰值读取速率可达 1300 MB/s，但其应用程序仅使用了 380 MB/s。
+
+### 6.2.4 Master Load 
 Table 3 also shows that the rate of operations sent to the master was around 200 to 500 operations per second. The master can easily keep up with this rate, and therefore is not a bottleneck for these workloads. 
+>  表 3 还显示，发送到主服务器的操作速率约为每秒 200 到 500 次操作。主服务器可以轻松跟上这个速度，因此对于这些工作负载来说，它不是瓶颈。
+
 In an earlier version of GFS, the master was occasionally a bottleneck for some workloads. It spent most of its time sequentially scanning through large directories (which contained hundreds of thousands of files) looking for particular files. We have since changed the master data structures to allow efficient binary searches through the namespace. It can now easily support many thousands of file accesses per second. If necessary, we could speed it up further by placing name lookup caches in front of the namespace data structures. 
-#### 6.2.5 Recovery Time 
-After a chunkserver fails, some chunks will become underreplicated and must be cloned to restore their replication levels. The time it takes to restore all such chunks depends on the amount of resources. In one experiment, we killed a single chunkserver in cluster B. The chunkserver had about 
-15,000 chunks containing 600 GB of data. To limit the impact on running applications and provide leeway for scheduling decisions, our default parameters limit this cluster to 91 concurrent clonings ( $40\%$ of the number of chunkservers) where each clone operation is allowed to consume at most 6.25 MB/s (50 Mbps). All chunks were restored in 23.2 minutes, at an effective replication rate of $440~\mathrm{MB/s}$ . 
+>  在 GFS 的一个早期版本中，主服务器偶尔会成为某些工作负载的瓶颈。它大部分时间都在顺序扫描包含数十万文件的大目录，以查找特定的文件。我们已经对主服务器的数据结构进行了更改，使其能够高效地通过命名空间进行二分搜索。现在它可以轻松支持每秒数千次文件访问。如果有必要，我们可以通过在命名空间数据结构前放置名称查找缓存来进一步提高其速度。
+
+### 6.2.5 Recovery Time 
+After a chunkserver fails, some chunks will become under replicated and must be cloned to restore their replication levels. The time it takes to restore all such chunks depends on the amount of resources. In one experiment, we killed a single chunkserver in cluster B. The chunkserver had about 15,000 chunks containing 600 GB of data. To limit the impact on running applications and provide leeway for scheduling decisions, our default parameters limit this cluster to 91 concurrent clonings ( $40\%$ of the number of chunkservers) where each clone operation is allowed to consume at most 6.25 MB/s (50 Mbps). All chunks were restored in 23.2 minutes, at an effective replication rate of $440~\mathrm{MB/s}$ . 
+>  在某个块服务器故障后，一些块会变成欠复制状态，并且必须进行克隆以恢复其复制级别。
+>  恢复所有此类块所需的时间取决于可用资源的数量。在一项实验中，我们在集群 B 中关闭了一个块服务器。该块服务器大约有 15,000 个块，包含 600 GB 的数据。为了限制对正在运行的应用程序的影响并为调度决策提供灵活性，我们的默认参数将该集群的并发克隆操作限制为最多 91 次（占块服务器数量的 40%），并且每个克隆操作最多可以消耗 6.25 MB/s（50 Mbps）。所有块在 23.2 分钟内被恢复，有效复制速率为 440 MB/s。
+
 In another experiment, we killed two chunkservers each with roughly 16,000 chunks and 660 GB of data. This double failure reduced 266 chunks to having a single replica. These 266 chunks were cloned at a higher priority, and were all restored to at least 2x replication within 2 minutes, thus putting the cluster in a state where it could tolerate another chunkserver failure without data loss. 
-### 6.3 Workload Breakdown 
+>  在另一项实验中，我们关闭了两个块服务器，每个块服务器大约有 16,000 个块和 660 GB 的数据。这两个故障导致 266 个块只剩下单副本。这 266 个块以更高的优先级进行克隆，并在 2 分钟内至少恢复到 2 倍复制，从而将集群置于一种状态，使其能够承受另一个块服务器故障而不会造成数据丢失。
+
+## 6.3 Workload Breakdown 
 In this section, we present a detailed breakdown of the workloads on two GFS clusters comparable but not identical to those in Section 6.2. Cluster X is for research and development while cluster Y is for production data processing. 
-#### 6.3.1 Methodology and Caveats 
+>  在本节中，我们将详细介绍两个与第 6.2 节中的集群相似但不完全相同的 GFS 集群的工作负载。集群 X 用于研发，而集群 Y 用于生产数据处理。
+
+### 6.3.1 Methodology and Caveats 
 These results include only client originated requests so that they reflect the workload generated by our applications for the file system as a whole. They do not include interserver requests to carry out client requests or internal background activities, such as forwarded writes or rebalancing. 
+>  这些结果仅包括客户端发起的请求，以便反映我们的应用程序为整个文件系统生成的工作负载。它们不包括用于执行客户端请求的服务器间请求或内部后台活动，例如转发写入或再平衡操作。
+
 Statistics on I/O operations are based on information heuristically reconstructed from actual RPC requests logged by GFS servers. For example, GFS client code may break a read into multiple RPCs to increase parallelism, from which we infer the original read. Since our access patterns are highly stylized, we expect any error to be in the noise. Explicit logging by applications might have provided slightly more accurate data, but it is logistically impossible to recompile and restart thousands of running clients to do so and cumbersome to collect the results from as many machines. 
+>  I/O 操作的统计数据是基于从 GFS 服务器记录的实际 RPC 请求中启发式重建的信息。例如，GFS 客户端代码可能会将一次读取操作拆分为多个 RPC，以提高并行性，而我们则推断出原始的读取操作。由于我们的访问模式非常固定，因此我们认为任何误差都可能在噪声范围内。应用程序的显式日志记录可能会提供稍微更准确的数据，但重新编译和重启成千上万台运行中的客户端在物流上是不可能的，并且从这么多机器收集结果也十分繁琐。
+
 One should be careful not to overly generalize from our workload. Since Google completely controls both GFS and its applications, the applications tend to be tuned for GFS, and conversely GFS is designed for these applications. Such mutual influence may also exist between general applications and file systems, but the effect is likely more pronounced in our case. 
-Table 4: Operations Breakdown by Size $(\%)$ . For reads, the size is the amount of data actually read and transferred, rather than the amount requested. 
-<html><body><table><tr><td>Operation</td><td>Read</td><td>Write</td><td></td><td>RecordAppend</td></tr><tr><td>Cluster</td><td>X Y</td><td>X Y</td><td>X</td><td>Y</td></tr><tr><td>OK</td><td>0.4 2.6</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1B..1K</td><td>0.1 4.1</td><td>6.6 4.9</td><td>0.2</td><td>0 9.2</td></tr><tr><td>1K..8K</td><td>65.2 38.5</td><td>0.4 1.0</td><td>18.9</td><td>15.2</td></tr><tr><td>8K..64K</td><td>29.9 45.1</td><td>17.8 43.0</td><td>78.0</td><td>2.8</td></tr><tr><td>64K..128K</td><td>0.1 0.7</td><td>2.3 1.9</td><td><.1</td><td>4.3</td></tr><tr><td>128K..256K</td><td>0.2 0.3</td><td>31.6 0.4</td><td><.1</td><td>10.6</td></tr><tr><td>256K..512K</td><td>0.1 0.1</td><td>4.2 7.7</td><td><.1</td><td>31.2</td></tr><tr><td>512K..1M</td><td>3.9 6.9</td><td>35.5 28.7</td><td>2.2</td><td>25.5</td></tr><tr><td>1M..inf</td><td>0.1 1.8</td><td>1.5 12.3</td><td>0.7</td><td>2.2</td></tr></table></body></html> 
-#### 6.3.2 Chunkserver Workload 
+>  需要注意的是，不要过度泛化我们的工作负载。由于谷歌完全控制着 GFS 及其应用程序，这些应用程序往往针对 GFS 进行了优化，反之亦然，GFS 也是为这些应用程序设计的。这种相互影响也可能存在于通用应用程序和文件系统之间，但在我们的案例中，这种影响可能更为显著。
+
+### 6.3.2 Chunkserver Workload 
 Table 4 shows the distribution of operations by size. Read sizes exhibit a bimodal distribution. The small reads (under 64 KB) come from seek-intensive clients that look up small pieces of data within huge files. The large reads (over 512 KB) come from long sequential reads through entire files. 
+>  表 4 展示了按操作大小分布的情况。读取大小呈现双峰分布。小的读取（小于 64 KB）来自密集查找的客户端，它们在大文件中查找小数据片段。大的读取（超过 512 KB）来自整个文件的长顺序读取。
+
 A significant number of reads return no data at all in cluster Y. Our applications, especially those in the production systems, often use files as producer-consumer queues. Producers append concurrently to a file while a consumer reads the end of file. Occasionally, no data is returned when the consumer outpaces the producers. Cluster X shows this less often because it is usually used for short-lived data analysis tasks rather than long-lived distributed applications. 
+>  在集群 Y 中，相当数量的读取根本不返回任何数据。我们的应用程序，特别是生产系统中的应用程序，经常将文件用作生产者-消费者队列。生产者并发地向文件追加数据，而消费者从文件末尾读取数据。偶尔，当消费者的速度快于生产者时，不会返回任何数据。由于集群 X 通常用于短期数据分析任务而不是长期分布式应用程序，因此这种情况出现得较少。
+
 Write sizes also exhibit a bimodal distribution. The large writes (over 256 KB) typically result from significant buffering within the writers. Writers that buffer less data, checkpoint or synchronize more often, or simply generate less data account for the smaller writes (under 64 KB). 
+>  写入大小也呈现双峰分布。大的写入（超过256 KB）通常是由写入器内部的大量缓冲引起的。缓冲较少数据、更频繁地检查点或同步，或者生成较少数据的写入器则产生较小的写入（小于64 KB）。
+
 As for record appends, cluster Y sees a much higher percentage of large record appends than cluster X does because our production systems, which use cluster Y, are more aggressively tuned for GFS. 
+>  至于记录追加，集群Y看到的大记录追加比例远高于集群X，因为我们的生产系统对GFS进行了更积极的调优。
+
 Table 5 shows the total amount of data transferred in operations of various sizes. For all kinds of operations, the larger operations (over 256 KB) generally account for most of the bytes transferred. Small reads (under 64 KB) do transfer a small but significant portion of the read data because of the random seek workload. 
-#### 6.3.3 Appends versus Writes 
+>  表5显示了各种大小的操作中传输的总数据量。对于所有类型的操作，较大的操作（超过256 KB）通常占传输字节的绝大部分。由于随机查找的工作负载，小的读取（小于64 KB）确实会传输一小部分但显著的读取数据。
+
+### 6.3.3 Appends versus Writes 
 Record appends are heavily used especially in our production systems. For cluster X, the ratio of writes to record appends is 108:1 by bytes transferred and 8:1 by operation counts. For cluster Y, used by the production systems, the ratios are 3.7:1 and 2.5:1 respectively. Moreover, these ratios suggest that for both clusters record appends tend to be larger than writes. For cluster X, however, the overall usage of record append during the measured period is fairly low and so the results are likely skewed by one or two applications with particular buffer size choices. 
-As expected, our data mutation workload is dominated by appending rather than overwriting. We measured the amount of data overwritten on primary replicas. This ap 
-<html><body><table><tr><td>Operation</td><td>Read</td><td>Write</td><td></td><td>Record Append</td></tr><tr><td>Cluster</td><td>X Y</td><td>X</td><td>X</td><td>Y</td></tr><tr><td>1B..1K</td><td><.1 <.1</td><td><.1<.1</td><td><.1</td><td><.1</td></tr><tr><td>1K..8K</td><td>13.8 3.9</td><td><.1<.1</td><td><.1</td><td>0.1</td></tr><tr><td>8K..64K</td><td>11.4 9.3</td><td>2.4 5.9</td><td>2.3</td><td>0.3</td></tr><tr><td>64K..128K</td><td>0.3 0.7</td><td>0.3 0.3</td><td>22.7</td><td>1.2</td></tr><tr><td>128K..256K</td><td>0.8 0.6</td><td>16.5 0.2</td><td><.1</td><td>5.8</td></tr><tr><td>256K..512K</td><td>1.4 0.3</td><td>3.4 7.7</td><td><.1</td><td>38.4</td></tr><tr><td>512K..1M</td><td>65.9 55.1</td><td>74.1 58.0</td><td>.1</td><td>46.8 7.4</td></tr><tr><td>1M..inf</td><td>6.4 30.1</td><td>3.3 28.0</td><td>53.9</td><td></td></tr></table></body></html> 
-Table 5: Bytes Transferred Breakdown by Operation Size $(\%)$ . For reads, the size is the amount of data actually read and transferred, rather than the amount requested. The two may differ if the read attempts to read beyond end of file, which by design is not uncommon in our workloads. 
-Table 6: Master Requests Breakdown by Type ( $\%$ ) 
-<html><body><table><tr><td>Cluster</td><td>X Y</td></tr><tr><td>Open Delete FindLocation</td><td>26.116.3 0.7 71.5</td></tr></table></body></html> 
-proximates the case where a client deliberately overwrites previous written data rather than appends new data. For cluster X, overwriting accounts for under $0.0001\%$ of bytes mutated and under $0.0003\%$ of mutation operations. For cluster Y, the ratios are both $0.05\%$ . Although this is minute, it is still higher than we expected. It turns out that most of these overwrites came from client retries due to errors or timeouts. They are not part of the workload per se but a consequence of the retry mechanism. 
-#### 6.3.4 Master Workload 
+>  记录追加在我们的生产系统中被大量使用。对于集群 X，按传输字节数计算，写入与记录追加的比例为 108:1；按操作次数计算，比例为 8:1。对于由生产系统使用的集群 Y，相应的比例分别为 3.7:1 和 2.5:1。此外，这些比例表明，在两个集群中，记录追加的大小通常大于写入操作。然而，对于集群 X，在测量期间记录追加的整体使用量相对较低，因此结果可能受到一两个具有特定缓冲区大小选择的应用程序的影响。
+
+As expected, our data mutation workload is dominated by appending rather than overwriting. We measured the amount of data overwritten on primary replicas. This approximates the case where a client deliberately overwrites previous written data rather than appends new data. For cluster X, overwriting accounts for under $0.0001\%$ of bytes mutated and under $0.0003\%$ of mutation operations. For cluster Y, the ratios are both $0.05\%$ . Although this is minute, it is still higher than we expected. It turns out that most of these overwrites came from client retries due to errors or timeouts. They are not part of the workload per se but a consequence of the retry mechanism. 
+>  正如预期的那样，我们的数据变更工作负载主要以追加为主，而不是覆盖写入。我们测量了在主副本上被覆盖的数据量。这大致相当于客户端有意覆盖之前写入的数据，而不是追加新数据的情况。对于集群 X，覆盖写入占被变更字节的不到 0.0001%，占变更操作的不到 0.0003%。对于集群 Y，这两个比例均为 0.05%。尽管这个比例非常小，但仍然高于我们的预期。事实证明，大多数覆盖写入是由于客户端因错误或超时而重试导致的。它们并不是工作负载的一部分，而是重试机制的结果。
+
+### 6.3.4 Master Workload 
 Table 6 shows the breakdown by type of requests to the master. Most requests ask for chunk locations (FindLocation) for reads and lease holder information (FindLeaseLocker) for data mutations. 
+>  表6展示了主节点请求类型的分解。大多数请求是为读取操作查询块位置（FindLocation）以及为数据变更操作获取租约持有者信息（FindLeaseLocker）。  
+
 Clusters X and Y see significantly different numbers of Delete requests because cluster Y stores production data sets that are regularly regenerated and replaced with newer versions. Some of this difference is further hidden in the difference in Open requests because an old version of a file may be implicitly deleted by being opened for write from scratch (mode “w” in Unix open terminology). 
+>  集群X和Y的Delete请求数量存在显著差异，因为集群Y存储的是定期重新生成并替换为新版本的生产数据集。这种差异部分隐藏在Open请求的数量差异中，因为在Unix打开模式下，以“w”模式打开一个文件从头开始写入可能会隐式删除旧版本的文件。  
+
 FindMatchingFiles is a pattern matching request that supports “ls” and similar file system operations. Unlike other requests for the master, it may process a large part of the namespace and so may be expensive. Cluster Y sees it much more often because automated data processing tasks tend to examine parts of the file system to understand global application state. In contrast, cluster X’s applications are under more explicit user control and usually know the names of all needed files in advance. 
-## 7. EXPERIENCES 
+>  FindMatchingFiles是一种支持“ls”等类似文件系统操作的模式匹配请求。与其他主节点请求不同，它可能处理命名空间的大部分内容，因此可能较为昂贵。集群Y中该请求出现得更频繁，因为自动化数据处理任务倾向于检查文件系统的某些部分以了解全局应用程序状态。相比之下，集群X的应用程序受到更多用户直接控制，并且通常提前知道所有需要的文件名称。
+
+## 7 Experiences
 In the process of building and deploying GFS, we have experienced a variety of issues, some operational and some technical. 
+
 Initially, GFS was conceived as the backend file system for our production systems. Over time, the usage evolved to include research and development tasks. It started with little support for things like permissions and quotas but now includes rudimentary forms of these. While production systems are well disciplined and controlled, users sometimes are not. More infrastructure is required to keep users from interfering with one another. 
+
 Some of our biggest problems were disk and Linux related. Many of our disks claimed to the Linux driver that they supported a range of IDE protocol versions but in fact responded reliably only to the more recent ones. Since the protocol versions are very similar, these drives mostly worked, but occasionally the mismatches would cause the drive and the kernel to disagree about the drive’s state. This would corrupt data silently due to problems in the kernel. This problem motivated our use of checksums to detect data corruption, while concurrently we modified the kernel to handle these protocol mismatches. 
+
 Earlier we had some problems with Linux 2.2 kernels due to the cost of fsync(). Its cost is proportional to the size of the file rather than the size of the modified portion. This was a problem for our large operation logs especially before we implemented checkpointing. We worked around this for a time by using synchronous writes and eventually migrated to Linux 2.4. 
+
 Another Linux problem was a single reader-writer lock which any thread in an address space must hold when it pages in from disk (reader lock) or modifies the address space in an mmap() call (writer lock). We saw transient timeouts in our system under light load and looked hard for resource bottlenecks or sporadic hardware failures. Eventually, we found that this single lock blocked the primary network thread from mapping new data into memory while the disk threads were paging in previously mapped data. Since we are mainly limited by the network interface rather than by memory copy bandwidth, we worked around this by replacing mmap() with pread() at the cost of an extra copy. 
+
 Despite occasional problems, the availability of Linux code has helped us time and again to explore and understand system behavior. When appropriate, we improve the kernel and share the changes with the open source community. 
-## 8. RELATED WORK 
+
+# 8 Related Work
 Like other large distributed file systems such as AFS [5], GFS provides a location independent namespace which enables data to be moved transparently for load balance or fault tolerance. Unlike AFS, GFS spreads a file’s data across storage servers in a way more akin to xFS [1] and Swift [3] in order to deliver aggregate performance and increased fault tolerance. 
+>  类似 AFS，GFS 提供了位置无关的命名空间，允许数据可以透明地 (命名空间上看不出来) 被移动以实现负载均衡和容错
+>  GFS 将数据分布在存储服务器上的方式更类似 xFS 和 Swift
+
 As disks are relatively cheap and replication is simpler than more sophisticated RAID [9] approaches, GFS currently uses only replication for redundancy and so consumes more raw storage than xFS or Swift. 
+>  GFS 仅使用复制以保障冗余性，不使用复杂的 RAID 方法
+
 In contrast to systems like AFS, xFS, Frangipani [12], and Intermezzo [6], GFS does not provide any caching below the file system interface. Our target workloads have little reuse within a single application run because they either stream through a large data set or randomly seek within it and read small amounts of data each time. 
+>  GFS 在文件系统接口下不提供缓存，因为目标工作负载的复用情况少，目标程序一般流式读取大规模数据，或者随机在大规模数据中搜索并读取少量数据
+
 Some distributed file systems like Frangipani, xFS, Minnesota’s GFS[11] and GPFS [10] remove the centralized server and rely on distributed algorithms for consistency and management. We opt for the centralized approach in order to simplify the design, increase its reliability, and gain flexibility. In particular, a centralized master makes it much easier to implement sophisticated chunk placement and replication policies since the master already has most of the relevant information and controls how it changes. We address fault tolerance by keeping the master state small and fully replicated on other machines. Scalability and high availability (for reads) are currently provided by our shadow master mechanism. Updates to the master state are made persistent by appending to a write-ahead log. Therefore we could adapt a primary-copy scheme like the one in Harp [7] to provide high availability with stronger consistency guarantees than our current scheme. 
+>  一些分布式文件系统移除了中心服务器，依赖分布式算法实现一致性和管理
+>  GFS 为了简化设计，提高灵活性，选择了 master-slave 方案，这使得实现 chunk placement 和 replication policies 更加简单，因为 master 知道全部的相关信息，并且具有控制权
+>  我们通过保持 master 状态小，并且在其他机器上具有拷贝，以确保容错
+>  对于读操作的可拓展性和高可用性通过 shadow master 机制实现 (多个 master 服务读操作)
+
 We are addressing a problem similar to Lustre [8] in terms of delivering aggregate performance to a large number of clients. However, we have simplified the problem significantly by focusing on the needs of our applications rather than building a POSIX-compliant file system. Additionally, GFS assumes large number of unreliable components and so fault tolerance is central to our design. 
+>  GFS 假设了集群是由大量不可靠成分组成的，故其设计核心是容错
+
 GFS most closely resembles the NASD architecture [4]. While the NASD architecture is based on network-attached disk drives, GFS uses commodity machines as chunkservers, as done in the NASD prototype. Unlike the NASD work, our chunkservers use lazily allocated fixed-size chunks rather than variable-length objects. Additionally, GFS implements features such as rebalancing, replication, and recovery that are required in a production environment. 
+>  GFS 的 chunkservers 使用延迟分配的固定大小 chunks，而不是变长的对象
+>  GFS 针对生成环境实现了负载均衡、复制、恢复等机制
+
 Unlike Minnesota’s GFS and NASD, we do not seek to alter the model of the storage device. We focus on addressing day-to-day data processing needs for complicated distributed systems with existing commodity components. 
+
 The producer-consumer queues enabled by atomic record appends address a similar problem as the distributed queues in River [2]. While River uses memory-based queues distributed across machines and careful data flow control, GFS uses a persistent file that can be appended to concurrently by many producers. The River model supports m-to-n distributed queues but lacks the fault tolerance that comes with persistent storage, while GFS only supports m-to-1 queues efficiently. Multiple consumers can read the same file, but they must coordinate to partition the incoming load. 
-## 9. CONCLUSIONS 
+>  River 使用基于内存的分布式生产者-消费者队列，GFS 使用持久文件，具有更高容错，但 GFS 仅高效支持 m-to-1 队列，即多个生产者，单个消费者 (被追加的文件)
+>  GFS 中，多个消费者可以读取相同文件，但需要互相协调以划分 incoming load
+
+## 9 Conclusions
 The Google File System demonstrates the qualities essential for supporting large-scale data processing workloads on commodity hardware. While some design decisions are specific to our unique setting, many may apply to data processing tasks of a similar magnitude and cost consciousness. 
+>  GFS 支持了在商用硬件 (不太行的硬件) 上处理大规模工作负载
+
 We started by reexamining traditional file system assumptions in light of our current and anticipated application workloads and technological environment. Our observations have led to radically different points in the design space. We treat component failures as the norm rather than the exception, optimize for huge files that are mostly appended to (perhaps concurrently) and then read (usually sequentially), and both extend and relax the standard file system interface to improve the overall system. 
+>  在设计时，我们认为组件故障是常规情况，而不是偶尔的异常，我们根据工作负载特性，针对对大型文件的并发追加操作和顺序读取进行优化
+
 Our system provides fault tolerance by constant monitoring, replicating crucial data, and fast and automatic recovery. Chunk replication allows us to tolerate chunkserver failures. The frequency of these failures motivated a novel online repair mechanism that regularly and transparently repairs the damage and compensates for lost replicas as soon as possible. Additionally, we use checksumming to detect data corruption at the disk or IDE subsystem level, which becomes all too common given the number of disks in the system. 
+>  GFS 通过常规的监控、复制关键数据、快速和原子化的恢复提供容错
+>  chunk 拷贝用于容忍 chunkserver 故障，因为 chunkserver 故障频繁，GFS 采用在线的修复机制，定期地且透明地 (不可见地) 修复 replica 的丢失
+>  GFS 使用校验和检查磁盘的数据损坏 (数据损坏也是常见的情况)
+
 Our design delivers high aggregate throughput to many concurrent readers and writers performing a variety of tasks. We achieve this by separating file system control, which passes through the master, from data transfer, which passes directly between chunkservers and clients. Master involvement in common operations is minimized by a large chunk size and by chunk leases, which delegates authority to primary replicas in data mutations. This makes possible a simple, centralized master that does not become a bottleneck. We believe that improvements in our networking stack will lift the current limitation on the write throughput seen by an individual client. 
+>  GFS 对于多个并发读者和多个执行不同任务的写者具有高的聚合吞吐
+>  这是通过分离文件系统控制和数据传输实现的，控制经过 master，数据传输直接在 chunkserver 和 client 之间进行，通过大的 chunk size 和 chunk 租约机制，使得 master 的参与最小化，其中 chunk 租约机制将数据变更的权限委托给 chunk 的 primary 副本
+>  这使得中心化的 master 不会成为瓶颈
+
 GFS has successfully met our storage needs and is widely used within Google as the storage platform for research and development as well as production data processing. It is an important tool that enables us to continue to innovate and attack problems on the scale of the entire web. 
