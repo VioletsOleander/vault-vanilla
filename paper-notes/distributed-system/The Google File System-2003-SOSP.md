@@ -767,7 +767,7 @@ The producer-consumer queues enabled by atomic record appends address a similar 
 >  River 使用基于内存的分布式生产者-消费者队列，GFS 使用持久文件，具有更高容错，但 GFS 仅高效支持 m-to-1 队列，即多个生产者，单个消费者 (被追加的文件)
 >  GFS 中，多个消费者可以读取相同文件，但需要互相协调以划分 incoming load
 
-## 9 Conclusions
+# 9 Conclusions
 The Google File System demonstrates the qualities essential for supporting large-scale data processing workloads on commodity hardware. While some design decisions are specific to our unique setting, many may apply to data processing tasks of a similar magnitude and cost consciousness. 
 >  GFS 支持了在商用硬件 (不太行的硬件) 上处理大规模工作负载
 
