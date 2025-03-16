@@ -1380,6 +1380,9 @@ Date: 2025.3.10-2025.3.17
 \[Paper\]
 - [[paper-notes/distributed-system/Paxos Made Simple-2001|Paxos Made Simple]]: All
 
+\[Book\]
+- [[book-notes/深度强化学习|深度强化学习]]: CH8
+
 \[Doc\]
 - [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/tutorials/Understanding the IR Structure]]
 - [[doc-notes/mlir/code-documentation/Dialect Conversion|mlir/code-documentation/Dialect Conversion]]
