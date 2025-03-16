@@ -1377,6 +1377,9 @@ Date: 2025.3.3-2025.3.10
 ### Week 3
 Date: 2025.3.10-2025.3.17
 
+\[Paper\]
+- [[paper-notes/distributed-system/Paxos Made Simple-2001|Paxos Made Simple]]: All
+
 \[Doc\]
 - [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/tutorials/Understanding the IR Structure]]
 - [[doc-notes/mlir/code-documentation/Dialect Conversion|mlir/code-documentation/Dialect Conversion]]
