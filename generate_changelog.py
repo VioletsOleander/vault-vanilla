@@ -17,7 +17,7 @@ def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
     sections = ['Book', 'Paper', 'Doc', 'Blog', 'Code']
     section_re = re.compile(r'^\\\[\w+\\\]')
     items = []
-    item_re = re.compile(r'^- .+:\s')
+    item_re = re.compile(r'^- \[\[.+\]\]:?')
     code_item_re = re.compile(r'^- .+')
 
     lines_tree = {section: {} for section in sections}
