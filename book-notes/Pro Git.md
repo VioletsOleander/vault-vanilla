@@ -1309,123 +1309,212 @@ Basically all this does is to remove the pointer from the server. The Git server
 >  基本上该命令所做的所有事就是将该指针从服务器上移除，Git 服务器通常会保持该数据一段时间，直到垃圾处理程序的运行，因此如果有时意外删除了，也比较容易恢复
 
 ## 3.6 Rebasing
-在 Git 中，将一个分支的更改整合到另一个分支主要有两大方式：合并 (merge) 和变基 (rebase)
-### 3.6.1 The Basic Rebase
+In Git, there are two main ways to integrate changes from one branch into another: the `merge` and the `rebase`. In this section you’ll learn what rebasing is, how to do it, why it’s a pretty amazing tool, and in what cases you won’t want to use it.
+>  在 Git 中，将一个分支的更改整合到另一个分支主要有两大方式：合并 (merge) 和变基 (rebase)
+
+### The Basic Rebase
+
 ![[ProGit-Fig35.png]]
 
-整合分支的最简单方式，正如我们已经讨论过的，是使用 `merge` 命令，它在两个最新的分支快照 ( `C3` 和 `C4` ) 以及两者最近的共同祖先 ( `C2` ) 之间执行三方合并，创建一个新的快照 (以及提交)
+The easiest way to integrate the branches, as we’ve already covered, is the `merge` command. It performs a three-way merge between the two latest branch snapshots (`C3` and `C4`) and the most recent common ancestor of the two (`C2`), creating a new snapshot (and commit).
+>  整合分支的最简单方式，正如我们已经讨论过的，是使用 `merge` 命令，它在两个最新的分支快照 ( `C3` 和 `C4` ) 以及两者最近的共同祖先 ( `C2` ) 之间执行三方合并，创建一个新的快照 (以及提交)
+
 ![[ProGit-Fig36.png]]
 
-然而，还有另一种方式：我们可以取出 `C4` 中引入的变更部分 (the patch of the change)，并在 `C3` 的基础上重新应用 (reapply) 它，在 Git 中，这被称为变基，使用 `rebase` 命令，我们可以取出在一个分支上提交的所有更改 (all the changes that were committed on one brach)，并在另一个分支上重新应用它们
+However, there is another way: you can take the patch of the change that was introduced in `C4` and reapply it on top of `C3`. In Git, this is called _rebasing_. With the `rebase` command, you can take all the changes that were committed on one branch and replay them on a different branch.
+>  然而，还有另一种方式：我们可以取出 `C4` 中引入的变更部分 (the patch of the change)，并在 `C3` 的基础上重新应用 (reapply) 它，在 Git 中，这被称为变基，使用 `rebase` 命令，我们可以取出在一个分支上提交的所有更改 (all the changes that were committed on one branch)，并在另一个分支上重新应用它们
 
-例如，我们检出 `experiment` 分支，然后将其变基到 `master` 分支 (rebase it onto the `master` )，如下所示：
+For this example, you would check out the `experiment` branch, and then rebase it onto the `master` branch as follows:
+>  例如，我们检出 `experiment` 分支，然后将其变基到 `master` 分支 (rebase it onto the `master` )，如下所示：
+
 ```
 $ git checkout experiment
 $ git rebase master
 First, rewinding heada to replay your work on top of it...
 Applying: added staged command
 ```
-这个操作的工作原理是：找到我们正在变基的两个分支 (当前所在的分支和正在变基到的分支) 的共同祖先，获取当前所在的分支上每个提交引入的差异 (diff)，将这些差异保存到临时文件中，然后将当前分支重置为指向与我们正在变基到的分支相同的提交 (resetting the current branch to the same commit as the branch you are rebasing onto)，最后依次应用每个更改
+
+This operation works by going to the common ancestor of the two branches (the one you’re on and the one you’re rebasing onto), getting the diff introduced by each commit of the branch you’re on, saving those diffs to temporary files, resetting the current branch to the same commit as the branch you are rebasing onto, and finally applying each change in turn.
+>  这个操作的工作原理是：找到我们正在变基的两个分支 (当前所在的分支和正在变基到的分支) 的共同祖先，获取当前所在的分支上每个提交引入的差异 (diff)，将这些差异保存到临时文件中，然后将当前分支重置为指向与我们正在变基到的分支相同的提交 (resetting the current branch to the same commit as the branch you are rebasing onto，即让 `experiment` 指向 `C3`)，最后依次应用每个更改 (对 `experiment` 应用更改，得到新的 commit `C4'`)
+
 ![[ProGit-Fig37.png]]
 
-此时，我们可以切换回 `master` 分支，并进行一次快速前移合并 (fast-forward merge)
+At this point, you can go back to the `master` branch and do a fast-forward merge.
+>  此时，我们可以切换回 `master` 分支，并进行一次快速前移合并 (fast-forward merge)
+
 ```
 $ git checkout master
 $ git merge experiment
 ```
+
 ![[ProGit-Fig38.png]]
-现在，由 `C4'` 指向的快照与合并示例中 `C5` 指向的快照完全相同，集成的最终产品没有区别，但变基可以创建一个更干净的历史记录，如果我们检查一个变基分支的日志，它看起来像是一个线性历史：看起来所有的工作都是连续发生的，即使它最初是并行发生的
 
-通常，我们会执行变基以确保我们的提交在远程分支上干净地应用——也许我们正在尝试贡献一个项目，但并不维护它，在这种情况下，我们会在一个分支上做我们的工作，然后当准备好将我们的补丁提交到主项目时，将我们的工作变基到 `origin/master` ，这样，维护者就不需要做任何集成工作——只需要一个快进或一个干净的应用
+Now, the snapshot pointed to by `C4'` is exactly the same as the one that was pointed to by `C5` in [the merge example](https://git-scm.com/book/en/v2/ch00/rebasing-merging-example). There is no difference in the end product of the integration, but rebasing makes for a cleaner history. If you examine the log of a rebased branch, it looks like a linear history: it appears that all the work happened in series, even when it originally happened in parallel.
+>  现在，由 `C4'` 指向的快照与合并示例中 `C5` 指向的快照完全相同，集成的最终产品没有区别，但变基可以创建一个更干净的历史记录，如果我们检查一个变基分支的日志，它看起来像是一个线性历史：看起来所有的工作都是连续发生的，即使它最初是并行发生的
 
-请注意，无论是通过变基得到的最后一个变基提交，还是合并后的最终合并提交，指向的快照是相同的——只有历史记录是不同的 (only the history that is different)，变基是将一个工作线上的更改按它们引入的顺序重新播放到另一个工作线上，而合并是将端点合并在一起
-### 3.6.2 More Interesting Rebases
-我们还可以将变基操作重新应用到除变基目标分支之外的其他分支上，以一个具有从另一个主题分支分出的主题分支的历史 (a history with a topic branch off another topic branch) 为例，我们从一个主题分支 (`server`) 分出一个分支来为项目添加一些服务器端功能，并进行了一次提交，然后从那个分支分出另一个分支来进行客户端更改 (`client`)，并多次提交，最后回到 `server` 分支并进行了更多的提交
+Often, you’ll do this to make sure your commits apply cleanly on a remote branch — perhaps in a project to which you’re trying to contribute but that you don’t maintain. In this case, you’d do your work in a branch and then rebase your work onto `origin/master` when you were ready to submit your patches to the main project. That way, the maintainer doesn’t have to do any integration work — just a fast-forward or a clean apply.
+>  通常，我们会执行变基以确保我们的提交在远程分支上干净地应用——也许我们正在尝试贡献一个项目，但并不维护它，在这种情况下，我们会在一个分支上做我们的工作，然后当准备好将我们的补丁提交到主项目时，将我们的工作变基到 `origin/master` ，这样，维护者就不需要做任何集成工作——只需要一个快进或一个干净的应用
+
+Note that the snapshot pointed to by the final commit you end up with, whether it’s the last of the rebased commits for a rebase or the final merge commit after a merge, is the same snapshot — it’s only the history that is different. Rebasing replays changes from one line of work onto another in the order they were introduced, whereas merging takes the endpoints and merges them together.
+>  请注意，无论是通过变基得到的最后一个变基提交，还是合并后的最终合并提交，指向的快照是相同的——只有历史记录是不同的 (only the history that is different)，变基是将一个工作线上的更改按它们引入的顺序重新播放到另一个工作线上，而合并是将端点合并在一起
+
+### More Interesting Rebases
+You can also have your rebase replay on something other than the rebase target branch. Take a history like [A history with a topic branch off another topic branch](https://git-scm.com/book/en/v2/ch00/rbdiag_e), for example. You branched a topic branch (`server`) to add some server-side functionality to your project, and made a commit. Then, you branched off that to make the client-side changes (`client`) and committed a few times. Finally, you went back to your `server` branch and did a few more commits.
+>  我们还可以将变基操作重新应用到除变基目标分支之外的其他分支上
+>  以一个具有从另一个主题分支分出的主题分支的历史 (a history with a topic branch off another topic branch) 为例，我们从一个主题分支 (`server`) 分出一个分支来为项目添加一些服务器端功能，并进行了一次提交，然后从那个分支分出另一个分支来进行客户端更改 (`client`)，并多次提交，最后回到 `server` 分支并进行了更多的提交
+
 ![[ProGit-Fig39.png]]
 
-假设我们决定将客户端更改合并到主线中进行发布，但想在进一步测试后再推迟服务器端的更改，我们可以取出在客户端但不在服务器上的更改 ( `C8` 和`C9` )，并使用`git rebase` 的 `--onto` 选项将它们重新应用到 `master` 分支上：
+Suppose you decide that you want to merge your client-side changes into your mainline for a release, but you want to hold off on the server-side changes until it’s tested further. You can take the changes on `client` that aren’t on `server` (`C8` and `C9`) and replay them on your `master` branch by using the `--onto` option of `git rebase`:
+>  假设我们决定将客户端更改合并到主线中进行发布，但想在进一步测试后再推迟服务器端的更改，我们可以取出在客户端但不在服务器上的更改 ( `C8` 和 `C9` )，并使用 `git rebase` 的 `--onto` 选项将它们重新应用到 `master` 分支上：
+
 ```
 $ git rebase --onto master server client
 ```
-这意味着：“取出 `client` 分支，找出它从 `server` 分支分叉以来的补丁，然后在 `master` 上重新应用这些补丁，就好像 `client` 是直接基于 `master` 分支一样
+
+This basically says, “Take the `client` branch, figure out the patches since it diverged from the `server` branch, and replay these patches in the `client` branch as if it was based directly off the `master` branch instead.” It’s a bit complex, but the result is pretty cool.
+>  这意味着：“取出 `client` 分支，找出它从 `server` 分支分叉以来的补丁，然后在 `master` 上重新应用这些补丁，就好像 `client` 是直接基于 `master` 分支一样
+
 ![[ProGit-Fig40.png]]
-现在我们可以快速前移我们的 `master` 分支
+
+Now you can fast-forward your `master` branch (see [Fast-forwarding your `master` branch to include the `client` branch changes](https://git-scm.com/book/en/v2/ch00/rbdiag_g)):
+>  现在我们可以快速前移我们的 `master` 分支
+
 ```
 $ git checkout master
 $ git merge client
 ```
+
 ![[ProGit-Fig41.png]]
 
-假设我们决定也拉取 `server` 分支，可以通过运行`git rebase <basebranch> <topicbranch>` 来将 `server` 分支变基到 `master` 分支，而无需先检出它——这将为我们检出主题分支 (在本例中是 `server` )，并将其重新应用到基础分支 ( `master` ) 上：
+Let’s say you decide to pull in your `server` branch as well. You can rebase the `server` branch onto the `master` branch without having to check it out first by running `git rebase <basebranch> <topicbranch>` — which checks out the topic branch (in this case, `server`) for you and replays it onto the base branch (`master`):
+>  假设我们决定也拉取 `server` 分支，可以通过运行 `git rebase <basebranch> <topicbranch>` 来将 `server` 分支变基到 `master` 分支，而无需先检出它——这将为我们检出主题分支 (在本例中是 `server` )，并将其重新应用到基础分支 ( `master` ) 上：
+
 ```
 git rebase master server
 ```
 
-这将把我们 `server` 的工作重新应用到 `master` 的工作之上 (on top of)
+This replays your `server` work on top of your `master` work, as shown in [Rebasing your `server` branch on top of your `master` branch](https://git-scm.com/book/en/v2/ch00/rbdiag_h).
+>  这将把我们 `server` 的工作重新应用到 `master` 的工作之上 (on top of)
+
 ![[ProGit-Fig42.png]]
 
-然后我们可以快速前移我们的基分支 ( `master` )：
+Then, you can fast-forward the base branch (`master`):
+>  然后我们可以快速前移我们的基分支 ( `master` )：
+
 ```
 $ git checkout master
 $ git merge server
 ```
 
-我们可以移除 `client` 和 `server` 分支因为所有的工作都已经集成，我们已经不再需要这些分支
+You can remove the `client` and `server` branches because all the work is integrated and you don’t need them anymore, leaving your history for this entire process looking like [Final commit history](https://git-scm.com/book/en/v2/ch00/rbdiag_i):
+>  我们可以移除 `client` 和 `server` 分支因为所有的工作都已经集成，我们已经不再需要这些分支
+
 ```
 $ git branch -d client
 $ git branch -d server
 ```
+
 ![[ProGit-Fig43.png]]
-### 3.6.3 The Perils of Rebasing
-变基的并非没有缺点，这些缺点可以用一句话概括：
-**不要变基那些存在于我们的仓库之外并且人们可能已经基于它们进行工作的提交 (do not rebase commits that exist outside your repository and that people may have based work on)**
 
-当我们变基时，我们是在放弃现有的提交，并创建新的类似但不同的提交，如果我们在某个地方推送了提交，其他人拉取了它们并基于它们进行工作，然后我们用 `git rebase` 重写了这些提交并再次推送，我们的合作者将不得不重新合并 (re-merge) 他们的工作，当我们尝试将他们的工作拉回到我们的工作中时，事情会变得混乱
+### The Perils of Rebasing
+Ahh, but the bliss of rebasing isn’t without its drawbacks, which can be summed up in a single line:
 
-让我们来看一个例子，看看变基我们已经公开的工作如何导致问题，假设我们从一个中央服务器克隆，然后在此基础上做了一些工作，提交历史看起来像这样：
+**Do not rebase commits that exist outside your repository and that people may have based work on.**
+
+If you follow that guideline, you’ll be fine. If you don’t, people will hate you, and you’ll be scorned by friends and family.
+
+>  变基的并非没有缺点，这些缺点可以用一句话概括：
+>  **不要变基那些存在于我们的仓库之外并且人们可能已经基于它们进行工作的提交 (do not rebase commits that exist outside your repository and that people may have based work on)**
+
+When you rebase stuff, you’re abandoning existing commits and creating new ones that are similar but different. If you push commits somewhere and others pull them down and base work on them, and then you rewrite those commits with `git rebase` and push them up again, your collaborators will have to re-merge their work and things will get messy when you try to pull their work back into yours.
+>  当我们变基时，我们是在放弃现有的提交，并创建新的类似但不同的提交，如果我们在某个地方推送了提交，其他人拉取了它们并基于它们进行工作，然后我们用 `git rebase` 重写了这些提交并再次推送，我们的合作者将不得不重新合并 (re-merge) 他们的工作，当我们尝试将他们的工作拉回到我们的工作中时，事情会变得混乱
+
+Let’s look at an example of how rebasing work that you’ve made public can cause problems. Suppose you clone from a central server and then do some work off that. Your commit history looks like this:
+>  让我们来看一个例子，看看变基我们已经公开的工作如何导致问题，假设我们从一个中央服务器克隆，然后在此基础上做了一些工作，提交历史看起来像这样：
+
 ![[ProGit-Fig44.png]]
 
-现在，有人做了更多的工作，包括合并操作，并将这些工作推送到了中央服务器，我们获取了这些更改，并将新的远程分支合并到我们的工作中，使历史看起来像这样：
+Now, someone else does more work that includes a merge, and pushes that work to the central server. You fetch it and merge the new remote branch into your work, making your history look something like this:
+>  现在，有人做了更多的工作，包括合并操作，并将这些工作推送到了中央服务器，我们获取了这些更改，并将新的远程分支合并到我们的工作中，使历史看起来像这样：
+
 ![[ProGit-Fig45.png]]
 
-接下来，之前推送了工作的人决定回退并重新基于他们的工作进行变基，他们执行了`git push --force`来覆盖服务器上的历史记录，然后我们从那个服务器获取更新，带来了新的提交：
+Next, the person who pushed the merged work decides to go back and rebase their work instead; they do a `git push --force` to overwrite the history on the server. You then fetch from that server, bringing down the new commits.
+>  接下来，之前推送了工作的人决定回退并重新基于他们的工作进行变基，他们执行了 `git push --force` 来覆盖服务器上的历史记录，然后我们从那个服务器获取更新，带来了新的提交：
+
 ![[ProGit-Fig46.png]]
 
-现在我们俩都陷入了困境，如果我们执行 `git pull`，我们将创建一个合并提交，它将包括两行历史记录，仓库将看起来像这样：
+Now you’re both in a pickle. If you do a `git pull`, you’ll create a merge commit which includes both lines of history, and your repository will look like this:
+>  现在我们俩都陷入了困境，如果我们执行 `git pull`，我们将创建一个合并提交，它将包括两行历史记录，仓库将看起来像这样：
+
 ![[ProGit-Fig47.png]]
 
-如果我们在历史记录看起来像这样的时候运行 `git log`，我们会看到两个具有相同作者、日期和消息的提交，这会让人困惑
-此外，如果将这段历史推送回服务器，将重新引入所有那些已经变基过的提交到中央服务器，这可能会进一步让人们感到困惑，因为我们可以相当安全地假设，另一位开发者不希望 `C4` 和 `C6` 出现在历史记录中；这正是他们首先进行变基的原因
-### 3.6.4 Rebase When You Rebase
-如果我们团队中的某人强制推送了覆盖了我们基于其上工作的更改 (force pushed changes that overwrite work that you've based work on)，我们的挑战就是要弄清楚什么是我们的工作，什么是他们重写的
+If you run a `git log` when your history looks like this, you’ll see two commits that have the same author, date, and message, which will be confusing. Furthermore, if you push this history back up to the server, you’ll reintroduce all those rebased commits to the central server, which can further confuse people. It’s pretty safe to assume that the other developer doesn’t want `C4` and `C6` to be in the history; that’s why they rebased in the first place.
+>  如果我们在历史记录看起来像这样的时候运行 `git log`，我们会看到两个具有相同作者、日期和消息的提交，这会让人困惑
+>  此外，如果将这段历史推送回服务器，将重新引入所有那些已经变基过的提交到中央服务器，这可能会进一步让人们感到困惑，因为我们可以相当安全地假设，另一位开发者不希望 `C4` 和 `C6` 出现在历史记录中；这正是他们首先进行变基的原因
 
-除了提交的 SHA-1 校验和之外，Git 还计算了一个仅基于提交引入的补丁的校验和，这被称为“补丁 ID (patch-id)”，
-如果我们拉取了被重写的工作，并在其上重新基于合作伙伴的新提交进行变基，Git 通常能够成功地弄清楚什么是我们独特的工作，并将它们重新应用到新分支上
+### Rebase When You Rebase
+If you **do** find yourself in a situation like this, Git has some further magic that might help you out. If someone on your team force pushes changes that overwrite work that you’ve based work on, your challenge is to figure out what is yours and what they’ve rewritten.
+>  如果我们团队中的某人强制推送了覆盖了我们基于其上工作的更改 (force pushed changes that overwrite work that you've based work on)，我们的挑战就是要弄清楚什么是我们的工作，什么是他们重写的
 
-例如，在之前的场景中，如果我们在有人推送了变基提交 (rebased commit) 时，不是进行合并，而是放弃我们基于其上的工作，我们运行`git rebase teamone/master`，Git 将会：
-- 确定哪些工作是我们分支独有的 ( `C2, C3, C4, C6, C7` )
-- 确定哪些不是合并提交 ( `C2, C3, C4` )
-- 确定哪些没有被重写到目标分支中 (只有 `C2` 和 `C3` ，因为 `C4` 与 `C4'` 是相同的补丁)
-- 在目标分支 `teamone/master` 之上应用这些提交
+It turns out that in addition to the commit SHA-1 checksum, Git also calculates a checksum that is based just on the patch introduced with the commit. This is called a “patch-id”.
 
-我们得到的结果是这样的：
+If you pull down work that was rewritten and rebase it on top of the new commits from your partner, Git can often successfully figure out what is uniquely yours and apply them back on top of the new branch.
+
+>  除了提交的 SHA-1 校验和之外，Git 还计算了一个仅基于提交引入的补丁的校验和，这被称为“补丁 ID (patch-id)”，
+>  如果我们拉取了被重写的工作，并在其上重新基于合作伙伴的新提交进行变基，Git 通常能够成功地弄清楚什么是我们独特的工作，并将它们重新应用到新分支上
+
+For instance, in the previous scenario, if instead of doing a merge when we’re at [Someone pushes rebased commits, abandoning commits you’ve based your work on](https://git-scm.com/book/en/v2/ch00/_pre_merge_rebase_work) we run `git rebase teamone/master`, Git will:
+
+- Determine what work is unique to our branch (`C2`, `C3`, `C4`, `C6`, `C7`)
+- Determine which are not merge commits (`C2`, `C3`, `C4`)
+- Determine which have not been rewritten into the target branch (just `C2` and `C3`, since `C4` is the same patch as `C4'`)
+- Apply those commits to the top of `teamone/master`
+
+>  例如，在之前的场景中，如果我们在有人推送了变基提交 (rebased commit) 时，不是进行合并，而是放弃我们基于其上的工作，我们运行 `git rebase teamone/master`，Git 将会：
+>  - 确定哪些工作是我们分支独有的 ( `C2, C3, C4, C6, C7` )
+>  - 确定哪些不是合并提交 ( `C2, C3, C4` )
+>  - 确定哪些没有被重写到目标分支中 (只有 `C2` 和 `C3` ，因为 `C4` 与 `C4'` 是相同的补丁)
+>  - 在目标分支 `teamone/master` 之上应用这些提交
+
+So instead of the result we see in [You merge in the same work again into a new merge commit](https://git-scm.com/book/en/v2/ch00/_merge_rebase_work), we would end up with something more like [Rebase on top of force-pushed rebase work](https://git-scm.com/book/en/v2/ch00/_rebase_rebase_work).
+>  我们得到的结果是这样的：
+
 ![[ProGit-Fig48.png]]
 
-这只有在我们的合作伙伴创建的 `C4` 和 `C4'` 是几乎完全相同的补丁时才有效，否则，`git rebase` 将无法识别到它是重复的，并将添加另一个类似 `C4`的补丁 (这可能会失败，因为更改至少已经部分存在)
+This only works if `C4` and `C4'` that your partner made are almost exactly the same patch. Otherwise the rebase won’t be able to tell that it’s a duplicate and will add another `C4`-like patch (which will probably fail to apply cleanly, since the changes would already be at least somewhat there).
+>  这只有在我们的合作伙伴创建的 `C4` 和 `C4'` 是几乎完全相同的补丁时才有效，否则，`git rebase` 将无法识别到它是重复的，并将添加另一个类似 `C4` 的补丁 (这可能会失败，因为更改至少已经部分存在)
 
-我们也可以通过运行 `git pull --rebase` 而不是普通的 `git pull` 来简化这个过程，或者可以手动执行 `git fetch` ，然后执行 `git rebase teamone/master`，
-如果使用 `git pull` 并希望将 `--rebase` 设置为默认值，我们可以使用类似`git config --global pull.rebase true` 的命令来设置 `pull.rebase` 配置值
+You can also simplify this by running a `git pull --rebase` instead of a normal `git pull`. Or you could do it manually with a `git fetch` followed by a `git rebase teamone/master` in this case.
 
-如果我们仅变基不会推送到远端的提交，则没问题，如果我们变基已经推送的提交，但没有其他人正基于这个提交进行工作，则也没问题，如果我们变基已经推送的提交，且其他人可能已经基于该提交进行了工作，则会导致麻烦，如果我们在某个时候确实需要这样做，请确保我们以及合作伙伴的每个人都知道运行 `git pull --rebase`，以尝试在事情发生后让痛苦稍微简单一些\
-### 3.6.4 Rebase vs. Merge
-有人认为，仓库的提交历史是实际发生事情的记录，它是一个历史文件，本身具有价值，不应该被篡改
-从这个角度来看，改变提交历史几乎是一种亵渎；如果有一系列混乱的合并提交，那又怎样？那就是事情的经过，仓库应该为后世保存这一点
+If you are using `git pull` and want to make `--rebase` the default, you can set the `pull.rebase` config value with something like `git config --global pull.rebase true`.
 
-相反的观点是，提交历史是你项目制作的故事，你不会出版一本书的第一稿，那么为什么要展示你的混乱工作呢？当你在做一个项目时，你可能需要记录你所有的错误和死胡同路径，但当你准备向世界展示你的工作时，你可能想要讲述一个更连贯的故事，说明如何从 A 到 B。这个阵营的人使用像 `rebase` 和`filter-branch` 这样的工具，在将提交合并到主线分支之前重写他们的提交，以最适合未来读者的方式讲述故事。
+>  我们也可以通过运行 `git pull --rebase` 而不是普通的 `git pull` 来简化这个过程，或者可以手动执行 `git fetch` ，然后执行 `git rebase teamone/master`，
+>  如果使用 `git pull` 并希望将 `--rebase` 设置为默认值，我们可以使用类似 `git config --global pull.rebase true` 的命令来设置 `pull.rebase` 配置值
 
-现在，关于合并还是变基更好这个问题：希望你可以看到，这并不那么简单。Git 是一个强大的工具，它允许你对历史做很多事情，但每个团队和每个项目都是不同的
+If you only ever rebase commits that have never left your own computer, you’ll be just fine. If you rebase commits that have been pushed, but that no one else has based commits from, you’ll also be fine. If you rebase commits that have already been pushed publicly, and people may have based work on those commits, then you may be in for some frustrating trouble, and the scorn of your teammates.
 
-你可以两全其美：在推送之前变基本地更改以清理你的工作，但永远不要变基你已经推送过的任何东西
+If you or a partner does find it necessary at some point, make sure everyone knows to run `git pull --rebase` to try to make the pain after it happens a little bit simpler.
+
+>  如果我们仅变基不会推送到远端的提交，则没问题，如果我们变基已经推送的提交，但没有其他人正基于这个提交进行工作，则也没问题，如果我们变基已经推送的提交，且其他人可能已经基于该提交进行了工作，则会导致麻烦，如果我们在某个时候确实需要这样做，请确保我们以及合作伙伴的每个人都知道运行 `git pull --rebase`，以尝试在事情发生后让痛苦稍微简单一些
+
+### Rebase vs. Merge
+Now that you’ve seen rebasing and merging in action, you may be wondering which one is better. Before we can answer this, let’s step back a bit and talk about what history means.
+
+One point of view on this is that your repository’s commit history is a **record of what actually happened.** It’s a historical document, valuable in its own right, and shouldn’t be tampered with. From this angle, changing the commit history is almost blasphemous; you’re _lying_ about what actually transpired. So what if there was a messy series of merge commits? That’s how it happened, and the repository should preserve that for posterity.
+>  有人认为，仓库的提交历史是实际发生事情的记录，它是一个历史文件，本身具有价值，不应该被篡改
+>  从这个角度来看，改变提交历史几乎是一种亵渎；如果有一系列混乱的合并提交，那又怎样？那就是事情的经过，仓库应该为后世保存这一点
+
+The opposing point of view is that the commit history is the **story of how your project was made.** You wouldn’t publish the first draft of a book, so why show your messy work? When you’re working on a project, you may need a record of all your missteps and dead-end paths, but when it’s time to show your work to the world, you may want to tell a more coherent story of how to get from A to B. People in this camp use tools like `rebase` and `filter-branch` to rewrite their commits before they’re merged into the mainline branch. They use tools like `rebase` and `filter-branch`, to tell the story in the way that’s best for future readers.
+>  相反的观点是，提交历史是你项目制作的故事，你不会出版一本书的第一稿，那么为什么要展示你的混乱工作呢？当你在做一个项目时，你可能需要记录你所有的错误和死胡同路径，但当你准备向世界展示你的工作时，你可能想要讲述一个更连贯的故事，说明如何从 A 到 B。这个阵营的人使用像 `rebase` 和 `filter-branch` 这样的工具，在将提交合并到主线分支之前重写他们的提交，以最适合未来读者的方式讲述故事。
+
+Now, to the question of whether merging or rebasing is better: hopefully you’ll see that it’s not that simple. Git is a powerful tool, and allows you to do many things to and with your history, but every team and every project is different. Now that you know how both of these things work, it’s up to you to decide which one is best for your particular situation.
+>  现在，关于合并还是变基更好这个问题：希望你可以看到，这并不那么简单。Git 是一个强大的工具，它允许你对历史做很多事情，但每个团队和每个项目都是不同的
+
+You can get the best of both worlds: rebase local changes before pushing to clean up your work, but never rebase anything that you’ve pushed somewhere.
+>  你可以两全其美：**在推送之前变基本地更改以清理你的工作，但永远不要变基你已经推送过的任何东西**
+
 # 4 Git on the Server
 远程仓库通常是一个裸 (bare) 仓库——一个没有工作目录的 Git 仓库，因为仓库仅用作协作点，所以没有必要在磁盘上检出一个快照；它只是 Git 数据。用最简单的话来说，裸仓库就是你的项目的. git 目录的内容，除此之外没有其他东西
 ## 4.1 The Protocals
