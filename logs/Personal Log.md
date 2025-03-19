@@ -1302,7 +1302,7 @@ Date: 2025.2.24-2025.3.3
 
 \[Doc\]
 - [[doc-notes/go/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
-- [[doc-notes/go/A Tour of Go|go/A Tour of Go]]
+- [[doc-notes/go/A Tour of Go|go/A Tour of Go]]: All
     Basics
         In Go, a name is exported if it begins with a capital letter. When a package is imported, only its exported names can be used.
         A function can return any number of results. The return values can be named, and a naked return statement will return the named values.
@@ -1346,7 +1346,62 @@ Date: 2025.2.24-2025.3.3
 Date: 2025.3.3-2025.3.10
 
 \[Book\]
-- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH5, CH6, CH7.1-CH7.3
+- [[book-notes/Reinforcement Learning An Introduction|Reinforcement Learning An Introduction]]: CH5.1-CH5.3, CH6.1-CH6.5, CH7.1-CH7.3
+    CH5-Monte Carlo Methods
+        MC methods require only experience, i.e. sample sequence of states, actions, and rewards from actual of simulated interaction with an environment.
+        In many cases, it is easy to generate experience sampled according to the desired probability distribution, but infeasible to obtain the distributions in explicit form.
+        We define MC methods only for episodic tasks. The value estimates and policies only changed on the completion of one episode. Thus, MC methods is incremental in an episode-by-episode sense instead of in a step-by-step sense.
+        CH5.1-Monte Carlo Prediction
+            For first-visit Monte Carlo, each return is an i.i.d estimate of $V_\pi(s)$ with finite variances. By the law of large numbers, the sequence of averages of these estimates converges to their expected value. Each average is itself an unbiased estimation, the standard deviation of its error falls as $1/\sqrt n$, where $n$ is the number of return averaged.
+            In MC, the estimates for each state is independent, and does not built upon the estimates for another state. Therefore, in MC, the computational expense of estimating the value for a single state is independent of the number of states.
+        CH5.2-Monte Carlo Estimation of Action Values
+            When dynamics are unavailable, estimating action value function is more important than estimating state value function, because state value alone is not sufficient to determine a policy. Therefore, the primary goal of MC is to estimate $q_*$.
+            When using MC estimating the action value function, the samples are (state, action) pairs. As the visit number to a (state, action) pair goes to infinite, the estimation goes to the expectation. The problem now is to maintain exploration to ensure every (state, action) will be visited sufficiently.
+            One way is to specify that the episode begin with particular (state, action) pair, and every pair has non-zero probability of being selected as the beginning. This is called the assumption of exploring starts.
+            In actual environment, this assumption is not so useful, because the start condition is hard to specify. The more common alternative is to use a stochastic policy to ensure each pair has non-zero probability to be visited.
+        CH5.3-Monte Carlo Control
+            The idea of MC Control is still general policy iteration, in which the policy evaluation in executed in the MC way, and directly evaluating the action value function. The policy improvement theorem still holds in this way. Therefore, the convergence is guaranteed.
+            If we alternate between policy evaluation and improvement in an episode-by-episode basis. After each episode, the observed returns are used for policy evaluation, and then the policy is improved at all states visited in the episode. We get MC with Exploring Starts algorithm.
+        CH5.4-Monte Carlo in Control without Exploring Starts
+            To avoid exploring starts assumption, we need to consider off-policy methods. An usual method is using $\epsilon$ -greedy policy. That is, in policy improvement, we only improve the policy to an $\epsilon$ -greedy policy instead of a complete greedy one. 
+            For any $\epsilon$ -soft policy $\pi$, any $\epsilon$ -greedy policy with respect to $q_\pi$ is guaranteed to be better than or equal to $\pi$. Therefore, policy iteration works for $\epsilon$ -soft policy.
+    CH6-Temporal Difference Learning
+        TD combines the idea of MC and DP. Like MC, TD methods learn from experience. Like DP, TD methods update estimates based on another estimate.
+        For the control problem (searching for the optimal policy), TD, MC, DP all use the idea of GPI, the difference lies on the approach to solve the prediction problem.
+        CH6.1-TD Prediction
+            Unlike MC, TD(0) will not wait till the end of the episode, but only wait for one time step, and immediately update $V(s_t)$. The target for MC update is $G_t$, and for TD(0) update is $R_t + \gamma V(s_{t+1})$.
+            The 'estimation' of MC comes from sampling, and the 'estimation' of DP comes from bootstrapping. The 'estimation' of TD comes from both.
+        CH6.2-Advantages of TD Prediction Methods
+            TD's advantage over DP is that TD does not need dynamics. TD's advantage over MC is that TD does not need to wait the episode to end, and can be implemented in a naturally on-line, incremental fashion.
+            Though without theoretical proof, in practice, TD methods usually converge faster than constant- $\alpha$ MC methods.
+        CH6.3-Optimality of TD(0)
+            Suppose there is only a finite amount of experience available, a common approach is to present these experience repeatedly until the method converges upon an answer.
+            In batch updating, the value function is changed by the sum of all increments computed from a batch of experience. That is, updates are made only after processing each complete batch of training data.
+            Under batch updating, TD(0) converges deterministically to a single answer independent of the step-size parameter $\alpha$, as long as $\alpha$ is chosen sufficiently small.
+        CH6.4-Sarsa: On-Policy TD Control
+            When using TD methods for policy evaluation (learning action value function for $\pi$), we consider transition from (state, action) pair to (state, action) pair.  The TD(0) updating rule in this case uses the quintuple of events $(S_t, A_t, R_t, S_{t+1}, A_{t+1})$, therefore, the algorithm is called Sarsa.
+        CH6.5-Q Learning: Off-Policy TD Control
+            Q Learning uses TD methods to directly approximate $q_*$. The updating rule does not require sampling action, thus off-policy is allowed. All that requires for convergence is that all pairs continue to be updated.
+    CH7-Eligibility Traces
+        Almost every TD method can be combined with eligibility traces to obtain more general methods that may learn more efficiently.
+        In a more theoretical view, TD methods augmented with eligibility traces are a bridge from TD(0) to Monte Carlo methods.
+        In a more mechanistic view, an eligibility trace is a temporary record of the occurrence of an event. The event are marked with an memory parameter to represent eligibility.  Only eligible events will be considered as the source of TD error.
+        CH7.1-n-Step TD Prediction
+            For any value function $v$, the expected value of n-step return using $v$ is guaranteed to be a better estimate of $v_\pi$ than $v$ is. The worst error under the new estimate is guaranteed to be less than or equal to $\gamma^n$ times the worst error under $v$. This is called the error reduction property of n-step returns.
+            However, n-step TD methods are rarely used in practice because of the inconvenience to implement.
+        CH7.2-The Forward View of TD($\lambda$)
+            Further, the target can be a weight sum of multiple n-step returns. Such a composite return possesses an error reduction property similar to that of the individual n-step return.
+            TD($\lambda$) can be understood as one particular way of averaging n-step backups. This average contains all the $n$ -step returns, each weighted proportional to $\lambda^{n-1}$, and normalized by a factor of $1-\lambda$ to ensure that the weights sum to 1. The resulting target is called $\lambda$ -return.
+            In $\lambda$ -return, the one-step return has largest weight, and the weights fade with $\lambda$ by each successive step.
+            The $\lambda$ -return algorithm is the method that performs update using the $\lambda$ -return as target on each time step $t$. The overall performance of $\lambda$ -return algorithm is comparable to that of $n$ -step algorithms. Both get the best performance in the intermediate value of the truncation parameter $n$ or $\lambda$.
+        CH7.3-The Backward View of TD($\lambda$)
+            The forward view is not directly implementable because it is acausal, which means it uses knowledge of the future in each time step update.
+            The backward view provides a causal, incremental mechanism for approximating the forward view, and in off-line case, they are equivalent.
+            In the backward view of TD ($\lambda$), there is a memory parameter associated with each state, called its eligibility trace. The eligibility trace for state $s$ at time $t$ is a random variable denoted $E_t(s)$. On each time step, the eligibility trace of all non-visited states decay by $\gamma\lambda$. Henceforth, $\lambda$ is also referred as the trace-decay parameter.
+            For the visited state, the classical eligibility trace decays and then increments by 1. This kind of eligibility trace is called accumulating trace.
+            Eligibility traces keep a record of which states have recently been visited. The traces indicates the degree to which each state is eligible for undergoing learning changes. The changes for each state is the current TD error multiplied by its eligibility trace.
+            The backward view of TD($\lambda$) is oriented backward in time. At each time step, we get current TD error, and assign it to each prior state according to the state's eligibility trace now.
+            When $\lambda = 0$, TD($\lambda$) is equivalent to TD(0). When $\lambda = 1$, the eligibility trace only decays by $\gamma$, TD(1) turns out to achieve the Monte Carlo behaviour.
 - [[book-notes/深度强化学习|深度强化学习]]: CH7
     CH7-策略梯度方法
         策略网络直接近似策略 $\pi(a\mid s;\pmb \theta)$，接受状态作为输入，输出 $|\mathcal A|$ 个概率值
@@ -1379,13 +1434,125 @@ Date: 2025.3.10-2025.3.17
 
 \[Paper\]
 - [[paper-notes/distributed-system/Paxos Made Simple-2001|Paxos Made Simple]]: All
+    Abstract
+    Introduction
+    The Consensus Algorithm
+        The Problem
+            For a collection of processes that can propose values. A consensus algorithm ensures among all proposed values, only a single one is chosen. If a value has been chosen, the processes should be able to learn these values.
+            To achieve consensus, the saft requirements are: 1. Only one proposed value will be chosen. 2. processes can not know in advance that a certain value will be finally chosen.
+            The goal is to finally choose a value and let processes learn this choice.
+            There are three roles: proposer, acceptor, learner in the consensus algorithm.
+        Choosing a Value
+            To choose a value, the simplest way is have only one acceptor, who chooses the first proposed value it received. However, the failure of the acceptor will make the system not progress.
+            Considering multiple acceptors, a natural way to define 'chosen' is that a majority of acceptors have accepted the value.
+            In the absence of message missing and failure, we want even only one proposer proposed only one value, a value will be chosen. This suggests requirement P1: an acceptor must accept the first proposal it receives.
+            However, if we only allow an acceptor only accept one proposal, it will be possible that there will be a situation that no proposal reach majority acceptance.
+            Therefore, we must allow an acceptor to accept multiple proposals. We assign a number to each proposal to distinguish different proposals.
+            We can allow multiple proposals to be chosen, but we must ensure that all the chosen proposals have the same value.
+            By induction on the proposals, to satisfy this requirement, we can in turn satisfy requirement P2: if a proposal with value $v$ is chosen, then every higher-numbered proposal that is chosen has value $v$.
+            Condition P2 guarantees that only one value will be chosen.
+            To satisfy P2, we can in turn satisfy $\mathrm{P2}^a$: If a proposal with value $v$ is chosen, then every higher-numbered proposal accepted by any acceptor has value $v$.
+            However, to maintain P1, an acceptor must accept any proposal it first receives even the proposal has unsatisfactory value. This conflicts with $\mathrm{P2}^a$. To maintain P1 and $\mathrm{P2}^a$ simultaneously, we need to strength $\mathrm{P2}^a$ to $\mathrm{P2}^b$: If a proposal with value $v$ is chosen, then every higher-numbered proposal issued by any proposer has value $v$. 
+            That is, we transfer the responsibility from acceptors to proposers.
+            To satisfy $\mathrm{P2}^b$, we can in turn satisfy $\mathrm{P2}^c$: For any $v$ and $n$, if a proposal with value $v$ and number $n$ is issued, then there is a set $S$ consisting of a majority of acceptors such that either (a) no acceptor in $S$ has accepted any proposal numbered less than $n$, or (b) $v$ is the value of the highest-numbered proposal among all proposals numbered less than $n$ by the acceptors in $S$. Otherwise, the proposer can not issue the proposal.
+            To maintain $\mathrm{P2}^c$, proposer must learn the highest-numbered proposal with number less than $n$, that has been accepted by each acceptor in some majority of acceptors. Also, after the proposer leant it, the acceptors should not accept any proposal with larger number and different value than $v$, otherwise the proposer will break $\mathrm{P2}^c$.
+            Therefore, the proposer will request the acceptors not accept any proposal with number less than $n$. 
+            For a proposer, it can send two kinds of request. One is prepare request, which is used to learn the highest-numbered proposal and let acceptors make their promise. Another one is accept request, which is used to request the acceptors to accept the proposal.
+            An acceptor can receive those two kinds of request from the proposer. An acceptor can always respond to a prepare request and can accept an accept request iff it has not make promise to refuse it. This leads to $\mathrm{P1}^a$: An acceptor can accept a proposal numbered $n$ iff it has not responded to a prepare request having number greater than $n$.  $\mathrm{P1}^a$ subsumes P1.
+            An acceptor only needs to remember the highest-numbered proposal that it has ever accepted and the number of the highest-numbered prepare request it has responded, even when failure occurs, because $\mathrm{P2}^c$ should be kept disregard of failure.
+            Combining proposers' and acceptors' actions, the algorithm has the following two phase: 1. (a) a proposer selects a number and sends prepare request to acceptors (b) If an acceptors receives it, and $n$ is larger than any prepare request's number is has responded, then the acceptor will respond 2. (a) If the proposer receives the response. it will send accept requests (b) If an acceptor receives an accept requests, it will accept it unless it has already responded a prepare request with larger number.
+        Learning a Chosen Value
+            We let acceptors send their acceptance to a single learner, and the learner will notify other learners the choice.
+        Progress
+            In this algorithm, it is easy to construct that when multiple proposers co-exist, the system may not progress, though safety is maintained.
+            To ensure progress, a distinguished proposer should be selected, which is the only one has the authority to issue proposals.
+        The Implementation
+            To ensure different proposers never issue proposals with the same number, different proposers should choose their number from disjoint sets of numbers.
+    Implementing a State Machine
+        The central server can be described as a deterministic state machine that performs client commands with a certain sequence.
+        The state machine takes current command as input and produce an output and next state.
+        When there are multiple central servers, to ensure they all have same state sequence and output sequence, we must ensure they all receive the same input command sequence.
+        We use consensus algorithm to determine the command sequence. The consensus algorithm ensures each command in the command sequences is a consensus without ambiguity, therefore the command sequence is a consensus without ambiguity.
+        We implement a sequence of separate instances of Paxos algorithm, instance i is responsible for choosing the i-th command in the sequence.
+        In normal operation, a server will be selected to be the distinguished learner and proposer. Clients send commands to the server, the server will determine which command should be the i-th command. Then, the server will try to make this decision be a consensus among all servers. It might fail because server failure or because another server believes itself to be the leader. However, the consensus algorithm ensures only one command will be chosen.
+        Considering the previous leader just failed and another leader has been selected. The new leader is also a learner, therefore it may know most of the commands that has been chosen. The new leader will execute the algorithm's phase 1 for undetermined commands. When receiving response, it can execute phase 2 for corresponding commands.
+        Note that the execution of phase 1 for infinitely large algorithm instances is possible, the new leader can use the same proposal numbers. A single short message can achieve this. Therefore the effective cost is just the cost of executing phase 2.
+        Note that multiple leaders may appear, but the safety is guaranteed.
+- [[paper-notes/distributed-system/The Google File System-2003-SOSP|The Google File System]]: All
+    Abstract
+    Introduction
+        GFS shares many the same goals as previous distributed file systems such as performance, scalability, reliability, availability. Driven by the typical workload of Google, GFS explores different points in the design space.
+        The system design assumptions of GFS includes:
+        1. Component failure is common rather than exception. Virtually at any given time, some components are not functional and some will not recover from their current failures. Therefore, system must have the ability of constant monitoring, error detection, fault tolerance, automatic recovery.
+        2. Files are huge, multi-GB files are common. Therefore, IO operation and block sizes should be considered carefully.
+        3. Most file mutations are appending new data instead of rewriting existing data. Given this accessing pattern, appending is the focus of performance optimization and atomicity guarantees.
+        4. GFS is codesigned with the application to increase flexibility. The consistency model of GFS is relaxed to simplify the system, therefore the application takes some responsibility to guarantee consistency. Atomic append is introduced to let multiple clients concurrently append to the same file without extra synchronization.
+    Design Overview
+        Assumptions
+        Interface
+            GFS provides create, delete, open, close, read, write, snapshot, and record append operations.
+        Architecture
+            A single GFS cluster consists of a single master and multiple chunkservers and is accessed by multiple clients. Each of these is typically a commodity Linux machine running a user-level server process.
+            Files are divided into fixed-size chunks, each identified by an immutable and globally unique 64 bit chunk handle assigned by master at chunk creation. Chunkservers store chunks as Linux files on local disks and read or write chunk data specified by chunk handle and byte range. Each chunk is replicated on multiple chunkservers for reliability.
+            Master maintains all filesystem metadata including the namespace, access control information, mapping from files to chunks, current location of chunks. Master controls system-level activities like chunk lease management, GC of orphaned chunks, chunk migration between chunkservers.
+            Master and chunkservers will periodically communicate with each other in Heartbeat messages.
+            Client code implements the file system API, and communicates with master and chunkservers on behalf of its upper level application. Clients communicate with master for metadata operations, and communicate with chunkservers for other data-bearing communications.
+        Single Master
+            The master's involvement in reads and writes should be minimized in case of becoming the bottleneck.
+            For a simple reading operation, the client code first translates the file name and byte offsets specified by the application into a chunk index within the file. Then, the client sends a request containing the file name and chunk index to the master. The master replies the corresponding chunk handle and chunk location. The client will cache these information, then request the chunk data from nearby chunkservers.
+        Chunk Size
+            Chunk size is 64 MB, and lazy space allocation is used to alleviate internal fragmentation.
+            Large chunk size reduces the clients' need to interact with master, as well as reducing the size of metadata stored in the master.
+        Metadata
+            Three major types of metadata are stored in the master's memory: namespace of files and chunks, locations of chunk replicas, mapping from files to chunks.
+            The locations of chunk replicas will not be persistently stored. The master will polls chunkservers for those information at startup. 
+            Namespace and mapping information will be persistently stored, and the mutations will be logged into operation logs. The master recovers its file system state by replaying the operation log. Whenever the log goes beyond certain size, the master will checkpoint it, so that it can recover by loading the latest checkpoint. Older checkpoints and log files can be freely deleted.
+        Consistency Model
+            File namespace mutations are atomic. They are handled by master exclusively. Namespace locking guarantees atomicity and correctness and the operation log defines the global total order of those mutation operations.
+    System Interactions
+        Lease and Mutation Order
+            Leases are used to maintain a consistent mutation order across replicas. The mutation order will be decided by the replica holding the lease, called the primary.
+            Lease mechanism can be considerer as master delegating its power to the primary, letting the primary deciding the operation order, thus minimizing the master's involvement while maintaining operation consistency.
+            If a write by the application is large and across multiple chunks, the clients will breaks it into multiple mutations, creating the possibility that the final region being consistent but undefined.
+        Data Flow
+            The data flow and control flow are decoupled for higher network efficiency. Control flows from client to primary and then to all secondaries. Data flows from client to all chunkservers in a linear, pipelined fashion, to utilize each machine's full outbound bandwidth. Pipeline means once a chunkserver receives some data, it starts forwarding immediately.
+        Atomic Record Appends
+            GFS guarantees the data to be appended will be appended to the file atomically at least once. The specific will be chosen by GFS and returned to the client.
+            If record append operation failed in any replica, GFS will retry. Therefore, replicas of the same chunk main contain different data, including possible duplicates of a record. The replicas are not guaranteed to be bytewise identical.
+        Snapshot
+            Snapshot operation is implemented as a copy-on-write way. When receiving an snapshot operation, master will first revoke the related leases to make sure when clients want to write, they will first request master to find the lease holder.
+            At this time, master will notice that the chunk to be written has reference count larger than 1, then the response will be delayed. The master will request the chunkservers to create actual local copies.
+    Master Operation
+        Namespace Management and Locking
+            Master store the namespace as a hash table, which maps full pathnames to metadata.
+            Locks of each node in the namespace tree are used to ensure proper serialization of concurrent namespace mutations.
+        Replica Placement
+            Replicas are placed in different machines, and different racks.
+        Creation, Re-replication, Rebalancing
+        Garbage Collection
+        Stale Replica Detection
+            Chunk replicas may become stale if chunkserver misses some mutation operation. Master maintains a version number for each chunk to distinguish stale replicas.
+    Fault Tolerance and Diagnosis
+        High Availability
+            GFS use fast recovery and replication to keep high availability.
+            Replication includes chunk replication and shadow masters.
+        Data Integrity
+            Verified by checksumming.
+        Diagnostic Tools
+    Measurements
+    Experiences
+    Related Works
+        GFS assumes a large amount of unreliable components, the core design is fault tolerance.
+    Conclusions
+        GFS provides fault tolerance by constant monitoring, replicating crucial data, and fast atomic recovery.
+        By decoupling control flow and data flow (large chunk size, lease mechanism), the single master in GFS does not become bottleneck.
 
 \[Book\]
 - [[book-notes/深度强化学习|深度强化学习]]: CH8
-    
 
 \[Doc\]
-- [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/tutorials/Understanding the IR Structure]]
-- [[doc-notes/mlir/code-documentation/Dialect Conversion|mlir/code-documentation/Dialect Conversion]]
+- [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/code-documentation/tutorials/Understanding the IR Structure]]
+- [[doc-notes/mlir/code-documentation/Pass Infrastructure|mlir/code-documentation/Pass Infrastructure]]
 - [[doc-notes/python/packages/hydra/Tutorials|python/packages/hydra/Tutorials]]
-
+- [[doc-notes/python/library/file-formats/tomllib - Parse TOML files|python/library/file-format/tomllib - Parse TOML files]]
+- [[doc-notes/TOML v1.0.0|TOML v1.0.0]]
