@@ -1002,7 +1002,7 @@ The policy evaluation problem for action values is to estimate $q_{\pi}(s,a)$ , 
 >  动作价值的策略评估问题即估计策略 $\pi$ 的动作价值函数 $q_\pi(s, a)$，它表示从 $s$ 开始，执行 $a$，然后遵循 $\pi$ 能得到的期望奖励
 >  MC 方法对该函数的评估本质还是采样，求均值，此时的样本是状态-动作对，而不仅仅是状态
 
-A state–action pair $s,a$ is said to be visited in an episode if ever the state $s$ is visited and action $a$ is taken in it. The everyvisit MC method estimates the value of a state–action pair as the average of the returns that have followed visits all the visits to it. The first-visit MC method averages the returns following the first time in each episode that the state was visited and the action was selected. These methods converge quadratically, as before, to the true expected values as the number of visits to each state–action pair approaches infinity. 
+A state–action pair $s,a$ is said to be visited in an episode if ever the state $s$ is visited and action $a$ is taken in it. The every-visit MC method estimates the value of a state–action pair as the average of the returns that have followed visits all the visits to it. The first-visit MC method averages the returns following the first time in each episode that the state was visited and the action was selected. These methods converge quadratically, as before, to the true expected values as the number of visits to each state–action pair approaches infinity. 
 >  first-visit MC 方法使用每个回合首次对 $(s, a)$ 的访问得到的回报的均值作为估计，every-visit MC 方法使用所有对 $(s, a)$ 的访问得到的回报的均值作为估计
 >  随着对 $(s, a)$ 的访问次数趋近于无穷大，估计值二次收敛到真实值
 
@@ -1169,7 +1169,6 @@ However, this equation is the same as the previous one, except for the substitut
 
 >  而如果策略改进过程稳定了，根据 Eq 5.2，$\pi$ 的状态价值函数和动作价值函数之间也满足相同形式的方程
 >  因此，策略改进过程的固定点就是最优的 $\epsilon$ -soft 策略
-
 
 In essence, we have shown in the last few pages that policy iteration works for $\varepsilon$ -soft policies. Using the natural notion of greedy policy for $\boldsymbol{\varepsilon}$ -soft policies, one is assured of improvement on every step, except when the best policy has been found among the $\boldsymbol{\varepsilon}$ -soft policies. 
 >  我们上述的讨论就是说明了策略迭代对于 $\epsilon$ -soft 策略也是有效的
@@ -1716,7 +1715,7 @@ $$
 >  最后得到的回溯更新值称为 $\lambda$ 回报，定义如上
 
 >  推导：权重值和为 1
->  容易知道 $\sum_{n=1}^\infty \lambda^{n-1}$ 是一个从 $n=1$ 开始的无穷等比数列，根据等比数列的求和公式，容易知道 $\sum_{n=1}^\infty \lambda^{n-1} = \frac {\lambda^\infty - \lambda^0}{\lambda-1} = \frac {1}{\lambda - 1}$，故 $(1-\lambda) \sum_{n=1}^\infty \lambda^{n-1} = 1$
+>  容易知道 $\sum_{n=1}^\infty \lambda^{n-1}$ 是一个从 $n=1$ 开始的无穷等比数列，根据等比数列的求和公式，容易知道 $\sum_{n=1}^\infty \lambda^{n-1} = \frac {\lambda^\infty - \lambda^0}{\lambda-1} = \frac {-1}{\lambda - 1}$，故 $(1-\lambda) \sum_{n=1}^\infty \lambda^{n-1} = 1$
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/1f83486c-03b4-4bfd-9cdf-2c61c53bbf89/73d15475f5fb6d6be49a71befda7b8f213fcbc4ea4c4dc874177b9161635965c.jpg) 
 
@@ -1768,7 +1767,7 @@ In the previous section we presented the forward or theoretical view of the tabu
 
 In this section we instead define $\mathrm{TD}(\lambda)$ mechanistically and show that it can closely approximate the forward view. The mechanistic, or backward, view of $\mathrm{TD}(\lambda)$ is useful because it is simple conceptually and computationally. In particular, the forward view itself is not directly implementable because it is acausal, using at each step knowledge of what will happen many steps later. The backward view provides a causal, incremental mechanism for approximating the forward view and, in the off-line case, for achieving it exactly. 
 >  前向视角的 TD($\lambda$) 在计算视角上是不可直接实现的，因为它是反因果的，它在每一步使用了多步之后才会发生的信息
->  后向视角则提供了一种因果性的，增量的机制来近似前向视角，且在离线情况下可以精确地符合前向视角
+>  后向视角则提供了一种因果性的，增量的机制来近似前向视角，且在离线情况下可以精确地符合前向视角 (因为离线情况下，整个 episode 的情况是全部已知的，就无所谓因果和反因果了)
 
 In the backward view of $\mathrm{TD}(\lambda)$ , there is an additional memory variable associated with each state, its eligibility trace. The eligibility trace for state $s$ at time $t$ is a random variable denoted $E_{t}(s)\in\mathbb{R}^{+}$ . On each step, the eligibility traces of all non-visited states decay by $\gamma\lambda$ : 
 
@@ -1797,7 +1796,8 @@ This kind of eligibility trace is called an accumulating trace because it accumu
 
 Eligibility traces keep a simple record of which states have recently been visited, where “recently” is defined in terms of $\gamma\lambda$ . The traces are said to indicate the degree to which each state is eligible for undergoing learning changes should a reinforcing event occur. The reinforcing events we are concerned with are the moment-by-moment one-step TD errors.
 >  资格迹记录了最近访问的状态，“最近” 是根据 $\gamma\lambda$ 定义的
->  状态的资格迹表示了该状态在强化事件中在多大程度上有资格经历学习变化，我们关注的强化事件是逐时刻根据一步 ED 误差优化
+>  状态的资格迹表示了该状态在强化事件中在多大程度上有资格经历学习变化，我们关注的强化事件是逐时刻根据一步 TD 误差优化
+>  (直观来看，使用了资格迹之后，在每一个时间步，我们不仅更新当前访问状态的价值，还一定程度上更新之前访问过的状态的价值，可以认为当前时刻的 TD 误差不仅仅只和当前状态相关，和之前访问过的状态也有一定关联，故也可以用于更新它们的价值)
 
 For example, the TD error for state-value prediction is 
 

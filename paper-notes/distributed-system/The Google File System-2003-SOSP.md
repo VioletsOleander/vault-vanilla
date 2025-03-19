@@ -90,7 +90,7 @@ GFS client code linked into each application implements the file system API and 
 >  客户端与 master 通信以实现元数据的操作，但所有承载数据的通信都直接与 chunkserver 进行
 
 We do not provide the POSIX API and therefore need not hook into the Linux vnode layer. 
->  我们不提供 POSIX API，因此不需要与 Linux vnode 层进行集成，也就是说，GFS 的客户端直接通过 GFS API 和 GFS 文件系统本身进行交互，不需要通过操作系统的文件系统层
+>  我们不提供 POSIX API，因此不需要与 Linux vnode 层进行集成，也就是说，GFS 的客户端直接通过 GFS API 和 GFS 文件系统本身进行交互
 
 > [!info] POSIX API
 > POSIX API 是指 Portable Operating System Interface 标准所定义的一系列应用程序接口，它是一套操作系统交互的标准，使得应用程序可以在不同的 POSIX 兼容的操作系统上移植
@@ -421,7 +421,7 @@ Chunk replicas are created for three reasons: chunk creation, re-replication, an
 >  块副本在三种情况下会被创建：块被创建时、块被重新拷贝时、块的副本分布需要重新平衡时
 
 When the master creates a chunk, it chooses where to place the initially empty replicas. It considers several factors. (1) We want to place new replicas on chunkservers with below-average disk space utilization. Over time this will equalize disk utilization across chunkservers. (2) We want to limit the number of “recent” creations on each chunkserver. Although creation itself is cheap, it reliably predicts imminent heavy write traffic because chunks are created when demanded by writes, and in our append-once-read-many workload they typically become practically read-only once they have been completely written. (3) As discussed above, we want to spread replicas of a chunk across racks. 
->  当 master 创建块时，它需要选择在哪里防止最初为空的副本，考虑的因素包括：
+>  当 master 创建块时，它需要选择在哪里放置最初为空的副本，考虑的因素包括：
 >  1. 希望将新的副本放在磁盘空间利用率低于平均水平的 chunkserver，随着时间的推移，这会使得各个 chunkserver 的磁盘利用率趋于均衡
 >  2. 希望限制每个 chunkserver 上的 “近期” 创建数量，虽然创建操作本身 cheap，但它预示了即将出现的大量写入流量，因为块是在有写入需求时才创建的，并且在我们的 “一次写入，多次读取” 的工作负载中，一旦数据完全写入，它们通常会变得几乎只读
 >  3. 希望将一个块的副本分布在不同机架上
@@ -437,7 +437,7 @@ Each chunk that needs to be re-replicated is prioritized based on several factor
 
 The master picks the highest priority chunk and “clones” it by instructing some chunkserver to copy the chunk data directly from an existing valid replica. The new replica is placed with goals similar to those for creation: equalizing disk space utilization, limiting active clone operations on any single chunkserver, and spreading replicas across racks. To keep cloning traffic from overwhelming client traffic, the master limits the numbers of active clone operations both for the cluster and for each chunkserver. Additionally, each chunkserver limits the amount of bandwidth it spends on each clone operation by throttling its read requests to the source chunkserver. 
 >  master 挑选最高优先级的块，指示某个 chunkserver 直接从现有副本拷贝其数据以复制块数据
->  新副本的防止目标和块创建时类似：均衡磁盘弓箭利用率、限制任何单个 chunkserver 上的活跃 clone 操作数量、在机架之间分散副本
+>  新副本的防止目标和块创建时类似：均衡磁盘空间利用率、限制任何单个 chunkserver 上的活跃 clone 操作数量、在机架之间分散副本
 >  为了避免 cloning 流量压倒 client 流量，master 会限制集群和每个 chunkserver 的活跃 clone 操作数量
 >  此外，每个 chunkserver 会通过限制它对源 chunkserver 的读取请求数量来限制它花在 clone 操作使用的带宽量
 
@@ -571,7 +571,7 @@ Extensive and detailed diagnostic logging has helped immeasurably in problem iso
 
 Without logs, it is hard to understand transient, non-repeatable interactions between machines. GFS servers generate diagnostic logs that record many significant events (such as chunkservers going up and down) and all RPC requests and replies. These diagnostic logs can be freely deleted without affecting the correctness of the system. However, we try to keep these logs around as far as space permits. 
 >  如果没有日志，就很难理解机器之间短暂且不可重复的交互。
->  GFS服务器会生成诊断日志，记录许多重要事件（例如ChunkServer的上线和下线）以及所有的RPC请求和响应。这些诊断日志可以自由删除而不影响系统的正确性。然而，只要空间允许，我们尽量保留这些日志。
+>  GFS 服务器会生成诊断日志，记录许多重要事件（例如 ChunkServer 的上线和下线）以及所有的 RPC 请求和响应。这些诊断日志可以自由删除而不影响系统的正确性。然而，只要空间允许，我们尽量保留这些日志。
 
 The RPC logs include the exact requests and responses sent on the wire, except for the file data being read or written. By matching requests with replies and collating RPC records on different machines, we can reconstruct the entire interaction history to diagnose a problem. The logs also serve as traces for load testing and performance analysis. 
 >  RPC 日志包含了在通信线路上发送的精确请求和响应，但不包括正在读取或写入的文件数据。通过将请求与回复匹配，并在不同机器上整合 RPC 记录，我们可以重建整个交互历史以诊断问题。这些日志还可用于负载测试和性能分析。
