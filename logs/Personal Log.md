@@ -1413,7 +1413,7 @@ Date: 2025.3.3-2025.3.10
         价值网络的训练涉及到了自举，因此也可以采用目标网络方法缓解自举造成的误差传播问题
 
 \[Doc\]
-- [[doc-notes/go/How to Write Go Code|go/How to Write Go Code]]
+- [[doc-notes/go/How to Write Go Code|go/How to Write Go Code]]: All
     Code Organization 
         Go programs are organized into packages. A package is a collection of source files in the same directory that are compiled together. Functions, variables, constants are all visible to other source files within the same package.
         A repository contains one or more modules. A module is a collection of packages to be released together. Typically, a Go repository contains only one module, located in the root directory of the repo.
@@ -1427,7 +1427,7 @@ Date: 2025.3.3-2025.3.10
         `go mod tidy` will automatically manage dependencies on external modules.
     Testing
 - [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH3-CH7
-- [[doc-notes/python/packages/gymnasium/Introduction|python/packages/gymnasium/Introduction]]
+- [[doc-notes/python/packages/gymnasium/Introduction|python/packages/gymnasium/Introduction]]: All
 
 ### Week 3
 Date: 2025.3.10-2025.3.17
@@ -1551,11 +1551,12 @@ Date: 2025.3.10-2025.3.17
 - [[book-notes/深度强化学习|深度强化学习]]: CH8
 
 \[Doc\]
-- [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/code-documentation/tutorials/Understanding the IR Structure]]
+- [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/code-documentation/tutorials/Understanding the IR Structure]]: All
 - [[doc-notes/mlir/code-documentation/Pass Infrastructure|mlir/code-documentation/Pass Infrastructure]]
 - [[doc-notes/python/packages/hydra/Tutorials|python/packages/hydra/Tutorials]]
-- [[doc-notes/python/library/file-formats/tomllib - Parse TOML files|python/library/file-format/tomllib - Parse TOML files]]
-- [[doc-notes/TOML v1.0.0|TOML v1.0.0]]
+- [[doc-notes/python/library/file-formats/tomllib - Parse TOML files|python/library/file-format/tomllib - Parse TOML files]]: All
+- [[doc-notes/TOML v1.0.0|TOML v1.0.0]]: All
 
 ### Week 4
 Date: 2025.3.17-2025.3.24
+
