@@ -1031,7 +1031,7 @@ The Canonicalizer knows to clean up dead operations; however, MLIR conservativel
 def TransposeOp : Toy_Op<"transpose", [Pure]> {...}
 ```
 
->  标准化程序知道清楚无用的操作，但 MLIR 假设了操作可能有副作用
+>  标准化程序知道清除无用的操作，但 MLIR 假设了操作可能有副作用
 >  我们可以为 `Transpose` 操作添加特性 `Pure` 表示没有副作用
 
 Let’s retry now `toyc-ch3 test/transpose_transpose.toy -emit=mlir -opt`:
