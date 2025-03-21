@@ -1433,7 +1433,7 @@ Date: 2025.3.3-2025.3.10
 Date: 2025.3.10-2025.3.17
 
 \[Paper\]
-- [[paper-notes/distributed-system/Paxos Made Simple-2001|Paxos Made Simple]]: All
+- [[paper-notes/distributed-system/Paxos Made Simple-2001|2001-Paxos Made Simple]]: All
     Abstract
     Introduction
     The Consensus Algorithm
@@ -1478,7 +1478,7 @@ Date: 2025.3.10-2025.3.17
         Considering the previous leader just failed and another leader has been selected. The new leader is also a learner, therefore it may know most of the commands that has been chosen. The new leader will execute the algorithm's phase 1 for undetermined commands. When receiving response, it can execute phase 2 for corresponding commands.
         Note that the execution of phase 1 for infinitely large algorithm instances is possible, the new leader can use the same proposal numbers. A single short message can achieve this. Therefore the effective cost is just the cost of executing phase 2.
         Note that multiple leaders may appear, but the safety is guaranteed.
-- [[paper-notes/distributed-system/The Google File System-2003-SOSP|The Google File System]]: All
+- [[paper-notes/distributed-system/The Google File System-2003-SOSP|2003-SOSP-The Google File System]]: All
     Abstract
     Introduction
         GFS shares many the same goals as previous distributed file systems such as performance, scalability, reliability, availability. Driven by the typical workload of Google, GFS explores different points in the design space.
@@ -1560,3 +1560,5 @@ Date: 2025.3.10-2025.3.17
 ### Week 4
 Date: 2025.3.17-2025.3.24
 
+\[Paper\]
+- [[paper-notes/distributed-system/In Search of an Understandable Consensus Algorithm (Extended Version)-2014-ATC|2014-ATC-In Search of an Understandable Consensus Algorithm (Extended Version)]]
