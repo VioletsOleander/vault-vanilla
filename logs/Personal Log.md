@@ -1428,6 +1428,16 @@ Date: 2025.3.3-2025.3.10
     Testing
 - [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH3-CH7
 - [[doc-notes/python/packages/gymnasium/Introduction|python/packages/gymnasium/Introduction]]: All
+    Basic Usage
+        The four key function of `gymnasium` is `make(), Env.reset(), Env.step(), Env.render()`
+        The core of `gymnasium` is `Env` , which is a python class representing a MDP.
+        `Wrapper` are provided to augment/modify the environment.
+        `Env.action_space, Env.observation_space` are instances of `Space`
+    Training an Agent
+    Create a Custom Environment
+        Custom environment should inherit from `Env`
+    Recording Agents
+    Speeding Up Training
 
 ### Week 3
 Date: 2025.3.10-2025.3.17
@@ -1552,6 +1562,9 @@ Date: 2025.3.10-2025.3.17
 
 \[Doc\]
 - [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/code-documentation/tutorials/Understanding the IR Structure]]: All
+    A pass is always rooted with an operation
+    The IR is recursively nested, an `Operation` can have multiple `Region` s, an `Region` can have multiple `Block` s, an `Block` can have multiple `Operation` s
+    Besides nesting relationship, an other relationship in the IR is the link relationship between a `Value` and its users. Each `Value` is either a `BlockArgument` or the result of one `Operation`
 - [[doc-notes/mlir/code-documentation/Pass Infrastructure|mlir/code-documentation/Pass Infrastructure]]
 - [[doc-notes/python/packages/hydra/Tutorials|python/packages/hydra/Tutorials]]
 - [[doc-notes/python/library/file-formats/tomllib - Parse TOML files|python/library/file-format/tomllib - Parse TOML files]]: All
