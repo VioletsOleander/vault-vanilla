@@ -1559,6 +1559,20 @@ Date: 2025.3.10-2025.3.17
 
 \[Book\]
 - [[book-notes/深度强化学习|深度强化学习]]: CH8
+    CH8-带基线的策略梯度方法
+        CH8.1-策略梯度中的基线
+            只要 $b$ 不是关于 $A$ 的函数，将 $Q_\pi(S, A)$ 替换为 $Q_\pi(S, A)- b$ 不会影响策略梯度定理的正确性
+            $b = V_\pi(S)$ 是较常用的基线
+        CH8.2-带基线的 REINFORCE 算法
+            带有基线时，我们用另一个神经网络近似 $V_\pi(S)$
+            实践中，策略网络和价值网络可以共享用于提取特征的卷积层参数
+            价值网络使用 Monte Carlo 更新
+            $Q_\pi(S, A) - V_\pi(S)$ 中，$Q_\pi(S, A)$ 使用 Monte Carlo 近似
+        CH8.3-Advantage Actor-Critic (A2C)
+            常规的 Actor-Critic 方法中，价值网络用于近似 $Q_\pi(S, A)$，而 A2C 中，价值网络用于近似 $V_\pi(S)$
+            价值网络使用 TD 更新
+            $Q_\pi(S, A) - V_\pi(S)$ 中，$Q_\pi(S_t, A_t)$ 使用 $R_t + \gamma V_\pi(S_{t+1})$ 近似，因此实际上使用 TD 误差 $R_t + \gamma V_\pi(S_{t+1}) - V_\pi(S_t)$ 近似了优势值
+        CH8.4-证明带基线的策略梯度定理
 
 \[Doc\]
 - [[doc-notes/mlir/code-documentation/tutorials/Understanding the IR Structure|mlir/code-documentation/tutorials/Understanding the IR Structure]]: All
@@ -1575,3 +1589,6 @@ Date: 2025.3.17-2025.3.24
 
 \[Paper\]
 - [[paper-notes/distributed-system/In Search of an Understandable Consensus Algorithm (Extended Version)-2014-ATC|2014-ATC-In Search of an Understandable Consensus Algorithm (Extended Version)]]
+
+\[Book\]
+- [[book-notes/深度强化学习|深度强化学习]]: CH9, CH10, CH13
