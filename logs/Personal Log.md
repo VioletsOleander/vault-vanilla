@@ -1589,6 +1589,7 @@ Date: 2025.3.17-2025.3.24
 
 \[Paper\]
 - [[paper-notes/distributed-system/In Search of an Understandable Consensus Algorithm (Extended Version)-2014-ATC|2014-ATC-In Search of an Understandable Consensus Algorithm (Extended Version)]]
+- [[paper-notes/rl/Proximal Policy Optimization Algorithms-2017|2017-Proximal Policy Optimization Algorithms]]
 
 \[Book\]
 - [[book-notes/深度强化学习|深度强化学习]]: CH9, CH10, CH13
