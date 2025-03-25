@@ -1068,7 +1068,7 @@ git push origin --delete master
 Now that you have the basics of branching and merging down, what can or should you do with them? In this section, we’ll cover some common workflows that this lightweight branching makes possible, so you can decide if you would like to incorporate them into your own development cycle.
 >  在本节中，我们将介绍一些轻量级分支所能实现的常见工作流
 
-#### Long-Running Branches
+### Long-Running Branches
 Because Git uses a simple three-way merge, merging from one branch into another multiple times over a long period is generally easy to do. This means you can have several branches that are always open and that you use for different stages of your development cycle; you can merge regularly from some of them into others.
 >  因为 `Git` 使用简单的三路合并 (three-way merge)，所以在长时间内多次将一个分支合并到另一个分支通常是容易做到的，这意味着我们可以有多个始终打开的分支，并用它们来完成开发周期的不同阶段；可以定期将一些分支合并到其他分支
 
@@ -1090,7 +1090,7 @@ You can keep doing this for several levels of stability. Some larger projects al
 The idea is that your branches are at various levels of stability; when they reach a more stable level, they’re merged into the branch above them. Again, having multiple long-running branches isn’t necessary, but it’s often helpful, especially when you’re dealing with very large or complex projects.
 >  这种理念是，我们的分支处于不同的稳定性级别 (at various levels of stability)，当它们达到更高稳定性级别时，就会合并到它们上面的分支中，再次强调，拥有多个长期运行的分支并不是必需的，但这通常很有帮助，特别是当处理的是非常大或复杂的项目时
 
-#### Topic Branches
+### Topic Branches
 Topic branches, however, are useful in projects of any size. A topic branch is a short-lived branch that you create and use for a single particular feature or related work. This is something you’ve likely never done with a VCS before because it’s generally too expensive to create and merge branches. But in Git it’s common to create, work on, merge, and delete branches several times a day.
 >  主题分支 (Topic branches) 在任何大小的项目中都很有用，主题分支是一个短期存在 (short-lived) 的分支，我们创建它并用于单一特定功能或相关工作 (for a single particular feature or related work)，这可能是我们在其他版本控制系统中从未做过的事情，因为通常创建和合并分支的代价太高
 
@@ -2402,9 +2402,12 @@ This means your future commit will have one parent only and allows you to introd
 ![[ProGit-Fig71.png]]
 
 ### Public Project over Email
-许多项目都有接受补丁的既定程序——你需要检查每个项目的具体规则，因为它们会有所不同，有一些较老、较大的项目通过开发者邮件列表接受补丁，我们现在将举一个这样的例子
+Many projects have established procedures for accepting patches — you’ll need to check the specific rules for each project, because they will differ. Since there are several older, larger projects which accept patches via a developer mailing list, we’ll go over an example of that now.
+>  许多项目都有接受补丁的既定程序——你需要检查每个项目的具体规则，因为它们会有所不同，有一些较老、较大的项目通过开发者邮件列表接受补丁，我们现在将举一个这样的例子
 
-工作流程与之前的用例类似——你为每个补丁系列 (patch series) 创建主题分支，不同之处在于你如何将它们提交给项目，在本例中，你不再需要分叉项目并推送到你自己可写的版本 (push to your own writable version)，而是为每个提交系列 (commit serise) 生成电子邮件版本，并将它们发送到开发者邮件列表 (developer mailing list)：
+The workflow is similar to the previous use case — you create topic branches for each patch series you work on. The difference is how you submit them to the project. Instead of forking the project and pushing to your own writable version, you generate email versions of each commit series and email them to the developer mailing list:
+>  工作流程与之前的用例类似——你为每个补丁系列 (patch series) 创建主题分支，不同之处在于你如何将它们提交给项目，在本例中，你不再需要分叉项目并推送到你自己可写的版本 (push to your own writable version)，而是为每个提交系列 (commit series) 生成电子邮件版本，并将它们发送到开发者邮件列表 (developer mailing list)：
+
 ```
 $ git checkout -b topicA
   ... work ...
@@ -2412,17 +2415,27 @@ $ git commit
   ... work ...
 $ git commit
 ```
-现在，你有两次提交想要发送到邮件列表，你可以使用 `git format-patch` 命令生成 mbox 格式的文件，然后你可以将这些文件作为电子邮件发送到邮件列表——它将每个提交转换为一封电子邮件，以提交信息的第一行为主题，其余的信息加上提交引入的补丁作为正文
 
-这种方式的好处是，使用 `format-patch` 生成的电子邮件中的补丁应用后，可以正确地保留所有的提交信息
+Now you have two commits that you want to send to the mailing list. You use `git format-patch` to generate the mbox-formatted files that you can email to the list — it turns each commit into an email message with the first line of the commit message as the subject and the rest of the message plus the patch that the commit introduces as the body. 
+>  现在，你有两个提交想要发送到邮件列表
+>  你可以使用 `git format-patch` 命令生成 mbox 格式的文件，然后你可以将这些文件作为电子邮件发送到开发者邮件列表(中的邮箱)
+>  `git format-patch` 它将每个提交转换为一封电子邮件，以提交信息的第一行为主题，其余的信息加上提交引入的补丁作为正文
+
+The nice thing about this is that applying a patch from an email generated with `format-patch` preserves all the commit information properly.
+>  使用 `format-patch` 生成的电子邮件中的补丁被应用后，可以正确地保留所有的提交信息
+
 ```
 $ git format-patch -M origin/master
 0001-add-limit-to-log-function.patch
 0002-increase-log-output-to-30-from-25.patch
 ```
-`format-patch` 命令会打印出它创建的补丁文件的名称。`-M` 开关告诉 Git 寻找重命名的文件
 
-最终生成的文件看起来像这样：
+The `format-patch` command prints out the names of the patch files it creates. The `-M` switch tells Git to look for renames. 
+>  `format-patch` 命令会打印出它创建的补丁文件的名称。`-M` 开关告诉 Git 寻找重命名的文件
+
+The files end up looking like this:
+>  最终生成的文件看起来像这样：
+
 ```
 $ cat 0001-add-limit-to-log-function.patch
 From 330090432754092d704da8e76ca5c05c198e71a8 Mon Sep 17 00:00:00 2001
@@ -2452,14 +2465,20 @@ index 76f47bc..f9815f1 100644
 ---
 2.1.0
 ```
-你还可以编辑这些补丁文件，以添加更多你不希望出现在提交信息中的信息到邮件列表，如果你在 `---` 行和补丁开始的地方 (即 `diff --git` 行) 之间添加文本，开发者可以阅读它，但这些内容会被补丁应用过程忽略
 
-要将这个邮件发送到邮件列表，你可以直接将文件粘贴到你的电子邮件程序中，或者通过命令行程序发送
-粘贴文本经常会导致格式问题，特别是使用“更智能”的客户端时，它们可能不会适当地保留换行符和其他空白，幸运的是，Git 提供了一个工具来帮助你通过 IMAP 发送正确格式化的补丁，这可能对你来说更简单
+You can also edit these patch files to add more information for the email list that you don’t want to show up in the commit message. If you add text between the `---` line and the beginning of the patch (the `diff --git` line), the developers can read it, but that content is ignored by the patching process.
+>  你还可以编辑这些补丁文件，以添加更多你不希望出现在提交信息中的信息到邮件列表，如果你在 `---` 行和补丁开始的地方 (即 `diff --git` 行) 之间添加文本，开发者可以阅读它，但这些内容会被补丁应用过程忽略
 
-我们将演示如何通过 Gmail 发送补丁，这是我们最熟悉的电子邮件代理；你可以在 Git 源代码中的 `Documentation/SubmittingPatches` 文件的末尾阅读到许多邮件程序的详细说明
+To email this to a mailing list, you can either paste the file into your email program or send it via a command-line program. Pasting the text often causes formatting issues, especially with “smarter” clients that don’t preserve newlines and other whitespace appropriately. Luckily, Git provides a tool to help you send properly formatted patches via IMAP, which may be easier for you. 
+>  要将这个邮件发送到邮件列表，你可以直接将文件粘贴到你的电子邮件程序中，或者通过命令行程序发送
+>  粘贴文本经常会导致格式问题，特别是使用“更智能”的客户端时，它们可能不会适当地保留换行符和其他空白，幸运的是，Git 提供了一个工具来帮助你通过 IMAP 发送正确格式化的补丁，这可能对你来说更简单
 
-首先，你需要在 `~/.gitconfig` 文件中设置 imap 部分，你可以使用一系列 `git config` 命令单独设置每个值，或者你可以手动添加它们，但最终你的配置文件应该看起来像这样：
+We’ll demonstrate how to send a patch via Gmail, which happens to be the email agent we know best; you can read detailed instructions for a number of mail programs at the end of the aforementioned `Documentation/SubmittingPatches` file in the Git source code.
+>  我们将演示如何通过 Gmail 发送补丁，这是我们最熟悉的电子邮件代理；你可以在 Git 源代码中的 `Documentation/SubmittingPatches` 文件的末尾阅读到许多邮件程序的详细说明
+
+First, you need to set up the imap section in your `~/.gitconfig` file. You can set each value separately with a series of `git config` commands, or you can add them manually, but in the end your config file should look something like this:
+>  首先，你需要在 `~/.gitconfig` 文件中设置 imap 部分，你可以使用一系列 `git config` 命令单独设置每个值，或者你可以手动添加它们，但最终你的配置文件应该看起来像这样：
+
 ```
 [imap]
   folder = "[Gmail]/Drafts"
@@ -2469,9 +2488,13 @@ index 76f47bc..f9815f1 100644
   port = 993
   sslverify = false
 ```
-如果你的 IMAP 服务器不使用 SSL，最后两行可能就没有必要了，主机值 (host value) 将是 `imap://` 而不是 `imaps://`
 
-设置完成后，你可以使用 `git imap-send` 将补丁系列放置在指定 IMAP 服务器的草稿文件夹 (Drafts folder) 中：
+If your IMAP server doesn’t use SSL, the last two lines probably aren’t necessary, and the host value will be `imap://` instead of `imaps://`. 
+>  如果你的 IMAP 服务器不使用 SSL，最后两行可能就没有必要了，主机值 (host value) 将是 `imap://` 而不是 `imaps://`
+
+When that is set up, you can use `git imap-send` to place the patch series in the Drafts folder of the specified IMAP server:
+>  设置完成后，你可以使用 `git imap-send` 将补丁系列放置在指定 IMAP 服务器的草稿文件夹 (Drafts folder) 中：
+
 ```
 $ cat *.patch | git imap-send
 Resolving imap.gmail.com... ok
@@ -2480,9 +2503,13 @@ Logging in...
 sendding 2 messages
 100% (2/2) done
 ```
-此时，你应该能够进入你的草稿文件夹，将收件人字段更改为你发送补丁的邮件列表，可能还要抄送 (carbon copy) 给维护者或负责该部分的人，然后发送出去
 
-你也可以通过 SMTP 服务器发送补丁，和之前一样，你可以使用一系列 `git config` 命令单独设置每个值，或者你可以手动在 `~/.gitconfig` 文件的 `sendemail` 部分添加它们：
+At this point, you should be able to go to your Drafts folder, change the To field to the mailing list you’re sending the patch to, possibly CC the maintainer or person responsible for that section, and send it off.
+>  此时，你应该能够进入你的草稿文件夹，将收件人字段更改为你发送补丁的邮件列表，可能还要抄送 (carbon copy) 给维护者或负责该部分的人，然后发送出去
+
+You can also send the patches through an SMTP server. As before, you can set each value separately with a series of `git config` commands, or you can add them manually in the sendemail section in your `~/.gitconfig` file:
+>  你也可以通过 SMTP 服务器发送补丁，和之前一样，你可以使用一系列 `git config` 命令单独设置每个值，或者你可以手动在 `~/.gitconfig` 文件的 `sendemail` 部分添加它们：
+
 ```
 [sendemail]
   smtpencryption = tls
@@ -2490,7 +2517,10 @@ sendding 2 messages
   smtpuser = user@gmail.com
   smtpserverport = 587
 ```
-此时，你可以使用 `git send-email` 发送我们的补丁
+
+After this is done, you can use `git send-email` to send your patches:
+>  此时，你可以使用 `git send-email` 发送我们的补丁
+
 ```
 $ git send-email *.patch
 0001-add-limit-to-log-function.patch 
@@ -2500,7 +2530,9 @@ Emails will be sent from: Jessica Smith <jessica@example.com> Who should the ema
 Message-ID to be used as In-Reply-To for the first email? y
 ```
 
-然后，Git 会为你要发送的每个补丁输出一堆日志信息，看起来像这样：
+Then, Git spits out a bunch of log information looking something like this for each patch you’re sending:
+>  然后，Git 会为你要发送的每个补丁输出一堆日志信息，看起来像这样：
+
 ```
 (mbox) Adding cc: Jessica Smith <jessica@example.com> from
   \line 'From: Jessica Smith <jessica@example.com>'
@@ -2517,31 +2549,52 @@ References: <y>
 
 Result: OK
 ```
+
+### Summary
+In this section, we covered multiple workflows, and talked about the differences between working as part of a small team on closed-source projects vs contributing to a big public project. You know to check for white-space errors before committing, and can write a great commit message. You learned how to format patches, and e-mail them to a developer mailing list. Dealing with merges was also covered in the context of the different workflows. You are now well prepared to collaborate on any project.
+
+Next, you’ll see how to work the other side of the coin: maintaining a Git project. You’ll learn how to be a benevolent dictator or integration manager.
+
 ## 5.3 Maintaining a Project
-除了知道如何有效地为项目做出贡献外，你很可能还需要知道如何维护一个项目，这可能包括接受和应用通过 `format-patch` 生成并发送到你邮箱的补丁，或者整合 (integrate changes) 远程仓库中的远程分支的更改
+In addition to knowing how to contribute effectively to a project, you’ll likely need to know how to maintain one. This can consist of accepting and applying patches generated via `format-patch` and emailed to you, or integrating changes in remote branches for repositories you’ve added as remotes to your project. 
+>  除了知道如何有效地为项目做出贡献外，你很可能还需要知道如何维护一个项目，这可能包括接受和应用通过 `format-patch` 生成并发送到你邮箱的补丁，或者整合 (integrate changes) 远程仓库中的远程分支的更改
 
-无论你是维护一个官方仓库 (canonical repository)，还是想通过验证或批准补丁来提供帮助，你都需要知道如何以一种对其他贡献者最清晰、对你长期而言可持续的方式来接受工作 (accept work)
-### 5.3.1 Working in Topic Branches
-当你考虑集成新工作时，通常最好在一个主题分支中尝试——即专门为尝试新工作而创建的临时分支，这样，你可以轻松地单独调整补丁，并在它不起作用时暂时抛弃它，直到你有时间回来处理它
+Whether you maintain a canonical repository or want to help by verifying or approving patches, you need to know how to accept work in a way that is clearest for other contributors and sustainable by you over the long run.
+>  无论你是维护一个官方仓库 (canonical repository)，还是想通过验证或批准补丁来提供帮助，你都需要知道如何以一种对其他贡献者最清晰、对你长期而言可持续的方式来接受工作 (accept work)
 
-为了方便你在不得不暂时放弃它并在以后回来，你可以根据你将要尝试的工作的主题创建一个简单的分支名称，比如 `ruby_client` 或其他类似的描述性名称，以方便记忆
+### Working in Topic Branches
+When you’re thinking of integrating new work, it’s generally a good idea to try it out in a _topic branch_ — a temporary branch specifically made to try out that new work. This way, it’s easy to tweak a patch individually and leave it if it’s not working until you have time to come back to it. 
+>  当你考虑集成新工作时，通常最好在一个主题分支中尝试——即专门为尝试新工作而创建的临时分支，这样，你可以轻松地单独调整补丁，并在它不起作用时暂时抛弃它，直到你有时间回来处理它
 
-Git 项目的维护者也倾向于对这些分支进行命名空间划分——比如 `sc/ruby_client`，其中 `sc` 是贡献工作的人的简称
+If you create a simple branch name based on the theme of the work you’re going to try, such as `ruby_client` or something similarly descriptive, you can easily remember it if you have to abandon it for a while and come back later. 
+>  为了方便你在不得不暂时放弃它并在以后回来，你可以根据你将要尝试的工作的主题创建一个简单的分支名称，比如 `ruby_client` 或其他类似的描述性名称，以方便记忆
 
-你可以基于你的主分支这样创建分支：
+The maintainer of the Git project tends to namespace these branches as well — such as `sc/ruby_client`, where `sc` is short for the person who contributed the work. 
+>  Git 项目的维护者也倾向于对这些分支进行命名空间划分——比如 `sc/ruby_client`，其中 `sc` 是贡献工作的人的简称
+
+As you’ll remember, you can create the branch based off your `master` branch like this:
+>  你可以基于你的主分支这样创建分支：
+
 ```
 $ git branch sc/ruby_client master
 ```
 
-或者，如果你想立即切换到它，你可以使用 `checkout -b` 选项：
+Or, if you want to also switch to it immediately, you can use the `checkout -b` option:
+>  或者，如果你想立即切换到它，你可以使用 `checkout -b` 选项：
+
 ```
 $ git checkout -b sc/ruby_client master
 ```
-现在你已经准备好将你收到的贡献工作添加到这个主题分支中，并确定是否要将它合并到你的长期分支中
-### 5.3.2 Applying Patches from Email
-如果你通过电子邮件收到一个你需要集成到你的项目中的补丁，你需要在你的主题分支上应用这个补丁来评估它
 
-应用电子邮件发送的补丁有两种方式：使用`git apply`或者使用`git am`
+Now you’re ready to add the contributed work that you received into this topic branch and determine if you want to merge it into your longer-term branches.
+>  现在你已经准备好将你收到的贡献工作添加到这个主题分支中，并确定是否要将它合并到你的长期分支中
+
+### Applying Patches from Email
+If you receive a patch over email that you need to integrate into your project, you need to apply the patch in your topic branch to evaluate it. 
+>  如果你通过电子邮件收到一个你需要集成到你的项目中的补丁，你需要在你的主题分支上应用这个补丁来评估它
+
+There are two ways to apply an emailed patch: with `git apply` or with `git am`.
+>  应用电子邮件发送的补丁有两种方式：使用 `git apply` 或者使用 `git am`
 
 **Applying a Patch with `am`**
 如果贡献者是一名 Git 用户，并且足够细心地使用`format-patch`命令来生成他们的补丁，那么你的工作就更容易了，因为补丁包含了作者信息和提交信息供你使用
