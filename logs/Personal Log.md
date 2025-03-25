@@ -1588,8 +1588,144 @@ Date: 2025.3.10-2025.3.17
 Date: 2025.3.17-2025.3.24
 
 \[Paper\]
-- [[paper-notes/distributed-system/In Search of an Understandable Consensus Algorithm (Extended Version)-2014-ATC|2014-ATC-In Search of an Understandable Consensus Algorithm (Extended Version)]]
-- [[paper-notes/rl/Proximal Policy Optimization Algorithms-2017|2017-Proximal Policy Optimization Algorithms]]
+- [[paper-notes/distributed-system/In Search of an Understandable Consensus Algorithm (Extended Version)-2014-ATC|2014-ATC-In Search of an Understandable Consensus Algorithm (Extended Version)]]: All
+    0-Abstract
+        Raft is a consensus algorithm for managing replicated logs. It produces a result equivalent to multi-Paxos and is as efficient as Paxos.
+        Raft separates the key elements of consensus: leader election, log replication, safety, and includes a new mechanism for changing cluster membership, which uses overlapping majorities to ensure safety.
+    1-Introduction
+        Compared to existing consensus algorithms, Raft has several new features: 1. strong leader: log entries only flow from leader to followers. This simplifies the management of replicated logs 2. leader election: Raft use randomized timers to solve leader election conflicts efficiently 3. membership change: Raft uses a joint consensus approach to overlap the majorities of two different configurations (overlapping $C_{old}$ with $C_{old, new}$ and $C_{old, new}$ with $C_{new}$ ), which ensures safety and allows the cluster to continue operating during transition.
+    2-Replicated state machines
+        Replicated state machines are typically implemented using a replicated log, which stores a series of commands. Each replicated log contains the same commands in the same order.
+        Keeping the replicated log consistent is the job of the consensus algorithm, even if some servers may fail.
+        Once the commands are properly replicated, each server's state machine processes them in log order, and the outputs return to the clients will be consistent even if the leader failed and another leader was elected. As a result, the servers appear to form a single, highly reliable state machine.
+        Consensus algorithms for practical system typically has following properties: 1. ensure safety (never return incorrect result to clients) under all non-Byzantine conditions, including all network issues. 2. fully functional (available) as long as any majority of servers are operational and can communicate with each other and with clients. 3. servers do not depend on timing to ensure safety. Timing issues like delays and faulty clocks will only cause availability problems 4. a command execution can complete (that is, the command is committed) as soon as a majority responded a single round of RPC, there is no straggler issues.
+    3-What' wrong with Paxos
+        Multi-Paxos is extended from single-decree Paxos, which mainly focus on consensus on a single entry. We believe that the overall problem of reaching consensus on multiple decisions (i.e. a log instead of an entry) can be decomposed more directly.
+        There is little benefit to choosing a collection of log entries independently and then combine them into a sequential log. It's simpler and more efficient to design a system around the log.
+        Paxos uses a symmetric peer-to-peer approach, which only make sense when only making one single decision. If a series of decision must be made, it is simpler and faster to elect a leader, and have the leader coordinate the decisions.
+    4-Designing for understandability
+    5-The Raft consensus algorithm
+        Raft implements consensus by first electing a leader, who has the complete responsibility for managing the replicated log. The leader accepts entries from clients and replicate them to other servers' logs, and tell them when it is safe to apply their entries to their state machines.
+        A leader may fail or disconnect, in such case, a new leader should be elected.
+        Given the leader approach, Raft decomposes the consensus problem into three relatively independent sub-problems: leader election, log replication, safety
+        5.1-Raft basics
+            In Raft, a servers may be as a leader, follower, or candidate at any given time. 
+            In normal operation, there is only one leader, others are followers. Followers are passive. They issue no RPCs on their own, but only respond to requests from leader and candidates. The leader handle all client requests. If the client request a follower, the follower will redirect it to the leader.
+            Time is divided into terms of arbitrary length, which is numbered by consecutive integers. Each term starts with an election, the winner candidate will become the leader. When split votes happen, the term will terminate with no leader and next term will begin soon.
+            Terms act as a logical clock in Raft. Servers use term to detect stale leaders. Each server stores a current term number, which are exchanged when two servers communicate. If one server find its term obsolete, then it will update it. If a candidate or leader finds its term obsolete, it will return to the follower state. Requests with obsolete term number will be rejected for any server.
+            The basic consensus is reached with only two RPCs: `AppendEntries` and `RequestVote`. `AppendEntries` is issued when leader replicate entries or sending heartbeats. `RequestVote` is issued when candidate start election.
+            Servers will retry RPCs if they do not receive a timely response, and multiple RPCs will be send in parallel to improve performance.
+        5.2-Leader election
+            Leader election is triggered by the heartbeat mechanism. All servers start as follower. When they do not receive periodical heartbeat from the leader, after the election timeout, they will assume there is no leader, and become candidate to start an election.
+            When starting an election, a follower increase its term number, become candidate and votes for itself, then issues `RequestVote` RPCs in parallel to all other servers. Each server will votes for sender of the first-come `RequestVote` .
+            The majority rule ensures at most one candidate will win an election at a given term. Once a candidate becomes leader, it sends heartbeats to establish its authority, preventing new elections.
+            If the candidate receives other leader's heartbeat with larger or equal term, the candidate recognize the leader and go back to follower. If the term is smaller, the candidate rejects the RPC and stays for voting.
+            If the candidate neither receive majority votes nor receive new leader's heartbeat. It will timeout and starts a new election with increased term.
+            Raft uses randomized election timeouts to ensure split votes are rare and can be solved quickly. Each server's election timeout is sampled from a fixed interval. In most case, there will be the first time-out server to start the next election and quickly win the election before other candidate's timeout.
+            If the candidate timeout (split vote happened), it will sample another timeout, and waits for that timeout to elapse before starting the next election. This reduces the likelihood of split vote in the next election.
+        5.3-Log replication
+            Once a leader is elected, it begins handling client requests. When receiving a command, the leader appends it to its log, then issues `AppendEntries` to replicate that entry. 
+            When the leader is sure that the entry is safely replicated, it will apply that command to its state machine, and return the execution result to the clients.
+            If a follower does not reply `AppendEntries` timely, the leader will indefinitely retry until it is sure that all followers eventually stored all log entries.
+            Each entry stores a command, a term number, and is associated with an index.
+            Note that when to apply the entry is decided by the leader. An entry which is considered safe to apply by the leader is called committed. The leader will commit the entry once it has replicated that entry to a majority. When an entry is committed, all preceding entries in the log will be committed.
+            Leader keeps track of the highest index of the committed entry, that index will be included in future `AppendEntries` to let followers know it and apply it as well.
+            Raft maintains two following properties which together constitutes the Log Matching Property: 1. two entries with same term and index will store the same command 2. if two entries have same term and index, all their preceding entries will be the same
+            The first property holds because a leader will only create at most one entry at any given index in any term. Thus, in the whole system duration, an index and a term number will unique identify an entry.
+            The second property is guaranteed by the consistency check of `AppendEntries` . `AppendEntries` will fail if the preceding entry in the log to be appended is not the desired. The consistency check acts like an induction step: the initial state satisfy the Log Matching Property, and the consistency check makes sure that successful `AppendEntries` will keep the Log Matching Property. As long as `AppendEntries` return true, the leader knows the follower's log is consistent with its.
+            A follower may missing entries that are present on the leader, may have extra entries that are not present on the leader, or both.
+            In Raft, the leader force the followers to be consistent with its to solve inconsistency. This means conflicting entries in the followers' logs will be overwritten by the leader. The leader will find the latest consistent entry in the follower's log and overwritten all entries following. All these actions happen in response to the consistency check by `AppendEntries` RPCs.
+            Under this mechanism, without tacking extra actions, a leader will converge the followers' log in normal operation.
+        5.4-Safety
+            To prevent the situation that a follower become unavailable which the leader commits several entries, and then become the new leader to overwrite the committed entries, we need another mechanism to ensure safety.
+            Raft adds a restriction on which servers may be elected leader, to make sure only the candidate storing all committed entries can become the leader.
+            To win an election, the candidate must communicate with a majority, which means each committed entries must be stored at least in one server of the majority. If the candidate's log is up-to-date compared to all serves in the majority, then we can make sure it has all committed entries.
+            The `RequestVote` RPC implements this restriction: the RPC contains information about the candidate's log, if the candidates' log is not up-to-date, the voter will not vote for it.
+            Raft determines which of two logs are up-to-date by comparing their last entries, if the term are same, the longer log is more up-to-date, if the term are different, the log with larger term is more up-to-date.
+        5.5-Follower and candidate crashes
+            Raft RPCs are idempotent.
+        5.6-Timeing and availability
+            broadcast time << election timeout << mean time between failures
+    6-Cluster membership changes
+        To make configuration transition safe, there must be no point during the transition where is it possible for two leaders elected by two disjoint majority in the same term.
+        Therefore, the core is to prevent two disjoint majority emerge during the configuration transition.
+        Raft use the joint consensus configuration as the transition configuration, in that configuration, 1. log entries should be replicated to all servers in both configurations 2. any server from either configuration can be elected leader 3. agreement requires separate majorities from both configuration.
+    7-Log compaction
+        Snapshotting with `InstallSnapshot` RPC
+    8-Client interaction
+    9-Implementation and evaluation
+    10-Related work
+    11-Conclusion
+- [[paper-notes/rl/Proximal Policy Optimization Algorithms-2017|2017-Proximal Policy Optimization Algorithms]]: All
+    Abstract
+        Standard policy gradient method performs one gradient update per data sample. Whereas the new proposed objective function supports perform multiple epochs of minibatch updates based on multiple data samples collected through previous policy.
+        Compared with TRPO, PPO is simpler to implement and empirically have better sample complexity.
+    Introduction
+        Deep Q-Learning failed on many simple continuous control problem. Standard policy gradient methods have poor data efficiency and robustness (because they are purely on-policy). TRPO is relatively complicated and not compatible with architectures that include noise or parameter sharing.
+        PPO uses a new objective function with clipped probability ratio, which is a lower bound of the traditional objective for policy gradient methods. In optimization, it iterates between sampling data from policy and performing several epochs of optimization based on the sampled data. 
+        In experiment, the objective with clipped probability ratio has best performance over other variant objectives.
+    Background: Policy Optimization
+        Empirically, performing multiple steps of optimization of the traditional policy gradient objective $L^{PG}$ using the same trajectory will lead to destructively large policy updates. 
+        TRPO imposed a constraint on the size of policy update, the objective is also modified with importance weights to adapt to the stale samples.
+        The theory justifying TRPO actually suggests using penalty term instead of constraint. TRPO use hard constraint instead of penalty term because it is hard to choose a single trade-off coefficient $\beta$ working for different problems.
+    Clipped Surrogate Objective
+        $L^{CLIP}$ add a clipped term into TRPO's objective $L^{CPI}$ and throws the constraint away. The $\min$ guarantees the final objective is a lower bound of the unclipped objective.
+        Clipping of the probability ratio removes the incentive of optimizing $\theta$ too far away (moving $r_t(\theta)$ outside of interval $[1-\epsilon, 1 + \epsilon]$), therefore prevent radical policy update to a certain degree.
+        More intuitively, clipping the probability ratio makes the actor do not totally trust the evaluation given by the critic, because the actor's belief on the critic is some kind of limited by the imposed probability ratio interval.
+        Intuitively, this is reasonable, because 1. the critic typically learns slower than the actor even in the original policy gradient methods 2. when the actor learns multiple epochs with the stale samples, the critic's evaluation will be even less referential.
+    Adaptive KL Penalty Coefficient
+        An alternative to the clipped surrogate objective is using the penalty on KL divergence as regularization. In experiments, this method performs worse than the clipped surrogate objective.
+    Algorithm
+        The implementation has just minor difference between the typical policy gradient implementation. All we need to do is to substitute the traditional loss $L^{PG}$ with $L^{CLIP}$, and perform multiple steps of stochastic gradient ascent on this objective.
+        We use a truncated version of generalized advantage estimation.
+    Experiments
+        PPO outperforms the previous methods on almost all the continuous environments.
+    Conclusion
 
 \[Book\]
 - [[book-notes/深度强化学习|深度强化学习]]: CH9, CH10, CH13
+    CH9-策略学习高级技巧
+        CH9.1-Trust Region Policy Optimization (TRPO)
+            相较于朴素的策略梯度方法，TRPO 表现更稳定，收敛曲线不会剧烈波动，对学习率不敏感，并且用更少的经验就能达到和策略梯度相同的表现
+            置信域方法要求在给定邻域内，近似函数和目标函数的差异较小，由此可以用较简单的近似函数替代目标函数执行参数优化，以间接地找到能够近似最大化目标函数的参数
+            置信域方法主要分为两步：1. 做近似 2. 最大化
+            利用重要性采样，策略学习的目标函数可以写为对另一个策略求期望的方式，并且，如果行为策略和目标策略在置信域内足够接近，可以用行为策略的价值函数 (critic) 替代公式中的目标策略的价值函数
+            由此，我们可以完全基于行为策略采集样本，计算目标，然后近似优化目标策略的参数
+            虽然通过重要性采样，我们引入了一定的 off-policy，但为了避免方差过大，采样分布/行为策略和目标分布/目标策略不能相距过远，因此优化需要限制在置信域内执行
+            置信域可以使用参数的直接距离定义，也可以基于采样分布和目标分布的 KL 散度定义
+        CH9.2-熵正则 (Entropy Regularization)
+            朴素的策略网络学习是 on-policy，故策略网络的输出决定了 agent 的探索程度，为了确保 agent 保持一定的探索，我们希望策略网络的输出保持一定的不确定性
+            我们使用策略网络的输出的熵的期望度量其不确定性，将其作为正则化项，使得策略保持一定随机性
+    CH10-连续控制
+        CH10.1-离散控制和连续控制的区别
+            连续控制中，动作空间是无限集，并且通常是多维的
+            直接将离散控制的方法应用到连续控制的一种思路是将连续动作空间离散化，但存在维度灾难问题
+        CH10.2-确定策略梯度 (DPG)
+            最常用的连续控制方法是确定策略梯度，DPG 方法和朴素策略梯度方法的差异主要在于策略网络 (actor) 的输出不是概率质量函数/分布，而是确定的动作向量
+            可以以该动作向量为均值定义多维高斯分布，引入一定的动作选择随机性
+            DPG 可以使用异策略方法训练，即样本形式为 $(s_t, \pmb a_t, r_t, s_{t+1})$，原因在于 actor 是确定性时，$a_{t+1}$ 可以直接由 $s_{t+1}$ 计算得到，不需要执行 on-policy 采样 (这就类似于 DQN 中，直接取 $\arg\max_a$ )
+        CH10.3-深度分析 DPG
+            DPG 也存在 (近似) 最大化带来的高估问题和自举带来的误差传播问题
+        CH10.4-双延时确定策略梯度 (TD3) 
+            缓解高估问题的一种方法是为策略网络训练目标网络，我们认为该目标网络不会过好地近似 $\pi(s;\pmb\theta) = \arg\max_{a\in \mathcal A}Q_\pi(s, a;\pmb w)$
+            缓解误差传播的方法仍是为价值网络训练目标网络
+            可以进一步添加一个价值网络，同时训练两个价值网络，两个价值网络各自有其目标网络
+            进一步的改进方法包括：为策略网络的输出添加噪声 (从截断正态分布中抽取)，让其进一步偏移最优动作；减缓策略网络和目标网络的更新频率，目的是让价值网络追上策略网络的更新频率 (一般策略的收敛比价值快)，以更好地拟合策略的价值函数
+            在 DPG 中应用这些额外技巧的算法即 TD3，它仍是 off-policy 算法
+        CH10.5-随机高斯策略
+            为了避免 $\sigma$ 的非负性为优化模型带来约束，实践中会近似 $\ln \sigma^2$，而不是直接近似 $\sigma$
+    CH13-并行计算
+        CH13.1-并行计算基础
+            数据并行指 workers 拥有全部模型参数，处理部分数据，模型并行指 workers 拥有全部数据，处理部分模型参数
+            加速比通过钟表时间计算，并行情况下，处理器时间不变，钟表时间减少
+            延迟通常与通信次数呈正比，即每次通信存在固定延迟，但无关通信量
+        CH13.2-同步与异步
+            异步情况下，worker 在完成计算后直接传递随机梯度给 server, server 执行更新，返回新参数
+            该情况下，server 可能会收到过时的梯度，即基于旧参数计算的梯度，因此理论上，异步梯度下降具有很强随机性
+        CH13.3-并行强化学习
+            异步并行双 Q 学习使用异步梯度下降训练 DQN，每个 worker 维护自己的目标网络，在自己的环境中收集经验
+            异步并行 A2C 类似
+
+\[Doc\]
+- [[doc-notes/numpy/user-guide/fundamentals-and-usage/NumPy Fundamentals|numpy/user-guide/fundamentals-and-usage/NumPy Fundamentals]]
+- [[doc-notes/python/packages/gymnasium/environments/Classic Control|python/packages/gymnasium/environments/Classic Control]]
