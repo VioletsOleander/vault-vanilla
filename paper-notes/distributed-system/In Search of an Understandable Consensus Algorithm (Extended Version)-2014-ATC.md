@@ -97,7 +97,7 @@ The second problem with Paxos is that it does not provide a good foundation for 
 
 Furthermore, the Paxos architecture is a poor one for building practical systems; this is another consequence of the single-decree decomposition. For example, there is little benefit to choosing a collection of log entries independently and then melding them into a sequential log; this just adds complexity. It is simpler and more efficient to design a system around a log, where new entries are appended sequentially in a constrained order. Another problem is that Paxos uses a symmetric peer-to-peer approach at its core (though it eventually suggests a weak form of leadership as a performance optimization). This makes sense in a simplified world where only one decision will be made, but few practical systems use this approach. If a series of decisions must be made, it is simpler and faster to first elect a leader, then have the leader coordinate the decisions. 
 >  并且，Paxos 架构并不适合构建实际系统，这也是 Paxos 采用的 single-decree 分解导致的 (multi-Paxos 由 single-decree Paxos 组合而成，故 Paxos 采用的是 single-decree 分解)
->  例如，独立地选择一组日志条目，然后再将它们组合为一个顺序的日志不会带来好处，仅增加复杂性。相比之下，直接围绕一个日志设计系统会更为简单高效，新的条目会已受限的顺序附加到日志中
+>  例如，独立地选择一组日志条目，然后再将它们组合为一个顺序的日志不会带来好处，仅增加复杂性。相比之下，直接围绕一个日志设计系统会更为简单高效，新的条目会以受限的顺序附加到日志中
 >  另一个问题是 Paxos 的核心采用了对称的点对点方法，这仅在需要做出单一决策的理想场景中合理，但实际系统很少采用该方法。如果需要进行一系列决策，更加简单快速的方式是选举出一个 leader，让 leader 协调决策
 
 As a result, practical systems bear little resemblance to Paxos. Each implementation begins with Paxos, discovers the difficulties in implementing it, and then develops a significantly different architecture. This is time-consuming and error-prone, and the difficulties of understanding Paxos exacerbate the problem. Paxos’ formulation may be a good one for proving theorems about its correctness, but real implementations are so different from Paxos that the proofs have little value. The following comment from the Chubby implementers is typical: 
@@ -772,7 +772,7 @@ The bottom graph in Figure 16 shows that downtime can be reduced by reducing the
 >  但是，进一步减少 election timeout 会违反 Raft 的时间要求: election timeout 过短时，leader 没有充分的时间在其他 servers timeout 之前完成 heartbeat 的广播，这会导致不必要的 leader 变化，降低系统的可用性
 >  建议使用保守的 election timeout 150-300ms，这将不太可能导致不必要的 leader 变更
 
-## 10 Related work 
+# 10 Related work 
 There have been numerous publications related to consensus algorithms, many of which fall into one of the following categories: 
 - Lamport’s original description of Paxos [15], and attempts to explain it more clearly [16, 20, 21]. 
 - Elaborations of Paxos, which fill in missing details and modify the algorithm to provide a better foundation for implementation [26, 39, 13]. 
@@ -788,7 +788,7 @@ The greatest difference between Raft and Paxos is Raft’s strong leadership: Ra
 
 Like Raft, VR and ZooKeeper are leader-based and therefore share many of Raft’s advantages over Paxos. However, Raft has less mechanism that VR or ZooKeeper because it minimizes the functionality in non-leaders. For example, log entries in Raft flow in only one direction: outward from the leader in `AppendEntries` RPCs. In VR log entries flow in both directions (leaders can receive log entries during the election process); this results in additional mechanism and complexity. The published description of ZooKeeper also transfers log entries both to and from the leader, but the implementation is apparently more like Raft [35]. 
 >  Raft 最小化了非 leader 的功能
->  Raft 中，log entries 仅在一个方向流动:
+>  Raft 中，log entries 仅在一个方向流动
 
 Raft has fewer message types than any other algorithm for consensus-based log replication that we are aware of. For example, we counted the message types VR and ZooKeeper use for basic consensus and membership changes (excluding log compaction and client interaction, as these are nearly independent of the algorithms). VR and ZooKeeper each define 10 different message types, while Raft has only 4 message types (two RPC requests and their responses). Raft’s messages are a bit more dense than the other algorithms’, but they are simpler collectively. In addition, VR and ZooKeeper are described in terms of transmitting entire logs during leader changes; additional message types will be required to optimize these mechanisms so that they are practical. 
 >  Raft 的消息类型更少，仅有四类 (两类 RPC 和它们的回应)

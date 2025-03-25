@@ -8,7 +8,7 @@ Whereas standard policy gradient methods perform one gradient update per data sa
 
 Our experiments test PPO on a collection of benchmark tasks, including simulated robotic locomotion and Atari game playing, and we show that PPO outperforms other online policy gradient methods, and overall strikes a favorable balance between sample complexity, simplicity, and wall-time. 
 >  我们在一系列基准任务中测试了 PPO，包括模拟机器人运动、Atari 游戏
->  PPO 的表现优于其他在线策略梯度方法，总体上在样本复杂度、间接性和运行时间之间取得了平衡
+>  PPO 的表现优于其他在线策略梯度方法，总体上在样本复杂度、简洁性和运行时间之间取得了平衡
 
 # 1 Introduction 
 In recent years, several different approaches have been proposed for reinforcement learning with neural network function approximators. The leading contenders are deep $Q$ -learning [Mni+15], “vanilla” policy gradient methods [Mni + 16], and trust region / natural policy gradient methods [Sch+15b]. However, there is room for improvement in developing a method that is scalable (to large models and parallel implementations), data efficient, and robust (i.e., successful on a variety of problems without hyperparameter tuning). $Q$ -learning (with function approximation) fails on many simple problems $^{1}$ and is poorly understood, vanilla policy gradient methods have poor data efficiency and robustness; and trust region policy optimization (TRPO) is relatively complicated, and is not compatible with architectures that include noise (such as dropout) or parameter sharing (between the policy and value function, or with auxiliary tasks). 
@@ -313,7 +313,7 @@ A2C stands for advantage actor critic, and is a synchronous version of A3C, whic
 ![[pics/PPO-Fig3.png]]
 
 For PPO, we used the hyperparameters from the previous section, with $\epsilon=0.2$ . We see that PPO outperforms the previous methods on almost all the continuous control environments. 
->  可以看到，PPO 在几乎所有连续控制场景中都由于之前的方法
+>  可以看到，PPO 在几乎所有连续控制场景中都优于之前的方法
 
 ## 6.3 Showcase in the Continuous Domain: Humanoid Running and Steering 
 To showcase the performance of PPO on high-dimensional continuous control problems, we train on a set of problems involving a 3D humanoid, where the robot must run, steer, and get up off the ground, possibly while being pelted by cubes. 
@@ -351,7 +351,7 @@ A table of results and learning curves for all 49 games is provided in Appendix 
 We have introduced proximal policy optimization, a family of policy optimization methods that use multiple epochs of stochastic gradient ascent to perform each policy update. These methods have the stability and reliability of trust-region methods but are much simpler to implement, requiring only few lines of code change to a vanilla policy gradient implementation, applicable in more general settings (for example, when using a joint architecture for the policy and value function), and have better overall performance. 
 >  我们介绍了 PPO，这是一类使用 **多轮 (multiple epochs)** 随机梯度上升来执行每次策略更新的策略优化方法
 >  PPO 具有 TRPO 的稳定性和可靠性，且更易于实现，只需对标准的策略梯度实现进行少量代码修改即可
->  PPO 适用于更广泛的场景 (例如策略函数和价值函数共享架构时也可以使用 PPO)，并且整体性能更加
+>  PPO 适用于更广泛的场景 (例如策略函数和价值函数共享架构时也可以使用 PPO)，并且整体性能更佳
 
 >  实际上我觉得 PPO 主要在于提高了样本利用率，可以在更少的训练轮数下更快收敛，达到相同的性能需要收集更少的经验
 >  或许给其他的策略梯度方法例如 A2C 更多的训练轮数 (或许要几倍于 PPO)，它们可以达到可能更优的表现，毕竟它们是完全 on-policy 的 (当然 critic 给出的评价肯定仍然是存在偏移的，从这一点的角度出发，对于策略的过激更新进行限制或许在 on-policy 情况下也是存在合理性的)，但鉴于效率问题，PPO 在有限的训练轮数下确实是更优的选择
