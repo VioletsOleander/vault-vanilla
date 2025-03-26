@@ -1,4 +1,3 @@
-# Writing your `pyproject.toml`
 `pyproject.toml` is a configuration file used by packaging tools, as well as other tools such as linters, type checkers, etc. There are three possible TOML tables in this file.
 
 - The `[build-system]` table is **strongly recommended**. It allows you to declare which [build backend](https://packaging.python.org/en/latest/glossary/#term-Build-Backend) you use and which other dependencies are needed to build your project.
@@ -19,7 +18,7 @@ A notable exception is [Poetry](https://python-poetry.org/), which before versi
 
 For new projects, use the `[project]` table, and keep `setup.py` only if some programmatic configuration is needed (such as building C extensions), but the `setup.cfg` and `setup.py` formats are still valid. See [Is setup.py deprecated?](https://packaging.python.org/en/latest/discussions/setup-py-deprecated/#setup-py-deprecated).
 
-## Declaring the build backend
+# Declaring the build backend
 The `[build-system]` table contains a `build-backend` key, which specifies the build backend to be used. It also contains a `requires` key, which is a list of dependencies needed to build the project – this is typically just the build backend package, but it may also contain additional dependencies. You can also constrain the versions, e.g., `requires = ["setuptools >= 61.0"]`.
 >  `[build-system]` 中，`build-backend` 指定使用的构建后端，`requries` 指定构建依赖，通常仅包含构建后端的包 (及其版本)
 
@@ -31,7 +30,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 ```
 
-## Static vs. dynamic metadata
+# Static vs. dynamic metadata
 The rest of this guide is devoted to the `[project]` table.
 
 Most of the time, you will directly write the value of a `[project]` field. For example: `requires-python = ">= 3.8"`, or `version = "1.0"`.
@@ -45,8 +44,8 @@ dynamic = ["version"]
 
 When a field is dynamic, it is the build backend’s responsibility to fill it. Consult your build backend’s documentation to learn how it does it.
 
-## Basic information
-### `name`
+# Basic information
+## `name`
 Put the name of your project on PyPI. This field is required and is the only field that cannot be marked as dynamic.
 
 ```toml
@@ -60,7 +59,7 @@ Comparison of project names is case insensitive and treats arbitrarily long runs
 
 >  `name` : 项目在 PyPI 上的名字，这是唯一不能是 dynamic 的 field
 
-### `version`
+## `version`
 Put the version of your project.
 
 ```toml
@@ -79,8 +78,8 @@ dynamic = ["version"]
 
 This allows use cases such as filling the version from a `__version__` attribute or a Git tag. Consult the [Single-sourcing the Project Version](https://packaging.python.org/en/latest/discussions/single-source-version/#single-source-version) discussion for more details.
 
-## Dependencies and requirements
-### `dependencies` / `optional-dependencies`
+# Dependencies and requirements
+## `dependencies` / `optional-dependencies`
 If your project has dependencies, list them like this:
 
 ```toml
@@ -110,7 +109,7 @@ Each of the keys defines a “packaging extra”. In the example above, one coul
 
 >  `[project.optional-dependencies]` 中每个 key 都定义一个额外包，在 `pip install` 时可以通过 `[key]` 以指定同时下载额外依赖
 
-### `requires-python
+## `requires-python
 This lets you declare the minimum version of Python that you support [1](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#requires-python-upper-bounds).
 
 ```toml
@@ -118,7 +117,7 @@ This lets you declare the minimum version of Python that you support [1](https:
 requires-python = ">= 3.8"
 ```
 
-## Creating executable scripts
+# Creating executable scripts
 To install a command as part of your package, declare it in the `[project.scripts]` table.
 
 ```toml
@@ -141,9 +140,9 @@ In that case, launching your script from the command line will give back control
 
 The difference between `[project.scripts]` and `[project.gui-scripts]` is only relevant on Windows.
 
-## About your project
+# About your project
 
-### `authors` / `maintainers`
+## `authors` / `maintainers`
 Both of these fields contain lists of people identified by a name and/or an email address.
 
 ```toml
@@ -159,7 +158,7 @@ maintainers = [
 ]
 ```
 
-### `description`
+## `description`
 This should be a one-line description of your project, to show as the “headline” of your project page on PyPI ([example](https://pypi.org/project/pip)), and other places such as lists of search results ([example](https://pypi.org/search?q=pip)).
 
 ```toml
@@ -167,7 +166,7 @@ This should be a one-line description of your project, to show as the “headlin
 description = "Lovely Spam! Wonderful Spam!"
 ```
 
-### `readme`
+## `readme`
 This is a longer description of your project, to display on your project page on PyPI. Typically, your project will have a `README.md` or `README.rst` file and you just put its file name here.
 
 ```
@@ -189,10 +188,10 @@ readme = {file = "README.txt", content-type = "text/markdown"}
 readme = {file = "README.txt", content-type = "text/x-rst"}
 ```
 
-### `license
+## `license
 [**PEP 639**](https://peps.python.org/pep-0639/) (accepted in August 2024) has changed the way the `license` field is declared. Make sure your preferred build backend supports [**PEP 639**](https://peps.python.org/pep-0639/) before trying to apply the newer guidelines. As of February 2025, [setuptools](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html "(in setuptools v75.8.1.post20250225)") and [flit](https://flit.pypa.io/en/stable/pyproject_toml.html#pyproject-toml-project "(in Flit v3.11.0)") don’t support [**PEP 639**](https://peps.python.org/pep-0639/) yet.
 
-#### [**PEP 639**](https://peps.python.org/pep-0639/) license declaration
+## [**PEP 639**](https://peps.python.org/pep-0639/) license declaration
 This is a valid [SPDX license expression](https://packaging.python.org/en/latest/glossary/#term-License-Expression) consisting of one or more [license identifiers](https://packaging.python.org/en/latest/glossary/#term-License-Identifier). The full license list is available at the [SPDX license list page](https://spdx.org/licenses/). The supported list version is 3.17 or any later compatible one.
 
 ```
@@ -211,7 +210,7 @@ If your project is licensed with a license that doesn’t have an existing SPDX 
 license = "LicenseRef-My-Custom-License"
 ```
 
-#### Legacy license declaration
+## Legacy license declaration
 This can take two forms. You can put your license in a file, typically `LICENSE` or `LICENSE.txt`, and link that file here:
 
 ```
@@ -228,7 +227,7 @@ license = {text = "MIT License"}
 
 If you are using a standard, well-known license, it is not necessary to use this field. Instead, you should use one of the [classifiers](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#classifiers) starting with `License ::`. (As a general rule, it is a good idea to use a standard, well-known license, both to avoid confusion and because some organizations avoid software whose license is unapproved.)
 
-### `license-files`
+## `license-files`
 [**PEP 639**](https://peps.python.org/pep-0639/) (accepted in August 2024) has introduced the `license-files` field. Make sure your preferred build backend supports [**PEP 639**](https://peps.python.org/pep-0639/) before declaring the field. As of February 2025, [setuptools](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html "(in setuptools v75.8.1.post20250225)") and [flit](https://flit.pypa.io/en/stable/pyproject_toml.html#pyproject-toml-project "(in Flit v3.11.0)") don’t support [**PEP 639**](https://peps.python.org/pep-0639/) yet.
 
 This is a list of license files and files containing other legal information you want to distribute with your package.
@@ -249,7 +248,7 @@ The glob patterns must follow the specification:
 
 Literal paths are valid globs. Any characters or character sequences not covered by this specification are invalid.
 
-### `keywords
+## `keywords
 This will help PyPI’s search box to suggest your project when people search for these keywords.
 
 ```
@@ -257,7 +256,7 @@ This will help PyPI’s search box to suggest your project when people search fo
 keywords = ["egg", "bacon", "sausage", "tomatoes", "Lobster Thermidor"]
 ```
 
-### `classifiers`
+## `classifiers`
 A list of PyPI classifiers that apply to your project. Check the [full list of possibilities](https://pypi.org/classifiers).
 
 ```toml
@@ -285,7 +284,7 @@ Although the list of classifiers is often used to declare what Python versions a
 
 To prevent a package from being uploaded to PyPI, use the special `Private :: Do Not Upload` classifier. PyPI will always reject packages with classifiers beginning with `Private ::`.
 
-### `urls
+## `urls
 A list of URLs associated with your project, displayed on the left sidebar of your PyPI project page.
 
 Note
@@ -320,7 +319,7 @@ HomePage = "https://example.com"
 DOWNLOAD = "https://example.com/abc.tar.gz"
 ```
 
-## Advanced plugins
+# Advanced plugins
 Some packages can be extended through plugins. Examples include [Pytest](https://pytest.org/) and [Pygments](https://pygments.org/). To create such a plugin, you need to declare it in a subtable of `[project.entry-points]` like this:
 
 ```
@@ -330,7 +329,7 @@ tomatoes = "spam:main_tomatoes"
 
 See the [Plugin guide](https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/#plugin-entry-points) for more information.
 
-## A full example
+# A full example
 
 ```toml
 [build-system]
