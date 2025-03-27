@@ -718,7 +718,8 @@ Date: 2024.12.9-2024.12.16
             The trade-off between gradient method and EM method is more subtle in MN.
 
 ### Week 4
-Date: 2024.12.16-2024.12.23-2024.12.30
+Date: 2024.12.16-2024.12.23
+Date: 2024.12.23-2024.12.30
 
 \[Paper\]
 - [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec4-Sec7
@@ -1729,3 +1730,9 @@ Date: 2025.3.17-2025.3.24
 \[Doc\]
 - [[doc-notes/numpy/user-guide/fundamentals-and-usage/NumPy Fundamentals|numpy/user-guide/fundamentals-and-usage/NumPy Fundamentals]]
 - [[doc-notes/python/packages/gymnasium/environments/Classic Control|python/packages/gymnasium/environments/Classic Control]]
+
+Date: 2025.3.24-2025.3.31
+
+\[Doc\]
+- [[doc-notes/python/packaging/discussions/install_requires vs requirements files|python/packaging/discussions/install_requires vs requirements files]]: All
+- 
