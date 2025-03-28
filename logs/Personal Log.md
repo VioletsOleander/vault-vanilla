@@ -1733,6 +1733,9 @@ Date: 2025.3.17-2025.3.24
 
 Date: 2025.3.24-2025.3.31
 
+\[Paper\]
+- [[paper-notes/distributed-system/ZooKeeper Wait-free coordination for Internet-scale systems-2010-ATC|2010-ATC-ZooKeeper Wait-free coordination for Internet-scale systems]]
+- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
+
 \[Doc\]
 - [[doc-notes/python/packaging/discussions/install_requires vs requirements files|python/packaging/discussions/install_requires vs requirements files]]: All
-- 
