@@ -1302,8 +1302,8 @@ Date: 2025.2.24-2025.3.3
             In policy iteration, the policy evaluation and policy improvement process can interact in more different ways. The ultimate results is the same: convergence to the optimal value function and an optimal policy.
 
 \[Doc\]
-- [[doc-notes/go/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
-- [[doc-notes/go/A Tour of Go|go/A Tour of Go]]: All
+- [[doc-notes/go/getting-started/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
+- [[doc-notes/go/getting-started/A Tour of Go|go/A Tour of Go]]: All
     Basics
         In Go, a name is exported if it begins with a capital letter. When a package is imported, only its exported names can be used.
         A function can return any number of results. The return values can be named, and a naked return statement will return the named values.
@@ -1414,7 +1414,7 @@ Date: 2025.3.3-2025.3.10
         价值网络的训练涉及到了自举，因此也可以采用目标网络方法缓解自举造成的误差传播问题
 
 \[Doc\]
-- [[doc-notes/go/How to Write Go Code|go/How to Write Go Code]]: All
+- [[doc-notes/go/getting-started/How to Write Go Code|go/How to Write Go Code]]: All
     Code Organization 
         Go programs are organized into packages. A package is a collection of source files in the same directory that are compiled together. Functions, variables, constants are all visible to other source files within the same package.
         A repository contains one or more modules. A module is a collection of packages to be released together. Typically, a Go repository contains only one module, located in the root directory of the repo.
