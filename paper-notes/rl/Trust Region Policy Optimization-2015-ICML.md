@@ -291,8 +291,8 @@ We therefore propose solving the following optimization problem to generate a po
 
 $$
 \begin{align}
-\operatorname*{maximize}_{\theta}L_{\theta_{\mathrm{old}}}(\theta)\\
-\text{subject to}\ \bar D_{KL}^{\rho_{\theta_{old}}}(\theta_{old}, \theta)\le \delta
+&\operatorname*{maximize}_{\theta}L_{\theta_{\mathrm{old}}}(\theta)\\
+&\text{subject to}\ \bar D_{KL}^{\rho_{\theta_{old}}}(\theta_{old}, \theta)\le \delta
 \end{align}\tag{12}
 $$
 
@@ -333,8 +333,8 @@ Our optimization problem in Equation (13) is exactly equivalent to the following
 
 $$
 \begin{align}
-\underset{\theta}{\operatorname*{maximize}}\mathbb{E}_{s\sim\rho_{\theta_{\mathrm{old}}},a\sim q}\left[\frac{\pi_{\theta}(a|s)}{q(a|s)}Q_{\theta_{\mathrm{old}}}(s,a)\right]\\
-\text{subject to}\ \mathbb E_{s\sim p_{\theta_{old}}}[D_{KL}(\pi_{\theta_{old}}(\cdot\mid s)\|\pi_{\theta}(\cdot\mid s))]\le \delta
+&\underset{\theta}{\operatorname*{maximize}}\mathbb{E}_{s\sim\rho_{\theta_{\mathrm{old}}},a\sim q}\left[\frac{\pi_{\theta}(a|s)}{q(a|s)}Q_{\theta_{\mathrm{old}}}(s,a)\right]\\
+&\text{subject to}\ \mathbb E_{s\sim p_{\theta_{old}}}[D_{KL}(\pi_{\theta_{old}}(\cdot\mid s)\|\pi_{\theta}(\cdot\mid s))]\le \delta
 \end{align}\tag{14}
 $$
 
@@ -434,22 +434,27 @@ Our theory ignores estimation error for the advantage function. Kakade & Langfor
 >  我们的理论忽略了优势函数的估计误差。Kakade & Langford (2002) 在其推导中考虑了这一误差，同样的论证也适用于本文的研究场景，但为了简化起见，我们省略了这部分内容。
 
 # 7 Connections with Prior Work 
-As mentioned in Section 4, our derivation results in a policy update that is related to several prior methods, providing a unifying perspective on a number of policy update schemes. The natural policy gradient (Kakade, 2002) can be obtained as a special case of the update in Equation (12) by using a linear approximation to $L$ and a quadratic approximation to the $\scriptstyle{\overline{{D}}}_{\mathrm{KL}}$ constraint, resulting in the following problem: 
+As mentioned in Section 4, our derivation results in a policy update that is related to several prior methods, providing a unifying perspective on a number of policy update schemes. The natural policy gradient (Kakade, 2002) can be obtained as a special case of the update in Equation (12) by using a linear approximation to $L$ and a quadratic approximation to the ${\overline{{D}}}_{\mathrm{KL}}$ constraint, resulting in the following problem: 
 
 $$
-\operatorname{maximize}\left[\nabla_{\boldsymbol{\theta}}L_{\boldsymbol{\theta}_{\mathrm{old}}}(\boldsymbol{\theta})\big\vert_{\boldsymbol{\theta=\theta}_{\mathrm{old}}}\cdot(\boldsymbol{\theta-\theta}_{\mathrm{old}})\right]
-$$ 
+\begin{align}
+&\operatorname{maximize}\left[\nabla_{{\theta}}L_{{\theta}_{\mathrm{old}}}(\boldsymbol{\theta})\big\vert_{{\theta=\theta}_{\mathrm{old}}}\cdot({\theta-\theta}_{\mathrm{old}})\right]\\
+&\text{subject to}\ \frac 1 2(\theta_{old} - \theta)^TA(\theta_{old} - \theta)\le \delta\\
+&\text{where}\ A(\theta_{old})_{ij} =\\
+&\frac{\partial}{\partial\theta_{i}}\frac{\partial}{\partial\theta_{j}}\mathbb{E}_{s\sim\rho_{\pi}}\left[D_{\mathrm{KL}}(\pi(\cdot|s,\theta_{\mathrm{old}})\parallel\pi(\cdot|s,\theta))\right]\big|_{\theta=\theta_{\mathrm{old}}}.
+\end{align}
 $$
-\frac{\partial}{\partial\theta_{i}}\frac{\partial}{\partial\theta_{j}}\mathbb{E}_{s\sim\rho_{\pi}}\left[D_{\mathrm{KL}}(\pi(\cdot|s,\theta_{\mathrm{old}})\parallel\pi(\cdot|s,\theta))\right]\big|_{\theta=\theta_{\mathrm{old}}}.
-$$ 
-The update is θnew = θold + λ1 A(θold)−1∇θL(θ)θ=θold, where the stepsize $\textstyle{\frac{1}{\lambda}}$ is typically treated as an algorithm parameter. This differs from our approach, which enforces the constraint at each update. Though this difference might seem subtle, our experiments demonstrate that it significantly improves the algorithm’s performance on larger problems. 
+
+The update is $\theta_{new} = \theta_{old} + \frac 1 \lambda A(\theta_{old})^{-1}\nabla_{\theta}L(\theta)|_{\theta=\theta_{old}}$ , where the step-size $\textstyle{\frac{1}{\lambda}}$ is typically treated as an algorithm parameter. This differs from our approach, which enforces the constraint at each update. Though this difference might seem subtle, our experiments demonstrate that it significantly improves the algorithm’s performance on larger problems. 
 
 We can also obtain the standard policy gradient update by using an $\ell_{2}$ constraint or penalty: 
 
 $$
-\begin{array}{r l}&{\underset{\theta}{\mathrm{maximize}}\left[\nabla_{\theta}L_{\theta_{\mathrm{old}}}(\theta)\big|_{\theta=\theta_{\mathrm{old}}}\cdot(\theta-\theta_{\mathrm{old}})\right]}\ &{\mathrm{subject}\mathrm{to}\frac{1}{2}\|\theta-\theta_{\mathrm{old}}\|^{2}\leq\delta.}\end{array}
-$$ 
-The policy iteration update can also be obtained by solving the unconstrained problem maximizeπ $L_{\pi_{\mathrm{old}}}(\pi)$ , using $L$ as defined in Equation (3). 
+\begin{align}&{\underset{\theta}{\mathrm{maximize}}\left[\nabla_{\theta}L_{\theta_{\mathrm{old}}}(\theta)\big|_{\theta=\theta_{\mathrm{old}}}\cdot(\theta-\theta_{\mathrm{old}})\right]}\\ &{\text{subject to}\ \frac{1}{2}\|\theta-\theta_{\mathrm{old}}\|^{2}\leq\delta.}\end{align}\tag{18}
+$$
+
+The policy iteration update can also be obtained by solving the unconstrained problem $\text{maximize}_\pi\  L_{\pi_{\mathrm{old}}}(\pi)$ , using $L$ as defined in Equation (3). 
+>  直接求解 Eq 3 中定义的无约束优化问题 $\text{maximize}_\pi L_{\pi_{old}}(\pi)$ 等价于策略迭代更新
 
 Several other methods employ an update similar to Equation (12). Relative entropy policy search (REPS) (Peters et al., 2010) constrains the state-action marginals $p(s,a)$ , while TRPO constrains the conditionals $p(a|s)$ . Unlike REPS, our approach does not require a costly nonlinear optimization in the inner loop. Levine and Abbeel (2014) also use a KL divergence constraint, but its purpose is to encourage the policy not to stray from regions where the estimated dynamics model is valid, while we do not attempt to estimate the system dynamics explicitly. Pirotta et al. (2013) also build on and generalize Kakade and Langford’s results, and they derive different algorithms from the ones here. 
 
@@ -460,180 +465,53 @@ We designed our experiments to investigate the following questions:
 3. Can TRPO be used to solve challenging large-scale problems? How does TRPO compare with other methods when applied to large-scale problems, with regard to final performance, computation time, and sample complexity? 
 
 To answer (1) and (2), we compare the performance of the single path and vine variants of TRPO, several ablated variants, and a number of prior policy optimization algorithms. With regard to (3), we show that both the single path and vine algorithm can obtain high-quality locomotion controllers from scratch, which is considered to be a hard problem. We also show that these algorithms produce competitive results when learning policies for playing Atari games from images using convolutional neural networks with tens of thousands of parameters. 
+
 ## 8.1 Simulated Robotic Locomotion 
 We conducted the robotic locomotion experiments using the MuJoCo simulator (Todorov et al., 2012). The three simulated robots are shown in Figure 2. The states of the robots are their generalized positions and velocities, and the controls are joint torques. Underactuation, high dimensionality, and non-smooth dynamics due to contacts make these tasks very challenging. The following models are included in our evaluation: 
+
 1. Swimmer. 10-dimensional state space, linear reward for forward progress and a quadratic penalty on joint effort to produce the reward $\bar{r}(x,u)=\bar{v}_{x}-\mathrm{i}0^{-5}\|\bar{u}\|^{2}$ . The swimmer can propel itself forward by making an undulating motion. 
 2. Hopper. 12-dimensional state space, same reward as the swimmer, with a bonus of $+1$ for being in a nonterminal state. We ended the episodes when the hopper fell over, which was defined by thresholds on the torso height and angle. 
 3. Walker. 18-dimensional state space. For the walker, we added a penalty for strong impacts of the feet against the ground to encourage a smooth walk rather than a hopping gait. 
+
 We used $\delta=0.01$ for all experiments. See Table 2 in the Appendix for more details on the experimental setup and parameters used. We used neural networks to represent the policy, with the architecture shown in Figure 3, and further details provided in Appendix D. To establish a standard baseline, we also included the classic cart-pole balancing problem, based on the formulation from Barto et al. (1983), using a linear policy with six parameters that is easy to optimize with derivative-free black-box optimization methods. 
+
 The following algorithms were considered in the comparison: single path TRPO; vine TRPO; cross-entropy method (CEM), a gradient-free method (Szita & Lorincz, 2006); covariance matrix adaption (CMA), another gradient-free method (Hansen & Ostermeier, 1996); natural gradient, the classic natural policy gradient algorithm (Kakade, 2002), which differs from single path by the use of a fixed penalty coefficient (Lagrange multiplier) instead of the KL divergence constraint; empirical FIM, identical to single path, except that the FIM is estimated using the covariance matrix of the gradients rather than the analytic estimate; max KL, which was only tractable on the cart-pole problem, and uses the maximum KL divergence in Equation (11), rather than the average divergence, allowing us to evaluate the quality of this approximation. The parameters used in the experiments are provided in Appendix E. For the natural gradient method, we swept through the possible values of the stepsize in factors of three, and took the best value according to the final performance. 
-Learning curves showing the total reward averaged across five runs of each algorithm are shown in Figure 4. Single path and vine TRPO solved all of the problems, yielding the best solutions. Natural gradient performed well on the two easier problems, but was unable to generate hopping and walking gaits that made forward progress. These results provide empirical evidence that constraining the KL divergence is a more robust way to choose step sizes and make fast, consistent progress, compared to using a fixed penalty. CEM and CMA are derivative-free algorithms, hence their sample complexity scales unfavorably with the number of parameters, and they performed poorly on the larger problems. The max $K L$ method learned somewhat more slowly than our final method, due to the more restrictive form of the constraint, but overall the result suggests that the average KL divergence constraint has a similar effect as the theorecally justified maximum KL divergence. Videos of the policies learned by TRPO may be viewed on the project website: http://sites.google.com/ site/trpopaper/. 
+
+Learning curves showing the total reward averaged across five runs of each algorithm are shown in Figure 4. Single path and vine TRPO solved all of the problems, yielding the best solutions. Natural gradient performed well on the two easier problems, but was unable to generate hopping and walking gaits that made forward progress. These results provide empirical evidence that constraining the KL divergence is a more robust way to choose step sizes and make fast, consistent progress, compared to using a fixed penalty. CEM and CMA are derivative-free algorithms, hence their sample complexity scales unfavorably with the number of parameters, and they performed poorly on the larger problems. The max $K L$ method learned somewhat more slowly than our final method, due to the more restrictive form of the constraint, but overall the result suggests that the average KL divergence constraint has a similar effect as the theatrically justified maximum KL divergence. Videos of the policies learned by TRPO may be viewed on the project website: http://sites.google.com/site/trpopaper/. 
+
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/12df22f3-a5d8-45c1-9ba8-9013aa9dd3ec/c638110ef37093877307acf5506a8735a3e22ef2b1a93cc87ad012d6d364f67d.jpg) 
 Figure 4. Learning curves for locomotion tasks, averaged across five runs of each algorithm with random initializations. Note that for the hopper and walker, a score of $^{-1}$ is achievable without any forward velocity, indicating a policy that simply learned balanced standing, but not walking. 
-Note that TRPO learned all of the gaits with generalpurpose policies and simple reward functions, using minimal prior knowledge. This is in contrast with most prior methods for learning locomotion, which typically rely on hand-architected policy classes that explicitly encode notions of balance and stepping (Tedrake et al., 2004; Geng et al., 2006; Wampler & Popovic, 2009). 
+Note that TRPO learned all of the gaits with general purpose policies and simple reward functions, using minimal prior knowledge. This is in contrast with most prior methods for learning locomotion, which typically rely on hand-architected policy classes that explicitly encode notions of balance and stepping (Tedrake et al., 2004; Geng et al., 2006; Wampler & Popovic, 2009). 
+
 ## 8.2 Playing Games from Images 
 To evaluate TRPO on a partially observed task with complex observations, we trained policies for playing Atari games, using raw images as input. The games require learning a variety of behaviors, such as dodging bullets and hitting balls with paddles. Aside from the high dimensionality, challenging elements of these games include delayed rewards (no immediate penalty is incurred when a life is lost in Breakout or Space Invaders); complex sequences of behavior ( $N^{*}$ bert requires a character to hop on 21 different platforms); and non-stationary image statistics (Enduro involves a changing and flickering background). 
+
 We tested our algorithms on the same seven games reported on in (Mnih et al., 2013) and (Guo et al., 2014), which are made available through the Arcade Learning Environment (Bellemare et al., 2013) The images were preprocessed following the protocol in Mnih et al (2013), and the policy was represented by the convolutional neural network shown in Figure 3, with two convolutional layers with 16 channels and stride 2, followed by one fully-connected layer with 20 units, yielding 33,500 parameters. 
+
 Table 1. Performance comparison for vision-based RL algorithms on the Atari domain. Our algorithms (bottom rows) were run once on each task, with the same architecture and parameters. Performance varies substantially from run to run (with different random initializations of the policy), but we could not obtain error statistics due to time constraints. 
+
 <html><body><table><tr><td></td><td>B.Rider</td><td>Breakout</td><td>Enduro</td><td>Pong</td><td></td><td>Seaquest</td><td>S.Invaders</td></tr><tr><td>Random</td><td>354</td><td>1.2</td><td>0</td><td>-20.4</td><td>157</td><td>110</td><td>179</td></tr><tr><td>Human (Mnih et al., 2013)</td><td>7456</td><td>31.0</td><td>368</td><td>-3.0</td><td>18900</td><td>28010</td><td>3690</td></tr><tr><td>Deep Q Learning (Mnih et al., 2013)</td><td>4092</td><td>168.0</td><td>470</td><td>20.0</td><td>1952</td><td>1705</td><td>581</td></tr><tr><td>UCC-I (Guo et al., 2014)</td><td>5702</td><td>380</td><td>741</td><td>21</td><td>20025</td><td>2995</td><td>692</td></tr><tr><td>TRPO - single path</td><td>1425.2</td><td>10.8</td><td>534.6</td><td>20.9</td><td>1973.5</td><td>1908.6</td><td>568.4</td></tr><tr><td>TRPO-vine</td><td>859.5</td><td>34.2</td><td>430.8</td><td>20.9</td><td>7732.5</td><td>788.4</td><td>450.2</td></tr></table></body></html> 
+
 The results of the vine and single path algorithms are summarized in Table 1, which also includes an expert human performance and two recent methods: deep $Q$ -learning (Mnih et al., 2013), and a combination of Monte-Carlo Tree Search with supervised training (Guo et al., 2014), called UCC-I. The 500 iterations of our algorithm took about 30 hours (with slight variation between games) on a 16-core computer. While our method only outperformed the prior methods on some of the games, it consistently achieved reasonable scores. Unlike the prior methods, our approach was not designed specifically for this task. The ability to apply the same policy search method to methods as diverse as robotic locomotion and image-based game playing demonstrates the generality of TRPO. 
+
 the game-playing domain, we learned convolutional neural network policies that used raw images as inputs. This requires optimizing extremely high-dimensional policies, and only two prior methods report successful results on this task. 
-Since the method we proposed is scalable and has strong theoretical foundations, we hope that it will serve as a jumping-off point for future work on training large, rich function approximators for a range of challenging problems. At the intersection of the two experimental domains we explored, there is the possibility of learning robotic control policies that use vision and raw sensory data as input, providing a unified scheme for training robotic controllers that perform both perception and control. The use of more sophisticated policies, including recurrent policies with hidden state, could further make it possible to roll state estimation and control into the same policy in the partiallyobserved setting. By combining our method with model learning, it would also be possible to substantially reduce its sample complexity, making it applicable to real-world settings where samples are expensive. 
+
+Since the method we proposed is scalable and has strong theoretical foundations, we hope that it will serve as a jumping-off point for future work on training large, rich function approximators for a range of challenging problems. At the intersection of the two experimental domains we explored, there is the possibility of learning robotic control policies that use vision and raw sensory data as input, providing a unified scheme for training robotic controllers that perform both perception and control. The use of more sophisticated policies, including recurrent policies with hidden state, could further make it possible to roll state estimation and control into the same policy in the partially-observed setting. By combining our method with model learning, it would also be possible to substantially reduce its sample complexity, making it applicable to real-world settings where samples are expensive. 
+
 # 9 Discussion 
-We proposed and analyzed trust region methods for optimizing stochastic control policies. We proved monotonic improvement for an algorithm that repeatedly optimizes a local approximation to the expected return of the policy with a KL divergence penalty, and we showed that an approximation to this method that incorporates a KL divergence constraint achieves good empirical results on a range of challenging policy learning tasks, outperforming prior methods. Our analysis also provides a perspective that unifies policy gradient and policy iteration methods, and shows them to be special limiting cases of an algorithm that optimizes a certain objective subject to a trust region constraint. 
-In the domain of robotic locomotion, we successfully learned controllers for swimming, walking and hopping in a physics simulator, using general purpose neural networks and minimally informative rewards. To our knowledge, no prior work has learned controllers from scratch for all of these tasks, using a generic policy search method and non-engineered, general-purpose policy representations. In 
+We proposed and analyzed trust region methods for optimizing stochastic control policies. We proved monotonic improvement for an algorithm that repeatedly optimizes a local approximation to the expected return of the policy with a KL divergence penalty, and we showed that an approximation to this method that incorporates a KL divergence constraint achieves good empirical results on a range of challenging policy learning tasks, outperforming prior methods. 
+>  我们提出并分析了优化随机控制策略的置信域方法
+>  我们证明了一种算法的单调改进特性，该算法通过 KL 散度惩罚反复优化策略预期回报的局部近似值
+>  我们展示了该算法的近似算法，它将 KL 散度惩罚改为 KL 散度约束，在一系列具有挑战性的任务中取得了良好结果，优于之前方法
 
-# A Proof of Policy Improvement Bound 
-This proof (of Theorem 1) uses techniques from the proof of Theorem 4.1 in (Kakade & Langford, 2002), adapting them to the more general setting considered in this paper. An informal overview is as follows. Our proof relies on the notion of coupling, where we jointly define the policies $\pi$ and $\pi^{\prime}$ so that they choose the same action with high probability $\mathbf{\Psi}=\mathbf{\Psi}(1-\alpha)$ . Surrogate loss $L_{\pi}(\tilde{\pi})$ accounts for the the advantage of $\tilde{\pi}$ the first time that it disagrees with $\pi$ , but not subsequent disagreements. Hence, the error in $L_{\pi}$ is due to two or more disagreements between $\pi$ and $\tilde{\pi}$ , hence, we get an $O(\alpha^{2})$ correction term, where $\alpha$ is the probability of disagreement. 
+Our analysis also provides a perspective that unifies policy gradient and policy iteration methods, and shows them to be special limiting cases of an algorithm that optimizes a certain objective subject to a trust region constraint. 
 
-We start out with a lemma from Kakade & Langford (2002) that shows that the difference in policy performance $\eta(\tilde{\pi})-\eta(\pi)$ can be decomposed as a sum of per-timestep advantages. 
+In the domain of robotic locomotion, we successfully learned controllers for swimming, walking and hopping in a physics simulator, using general purpose neural networks and minimally informative rewards. To our knowledge, no prior work has learned controllers from scratch for all of these tasks, using a generic policy search method and non-engineered, general-purpose policy representations. 
 
-Lemma 1. Given two policies $\pi,\tilde{\pi}$ , 
+In the game-playing domain, we learned convolutional neural network policies that used raw images as inputs. This requires optimizing extremely high-dimensional policies, and only two prior methods report successful results on this task. Since the method we proposed is scalable and has strong theoretical foundations, we hope that it will serve as a jumping-off point for future work on training large, rich function approximators for a range of challenging problems. 
 
-$$
-\eta(\tilde{\pi})=\eta(\pi)\substack{+}\mathbb{E}_{\tau\sim\tilde{\pi}}\left[\sum_{t=0}^{\infty}\gamma^{t}A_{\pi}(s_{t},a_{t})\right]
-$$ 
-This expectation is taken over trajectories $\tau:=(s_{0},a_{0},s_{1},a_{0},\dots)$ , and the notation $\mathbb{E}_{\tau\sim\tilde{\pi}}\left[\ldots\right]$ indicates that actions are ampled from $\tilde{\pi}$ to generate $\tau$ . 
-Proof. First note that $A_{\pi}(s,a)=\mathbb{E}_{s^{\prime}\sim P(s^{\prime}\mid s,a)}\left[r(s)+\gamma V_{\pi}(s^{\prime})-V_{\pi}(s)\right]$ . Therefore, 
-$$
-\begin{array}{r l}&{\mathbb{E}_{\tau|\tilde{\pi}}\left[\displaystyle\sum_{t=0}^{\infty}\gamma^{t}A_{\pi}\left(s_{t},a_{t}\right)\right]}\ &{=\mathbb{E}_{\tau|\tilde{\pi}}\left[\displaystyle\sum_{t=0}^{\infty}\gamma^{t}(r(s_{t})+\gamma V_{\pi}(s_{t+1})-V_{\pi}(s_{t}))\right]}\ &{=\mathbb{E}_{\tau|\tilde{\pi}}\left[-V_{\pi}(s_{0})+\displaystyle\sum_{t=0}^{\infty}\gamma^{t}r(s_{t})\right]}\ &{=-\mathbb{E}_{s_{0}}\left[V_{\pi}(s_{0})\right]+\mathbb{E}_{\tau|\tilde{\pi}}\left[\displaystyle\sum_{t=0}^{\infty}\gamma^{t}r(s_{t})\right]}\ &{=-\eta(\pi)+\eta(\tilde{\pi})}\end{array}
-$$ 
-Rearranging, the result follows. 
-Define $\bar{A}(s)$ to be the expected advantage of $\tilde{\pi}$ over $\pi$ at state $s$ : 
-$$
-\bar{A}(s)=\mathbb{E}_{a\sim\tilde{\pi}(\cdot|s)}\left[A_{\pi}(s,a)\right].
-$$ 
-Now Lemma 1 can be written as follows: 
-$$
-\eta(\tilde{\pi})=\eta(\pi)+\mathbb{E}_{\tau\sim\tilde{\pi}}\left[\sum_{t=0}^{\infty}\gamma^{t}\bar{A}(s_{t})\right]
-$$ 
-Note that $L_{\pi}$ can be written as 
-$$
-L_{\pi}(\tilde{\pi})=\eta(\pi)+\mathbb{E}_{\tau\sim\pi}\left[\sum_{t=0}^{\infty}\gamma^{t}\bar{A}(s_{t})\right]
-$$ 
-The difference in these equations is whether the states are sampled using $\pi$ or $\tilde{\pi}$ . To bound the difference between $\eta(\tilde{\pi})$ and $L_{\pi}(\tilde{\pi})$ , we will bound the difference arising from each timestep. To do this, we first need to introduce a measure of how much $\pi$ and $\tilde{\pi}$ agree. Specifically, we’ll couple the policies, so that they define a joint distribution over pairs of actions. 
-Definition 1. $(\pi,\tilde{\pi})$ is an $\alpha$ -coupled policy pair if it defines a joint distribution $(a,\tilde{a})|s$ , such that $P(a\neq\tilde{a}|s)\leq\alpha$ for all s. $\pi$ and $\tilde{\pi}$ will denote the marginal distributions of a and $\tilde{a}$ , respectively. 
-Computationally, $\alpha$ -coupling means that if we randomly choose a seed for our random number generator, and then we sample from each of $\pi$ and $\tilde{\pi}$ after setting that seed, the results will agree for at least fraction $1-\alpha$ of seeds. 
-Lemma 2. Given that $\pi,\tilde{\pi}$ are $\alpha$ -coupled policies, for all $s$ , 
-$$
-\left|\bar{A}(s)\right|\leq2\alpha\operatorname*{max}_{s,a}|A_{\pi}(s,a)|
-$$ 
-Proof. 
-$$
-\begin{array}{r l}&{\bar{A}(s)=\mathbb{E}_{\tilde{a}\sim\tilde{\pi}}\left[A_{\pi}(s,\tilde{a})\right]=\mathbb{E}_{(a,\tilde{a})\sim(\pi,\tilde{\pi})}\left[A_{\pi}(s,\tilde{a})-A_{\pi}(s,a)\right]\quad\mathrm{since}\quad\mathbb{E}_{a\sim\pi}\left[A_{\pi}(s,a)\right]=0}\ &{\quad\quad\quad=P(a\ne\tilde{a}|s)\mathbb{E}_{(a,\tilde{a})\sim(\pi,\tilde{\pi})}|a\ne\tilde{a}\left[A_{\pi}(s,\tilde{a})-A_{\pi}(s,a)\right]}\ &{|\bar{A}(s)|\le\alpha\cdot2\displaystyle\operatorname*{max}_{s,a}|A_{\pi}(s,a)|}\end{array}
-$$ 
-Lemma 3. Let $(\pi,\tilde{\pi})$ be an $\alpha$ -coupled policy pair. Then 
-$$
-\left|\mathbb{E}_{s_{t}\sim\tilde{\pi}}\left[\bar{A}(s_{t})\right]-\mathbb{E}_{s_{t}\sim\pi}\left[\bar{A}(s_{t})\right]\right|\le2\alpha\operatorname*{max}_{s}\bar{A}(s)\le4\alpha(1-(1-\alpha)^{t})\operatorname*{max}_{s}|A_{\pi}(s,a)|
-$$ 
-Proof. Given the coupled policy pair $(\pi,\tilde{\pi})$ , we can also obtain a coupling over the trajectory distributions produced by $\pi$ and $\tilde{\pi}$ , respectively. Namely, we have pairs of trajectories $\tau,\tilde{\tau}$ , where $\tau$ is obtained by taking actions from $\pi$ , and $\tilde{\tau}$ is obtained by taking actions from $\tilde{\pi}$ , where the same random seed is used to generate both trajectories. We will consider the advantage of $\tilde{\pi}$ over $\pi$ at timestep $t$ , and decompose this expectation based on whether $\pi$ agrees with $\tilde{\pi}$ at all timesteps $i<t$ . 
-Let $n_{t}$ denote the number of times that $a_{i}\neq\tilde{a}_{i}$ for $i<t$ , i.e., the number of times that $\pi$ and $\tilde{\pi}$ disagree before timestep $t$ . 
-$$
-\mathbb{E}_{s_{t}\sim\tilde{\pi}}\left[\bar{A}(s_{t})\right]=P(n_{t}=0)\mathbb{E}_{s_{t}\sim\tilde{\pi}\mid n_{t}=0}\left[\bar{A}(s_{t})\right]+P(n_{t}>0)\mathbb{E}_{s_{t}\sim\tilde{\pi}\mid n_{t}>0}\left[\bar{A}(s_{t})\right]
-$$ 
-The expectation decomposes similarly for actions are sampled using $\pi$ : 
-$$
-\mathbb{E}_{s_{t}\sim\pi}\left[\bar{A}(s_{t})\right]=P(n_{t}=0)\mathbb{E}_{s_{t}\sim\pi\mid n_{t}=0}\left[\bar{A}(s_{t})\right]+P(n_{t}>0)\mathbb{E}_{s_{t}\sim\pi\mid n_{t}>0}\left[\bar{A}(s_{t})\right]
-$$ 
-Note that the $n_{t}=0$ terms are equal: 
-$$
-{\ensuremath{\mathbb E}}_{s_{t}\sim\tilde{\pi}|n_{t}=0}\left[\bar{A}(s_{t})\right]={\ensuremath{\mathbb E}}_{s_{t}\sim\pi|n_{t}=0}\left[\bar{A}(s_{t})\right],
-$$ 
-because $n_{t}=0$ indicates that $\pi$ and $\tilde{\pi}$ agreed on all timesteps less than $t$ . Subtracting Equations (33) and (34), we get 
-$$
-\begin{array}{r}{\mathbb{E}_{s_{t}\sim\tilde{\pi}}\left[\bar{A}(s_{t})\right]-\mathbb{E}_{s_{t}\sim\pi}\left[\bar{A}(s_{t})\right]=P(n_{t}>0)\big(\mathbb{E}_{s_{t}\sim\tilde{\pi}\mid n_{t}>0}\left[\bar{A}(s_{t})\right]-\mathbb{E}_{s_{t}\sim\pi\mid n_{t}>0}\left[\bar{A}(s_{t})\right]\big)}\end{array}
-$$ 
-By definition of $\alpha$ , $P(\pi,\tilde{\pi}$ agree at timestep $i)\ge1-\alpha$ , so $P(n_{t}=0)\geq(1-\alpha)^{t}$ , and 
-$$
-P(n_{t}>0)\leq1-(1-\alpha)^{t}
-$$ 
-Next, note that 
-$$
-\begin{array}{r l}{\left|\mathbb{E}_{s_{t}\sim\tilde{\pi}\left|n_{t}>0\right.}\left[\bar{A}(s_{t})\right]-\mathbb{E}_{s_{t}\sim\pi\left|n_{t}>0\right.}\left[\bar{A}(s_{t})\right]\right|\leq\left|\mathbb{E}_{s_{t}\sim\tilde{\pi}\left|n_{t}>0\right.}\left[\bar{A}(s_{t})\right]\right|+\left|\mathbb{E}_{s_{t}\sim\pi\left|n_{t}>0\right.}\left[\bar{A}(s_{t})\right]\right|}&{{}\leq4\alpha\underset{s,a}{\operatorname*{max}}\left|A_{\pi}(s,a)\right|}\end{array}
-$$ 
-Where the second inequality follows from Lemma 3. 
-Plugging Equation (37) and Equation (39) into Equation (36), we get 
-$$
-\left|\mathbb{E}_{s_{t}\sim\tilde{\pi}}\left[\bar{A}(s_{t})\right]-\mathbb{E}_{s_{t}\sim\pi}\left[\bar{A}(s_{t})\right]\right|\le4\alpha(1-(1-\alpha)^{t})\operatorname*{max}_{s,a}\left|A_{\pi}(s,a)\right|
-$$ 
-The preceding Lemma bounds the difference in expected advantage at each timestep $t$ . We can sum over time to bound the difference between $\eta(\tilde{\pi})$ and $L_{\pi}(\tilde{\pi})$ . Subtracting Equation (26) and Equation (27), and defining $\epsilon=\operatorname*{max}_{s,a}|A_{\pi}(s,a)|$ , 
-$$
-\begin{array}{r l}{\displaystyle\eta(\tilde{\bar{\alpha}})-L_{\pi}(\tilde{\bar{\alpha}})|=\sum_{t=0}^{\infty}\gamma^{t}\left|\mathbb{E}_{\tau\sim\tilde{\pi}}\left[\bar{A}(s_{t})\right]-\mathbb{E}_{\tau\sim\pi}\left[\bar{A}(s_{t})\right]\right|}&{}\ {\displaystyle\leq\sum_{t=0}^{\infty}\gamma^{t}\cdot4\epsilon\alpha(1-(1-\alpha)^{t})}&{}\ {\displaystyle=4\epsilon\alpha\left(\frac{1}{1-\gamma}-\frac{1}{1-\gamma(1-\alpha)}\right)}&{}\ {\displaystyle=\frac{4\alpha^{2}\gamma\epsilon}{(1-\gamma)(1-\gamma(1-\alpha))}}&{}\ {\displaystyle\leq\frac{4\alpha^{2}\gamma\epsilon}{(1-\gamma)^{2}}}&{}\end{array}
-$$ 
-Last, to replace $\alpha$ by the total variation divergence, we need to use the correspondence between TV divergence and coupled random variables: 
-Suppose $p_{X}$ and $p_{Y}$ are distributions with $D_{T V}(p_{X}\parallel p_{Y})=\alpha$ . Then there exists a joint distribution $(X,Y)$ whose marginals are $p_{X},p_{Y}$ , for which $X=Y$ with probability $1-\alpha$ . 
-See (Levin et al., 2009), Proposition 4.7. 
-It follows that if we have two policies $\pi$ and $\tilde{\pi}$ such that $\begin{array}{r}{\operatorname*{max}_{s}D_{T V}(\pi(\cdot|s)\parallel\tilde{\pi}(\cdot|s))\leq\alpha,}\end{array}$ , then we can define an $\alpha$ -coupled policy pair $(\pi,\tilde{\pi})$ with appropriate marginals. Taking $\alpha=\mathrm{max}_{s}D_{T V}(\pi(\cdot|s)\parallel\tilde{\pi}(\cdot|s))\leq\alpha$ in Equation (45), Theorem 1 follows. 
-# B Perturbation Theory Proof of Policy Improvement Bound 
-We also provide an alternative proof of Theorem 1 using perturbation theory. 
-Proof. Let $G=(1+\gamma P_{\pi}+(\gamma P_{\pi})^{2}+....)=(1-\gamma P_{\pi})^{-1}$ , and similarly Let $\tilde{G}=(1+\gamma P_{\tilde{\pi}}+(\gamma P_{\tilde{\pi}})^{2}+....)=(1-\gamma P_{\tilde{\pi}})^{-1}$ . We will use the convention that $\rho$ (a density on state space) is a vector and $r$ (a reward function on state space) is a dual vector (i.e., linear functional on vectors), thus $r\rho$ is a scalar meaning the expected reward under density $\rho$ . Note that $\eta(\pi)=r G\rho_{0}$ , and $\eta(\tilde{\pi})=c\tilde{G}\rho_{0}$ . Let $\Delta=P_{\tilde{\pi}}-P_{\pi}$ . We want to bound $\eta(\tilde{\pi})\dot{-}\eta(\pi)=r(\tilde{G}-G)\rho_{0}$ . We start with some standard perturbation theory manipulations. 
-$$
-\begin{array}{c}{{G^{-1}-\tilde{G}^{-1}=(1-\gamma P_{\pi})-(1-\gamma P_{\tilde{\pi}})}}\ {{=\gamma\Delta.}}\end{array}
-$$ 
-Left multiply by $G$ and right multiply by $\tilde{G}$ . 
-$$
-\begin{array}{c}{{\tilde{G}-G=\gamma G\Delta\tilde{G}}}\ {{\tilde{G}=G+\gamma G\Delta\tilde{G}}}\end{array}
-$$ 
-Substituting the right-hand side into $\tilde{G}$ gives 
-$$
-\tilde{G}=G+\gamma G\Delta G+\gamma^{2}G\Delta G\Delta\tilde{G}
-$$ 
-So we have 
-$$
-\eta(\tilde{\pi})-\eta(\pi)=r(\tilde{G}-G)\rho=\gamma r G\Delta G\rho_{0}+\gamma^{2}r G\Delta G\Delta\tilde{G}\rho_{0}
-$$ 
-Let us first consider the leading term $\gamma r G\Delta G\rho_{0}$ . Note that $r G=v$ , i.e., the infinite-horizon state-value function. Also note that $G\rho_{0}=\rho_{\pi}$ . Thus we can write $\gamma c G\Delta G\rho_{0}=\gamma v\Delta\rho_{\pi}$ . We will show that this expression equals the expected 
-advantage $L_{\pi}(\tilde{\pi})-L_{\pi}(\pi)$ . 
-$$
-\begin{array}{l}{{\displaystyle{\cal L}_{\pi}(\tilde{\pi})-{\cal L}_{\pi}(\pi)=\sum_{s}\rho_{\pi}(s)\sum_{a}(\tilde{\pi}(a|s)-\pi(a|s)){\cal A}_{\pi}(s,a)}}\ {{~=\sum_{s}\rho_{\pi}(s)\sum_{a}\left(\pi_{\theta}(a|s)-\pi_{\tilde{\theta}}(a|s)\right)\left[r(s)+\sum_{s^{\prime}}p(s^{\prime}|s,a)\gamma v(s^{\prime})-v(s)\right]}~}\ {{~=\sum_{s}\rho_{\pi}(s)\sum_{s^{\prime}}\sum_{a}\left(\pi(a|s)-\tilde{\pi}(a|s)\right)p(s^{\prime}|s,a)\gamma v(s^{\prime})}}\ {{~=\sum_{s}\rho_{\pi}(s)\sum_{s^{\prime}}(p_{\pi}(s^{\prime}|s)-p_{\pi}(s^{\prime}|s))\gamma v(s^{\prime})}}\ {{~=~\gamma v\Delta\rho_{\pi}}}\end{array}
-$$ 
-Next let us bound the $O(\Delta^{2})$ term $\gamma^{2}r G\Delta G\Delta\Tilde{G}\rho$ . First we consider the product $\gamma r G\Delta=\gamma v\Delta$ . Consider the component of this dual vector. 
-$$
-\begin{array}{r l}&{\displaystyle|(\gamma v\Delta)_{s}|=\left|\sum_{a}(\widetilde{\pi}(s,a)-\pi(s,a))Q_{\pi}(s,a)\right|}\ &{\displaystyle\qquad=\left|\sum_{a}(\widetilde{\pi}(s,a)-\pi(s,a))A_{\pi}(s,a)\right|}\ &{\displaystyle\qquad\leq\sum_{a}|\widetilde{\pi}(s,a)-\pi(s,a)|\cdot\operatorname*{max}_{a}|A_{\pi}(s,a)|}\ &{\displaystyle\qquad\leq2\alpha\epsilon}\end{array}
-$$ 
-where the last line used the definition of the total-variation divergence, and the definition of $\epsilon=\operatorname*{max}_{s,a}|A_{\pi}(s,a)|$ . We bound the other portion $G\Delta\tilde{G}\rho$ using the $\ell_{1}$ operator norm 
-$$
-\|A\|_{1}=\operatorname*{sup}_{\rho}\left\{{\frac{\|A\rho\|_{1}}{\|\rho\|_{1}}}\right\}
-$$ 
-where we have that $\|G\|_{1}=\|\tilde{G}\|_{1}=1/(1-\gamma)$ and $\|\Delta\|_{1}=2\alpha$ . That gives 
-$$
-\begin{array}{r}{\|G\Delta\tilde{G}\rho\|_{1}\leq\|G\|_{1}\|\Delta\|_{1}\|\tilde{G}\|_{1}\|\rho\|_{1}}\ {=\displaystyle\frac{1}{1-\gamma}\cdot2\alpha\cdot\displaystyle\frac{1}{1-\gamma}\cdot1}\end{array}
-$$ 
-So we have that 
-$$
-\begin{array}{r l}&{\gamma^{2}\Big\vert r G\Delta G\Delta\tilde{G}\rho\Big\vert\leq\gamma\|\gamma r G\Delta\|_{\infty}\|G\Delta\tilde{G}\rho\|_{1}}\ &{\qquad\leq\gamma\|v\Delta\|_{\infty}\|G\Delta\tilde{G}\rho\|_{1}}\ &{\qquad\leq\gamma\cdot2\alpha\epsilon\cdot\frac{2\alpha}{(1-\gamma)^{2}}}\ &{\qquad=\frac{4\gamma\epsilon}{(1-\gamma)^{2}}\alpha^{2}}\end{array}
-$$ 
-# C Efficiently Solving the Trust-Region Constrained Optimization Problem 
-This section describes how to efficiently approximately solve the following constrained optimization problem, which we must solve at each iteration of TRPO: 
-$$
-\mathrm{maximize}L(\theta)\mathrm{subjectto}\overline{{D}}_{\mathrm{KL}}(\theta_{\mathrm{old}},\theta)\leq\delta.
-$$ 
-The method we will describe involves two steps: (1) compute a search direction, using a linear approximation to objective and quadratic approximation to the constraint; and (2) perform a line search in that direction, ensuring that we improve the nonlinear objective while satisfying the nonlinear constraint. 
-The search direction is computed by approximately solving the equation $A x=g$ , where $A$ is the Fisher information matrix, i.e., the quadratic approximation to the KL divergence constraint: $\begin{array}{r}{\overline{{D}}_{\mathrm{KL}}(\theta_{\mathrm{old}},\theta)\approx\frac{1}{2}(\theta-\theta_{\mathrm{old}})^{T}A(\theta-\theta_{\mathrm{old}})}\end{array}$ , where $\begin{array}{r}{A_{i j}=\frac{\partial}{\partial\theta_{i}}\frac{\partial}{\partial\theta_{j}}\overline{{D}}_{\mathrm{KL}}(\theta_{\mathrm{old}},\theta)}\end{array}$ . In large-scale problems, it is prohibitively costly (with respect to computation and memory) to form the full matrix $A$ (or $A^{-1}$ ). However, the conjugate gradient algorithm allows us to approximately solve the equation $A x=b$ without forming this full matrix, when we merely have access to a function that computes matrix-vector products $y\rightarrow A y$ . Appendix C.1 describes the most efficient way to compute matrix-vector products with the Fisher information matrix. For additional exposition on the use of Hessian-vector products for optimizing neural network objectives, see (Martens & Sutskever, 2012) and (Pascanu & Bengio, 2013). 
-Having computed the search direction $s\approx A^{-1}g$ , we next need to compute the maximal step length $\beta$ such that $\theta+\beta s$ will satisfy the KL divergence constraint. To do this, let $\begin{array}{r}{\delta=\overline{{D}}_{\mathrm{KL}}\approx\frac{1}{2}\overline{{(\beta s)^{T}}}A(\beta s)=\frac{1}{2}\beta^{2}\overline{{s}}^{T}A s}\end{array}$ . From this, we obtain $\beta=\sqrt{2\delta/s^{T}A s}$ , where $\delta$ is the desired KL divergence. The term $s^{T}A s$ can be computed through a single Hessian vector product, and it is also an intermediate result produced by the conjugate gradient algorithm. 
-Last, we use a line search to ensure improvement of the surrogate objective and satisfaction of the KL divergence constraint, both of which are nonlinear in the parameter vector $\theta$ (and thus depart from the linear and quadratic approximations used to compute the step). We perform the line search on the objective $L_{\theta_{\mathrm{old}}}(\theta)-\chi[\overline{{D}}_{\mathrm{KL}}(\theta_{\mathrm{old}},\overline{{\theta}})\leq\delta]$ , where $\mathcal{X}[...]$ equals zero when its argument is true and $+\infty$ when it is false. Starting with the maximal value of the step length $\beta$ computed in the previous paragraph, we shrink $\beta$ exponentially until the objective improves. Without this line search, the algorithm occasionally computes large steps that cause a catastrophic degradation of performance. 
-## C.1 Computing the Fisher-Vector Product 
-Here we will describe how to compute the matrix-vector product between the averaged Fisher information matrix and arbitrary vectors. This matrix-vector product enables us to perform the conjugate gradient algorithm. Suppose that the parameterized policy maps from the input $x$ to “distribution parameter” vector $\mu_{\boldsymbol{\theta}}(\boldsymbol{x})$ , which parameterizes the distribution $\pi(u|x)$ . Now the KL divergence for a given input $x$ can be written as follows: 
-$$
-D_{\mathrm{KL}}(\pi_{\theta_{\mathrm{old}}}(\cdot|x)\parallel\pi_{\theta}(\cdot|x))=\mathrm{kl}(\mu_{\theta}(x),\mu_{\mathrm{old}})
-$$ 
-where $\mathrm{kl}$ is the KL divergence between the distributions corresponding to the two mean parameter vectors. Differentiating twice with respect to $\theta$ , we obtain 
-$$
-\frac{\partial\mu_{a}(x)}{\partial\theta_{i}}\frac{\partial\mu_{b}(x)}{\partial\theta_{j}}\operatorname{kl}_{a b}^{\prime\prime}(\mu_{\theta}(x),\mu_{\mathrm{old}})+\frac{\partial^{2}\mu_{a}(x)}{\partial\theta_{i}\partial\theta_{j}}\operatorname{kl}_{a}^{\prime}(\mu_{\theta}(x),\mu_{\mathrm{old}})
-$$ 
-where the primes $(^{\prime})$ indicate differentiation with respect to the first argument, and there is an implied summation over indices a, b. The second term vanishes, leaving just the first term. Let J := ∂µ∂aθ(ix) (the Jacobian), then the Fisher information matrix can be written in matrix form as $J^{T}{\boldsymbol{M}}{\boldsymbol{J}}$ , where $M=k l_{a b}^{\prime\prime}(\mu_{\theta}(x),\mu_{\mathrm{old}})$ is the Fisher information matrix of the distribution in terms of the mean parameter $\mu$ (as opposed to the parameter $\theta$ ). This has a simple form for most parameterized distributions of interest. 
-The Fisher-vector product can now be written as a function $y\to J^{T}M J y$ . Multiplication by $J^{T}$ and $J$ can be performed by most automatic differentiation and neural network packages (multiplication by $J^{T}$ is the well-known backprop operation), and the operation for multiplication by $M$ can be derived for the distribution of interest. Note that this Fisher-vector product is straightforward to average over a set of datapoints, i.e., inputs $x$ to $\mu$ . 
-One could alternatively use a generic method for calculating Hessian-vector products using reverse mode automatic differentiation ((Wright & Nocedal, 1999), chapter 8), computing the Hessian of $\overline{{D}}_{\mathrm{KL}}$ with respect to $\theta$ . This method would be slightly less efficient as it does not exploit the fact that the second derivatives of $\mu(x)$ (i.e., the second term in Equation (57)) can be ignored, but may be substantially easier to implement. 
-We have described a procedure for computing the Fisher-vector product $y\rightarrow A y$ , where the Fisher information matrix is averaged over a set of inputs to the function $\mu$ . Computing the Fisher-vector product is typically about as expensive as computing the gradient of an objective that depends on $\mu(x)$ (Wright & Nocedal, 1999). Furthermore, we need to compute $k$ of these Fisher-vector products per gradient, where $k$ is the number of iterations of the conjugate gradient algorithm we perform. We found $k=10$ to be quite effective, and using higher $k$ did not result in faster policy improvement. Hence, a naive implementation would spend more than $90\%$ of the computational effort on these Fisher-vector products. However, we can greatly reduce this burden by subsampling the data for the computation of Fisher-vector product. Since the Fisher information matrix merely acts as a metric, it can be computed on a subset of the data without severely degrading the quality of the final step. Hence, we can compute it on $10\%$ of the data, and the total cost of Hessian-vector products will be about the same as computing the gradient. With this optimization, the computation of a natural gradient step $A^{-1}g$ does not incur a significant extra computational cost beyond computing the gradient $g$ . 
-# D Approximating Factored Policies with Neural Networks 
-The policy, which is a conditional probability distribution $\pi_{\boldsymbol{\theta}}(\boldsymbol{a}|\boldsymbol{s})$ , can be parameterized with a neural network. This neural network maps (deterministically) from the state vector $s$ to a vector $\mu$ , which specifies a distribution over action space. Then we can compute the likelihood $p(a|\mu)$ and sample $a\sim p(a|\mu)$ . 
-For our experiments with continuous state and action spaces, we used a Gaussian distribution, where the covariance matrix was diagonal and independent of the state. A neural network with several fully-connected (dense) layers maps from the input features to the mean of a Gaussian distribution. A separate set of parameters specifies the log standard deviation of each element. More concretely, the parameters include a set of weights and biases for the neural network computing the mean, $\{W_{i},b_{i}\}_{i=1}^{L}$ , and a vector $r$ (log standard deviation) with the same dimension as $a$ . Then, the policy is defined by the normal distribution $\begin{array}{r}{\mathcal{N}\left(\operatorname*{mean}=\mathrm{NeuralNet}\left(s;\{W_{i},b_{i}\}_{i=1}^{L}\right),\mathrm{stdev}=\exp(r)\right).}\end{array}$ Here, $\mu=[\mathrm{mean},\mathrm{stdev}]$ . 
-For the experiments with discrete actions (Atari), we use a factored discrete action space, where each factor is parameterized as a categorical distribution. That is, the action consists of a tuple $(a_{1},a_{2},\dots,a_{K})$ of integers $a_{k}\in\{1,2,\dots,N_{k}\}$ , and each of these components is assumed to have a categorical distribution, which is specified by a vector $\mu_{k}=$ $\left[p_{1},p_{2},\dots,p_{N_{k}}\right]$ . Hence, $\mu$ is defined to be the concatenation of the factors’ parameters: $\mu=[\mu_{1},\mu_{2},\dots,\mu_{K}]$ and has dimension $\begin{array}{r}{\dim\mu=\sum_{k=1}^{K}N_{k}}\end{array}$ . The components of $\mu$ are computed by taking applying a neural network to the input $s$ and then applying the so ftmax operator to each slice, yielding normalized probabilities for each factor. 
-# $\mathbf{E}$ Experiment Parameters 
-Table 2. Parameters for continuous control tasks, vine and single path (SP) algorithms. 
-<html><body><table><tr><td></td><td>Swimmer</td><td>Hopper</td><td>Walker</td></tr><tr><td>State space dim. Control space dim. Total num. policy params</td><td>10 2 364</td><td>12 3 4806</td><td>20 6 8206</td></tr><tr><td>Sim. steps per iter. Policy iter. Stepsize (DkL) Hidden layer size Discount () Vine: rollout length Vine: rollouts per state Vine: Q-values per batch Vine: num. rollouts for sampling</td><td>50K 200 0.01 30 0.99 50 4 500 16</td><td>1M 200 0.01 50 0.99 100 4 2500 16 1000</td><td>1M 200 0.01 50 0.99 100 4 2500 16</td></tr></table></body></html> 
-Table 3. Parameters used for Atari domain. 
-<html><body><table><tr><td></td><td>All games</td></tr><tr><td>Total num. policy params</td><td>33500</td></tr><tr><td>Vine: Sim. steps per iter.</td><td>400K</td></tr><tr><td>SP: Sim. steps per iter. Policy iter.</td><td>100K</td></tr><tr><td>Stepsize (DKL)</td><td>500</td></tr><tr><td>Discount ()</td><td>0.01</td></tr><tr><td>Vine:rolloutsper state</td><td>0.99</td></tr><tr><td>Vine: computation time</td><td>≈4</td></tr><tr><td></td><td>30hrs</td></tr><tr><td>SP:computation time</td><td>30 hrs</td></tr></table></body></html> 
-# F Learning Curves for the Atari Domain 
-![](https://cdn-mineru.openxlab.org.cn/extract/12df22f3-a5d8-45c1-9ba8-9013aa9dd3ec/39eed1fdc98cbd9052d23b5f51f1630fb19dbf6e6c967200a9ed5a384054d7d9.jpg) 
-Figure 5. Learning curves for the Atari domain. For historical reasons, the plots show cost $=$ negative reward. 
+At the intersection of the two experimental domains we explored, there is the possibility of learning robotic control policies that use vision and raw sensory data as input, providing a unified scheme for training robotic controllers that perform both perception and control. 
+
+The use of more sophisticated policies, including recurrent policies with hidden state, could further make it possible to roll state estimation and control into the same policy in the partially-observed setting. By combining our method with model learning, it would also be possible to substantially reduce its sample complexity, making it applicable to real-world settings where samples are expensive.
+
