@@ -1736,6 +1736,7 @@ Date: 2025.3.24-2025.3.31
 \[Paper\]
 - [[paper-notes/distributed-system/ZooKeeper Wait-free coordination for Internet-scale systems-2010-ATC|2010-ATC-ZooKeeper Wait-free coordination for Internet-scale systems]]: All
 - [[paper-notes/rl/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All 
+- [[paper-notes/rl/Continuous Control with Deep Reinforcement Learning-2016-ICLR|2016-ICLR-Continuous Control with Deep Reinforcement Learning]]
 
 \[Doc\]
 - [[doc-notes/python/packaging/discussions/install_requires vs requirements files|python/packaging/discussions/install_requires vs requirements files]]: All
