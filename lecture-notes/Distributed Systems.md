@@ -1109,6 +1109,8 @@ GFS replicates data but relies on the master to manage all the metadata and pick
 Can we achieve a high available coordinator by using multiple machines that replicate the state of coordinator? 
 We need a **conceptually single** master that is actually implemented as a highly-available multiple replicas 
 
+>  通过多个 replicas 实现概念上单个高度可靠的 master
+
 (3) Problem 1: How to safely select a single coordinator within a set of candidates? -- **leader selection** problem 
 
 Manual configuration is widely used but requires manual reconfiguration for every failure of coordinator.
@@ -1164,7 +1166,7 @@ Manual reconfiguration is used for a long period of time because this problem se
 ## Consensus by Majority Voting -- Basic Paxos  
 Solution proposed by Leslie Lamport in 1989, which leads to a Turing Award in 2013  
 
-**Basic Idea: majority vote**  
+### Basic Idea: majority vote
 (1) A cluster with at least 3 nodes   
 
 (2) And it can end with a consensus acceptance of only one proposal if it gathered agreement votes from at least a majority set of nodes (2 out of 3, 3 out of 4, 3 out of 5, ...) 
@@ -1175,7 +1177,7 @@ We may have multiple rounds because the previous rounds may end in no results, b
 
 May end with a consensus proposal   
 May also end with no consensus if there is split votes   
-Guaranteed to have no split results because two quorum will have at least one node in common. No need of an unanimous vote, quorum is enough  
+Guaranteed to have no split results because two quorum (majority) will have at least one node in common. No need of an unanimous vote, quorum is enough  
 
 (4) Wait and another round of voting starts if no proposal receives majority voting 
 
@@ -1196,451 +1198,537 @@ In a partitioned network, the split that contains a majority of nodes can still 
 (7) Often called "quorum" systems  
 
 ### Basic Paxos  
+(1) Make only one consensus decision  
 
-Make only one consensus decision  
+The decision process may contain multiple rounds if former rounds have not reached a consensus decision 
 
-may contain multiple rounds if former rounds have not reached a consensus decision ◦ The result of consensus is a "value"  
+The result of consensus is a "value" , and the explanation of this value is depended on the specific scenario, e.g., in leader election, the value can be the node ID of the leader.
 
-▪ the explanation of this value is depended on the specific scenario e.g., in leader election, the value can be the node ID of the leader  
-
-Three roles in the cluster [fig 2]  
+(2) Three roles in the cluster
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/c1a992e6643386f978ad1d773c20a8db7ad052d7760a2f3bb4face75e4d0d46c.jpg)  
 
-Proposer: propose candidate proposals --- multiple proposers for high availability  
+- Proposer: propose candidate proposals --- multiple proposers for high availability  
+- Acceptor: decides whether to accept the proposal 
+    A proposal is accepted only after receiving a majority vote from all the acceptors 
+    Note it is a majority of acceptors, of a majority of all the nodes  
+- Learner: does not participate in the decision, only learn accepted consensus decisions passively 
 
-Acceptor: decides whether to accept the proposal ▪ A proposal is accepted only after receiving a majority vote from all the acceptors Note it is a majority of acceptors, of a majority of all the nodes  
+Each node can paly multiple roles (e.g., it can be proposer and acceptor simultaneously 
 
-◦ Learner: does not participate in the decision, only learn accepted consensus decisions passively ◦ Each node can paly multiple roles (e.g., it can be proposer and acceptor simultaneously • The whole procedure is partitioned into two phases (1a prepare, 1b promise, 2a Propose, 2b Accept, c Learn) [fig 3]  
-
-◦ A minimum of 2 RTT latency for decision (if there is no split vote in the first round), can be more if retry​   
-◦ Two phase paradigm is common in distributed environment in order to achieve consensus/atomic/etc  
+(3) The whole procedure is partitioned into two phases (1a prepare, 1b promise, 2a Propose, 2b Accept, c Learn) 
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/5baf8a869aca6e27034437eebddbd7e69ab1f798aad950bcf849b3f87d8e5e1d.jpg)  
 
-◦ Note that the proposer can notify the client its proposal has been accepted after receiving 2/3 Accepted messages  
+Therefore, Paxos requires a minimum of 2 RTT latency for decision (if there is no split vote in the first round), and can be more if retry​   
 
-## Basic Paxos  
+Two phase paradigm is common in distributed environment in order to achieve consensus/atomic/etc  
+
+Note that the proposer can notify the client its proposal has been accepted after receiving 2/3 Accepted messages  
+
+(4) Illustration for Basic Paxos
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/aaa4a716ec655d9b3f607d5da1443731517aff5eb79bc37de03b4d9aad7deff8.jpg)  
 
-### Acceptors must record minProposal,acceptedProposal, and acceptedValue on stable storage (disk)  
+Acceptors must record `minProposal`, `acceptedProposal`, and `acceptedValue` on stable storage (disk)  
 
-What is promise? The acceptor promises not accepting a smaller proposal ID by maintaining a minProposal variable​   
-◦ The proposal ID must be a unique and monotonically increasing  which can be obtained by $<a$ monotonically increasing counter, node ID> The above setting actually only achieves: 1) global unique; and 2) per node monotonical​   
-For proposer A, its proposal should be something like 1.A, 2.A, 3.A.   
-Similarly, for proposer A, its proposal should be something like 1.B, 2.B, 3.B.   
-Why suffi $\langle\?\mathrm{~--~}1.mathsf{A}<1.\mathsf{B}<2.\mathsf{A}<2.\mathsf{B}<3.\mathsf{A}<3.\mathsf{B}$ ◦ Suffix of proposer ID can make the IDs global unique ◦ Prefix can be used to make sure that no single proposer will always triumph  
+What is promise? The acceptor **promises not accepting a smaller proposal ID** by maintaining a `minProposal` variable​   
 
-How is global monotonical achieved? -- asynchronously communicated via the return message in the above step 3/6  
+The proposal ID must be a **unique and monotonically increasing** which can be obtained by a <monotonically increasing counter, node ID> 
+    The above setting actually only achieves: 1) global unique; and 2) per node monotonical​   
+    For proposer A, its proposal should be something like 1.A, 2.A, 3.A.    Similarly, for proposer B, its proposal should be something like 1.B, 2.B, 3.B.   
+    Why suffix?
+        e.g. `1.A < 1.B < 2.A < 2.B < 3.A < 3.B`
+        Suffix of proposer ID can make the IDs global unique
+        Prefix can be used to make sure that no single proposer will always triumph  
+    How is global monotonical achieved? -- asynchronously communicated via the return message in the above step 3/6  
 
-◦ The most critical step is in (3), the returning of accepted value if the acceptor has already accepted a value before  
+The most critical step is in (3), the returning of accepted value if the acceptor has already accepted a value before  
+    The proposer's original proposed value is **replaced** by the accepted value returned by the acceptor   
+    This is the way that Paxos **conveys information about previous decisions** through the nodes in the intersection of two majority sets of nodes  
 
-▪ The proposer's original proposed value is replaced by the accepted value returned by the acceptor   
-▪ this is the way that Paxos conveys information about previous decisions through the nodes in the intersection of two majority sets of nodes  
-
-Several Examples [fig 2]  
+(5) Several Examples
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/238804e4aad3b10a2a8258eaf18c351d7a175c7d8beda7bf922a3d5e7dad8d57.jpg)  
 
-### "Prepare proposal 3.1 (from s1)'  
+X is accepted by one and only one majority of acceptors   
+The final accept value proposed by the green proposer is X, instead of its original value -- returned by acceptor s3 because it has already accepted X.
 
-◦ X is accepted by a and only a majority of acceptors   
-The final accept value proposed by the green proposer is X, instead of its original value -- returned by acceptor s3 because it has already acc‘epted X.   
-◦ Y can never be accepted after X is already accepted by a majority of acceptors because there is at least one acceptor in common will change the proposer's value to X​ ▪ What if P 4.5 happens before A 3.1 X in node S3? -- A 3.1 X will be rejected in this case because its proposer ID is lower than minProposal, see the example below  
+**Y can never be accepted after X is already accepted by a majority of acceptors because there is at least one acceptor in common will change the proposer's value to X​** 
+    What if P 4.5 happens before A 3.1 X in node S3? 
+    A 3.1 X will be rejected in this case because its proposer ID is lower than `minProposal`, see the example below  
+
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/85cd9f1a3b13ab8f2c2fd94a336acb7252c5b522ee23800603b7864840e2c363.jpg)  
 
-The situation where the final value is Y. The blue proposer cannot gather enough accept votes because the acceptor s3 has already promised the green proposer, which has a larger proposal ID.  
+The situation where the final value is Y. The blue proposer cannot gather enough accept votes **because the acceptor s3 has already promised the green proposer, which has a larger proposal ID.**  
+The "promise" is only a promise of "no smaller" but can be overridden by a larger ID  
 
-▪ The "promise" is only a promise of "no smaller" but can be overridden by a larger ID  
-
-What happens to S1 and S2? -- they will change their value after receiving Y's accept message because it has a larger proposal ID  
+What happens to S1 and S2? -- they will **change** their value after receiving Y's accept message because it has a larger proposal ID  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/37d2df338d638861ba778a11a01af438ec314b122cbb723c5e5d9c29004191fa.jpg)  
 
-• Similar to the first example. The final value is X even though it was not accepted by a majority at the time the green proposer broadcasted its proposal ID.  
+Similar to the first example. The final value is X even though it was not accepted by a majority at the time the green proposer broadcasted its proposal ID.  
 
-## Basic Paxos and FLP  
+**Basic Paxos and FLP**  
+(1) FLP: only two can be achieved in (fault tolerance, termination, agreement)   
+(2) Paxos can lead to livelock (no termination)-- can be mitigated by certain solutions like randomization 
+Also a good (bad?) example of how we increase the proposal ID to achieve "unique and monotonically increasing"  
 
-FLP: only two can be achieved in (fault tolerance, termination, agreement)   
-• Paxos can lead to livelock -- can be mitigated by certain solutions like randomization ◦ Also a good (bad?) example of how we increase the proposal ID to achieve "unique and monotonically increasing"  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/0a8e14097f32dc970a1e7179eb7778d6c24cc04d1d7fc9ac386522cb98c084a8.jpg)  
 
-### Safety properties  
+**Safety properties**  
+- Validity (or non-triviality): Only proposed values can be chosen and learned. 
+- Agreement (or consistency, or safety) No two distinct learners can learn different values (or there can't be more than one decided value) 
+- Termination (or liveness) If value C has been proposed, then **eventually** learner L will learn some value (if sufficient processors remain non-faulty). -- live lock is possible  
 
-• Validity (or non-triviality): Only proposed values can be chosen and learned. Agreement (or consistency, or safety) No two distinct learners can learn different values (or there can't be more than one decided value) Termination (or liveness) If value C has been proposed, then eventually learner L will learn some value (if sufficient processors remain non-faulty). -- live lock is possible  
+**What if​**  
+(1) What if the proposer crashes when its accepted proposal is only broadcast to a majority but not all the acceptors?  
 
-### What if​  
-
-• What if the proposer crashes when its accepted proposal is only broadcast to a majority but not all the acceptors?  
-
-◦ How can the remaining acceptors know the accepted proposal? Other proposers will learn the accepted value at their preparation phase and broadcast the value to other acceptors   
+How can the remaining acceptors know the accepted proposal? 
+**Other proposers will learn the accepted value** at their preparation phase and **broadcast the value** to other acceptors   
 Thus, multiple proposers is enough for achieving high availability  
 
-What if a proposer with a higher propose number overrides a previously accepted proposal Overriding is possible but it will be overridden with the same value, so that does not violate the "Agreement" property There must be one acceptor that is shared by two quorums. In this shared node  
+(2) What if a proposer with a higher propose number overrides a previously accepted proposal 
 
-▪ If the accept message of the former proposal comes before the prepare message of the later proposal​ • The later proposer will learn the accepted message and broadcast accept with this accepted message​   
-▪ If the accept message of the former proposal comes later than the prepare message o the later proposal​ • This shared acceptor will update its minProposal and hence refuse to accept the accept message from the former proposal  
+Overriding is possible but it will be overridden with the same value, so that does not violate the "Agreement" property 
 
-• What if we want to start another round of decision after the former is accepted?​ ◦ Can we directly increase our proposal number and start another round? No!!!! ▪ Or actually not possible in basic Paxos because, after an acceptance, any further proposal will be revert to the original proposal by the acceptor in step 3​ Basic Paxos is only for making one consensus decision  
+There must be one acceptor that is shared by two quorums. In this shared node:
+    If the accept message of the former proposal comes before the prepare message of the later proposal​.The later proposer will learn the accepted message and broadcast accept with this accepted message​   
+    If the accept message of the former proposal comes later than the prepare message of the later proposal​. This shared acceptor will update its `minProposal` and hence refuse to accept the accept message from the former proposal  
+
+(3) What if we want to start another round of decision after the former is accepted?​ 
+
+Can we directly increase our proposal number and start another round? 
+No!!!! Or actually not possible in basic Paxos. Because after an acceptance, any further proposal will be revert to the original proposal by the acceptor in step 3​ 
+Basic Paxos is only for making one consensus decision. 
 
 ## Replicated State Machine  
-
 ### Why Do We Need RSM?  
+(1) Reaching consensus on one decision is not enough for implementing a high-available coordinator​ 
+It needs a series of consensus, one for each modification.​ 
 
-• Reaching consensus on one decision is not enough for implementing a high-available coordinator​ ◦ It needs a series of consensus, one for each modification​ Replicated state machine is a powerful abstraction that can be used to build all kinds of highavailable service as long as every operation of the service is deterministic.   
-The centralized structure is a replicated log ◦ Each replica works as a state machine that reads the log for operation steps ◦ And then perform the step in order ◦ similar to the turing machine  
+(2) Replicated state machine is a powerful abstraction that can be used to build all kinds of **high available** service as long as every operation of the service is deterministic.   
+
+(3) The centralized structure is a **replicated log** 
+Each replica works as a state machine that reads the log for operation steps, and then perform the step in order, which is similar to the Turing machine.  
 
 ### Common Procedure of RSM  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/b2b3020c7f0587f7f58d27f8f0474944a07f6ff4ad2cb88e61b3c55c46555b4f.jpg)  
 
-• Client sends "command A" to one replica of the service (may or may not need to be a chosen leader?) The received replica proposes a proposal on "command A" should be the X-th command executed, which is represented by storing "command A" in the X-th slot of the replicated log ◦ Transfer the semantic of "consensus on value" to "replicated log"  
+(1) Client sends "command A" to one replica of the service (may or may not need to be a chosen leader?) 
 
-• Somehow, the consensus module successfully committed the log "command A" at the Y-th slot​  
+(2) The received replica proposes a proposal on "command A should be the X-th command executed", which is represented by storing "command A" in the X-th slot of the replicated log 
 
-◦ A log is committed if 1) at least a majority of replicas reach agreement upon this log; 2) there will be no further rollback even if some (not all) of the agreed replicas crashes ▪ Thus there will be two states 1) replicated to a majority of replicas; and 2) committed. The first is still not safe.  
+Here, we are transferring the semantic of "consensus on value" to "replicated log"  
 
-◦ The final position Y-th may not be identical to the original proposal X-th • The state machine on every replica continuously consumes committed logs and returns the result to the client only after it has applied the Y-th log​  
+(3) Somehow, the consensus module successfully committed the log "command A" at the Y-th slot​  
 
-◦ This consumption can be an asynchronous procedure to the consensus procedure -- communicated via a count "commited_index"  
+A log is committed if 
+1) at least a majority of replicas reach agreement upon this log; 
+2) there will be **no further rollback** even if some (not all) of the agreed replicas crashes 
+
+Thus there will be two states 1) replicated to a majority of replicas; and 2) committed. The first is still not safe.  
+
+>  要确保 committed，不仅要确保 replicated to a majority of replicas，还要确保 no further rollback
+
+The final position Y-th may not be identical to the original proposal X-th 
+
+(4) The state machine on every replica continuously consumes committed logs and returns the result to the client **only after it has applied** the Y-th log​  
+
+This consumption can be an asynchronous procedure to the consensus procedure -- communicated via a count "`commited_index`"  
 
 ### Why replicated log?  
+The service keeps the state machine state. The log is an alternate representation of the same information! why both?  
 
-• The service keeps the state machine state. The log is an alternate representation of the same information! why both?  
+Reason:
+(1) Log stores the ordered history of committed commands 
+to help replicas agree on a single execution order 
+to help the leader ensure followers have identical logs 
 
-Log stores the ordered history of committed commands ◦ to help replicas agree on a single execution order ◦ to help the leader ensure followers have identical logs Log can store tentative commands until committed -- otherwise , it is hard to rollback a command from the state machine  
+(2) Log can store tentative commands until committed -- otherwise , it is hard to rollback a command from the state machine  
 
-◦ We'll see that they can temporarily have different entries on different replicas (that are not committed)   
+We'll see that they can temporarily have different entries on different replicas (that are not committed)   
 These different entries eventually converge to be identical​   
-◦ The commit mechanism ensures servers only execute stable entries  
+The commit mechanism ensures servers only execute stable entries  
 
-Logs are helpful in recovery  
+(3) Logs are helpful in recovery  
+the log stores commands in case leader must re-send to followers 
+the log stores commands persistently for replay after reboot  
 
-◦ the log stores commands in case leader must re-send to followers the log stores commands persistently for replay after reboot  
-
-### How to Implement RSM with Paxos? -- Multi-Paxos  
-
-Multiple rounds of basic-paxos for leader election and for replicating logs Very hard to understand and to use in practice $=>$ the main motivation of Raft​  
+**How to Implement RSM with Paxos? -- Multi-Paxos**  
+Multiple rounds of basic-Paxos for leader election and for replicating logs 
+Very hard to understand and to use in practice $=>$ the main motivation of Raft​  
 
 ## Raft Model  
-
 ### Basic Procedure  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/1bbf8563a021383c36bfa6b9be394a4ba01f395366896c64b9e791d213b6323f.jpg)  
 
-Raft directly provides a RSM model that basically contains only two procedures: 1) Electing a new leader; and 2) Ensuring identical logs despite failures  
+Raft directly provides a RSM model that basically contains only two procedures: 
+1) Electing a new leader; and 
+2) Ensuring identical logs despite failures  
 
-In Raft, time is divided into terms  
+In Raft, time is divided into **terms**  
+    Each term begins with an election.   
+    After a successful election, a single leader manages the cluster until the end of the term. $=>$ replicating and committing logs   
+    Some elections fail, in which case the term ends without choosing a leader $=>$ re-election  
 
-Each term begins with an election.   
-After a successful election, a single leader manages the cluster until the end of the term. $=>$ replicating and committing logs   
-◦ Some elections fail, in which case the term ends without choosing a leader $=>$ re-election  
+Every server in the Raft cluster maintains a **monotonically increasing currentTerm** value 
+This value should be persistent for recovering from a restart​  
 
-• Every server in the Raft cluster maintains a monotonically increasing currentTerm value ◦ This value should be persistent for recovering from a restart​  
+**Why Strong Leader?**  
+Paxos can have multiple proposers, but only one leader in Raft can propose. A leader ensures all replicas execute the same commands, in the same order -- decided by the single leader   
 
-### Why Strong Leader?  
+Raft uses a stronger form of leadership than other consensus algorithms.
+    For example, log entries only flow from the leader to other servers.
+    This simplifies the management of the replicated log and makes Raft easier to understand​   
 
-Paxos can have multiple proposers, but only one leader in Raft can propose   
-• A leader ensures all replicas execute the same commands, in the same order -- decided by the single leader   
-• Raft uses a stronger form of leadership than other consensus algorithms. ◦ For example, log entries only flow from the leader to other servers. ◦ This simplifies the management of the replicated log and makes Raft easier to understand​   
-• Leader can become a bottleneck in certain circumstances (e.g., geo-replicated systems) and lead to less parallelism and hence less throughput​ ◦ A trade-off between understandability and performance -- understandability wins  
+Leader can become a bottleneck in certain circumstances (e.g., geo-replicated systems) and lead to less parallelism and hence less throughput. This is a trade-off between understandability and performance -- understandability wins.
 
 ### Leader Election in Raft  
-
-State of Servers in Raft and the Transition  
+#### State of Servers in Raft and the Transition  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/a440959b541e8f558934811962d59f663c4a02b5a415621355a73bc4844733a7.jpg)  
 
-There are only three states of servers and two kinds of RPC calls in Raft (very elegant!)  
+(1) There are only three states of servers and two kinds of RPC calls in Raft (very elegant!)  
 
-• A server starts as Follower that receives and replies AppendEntries RPC from the leader ◦ The RPC tries to append a log entry to the replicated log​ ◦ The RPC can also contain an empty log entry, which serves as a heartbeat from the lea • A follower timeout if not receiving valid AppendEntries RPC for a certain period of time. It becomes a candidate and broadcasts RequestVote RPC [fig 4]  
+(2) A server starts as Follower that receives and replies `AppendEntries` RPC from the leader 
+The RPC tries to append a log entry to the replicated log​
+The RPC can also contain an empty log entry, which serves as a heartbeat from the leader
+
+(3) A follower timeout if not receiving valid `AppendEntries` RPC for a certain period of time. It then becomes a candidate and broadcasts `RequestVote` RPC 
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/13b05b10a30af9ad0680831382462af7056162c65d6bb86969606eca4814ecdc.jpg)  
 
-◦ The candidate starts an election by increasing the currentTerm it stores and sending RequestVote RPC with this new term   
-◦ A candidate becomes a new leader if it receives votes from a majority of servers   
-◦ A candidate may notice that another server becomes a new leader (by receiving its AppendEntries RPC), and then it transfers to a follower   
-◦ Sometimes no candidate receives enough votes, which leads to a new election   
-A leader server X periodically broadcasts AppendEntries RPC to make sure that it is still the   
-leader   
-◦ leader must send heart-beats more often than the election timeout to suppress any new election​   
-◦ But it is possible that this leader is temporally isolated from a majority number of servers (e.g., due to a network partition)   
-◦ In that case, the other followers may timeout and elect a new leader Y   
-◦ After reconnecting with the other servers, this (previous) leader X will receive AppendEntries RPC from the new leader Y (by comparing the term number) and becomes a follower ▪ Is there a split brain problem?  
+The candidate starts an election by increasing the `currentTerm` it stores and sending ` RequestVote ` RPC with this new term   
 
-### Asynchronous of Raft  
+A candidate becomes a new leader if it receives votes from a majority of servers   
+A candidate may notice that another server becomes a new leader (by receiving its `AppendEntries` RPC), and then it transfers to a follower   
 
+Sometimes no candidate receives enough votes, which leads to a new election   
+
+(4) A leader server X periodically broadcasts `AppendEntries` RPC to make sure that it is still the leader   
+
+leader must send heart-beats more often than the election timeout to suppress any new election​   
+
+But it is possible that this leader is temporally isolated from a majority number of servers (e.g., due to a network partition) . In that case, the other followers may timeout and elect a new leader Y.   
+
+After reconnecting with the other servers, this (previous) leader X will receive `AppendEntries` RPC from the new leader Y (by comparing the term number) and becomes a follower 
+
+Is there a split brain problem?  
+
+#### Asynchronous of Raft  
 The transitions between terms may be observed at different times on different servers.  
 
-It is guaranteed that there is at most one leader for each term ◦ so if you see AppendEntries with term T, you know who the leader for T is But, physically, there can be multiple servers that are both leaders at the same time because they are currently in different terms (have different currentTerm)​ How to solve this problem to ensure there is no split brain problem? ◦ New leader means a majority of servers have incremented currentTerm ◦ Old leader with an older currentTerm will not be able to gather enough requests for commit a log ▪ Every majority set will contain a server that has a larger currentTerm than the old leader​ ▪ Hence old leaders are harmless and there is no split brain  
+(1) It is guaranteed that there is at most one leader for **each term**  
+So if you see `AppendEntries` with term T, you know who the leader for T is 
 
-◦ It will also eventually discover the new leader and become a follower ◦ But a minority may accept old leader's AppendEntries so logs may diverge at end of old term​  
+(2) But, physically, there can be multiple servers that are both leaders at the same time because they are currently in different terms (have different `currentTerm`)​ 
 
-▪ Fixed later -- we need some kind of rollback mechanism ▪ Again, the replicating of logs is not the same as the commitment of logs  
+(3) How to solve this problem to ensure there is no split brain problem? 
 
-### Unsuccessful Election  
+New leader means a majority of servers have incremented `currentTerm` 
+Old leader with an older `currentTerm` **will not** be able to gather enough requests for commit a log
+- Every majority set will contain a server that has a larger `currentTerm` than the old leader​. 
+- Hence old leaders are harmless and there is no split brain  
 
-There are two possible reasons of unsuccessful election   
-◦ Case 1: less than a majority of servers are reachable -- the whole cluster becomes unavailable in this case  
+It will also eventually discover the new leader and become a follower
+But a minority may accept old leader's `AppendEntries` so logs may diverge at end of old term​  
+- Fixed later -- we need some kind of rollback mechanism
+- Again, the replicating of logs is not the same as the commitment of logs  
 
-◦ Case 2: simultaneous candidates split the vote, none gets majority  
+#### Unsuccessful Election  
+(1) There are two possible reasons of unsuccessful election   
 
-▪ Without special care, elections will often fail due to split vote   
-▪ all election timers likely to go off at around the same time $=>$ every candidate votes for itself $=>$ no-one will vote for anyone else $=>$ time out at around the same time again $=>$ repeat​  
+Case 1: less than a majority of servers are reachable -- the whole cluster becomes unavailable in this case  
 
-How to reduce the possibility of case 2?  
+Case 2: simultaneous candidates split the vote, none gets majority  
+- Without special care, elections will often fail due to split vote   
+- all election timers likely to go off at around the same time $=>$ every candidate votes for itself $=>$ no-one will vote for anyone else $=>$ time out at around the same time again $=>$ repeat​  
+
+(2) How to reduce the possibility of case 2?  
 
 randomized election  
-
-each server adds some randomness to its election timeout period ▪ The server with the lowest timeout has a good chance of becoming the new leader Indefinite re-election is still possible but with a very low possibility  
+- Each server adds some randomness to its election timeout period
+- The server with the lowest timeout has a good chance of becoming the new leader 
+- Indefinite re-election is still possible but with a very low possibility  
 
 randomized delays are a common pattern in network protocols for resolving conflict without synchronization  
 
-• Other solutions? A priority of leader selection -- possible but leads to many subtle issues and is abandoned by Raft designers  
+(3) Other solutions? A priority of leader selection -- possible but leads to many subtle issues and is abandoned by Raft designers  
 
-## Malicious/manipulate Server  
+#### Malicious/manipulate Server  
+In Raft, we assume that all the messages are sent according to the algorithm. 
 
-In Raft, we assume that all the messages are sent according to the algorithm  
+That is to say, a server will always believe the content of message it receives.
+This can not be true because of a bug or a malicious/manipulate server.
 
-That is to say, a server will always believe the content of message it receives   
-• This can not be true because of a bug or a malicious/manipulate server Algorithms that can tolerate (called Byzantine fault) are much more complex and require cryptography backgrounds​ ◦ The most well-known Byzantine system is bitcoin -- one can learn it from the material of the original MIT 6.824 course. It is not included in this class  
+Algorithms that can tolerate (called Byzantine fault) are much more complex and require cryptography backgrounds​. The most well-known Byzantine system is bitcoin -- one can learn it from the material of the original MIT 6.824 course. It is not included in this class  
 
 ### Log Replication in Raft  
+#### Replicating and Committing Logs Without Leadership Change  
+(1) Once a leader has been elected, it begins servicing client requests  
 
-Replicating and Committing Logs Without Leadership Change  
+The leader appends the command from the client to its local log as a new entry -- with a term Id (`currentTerm` of the leader) and a `logIndex` that represents its location in the log (i.e., the execution order)   
 
-Once a leader has been elected, it begins servicing client requests  
+This is similar to GFS, where the position of appending is decided by the leader, not directly append to the follower's log.
 
-appends the command from the client to its local log as a new entry -- with a term Id   
-(currentTerm of the leader) and a logIndex that represents its location in the log (i.e., the   
-execution order)   
-▪ Similar to GFS, the position of appending is decided by the leader, not directly append to the follower's log  
+The leader then broadcasting the above log in parallel with `AppendEntries` RPC.  
+If followers crash or run slowly, or if network packets are lost, the leader retries `AppendEntries` RPCs indefinitely   
 
-◦ Broadcasting the above log in parallel with AppendEntries RPC.  
+A log entry is committed once the leader that **created** the entry has replicated it on a majority of the servers​   
 
-◦ If followers crash or run slowly, or if network packets are lost, the leader retries AppendEntries RPCs indefinitely   
-◦ A log entry is committed once the leader that \*\*created\*\* the entry has replicated it on a majority of the servers​   
-◦ When the entry has been safely replicated (i.e., committed), the leader applies the entry to its state machine and returns the result of that execution to the client.   
-◦ As for the other minority set of followers, the leader will still reties AppendEntries  even after it has responded to the client until all followers eventually store all log entries.  
+When the entry has been safely replicated (i.e., committed), the leader applies the entry to its state machine and returns the result of that execution to the client.   
 
-Example  
+As for the other minority set of followers, the leader will still reties `AppendEntries`  even after it has responded to the client until all followers eventually store all log entries.  
+
+(2) Example  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/04e3402d1310691bd9c264bb02cf17b5d1489fcd1e4d392e9012ec1c21160e51.jpg)  
 
-In the above example, entry 7 is committed because it is replicated to a majority by its corresponding leader ◦ Raft guarantees that committed entries are durable and will eventually be executed by al of the available state machines. ◦ Pay attention to the phrase "the leader that created the entry" $=>$ we will see later an example, in which, an entry is already replicated to a majority of the servers but still not committed, because it is not replicated by the leader who created the entry The leader keeps track of the highest index it knows to be committed, and it includes that index in future AppendEntries RPCs (including heartbeats) so that the other servers eventually find out. Once a follower learns that a log entry is committed, it applies the entry to its local state machine (in log order).  
+In the above example, entry 7 is committed because it is replicated to a majority by its **corresponding** leader
+Raft guarantees that committed entries are durable and will eventually be executed by al of the available state machines. 
 
-◦ This information is inlined in AppendEntries so that we do need an additional round of RPC​  
+Pay attention to the phrase "the leader that created the entry" $=>$ we will see later an example, in which, an entry is **already replicated to a majority of the servers but still not committed**, because it is not replicated by the leader who created the entry.
 
-The above algorithm is enough to converge the logs on all nodes if there is no failure  
+(3) The leader keeps track of the highest index it knows to be committed, and it **includes that index** in future `AppendEntries` RPCs (including heartbeats) so that the other servers eventually find out. 
 
-◦ All the followers have a prefix of the leader's log in the above example, thus retry is enough   
+Once a follower learns that a log entry is committed, it applies the entry to its local state machine (in log order).  
+
+This information is inlined in `AppendEntries` so that we do need an additional round of RPC​  
+
+(4) The above algorithm is enough to converge the logs on all nodes if there is no failure  
+
+All the followers have a prefix of the leader's log in the above example, thus retry is enough   
 But this is only a lucky special case   
 There are complex divergences in real-world cases and we need some kind of roll back mechanism  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/c79bdc025bc860397928fc535d8a0b4cd6f47391b9d81f7399a1465752797c32.jpg)  
 
-Discuss later  
+(5) Discuss later  
 
-To converge the difference, the leader must find the latest log entry where the two logs agree, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.  
+To converge the difference, the leader must find the latest log entry **where the two logs agree**, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.  
 
-The leader maintains a nextIndex for each follower.   
-nextIndex is initialized to be the last index for a new leader   
-After a rejection from the follower, the leader decrements nextIndex and retries Eventually nextIndex will reach a point where the leader and follower logs match In the above example, server f will rollback to log index 4  
+The leader maintains a `nextIndex` for each follower.   
+`nextIndex` is initialized to be the last index for a new leader   
+After a rejection from the follower, the leader decrements `nextIndex` and retries.
+Eventually `nextIndex` will reach a point where the leader and follower logs match In the above example, server f will rollback to log index 4  
 
-### Log Matching Property  
+#### Log Matching Property  
+P1: If two entries in different logs have the same index and term, then they store the same command.  
+- straightforward, because only one master per term and it will choose only one content for every index​
+- same index $+$ different term $=$ different content  
 
-• P1: If two entries in different logs have the same index and term, then they store the same command.  
-
-straightforward, because only one master per term and it will choose only one content for every index​ ◦ Same index $^+$ different term $=$ different content  
-
-• P2: If two entries in different logs have the same index and term, then the logs are identical in all preceding entries $=>$ even when these two entries are not committed Benefit: if we match the entries one by one from the end to front, once a match is found, we do not need to compare all the preceding entries because they are guaranteed to be the same ▪ Thus, the suffix is the divergent part that should be rolled back​ ◦ How to achieve this goal? -- roll back the divergent log entries $^{\circ}$ The situation becomes more complex when the leader fails, because the replicating of logs is executed parallel and the leader can commit a log for only a majority (not all) of servers reply  
+P2: If two entries in different logs have the same index and term, then the logs are identical in all preceding entries $=>$ even when these two entries are not committed 
+- Benefit: if we match the entries one by one from the end to front, once a match is found, we do not need to compare all the preceding entries because they are guaranteed to be the same. -> Thus, the suffix is the divergent part that should be rolled back​ 
+- How to achieve this goal? -- roll back the divergent log entries
+- The situation becomes more complex when the leader fails, because the replicating of logs is executed parallel and the leader can commit a log for only a majority (not all) of servers reply  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/1cf7932bda40baa59843e1f43a58089b34dd6e444cd172caac67448d61005192.jpg)  
 
 In the above example,  
 
-▪ leaders in term 2 and 3 failed before committing any log entry but replicating several logs in server f​ • The current leader directly jumps from term 1 to term 4​   
-▪ If the current leader of term 8 broadcasts a new log entry at index 11 and server f blindly accepts it, there will be a violation of P2  
+leaders in term 2 and 3 failed before committing any log entry but replicating several logs in server f​ 
+The current leader directly jumps from term 1 to term 4​   
+If the current leader of term 8 broadcasts a new log entry at index 11 and server f blindly accepts it, there will be a violation of P2  
 
-◦ To resolve the above problem, when sending an AppendEntries RPC in raft, ▪ the leader includes the index and term of the entry in its log that immediately precedes the new entries.  
+To resolve the above problem, when sending an `AppendEntries` RPC in raft, the leader includes the index and term of the entry in its log that immediately precedes the new entries.  
+- If the follower does not find an entry in its log with the same index and term, then it refuses the new entries.   
+- The consistency check acts as an induction step (prove by mathematical induction，数学归纳法): 
+    1: the initial empty state of the logs satisfies the P2 
+    2: and the consistency check preserves the P2 whenever logs are extended. 
+        Assuming P2 is guaranteed with index i-1 
+        for appending index i, the algorithm will check i-1 
+        If the entries at index i-1 have the same term and same content​
+        Then, due to the assumption, all the entries before i-1 are also the same  
 
-▪ If the follower does not find an entry in its log with the same index and term, then it refuses the new entries.   
-▪ The consistency check acts as an induction step (prove by mathematical induction，数 学归纳法): • the initial empty state of the logs satisfies the P2 and the consistency check preserves the P2 whenever logs are extended. ◦ Assuming P2 is guaranteed with index i-1 ◦ for appending index i, the algorithm will check i-1 ◦ If the entries at index i-1 have the same term and same content​ ◦ Then, due to the assumption, all the entries before i-1 are also the same  
-
-◦ To converge the difference, the leader must find the latest log entry where the two logs agree, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.  
-
-▪ The leader maintains a nextIndex for each follower. nextIndex is initialized to be the last index for a new leader -- 11 in the above example   
-After a rejection from the follower because the mismatch on the precede entry, the leader decrements nextIndex and retries Eventually, the nextIndex will reach a point where the leader and follower logs match - - at least they will agree on 0 In the above example, server f will rollback to log index 4  
+To converge the difference, the leader must find the latest log entry where the two logs agree, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.  
+- The leader maintains a `nextIndex` for each follower. 
+- `nextIndex` is initialized to be the last index for a new leader -- 11 in the above example   
+- After a rejection from the follower because the mismatch on the precede entry, the leader decrements `nextIndex` and retries 
+- Eventually, the `nextIndex` will reach a point where the leader and follower logs match - - at least they will agree on 0 In the above example, server f will rollback to log index 4  
 
 How to assure that a committed log entry will never be rolled back?  
+P1 and P2 only guarantees the "matching/replicated", not related to "committed"  
 
-▪ P1 and P2 only guarantees the "matching/replicated", not related to "committed"  
-
-## Safety  
-
+### Safety  
 The mechanisms described so far are not quite sufficient to ensure that each state machine executes exactly the same commands in the same order. -- can you image a counter example?  
 
-### Election restriction  
+#### Election restriction  
+A follower might be unavailable while the leader commits several log entries
+- A lag follower does not violate the above Log Matching Property
+- But if a lag follower is elected as a new leader, the committed commands will be overwritten   
 
-A follower might be unavailable while the leader commits several log entries ◦ A lag follower does not violate the above Log Matching Property ◦ But if a lag follower is elected as a new leader, the committed commands will be overwritten   
-Solution: selecting only the candidate that stores all of the committed log entries ◦ Follower a, c, d are also eligible for becoming the new leader in the above example  
+Solution: selecting only the candidate that stores all of the committed log entries 
+- Follower a, c, d are also eligible for becoming the new leader in the above example  
 
-Implementation: a RequestVote RPC is rejected if the sender candidate's log is staler than the receiver  
-
-Again, we take advantage of the quorum property   
-A log entry is committed only when it is replicated to at least a majority number of servers   
-◦ A lag candidate can never receive agreement votes from any of these servers and hence cannot be elected as a new leader   
-Raft determines which of two logs is more up-to-date by comparing the index and term of the last entries in the logs. If the logs have last entries with different terms, then the log with the later term is more up-to-date. ▪ If the logs end with the same term, then whichever log is longer is more up-to-date.  
+Implementation: a `RequestVote` RPC is rejected if the sender candidate's log is staler than the receiver  
+- Again, we take advantage of the quorum property   
+- A log entry is committed only when it is replicated to at least a majority number of servers   
+- A lag candidate can never receive agreement votes from any of these servers and hence cannot be elected as a new leader   
+- Raft determines which of two logs is more up-to-date by comparing the index and term of the last entries in the logs. 
+    If the logs have last entries with different terms, then the log with the later term is more up-to-date.
+    If the logs end with the same term, then whichever log is longer is more up-to-date.  
 
 Why not elect the server with the longest log as leader?  
+- term is more important than length  
+- A failed leader may replicate a lot of log entries to only a minority of nodes, which leads to long but stale nodes 
+- Node f in the above example is very long but with very small term number​  
+#### Committing entries from previous terms  
+Corner Case: a leader cannot immediately conclude that an entry **from a previous term** is committed once it is stored on a majority of servers  
+- Not committed because it is not created by the current leader  
+- It is replicated by the current leader, not the failed leader that creates it
+- Thus, even when it is replicated to a majority of nodes by the new leader, **the latest term of these nodes are still stale**
+- hence cannot guarantee that his replicated log entry will not be rolled back​. 
 
-### $^{\circ}$ term is more important than length  
+>  不是由 current leader 在 current term 确定的存储于 majority 的 entry 不能提交，即来自于 previous term 的 entry 即便确定了存储与 majority，也不能视作提交
+>  这是因为这些 entry 存在被覆盖的可能性，它们的 term number 可能会落后于某些 term number
+>  如果 entry 是当前 term 的，则其 term number 就是最大，故不存在被覆盖的可能性
 
-◦ A failed leader may replicate a lot of log entries  to only a minority of nodes, which leads to long but stale nodes ◦ Node f in the above example is very long but with very small term number​  
-
-### Committing entries from previous terms  
-
-• Corner Case: a leader cannot immediately conclude that an entry from a previous term is committed once it is stored on a majority of servers  
-
-not committed because it is not created by the current leader $^{\circ}$ It is replicated by the current leader, not the failed leader that creates it ◦ Thus, even when it is replicated to a majority of nodes by the new leader, the latest term of these nodes are still stale ◦ hence cannot guarantee that his replicated log entry will not be rolled back​  
-
-▪ In contrast, if it is created by the current leader, its term is guaranteed to be the larges  
+In contrast, if it is created by the current leader, its term is guaranteed to be the larges  
 
 An example (the most important example)  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/7135f4ac6ddcd601a9ca1a4a5108a358b8e7402c3a8e89f95272fcb76f7efd0e.jpg)  
 
-◦ S1 crashes at time c and S5 is elected as leader of term 5  
+S1 crashes at time c and S5 is elected as leader of term 5  
+- S5 gets votes from S4 and S3 because the term of $\mathtt{S3^{\prime}S}$ last entry is 2 which is less than S5's 3​ 
+- 2 is rollbacked and overwritten by 3 although it has been replicated by a majority of servers at time c​
+    If the 4 at logIndex 3 is also replicated to a majority, then it will never be rolled back any more 
+- Subfigure (e) is not a valid successive state of (d), it is a possible successive state of (c), in which the entry with term 4 is committed, and hence the entry with term 2 is also committed.  
 
-▪ S5 gets votes from S4 and S3 because the term of $\mathtt{S3^{\prime}S}$ last entry is 2  which is less than S5's 3​ ▪ 2 is rollbacked and overwritten by 3 although it has been replicated by a majority of servers at time c​ • If the 4 at logIndex 3 is also replicated to a majority, then it will never be rolled back any more Subfigure (e) is not a valid successive state of (d), it is a possible successive state of (c), in which the entry with term 4 is committed, and hence the entry with term 2 is also committed.   
-• Raft never commits log entries from previous terms by counting replicas. Only log entries from the leader’s current term are committed by counting replicas; once an entry from the current term has been committed in this way, then all prior entrie are committed indirectly because of the Log Matching Property.​ ◦ A no-op (sync) is committed for every newly elected leader to commit all the previous logs   
-• Why?​ ◦ New leader cannot roll back committed entries from a previous term, because of the leader election restriction ◦ But a new leader that replicates an uncommitted entry to a majority set of servers does not have the same guarantee, because the term of this uncommitted entry may be lower than the new leader ◦ In contrast, the log entry created by current leader and replicated to a majority of nodes has the newest term  
 
-## Recovery  
+Raft never commits log entries from **previous** terms by counting replicas. Only log entries from the leader’s current term are committed by counting replicas; 
+- once an entry from the current term has been committed in this way, then all prior entries are committed **indirectly** because of the Log Matching Property.​ 
+- A no-op (sync) is committed for every newly elected leader to commit all the previous logs   
 
-### What would we like to happen after a server crashes?  
+Why?​ 
+- New leader cannot roll back committed entries from a previous term, because of the leader election restriction 
+- But a new leader that replicates an uncommitted entry to a majority set of servers does not have the same guarantee, because the term of this uncommitted entry may be lower than the new leader
+- In contrast, the log entry created by current leader and replicated to a majority of nodes has the newest term  
 
-Raft can continue with one missing server but failed server must be repaired soon to avoid dipping below a majority Replace with a fresh (empty) server $=>$ long recovery time because it must catch up from the start​   
-• Reboot crashed server, re-join with state intact, catch up $=>$ by persistence  
+### Recovery  
+#### What would we like to happen after a server crashes?  
+Raft can continue with one missing server but failed server must be repaired soon to avoid dipping below a majority 
+Replace with a fresh (empty) server $=>$ long recovery time because it must catch up from the start​   
+Reboot crashed server, re-join with state intact, catch up $=>$ by persistence  
 
-### Persistence  
+#### Persistence  
+Picture ref to the original pdf
 
-### State  
+`log[]`, persistent -- obvious 
+`votedFor`, persistent -- to make sure that a server will not vote twice in a term  
+`currentTerm`, persistent 
+- why not directly use the term of the last log entry? 
+- not correct, similar to `votedFor` a node may voted for a newer term but still have not received log entry from that term 
 
-### Persistent state on all servers:  
+`commitIndex`, not persistent -- will receive it from the leader 
+`lastApplied `, not persistent -- it is not persistent in Raft because its persistency does not impact the property guaranteed by Raft, but its persistency **should be considered** by the implementation of the state machine 
+- Raft only guarantees the log is consistently replicated​ 
+- The state is always correct if the state machine always starts from initialization state an executes all the committed logs to restore the state after restart​
+- If the state machine is also recovered from a snapshot, the state machine should record the `lastApplied` at the checkpoint instead of the last ` lastApplied ` (discussed later)  
+`nextIndex/matchIndex`, not persistent -- reinitialized after each election  
 
-(Updated on stable storage before responding to RPCs)  
+#### Performance  
+Persistence is often the bottleneck for performance -- a hard disk write takes 10 ms, SSD write takes 0.1 ms. So persistence limits us to 100 to 10,000 ops/second   
 
-<html><body><table><tr><td>currentTerm votedFor</td><td>latest term server has seen (initialized to 0 on first boot, increases monotonically) candidateId that received vote in current</td></tr><tr><td>logll</td><td>term (or null if none) log entries; each entry contains command for state machine, and term when entry</td></tr><tr><td>Volatile state on all servers:</td><td>was received by leader (first index is 1)</td></tr><tr><td>commitIndex</td><td>index of highest log entry known to be committed (initialized to O, increases</td></tr><tr><td>lastApplied</td><td>monotonically) index of highest log entry applied to state machine (initialized to O, increases monotonically)</td></tr><tr><td colspan="2">Volatile state onleaders: (Reinitialized after election)</td></tr><tr><td>nextIndex</td><td>for each server, index of the next log entry to send to that server (initialized to leader</td></tr><tr><td>matchIndex</td><td>last log index + 1) for each server, index of highest log entry known to be replicated on server (initialized to O, increases monotonically)</td></tr></table></body></html>  
+Lots of tricks to cope with slowness of persistence
+- batch many new log entries per disk write 
+- persist to battery-backed RAM, not disk 
+- be lazy and risk loss of last few committed updates  
 
-log[], persistent -- obvious votedFor, persistent -- to make sure that a server will not vote twice in a term  
-
-currentTerm, persistent ◦ why not directly use the term of the last log entry? ◦ not correct, similar to votedFor a node may voted for a newer term but still have not received log entry from that term commitIndex, not persistent -- will receive it from the leader • lastApplied, not persistent -- it is not persistent in Raft because its persistency does not impact the property guaranteed by Raft, but its persistency should be considered by the implementation of the state machine ◦ Raft only guarantees the log is consistently replicated​ ◦ The state is always correct if the state machine always starts from initialization state an executes all the committed logs to restore the state after restart​ ◦ If the state machine is also recovered from a snapshot, the state machine should record the lastApplied at the checkpoint instead of the last lastApplied (discussed later)  
-
-netIdenx/matchIndex, not persistent -- reinitialized after each election  
-
-## Performance  
-
-• Persistence is often the bottleneck for performance -- a hard disk write takes 10 ms, SSD write takes 0.1 ms so persistence limits us to 100 to 10,000 ops/second   
-• Lots of tricks to cope with slowness of persistence ◦ batch many new log entries per disk write ◦ persist to battery-backed RAM, not disk $^{\circ}$ be lazy and risk loss of last few committed updates  
-
-### Snapshot  
-
-### Problem and Basic Idea  
-
-• Problem: log will get to be huge -- much larger than state-machine state! It will take a long time to re-play on reboot or send to a new server   
-• Idea: the executed part of the log is captured in the state and hence we can make a snapshot of state  
+#### Snapshot  
+**Problem and Basic Idea**  
+Problem: log will get to be huge -- much larger than state-machine state! It will take a long time to re-play on reboot or send to a new server   
+Idea: the executed part of the log is captured in the state and hence we can make a snapshot of state  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/0e4ebd251da09f11c7bfd7b418003a5bbef7d7744fc298b3401ddb50d9768cfc.jpg)  
 
-With a persistent snapshot, a restart server can set the lastApplied to the last included index of the snapshot and go through the following log entries for recovery  
+With a persistent snapshot, a restart server can set the `lastApplied` to the last included index of the snapshot and go through the following log entries for recovery  
 
-### Problem of Lag Follower  
+**Problem of Lag Follower**  
+As discussed above, a leader must find the latest log entry where the two logs agree, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.   
 
-• As discussed above, a leader must find the latest log entry where the two logs agree, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.   
-It is possible that the latest log entry where the two logs agree is already deleted (compacted into the snapshot)   
-• An additional InstallSnapshot RPC is used in this special case to install the snapshot of leader to this lag follower  
+It is possible that the latest log entry where the two logs agree is **already deleted** (compacted into the snapshot)   
 
-## Client Interaction (1) -- linearizability  
+An additional `InstallSnapshot` RPC is used in this special case to install the snapshot of leader to this lag follower  
 
-• Client operation lasts for a period of time, which starts from its invocation and ends when the leader returns the results  
+### Client Interaction
+#### Client Interaction (1) -- linearizability  
+Client operation **lasts for a period of time**, which starts from its invocation and ends when the leader returns the results  
+- Each operation appears to take effect atomically at some point between its invocation and completion. -- but what point?   
+- Thus, the **lasting period of two concurrent client operations** may intersect with each other -- which one is executed earlier?​   
+- The guarantee of the above problem is called a consistency model.  
 
-Each operation appears to take effect atomically at some point between its invocation and completion. -- but what point?   
-◦ Thus, the lasting period of two concurrent client operations may intersect with each other -- which one is executed earlier?​   
-◦ The guarantee of the above problem is called a consistency model  
+**Linearizability is the consistency model Raft achieves** and it is the most common version of **strong consistency** model that can be achieved in a distributed environment​  
+- Definition: an execution history is linearizable if 
+    one can find a total order of all operations, that matches real-time (for nonoverlapping ops), 
+    and in which **each read sees the value from the write preceding it in the order**
+- Example 1: Linearizable as Wx1 Rx1 Wx2 Rx2 (although Rx2 actually starts before Rx1 but read a newer version of value)  
+    picture ref to the origin
+- Example 2: Linearizable as Wx0 Wx2 Rx2 Wx1 Rx1  
+    picture ref to the origin
+- Example 3: not linearizable  
+    picture ref to the origin
 
-• Linearizability is the consistency model Raft achieves and it is the most common version of strong consistency model that can be achieved in a distributed environment​  
+>  在对 operations 进行排序时，有 intersection 的两个 operations 之间的顺序可以任意
 
-Definition: an execution history is linearizable if one can find a total order of all operations, that matches real-time (for nonoverlapping ops), and in which each read sees the value from the write preceding it in the orde  
+In Raft, **the log order is the linearizable order** 
+linearizability $\ne$ serializability  
+- linearizability is a consistency model regarding the consistency among multiple replicas 
+- serializability is an isolation level for database transactions -- concurrent transaction on even one database server needs to guarantee serializability   
+- We will revisit this in later lectures  
 
-Example 1: Linearizable as Wx1 Rx1 Wx2 Rx2 (although Rx2 actually starts before Rx1 but read a newer version of value)  
-
-1 |-Wx1-| |-Wx2-|  
-2 |---Rx2---|  
-3 |-Rx1-|  
-
-Example 2: Linearizable as Wx0 Wx2 Rx2 Wx1 Rx1  
-
-1 |--Wx0--| |--Wx1--|  
-2 |--Wx2--|  
-3 |-Rx2-| |-Rx1-|  
-
-Example 3: not linearizable  
-
-1 |--Wx0--| |--Wx1--|  
-2 |--Wx2--|  
-3 C1: |-Rx2-| |-Rx1-|  
-4 C2: |-Rx1-| |-Rx2-|  
-
-In Raft, the log order is the linearizable order linearizability $\mathrel{\mathop:}=$ serializability  
-
-$^{\circ}$ linearizability is a consistency model regarding the consistency among multiple replicas Serializability is an isolation level for database transactions -- concurrent transaction on even one database server needs to guarantee serializability   
-◦ We will revisit this in later lectures  
-
-## Client Interaction (2) -- Duplication caused by retrying  
-
+#### Client Interaction (2) -- Duplication caused by retrying  
 "a committed operation" has three meanings in Raft:  
+- P1) the op cannot be lost, even due to (allowable) failures. In Raft, when a majority of servers persist it in their logs created by the current leader. This is the "commit point" of Raft 
+- P2) the system knows the op is committed -- the leader saw a majority.
+- P3) the client knows the op is committed -- the client receives a reply from the leader  
 
-P1) the op cannot be lost, even due to (allowable) failures. In Raft, when a majority of servers persist it in their logs created by the current leader. This is the "commit point" of Raft ◦ P2) the system knows the op is committed -- the leader saw a majority. ◦ P3) the client knows the op is committed -- the client receives a reply from the leader  
-
-• A client will resend the op if timeout, but the sent op may already pass P1 -- leads to a duplication​  
+A client will resend the op if timeout, but the sent op may already pass P1 -- leads to a duplication​  
 
 Basic Idea: duplicate RPC detection (Lec 1.2)  
-
-client picks a unique ID for each request, sends in RPC same ID in re-sends of same RPC   
-the service maintains a "duplicate table" indexed by ID. after executing, record reply   
-content in duplicate table   
-if 2nd RPC arrives with the same ID, it's a duplicate generate reply from the value in the   
-table​  
+- client picks a unique ID for each request, sends in RPC same ID in re-sends of same RPC   
+- the service maintains a "duplicate table" indexed by ID. after executing, record reply content in duplicate table   
+- if 2nd RPC arrives with the same ID, it's a duplicate generate reply from the value in the table​  
 
 Problem: how does a new leader get the duplicate table?  
+- put ID in logged operations handed to Raft 
+- all replicas should update their duplicate tables as they execute so the information is already there if they become leader   
+- This mechanism also solves the problem of recovering the duplicate table after a restart  
 
-◦ put ID in logged operations handed to Raft all replicas should update their duplicate tables as they execute so the information is already there if they become leader   
-This mechanism also solves the problem of recovering the duplicate table after a resta  
+>  request ID 也会被存储于 log 中，便于每个 server 维护各自的 duplicate table，故当前 leader 崩溃后，之后的 leader 将仍持有 duplicate table
 
-• Another corner case: what if a duplicate request arrives before the original executes? ◦ could just call Start() (again) it will probably appear twice in the log (same client ID, same seq #)​ ◦ when cmd appears on applyCh, don't execute if table says already seen  
+Another corner case: what if a duplicate request arrives before the original executes?
+- could just call Start() (again) it will probably appear twice in the log (same client ID, same seq #)​ 
+- when cmd appears on applyCh, don't execute if table says already seen  
 
-• Does it violate linearizability since the leader is returning an "old" state that may not be upto-date​  
+#### Client Interaction (3) -- Read-only Optimization  
+The above standardized procedure of executing an operation is expensive (at least two round-trips). Can we optimize read-only operations by directly returning from the state machine? 
 
-1 C1: |-Wx10-| |-Wx20-|   
-2 C2: |-Rx10-  
+Simple answer: No, at least not straightforward
+- The leader who received the read-only operation might have recently lost an election, but not realized 
+- The new leader may already modify the value, which leads to a split brain problem that violates linearizability​ 
 
-## Client Interaction (3) -- Read-only Optimization  
-
-The above standardized procedure of executing an operation is expensive (at least two round-trips). Can we optimize read-only operations by directly returning from the state machine? Simple answer: No, at least not straightforward ◦ The leader who received the read-only operation might have recently lost an election, but not realized The new leader may already modify the value, which leads to a split brain problem that violates linearizability​ Possible Solution: lease ◦ define a lease period, e.g. 5 seconds after each time the leader gets an AppendEntries majority, it is entitled to respond to read-only requests for a lease period without adding read-only requests to the log, i.e. without sending AppendEntries. a new leader cannot execute Put()s until previous lease period has expired result: faster read-only operations, still linearizable.  
+Possible Solution: lease 
+- define a lease period, e.g. 5 seconds 
+- after each time the leader gets an `AppendEntries` majority, it is entitled to respond to read-only requests for a lease period without adding read-only requests to the log, i.e. without sending `AppendEntries`. 
+- a new leader cannot execute Put()s until previous lease period has expired result: faster read-only operations, still linearizable.  
 
 Another solution is also described in the paper  
 
-## Cluster Membership Changes  
+>  为了确保 leader 对于只读请求的返回是 up-to-date 的, leader 需要知道哪些 entries 是已经提交的最新信息，并且需要在处理只读请求之前，检查它是否已被替代
 
+### Cluster Membership Changes  
 Problem: It isn’t possible to atomically switch all of the servers at once, so the cluster can potentially split into two independent majorities during the configuration transition  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/ca39b5daf48a687efbb4f13e2314c062db2e618240725b6110de82609b7901d0.jpg)  
 
-• The state is first changed to a joint configuration Cold,new, during which all the decisions should reach majority consensus in both the two configurations   
-Both Cold,new and Cnew are special log entries that are replicated and committed with the same mechanism of other operations  
+The state is first changed to a joint configuration $C_{old, new}$, during which all the decisions should reach majority consensus in both the two configurations   
+
+Both $C_{old, new}$ and $C_{new}$ are special log entries that are replicated and committed with the same mechanism of other operations  
 
 A Visualization of Raft: https://thesecretlivesofdata.com/raft  
