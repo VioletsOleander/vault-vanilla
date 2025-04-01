@@ -254,7 +254,7 @@ Recent work with model-free policy search has demonstrated that it may not be as
 >  DPG 可以被视为 SVG (0) 的确定性极限。我们在这里描述的用于扩展 DPG 的技术也可以通过重参数化技巧应用于随机策略（Heess 等，2015；Schulman 等，2015a）。
 
 Another approach, trust region policy optimization (TRPO) (Schulman et al., 2015b), directly constructs stochastic neural network policies without decomposing problems into optimal control and supervised phases. This method produces near monotonic improvements in return by making carefully chosen updates to the policy parameters, constraining updates to prevent the new policy from diverging too far from the existing policy. This approach does not require learning an action-value function, and (perhaps as a result) appears to be significantly less data efficient. 
->  另一种方法是置信域策略优化（Trust Region Policy Optimization, TRPO）（Schulman 等，2015b），该方法通过对策略参数进行精心选择的更新，并限制更新以防止新策略与现有策略偏离过大，从而实现接近单调的回报提升。这种方法不需要学习动作值函数，（或许正是因为这一点）似乎在数据效率方面显著低于其他方法。
+>  另一种方法是置信域策略优化（Trust Region Policy Optimization, TRPO）（Schulman 等，2015b），该方法通过对策略参数进行精心选择的更新，并限制更新以防止新策略与现有策略偏离过大，从而实现接近单调的回报提升。这种方法不需要学习动作价值函数，（或许正是因为这一点）似乎在数据效率方面显著低于其他方法。
 >  (不知道作者到底是怎么理解 TRPO 的)
 
 To combat the challenges of the actor-critic approach, recent work with guided policy search (GPS) algorithms (e.g., (Levine et al., 2015)) decomposes the problem into three phases that are relatively easy to solve: first, it uses full-state observations to create locally-linear approximations of the dynamics around one or more nominal trajectories, and then uses optimal control to find the locally-linear optimal policy along these trajectories; finally, it uses supervised learning to train a complex, non-linear policy (e.g. a deep neural network) to reproduce the state-to-action mapping of the optimized trajectories. 

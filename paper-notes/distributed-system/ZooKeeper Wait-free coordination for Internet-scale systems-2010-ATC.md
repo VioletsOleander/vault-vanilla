@@ -62,6 +62,10 @@ To guarantee that update operations satisfy linearizability, we implement a lead
 >  然而，ZooKeeper 应用的典型工作负载主要由读取操作组成，因此提高读取吞吐量是必要的。在 ZooKeeper 中，服务器会本地处理读操作，故我们不使用 Zab 来对它们进行排序
 >  (ZooKeeper 提供的 API 中，对无等待对象的操作有 update 也有 read，其中基于 leader 的原子广播协议 Zab 确保了 update 操作的一致性，而 read 操作不经过 leader，服务器本地直接处理)
 
+>  也就是说，update 操作都需要交由 leader 处理，leader 会通过共识协议，确保 update 操作达成共识，故 update 操作是满足 linearizability，即新的 write 操作应该是在上一次 write 的结果上执行，故 update operations 具有全序关系
+>  但是，read 操作不会由 leader 发起共识，故 read 操作可能不会读取到最新的 write 结果
+>  容易看出，update 操作的 linearizability 是确保 coordination 的必要条件
+
 Caching data on the client side is an important technique to increase the performance of reads. For example, it is useful for a process to cache the identifier of the current leader instead of probing ZooKeeper every time it needs to know the leader. ZooKeeper uses a watch mechanism to enable clients to cache data without managing the client cache directly. With this mechanism, a client can watch for an update to a given data object, and receive a notification upon an update. 
 >  在 client side 缓存数据是提高读取性能的重要技术
 >  例如进程可以缓存当前 leader 的标识符，进而不需要每次向 ZooKeeper 查询，ZooKeeper 使用观察机制，其中 client 能够缓存数据，而 ZooKeeper 不会直接管理 client 缓存
@@ -617,7 +621,7 @@ To detect client session failures, ZooKeeper uses timeouts. The leader determine
 >  如果 client 足够频繁地发送请求，则无需发送其他消息，否则需要发送 heartbeat 维持 session
 
  If the client cannot communicate with a server to send a request or heartbeat, it connects to a different ZooKeeper server to re-establish its session. To prevent the session from timing out, the ZooKeeper client library sends a heartbeat after the session has been idle for $s/3$ ms and switch to a new server if it has not heard from a server for $2s/3\mathrm{ms}$ , where $s$ is the session timeout in milliseconds. 
- >  如果 client 无法与某个 server 通信以发送请求或 heartbeta，它会连接到另一个 ZooKeeper server，重建其 session
+ >  如果 client 无法与某个 server 通信以发送请求或 heartbeat，它会连接到另一个 ZooKeeper server，重建其 session
  >  为了防止 session timeout, ZooKeeper client library 会在 session 空闲的 $s/3$ ms 后发送 heartbeat，如果在 $2s/3$ ms 内没有收到 server 的回复，就切换到另一个 server
  >  其中 $s$ 就是 session timeout
 
@@ -732,7 +736,6 @@ Table 2 show the results of our benchmark. The create requests include 1K of dat
 The throughput of the single ZooKeeper worker benchmark indicates that the average request latency is $1.2\mathrm{ms}$ for three servers and $1.4\mathrm{ms}$ for 9 servers. 
 >  单个 ZooKeeper worker benchmark 的吞吐量表明，对于三台服务器的集群，平均请求延迟为 $1.2\mathrm{ms}$ (1/776)，而对于九台服务器，则为 $1.4\mathrm{ms}$ (1/711)。
 
-
 ## 5.3 Performance of barriers 
 In this experiment, we execute a number of barriers sequentially to assess the performance of primitives implemented with ZooKeeper. 
 >  在这项实验中，我们依次执行多个barriers，以评估使用 ZooKeeper 实现的原语的性能
@@ -762,7 +765,7 @@ In fact, we observe that even with clients proceeding in lock-step, the throughp
 As in our implementation we have a ratio of reads to writes of 4:1 ($80\%$ of read operations), the throughput our benchmark code uses is much lower compared to the raw throughput ZooKeeper can achieve (over 40,000 according to Figure 5). This is due to clients waiting on other clients. 
 >  在我们的实现中，读写比例为4:1（即 80%的操作是读取），因此基准测试代码使用的吞吐量远低于 ZooKeeper 能够实现的原始吞吐量（根据图 5 显示超过 40,000），这是因为客户端需要等待其他客户端完成操作 (故我们减少了 benchmark 中使用的吞吐量)
 
-## 6 Related work 
+# 6 Related work 
 ZooKeeper has the goal of providing a service that mitigates the problem of coordinating processes in distributed applications. To achieve this goal, its design uses ideas from previous coordination services, fault tolerant systems, distributed algorithms, and file systems. 
 >  ZooKeeper 的目的是提供缓解分布式应用的进程协调的问题
 >  为了实现该目标，其设计使用了来自先前的协调服务、容错系统、分布式算法、文件系统的思想
