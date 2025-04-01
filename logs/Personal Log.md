@@ -18,7 +18,7 @@ Date: 2024.7.29-2024.8.5
 - [[Managing Projects with GNU Make-2011|Managing Projects with GNU Make]]: CH1-CH2.7
 
 \[Doc\]
-- [[NVIDIA Nsight Compute]]: CH2
+- [[doc-notes/nvidia/NVIDIA Nsight Compute|nvidia/NVIDIA Nsight Compute]]: CH2
 
 \[Blog\]
 - [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
@@ -33,7 +33,7 @@ Date: 2024.8.5-2024.8.12
 - [[Parallel Thread Execution ISA v8.5-2024|PTX ISA v8.5]]: All
 
 \[Doc\]
-- [[CUDA-GDB v12.6]]: CH1-CH8
+- [[doc-notes/nvidia/CUDA-GDB v12.6|nvidia/CUDA-GDB v12.6]]: CH1-CH8
 
 \[Blog\] 
 - [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
@@ -111,8 +111,8 @@ Date: 2024.9.9-2024.9.16
         Basic knowledges: Conditional Independence, MAP query, Conditional density function, graphs
 
 \[Doc\]
-- [[Intel NPU Acceleration Library Documentation v1.3.0]]
-- [[The Python Tutorial]]: CH1-CH16
+- [[doc-notes/Intel NPU Acceleration Library Documentation v1.3.0|Intel NPU Acceleration Library Documentation v1.3.0]]
+- [[doc-notes/python/The Python Tutorial|python/The Python Tutorial]]: CH1-CH16
 
 ### Week 3
 Date: 2024.9.16-2024.9.23
@@ -172,7 +172,7 @@ Date: 2024.9.30-2024.10.7
 Date: 2024.10.7-2024.10.14
 
 \[Paper\]
-- [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec0-Sec3.1
+- [[paper-notes/mlsys/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec0-Sec3.1
     Sec0-Abstract
     Sec1-Introduction
     Sec2-Background
@@ -190,14 +190,14 @@ Date: 2024.10.7-2024.10.14
         Markov Network's parameterization: the idea was derived from statistical physics, which is pretty intuitive by using factor to represent two variables' interaction/affinity, and using a normalized product of factors to represent a joint probability (Gibbs distribution) to describe the probability of particular configuration; separation criterion in Markov network is sound and weakly complete (sound: independence holds in network --> independence holds in all distribution factorizing over network; weakly complete: independence does not hold in network --> independence does not hold in some distribution factorizing over network)
 
 \[Doc\]
-- [[doc-notes/python/packages/ultralytics]] : Quickstart, Usage (Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
+- [[doc-notes/python/packages/ultralytics|python/packages/ultralytics]] : Quickstart, Usage (Python usage, Callbacks, Configuration, Simple Utilities, Advanced Customization)
     Brief Introduction to YOLO model's python API, which is pretty simple
 
 ### Week 3
 Date: 2024.10.14-2024.10.21
 
 \[Paper\]
-- [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec3.1-Sec5
+- [[paper-notes/mlsys/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec3.1-Sec5
     Sec3-FlashAttention: Algorithm, Analysis and Extensions
         Sec3.1-IO Analysis
             The IO complexity of FlashAttention is $\Theta(N^2d^2M^{-1})$ while the IO complexity of the standard attention computation is $\Theta (Nd + N^2)$. The main difference is in $M$ and $N^2$. Standard attention computation does not use SRAM at all, all memory accesses are global memory access, in which the process of fetching "weight matrix" $P\in \mathbb R^{N\times N}$ contributes most of the IO complexity. FlashAttention utilized SRAM, and do not store "weight matrix" into DRAM, but keep a block of it on chip the entire time, thus effectively reduced the IO complexity.
@@ -223,7 +223,7 @@ Date: 2024.10.14-2024.10.21
 - [[A Tour of C++]]: CH6
 
 \[Doc\]
-- [[Pytorch 2.x]]: CH0
+- [[doc-notes/pytorch/Pytorch 2.x|pytorch/Pytorch 2.x]]: CH0
     CH0-General Introduction
         `torch.compile` : TorchDynamo --> FX Graph in Torch IR --> AOTAutograd --> FX graph in Aten/Prims IR --> TorchInductor --> Triton code/OpenMP code...
 - [[doc-notes/triton/Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
@@ -233,7 +233,7 @@ Date: 2024.10.14-2024.10.21
 Date: 2024.10.21-2024.10.28
 
 \[Paper\]
-- [[FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeruIPS|2022-NeurIPS-FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
+- [[paper-notes/mlsys/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
     SecA-Related Work
     SecB-Algorithm Details
         Memory-efficient forward/backward pass: using for-loop to avoid storing $O(N^2)$ intermediate matrix; FlashAttention backward pass: In implementation, the backward algorithm of FlashAttention is actually simpler than the forward algorithm, because it's just about tiled matrix multiplication without bothering softmax rescaling
@@ -274,12 +274,12 @@ Date: 2024.10.28-2024.11.4
         Make general term the coefficient in generating function to relating generating function with recurrence relation, and then turn recurrence formula into a equation about generating function, thus solve the generating function, then derive the general term of the recurrence.
 
 \[Doc\]
-- [[Learn the Basics|pytorch/tutorial/beginner/Learn the Basics]] 
-- [[doc-notes/python/packages/pillow]] : Overview, Tutorial, Concepts
-- [[Repositories|huggingface/hub/Repositories]]: Sec1-Sec4
+- [[doc-notes/pytorch/tutorials/beginner/Learn the Basics|pytorch/tutorials/beginner/Learn the Basics]] 
+- [[doc-notes/python/packages/pillow|python/packages/pillow]] : Overview, Tutorial, Concepts
+- [[doc-notes/huggingface/hub/Repositories|huggingface/hub/Repositories]]: Sec1-Sec4
 - [[doc-notes/triton/Getting Started|triton/Getting Started]]:  Tutorials/Matrix Multiply
-- [[Argparse Tutorial|python/how/general/Argparse Tutorial]] 
-- [[nvidia/CUDA C++ Programming Guide v12.6]]: CH1
+- [[doc-notes/python/howto/general/Argparse Tutorial|python/howto/general/Argparse Tutorial]] 
+- [[doc-notes/nvidia/CUDA C++ Programming Guide v12.6|nvidia/CUDA C++ Programming Guide v12.6]]: CH1
 
 ### Week 2
 Date: 2024.11.4-2024.11.11
@@ -324,7 +324,7 @@ Date: 2024.11.4-2024.11.11
 - [[A Tour of C++]] : CH7-CH8
 
 \[Doc\]
-- [[python/howto/general/Annotations Best Practices]]
+- [[doc-notes/python/howto/general/Annotations Best Practices|python/howto/general/Annotations Best Practices]]
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
 - [[huggingface/hub/Repositories]]: Sec4-Sec10
 
@@ -405,7 +405,7 @@ Date: 2024.11.11-2024.11.18
         Write characteristic polynomial directly from the recurrence relation, and solve the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
 
 \[Doc\]
-- [[nvidia/CUDA C++ Programming Guide v12.6]]: CH2
+- [[doc-notes/nvidia/CUDA C++ Programming Guide v12.6|nvidia/CUDA C++ Programming Guide v12.6]]: CH2
     CH2-Programming Model:
         Kernel is executed by each CUDA thread
         Thread hierarchy: thread -> thread block -> thread block cluster -> grid
@@ -505,8 +505,8 @@ Date: 2024.11.18-2024.11.25
 - [[book-notes/面向计算机科学的组合数学|面向计算机科学的组合数学]]: CH5.1-CH5.2
 
 \[Doc\]
-- [[Models|huggingface/hub/Models]]: Sec0-Sec1
-- [[doc-notes/python/pep/PEP 8-Style Guide for Python Code]]
+- [[doc-notes/huggingface/hub/Models|huggingface/hub/Models]]: Sec0-Sec1
+- [[doc-notes/python/pep/PEP 8-Style Guide for Python Code|python/pep/PEP 8-Style Guide for Python Code]]
 
 ## December
 ### Week 1
@@ -561,7 +561,7 @@ Date: 2024.11.25-2024.12.2
         LaTeX 会自动在合适位置断行断页，也可以手动用命令控制
 
 \[Doc\]
-- [[doc-notes/python/pep/PEP 257-Docstring Conventions|python/pep/PEP 257–Docstring Conventions]]
+- [[doc-notes/python/pep/PEP 257-Docstring Conventions|python/pep/PEP 257-Docstring Conventions]]
 
 ### Week 2
 Date: 2024.12.2-2024.12.9
@@ -604,7 +604,7 @@ Date: 2024.12.2-2024.12.9
             The existence of prior makes Bayesian estimation more stable then the MLE estimation. This smoothing effect results in more robust estimates when the data is not enough. If we do not have enough prior knowledge, we can use uniform prior, to prevent our estimates from taking extreme values
 
 \[Doc\]
-- [[docker/get-started/Docker Concepts]]
+- [[doc-notes/docker/get-started/Docker Concepts|docker/get-started/Docker Concepts]]
     Running Containers:
     `-p HOST_PORT:CONTAINER_PORT` is used to publish the container's port `CONTAINER_PORT` and forward the traffic of `HOST_PORT` to the container's port.
     `-P` is used to publish all the ports specified in `EXPOSE`
@@ -835,7 +835,7 @@ Date: 2024.12.23-2024.12.30
     CH7-Polya 计数理论
 
 \[Doc\]
-- [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH1-CH2
+- [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/code-documentation/tutorials/Toy Tutorial]]: CH1-CH2
     CH1-Toy Language and AST
         unranked tensor parameter: the dimension is unknown, and will be specialized at call sites
     CH2-Emitting Basic MLIR
@@ -1302,8 +1302,8 @@ Date: 2025.2.24-2025.3.3
             In policy iteration, the policy evaluation and policy improvement process can interact in more different ways. The ultimate results is the same: convergence to the optimal value function and an optimal policy.
 
 \[Doc\]
-- [[doc-notes/go/getting-started/Tutorial|go/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
-- [[doc-notes/go/getting-started/A Tour of Go|go/A Tour of Go]]: All
+- [[doc-notes/go/getting-started/Tutorial|go/getting-started/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
+- [[doc-notes/go/getting-started/A Tour of Go|go/getting-started/A Tour of Go]]: All
     Basics
         In Go, a name is exported if it begins with a capital letter. When a package is imported, only its exported names can be used.
         A function can return any number of results. The return values can be named, and a naked return statement will return the named values.
@@ -1414,7 +1414,7 @@ Date: 2025.3.3-2025.3.10
         价值网络的训练涉及到了自举，因此也可以采用目标网络方法缓解自举造成的误差传播问题
 
 \[Doc\]
-- [[doc-notes/go/getting-started/How to Write Go Code|go/How to Write Go Code]]: All
+- [[doc-notes/go/getting-started/How to Write Go Code|go/getting-started/How to Write Go Code]]: All
     Code Organization 
         Go programs are organized into packages. A package is a collection of source files in the same directory that are compiled together. Functions, variables, constants are all visible to other source files within the same package.
         A repository contains one or more modules. A module is a collection of packages to be released together. Typically, a Go repository contains only one module, located in the root directory of the repo.
@@ -1735,11 +1735,98 @@ Date: 2025.3.24-2025.3.31
 
 \[Paper\]
 - [[paper-notes/distributed-system/ZooKeeper Wait-free coordination for Internet-scale systems-2010-ATC|2010-ATC-ZooKeeper Wait-free coordination for Internet-scale systems]]: All
-- [[paper-notes/rl/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All 
-- [[paper-notes/rl/Continuous Control with Deep Reinforcement Learning-2016-ICLR|2016-ICLR-Continuous Control with Deep Reinforcement Learning]]
+    0-Abstract
+        ZooKeeper aims to provide simple and high performance kernel for building complex coordination primitives at client.
+        ZooKeeper service has wait-free property. ZooKeeper service provides a per client guarantee of FIFO execution of requests and provides linearizability for all requests that change ZooKeeper states.
+        ZooKeeper service handle read requests in local servers.
+    1-Introduction
+        Large-scale distributed applications require different forms of coordination, like configuration, group membership, leader election, and locks.
+        Services that implement stronger coordination primitives can be used to implemented weaker ones. For example, locking service with strong synchronization guarantees can be used to implement leader election, group membership, etc.
+        ZooKeeper implements an coordination kernel, and provides API for distributed applications to implement their own coordination primitives.
+        ZooKeeper implements an API that manipulates simple wait-free data objects: znodes. znodes are organized hierarchically as in file systems. Therefore, ZooKeeper API signatures is similar to file system API
+        The wait-free property is important for performance and fault-tolerance, but is not sufficient for coordination. Thus, ZooKeeper also provides order guarantees for operations. Specifically, ZooKeeper guarantees FIFO client ordering of all operations and linearizability for write operations.
+        ZooKeeper service is comprised of an ensemble of servers using replication, and is implemented using a pipelined architecture. The pipelined architecture allows requests to be asynchronously committed and naturally enables the FIFO execution of the requests from a client.
+        The FIFO guarantee is provided by the pipelined architecture, and the linearizability guarantee is provided by a leader-based atomic broadcast protocol, called Zab.
+        However, the typical workload of ZooKeeper is read. Thus, to improve read throughput, ZooKeeper servers process read locally, and will not be totally ordered by Zab.
+        ZooKeeper clients can cache the identifier of the current leader. By watch mechanism, clients can be notified when the watching znode is updated.
+    2-The ZooKeeper Service
+        ZooKeeper client established a session when connecting to a ZooKeeper server, and uses the session handle to send requests.
+        2.1-Service overview
+            ZooKeeper provides an abstraction of hierarchically organized znodes for the clients. All znodes store data, and all znodes, except for ephemeral znodes, have children.
+            A client can create two types of znodes: regular and ephemeral. Regular znodes should be explicitly deleted, and Ephemeral znodes will be automatically deleted when the session ends.
+            When creating a new znode, the client can set a sequential flag, to append a monotonically increasing counter to its name.
+            When send reading request, the client can set a watch flag, to make the server promise to notify the client when the information returned is changed in the future.
+            Watches are one-time trigger in a session, and they will be unregistered once triggered or the session closes. Watches indicate the a change has happened, and does not provide the change.
+            The data model of ZooKeeper is essentially a file system with simplified API and only full data write and reads, or a key/value table with hierarchical keys. The hierarchical namespace is useful for allocating subtrees of the namespace for different applications.
+            Znodes are for metadata storage, and are essentially map to abstractions of the client applications, typically corresponding to metadata used for coordination purpose.
+            ZooKeeper allows clients to used znode store some general meta data or configuration data. For example, the leader can store its information in a specific znode for other servers to read.
+            Znodes are associated with timestamps and version numbers, which can be used to track changes to znodes and for conditional updates.
+            Sessions enable a client to move transparently from one server to another, and hence persists across ZooKeeper servers.
+        2.2-Client API
+            All methods both have synchronous version and asynchronous version. Asynchronously committed requests are guaranteed to be executed in the commit order.
+            Client does not use handle to access znodes. Each requests include the full path of the znode.
+            All update methods receive an expected version number, which is used for conditional updates. If the actual version number does not match the desired one, update will fail.
+        2.3-ZooKeeper guarantees
+            ZooKeeper provides two basic guarantees: Linearizable writes and FIFO client order.
+            Linearizable writes indicate that all update requests will be serialized and respect precedence..
+        2.4-Examples of primitives
+    3-ZooKeeper Applications
+    4-ZooKeeper Implementation
+        4.1-Request Processor
+            When the leader receives a write request, it calculates what the state of system will be after applying this write operation. Then, the leader generate a transaction that captures the state. The transactions are idempotent.
+        4.2-Atomic Broadcast
+            Zab is just an implementation of multi-Paxos.
+        4.3-Replicated Database
+            ZooKeeper snapshots are called fuzzy snapshots, because the state will not be locked when snapshotting. Therefore, the snapshot result may not correspond to the state of ZooKeeper at any point in time. Because the transactions are idempotent, therefore it does not matter to take fuzzy snapshots.
+        4.4-Client-Server Interactions
+            When a server processes a write request, it will also send notifications to the watchers. Note that server handle notifications locally, only the server that a client is connected to will trigger the notification. Therefore, a write operation is committed does not mean that all watchers will receive notification immediately.
+            Each read request is processed and tagged with a zxid, which corresponds to the last transaction processed by the server.
+            `sync` primitive is used to synchronize the server with the leader, to ensure the server has the latest data.
+            Consistency in server switch is handled by also zxid.
+    5-Evaluation
+        The atomic broadcast protocol limits the performance of ZooKeeper more than any other components.
+    6-Related work
+        Unlike Chubby, ZooKeeper allows clients connect to every ZooKeeper server instead of only the leader. ZooKeeper provides a more relaxed consistency model that allows server to handle read request locally.
+    7-Conclusions
+        ZooKeeper exposes wait-free data objects to clients to provide an approach to handle coordination problem.
+        Although the consistency guarantees for read and watches is weak, but the combination of the linearizable writes and FIFO client requests are sufficient to implement sophisticated coordination protocols.
+- [[paper-notes/rl/Continuous Control with Deep Reinforcement Learning-2016-ICLR|2016-ICLR-Continuous Control with Deep Reinforcement Learning]]: All
+    Abstract
+        This paper adapt the idea of Deep Q-Learning to the continuous action domain, and leads to a model-free, actor-critic algorithm based on deterministic policy gradient.
+    Introduction
+        DQN solves problem with high-dimensional observation space, but can only handle discrete or low-dimensional action spaces.
+        However, many physical control has continuous and high-dimensional action space. DQN can not be directly applied to continuous problem because the optimal action selection process will need iterative optimization.
+        This paper combine deterministic policy gradient with deep neural network. By the insights of DQN, we also use replay buffer to minimize the correlations between samples and use target networks to stabilize training.
+    Background
+    Algorithm
+        DDPG create target network both for the policy network and value network. They are used to compute the target value for the TD update of the value network.
+        The weights of target networks are soft updated.
+        Target networks constrain the target value to change slowly, greatly improving the stability of learning.
+        To unify different physical units in the observation dimensions and thus improve the generalizability of the algorithm. Batch norm is applied.
+        To improve exploration, the behaviour policy is constructed by adding noise to the actor policy.
+    Results
+        The trained value network still tend to overestimate actual values.
+    Related Work
+    Conclusion
+        The convergence steps of DDPG is significantly lower than those of DQN, about a factor of 20.
 
 \[Doc\]
 - [[doc-notes/python/packaging/discussions/install_requires vs requirements files|python/packaging/discussions/install_requires vs requirements files]]: All
+- [[doc-notes/python/packages/gymnasium/environments/Box2D|python/packages/gymnasium/environments/Box2D]]: All
+- [[doc-notes/go/package-documentation/plugin|go/package-documentation/plugin]]: All
+- [[doc-notes/go/references/go.mod file reference|go/references/go.mod file reference]]
+- [[doc-notes/go/command-documentation/go|go/command-documentation/go]]
+- [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]
+    Introduction
+    Formatting
+        Use tab for indentation. No parentheses for control structures.
+    Commentary
+    Names
+        Packages name should be single-word, lowercase, and should be the base name of its source code directory.
+    Semicolons
+
+\[Blog\]
+- [[casual-notes/setup.py vs requirements.txt|setup.py vs requirements.txt]]
 
 ## April
 ### Week 1
@@ -1747,3 +1834,4 @@ Date:
 
 \[Paper\]
 - [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
+- [[paper-notes/rl/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All 
