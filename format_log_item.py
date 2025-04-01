@@ -31,6 +31,54 @@ def ask_confirmation():
         return False
 
 
+def judge_formatted(path_part, display_part, sec_type):
+    if sec_type == 'Doc':
+        return path_part[path_part.find('/')+1:] == display_part
+    elif sec_type == 'Paper':
+        return format_item(path_part, sec_type) == display_part
+
+
+def format_item(path_part, sec_type):
+    if sec_type == 'Doc':
+        return path_part[path_part.find('/')+1:]
+    elif sec_type == 'Paper':
+        paper_note_title = path_part.split('/')[-1]
+        items = paper_note_title.split('-')
+
+        if items[-1].isdigit():
+            year = items[-1]
+            display_part = f"{year}-{paper_note_title[:paper_note_title.find(year)]}"
+        else:
+            year = items[-2]
+            publisher = items[-1]
+            display_part = f"{year}-{publisher}-{paper_note_title[:paper_note_title.find(year)]}"
+
+        return display_part.rstrip('-')
+
+    else:
+        raise ValueError(
+            f'Unknown section type: {sec_type}. Expected "Doc" or "Paper".')
+
+
+def format_line(line, no_confirm, sec_type):
+    formatted_line = line
+
+    part1, part2 = line.split('|')
+    prefix, path_part = part1.split('[[')
+    display_part, suffix = part2.split(']]')
+
+    if judge_formatted(path_part, display_part, sec_type):
+        print(f'Log item is already formatted')
+    else:
+        print(f'Log item is not formatted')
+        if no_confirm or ask_confirmation():
+            display_part = format_item(path_part, sec_type)
+            formatted_line = f'{prefix}[[{path_part}|{display_part}]]{suffix}'
+        print(f'The Formatted item is:\n{formatted_line.strip()}')
+
+    return formatted_line
+
+
 def format_log_item(contents, no_confirm):
     doc_sec_re = re.compile(r'\\\[Doc\\\]\s')
     paper_sec_re = re.compile(r'\\\[Paper\\\]\s')
@@ -49,26 +97,22 @@ def format_log_item(contents, no_confirm):
                 line = contents[line_idx]
                 print(line.strip())
 
-                part1, part2 = line.split('|')
-                prefix, path_part = part1.split('[[')
-                display_part, suffix = part2.split(']]')
-
-                if path_part[path_part.find('/')+1:] == display_part:
-                    print(
-                        f'Log item is already formatted')
-                else:
-                    print(f'Log item is not formatted')
-                    if no_confirm or ask_confirmation():
-                        display_part = path_part[path_part.find('/')+1:]
-                        formatted_line = f'{prefix}[[{path_part}|{display_part}]]{suffix}'
-                        contents[line_idx] = formatted_line
-                    print(
-                        f'The Formatted item is:\n{formatted_line.strip()}')
+                contents[line_idx] = format_line(line, no_confirm, 'Doc')
 
                 line_idx += 1
 
         elif paper_sec_re.match(line):
-            pass
+            print(f'In Paper section, line {line_idx+1}')
+            line_idx += 1
+
+            while line_idx < len(contents) and item_re.match(contents[line_idx]):
+                print(f'In line {line_idx+1}')
+                print(contents[line_idx].strip())
+
+                contents[line_idx] = format_line(
+                    contents[line_idx], no_confirm, 'Paper')
+
+                line_idx += 1
         else:
             pass
 
