@@ -73,7 +73,6 @@ Users attach to the tmux server by starting a client. This takes over the termin
 >  每个 client 通过它启动时所在的外部终端名称来标识，例如 `/dev/ttypf`
 
 #### Sessions, windows and panes
-
 ![](https://github.com/tmux/tmux/wiki/images/tmux_with_panes.png)Every terminal inside tmux belongs to one pane, this is a rectangular area which shows the content of the terminal inside tmux. Because each terminal inside tmux is shown in only one pane, the term pane can be used to mean all of the pane, the terminal and the program running inside it. The screenshot to the right shows tmux with panes.
 >  tmux 内的每个终端都属于一个面板，面板是一个矩形区域，用于显示 tmux 内部终端的内容
 >  因为 tmux 中的每个终端仅显示在一个面板中，故术语 'pane/面板' 可以也用于指代该面板显示的终端以及终端内运行的程序
@@ -206,30 +205,46 @@ When a tmux client is attached, it shows a status line on the bottom line of the
 - In the middle, a list of the windows in the session, with their index, for example with one window called `ksh` at index 0: `0:ksh`.
 - On the right, the pane title in quotes (this defaults to the name of the host running tmux) and the time and the date.
 
+>  session 被一个 tmux client 连接后，会在屏幕底部展示状态栏
+>  状态栏左边是 session 名称 `[0]`
+>  中间是 session 中的 windows 列表，包含了 windows 的索引和其名称
+>  右边是 pane 标题，默认是运行 tmux 的 host 的名字，以及时间和日期
+
 ![](https://github.com/tmux/tmux/wiki/images/tmux_status_line_diagram.png)
 
 As new windows are opened, the window list grows - if there are too many windows to fit on the width of the terminal, a `<` or `>` will be added at the left or right or both to show there are hidden windows.
 
 In the window list, the current window is marked with a `*` after the name, and the last window with a `-`.
-
+>  window 列表中，当前 window 以 `*` 标记，上一个 window 以 `-` 标记
+ 
 #### The prefix key
 Once a tmux client is attached, any keys entered are forwarded to the program running in the active pane of the current window. For keys that control tmux itself, a special key must be pressed first - this is called the prefix key.
+>  tmux client 连接到一个 session 后，任意键入的按键都会被发送给其当前 window 的 active pane 中的当前运行的程序
+>  如果要控制 tmux 本身，需要键入一个前缀按键
 
 The default prefix key is `C-b`, which means the `Ctrl` key and `b`. In tmux, modifier keys are shown by prefixing a key with `C-` for the control key, `M-` for the meta key (normally `Alt` on modern computers) and `S-` for the shift key. These may be combined together, so `C-M-x` means pressing the control key, meta key and `x` together.
+>  默认的前缀按键是 `C-b` ，即 `Ctrl`  + `b`
+>  tmux 中，修饰按键通过在键名前添加前缀表示，`C-` 表示控制键 `Ctrl` , `M-` 表示元键 `Alt` ，`S-` 表示 `Shift` ，这些符号可以组合使用，例如 `C-M-x` 
 
 When the prefix key is pressed, tmux waits for another key press and that determines what tmux command is executed. Keys like this are shown here with a space between them: `C-b c` means first the prefix key `C-b` is pressed, then it is released and then the `c` key is pressed. Care must be taken to release the `Ctrl` key after pressing `C-b` if necessary - `C-b c` is different from `C-b C-c`.
+>  按下前缀键后，tmux 等待另一个键的按下，它会决定 tmux 将执行什么命令
+>  `C-b c` 表示 `Ctrl+b` + `c` ，注意 `C-b C-c` 是另一组按键
 
 Pressing `C-b` twice sends the `C-b` key to the program running in the active pane.
+>  `C-b C-b` 会将 `C-b` 发送给 active pane 中当前运行的程序
 
 #### Help keys
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#help-keys)
-
 Every default tmux key binding has a short description to help remember what the key does. A list of all the keys can be seen by pressing `C-b ?`.
+>  每个默认的 tmux 快捷键都有简短的功能描述
+>  通过 `C-b ?` 查看
 
 ![](https://github.com/tmux/tmux/wiki/images/tmux_list_keys.png)
 
 `C-b ?` enters view mode to show text. A pane in view mode has its own key bindings which do not need the prefix key. These broadly follow _emacs(1)_. The most important are `Up`, `Down`, `C-Up`, `C-Down` to scroll up and down, and `q` to exit the mode. The line number of the top visible line together with the total number of lines is shown in the top right.
+>  `C-b ?` 将进入 view mode 以显示文本
+>  位于 view mode 的 pane 有自己的快捷键，不需要使用前缀键，这些快捷键大致遵循 emacs
+>  最重要的是 `Up, Down, C-Up, C-Down` 来上下划动，以及 `q` 来退出
+>  右上角会显示当前可见区域顶部的行号和总行数
 
 Alternatively, the same list can be seen from the shell by running:
 
@@ -237,21 +252,25 @@ Alternatively, the same list can be seen from the shell by running:
 $ tmux lsk -N|more
 ```
 
+>  `tmux lsk -N` 也会输出 tmux 的快捷键列表
+
 `C-b /` shows the description of a single key - a prompt at the bottom of the terminal appears. Pressing a key will show its description in the same place. For example, pressing `C-b /` then `?` shows:
 
 ```
 C-b ? List key bindings
 ```
 
+>  `C-b /` 用于显示单个键的描述，例如 `C-b /` + `?` 会显示 `C-b ?` 的描述
+
 #### Commands and flags
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#commands-and-flags)
-
 tmux has a large set of commands. These all have a name like `new-window` or `new-session` or `list-keys` and many also have a shorter alias like `neww` or `new` or `lsk`.
+>  tmux 有许多命令，其名称都形如 `new-window, new-session, list-keys` ，它们也有短的别名，例如 `neww, new, lsk`
 
 Any time a key binding is used, it runs one or more tmux commands. For example, `C-b c` runs the `new-window` command.
+>  任意的 tmux 快捷键本质都是运行一个或者多个 tmux 命令，例如 `C-b c` 会运行 `new-window` 命令
 
 Commands can also be used from the shell, as with `new-session` and `list-keys` above.
+>  也可以直接在 shell 中运行 tmux 命令，例如 `tmux new-session, tmux list-keys`
 
 Each command has zero or more flags, in the same way as standard Unix commands. Flags may or may not take a single argument themselves. In addition, commands may take additional arguments after the flags. Flags are passed after the command, for example to run the `new-session` command (alias `new`) with flags `-d` and `-n`:
 
@@ -259,35 +278,47 @@ Each command has zero or more flags, in the same way as standard Unix commands. 
 $ tmux new-session -d -nmysession
 ```
 
+>  每个 tmux 命令可以有零个或多个 flags，与标准的 Unix 命令形式相同
+>  flags 本身可以接收零个或单个参数
+>  另外，tmux 命令可以在 flags 之后接收额外的参数
+>  flags 在命令之后传递，示例乳山市给
+
 All commands and their flags are documented in the tmux manual page.
+>  tmux 手册中描述了所有的 tmux 命令和其 flags
 
 This document focuses on the available key bindings, but commands are mentioned for information or where there is a useful flag. They can be entered from the shell or from the command prompt, described in the next section.
+>  本文档关注于可用的快捷键，但也会提到一些命令和有用的 flags
 
 #### The command prompt
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#the-command-prompt)
 
 ![](https://github.com/tmux/tmux/wiki/images/tmux_command_prompt.png)
 
 tmux has an interactive command prompt. This can be opened by pressing `C-b :` and appears instead of the status line, as shown in this screenshot.
+>  tmux 本身提供了一个交互式命令提示符，通过快捷键 `C-b :` 打开
 
 At the prompt, commands can be entered similarly to how they are at the shell. Output will either be shown for a short period in the status line, or switch the active pane into view mode.
+>  在该 prompt 中，可以和在 shell 中一样键入 tmux 命令 (此时不需要 `tmux` 前缀)，输出可能会在 status line 之间显示，或者将 active pane 切换到 view mode 显示
 
 By default, the command prompt uses keys similar to _emacs(1)_; however, if the `VISUAL` or `EDITOR` environment variables are set to something containing `vi` (such as `vi` or `vim` or `nvi`), then _vi(1)_-style keys are used instead.
+>  command prompt 默认使用和 emacs 类似的键
+>  如果 `VISUAL` 或 `EDITOR` 环境变量被设置为包含了 `vi` ，则使用 `vi` 风格的键
 
 Multiple commands may be entered together at the command prompt by separating them with a semicolon (`;`). This is called a command sequence.
+>  command prompt 可以接收多个命令输入，通过 `;` 分开
 
 #### Attaching and detaching
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#attaching-and-detaching)
-
 Detaching from tmux means that the client exits and detaches from the outside terminal, returning to the shell and leaving the tmux session and any programs inside it running in the background. To detach tmux, the `C-b d` key binding is used. When tmux detaches, it will print a message with the session name:
+>  从 tmux 分离意味着 client 进程断开和 session 的连接，并且 outside terminal 的 client 进程会退出
+>  outside terminal 会回到 shell 程序，而 tmux session 和其中运行的任意程序会保留在后台运行
+>  `C-b d` 用于分离 tmux，分离后，tmux 会打印带有 session 名称的消息
 
 ```
 [detached (from session mysession)]
 ```
 
 The `attach-session` command attaches to an existing session. Without arguments, it will attach to the most recently used session that is not already attached:
+>  `attach-session` 命令用于连接到一个现存的 session
+>  没有参数时，它会连接到最近连接过的 session
 
 ```
 $ tmux attach
@@ -299,11 +330,16 @@ Or `-t` gives the name of a session to attach to:
 $ tmux attach -tmysession
 ```
 
+>  `-t` 指定要连接的目标 session
+
 By default, attaching to a session does not detach any other clients attached to the same session. The `-d` flag does this:
 
 ```
 $ tmux attach -dtmysession
 ```
+
+>  默认情况下，连接到某个 session 不会断开该 session 和其他 client 的连接
+>  如果指定了 `-d` ，则会断开其他 client 的连接
 
 The `new-session` command has a `-A` flag to attach to an existing session if it exists, or create a new one if it does not. For a session named `mysession`:
 
@@ -311,12 +347,12 @@ The `new-session` command has a `-A` flag to attach to an existing session i
 $ tmux new -Asmysession
 ```
 
+>  `new-session` 的 `-A` 会在 `-s` 指定的 session 存在时直接附加到现存 session，不存在则创建一个
+
 The `-D` flag may be added to make `new-session` also behave like `attach-session` with `-d` and detach any other clients attached to the session.
+>  `-D` 类似，会让 session 和其他 client 断开连接
 
 #### Listing sessions
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#listing-sessions)
-
 The `list-session` command (alias `ls`) shows a list of available sessions that can be attached. This shows four sessions called `1`, `2`, `myothersession` and `mysession`:
 
 ```
@@ -328,9 +364,6 @@ mysession: 1 windows (created Sat Feb 22 11:44:51 2020)
 ```
 
 #### Killing tmux entirely
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#killing-tmux-entirely)
-
 If there are no sessions, windows or panes inside tmux, the server will exit. It can also be entirely killed using the `kill-server` command. For example, at the command prompt:
 
 ```
@@ -338,8 +371,6 @@ If there are no sessions, windows or panes inside tmux, the server will exit. It
 ```
 
 #### Creating new windows
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#creating-new-windows)
 
 ![](https://github.com/tmux/tmux/wiki/images/tmux_new_windows.png)
 
