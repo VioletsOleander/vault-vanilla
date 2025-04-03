@@ -212,7 +212,7 @@ $W$的SVD写为：$W = U'\Sigma'V'^T = \sigma_1'u_1'v_1'^T + \cdots + \sigma_r'u
 这里$r'$是指$W$的秩，$r'>r$
 
 SVD告诉我们，一个秩为$r$的矩阵可以视为$r$个单秩矩阵的和，可以称它们为矩阵的单秩成分，一个单秩成分$u_iv_i^T$实际就是一个行正交基和列正交基的乘积，它包含了这两个正交基内的方向信息(完整的单秩成分要乘上奇异值$\sigma_i$，$\sigma_i$包含了大小信息)
-注意两个相乘的行正交基和列正交基之间可以相互转化，它们对应同一个奇异值，分析详见[[SVD and PCA#2 SVD(Singular Value Decomposition)]]
+注意两个相乘的行正交基和列正交基之间可以相互转化，它们对应同一个奇异值，分析详见[[casual-notes/math/SVD and PCA#2 SVD(Singular Value Decomposition)]]
 
 考虑$U^T W V$：
 $$\begin{align}
