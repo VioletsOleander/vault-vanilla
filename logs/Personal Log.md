@@ -1834,4 +1834,8 @@ Date: 2025.3.31-2025.4.7
 
 \[Paper\]
 - [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
-- [[paper-notes/rl/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All 
+- [[paper-notes/rl/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All (except Appendix)
+- [[paper-notes/rl/Approximately Optimal Approximate Reinforcement Learning-2002-ICML|Approximately Optimal Approximate Reinforcement Learning-2002-ICML]]: All (except Appendix)
+
+
+
