@@ -1,3 +1,6 @@
+---
+completed: true
+---
 `pyproject.toml` is a configuration file used by packaging tools, as well as other tools such as linters, type checkers, etc. There are three possible TOML tables in this file.
 
 - The `[build-system]` table is **strongly recommended**. It allows you to declare which [build backend](https://packaging.python.org/en/latest/glossary/#term-Build-Backend) you use and which other dependencies are needed to build your project.

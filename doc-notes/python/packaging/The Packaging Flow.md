@@ -1,3 +1,6 @@
+---
+completed: true
+---
 The document aims to outline the flow involved in publishing/distributing a [distribution package](https://packaging.python.org/en/latest/glossary/#term-Distribution-Package), usually to the [Python Package Index (PyPI)](https://pypi.org/). It is written for package publishers, who are assumed to be the package author.
 
 While the [tutorial](https://packaging.python.org/en/latest/tutorials/packaging-projects/) walks through the process of preparing a simple package for release, it does not fully enumerate what steps and files are required, and for what purpose.

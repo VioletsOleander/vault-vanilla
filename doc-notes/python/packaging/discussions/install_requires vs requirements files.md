@@ -1,3 +1,6 @@
+---
+completed: true
+---
 # install_requires
 `install_requires` is a [Setuptools](https://packaging.python.org/en/latest/key_projects/#setuptools) `setup.py` keyword that should be used to specify what a project **minimally** needs to run correctly. When the project is installed by [pip](https://packaging.python.org/en/latest/key_projects/#pip), this is the specification that is used to install its dependencies.
 

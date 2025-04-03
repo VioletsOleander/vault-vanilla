@@ -1,3 +1,6 @@
+---
+completed: true
+---
 >  Last updated on Feb 26, 2025
 
 This section covers the basics of how to install Python [packages](https://packaging.python.org/en/latest/glossary/#term-Distribution-Package).
