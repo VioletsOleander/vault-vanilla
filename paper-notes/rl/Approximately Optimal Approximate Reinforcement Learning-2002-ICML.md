@@ -28,7 +28,7 @@ Drawing upon the strengths of the standard approaches, we propose the conservati
 >  借鉴标准方法的优点，我们提出保守策略迭代算法，其关键要素包括
 >  1. 策略在状态空间以更均匀的方式改进
 >  2. 执行的策略更新更保守，新策略是当前策略和贪心策略的混合分布
->  粗略地说，1 的重要性引入了 exploration，2 的重要性在于避免贪心动态规划方法的缺陷，因为直接使用近似贪心策略可能导致策略显著退化
+>  粗略地说，1 的重要性在于引入了 exploration，2 的重要性在于避免贪心动态规划方法的缺陷，因为直接使用近似贪心策略可能导致策略显著退化
 
 Our contribution is in proving that such an algorithm converges in a “small" number of steps and returns an "approximately” optimal policy, where the quantified claims do not explicitly depend on the the size of the state space. We first review the problems with standard approaches, then state our algorithm. 
 >  我们的贡献在于证明了该算法可以以 "较少" 的步数收敛，并且返回 "近似" 最优的策略，而关于 "较少" 和 “近似” 的量化并不依赖于状态空间的大小
@@ -49,13 +49,13 @@ A $\mu$ restart distribution draws the next state from the distribution $\mu$
 This restart distribution is a slightly weaker version of the generative model in [5]. As in [5], our assumption is considerably weaker than having knowledge of the full transition model. However, it is a much stronger assumption than having only “irreversible” experience, in which the agent must follow a single trajectory, with no ability to reset to obtain another trajectory from a state. If $\mu$ is chosen to be a relatively uniform distribution (not necessarily $D$ ),then this $\mu$ restart distribution can obviate the need for explicit exploration. 
 >  restart distribution 是 [5] 中生成模型的一个稍弱的版本，与[5]一样，我们的假设比完全了解整个转移模型要弱得多
 >  然而，该假设比仅具有 "不可逆" 经验的假设要强得多，在该情况下，智能体只能遵循单个轨迹，无法通过重置从某个状态获得另一条轨迹
->  如果 $\mu$ 选择为相对均匀的分布 (不一定是 $D$)，则 $\mu$ restart distribution 可以消除显示 exploration 的需求
+>  如果 $\mu$ 选择为相对均匀的分布 (不一定是 $D$)，则 $\mu$ restart distribution 可以消除显式 exploration 的需求
 
 The agent's decision making procedure is characterized by a stochastic policy $\pi(a;s)$ , which is the probability of taking action $a$ in state $s$ (where the semi-colon is used to distinguish the parameters from the random variables of the distribution). 
 >  智能体的策略是随机策略 $\pi(a; s)$
 
 We only consider the case where the goal of the agent is to maximize the $\gamma\cdot$ discounted average reward from the starting state distribution $D$ , though this has a similar solution to maximizing the average reward for processes that “mix” on a reasonable timescale [4]. 
->  我们只考虑 agent 的目标是最大化从初始分布 $D$ 开始，最大化 $\gamma$ -discounted 平均奖励的情况
+>  我们只考虑 agent 的目标是从初始分布 $D$ 开始，最大化 $\gamma$ -discounted 平均奖励的情况
 
 Given $0\leq\gamma<1$ , we define the value function for a given policy $\pi$ as 
 
@@ -162,7 +162,7 @@ $$
 $$ 
 Note that $\eta_{D}(\pi)~=~E_{(a,s)\sim\pi d_{\pi,D}}\left[\mathcal{R}(s,a)\right]$ .A well known result is that a policy exists which simultaneously maximizes $V_{\pi}(s)$ for all states. 
 
->  agent 的目标是最大化从初始状态分布 $D$ 的期望 discounted reward
+>  agent 的目标是最大化相对于初始状态分布 $D$ 的期望 discounted reward
 >  利用 $V_\pi(s)$ 对状态的 future-state distribution 求期望的形式，$\eta_D(\pi)$ 可以写为 $E_{(a, s)\sim \pi d_{\pi, D}}[\mathcal R(s, a)]$
 >  存在一种策略可以同时使所有状态的价值 $V_\pi(s)$ 达到最大值 (最优策略的定义)
 
@@ -181,6 +181,10 @@ We now examine in more detail the problems with approximate value function metho
 We now argue that both greedy dynamic programming and policy gradient methods give unsatisfactory answers to these questions. Note that we did not ask is "What is the quality of the asymptotic policy?". We are only interested in policies that we can find in a reasonable amount of time. 
 >  我们认为，贪心动态规划和策略梯度方法对于这些问题的答案都不尽如人意
 >  注意，我们没有关心渐进策略的性能如何，我们只关心能在合理的时间内找到的策略
+
+>  贪心动态规划指的就是经典的策略迭代方法
+>  如果每一步都可以获取精确的价值函数 $V_\pi$，则该方法不会存在问题，但这的代价太高，故常用的是近似的价值函数估计，而这就会导致问题
+>  本文对该方法在 section 3.1 进行了讨论
 
 Understanding the problems with these current methods gives insight into our new algorithm, which addresses these three questions. 
 >  理解这些当前方法的问题有助于深度了解我们提出的新算法，该算法旨在解决上述提出的三个问题
@@ -217,9 +221,13 @@ $$
 >  可以看到，$\pi'$ 的状态价值将确保不小于 $\pi$ 的状态价值减去 $\frac {2\gamma}{1-\gamma} \epsilon$，其中 $\epsilon$ 是 $\tilde V(s)$ 的最大绝对估计偏移量
 >  显然， $\epsilon$ 越大，$\pi'$ 更优的概率通常更低
 
-In other words, the performance is guaranteed to not decrease by more than $\frac{2\gamma\varepsilon}{1-\gamma}$ . Question 2 is not applicable since these methods don't guarantee improvement and a performance measure to check isn't well defined. 
+In other words, the performance is guaranteed to not decrease by more than $\frac{2\gamma\varepsilon}{1-\gamma}$ . 
 >  换句话说，性能的下降幅度不会超过 $\frac {2\gamma\epsilon}{1-\gamma}$
->  近似价值方法无法保证性能提升
+>  近似价值方法无法保证性能提升，故无法回答 Q1
+
+>  作者认为，根据 Eq3.1，近似价值方法无法保证在每一步迭代单调提高策略，而是有可能导致策略变差 (如果 $\epsilon$ 比较大的话)，故这就是它的问题所在
+
+Question 2 is not applicable since these methods don't guarantee improvement and a performance measure to check isn't well defined. 
 
 For approximate methods, the time required to obtain some performance level is not well understood. Some convergence and asymptotic results exist (see [3]). 
 >  对于近似方法，达到特性性能级别所需的时间也暂未有理论结果，存在部分收敛性和渐进结果
@@ -227,6 +235,8 @@ For approximate methods, the time required to obtain some performance level is n
 ## 3.2 Policy Gradients Methods 
 Direct policy gradient methods attempt to find a good policy among some restricted class of policies, by following the gradient of the future reward.
 >  直接策略梯度方法尝试在一些受限的策略类 (由参数化的形式限制) 中找到一个良好的策略，通过计算未来奖励的梯度进行梯度上升优化
+
+>  相较于策略迭代方法，直接的策略梯度方法直接对策略进行优化，这是其优势，但其劣势在于策略的具体形式由参数化的形式限制，故可探索的策略空间是有限的
 
 Given some parameterized class $\{\pi_{\theta}|\theta\in\mathcal{R}^{m}\}$ ,these methods compute the gradient 
 
@@ -312,7 +322,7 @@ Any sensible estimate of the gradient without reaching the goal state would be z
 >  任何在未达到目标状态之前对梯度的合理估计都应为零，而利用 on-policy 样本获得非零估计需要指数级的时间  (不妨理解为初始时 $Q_\pi(s, a)$ 都初始化为 0，如果没有达到能够获取奖励的目标状态，$Q_\pi(s, a)$ 将永远保持初始零值，进而策略梯度也保持零值)
 
 Importance sampling methods do exist (see [6]), but are not feasible solutions for this class of problems. The reason is that if the agent could follow some "off-policy” trajectory to reach the goal state in a reasonable amount of time, the importance weights would have to be exponentially large. 
->  重要性采样方法对于这类问题不是可行的解决方案 (使用重要性采样的思路应该在于: on policy 下初始的随机策略即使行为策略也是目标策略，而使用随机策略难以探索到目标状态，故可以考虑使用某些更好的行为策略)
+>  重要性采样方法对于这类问题不是可行的解决方案 (使用重要性采样的思路应该在于: on policy 下初始的随机策略即是行为策略也是目标策略，而使用随机策略难以探索到目标状态，故可以考虑使用某些更好的行为策略)
 >  不可行的原因在于: 如果智能体能够遵循某种 off-policy 轨迹在合理的时间内达到目标状态，则重要性权重将会指数级增长
 
 Note that a zero estimate is a rather accurate estimate of the gradient in terms of magnitude, but this provides no information about direction, which is the crucial quantity of interest. The analysis in [2] suggests a relatively small sample size is needed to accurately estimate the magnitude (within some $\varepsilon$ tolerance), though this does not imply an accurate direction if the gradient is small. Unfortunately, the magnitude of the gradient can be very small when the policy is far from optimal. 
@@ -410,9 +420,12 @@ In subsection 4.1, we show that $\eta_{\mu}$ can improve under the much less str
 >  sec4.1 中，我们证明在更弱的条件下，即 $\pi'$ 经常，但并非总是选择贪心动作时，$\eta_\mu$ 可以提升
 >  sec4.2 中，我们假设可以访问一个贪心策略选择器，它输出 “近似” 贪心策略 $\pi'$，然后根据该贪心策略选择器的质量来为我们的算法找到的策略表现定界
 
+>  作者为了增强探索性，引入了 $\mu$ 替代 $D$，并且引入了保守更新
+>  作者将说明，这样的更新可以提升策略性能
+
 ## 4.1 Policy Improvement 
 A more reasonable situation is one in which we are able to improve the policy with some $\alpha>0$ using a $\pi^{\prime}$ that chooses better actions at most but not all states. 
->  在 Eq4.1 的保守更新下，当 $\pi'$ 会在大多数情况下但不是所有的情况下选择的是更好的动作时，选择某个 $\alpha > 0$ 可以大概率改进策略
+>  在 Eq4.1 的保守更新下，当 $\pi'$ 会在大多数情况下但不是所有的情况下选择的是更好的动作时，选择某个 $\alpha > 0$ 可以改进策略
 
 Let us define the policy advantage $\mathbb{A}_{\pi,\mu}\left(\pi^{\prime}\right)$ of some policy $\pi^{\prime}$ with respect to a policy $\pi$ and a distribution $\mu$ to be 
 
@@ -525,6 +538,8 @@ $$
 >  若策略优势 $\mathbb A \ge 0$，则令更新系数 $\alpha = \frac {(1-\gamma)\mathbb A}{4R}$ 可以保证如上的策略提升幅度
 >  可以看出，策略优势 $\mathbb A$ 越大，策略的提升幅度越大
 
+>  根据作者在本节中的推导，他得出的结论是：当策略优势 $\mathbb A_{\pi,\mu}(\pi')\ge 0$，保守策略更新在 $\alpha = \frac {(1-\gamma)\mathbb A}{4R}$ 时保证可以提升策略的 $\eta_\mu$
+
 Proof. Using the previous theorem, it is straightforward to show the change is bounded by $\textstyle{\frac{\alpha}{1-\gamma}}{\bigl(}\mathbb{A}{-}\alpha{\frac{2R}{1-\gamma}}{\bigr)}$ The corollary follows by choosing the $\alpha$ that maximizes this bound. 
 
 >  推导
@@ -632,13 +647,13 @@ The full algorithm is specified in the next section.
 The following theorem shows that in polynomial time, the full algorithm finds a policy $\pi$ that is close to the “break point" of the greedy policy chooser. 
 >  下面的定理表明，保守策略迭代的完整算法可以在多项式时间内找到一个策略 $\pi$，策略 $\pi$ 将接近贪心策略选择器的 “临界点”
 
-**Theorem 4.4.** With probability at least $1-\delta$ ,conservative policy iteration: i) improves $\eta_{\mu}$ with every policy update, ii) ceases in at most 72 calls to $G_{\varepsilon}(\pi,\mu)$ ， and iii) returns a policy $\pi$ such that $\text{OPT}(\mathbb{A}_{\pi,\mu})<2\varepsilon$ 
+**Theorem 4.4.** With probability at least $1-\delta$ ,conservative policy iteration: i) improves $\eta_{\mu}$ with every policy update, ii) ceases in at most $72\frac {R^2}{\epsilon^2}$ calls to $G_{\varepsilon}(\pi,\mu)$ ， and iii) returns a policy $\pi$ such that $\text{OPT}(\mathbb{A}_{\pi,\mu})<2\varepsilon$ 
 
 >  Theorem 4.4
 >  贪心策略迭代以至少 $1-\delta$ 的概率 
 >  i) 在每一步策略更新提升 $\eta_\mu$ 
->  ii) 在最多调用 $G_\epsilon(\pi,\mu)$ 72 次后停止
->  iii) 返回一个策略 $\pi$，使得 $\text{OPT}(\mathbb A_{\pi,\mu}) < 2\epsilon$
+>  ii) 在最多调用 $G_\epsilon(\pi,\mu)$ $72\frac {R^2}{\epsilon^2}$ 次后停止
+>  iii) 返回一个策略 $\pi$，满足 $\text{OPT}(\mathbb A_{\pi,\mu}) < 2\epsilon$
 
 The proof is in the appendix. 
 
@@ -666,7 +681,7 @@ $$
 
 The factor of $\left\|\frac{d_{\pi^{*},D}}{d_{\pi,\mu}}\right\|_{\infty}$ represents a mismatch between the distribution of states of the current policy and that of the optimal policy and elucidates the problem of using the given start-state distribution $D$ instead of a more uniform distribution. Essentially, a more uniform $d_{\pi,\mu}$ ensures that the advantages are small at states that an optimal policy visits (determined by $d_{\pi^{*},D}$ ). 
 >  其中的因子 $\|\frac {d_{\pi^*, D}}{d_{\pi,\mu}}\|_\infty$ 表示了当前策略 $\pi$ 和最佳策略 $\pi^*$ 的状态分布之间的不匹配，并阐明了使用给定的起始分布 $D$ 而不是更均匀分布的问题
->  本质上，一个更加均匀的 $d_{\pi,\mu}$ 确保了在最优策略访问的状态 (由 $d_{\pi^*, D}$ 决定) 上的优势值较小 (如果初始分布选择 $D$，因子 $\|\frac {d_{\pi^*, D}}{d_{\pi,D}}\|_\infty$ 受到策略改变的影响较大，如果最优策略常访问的状态在初始策略下几乎不访问，则界就会很大，注意到这里的 $\infty$ 范数是取最大值，故 $d_{\pi,\mu}$ 更加均匀就能避免导致界过于大的情况)
+>  本质上，一个更加均匀的 $d_{\pi,\mu}$ 确保了在最优策略访问的状态 (由 $d_{\pi^*, D}$ 决定) 上的优势值较小 (如果初始分布选择 $D$，因子 $\|\frac {d_{\pi^*, D}}{d_{\pi,D}}\|_\infty$ 受到策略改变的影响较大，因为如果最优策略常访问的状态在初始策略下几乎不访问，则界就会很大，注意到这里的 $\infty$ 范数是取最大值，故 $d_{\pi,\mu}$ 更加均匀就能避免导致界过于大的情况)
 
 The second inequality follows since $d_{\pi,\mu}(s)\geq(1-\gamma)\mu(s)$ , and it shows that a uniform measure prevents this mismatch from becoming arbitrarily large. 
 >  第二个不等式源于 $d_{\pi,\mu}(s)\ge(1-\gamma)\mu(s)$ (根据 $d_{\pi,\mu}(s)$ 的定义推导即可)，它进一步说明了均匀的初始分布可以防止当前策略 $\pi$ 和最佳策略 $\pi^*$ 之间的状态分布之间的不匹配变得任意大
@@ -745,41 +760,86 @@ $$
 Proof. 
 >  这里直接参照 TRPO 笔记中的证明，原文的证明比较抽象
 
-This lemma elucidates a fundamental measure mismatch. The performance measure of interest, $\eta_{D}(\pi)$ changes in proportion the policy advantage $\mathbb{A}_{\pi,D}(\pi^{\prime})$ for small $\alpha$ (see equation 4.2), which is the average advantage under the state distribution $d_{\pi,D}$ : However, for an optimal policy $\pi^{*}$ , the difference between $\eta_{D}(\pi^{*})$ and $\eta_{D}(\pi)$ is proportional to the average advantage under the state distribution $d_{\pi^{*},D}$ . Thus, even if the optimal policy advantage is small with respect to $\pi$ and $D$ , the advantages may not be small under $d_{\pi^{*},D}$ . This motivates the use of the more uniform distribution $\mu$ 
+This lemma elucidates a fundamental measure mismatch. The performance measure of interest, $\eta_{D}(\pi)$ changes in proportion the policy advantage $\mathbb{A}_{\pi,D}(\pi^{\prime})$ for small $\alpha$ (see equation 4.2), which is the average advantage under the state distribution $d_{\pi,D}$ . 
 >  该引理阐明了一个基本的度量不匹配问题
->  我们感兴趣的度量 $\eta_D(\pi)$ 对于小的 $\alpha$ 值会按照策略优势 $\mathbb A_{\pi, D}(\pi')$ 成比例变化，注意策略优势 $\mathbb A_{\pi, D}(\pi')$ 是在状态分布 $d_{\pi, D}$ 下的期望优势
+>  我们感兴趣的度量 $\eta_D(\pi)$ 对于小的 $\alpha$ 值会按照策略优势 $\mathbb A_{\pi, D}(\pi')$ 成比例变化 (Eq4.2)，其中策略优势 $\mathbb A_{\pi, D}(\pi')$ 指在状态分布 $d_{\pi, D}$ 下的平均优势
 
-After termination, our algorithm returns a policy $\pi$ which has small policy advantage with respect to $\mu$ We now quantify how far from optimal $\pi$ is, with respect to an arbitrary measure $\tilde{\mu}$ 
+However, for an optimal policy $\pi^{*}$ , the difference between $\eta_{D}(\pi^{*})$ and $\eta_{D}(\pi)$ is proportional to the average advantage under the state distribution $d_{\pi^{*},D}$ . 
+>  但是，根据 Lemma 6.1，最优策略 $\pi^*$ 和 $\pi$ 的性能差异 $\eta_D(\pi^*), \eta_D(\pi)$ 则和状态分布 $d_{\pi^*, D}$ 下的平均优势成比例
 
-**Theorem 6.2.** Assume that for a policy $\pi$ $O P T(\mathbb{A}_{\pi,\mu})<\varepsilon$ .Let $\pi^{*}$ be an optimal policy. Then for any state distribution $\tilde{\mu}$ ， 
+Thus, even if the optimal policy advantage is small with respect to $\pi$ and $D$ , the advantages may not be small under $d_{\pi^{*},D}$ . This motivates the use of the more uniform distribution $\mu$ 
+>  因此，即便相对于 $\pi, D$ 的最优策略优势很小，但这也是在 $d_{\pi, D}$ 下的结果，实际的，在 $d_{\pi^*, D}$ 下计算的优势可能并不小
+>  这促使我们使用更均匀的分布 $\mu$
+
+After termination, our algorithm returns a policy $\pi$ which has small policy advantage with respect to $\mu$ . We now quantify how far from optimal $\pi$ is, with respect to an arbitrary measure $\tilde{\mu}$ 
+>  CPI 在结束后，返回的策略 $\pi$ 相对于 $\mu$ 有小的最优策略优势
+>  我们量化 $\pi$ 相对于任意 $\tilde \mu$ 的最优策略优势
+
+**Theorem 6.2.** Assume that for a policy $\pi$, $\text{OPT}(\mathbb{A}_{\pi,\mu})<\varepsilon$ .Let $\pi^{*}$ be an optimal policy. Then for any state distribution $\tilde{\mu}$ ， 
 
 $$
-\begin{array}{r l r}&{}&{\eta_{\tilde{\mu}}(\pi^{*})-\eta_{\tilde{\mu}}(\pi)\leq\frac{\varepsilon}{(1-\gamma)}\left\lVert\frac{d_{\pi^{*},\tilde{\mu}}}{d_{\pi,\mu}}\right\rVert_{\infty}}\ &{}&{\leq\frac{\varepsilon}{(1-\gamma)^{2}}\left\lVert\frac{d_{\pi^{*},\tilde{\mu}}}{\mu}\right\rVert_{\infty}.}\end{array}
+{\eta_{\tilde{\mu}}(\pi^{*})-\eta_{\tilde{\mu}}(\pi)\leq\frac{\varepsilon}{(1-\gamma)}\left\lVert\frac{d_{\pi^{*},\tilde{\mu}}}{d_{\pi,\mu}}\right\rVert_{\infty}}\ {\leq\frac{\varepsilon}{(1-\gamma)^{2}}\left\lVert\frac{d_{\pi^{*},\tilde{\mu}}}{\mu}\right\rVert_{\infty}.}
 $$ 
-Proof. The optimal policy advantage is O $\mathrm{PT}(\mathbb{A}_{\pi,\mu})=$ $\begin{array}{r}{\sum_{s}d_{\pi,\mu}(s)\operatorname*{max}_{a}A_{\pi}(s,a)}\end{array}$ . Therefore, 
+
+>  Theorem 6.2
+>  有策略 $\pi$，满足 $\text{OPT}(\mathbb A_{\pi,\mu}) < \epsilon$，记最优策略为 $\pi^*$
+>  对于任意状态分布 $\tilde \mu$，$\eta_{\tilde \mu}(\pi^*) - \eta_{\tilde \mu}(\pi)$ 满足如上的不等式
+
+Proof. The optimal policy advantage is  $\mathrm{OPT}(\mathbb{A}_{\pi,\mu})=$ $\begin{array}{r}{\sum_{s}d_{\pi,\mu}(s)\operatorname*{max}_{a}A_{\pi}(s,a)}\end{array}$ . Therefore, 
 
 $$
-\begin{array}{r c l}{\varepsilon}&{>}&{\displaystyle\sum_{s}\frac{d_{\pi,\mu}(s)}{d_{\pi^{*},\mu}(s)}d_{\pi^{*},\tilde{\mu}}(s)\operatorname*{max}_{a}A_{\pi}(s,a)}\ &{\geq}&{\displaystyle\operatorname*{min}_{s}\left(\frac{d_{\pi,\mu}(s)}{d_{\pi^{*},\tilde{\mu}}(s)}\right)\sum_{s}d_{\pi^{*},\tilde{\mu}}(s)\operatorname*{max}_{a}A_{\pi}(s,a)}\ &{\geq}&{\displaystyle\left\|\frac{d_{\pi^{*},\tilde{\mu}}}{d_{\pi,\mu}}\right\|_{\infty}^{-1}\sum_{s,a}d_{\pi^{*},\tilde{\mu}}(s)\pi^{*}(a;s)A_{\pi}(s,a)}\ &{=}&{(1-\gamma)\left\|\frac{d_{\pi^{*},\tilde{\mu}}}{d_{\pi,\mu}}\right\|_{\infty}^{-1}(\eta_{\tilde{\mu}}(\pi^{*})-\eta_{\tilde{\mu}}(\pi))}\end{array}
+\begin{align}{\varepsilon}&{>}{\displaystyle\sum_{s}\frac{d_{\pi,\mu}(s)}{d_{\pi^{*},\mu}(s)}d_{\pi^{*},\tilde{\mu}}(s)\operatorname*{max}_{a}A_{\pi}(s,a)}\\ &{\geq}{\displaystyle\operatorname*{min}_{s}\left(\frac{d_{\pi,\mu}(s)}{d_{\pi^{*},\tilde{\mu}}(s)}\right)\sum_{s}d_{\pi^{*},\tilde{\mu}}(s)\operatorname*{max}_{a}A_{\pi}(s,a)}\\ &{\geq}{\displaystyle\left\|\frac{d_{\pi^{*},\tilde{\mu}}}{d_{\pi,\mu}}\right\|_{\infty}^{-1}\sum_{s,a}d_{\pi^{*},\tilde{\mu}}(s)\pi^{*}(a;s)A_{\pi}(s,a)}\\ &{=}{(1-\gamma)\left\|\frac{d_{\pi^{*},\tilde{\mu}}}{d_{\pi,\mu}}\right\|_{\infty}^{-1}(\eta_{\tilde{\mu}}(\pi^{*})-\eta_{\tilde{\mu}}(\pi))}\end{align}
 $$ 
 where the last step follows from lemma 6.1. The second inequality is due to $d_{\pi,\mu}(s)\leq(1-\gamma)\mu(s)$ 
 
-## 7.2 What about improving $\eta_{D}$ ？ 
-Even though we ultimately seek to have good performance measure under $\eta_{D}$ , we show that it is important to improve the policy under a somewhat uniform measure. An important question is “Can we improve the policy according to both $\eta_{D}$ and $\eta_{\mu}$ at each update?" In general the answer is “no", but consider improving the performance under $\tilde{\mu}=(1-\beta)\mu+\beta D$ instead of just $\mu$ . This metric only slightly changes the quality of the asymptotic policy. However by giving weight to $D$ ， the possibility of improving $\eta_{D}$ is allowed if the optimal policy has large advantages under $D$ , though we do not formalize this here. The only situation where joint improvement with $\eta_{D}$ is not possible is when $\mathrm{OPT}(\mathbb{A}_{\pi,D})$ is small. However, this is the problematic case where, under $D$ , the large advantages are not at states visited frequently. 
+Note that $\left\|{\frac{d_{\pi^{*},{\tilde{\mu}}}}{\mu}}\right\|_{\infty}$ is a measure of the mismatch in using $\mu$ rather than the future-state distribution of an optimal policy. 
+>  其中 $\left\|{\frac{d_{\pi^{*},{\tilde{\mu}}}}{\mu}}\right\|_{\infty}$ 度量了使用 $\mu$ 而不是 $d_{\pi^*,\tilde \mu}$ 产生的不匹配程度
 
-Note that $\left\|{\frac{d_{\pi^{*},{\tilde{\mu}}}}{\mu}}\right\|_{\infty}$ is a measure of the mismatch in using $\mu$ rather than the future-state distribution of an optimal policy. The interpretation of each factor of $\frac{1}{1-\gamma}$ is important. In particular, one factor of $\textstyle{\frac{1}{1-\gamma}}$ is due to the fact that difference between the performance of $\pi$ and optimal is $\scriptstyle{\frac{1}{1-\gamma}}$ times the average advantage under $d_{\pi^{*},\tilde{\mu}}(s)$ (see lemma 6.1) and another factor of $\textstyle{\frac{1}{1-\gamma}}$ is due to the inherent non-uniformity of $d_{\pi,\mu}$ (since ${\dot{d}}_{\pi,\mu}(s)\leq(1-\gamma)\mu(s))$ 
+The interpretation of each factor of $\frac{1}{1-\gamma}$ is important. In particular, one factor of $\textstyle{\frac{1}{1-\gamma}}$ is due to the fact that difference between the performance of $\pi$ and optimal is ${\frac{1}{1-\gamma}}$ times the average advantage under $d_{\pi^{*},\tilde{\mu}}(s)$ (see lemma 6.1) and another factor of $\textstyle{\frac{1}{1-\gamma}}$ is due to the inherent non-uniformity of $d_{\pi,\mu}$ (since ${\dot{d}}_{\pi,\mu}(s)\leq(1-\gamma)\mu(s))$ 
 
 # 7 Discussion 
-We have provided an algorithm that finds an “approximately” optimal solution that is polynomial in the approximation parameter $\varepsilon$ ,but not in the size of the state space. We discuss a few related points. 
+We have provided an algorithm that finds an “approximately” optimal solution that is polynomial in the approximation parameter $\varepsilon$ ,but not in the size of the state space. 
+>  我们提出了一个在关于近似参数 $\epsilon$ 的多项式时间内找到 “近似” 最优解的算法，该算法的收敛时间和状态空间大小无关 (但是其中的 Greedy Policy Chooser 的运行时间应该是和状态空间大小有关的)
+
+We discuss a few related points. 
 
 ## 7.1 The Greedy Policy Chooser 
-The ability to find a policy with a large policy advantage can be stated as a regression problem though we don't address the sample complexity of this problem. Let us consider the error given by: 
+The ability to find a policy with a large policy advantage can be stated as a regression problem though we don't address the sample complexity of this problem. 
+>  寻找具有更大策略优势的策略可以被表述为一个回归问题
+
+Let us consider the error given by: 
 
 $$
 E_{s\sim d_{\pi,\mu}}\operatorname*{max}_{a}\left|A_{\pi}(s,a)-f_{\pi}(s,a)\right|.
 $$ 
-This loss is an average loss over the state space (though it is an $\infty$ -loss over actions). It is straightforward to see that if we can keep this error below $\textstyle{\frac{\varepsilon}{2}}$ , then we can construct an $\varepsilon$ -greedy policy chooser by choosing a greedy policy based on these approximation $f_{\pi}$ This $l_{1}$ condition for the regression problem is a much weaker constraint than minimizing an $l_{\infty}$ -error over the state-space, which is is the relevant error for greedy dynamic programming (see equation 3.1 and [3]). 
+This loss is an average loss over the state space (though it is an $\infty$ -loss over actions). It is straightforward to see that if we can keep this error below $\textstyle{\frac{\varepsilon}{2}}$ , then we can construct an $\varepsilon$ -greedy policy chooser by choosing a greedy policy based on these approximation $f_{\pi}$ . 
+
+>  考虑上述损失，它是在状态空间上的平均损失，且是动作空间上的 $\infty$ 损失
+>  如果保持该误差在 $\frac \epsilon 2$ 以下，则就可以基于近似值 $f_\pi(s, a)$ 构造 $\epsilon$ -greedy 策略选择器
+
+This $l_{1}$ condition for the regression problem is a much weaker constraint than minimizing an $l_{\infty}$ -error over the state-space, which is is the relevant error for greedy dynamic programming (see equation 3.1 and [3]). 
+>  该回归损失对于状态空间上仅要求了 $l_1$ 条件，这是一个比 $l_\infty$ 弱许多的约束，而贪心动态规划要确保性能提升，就需要确保 $l_\infty$ 足够小 (Eq3.1)
 
 Direct policy search methods could also be used to implement this greedy policy chooser. 
 
+
+
+## 7.2 What about improving $\eta_{D}$ ？ 
+Even though we ultimately seek to have good performance measure under $\eta_{D}$ , we show that it is important to improve the policy under a somewhat uniform measure. 
+>  虽然我们最终要寻找 $\eta_D$ 最高的策略，我们也论证了在均匀的分布 $\mu$ 下提升策略的重要性
+
+An important question is “Can we improve the policy according to both $\eta_{D}$ and $\eta_{\mu}$ at each update?" In general the answer is “no", but consider improving the performance under $\tilde{\mu}=(1-\beta)\mu+\beta D$ instead of just $\mu$ . This metric only slightly changes the quality of the asymptotic policy. 
+>  考虑是否能在每步更新同时提升 $\eta_D, \eta_\mu$
+>  一般来说，不能，但可以构造 $\tilde \mu =  (1-\beta)\mu + \beta D$，令策略基于 $\eta_{\tilde \mu}$ 提升
+>  这样的构造仅略微改变策略的渐进质量
+
+However by giving weight to $D$ ，the possibility of improving $\eta_{D}$ is allowed if the optimal policy has large advantages under $D$ , though we do not formalize this here. The only situation where joint improvement with $\eta_{D}$ is not possible is when $\mathrm{OPT}(\mathbb{A}_{\pi,D})$ is small. However, this is the problematic case where, under $D$ , the large advantages are not at states visited frequently. 
+>  因为掺入了 $D$，故提高了提升 $\eta_D$ 的可能性
+
 ## 7.3 Implications of the mismatch 
-The bounds we have presented directly show the importance of ensuring the agent starts in states where the optimal policy tends to visit. It also suggests that certain optimal policies are easier to learn in large state spaces — namely those optimal policies which tend to visit a significant fraction of the state space. An interesting suggestion for how to choose $\mu$ , is to use prior knowledge of which states an optimal policy tends to visit. 
+The bounds we have presented directly show the importance of ensuring the agent starts in states where the optimal policy tends to visit. It also suggests that certain optimal policies are easier to learn in large state spaces — namely those optimal policies which tend to visit a significant fraction of the state space.
+>  本文证明的界说明了确保智能体从最优策略倾向于访问的状态开始的重要性
+>  也说明了在大的状态空间中，特定的最优策略更易于学习，具体地说，是倾向于访问状态空间中比较大的比例状态的最优策略
+
+ An interesting suggestion for how to choose $\mu$ , is to use prior knowledge of which states an optimal policy tends to visit. 
+ >  对 $\mu$ 的选择可以利用关于最优策略倾向于访问哪些状态的先验知识
