@@ -240,7 +240,6 @@ Direct policy gradient methods attempt to find a good policy among some restrict
 
 Given some parameterized class $\{\pi_{\theta}|\theta\in\mathcal{R}^{m}\}$ ,these methods compute the gradient 
 
-
 $$
 \nabla\eta_{D}=\sum_{s,a}d_{\pi,D}(s)\nabla\pi(a;s)Q_{\pi}(s,a)\tag{3.2}
 $$ 
@@ -251,6 +250,10 @@ $$
 
 For policy gradient techniques, question 1 has the appealing answer that the performance measure of interest is guaranteed to improve under gradient ascent. 
 >  策略梯度方法可以回答 Q1，我们关注的性能度量 (目标函数) 将在梯度上升下稳定提升
+
+>  如果梯度是准确的，当然策略梯度方法可以保证性能提升
+>  但问题在于实际优化时的梯度也是估计的，且梯度的估计也基于对价值函数的估计
+>  下面的分析实际上也可以视作在探索性不足的情况下，对价值函数的估计不准确，导致对梯度的估计不准确
 
 We now address question 2 by examining the situations in which estimating the gradient direction is difficult. We show that the lack of exploration in gradient methods translates into requiring a large number of samples in order to accurately estimate the gradient direction. 
 >  我们通过分析在哪些情况下估计梯度方向是困难的，来回答 Q2
@@ -610,7 +613,7 @@ $$
 We address question 3 by first addressing how fast we converge to some policy then bounding the quality of this policy. Naively, we expect our ability to obtain policies with large advantages to affect the speed of improvement and the quality of the final policy. Instead of explicitly suggesting algorithms that find policies with large policy advantages, we assume access to an $\varepsilon$ -greedy policy chooser that solves this problem. 
 >  我们探讨 CPI 收敛到某个策略的速度，并对该策略的质量定界，以回答 Q3
 >  直观上，我们希望能够获得较大优势的策略可以加速更新时的策略提升，并且提高最终策略的质量
->  我们不显示写出找到具有大策略优势的策略的算法，而是假设我们可以访问一个 $\epsilon$ -greedy 策略选择器，该策略选择器帮助我们解决该问题
+>  我们不显式写出找到具有大策略优势的策略的算法，而是假设我们可以访问一个 $\epsilon$ -greedy 策略选择器，该策略选择器帮助我们解决该问题
 
 Let us call this $\varepsilon$ good algorithm $G_{\varepsilon}(\pi,\mu)$ , which is defined as: 
 
@@ -727,7 +730,7 @@ x_i = n_a\hat Q_i(s, a)(\pi'(a;s) - \pi(a;s))
 $$
 
 >  其中 $n_a$ 是动作的数量
->  我们假设每条轨迹运行得足够长，使得 $x_i$ 的变差小于 $\frac {\epsilon}{6}$
+>  我们假设每条轨迹运行得足够长，使得 $x_i$ 的偏差小于 $\frac {\epsilon}{6}$
 
 Since $\hat{Q}_{i}\in[0,R]$ , our samples satisfy $x_{i}\in$ $[-n_{a}R,n_{a}R]$ . Using Hoeffding's inequality for $k$ independent, identically distributed random variables, we have: 
 
@@ -821,8 +824,6 @@ This $l_{1}$ condition for the regression problem is a much weaker constraint th
 >  该回归损失对于状态空间上仅要求了 $l_1$ 条件，这是一个比 $l_\infty$ 弱许多的约束，而贪心动态规划要确保性能提升，就需要确保 $l_\infty$ 足够小 (Eq3.1)
 
 Direct policy search methods could also be used to implement this greedy policy chooser. 
-
-
 
 ## 7.2 What about improving $\eta_{D}$ ？ 
 Even though we ultimately seek to have good performance measure under $\eta_{D}$ , we show that it is important to improve the policy under a somewhat uniform measure. 
