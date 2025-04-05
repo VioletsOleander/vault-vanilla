@@ -1909,7 +1909,7 @@ Date: 2025.3.31-2025.4.7
         By approximation, we substitute the expectations with their Monte Carlo estimation, and importance sampling is also used.
     6-Practical Algorithm
     7-Connections with Prior Work
-        
+- [[paper-notes/rl/Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML|Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML]]: All
 - [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
 
 
