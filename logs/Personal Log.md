@@ -1833,9 +1833,89 @@ Date: 2025.3.24-2025.3.31
 Date: 2025.3.31-2025.4.7
 
 \[Paper\]
-- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
+- [[paper-notes/rl/Approximately Optimal Approximate Reinforcement Learning-2002-ICML|2002-ICML-Approximately Optimal Approximate Reinforcement Learning]]: All (except Appendix)
+    0-Abstract
+        The conservative policy iteration algorithm uses a restart distribution, and an approximate greedy policy chooser to find an approximately optimal policy.
+    1-Introduction
+        In CPI, the policy is improved in a more uniform manner over the state-space and a more conservative policy update is performed where the new policy is a mixture of the current policy and the greedy policy.
+        Improve policy in a more uniform manner incorporates exploration, and perform mixture update avoid the pitfalls of greedy dynamic programming methods.
+        Such an algorithm can converge in a small number of steps and return an approximately optimal policy. The quantified claim of 'small' and 'approximately' is not related to the state space size.
+    2-Preliminaries
+        If the restart distribution $\mu$ is chosen to be a relatively uniform distribution, then $\mu$ can eliminate the explicit need for exploration.
+        The goal of agent is the maximize the $\gamma$ -discounted average reward from the starting state distribution $D$.
+        The value function can be normalized to $[0, R]$ when multiplied by $(1-\gamma)$.
+        We can define a $\gamma$ -discounted future state distribution for a start distribution $\mu$, and rewrite the value function in terms of the discounted future state distribution.
+        As $\gamma \to 1$, this distribution tends to be the stationary distribution for all $s$.
+        The agent's goal can also be rewritten as an expectation with respace to the discounted future distribution.
+    3-The Problems with Current Methods
+        3.1-Approximate Value Function Methods
+            Approximate value function methods refers to methods that use approximate value function to do policy iteration.
+            Define $\epsilon$ as the $l_\infty$ loss between some approximator $\tilde V(s)$ and the truth value function $V(s)$. The performance of the greedy policy $\pi'$ based on this approximator is not guaranteed to improve monotonically. The possible decrease bound is related to $\epsilon$.
+            The time required to make the policy attain certain performance level is also not guaranteed.
+        3.2-Policy Gradient Methods
+            Direct policy gradient method attempts to find a good policy among some restricted class of policies.
+            In policy gradient method, the interested performance measure is guaranteed to improve.
+            However, the gradient should also be estimated in practice, and the estimation will also rely on the estimation of the value function.
+            The update of the estimated value function rely on the actually received reward during exploration. Therefore, exploration eventually will affect the estimation of the gradient.
+    4-Approximately Optimal RL
+        The problem of policy gradient method is that the optimization target $\eta_D$ is insensitive to policy improvement at unlikely states. And the policy improvement at unlikely states may be necessary for the agent to achieve the optimal.
+        An alternative is to use another start distribution $\mu$ (instead of the original $D$) to weight the improvement from all states more uniformly.
+        4.1-Policy Improvement
+            The policy advantage measures the degree to which $\pi'$ is choosing actions with large advantages, with respect to the sate of states visited under $\pi$ starting from a state $s\sim \mu$.
+            The greedy policy with respect to the value function will maximize the policy advantage.
+            Using the policy advantage, the increment of $\eta_\mu$ ($\Delta \eta_\mu$) when updating the policy with the conservative update formula can be approximated by its first-order Taylor series with respect to $\alpha$.
+            Therefore, for sufficiently small $\alpha$, if the policy advantage is positive, then the policy will improve. The larger the policy advantage, the more the policy will improve.
+        4.2-Answering Question 3
+            The Conservative policy iteration algorithm will finds a policy $\pi$ near the optimal in polynomial time with respect to $\epsilon$.
+            The algorithm will stop when an $\epsilon$ small policy advantage is obtained, which means the optimal policy advantage of returned policy is less than $2\epsilon$.
+            The convergence time bound of CPI do not rely on $\mu$, but the performance of the policy found do, since $\text{OPT}\mathbb (\mathbb A_{\pi, \mu}(\pi^*)) < 2\epsilon$.
+            The performance difference of the policy found with respect to the real optimal policy (in terms of $\eta_D$) is bounded by a factor which represent the mismatch between the state distribution of current policy and the optimal policy. And a more uniform starting distribution will ensure the bound is not too large.
+    5-Conservative Policy Iteration
+    6-How Good is the Policy Found?
+        Lemma 6.1 shows that the exact performance difference between the updated policy and the original policy is measured by an expectation with respect to the state distribution of the updated policy.
+        Therefore, the policy advantage, which is calculated with respect to the state distribution of the original policy may not affect the true improvement.
+        This motivates us to use a more uniform start distribution to drag the two state distribution more close to a certain amount of extent.
+        Theorem 6.2 further supports this motivation.
+    7-Discussion
+        The greedy policy chooser aims to find a policy with greater policy advantage. Note that its convergence time is related to the size of the state space.
+        The bounds presented in this paper show the importance of ensuring the agent starts in the state where the optimal policy tends to visit it.
+        We can use the prior knowledge of which state an optimal policy tends to visit to choose $\mu$.
 - [[paper-notes/rl/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All (except Appendix)
-- [[paper-notes/rl/Approximately Optimal Approximate Reinforcement Learning-2002-ICML|Approximately Optimal Approximate Reinforcement Learning-2002-ICML]]: All (except Appendix)
+    0-Abstract
+        TRPO is effective for optimizing large nonlinear policies such as neural networks
+        Despite its approximations that deviate from the theory, TRPO tends to give monotonic improvement, with little tuning of hyperparameters.
+    1-Introduction
+        Approximate dynamic programming methods and gradient-based methods can not beat gradient-free random search. This is unsatisfying.
+        We first prove that minimizing a certain surrogate objective function guarantees policy improvement with non-trivial step sizes. Then after applying a series of approximation to the theoretically-justified algorithm, we can get a practical algorithm.
+    2-Preliminaries
+        The equation 2 rewrite the objective $\eta(\tilde \pi)$ and implies that any policy update $\pi \to \pi'$ that has a nonnegative expected advantage at every state $s$, i.e. $\sum_a \tilde \pi(a\mid s) A_\pi(s, a)\ge0$, is guaranteed to increase the policy performance $\eta$.
+        This also implies the classic policy iteration update, which use the deterministic policy $\tilde \pi(s) = \arg\max_a A_\pi(s, a)$, will improve the policy if there is at least one state-action pair with a positive advantage value and nonzero state visitation probability.
+        Eq2 depends on $\rho_{\tilde \pi}(s)$. To make it easy to optimize directly, we introduce approximation, which substitute $\rho_{\tilde \pi}(s)$ with $\rho_\pi(s)$. Therefore we get an $L_\pi(\tilde \pi)$ as a surrogate objective for $\eta(\tilde \pi)$.
+        Let us parameterize the policy with parameter vector $\theta$. The CPI paper indicates that the surrogate objective function $L_\pi$ matches the true objective function $\eta$ in the first order. As Equation4 indicates. 
+        Therefore, a sufficiently small step that improves the surrogate objective will improve the true objective. But the actual step size is not determined.
+        The CPI paper uses the mixture update, and provides explicit bound on the improvement of the true objective $\eta$. The bound is stated in equation 6, however, the bound only applies to mixture policies.
+        It is desirable for a practical policy update scheme to be applicable to all general stochastic policy classes.
+    3-Monotonic Improvements Guarantee for General Stochastic Policies
+        The principle theoretical result of this paper is that the policy improvement bound in equation 6 can be extended to general stochastic polices, rather than just mixture policies.
+        To generalize the policy update, the mixture coefficient is replaced with a distance measure between $\pi$ and $\tilde \pi$. The constant $\epsilon$ is changed appropriately.
+        The particular distance measure we use is the total variance divergence.
+        The extended bound is presented in equation 8.
+        Following the relationship between the total variation divergence and the KL divergence, equation 8 can be extended to equation 9.
+        Based on equation 9, algorithm 1 improves the lower bound on each step, and therefore is guaranteed to improve the policy.
+        TRPO is an approximation to algorithm 1 by using a constraint on the KL divergence rather than a penalty to robustly allow large updates.
+    4-Optimization of Parameterized Policies
+        By approximation, we use the average KL divergence to substitute the largest KL divergence, and the penalty is also transformed into a constraint.
+    5-Sample-Based Estimation of the Objective and Constraint
+        By approximation, we substitute the expectations with their Monte Carlo estimation, and importance sampling is also used.
+    6-Practical Algorithm
+    7-Connections with Prior Work
+        
+- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
 
 
+\[Doc\]
+- [[doc-notes/gerrit/Quickstart for Installing Gerrit on Linux|gerrit/Quickstart for Installing Gerrit on Linux]]: All
+- [[doc-notes/gerrit/about-gerrit/Why Code Review|gerrit/about-gerrit/Why Code Review]]: All
+- [[doc-notes/gerrit/about-gerrit/Product Overview|gerrit/about-gerrit/Product Overview]]: All
+- [[doc-notes/gerrit/about-gerrit/How Gerrit Works|gerrit/about-gerrit/How Gerrit Works]]: All
 
