@@ -434,7 +434,10 @@ Our theory ignores estimation error for the advantage function. Kakade & Langfor
 >  我们的理论忽略了优势函数的估计误差。Kakade & Langford (2002) 在其推导中考虑了这一误差，同样的论证也适用于本文的研究场景，但为了简化起见，我们省略了这部分内容。
 
 # 7 Connections with Prior Work 
-As mentioned in Section 4, our derivation results in a policy update that is related to several prior methods, providing a unifying perspective on a number of policy update schemes. The natural policy gradient (Kakade, 2002) can be obtained as a special case of the update in Equation (12) by using a linear approximation to $L$ and a quadratic approximation to the ${\overline{{D}}}_{\mathrm{KL}}$ constraint, resulting in the following problem: 
+As mentioned in Section 4, our derivation results in a policy update that is related to several prior methods, providing a unifying perspective on a number of policy update schemes. 
+>  我们在策略更新上的推导结果和多种先前方法相关，为若干策略更新方案提供了统一视角
+
+The natural policy gradient (Kakade, 2002) can be obtained as a special case of the update in Equation (12) by using a linear approximation to $L$ and a quadratic approximation to the ${\overline{{D}}}_{\mathrm{KL}}$ constraint, resulting in the following problem: 
 
 $$
 \begin{align}
@@ -445,7 +448,13 @@ $$
 \end{align}
 $$
 
-The update is $\theta_{new} = \theta_{old} + \frac 1 \lambda A(\theta_{old})^{-1}\nabla_{\theta}L(\theta)|_{\theta=\theta_{old}}$ , where the step-size $\textstyle{\frac{1}{\lambda}}$ is typically treated as an algorithm parameter. This differs from our approach, which enforces the constraint at each update. Though this difference might seem subtle, our experiments demonstrate that it significantly improves the algorithm’s performance on larger problems. 
+The update is $\theta_{new} = \theta_{old} + \frac 1 \lambda A(\theta_{old})^{-1}\nabla_{\theta}L(\theta)|_{\theta=\theta_{old}}$ , where the step-size $\textstyle{\frac{1}{\lambda}}$ is typically treated as an algorithm parameter. 
+
+>  通过对 equation 12 中的目标进行线性近似，以及对约束进行二次近似，就可以得到 natural policy gradient
+
+This differs from our approach, which enforces the constraint at each update. Though this difference might seem subtle, our experiments demonstrate that it significantly improves the algorithm’s performance on larger problems. 
+>  natural policy gradient 的实际更新中，并没有对每一步更新施加约束，故和 TRPO 不同
+>  这一差异看似细微，但是试验证明了 TRPO 的方法可以显著提高算法在更大问题上的性能
 
 We can also obtain the standard policy gradient update by using an $\ell_{2}$ constraint or penalty: 
 
@@ -453,10 +462,15 @@ $$
 \begin{align}&{\underset{\theta}{\mathrm{maximize}}\left[\nabla_{\theta}L_{\theta_{\mathrm{old}}}(\theta)\big|_{\theta=\theta_{\mathrm{old}}}\cdot(\theta-\theta_{\mathrm{old}})\right]}\\ &{\text{subject to}\ \frac{1}{2}\|\theta-\theta_{\mathrm{old}}\|^{2}\leq\delta.}\end{align}\tag{18}
 $$
 
+>  使用 $\ell_2$ 约束或惩罚，就得到标准策略梯度更新
+
 The policy iteration update can also be obtained by solving the unconstrained problem $\text{maximize}_\pi\  L_{\pi_{\mathrm{old}}}(\pi)$ , using $L$ as defined in Equation (3). 
 >  直接求解 Eq 3 中定义的无约束优化问题 $\text{maximize}_\pi L_{\pi_{old}}(\pi)$ 等价于策略迭代更新
 
 Several other methods employ an update similar to Equation (12). Relative entropy policy search (REPS) (Peters et al., 2010) constrains the state-action marginals $p(s,a)$ , while TRPO constrains the conditionals $p(a|s)$ . Unlike REPS, our approach does not require a costly nonlinear optimization in the inner loop. Levine and Abbeel (2014) also use a KL divergence constraint, but its purpose is to encourage the policy not to stray from regions where the estimated dynamics model is valid, while we do not attempt to estimate the system dynamics explicitly. Pirotta et al. (2013) also build on and generalize Kakade and Langford’s results, and they derive different algorithms from the ones here. 
+>  其他几种方法也采用了类似 Eq 12 的更新方式
+>  相对熵策略搜索约束了状态-动作边际分布 $p(s, a)$，而 TRPO 则约束条件分布 $p(a\mid s)$
+>  Levine and Abbeel (2014) 同样使用了 KL 散度约束，但目的是鼓励策略不偏离估计的动态模型所有效的区域，而我们并未尝试显式地估计环境动态
 
 # 8 Experiments 
 We designed our experiments to investigate the following questions: 
@@ -464,24 +478,45 @@ We designed our experiments to investigate the following questions:
 2. TRPO is related to prior methods (e.g. natural policy gradient) but makes several changes, most notably by using a fixed KL divergence rather than a fixed penalty coefficient. How does this affect the performance of the algorithm? 
 3. Can TRPO be used to solve challenging large-scale problems? How does TRPO compare with other methods when applied to large-scale problems, with regard to final performance, computation time, and sample complexity? 
 
-To answer (1) and (2), we compare the performance of the single path and vine variants of TRPO, several ablated variants, and a number of prior policy optimization algorithms. With regard to (3), we show that both the single path and vine algorithm can obtain high-quality locomotion controllers from scratch, which is considered to be a hard problem. We also show that these algorithms produce competitive results when learning policies for playing Atari games from images using convolutional neural networks with tens of thousands of parameters. 
+>  我们设计试验，探究以下问题
+>  1. single path 和 vine sampling 各自的性能特征是什么?
+>  2. TRPO 与先前的方法有关，但进行了若干改进，最显著的是使用了固定的 KL 散度而不是固定的惩罚系数，这对算法的性能影响如何？
+>  3. TRPO 能否用于解决大规模问题，应用于大规模问题时，TRPO 的最终性能、计算时间和样本复杂度相较于其他方法的优势如何?
+
+To answer (1) and (2), we compare the performance of the single path and vine variants of TRPO, several ablated variants, and a number of prior policy optimization algorithms. 
+
+With regard to (3), we show that both the single path and vine algorithm can obtain high-quality locomotion controllers from scratch, which is considered to be a hard problem. We also show that these algorithms produce competitive results when learning policies for playing Atari games from images using convolutional neural networks with tens of thousands of parameters. 
 
 ## 8.1 Simulated Robotic Locomotion 
-We conducted the robotic locomotion experiments using the MuJoCo simulator (Todorov et al., 2012). The three simulated robots are shown in Figure 2. The states of the robots are their generalized positions and velocities, and the controls are joint torques. Underactuation, high dimensionality, and non-smooth dynamics due to contacts make these tasks very challenging. The following models are included in our evaluation: 
+We conducted the robotic locomotion experiments using the MuJoCo simulator (Todorov et al., 2012). The three simulated robots are shown in Figure 2. 
 
-1. Swimmer. 10-dimensional state space, linear reward for forward progress and a quadratic penalty on joint effort to produce the reward $\bar{r}(x,u)=\bar{v}_{x}-\mathrm{i}0^{-5}\|\bar{u}\|^{2}$ . The swimmer can propel itself forward by making an undulating motion. 
+![[pics/TRPO-Fig2.png]]
+
+The states of the robots are their generalized positions and velocities, and the controls are joint torques. Underactuation, high dimensionality, and non-smooth dynamics due to contacts make these tasks very challenging. The following models are included in our evaluation: 
+
+1. Swimmer. 10-dimensional state space, linear reward for forward progress and a quadratic penalty on joint effort to produce the reward $\bar{r}(x,u)=\bar{v}_{x}-10^{-5}\|\bar{u}\|^{2}$ . The swimmer can propel itself forward by making an undulating motion. 
 2. Hopper. 12-dimensional state space, same reward as the swimmer, with a bonus of $+1$ for being in a nonterminal state. We ended the episodes when the hopper fell over, which was defined by thresholds on the torso height and angle. 
 3. Walker. 18-dimensional state space. For the walker, we added a penalty for strong impacts of the feet against the ground to encourage a smooth walk rather than a hopping gait. 
 
-We used $\delta=0.01$ for all experiments. See Table 2 in the Appendix for more details on the experimental setup and parameters used. We used neural networks to represent the policy, with the architecture shown in Figure 3, and further details provided in Appendix D. To establish a standard baseline, we also included the classic cart-pole balancing problem, based on the formulation from Barto et al. (1983), using a linear policy with six parameters that is easy to optimize with derivative-free black-box optimization methods. 
+We used $\delta=0.01$ for all experiments. See Table 2 in the Appendix for more details on the experimental setup and parameters used. 
+
+![[pics/TRPO-Fig3.png]]
+
+We used neural networks to represent the policy, with the architecture shown in Figure 3, and further details provided in Appendix D. To establish a standard baseline, we also included the classic cart-pole balancing problem, based on the formulation from Barto et al. (1983), using a linear policy with six parameters that is easy to optimize with derivative-free black-box optimization methods. 
 
 The following algorithms were considered in the comparison: single path TRPO; vine TRPO; cross-entropy method (CEM), a gradient-free method (Szita & Lorincz, 2006); covariance matrix adaption (CMA), another gradient-free method (Hansen & Ostermeier, 1996); natural gradient, the classic natural policy gradient algorithm (Kakade, 2002), which differs from single path by the use of a fixed penalty coefficient (Lagrange multiplier) instead of the KL divergence constraint; empirical FIM, identical to single path, except that the FIM is estimated using the covariance matrix of the gradients rather than the analytic estimate; max KL, which was only tractable on the cart-pole problem, and uses the maximum KL divergence in Equation (11), rather than the average divergence, allowing us to evaluate the quality of this approximation. The parameters used in the experiments are provided in Appendix E. For the natural gradient method, we swept through the possible values of the stepsize in factors of three, and took the best value according to the final performance. 
 
-Learning curves showing the total reward averaged across five runs of each algorithm are shown in Figure 4. Single path and vine TRPO solved all of the problems, yielding the best solutions. Natural gradient performed well on the two easier problems, but was unable to generate hopping and walking gaits that made forward progress. These results provide empirical evidence that constraining the KL divergence is a more robust way to choose step sizes and make fast, consistent progress, compared to using a fixed penalty. CEM and CMA are derivative-free algorithms, hence their sample complexity scales unfavorably with the number of parameters, and they performed poorly on the larger problems. The max $K L$ method learned somewhat more slowly than our final method, due to the more restrictive form of the constraint, but overall the result suggests that the average KL divergence constraint has a similar effect as the theatrically justified maximum KL divergence. Videos of the policies learned by TRPO may be viewed on the project website: http://sites.google.com/site/trpopaper/. 
+Learning curves showing the total reward averaged across five runs of each algorithm are shown in Figure 4. 
 
+![[pics/TRPO-Fig4.png]]
 
-![](https://cdn-mineru.openxlab.org.cn/extract/12df22f3-a5d8-45c1-9ba8-9013aa9dd3ec/c638110ef37093877307acf5506a8735a3e22ef2b1a93cc87ad012d6d364f67d.jpg) 
-Figure 4. Learning curves for locomotion tasks, averaged across five runs of each algorithm with random initializations. Note that for the hopper and walker, a score of $^{-1}$ is achievable without any forward velocity, indicating a policy that simply learned balanced standing, but not walking. 
+Single path and vine TRPO solved all of the problems, yielding the best solutions. Natural gradient performed well on the two easier problems, but was unable to generate hopping and walking gaits that made forward progress. 
+
+These results provide empirical evidence that constraining the KL divergence is a more robust way to choose step sizes and make fast, consistent progress, compared to using a fixed penalty. 
+>  这些经验性的结果说明了，相较于使用固定的惩罚，约束 KL 散度是用于选择步长并实现快速持续改进的更健壮的方法
+
+CEM and CMA are derivative-free algorithms, hence their sample complexity scales unfavorably with the number of parameters, and they performed poorly on the larger problems. The max $K L$ method learned somewhat more slowly than our final method, due to the more restrictive form of the constraint, but overall the result suggests that the average KL divergence constraint has a similar effect as the theoritcally justified maximum KL divergence. Videos of the policies learned by TRPO may be viewed on the project website: http://sites.google.com/site/trpopaper/. 
+
 Note that TRPO learned all of the gaits with general purpose policies and simple reward functions, using minimal prior knowledge. This is in contrast with most prior methods for learning locomotion, which typically rely on hand-architected policy classes that explicitly encode notions of balance and stepping (Tedrake et al., 2004; Geng et al., 2006; Wampler & Popovic, 2009). 
 
 ## 8.2 Playing Games from Images 
@@ -493,11 +528,11 @@ Table 1. Performance comparison for vision-based RL algorithms on the Atari doma
 
 <html><body><table><tr><td></td><td>B.Rider</td><td>Breakout</td><td>Enduro</td><td>Pong</td><td></td><td>Seaquest</td><td>S.Invaders</td></tr><tr><td>Random</td><td>354</td><td>1.2</td><td>0</td><td>-20.4</td><td>157</td><td>110</td><td>179</td></tr><tr><td>Human (Mnih et al., 2013)</td><td>7456</td><td>31.0</td><td>368</td><td>-3.0</td><td>18900</td><td>28010</td><td>3690</td></tr><tr><td>Deep Q Learning (Mnih et al., 2013)</td><td>4092</td><td>168.0</td><td>470</td><td>20.0</td><td>1952</td><td>1705</td><td>581</td></tr><tr><td>UCC-I (Guo et al., 2014)</td><td>5702</td><td>380</td><td>741</td><td>21</td><td>20025</td><td>2995</td><td>692</td></tr><tr><td>TRPO - single path</td><td>1425.2</td><td>10.8</td><td>534.6</td><td>20.9</td><td>1973.5</td><td>1908.6</td><td>568.4</td></tr><tr><td>TRPO-vine</td><td>859.5</td><td>34.2</td><td>430.8</td><td>20.9</td><td>7732.5</td><td>788.4</td><td>450.2</td></tr></table></body></html> 
 
-The results of the vine and single path algorithms are summarized in Table 1, which also includes an expert human performance and two recent methods: deep $Q$ -learning (Mnih et al., 2013), and a combination of Monte-Carlo Tree Search with supervised training (Guo et al., 2014), called UCC-I. The 500 iterations of our algorithm took about 30 hours (with slight variation between games) on a 16-core computer. While our method only outperformed the prior methods on some of the games, it consistently achieved reasonable scores. Unlike the prior methods, our approach was not designed specifically for this task. The ability to apply the same policy search method to methods as diverse as robotic locomotion and image-based game playing demonstrates the generality of TRPO. 
+The results of the vine and single path algorithms are summarized in Table 1, which also includes an expert human performance and two recent methods: deep $Q$ -learning (Mnih et al., 2013), and a combination of Monte-Carlo Tree Search with supervised training (Guo et al., 2014), called UCC-I. The 500 iterations of our algorithm took about 30 hours (with slight variation between games) on a 16-core computer. 
 
-the game-playing domain, we learned convolutional neural network policies that used raw images as inputs. This requires optimizing extremely high-dimensional policies, and only two prior methods report successful results on this task. 
-
-Since the method we proposed is scalable and has strong theoretical foundations, we hope that it will serve as a jumping-off point for future work on training large, rich function approximators for a range of challenging problems. At the intersection of the two experimental domains we explored, there is the possibility of learning robotic control policies that use vision and raw sensory data as input, providing a unified scheme for training robotic controllers that perform both perception and control. The use of more sophisticated policies, including recurrent policies with hidden state, could further make it possible to roll state estimation and control into the same policy in the partially-observed setting. By combining our method with model learning, it would also be possible to substantially reduce its sample complexity, making it applicable to real-world settings where samples are expensive. 
+While our method only outperformed the prior methods on some of the games, it consistently achieved reasonable scores. Unlike the prior methods, our approach was not designed specifically for this task. The ability to apply the same policy search method to methods as diverse as robotic locomotion and image-based game playing demonstrates the generality of TRPO. 
+>  我们的方法虽然仅在部分游戏中优于先前的方法，但始终取得了合理的分数
+>  与先前的方法不同，我们的方法并非专门为该任务设计，能够将相同的策略搜索方法应用于像机器人运动和基于图像的游戏这样多样化的领域，这展示了TRPO的通用性。
 
 # 9 Discussion 
 We proposed and analyzed trust region methods for optimizing stochastic control policies. We proved monotonic improvement for an algorithm that repeatedly optimizes a local approximation to the expected return of the policy with a KL divergence penalty, and we showed that an approximation to this method that incorporates a KL divergence constraint achieves good empirical results on a range of challenging policy learning tasks, outperforming prior methods. 
