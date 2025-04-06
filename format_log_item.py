@@ -83,6 +83,7 @@ def format_log_item(contents, no_confirm):
     doc_sec_re = re.compile(r'\\\[Doc\\\]\s')
     paper_sec_re = re.compile(r'\\\[Paper\\\]\s')
     item_re = re.compile(r'^- \[\[.+\]\]:?')
+    item_content_re = re.compile(r'^    .*')
 
     line_idx = 0
     while line_idx < len(contents):
@@ -92,27 +93,38 @@ def format_log_item(contents, no_confirm):
             print(f'In Doc section, line {line_idx+1}')
             line_idx += 1
 
-            while line_idx < len(contents) and item_re.match(contents[line_idx]):
-                print(f'In line {line_idx+1}')
-                line = contents[line_idx]
-                print(line.strip())
+            while line_idx < len(contents):
+                if item_re.match(contents[line_idx]):
+                    print(f'In line {line_idx+1}')
+                    line = contents[line_idx]
+                    print(line.strip())
 
-                contents[line_idx] = format_line(line, no_confirm, 'Doc')
+                    contents[line_idx] = format_line(line, no_confirm, 'Doc')
 
-                line_idx += 1
+                    line_idx += 1
+                elif item_content_re.match(contents[line_idx]):
+                    line_idx += 1
+                else:
+                    break
 
         elif paper_sec_re.match(line):
             print(f'In Paper section, line {line_idx+1}')
             line_idx += 1
 
-            while line_idx < len(contents) and item_re.match(contents[line_idx]):
-                print(f'In line {line_idx+1}')
-                print(contents[line_idx].strip())
+            while line_idx < len(contents):
+                if item_re.match(contents[line_idx]):
+                    print(f'In line {line_idx+1}')
+                    print(contents[line_idx].strip())
 
-                contents[line_idx] = format_line(
-                    contents[line_idx], no_confirm, 'Paper')
+                    contents[line_idx] = format_line(
+                        contents[line_idx], no_confirm, 'Paper')
 
-                line_idx += 1
+                    line_idx += 1
+
+                elif item_content_re.match(contents[line_idx]):
+                    line_idx += 1
+                else:
+                    break
         else:
             pass
 
