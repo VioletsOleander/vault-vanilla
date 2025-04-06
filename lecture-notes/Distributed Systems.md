@@ -1732,3 +1732,336 @@ The state is first changed to a joint configuration $C_{old, new}$, during which
 Both $C_{old, new}$ and $C_{new}$ are special log entries that are replicated and committed with the same mechanism of other operations  
 
 A Visualization of Raft: https://thesecretlivesofdata.com/raft  
+
+# 6 ZooKeeper 
+## Problem Definition  
+(1) Replicated State Machine is a generalized framework that replicates computation on a cluster of machines -- states replication as a side-effect of deterministic computation replication 
+
+In contrast, Zookeeper is directly based on state replication   
+
+(2) It is possible but still complex to directly use RSM at application level
+- Molding the whole business logic into a single state machine is very hard and also not efficient​ 
+    RSM is easier than consensus but still not very similar to the concurrency programming in a multi-thread environment where we can directly use concurrent data structures such as concurrent queues, locks, etc.​ 
+    Also, we may have certain parts of the program that can be naturally partitioned into disjoint processing units. There is no need to replicate them one by one 
+- Most of the parts in the system can directly be executed in parallel and recovered by redo, while only certain points of the application need to be synchronized -- not all the steps should be ordered and executed step by step
+- We need further abstraction to achieve ease-of-use! -- just some synchronization functionalities that we have used in a multi-thread program   
+
+(3) Many common replicate (and hence highly available) services are already built -- each replicates a specific (but widely used) kind of computation 
+- Lock service -- distributed lock, such as Google Chubby
+- Queue service -- provide a FIFO queue 
+- What about a LIFO queue? A Read-write lock? Do we really need to build these services one by one?   
+
+(4) Can we provide a set of APIs that enable the users to design their own replicated service in about $10{\sim}100$ lines of code instead of thousands lines of code? 
+- We need a **higher level abstraction** than RSM
+- How to trade-off between flexibility and ease-of-use? -- similar to the computation model design problem of MapReduce  
+- What kind of consistency guarantee should be provided -- how to trade-off between consistency and performance? -- RSM is essentially a serial model (linearizability) that can not scale  
+    Also a relaxed consistency model is used in ZooKeeper but much more understandable than GFS   
+    Socket $\rightarrow\sf R P C\rightarrow$ consensus Protocol -> RSM -> ZooKeeper -> Distributed Data Structure -> Distributed Infra -> Distributed App  
+
+(5) Today we will emphasize on the abstraction of ZooKeeper and how to use it  
+- ZooKeeper was originally developed at Yahoo! to streamline the processes running on big data clusters.   
+- It started out as a sub-project of Hadoop, but became a standalone Apache Foundation project in 2008.   
+- The debut of RAFT is 2013 later than ZooKeeper. Thus, the reason why ZooKeeper's Zab protocol is very similar to RAFT is actually because RAFT is leaning from Zab 
+- There is a RAFT based version of ZooKeeper called etcd, which is also very (even more) popular today​  
+
+## ZooKeeper's Main Architecture  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/release/17e8f0b9-bbf3-4205-bc33-a174909991be/a8918b76f7d3dbd6da822f304e952143da23c50720d915745dd3453d668c6d47.jpg)  
+
+(1) Strong leader based replication  
+- All requests that update ZooKeeper state are forwarded to the leader.   
+- A raft like leader election algorithm is executed if the leader fails​   
+
+
+![](https://cdn-mineru.openxlab.org.cn/extract/release/17e8f0b9-bbf3-4205-bc33-a174909991be/e3289e956b8e77ca9a42f04de6651173f6b39cc21dc21bb049525eb4176c08c1.jpg)  
+
+(2) Replication via Zab (ZooKeeper Atomic Broadcast), an atomic broadcast protocol   
+- discussed later​   
+- Essentially broadcast one message and hence it is not as general as Raft's replicated log abstraction​  
+- a single order for all writes -- ZK leader's log order. "zxid"  
+    Even though there is no explicit form of "log" in ZK, this zxid is actually the logIndex in RAFT  
+- all clients see writes appear in zxid order. including writes by other clients.  
+>  Zab 中，由 leader 按照 `zxid` 组织所有 writes 的顺序
+>  `zxid` 等价于 Raft 中的 `logindex`
+
+![](https://cdn-mineru.openxlab.org.cn/extract/release/17e8f0b9-bbf3-4205-bc33-a174909991be/45fa87ea032817776820751ca812fb2407b72b606e58708b96d30826518fd3be.jpg)  
+
+(3) Client can **directly** read from a follower server for read performance 
+- A read may not see latest completed writes! -- **not linearizable** 
+    A read to the lease-protected leader is needed for linearizability  
+- As a compensation ZK provides two more guarantees:  
+    **Sequential Consistency:** Updates from a client will be applied in the order that they were sent.  
+    **Single System Image:** A client will see the same view of the service regardless of the server that it connects to. i.e., a client will never see an older view of the system even if the client fails over to a different server with the same session.  
+        Client switches over to Follower 2 after its connection to Follower 1 is lost
+        As long as the client maintain the same "session", the client is guaranteed to "never see an older view of the system",  even if Follower 1 is currently more up-to-date than Follower 2. 
+- Implemented straightforwardly with the above monotonical zxid  
+    The current read zxid is preserved in the current session 
+    After reconnecting, the client will ask the connected follower to first sync to this zxid  
+- Justified later  
+
+>  ZooKeeper 为单个 client 提供了 Sequential Consistency 和 Single System Image 保证
+>  Single System Image 保证通过 `zxid` 实现
+
+(4) One sentence: a strong leader based replicated state machine that provides **linearizable write and allows non-linearizable but ordered read**.
+
+## ZooKeeper's Hierarchical Namespace Abstraction 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/release/17e8f0b9-bbf3-4205-bc33-a174909991be/d269c567d306d5adfefbe522696a79ab517e4c75a4630d7646b57464e0637a88.jpg)  
+
+(1) ZooKeeper provides to its clients the abstraction of a set of data nodes (**znodes**), organized according to a hierarchical namespace.  
+- ZooKeeper's APIs set is similar to a combination of key-value store and file system, i.e., a key/value table with hierarchical keys (e.g., etcd)  
+- Only **full** data reads (Get) and writes (Put) are allowed to a specific znode  
+    - Compare to the flexible dynamic data structures supported by Redis  
+        Redis Cluster does not guarantee strong consistency. In practical terms this means that under certain conditions it is possible that Redis Cluster **will lose writes** that were acknowledged by the system to the client. The first reason why Redis Cluster can lose writes is because it uses asynchronous replication. https://redis.io/docs/management/scaling/  
+    - The main scenario of using Redis is cache, which can tolerate loss of write  
+- Why hierarchical?  
+    - Why not provide just flat key-value and the users use a special value that contains a list of keys to mimic a hierarchical structure?   
+    - Simplicity: a useful abstraction because configurations in the real-world are naturally organized as a hierarchical structure   
+    - Functionality: ZooKeeper provides **a sequential guarantee under a specific prefix** 
+        As a compensation of the lack of linearizability, very elegant and useful!  
+
+(2) `Create(path, data, flags)`
+- Creates a znode with path name `path`, stores `data[]` in it, and returns the **name** of the new znode  
+    Why return a name after given a "path" in the input? -- enable the append of id suffix 
+- `flags` enables a client to select the type of znode: regular, ephemeral, and set the sequential/exclusive flag​  
+    - Regular: Clients manipulate regular znodes by creating and deleting them explicitly 
+    - Ephemeral: Clients create znodes that are either delete them explicitly, or let the system remove them **automatically** when the session that creates them terminates (deliberately or due to a failure)
+        Heartbeat is automatically maintained between ZooKeeper and the client within the session​  
+- Sequential flag (`Regular_Sequential` or `Ephemeral_Sequential`) 
+    Nodes created with the sequential flag set have the value of a **monotonically** increasing counter appended to its name.  
+    **\[IMPOARTANT\]** If n is the new znode and p is the parent znode, then the sequence value of n is **never smaller** than the value in the name of any other sequential znode ever created under p -- we will show how to use this guarantee later  
+- **exclusive** -- only the first creation indicates success 
+
+```
+[zk: localhost:2181(coNNECTED) 9] create -e -s /test_znode/child_nodeA “this first is epemeral seq node data"   
+Created/test_znode/child_nodeA0000000000   
+[zk: localhost:2181(coNNECTED) 10] create -e -s /test_znode/child_nodeB "this second is epemeral seq node data"   
+Created /test_znode/child_nodeB0000000001   
+[zk:localhost:2181(CONNECTED) 11] ls /test_znode   
+[child_nodeB0000000001,child_nodeA0000000000]   
+[zk:localhost:2181(CONNECTED) 12]  
+```
+
+(3) `setData(path, data, version)` / `Delete (path, version)`
+- Modify the value or delete the path  
+- Version  
+    - znode is associated with time stamps and version counters as meta-data 
+    - Each time a znode's data changes, the version number increases.  
+    - **\[IMPOARTANT\]** **Conditional updates:** if the version it supplies doesn't match the actual version of the data, the update will fail.  
+        Similar to the usage of compare-and-swap instruction in multi-thread programming  
+
+(4) `exists(path, watch)` / `getData(path, watch)` / `getChildren(path, watch)`  
+- Return the existence / data (and meta data such as data version) / set of names of the children of path  
+- `watch = true` enables a client to set a watch on the znode 
+    - ZooKeeper's definition of a watch: a watch event is one-time trigger, sent to the client that set the watch, which occurs when the data for which the watch was set changes.  
+    - One-time trigger -- only the first change will trigger a notification (needs to watch again if it is needed)  
+    - Sent to the client  
+        - Watches are sent **asynchronously** to watchers 
+        - **\[IMPOARTANT\]** ZooKeeper provides an ordering guarantee: a client will never see a change for which it has set a watch until it **first sees the watch event.**  
+            This order is guaranteed even though the client can only communicate with a non-leader replica for these read operations, e.g., read a non-leader replica A, the change is made on leader and still not replicated to A​  
+    - The data for which the watch was set  
+        - Different operations watch different events (see [here](https://zookeeper.apache.org/doc/r3.6.3/zookeeperProgrammers.html#ch_zkWatches) for more) 
+        - Created event: Enabled with a call to `exists`.   
+        - Deleted event: Enabled with a call to `exists`, ` getData `, and ` getChildren `.   
+        - Changed event: Enabled with a call to `exists` and ` getData `.   
+        - Child event: Enabled with a call to `getChildren`.  
+
+(5) `sync(path)`: waits for all updates pending **at the start** of the operation to **propagate to the server that the client is connected to**  
+- ZooKeeper does not guarantee that at every instance in time, two different clients will have identical views of ZooKeeper data.   
+- If client A sets the value of a znode `/a` from 0 to 1, then tells client B to read `/a`, client B may read the old value of 0, depending on which server it is connected to.   
+- Client B should call the `sync()` method from the ZooKeeper API method before it perform its read   
+- How? `sync()` is essentially **a write operation** with empty write content. It will be **redirected to leader** and **force the current connecting replica to sync with the leader**  
+    - In the above example, whether B reads 0 or 1 on `/a` depends on whether the sync operation of B is ordered before or later than the write operation from A​ 
+    - Both cases are possible and they all guarantee linearizability  
+
+## Examples of Using ZooKeeper's Abstraction 
+### Distributed Lock​  
+#### Exclusive Locks  
+(1) Simple Approach   
+- Concurrently create an **ephemeral** znode "/path/to/lock/file", only one will succeed and acquire the lock​ 
+- Explicitly deletes the lock file for releasing or removed automatically because of network timeout​ 
+    Network partition? -- again, use lease (already supported by the ephemeral znode)   
+
+>  lock file 会在 network timeout 后被自动移除，如果 network timeout 只是因为 network partition 导致的，client 恢复后将不具备 lock
+>  故 client 需要检查自己当前是否已有 lock，再确认自己是否有资格执行操作
+
+- Others watch "/path/to/lock/file" for the liveness of the lock, try to create it again **if a delete notification is received**   
+- **Herd Effect:** concurrent writing for every race but only one will success -- **a waste of network**  
+
+(2) Complex Approach  
+
+```
+Lock  
+
+1 n = Create(l + “/lock-"， EPHEMERALI | SEQUENTIAL)
+2 C = getChildren(l, false)   
+3 if n is lowest znode in C,exit   
+4 p = znode in C ordered just before n  
+
+Unlock  
+
+1 delete(n)   
+```
+
+- Setting the sequential flag so that each child znode is attached with a unique sequence value   
+- The child with smallest sequence value is the leader   
+- Each child only watching the znode that **precedes** the client’s znode -- how to maintain  
+
+#### Read Write Lock  
+
+```
+Write Lock  
+
+1 n = Create(l + “/write-"， EPHEMERAL|SEQUENTIAL)   
+2 C = getChildren(l, false)   
+3 if n is lowest znode in C，exit   
+4 if exists(p, true) znode in C ordered just before n   
+5   
+6 goto2  
+```
+
+```
+Read Lock  
+
+1 n = Create(l + “/read-"， EPHEMERAL|SEQUENTIAL)   
+2 C = getChildren(l, false)   
+3 if no write znodes lower than n in C, exit 
+4 p = write znode in C ordered just before n   
+5 if exits(p, true) wait for event 
+6 goto3  
+```
+
+The flexibility of using the sequence value (only possible with the built-in hierarchical structure)  
+
+**Corner Case: recoverable exceptions**  
+- The above recipes employ sequential ephemeral nodes.   
+- When creating a sequential ephemeral node there is an error case in which the `create()` **succeeds** on the server but the server **crashes before returning the name of the node to the client.**   
+- When the client reconnects, its **session is still valid** and, thus, the node is not removed. 
+- The implication is that it is difficult for the client to know if its node **was created or not**.   
+- Solution 
+    Assign a Global Unique ID (GUID) to each client and use this GUID as a prefix of the path "l + /guid-lock-" 
+    If a recoverable error occurs calling create() the client should call `getChildren()` and check for a node containing the guid used in the path name  
+
+>  为了在上述的 corner case 中让 client 确认 server 中关于它所请求的 znodes 的具体存在与否，需要为 client 赋予全局独立 id，将 client 所请求的 znodes 的路径都与该 id 关联
+>  这样，client 可以通过 `getChildren()` ，确认 server 中存在的和它相关的 znodes 具体有哪些
+
+**More​**  
+More in https://zookeeper.apache.org/doc/r3.6.3/zookeeperTutorial.html and https://zookeeper.apache.org/doc/r3.6.3/recipes.html  
+
+### Cluster Management  
+A typical structure.
+
+![](https://cdn-mineru.openxlab.org.cn/extract/release/17e8f0b9-bbf3-4205-bc33-a174909991be/d87fb7285bda55e81401156af6ec03d280cbec45877db469b1991a26a04cc0e8.jpg)  
+
+
+**Leader Election:** similar to lock  
+
+**Group Membership:**   
+- Ephemeral znodes within the same specific parent znode 
+- `getChildren(.., watch=true)` for membership changes  
+
+**Configuration Management**  
+- A specific path for configuration 
+- Use watch to get notifications of configuration changes  
+
+**Atomic Modification Problem**  
+**One client** (maybe the master) wants to change a large number of configurations that are stored at multiple znodes and **publishes them atomically** (i.e., no other server sees partial configurations)  
+
+Solution 1 -- communicated via only ZooKeeper  
+- The master creates a "/path/to/**ready**" znode and the others watch on this znode   
+- At the start of modifications, the master deletes "/path/to/ready" to indicate that the configuration znodes are currently not available to read​ 
+- Then, the master can modify the configuration znodes in parallel 
+- Finally, the master re-creates the "/path/to/ready" znode to indicate the other servers can fetch the new configuration
+    Because of the **FIFO** guarantee, if ZooKeeper client sees "ready" znode, it will see **updates that preceded it​**.
+
+What if a server first (1) checks the ready and then (2) read configuration, but the master deletes the ready just **in between** (1) and (2)? Is it possible that this server reads a partial state?  
+
+```
+Write order: 
+1 
+2
+3
+4 delete("ready")   
+5 write f1   
+6 write f2   
+7  
+8 create("ready")  
+```
+
+```
+Read order:
+1
+2 exists("ready", watch=true)   
+3 read f1   
+4
+5
+6
+7 read f2  
+8
+```
+
+- Protected by the guaranteeing of watch order   
+- The server (client) should check "/path/to/ready" with watch=true 
+- Then the system guarantees that the deletion of ready **comes first before it can read any of the new configurations.**  
+
+>  ZooKeeper 在修改某个 znode 时，先确保所有对该 znode 设置了 watch 的 clients 收到了通知，再执行修改
+
+What if servers had their own communication channels other than the built-in watch?  
+Use sync to assure that causes a server to apply all pending write requests before processing the read without the overhead of a full write  
+
+## ZooKeeper Guarantees Revisit  
+- Linearizable writes  
+    - all requests that update the state of ZooKeeper are serializable and respect precedence 
+    - a single order for all writes -- ZK leader's log order. "zxid" 
+    - all clients see writes appear in zxid order. including writes by other clients.  
+    - Sequential Consistency: Updates from a client will be applied in the order that they were sent.  
+    - Atomicity : Updates either succeed or fail -- there are no partial results.  
+        Only single node atomicity 
+        Multi nodes atomicity can be achieved with a "ready" flag  
+- FIFO read order  
+    - Read is not linearizable but ordered 
+    - all requests from a given client are executed in the order that they were sent by the client 
+    - Single System Image: A client will see the same view of the service regardless of the server that it connects to. i.e., a client will never see an older view of the system even if the client fails over to a different server with the same session. 
+    - Timeliness : The clients view of the system is guaranteed to be up-to-date within a certain time bound (on the order of tens of seconds). Either system changes will be seen by a client within this bound, or the client will detect a service outage.   
+- Watch order: a client will never see a change for which it has set a watch until it first sees the watch event   
+- Liveness: if a majority of ZooKeeper servers are active and communicating the service will be available   
+- Durability: if the ZooKeeper service responds successfully to a change request, that change persists across any number of failures as long as a quorum of servers is eventually able to recover.  
+
+## Advantage of ZooKeeper's Abstraction  
+well tuned for concurrency and synchronization  
+- exclusive file creation; exactly one concurrent create returns success​   
+- `getData()` / `setData(x, version)` supports mini-transactions   
+- sessions automate actions when clients fail (e.g. release lock on failure)   
+- sequential files create order among multiple clients   
+- watches avoid polling   
+- read from followers for performance and watch/sync for a certain kind of consistency   
+- clients of ZK launch many async operations without waiting​ 
+    ZK processes them efficiently in a batch; fewer msgs, disk writes   
+    client library numbers them, ZK executes them in that order  
+- A-linearizability (asynchronous linearizability)  
+
+## Zookeeper (Zab) V.S. Raft  
+- Replica States: LEADING/FOLLOWING/LOOKING in Zab = Leader/Follower/Candidate in Raft​ 
+- Replication  
+    - Same: broadcast to all the $2\mathsf{n}+1$ replicas by leader, committed after receiving $\mathsf{n}+\mathsf{1}$ ack 
+    - Not the same  
+        Replicate state in Zab, Replicate Computation in Raft 
+        Zab is essentially a primary-backup system, Raft is a replicated state machine 
+        Raft is more flexible because of the arbitrary operation logic can be implemented and recorded in the replicated log -- only write operation is supported in Zab  
+
+>  Zab 存储状态而 Raft 存储操作
+>  回忆起在 ZooKeeper 中，master server 在接收到请求后，需要先根据请求计算出执行请求后会处于什么状态，再利用 Zab 广播该状态
+>  如果是 Raft，则会直接为该请求执行的操作达成共识，具体的操作执行由各个确定性状态机分别执行
+>  因此，Zab 更像是 primary-backup 系统，通过共识存储 master 所计算的状态，而 Raft 则服务于 replicated state machine，通过共识存储状态机所需要执行的操作
+
+- Leader Election  
+    - Raft directly uses a random timeout threshold to solve the problem of live lock  
+    - Zab is more complex because it also compares the node ID  
+        Thus, the newly selected leader may not contain the most recent committed data and hence a bi-direction (may read data from followers) recovery is needed 
+    - Read: Zab is built-in with the read-only optimization that we have discussed in the Raft lecture and several more functionalities such as watch and sync (sync is similar to committing a no-op in Raft)  
+        - How to guarantee the order in Zab? -- `zxid` 
+            Client will remember the largest `zxid` it has seen and attach this `largest_zxid` in every read operation   
+            The server will reject this read if its own committed `zxid` is smaller than `largest_zxid`   
+            The server also needs to check and send watch notifications if there is such notifications in between `largest_zxid` and the server's current `zxid`  
+- Snapshot: fuzzy snapshot in Zookeeper -- take snapshot without locking, possible because it is a state replication system and writes are idempotent​  
+- Client liveness: ZooKeeper checks the liveness of client (for ephemeral znodes) by timeout  
