@@ -100,7 +100,7 @@ Date: 2024.9.9-2024.9.16
 - [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec6
     Sec6-Utilization
         Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
-- [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|2023-NeurIPS-Are Emergent Abilities of Large Language Models a Mirage?]]: All
+- [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|2023-NeurIPS-Are Emergent Abilities of Large Language Models a Mirage]]: All
 
 \[Book\]
 - [[book-notes/Introductory Combinatorics-2009|Introductory Combinatorics]]: CH1
@@ -152,7 +152,7 @@ Date: 2024.9.30-2024.10.7
     CH8-Applicatoin
         LLM application in various tasks
     CH9-Conclusion and future directions
-- [[Importance Sampling A Review-2010|2010-Importance Sampling: A Review]]: All
+- [[Importance Sampling A Review-2010|2010-Importance Sampling A Review]]: All
     IS is all about variance reduction for Monte Carlo approximation;
     Adaptive parametric Importance Sampling: $q (x)$ be defined as a multivariate normal or student distribution, then optimizing a variation correlated metric to derive an optimal parameter setting for that distribution;
     Sequential Importance Sampling: Chain decompose $p (x)$, and chain construct $q (x)$;
@@ -226,7 +226,7 @@ Date: 2024.10.14-2024.10.21
 - [[doc-notes/pytorch/Pytorch 2.x|pytorch/Pytorch 2.x]]: CH0
     CH0-General Introduction
         `torch.compile` : TorchDynamo --> FX Graph in Torch IR --> AOTAutograd --> FX graph in Aten/Prims IR --> TorchInductor --> Triton code/OpenMP code...
-- [[doc-notes/triton/Getting Started|Triton: Tutorials]]: Vector Addition, Fused Softmax
+- [[doc-notes/triton/Getting Started|triton/Getting Started]]: Vector Addition, Fused Softmax
     Triton is basically simplified CUDA in python, the general idea about parallel computing is similar. The most advantageous perspective about Triton is that it encapsulates all the complicated memory address mapping work into a single api `tl.load` . Memory address mapping work is the most difficult part of writing CUDA code.
 
 ### Week 4
@@ -326,7 +326,7 @@ Date: 2024.11.4-2024.11.11
 \[Doc\]
 - [[doc-notes/python/howto/general/Annotations Best Practices|python/howto/general/Annotations Best Practices]]
     Best Practice after Python 3.10: use `inspect.get_annotations()` to get any object's annotation
-- [[huggingface/hub/Repositories]]: Sec4-Sec10
+- [[doc-notes/huggingface/hub/Repositories|huggingface/hub/Repositories]]: Sec4-Sec10
 
 ### Week 3
 Date: 2024.11.11-2024.11.18
@@ -417,13 +417,13 @@ Date: 2024.11.11-2024.11.18
         The thread scope in CUDA includes `cuda::thread_scope::thread_scope_thread/block/device/system`
         Compute Capability is the version of SM architecture, denoted by a major version number and a minor version number
         CUDA version is the version of CUDA software platform
-- [[docker/get-started/What is Docker]] 
+- [[doc-notes/docker/get-started/What is Docker|docker/get-started/What is Docker]] 
     Containers include everything needed for running an application
     Use containers to be the unit of distributing and deploying applications
     Docker client ( `docker` ) use Docker API to communicate with Docker daemon ( `dockerd` ), which is responsible for managing containers
     Docker registry stores images. `docker pull` pulls image from registry, and `docker push` pushes image to registry
     Image is an read-only template of instructions for creating container. Image is defined by Dockerfile, and is consists of layers. Each instruction in Dockerfile defines a layer in image. Once created, the image can not be modified. Container is a runnable instance of an image.
-- [[docker/get-started/Docker Concepts]]
+- [[doc-notes/docker/get-started/Docker Concepts|docker/get-started/Docker Concepts]]
     The Basics: 
     Container is essentially an isolated process. Multiple containers share the same kernel.
     Container image packages all the needed binaries, files, configurations, libraries to run a container. Image is read-only, and consists of layers, each of which represents a set of filesystem changes.
@@ -1427,7 +1427,7 @@ Date: 2025.3.3-2025.3.10
         To test the packages compiles, use `go build` . This won't produce an output file but saves the compiled package in the local build cache. When built, the packages can be imported.
         `go mod tidy` will automatically manage dependencies on external modules.
     Testing
-- [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/Toy Tutorial]]: CH3-CH7
+- [[doc-notes/mlir/code-documentation/tutorials/Toy Tutorial|mlir/code-documentation/tutorials/Toy Tutorial]]: CH3-CH7
 - [[doc-notes/python/packages/gymnasium/Introduction|python/packages/gymnasium/Introduction]]: All
     Basic Usage
         The four key function of `gymnasium` is `make(), Env.reset(), Env.step(), Env.render()`
@@ -1582,7 +1582,7 @@ Date: 2025.3.10-2025.3.17
     Besides nesting relationship, an other relationship in the IR is the link relationship between a `Value` and its users. Each `Value` is either a `BlockArgument` or the result of one `Operation`
 - [[doc-notes/mlir/code-documentation/Pass Infrastructure|mlir/code-documentation/Pass Infrastructure]]
 - [[doc-notes/python/packages/hydra/Tutorials|python/packages/hydra/Tutorials]]
-- [[doc-notes/python/library/file-formats/tomllib - Parse TOML files|python/library/file-format/tomllib - Parse TOML files]]: All
+- [[doc-notes/python/library/file-formats/tomllib - Parse TOML files|python/library/file-formats/tomllib - Parse TOML files]]: All
 - [[doc-notes/TOML v1.0.0|TOML v1.0.0]]: All
 
 ### Week 4
@@ -1909,9 +1909,8 @@ Date: 2025.3.31-2025.4.7
         By approximation, we substitute the expectations with their Monte Carlo estimation, and importance sampling is also used.
     6-Practical Algorithm
     7-Connections with Prior Work
-- [[paper-notes/rl/Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML|Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML]]: All
+- [[paper-notes/rl/Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML|2018-ICML-Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor]]: All (except Appendix)
 - [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
-
 
 \[Doc\]
 - [[doc-notes/gerrit/Quickstart for Installing Gerrit on Linux|gerrit/Quickstart for Installing Gerrit on Linux]]: All
