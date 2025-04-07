@@ -211,7 +211,6 @@ When a tmux client is attached, it shows a status line on the bottom line of the
 >  右边是 pane 标题，默认是运行 tmux 的 host 的名字，以及时间和日期
 
 ![](https://github.com/tmux/tmux/wiki/images/tmux_status_line_diagram.png)
-
 As new windows are opened, the window list grows - if there are too many windows to fit on the width of the terminal, a `<` or `>` will be added at the left or right or both to show there are hidden windows.
 
 In the window list, the current window is marked with a `*` after the name, and the last window with a `-`.
@@ -281,7 +280,7 @@ $ tmux new-session -d -nmysession
 >  每个 tmux 命令可以有零个或多个 flags，与标准的 Unix 命令形式相同
 >  flags 本身可以接收零个或单个参数
 >  另外，tmux 命令可以在 flags 之后接收额外的参数
->  flags 在命令之后传递，示例乳山市给
+>  flags 在命令之后传递，示例如上
 
 All commands and their flags are documented in the tmux manual page.
 >  tmux 手册中描述了所有的 tmux 命令和其 flags
@@ -310,7 +309,7 @@ Multiple commands may be entered together at the command prompt by separating th
 Detaching from tmux means that the client exits and detaches from the outside terminal, returning to the shell and leaving the tmux session and any programs inside it running in the background. To detach tmux, the `C-b d` key binding is used. When tmux detaches, it will print a message with the session name:
 >  从 tmux 分离意味着 client 进程断开和 session 的连接，并且 outside terminal 的 client 进程会退出
 >  outside terminal 会回到 shell 程序，而 tmux session 和其中运行的任意程序会保留在后台运行
->  `C-b d` 用于分离 tmux，分离后，tmux 会打印带有 session 名称的消息
+>  `C-b d` (等价于 `tmux detach`) 用于分离 tmux，分离后，tmux 会打印带有 session 名称的消息
 
 ```
 [detached (from session mysession)]
@@ -365,6 +364,8 @@ mysession: 1 windows (created Sat Feb 22 11:44:51 2020)
 
 #### Killing tmux entirely
 If there are no sessions, windows or panes inside tmux, the server will exit. It can also be entirely killed using the `kill-server` command. For example, at the command prompt:
+>  tmux server 会在没有 session, windows, panes 时退出
+>  可以通过 `kill-server` 命令手动结束 server
 
 ```
 :kill-server
@@ -381,7 +382,6 @@ If there are any gaps in the window list, they are filled by new windows. So if 
 The `new-window` command has some useful flags which can be used with the command prompt:
 
 - The `-d` flag creates the window, but does not make it the current window.
-    
 - `-n` allows a name for the new window to be given. For example using the command prompt to create a window called `mynewwindow` without making it the current window:
     
     ```
@@ -402,8 +402,6 @@ A command to be run in the new window may be given to `new-window` in the same
 ```
 
 #### Splitting the window
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#splitting-the-window)
 
 ![](https://github.com/tmux/tmux/wiki/images/tmux_split_h.png)
 
