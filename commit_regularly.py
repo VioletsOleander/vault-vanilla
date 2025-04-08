@@ -13,13 +13,16 @@ class GitCommitRegularly:
             description="Generate daily, weekly, or montly commit message headline")
         parser.add_argument('status', choices=self.status_list,
                             help="specify 'daily' for a daily commit, 'weekly' for a weekly commit, or 'monthly' for a monthly commit.")
-        parser.add_argument(
-            '-l', '--late', action="store_true", help="for daily commit, if specified, generate headline for the previous day")
+        parser.add_argument('-l', '--late', action="store_true",
+                            help="for daily commit, if specified, generate headline for the previous day")
+        parser.add_argument('--allow-empty', action="store_true",
+                            help="allow empty commit")
         args = parser.parse_args()
 
         self.args = args
         self.status = args.status
         self.late = args.late
+        self.allow_empty = args.allow_empty
 
     def generate_headline(self) -> str:
         today = datetime.datetime.today()
@@ -51,7 +54,7 @@ class GitCommitRegularly:
             start_date_str = start_of_month.strftime("%Y-%m-%d")
             end_date_str = end_of_month.strftime("%Y-%m-%d")
 
-            self.headline = f"log(monthly): Month {today.month} ({
+            self.headline = f"log(monthly): Month {today.month}({
                 start_date_str} to {end_date_str}"
             return
         else:
@@ -61,9 +64,13 @@ class GitCommitRegularly:
     def execute(self):
         self.parse_args()
         self.generate_headline()
-        subprocess.run(['git', 'commit', '-e', '-m', self.headline])
+        if self.allow_empty:
+            subprocess.run(['git', 'commit', '--allow-empty',
+                           '-e', '-m', self.headline])
+        else:
+            subprocess.run(['git', 'commit', '-e', '-m', self.headline])
 
 
 if __name__ == "__main__":
-    command = GitCommitRegularly()
+    command=GitCommitRegularly()
     command.execute()
