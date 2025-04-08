@@ -12,7 +12,7 @@ Both of these challenges severely limit the applicability of such methods to com
 
  Prior deep RL methods based on this framework have been formulated as Q-learning methods. By combining off-policy updates with a stable stochastic actor-critic formulation, our method achieves state-of-the-art performance on a range of continuous control benchmark tasks, outperforming prior on-policy and off-policy methods. 
  > 之前的基于该框架的 RL 方法已经被表述为 Q-Learning 方法
- >  我们的方法将异策略更新和稳定的随机 actor-critic 公式结合，在一系列连续控制任务中达到 SOTA，优于之前的同策略和异策略方法
+ > 我们的方法将异策略更新和稳定的随机 actor-critic 公式结合，在一系列连续控制任务中达到 SOTA，优于之前的同策略和异策略方法
 
 Furthermore, we demonstrate that, in contrast to other off-policy algorithms, our approach is very stable, achieving very similar performance across different random seeds. 
 >  此外，相较于其他异策略算法，我们的方法非常稳定，在不同随机种子下达到几乎相同的表现
@@ -33,6 +33,8 @@ Off-policy algorithms aim to reuse past experience. This is not directly feasibl
 >  异策略算法不能直接用于常规的策略梯度形式，但适用于基于 Q-Learning 的方法
 >  但异策略学习使用神经网络作为近似器时，存在稳定性和收敛性的问题，在连续动作和状态空间的情况下，这类问题会更加严重
 >  DDPG 使用一个分离的 actor 网络执行 Q-Learning 中的 maximization，其学习是参数高效的，但 DDPG 对超参数很敏感
+
+>  因为 DDPG 使用确定性策略，缺乏探索 (可能把 DDPG 的行为策略定义得探索性更大一点会就可以解决这个问题)，故学习的泛化性较低，对超参数很敏感
 
 We explore how to design an efficient and stable model-free deep RL algorithm for continuous state and action spaces. To that end, we draw on the maximum entropy framework, which augments the standard maximum reward reinforcement learning objective with an entropy maximization term (Ziebart et al., 2008; Toussaint, 2009; Rawlik et al., 2012; Fox et al., 2016; Haarnoja et al., 2017). 
 >  我们探索为连续的状态和动作空间设计高效且稳定的 model-free deep RL 算法
