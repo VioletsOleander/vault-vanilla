@@ -455,59 +455,289 @@ Git v2.23.0 引入了 `git restore` 命令，该命令基本上是 `git reset` �
 
 如果需要移除对某个远端仓库的引用 (即本地移除)，可以使用 `git remote remove` 或 `git remote rm` ，例如 `git remove paul` ，这会删除所有的香断的正在远程追踪的分支，以及相关的配置设定
 ## 2.6 Tagging
-和多数 VCS 一样，Git 可以将仓库历史中的某个特定点标记为重要的，一般人们用该功能标记发布点 (release points)(v1.0, v2.0 等)
-### 2.6.1 Listing Your Tags
-`git tag [-l | --list]` 用于列出现存的标签，输出以字典序排序，因此排列顺序没有特殊含义
+Like most VCSs, Git has the ability to tag specific points in a repository’s history as being important. Typically, people use this functionality to mark release points (`v1.0`, `v2.0` and so on). 
+>  和多数 VCS 一样，Git 可以将仓库历史中的某个特定点标记为重要的，一般人们用该功能标记发布点 (release points)(v1.0, v2.0 等)
 
-我们可以搜索匹配某个特定模式的标签，例如
-`git tag -l "v1.8.5*"`
-其中 `-l` 或 `--list` 选项是必需的
-### 2.6.2 Creating Tags
-Git 支持两种类型的标签：轻量级的标签和带注释的标签 (lightweight and annotated)
-轻量级标签非常类似于不会改变的一个分支——它只是一个指向特定提交的指针 (pointer to a specific commit)
+In this section, you’ll learn how to list existing tags, how to create and delete tags, and what the different types of tags are.
 
-带注释的标签，则作为完全的对象储存在 Git 数据库中，它们会被计算检验和；包括了标记者名称 (tagger name)，邮箱，日期；有一条标记信息 (tagging information)；可以被签名 (signed) 且被 GNU Privacy Guard/GPG 验证
-因此一般推荐创建带注释的标签，但如果只想创建暂时的标签，或不想保存这些信息，就创建轻量级标签
-#### 2.6.2.1 Annotated Tags
-使用 `git tag -a` 可以创建带注释的标签，例如
-`git tag -a v1.4 -m "my version 1.4"`
-其中 `-m` 选项用于添加标记信息/注释，标记信息会和标签一起存储，如果没有使用 `-m` 选项，Git 会启动默认的文本编辑器
+### Listing Your Tags
+Listing the existing tags in Git is straightforward. Just type `git tag` (with optional `-l` or `--list`):
 
-使用 `git show` 命令可以查看标签相关数据，以及所标记的提交的信息，例如
-`git show v1.4`
-展示的信息包括标记者信息，提交被标记的日期，注释信息，以及提交本身的信息
-#### 2.6.2.2 Lightweight Tags
-轻量级标签可以基本上认为就是存在一个文件里的提交的检验和，轻量级标签不会保存其他任何信息
-要创建一个轻量级标签，不要使用 `-m` , `-a` , `-s` 选项，只提供标签名称，
-例如 `git tag v1.4-lw`
+```
+git tag
+v1.0
+v2.0
+```
 
-使用 `git show v1.4-lw` 时，我们不会看到多于的信息，只会看到提交本身的信息
-### 2.6.3 Tagging Later
-我们不仅可以对当前提交贴标签，也可以对历史提交贴标签，只需要在命令结尾指明对应提交的检验和 (或检验和的一部分)，例如
-`git tag -a v1.2 9fceb02`
-### 2.6.4 Sharing Tags
-默认情况下，`git push` 不会将标签迁移到远端服务器，在我们创建了标签后，我们需要显式地将标签推送到远端，命令格式和推送本地分支类似，即
-`git push <remote> <tagname>` ，例如
-`git push origin v1.5`
+This command lists the tags in alphabetical order; the order in which they are displayed has no real importance.
 
-如果想要一次性推送多个标签，使用 `--tags` 选项，这会将本地有而远端没有的标签一次性都迁移到远端，例如
-`git push origin --tags`
+>  `git tag [-l | --list]` 用于列出现存的标签，输出以字典序排序，因此排列顺序没有特殊含义
 
-注意，`git push <remote> --tags` 会推送带注释的标签和轻量级标签，如果想只推送带注释的标签，使用 `git push <remote> --follow-tags` ，目前没有命令用于只推送轻量级标签
-### 2.6.5 Deleting Tags
-`git tag -d <tagname>` 用于删除本地仓库的标签
-例如 `git tag -d v1.4-lw`
-注意这不会删除任意远程服务器上的标签，要删除远程服务器上的标签，有两种方式：
-第一种方式为 `git push <remote>:refs/tags/<tagname>`
-例如 `git push origin :refs/tags/v1.4-lw` ，即将 `:` 前的空值推送到远端的标签上，因此删除了该标签
-第二种方式为 `git push origin --delete <tagname>`
-### 2.6.6 Checking out Tags
-我们可以用 `git checkout <tagname>` 检出某个标签对应的提交版本，注意这会让我们的仓库变为“detached HEAD”状态
-例如 `git checkout v2.0.0`
+You can also search for tags that match a particular pattern. The Git source repo, for instance, contains more than 500 tags. If you’re interested only in looking at the 1.8.5 series, you can run this:
+>  我们可以搜索匹配某个特定模式的标签，例如 `git tag -l "v1.8.5*"`
 
-在“detached HEAD”状态，如果我们做了修改并进行了提交，我们的标签名不会变，但我们的新提交不会属于任何分支，且只能用提交哈希码索引，
-因此，如果我们想要做出修改，例如我们要修补老版本中的一个 bug，一般的实践是创建一个分支，在分支中进行提交
-`git checkout -b version v2.0.0`
+```
+$ git tag -l "v1.8.5*"
+v1.8.5
+v1.8.5-rc0
+v1.8.5-rc1
+v1.8.5-rc2
+v1.8.5-rc3
+v1.8.5.1
+v1.8.5.2
+v1.8.5.3
+v1.8.5.4
+v1.8.5.5
+```
+
+If you want just the entire list of tags, running the command `git tag` implicitly assumes you want a listing and provides one; the use of `-l` or `--list` in this case is optional. If, however, you’re supplying a wildcard pattern to match tag names, the use of `-l` or `--list` is mandatory.
+>  使用模式匹配特定的标签时，` -l ` 或 ` --list ` 选项是必需的
+
+### Creating Tags
+Git supports two types of tags: _lightweight_ and _annotated_.
+>  Git 支持两种类型的标签：轻量级的标签和带注释的标签 (lightweight and annotated)
+
+A lightweight tag is very much like a branch that doesn’t change — it’s just a pointer to a specific commit.
+>  轻量级标签非常类似于不会改变的一个分支——它只是一个指向特定提交的指针 (pointer to a specific commit)
+
+Annotated tags, however, are stored as full objects in the Git database. They’re checksummed; contain the tagger name, email, and date; have a tagging message; and can be signed and verified with GNU Privacy Guard (GPG). 
+>  带注释的标签，则作为完全的对象储存在 Git 数据库中，它们会被计算检验和；包括了标记者名称 (tagger name)，邮箱，日期；有一条标记信息 (tagging information)；可以被签名 (signed) 且被 GNU Privacy Guard/GPG 验证
+
+It’s generally recommended that you create annotated tags so you can have all this information; but if you want a temporary tag or for some reason don’t want to keep the other information, lightweight tags are available too.
+>  因此一般推荐创建带注释的标签，但如果只想创建暂时的标签，或不想保存这些信息，就创建轻量级标签
+
+#### Annotated Tags
+Creating an annotated tag in Git is simple. The easiest way is to specify `-a` when you run the `tag` command:
+
+```
+$ git tag -a v1.4 -m "my version 1.4"
+$ git tag
+v0.1
+v1.3
+v1.4
+```
+
+The `-m` specifies a tagging message, which is stored with the tag. If you don’t specify a message for an annotated tag, Git launches your editor so you can type it in.
+
+>  使用 `git tag -a` 可以创建带注释的标签，例如
+>  `git tag -a v1.4 -m "my version 1.4"`
+>  其中 `-m` 选项用于添加标记信息/注释，标记信息会和标签一起存储，如果没有使用 `-m` 选项，Git 会启动默认的文本编辑器
+
+You can see the tag data along with the commit that was tagged by using the `git show` command:
+
+```console
+$ git show v1.4
+tag v1.4
+Tagger: Ben Straub <ben@straub.cc>
+Date:   Sat May 3 20:19:12 2014 -0700
+
+my version 1.4
+
+commit ca82a6dff817ec66f44342007202690a93763949
+Author: Scott Chacon <schacon@gee-mail.com>
+Date:   Mon Mar 17 21:52:11 2008 -0700
+
+    Change version number
+```
+
+That shows the tagger information, the date the commit was tagged, and the annotation message before showing the commit information.
+
+>  使用 `git show` 命令可以查看标签相关数据，以及所标记的提交的信息，例如
+>  `git show v1.4`
+>  展示的信息包括标记者信息，提交被标记的日期，注释信息，以及提交本身的信息
+
+#### Lightweight Tags
+Another way to tag commits is with a lightweight tag. This is basically the commit checksum stored in a file — no other information is kept. 
+>  轻量级标签可以基本上认为就是存在一个文件里的提交的检验和，轻量级标签不会保存其他任何信息
+
+To create a lightweight tag, don’t supply any of the `-a`, `-s`, or `-m` options, just provide a tag name:
+
+```console
+$ git tag v1.4-lw
+$ git tag
+v0.1
+v1.3
+v1.4
+v1.4-lw
+v1.5
+```
+
+>  要创建一个轻量级标签，不要使用 `-m` , `-a` , `-s` 选项，只提供标签名称，
+>  例如 `git tag v1.4-lw`
+
+This time, if you run `git show` on the tag, you don’t see the extra tag information. The command just shows the commit:
+>  使用 `git show v1.4-lw` 时，我们不会看到多余的信息，只会看到提交本身的信息
+
+```console
+$ git show v1.4-lw
+commit ca82a6dff817ec66f44342007202690a93763949
+Author: Scott Chacon <schacon@gee-mail.com>
+Date:   Mon Mar 17 21:52:11 2008 -0700
+
+    Change version number
+```
+
+### Tagging Later
+You can also tag commits after you’ve moved past them. Suppose your commit history looks like this:
+
+```console
+$ git log --pretty=oneline
+15027957951b64cf874c3557a0f3547bd83b3ff6 Merge branch 'experiment'
+a6b4c97498bd301d84096da251c98a07c7723e65 Create write support
+0d52aaab4479697da7686c15f77a3d64d9165190 One more thing
+6d52a271eda8725415634dd79daabbc4d9b6008e Merge branch 'experiment'
+0b7434d86859cc7b8c3d5e1dddfed66ff742fcbc Add commit function
+4682c3261057305bdd616e23b64b0857d832627b Add todo file
+166ae0c4d3f420721acbb115cc33848dfcc2121a Create write support
+9fceb02d0ae598e95dc970b74767f19372d61af8 Update rakefile
+964f16d36dfccde844893cac5b347e7b3d44abbc Commit the todo
+8a5cbc430f1a9c3d00faaeffd07798508422908a Update readme
+```
+
+Now, suppose you forgot to tag the project at v1.2, which was at the “Update rakefile” commit. You can add it after the fact. To tag that commit, you specify the commit checksum (or part of it) at the end of the command:
+
+```console
+$ git tag -a v1.2 9fceb02
+```
+
+You can see that you’ve tagged the commit:
+
+```console
+$ git tag
+v0.1
+v1.2
+v1.3
+v1.4
+v1.4-lw
+v1.5
+
+$ git show v1.2
+tag v1.2
+Tagger: Scott Chacon <schacon@gee-mail.com>
+Date:   Mon Feb 9 15:32:16 2009 -0800
+
+version 1.2
+commit 9fceb02d0ae598e95dc970b74767f19372d61af8
+Author: Magnus Chacon <mchacon@gee-mail.com>
+Date:   Sun Apr 27 20:43:35 2008 -0700
+
+    Update rakefile
+...
+```
+
+>  我们不仅可以对当前提交贴标签，也可以对历史提交贴标签，只需要在命令结尾指明对应提交的检验和 (或检验和的一部分)，例如
+>  `git tag -a v1.2 9fceb02`
+
+### Sharing Tags
+By default, the `git push` command doesn’t transfer tags to remote servers. You will have to explicitly push tags to a shared server after you have created them. This process is just like sharing remote branches — you can run `git push origin <tagname>`.
+>  默认情况下，`git push` 不会将标签迁移到远端服务器，在我们创建了标签后，我们需要显式地将标签推送到远端，命令格式和推送本地分支类似，即 `git push <remote> <tagname>` ，例如 `git push origin v1.5`
+
+```console
+$ git push origin v1.5
+Counting objects: 14, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (12/12), done.
+Writing objects: 100% (14/14), 2.05 KiB | 0 bytes/s, done.
+Total 14 (delta 3), reused 0 (delta 0)
+To git@github.com:schacon/simplegit.git
+ * [new tag]         v1.5 -> v1.5
+```
+
+If you have a lot of tags that you want to push up at once, you can also use the `--tags` option to the `git push` command. This will transfer all of your tags to the remote server that are not already there.
+
+```console
+$ git push origin --tags
+Counting objects: 1, done.
+Writing objects: 100% (1/1), 160 bytes | 0 bytes/s, done.
+Total 1 (delta 0), reused 0 (delta 0)
+To git@github.com:schacon/simplegit.git
+ * [new tag]         v1.4 -> v1.4
+ * [new tag]         v1.4-lw -> v1.4-lw
+```
+
+Now, when someone else clones or pulls from your repository, they will get all your tags as well.
+
+>  如果想要一次性推送多个标签，使用 `--tags` 选项，这会将本地有而远端没有的标签一次性都迁移到远端，例如
+>  `git push origin --tags`
+
+
+`git push <remote> --tags` will push both lightweight and annotated tags. There is currently no option to push only lightweight tags, but if you use `git push <remote> --follow-tags` only annotated tags will be pushed to the remote.
+>  注意，`git push <remote> --tags` 会同时推送带注释的标签和轻量级标签，如果想只推送带注释的标签，使用 `git push <remote> --follow-tags` ，目前没有命令用于只推送轻量级标签
+
+### Deleting Tags
+To delete a tag on your local repository, you can use `git tag -d <tagname>`. For example, we could remove our lightweight tag above as follows:
+
+```console
+$ git tag -d v1.4-lw
+Deleted tag 'v1.4-lw' (was e7d5add)
+```
+
+
+>  `git tag -d <tagname>` 用于删除本地仓库的标签
+>  例如 `git tag -d v1.4-lw`
+
+Note that this does not remove the tag from any remote servers. There are two common variations for deleting a tag from a remote server.
+
+The first variation is `git push <remote> :refs/tags/<tagname>`:
+
+```console
+$ git push origin :refs/tags/v1.4-lw
+To /git@github.com:schacon/simplegit.git
+ - [deleted]         v1.4-lw
+```
+
+>  注意这不会删除任意远程服务器上的标签，要删除远程服务器上的标签，有两种方式：
+>  第一种方式为 `git push <remote> :refs/tags/<tagname>`
+>  例如 `git push origin :refs/tags/v1.4-lw` ，即将 `:` 前的空值推送到远端的标签上，因此删除了该标签
+>  第二种方式为 `git push origin --delete <tagname>`
+
+### Checking out Tags
+If you want to view the versions of files a tag is pointing to, you can do a `git checkout` of that tag, although this puts your repository in “detached HEAD” state, which has some ill side effects:
+
+```console
+$ git checkout v2.0.0
+Note: switching to 'v2.0.0'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+HEAD is now at 99ada87... Merge pull request #89 from schacon/appendix-final
+
+$ git checkout v2.0-beta-0.1
+Previous HEAD position was 99ada87... Merge pull request #89 from schacon/appendix-final
+HEAD is now at df3f601... Add atlas.json and cover image
+```
+
+>  我们可以用 `git checkout <tagname>` 检出某个标签对应的提交版本，注意这会让我们的仓库变为“detached HEAD”状态
+>  例如 `git checkout v2.0.0`
+
+In “detached HEAD” state, if you make changes and then create a commit, the tag will stay the same, but your new commit won’t belong to any branch and will be unreachable, except by the exact commit hash.
+>  在“detached HEAD”状态，如果我们做了修改并进行了提交，我们的标签名不会变，但我们的新提交不会属于任何分支，且只能用提交哈希码索引，
+
+Thus, if you need to make changes — say you’re fixing a bug on an older version, for instance — you will generally want to create a branch:
+
+```console
+$ git checkout -b version2 v2.0.0
+Switched to a new branch 'version2'
+```
+
+If you do this and make a commit, your `version2` branch will be slightly different than your `v2.0.0` tag since it will move forward with your new changes, so do be careful.
+
+>  因此，如果我们想要做出修改，例如我们要修补老版本中的一个 bug，一般的实践是创建一个分支，在分支中进行提交
+>  `git checkout -b version v2.0.0`
+
 ## 2.7 Git Aliases
 Git 允许我们通过 `git config` 为命令设置别名，例如
 ```
