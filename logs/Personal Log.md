@@ -85,6 +85,12 @@ Date: 2024.8.26-2024.9.9
 \[Book\]
 - [[Pro Git]]: CH 7.1
 - [[Mastering CMake]]: CH1-CH7
+    CH2-Getting Started on Your Computer：CMake 构建流程纵览
+    CH3-Writing CMakeLists Files：CMake 语言纵览
+    CH4-CMake Cache：CMake 缓存机制介绍：`CMakeCache.txt`
+    CH5-Key Concepts：CMake 概念介绍：源文件、目标文件、属性
+    CH6-Policies：CMake 策略机制：为了兼容性
+    CH7-Modules：CMake 模块：CMake 提供的 utility
 
 ## September
 ### Week 1
@@ -92,6 +98,13 @@ Date: 2024.9.2-2024.9.9
 
 \[Book\] 
 - [[Mastering CMake]]: CH8-CH13、CH14 (CMake Tutorial)
+    CH8-Installing Files：`Install()` 命令
+    CH9-System Inspections：借助宏编写跨平台软件；`try_run/compile()` 命令
+    CH10-Finding Packages：借助 CMake 分发的软件依赖包
+    CH11-Custom Commands：为自定义目标添加自定义构建规则
+    CH12-Packing with CPack：借助 CPack 调用本地打包工具
+    CH13-Testing with CMake and CTest：`add_test()`
+    CH14-CMake Tutorial：纵览：简单构建、添加库、添加属性、通过系统审查添加宏、添加测试、简单安装、添加共享库、生成器表达式（实际构建时才确定值的变量）、导出 CMake 软件包
 
 ### Week 2
 Date: 2024.9.9-2024.9.16
@@ -101,6 +114,7 @@ Date: 2024.9.9-2024.9.16
     Sec6-Utilization
         Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
 - [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|2023-NeurIPS-Are Emergent Abilities of Large Language Models a Mirage]]: All
+    研究者对于度量的选取造就了 LLM 具有涌现能力的“海市蜃楼” 
 
 \[Book\]
 - [[book-notes/Introductory Combinatorics-2009|Introductory Combinatorics]]: CH1
@@ -1910,7 +1924,56 @@ Date: 2025.3.31-2025.4.7
     6-Practical Algorithm
     7-Connections with Prior Work
 - [[paper-notes/rl/Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML|2018-ICML-Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor]]: All (except Appendix)
-- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
+    0-Abstract
+        Model-free RL algorithm suffer from two major challenges: very high sample complexity and brittle convergence properties.
+        Soft actor-critic is an off-policy actor-critic deep RL algorithm based on the maximum entropy reinforcement learning framework. The actor aims to maximize the expected return as well as the entropy.
+   1-Introduction
+       Model-free RL algorithm are expensive in terms of their sample complexity, and often sensitive with respect to their hyperparameters like learning rates and exploration constants.
+       One cause of the poor sample efficiency is on-policy learning, which requires new samples to be collected at each gradient step.
+       DDPG uses the actor to perform the maximization in Q-Learning, and thus provides sample-efficient learning, but DDPG is very sensitive to hypermeters.
+       Therefore, we search for a model-free, sample-efficient, stable, off-policy algorithm for problems with continuous action spaces.
+       Maximum entropy reinforcement learning alters the RL objective by adding an entropy term of the policy. The introduction of this term brings substantial improvement in exploration and robustness. Maximum entropy policies are robust in the face of model and estimation errors.
+       SAC is better than previous methods in sample efficiency and performance.
+    2-Related Work
+        Actor-critic algorithms are typically derived from policy iteration. In large-scale RL problems, two stages of policy iteration: policy evaluation and policy improvement are impractical to run until convergence. Therefore the policy and value function are optimized jointly. In this case, the policy is referred as actor and the value function is referred as critic.
+        DDPG use an deterministic actor to achieve off-policy actor-critic training. SAC use an stochastic actor to achieve off-policy actor-critic training. (The stochastic refers to the policy also aims to maximize its entropy, therefore leads to some kind of stochasticity. However, the policy itself in definition is still an deterministic transformation, its stochastic comes from the noise in the reparameterization trick, but it does not mean that the policy will always give a normal distribution, otherwise the maximum entropy term is meaningless. The policy function is actually map a Gaussian to another distribution, and the state directs the rough range of mapped values of a noise value. This range indicates the high possible area of actions to chose based on the state. The entropy term will make the policy inclined to expand the range)
+    3-Preliminaries
+        The new objective with entropy term motivates the policy to explore more widely, and to capture multiple modes of near optimal behaviour. We observe that the entropy term can also considerably improve the learning speed.
+    4-From Soft Policy Iteration to Soft Actor-Critic
+        Soft policy iteration alternates between policy evaluation and policy improvement in the maximum entropy framework.
+        The soft policy evaluation compute the value function based on the maximum entropy objective. The lower bound of the soft value function is the original value function.
+        The soft policy improvement finds the projection with the lowest KL divergence.
+        Soft policy iteration is proved to converge to the optimal entropy policy among the specified policy set.
+        To apply soft policy iteration to large continuous domain, we apply approximations. The policy and value functions are approximated by NN, and instead of running evaluation and improvements to convergence, we alternate between optimizing both networks with SGD.
+        In training, two Q-functions are utilized to mitigate positive bias in the policy improvement step. We found that two Q-functions can significantly speed up training on hard tasks.
+    5-Experiments
+        In policy, the introduction of entropy prevents the premature convergence of the policy variance. In the value function, the introduction of entropy encourages exploration by increasing the value of regions of state space that leads to high entropy behaviour.
+        The deterministic variant of SAC exhibits very high variance between seeds. This indicates that learning a stochastic policy with entropy term can stabilize training.
+        It is beneficial to make the final policy deterministic.
+        SAC is sensitive to the scaling of reward signal.
+    6-Conclusion
+
+\[Book\]
+- [[book-notes/深度强化学习|深度强化学习]]: CH12
+    CH12-模仿学习
+        模仿学习不属于强化学习，但是目的与强化学习相同: 学习控制 agent 的最优策略
+        模仿学习向人类专家学习，学习人类专家的策略，强化学习完全依赖于环境反馈学习
+        CH12.1-行为克隆
+            行为克隆本质是监督学习，其数据集由 (状态，动作) 二元组构成，其中动作都是人类专家策略基于状态做出的动作
+            对于连续动作问题，策略网络输出动作向量，即执行回归
+            对于离散动作问题，策略网络输出选择各个动作的概率向量，即执行多分类
+            如果行为克隆的数据集不包含较为多样的状态和动作，训练出的策略在真实环境面临未见过的动作时，容易做出不好的决策，进而容易导致 “错误累加” 问题
+            强化学习的探索性优于行为克隆，故强化学习训练的智能体可以高于人类专家水平，而行为克隆做不到
+            强化学习的缺点在于需要和环境交互，需要探索时间，并且会改变环境，在真实物理世界中应用强化学习，需要考虑到初始化和探索带来的成本
+            行为克隆的优势在于离线训练，避免和真实环境交互，成本低
+        CH12.2-逆向强化学习
+            逆向强化学习中，智能体可以和环境交互，但环境只给出下一个状态，不给出奖励
+            逆向强化学习假设人类专家策略就是环境中的最优策略，利用人类专家策略反推奖励函数，然后用学习到的奖励函数执行强化学习
+            根据最优策略的轨迹可以大致推断出奖励函数，但不能推断出奖励的具体大小，且最优策略不一定唯一地对应一个奖励函数
+        CH12.3-生成判别模仿学习 (GAIL)
+            GAIL 引入 GAN 的思想，Generator 拟合策略函数，接收状态输出各个动作的概率，Discriminator 同样接收状态输出各个动作的概率，对于人类专家可能执行的动作赋予高概率，对于策略网络可能执行的动作赋予低概率
+            Generator 的训练基于强化学习方法，其中状态-动作对的奖励由判别器定义，本质目的仍然是让自己在 Discriminator 眼中更接近真实 (人类专家策略)
+            Discriminator 的训练目是区分真实轨迹和 Generator 生成的轨迹
 
 \[Doc\]
 - [[doc-notes/gerrit/Quickstart for Installing Gerrit on Linux|gerrit/Quickstart for Installing Gerrit on Linux]]: All
@@ -1918,3 +1981,9 @@ Date: 2025.3.31-2025.4.7
 - [[doc-notes/gerrit/about-gerrit/Product Overview|gerrit/about-gerrit/Product Overview]]: All
 - [[doc-notes/gerrit/about-gerrit/How Gerrit Works|gerrit/about-gerrit/How Gerrit Works]]: All
 
+
+### Week 2
+Date:
+
+\[Paper\]
+- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
