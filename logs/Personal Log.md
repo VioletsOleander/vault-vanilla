@@ -1981,9 +1981,8 @@ Date: 2025.3.31-2025.4.7
 - [[doc-notes/gerrit/about-gerrit/Product Overview|gerrit/about-gerrit/Product Overview]]: All
 - [[doc-notes/gerrit/about-gerrit/How Gerrit Works|gerrit/about-gerrit/How Gerrit Works]]: All
 
-
 ### Week 2
-Date:
+Date: 2025.4.7-2025.4.14
 
 \[Paper\]
 - [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
