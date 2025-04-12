@@ -28,7 +28,7 @@ _onnx_ implements a python runtime that can be used to evaluate ONNX models and
 
 ## Input, Output, Node, Initializer, Attributes
 Building an ONNX graph means implementing a function with the ONNX language or more precisely the [ONNX Operators](https://onnx.ai/onnx/operators/index.html#l-onnx-operators). 
->  构建 ONNX 图意味着使用 ONNX 语言 (更确切的说，是 ONNX 算子)实现一个函数，
+>  构建 ONNX 图意味着使用 ONNX 语言 (更确切的说，是 ONNX 算子) 实现一个函数，
 
 A linear regression would be written this way. The following lines do not follow python syntax. It is just a kind of pseudo-code to illustrate the model.
 
@@ -145,7 +145,7 @@ This definition does not include _strides_ or the possibility to define a view
 
 ### Element Type
 ONNX was initially developed to help deploying deep learning model. That’s why the specifications were initially designed for floats (32 bits). The current version supports all common types. Dictionary [TENSOR_TYPE_MAP](https://onnx.ai/onnx/api/mapping.html#l-onnx-types-mapping) gives the correspondence between _ONNX_ and [`numpy`](https://numpy.org/doc/stable/reference/index.html#module-numpy "(in NumPy v2.2)").
->  ONNX 最初的开发目的是用于部署深度学习模型，因此其规范最初是为 32 位浮点数涉及
+>  ONNX 最初的开发目的是用于部署深度学习模型，因此其规范最初是为 32 位浮点数设计
 >  ONNX 的目前版本支持所有常见的类型
 >  字典 `TENSOR_TYPE_MAP` 给出了 ONNX 和 `numpy` 之间的对应关系
 

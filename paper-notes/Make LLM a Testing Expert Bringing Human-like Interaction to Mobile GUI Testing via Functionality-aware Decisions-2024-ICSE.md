@@ -158,7 +158,7 @@ Since the designed patterns describe information from different points of view, 
 >  Feedback prompt 用于告知 LLM 发生的错误，并重新请求下一个动作
 
 Besides the above two kinds of prompts, we additionally design **start prompt** to start the testing of the app and only used it once. Different from the test prompt, it provides the LLM with the app information including all activities for a global overview. 
->  Start Prompt 仅被使用以此，用于启动测试流程，该 prompt 为 LLM 提供 app 信息和其所有活动
+>  Start Prompt 仅被使用一次，用于启动测试流程，该 prompt 为 LLM 提供 app 信息和其所有活动
 
 ### 2.2.3 Executive Command Generation. 
 After inputting the generated prompt, LLM will output the natural language sentence of operation, e.g., input 3500 for price, input salary in title widget and personal in category widget, then click submit which depicts the example output for the second image in Figure 1. 
