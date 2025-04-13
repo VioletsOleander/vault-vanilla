@@ -294,10 +294,12 @@ endwhile()
 ### 2.6.3 Procedure Definitions
 The [`macro`](https://cmake.org/cmake/help/latest/command/macro.html#command: macro "(in CMake v3.29.2)") and [`function`](https://cmake.org/cmake/help/latest/command/function.html#command: function "(in CMake v3.29.2)") commands support repetitive tasks that may be scattered throughout your CMakeLists files. Once a macro or function is defined, it can be used by any CMakeLists files processed after its definition.
 
-A function in CMake is very much like a function in C or C++. You can pass arguments into it, and they become variables within the function. Likewise, some standard variables such as `ARGC`, `ARGV`, `ARGN`, and `ARGV0`, `ARGV1`, etc. are defined. Function calls have a dynamic scope. Within a function you are in a new variable scope; this is like how you drop into a subdirectory using the [`add_subdirectory`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html#command: add_subdirectory "(in CMake v3.29.2)") command and are in a new variable scope. All the variables that were defined when the function was called remain defined, but any changes to variables or new variables only exist within the function. When the function returns, those variables will go away. Put more simply: when you invoke a function, a new variable scope is pushed; when it returns, that variable scope is popped. ( CMake 函数定义了一些标准变量，例如 `ARGC, ARGV, ARGN, ARGV0, ARGV1` 等，函数具有动态作用域，即函数内的作用域是新创建的，可以把作用域理解为调用栈 )
+A function in CMake is very much like a function in C or C++. You can pass arguments into it, and they become variables within the function. Likewise, some standard variables such as `ARGC`, `ARGV`, `ARGN`, and `ARGV0`, `ARGV1`, etc. are defined. Function calls have a dynamic scope. Within a function you are in a new variable scope; this is like how you drop into a subdirectory using the [`add_subdirectory`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html#command: add_subdirectory "(in CMake v3.29.2)") command and are in a new variable scope. All the variables that were defined when the function was called remain defined, but any changes to variables or new variables only exist within the function. When the function returns, those variables will go away. Put more simply: when you invoke a function, a new variable scope is pushed; when it returns, that variable scope is popped. 
+>  CMake 函数定义了一些标准变量，例如 `ARGC, ARGV, ARGN, ARGV0, ARGV1` 等，函数具有动态作用域，即函数内的作用域是新创建的，可以把作用域理解为调用栈
 
 The [`function`](https://cmake.org/cmake/help/latest/command/function.html#command:function "(in CMake v3.29.2)") command defines a new function. The first argument is the name of the function to define; all additional arguments are formal parameters to the function.
-```
+
+```cmake
 function(DetermineTime _time)
   # pass the result up to whatever invoked this
   set(${_time} "1:23:45" PARENT_SCOPE)
@@ -310,15 +312,18 @@ if(DEFINED current_time)
   message(STATUS "The time is now: ${current_time}")
 endif()
 ```
-( `function` 命令用于定义函数，第一个参数是函数名称，其余参数为函数形参 )
+
+>  `function` 命令用于定义函数，第一个参数是函数名称，其余参数为函数形参
 
 Note that in this example, `_time` is used to pass the name of the return variable. The [`set`](https://cmake.org/cmake/help/latest/command/set.html#command: set "(in CMake v3.29.2)") command is invoked with the value of `_time`, which will be `current_time`. Finally, the [`set`](https://cmake.org/cmake/help/latest/command/set.html#command: set "(in CMake v3.29.2)") command uses the `PARENT_SCOPE` option to set the variable in the caller’s scope instead of the local scope. 
-( 上例中，形参  `_time` 用于传递返回变量的名称，函数中使用 `set` 改变父作用域中 `_time` 所表示的变量的值 )
+>  上例中，形参  `_time` 用于传递返回变量的名称，函数中使用 `set` 改变父作用域中 `_time` 所表示的变量的值
 
 Macros are defined and called in the same manner as functions. The main differences are that a macro does not push and pop a new variable scope, and that the arguments to a macro are not treated as variables but as strings replaced prior to execution. 
-( 宏和函数的区别在于宏不会构建新的变量作用域，且传递给宏的参数不会被视为变量，而是在宏执行之前被直接替换 )
+>  宏和函数的区别在于宏不会构建新的变量作用域，且传递给宏的参数不会被视为变量，而是在宏执行之前被直接替换
 
-This is very much like the differences between a macro and a function in C or C++. The first argument is the name of the macro to create; all additional arguments are formal parameters to the macro. ( 第一个参数为宏名称，其余为形参 )
+This is very much like the differences between a macro and a function in C or C++. The first argument is the name of the macro to create; all additional arguments are formal parameters to the macro. 
+>  第一个参数为宏名称，其余为形参
+
 ```cmake
 # define a simple macro
 macro(assert TEST COMMENT)
@@ -334,7 +339,9 @@ assert(${FOO_LIB} "Unable to find library foo")
 
 The simple example above creates a macro called `assert`. The macro is defined into two arguments; the first is a value to test and the second is a comment to print out if the test fails. The body of the macro is a simple [`if`](https://cmake.org/cmake/help/latest/command/if.html#command:if "(in CMake v3.29.2)") command with a [`message`](https://cmake.org/cmake/help/latest/command/message.html#command:message "(in CMake v3.29.2)") command inside of it. The macro body ends when the [`endmacro`](https://cmake.org/cmake/help/latest/command/endmacro.html#command:endmacro "(in CMake v3.29.2)") command is found. The macro can be invoked simply by using its name as if it were a command. In the above example, if `FOO_LIB` was not found then a message would be displayed indicating the error condition.
 
-The [`macro`](https://cmake.org/cmake/help/latest/command/macro.html#command: macro "(in CMake v3.29.2)") command also supports defining macros that take variable argument lists. This can be useful if you want to define a macro that has optional arguments or multiple signatures. Variable arguments can be referenced using `ARGC` and `ARGV0`, `ARGV1`, etc., instead of the formal parameters. `ARGV0` represents the first argument to the macro; `ARGV1` represents the next, and so forth. You can also use a mixture of formal arguments and variable arguments, as shown in the example below. ( `macro` 命令还支持变长参数列表，可以通过使用 `ARGC` 和 `ARGV0, ARGV1` 引用，变长参数列表和形式参数可以结合使用 )
+The [`macro`](https://cmake.org/cmake/help/latest/command/macro.html#command: macro "(in CMake v3.29.2)") command also supports defining macros that take variable argument lists. This can be useful if you want to define a macro that has optional arguments or multiple signatures. Variable arguments can be referenced using `ARGC` and `ARGV0`, `ARGV1`, etc., instead of the formal parameters. `ARGV0` represents the first argument to the macro; `ARGV1` represents the next, and so forth. You can also use a mixture of formal arguments and variable arguments, as shown in the example below. 
+>  `macro` 命令还支持变长参数列表，可以通过使用 `ARGC` 和 `ARGV0, ARGV1` 引用 (`ARGV0` 表示第一个参数，`ARGV1` 表示第二个参数，以此类推)，变长参数列表和形式参数可以结合使用 
+
 ```cmake
 # define a macro that takes at least two arguments
 # (the formal arguments) plus an optional third argument
@@ -355,9 +362,12 @@ endmacro()
 find_library(FOO_LIB foo /usr/local/lib)
 assert(${FOO_LIB} "Unable to find library foo")
 ```
-In this example, the two required arguments are `TEST` and `COMMENT`. These required arguments can be referenced by name, as they are in this example, or by referencing `ARGV0` and `ARGV1`. If you want to process the arguments as a list, use the `ARGV` and `ARGN` variables. `ARGV` (as opposed to `ARGV0`, `ARGV1`, etc) is a list of all the arguments to the macro, while `ARGN` is a list of all the arguments after the formal arguments. Inside your macro, you can use the [`foreach`](https://cmake.org/cmake/help/latest/command/foreach.html#command: foreach "(in CMake v3.29.2)") command to iterate over `ARGV` or `ARGN` as desired. ( `ARGN` 是所有形式参数之后参数的列表 )
 
-The [`return`](https://cmake.org/cmake/help/latest/command/return.html#command: return "(in CMake v3.29.2)") command returns from a function, directory or file. Note that a macro, unlike a function, is expanded in place and therefore cannot handle [`return`](https://cmake.org/cmake/help/latest/command/return.html#command: return "(in CMake v3.29.2)"). ( `return` 命令用于从函数、目录或文件中返回，注意宏不是函数，而是会直接展开，因此不适宜使用 `return` )
+In this example, the two required arguments are `TEST` and `COMMENT`. These required arguments can be referenced by name, as they are in this example, or by referencing `ARGV0` and `ARGV1`. If you want to process the arguments as a list, use the `ARGV` and `ARGN` variables. `ARGV` (as opposed to `ARGV0`, `ARGV1`, etc) is a list of all the arguments to the macro, while `ARGN` is a list of all the arguments after the formal arguments. Inside your macro, you can use the [`foreach`](https://cmake.org/cmake/help/latest/command/foreach.html#command: foreach "(in CMake v3.29.2)") command to iterate over `ARGV` or `ARGN` as desired. 
+>  `ARGN` 是所有形式参数之后参数的列表 
+
+The [`return`](https://cmake.org/cmake/help/latest/command/return.html#command: return "(in CMake v3.29.2)") command returns from a function, directory or file. Note that a macro, unlike a function, is expanded in place and therefore cannot handle [`return`](https://cmake.org/cmake/help/latest/command/return.html#command: return "(in CMake v3.29.2)"). 
+>  `return` 命令用于从函数、目录或文件中返回，注意宏不是函数，而是会直接展开，因此不适宜使用 `return` 
 
 ## 2.7 Regular Expressions
 A few CMake commands, such as [`if`](https://cmake.org/cmake/help/latest/command/if.html#command: if "(in CMake v3.29.2)") and [`string`](https://cmake.org/cmake/help/latest/command/string.html#command: string "(in CMake v3.29.2)"), make use of regular expressions or can take a regular expression as an argument. In its simplest form, a regular expression is a sequence of characters used to search for exact character matches. However, many times the exact sequence to be found is unknown, or only a match at the beginning or end of a string is desired. Since there are several different conventions for specifying regular expressions, CMake’s standard is described in the [`string`](https://cmake.org/cmake/help/latest/command/string.html#command: string "(in CMake v3.29.2)") command documentation. The description is based on the open source regular expression class from Texas Instruments, which is used by CMake for parsing regular expressions. ( CMake 的一些命令支持正则表达式作为形参 )
@@ -455,7 +465,7 @@ Another option is that you want to set and then hide options so the user will no
 # the user by showing the option.
 set(VTK_USE_HYBRID ON CACHE INTERNAL "doc")
 ```
-# 4  Key Concepts
+# 4 Key Concepts
  Many CMake objects such as targets, directories and source files have properties associated with them. A property is a key-value pair attached to a specific object. ( 属性即依附于某个目标的键值对 )
  
  The most generic way to access properties is through the [`set_property`](https://cmake.org/cmake/help/latest/command/set_property.html#command: set_property "(in CMake v3.29.2)") and [`get_property`](https://cmake.org/cmake/help/latest/command/get_property.html#command: get_property "(in CMake v3.29.2)") commands. These commands allow you to set or get a property from any object in CMake that has properties. See the [`cmake-properties`](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#manual: cmake-properties(7) "(in CMake v3.29.2)") manual for a list of supported properties. From the command line a full list of properties supported in CMake can be obtained by running [`cmake`](https://cmake.org/cmake/help/latest/manual/cmake.1.html#manual:cmake(1) "(in CMake v3.29.2)") with the `--help-property-list` option. ( `set_property` 和 `get_property` 命令用于管理属性 )
@@ -1786,11 +1796,13 @@ $ cat ~/.cmake/packages/MyPackage/f92c1db873a1937f3100706657c63e07
 /home/me/work/MyPackage-build
 ```
 on UNIX. The command [`find_package(MyPackage)`](https://cmake.org/cmake/help/latest/command/find_package.html#command: find_package "(in CMake v3.29.2)") will search the registered locations for package configuration files. The search order among package registry entries for a single package is unspecified. Registered locations may contain package version files to tell [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html#command: find_package "(in CMake v3.29.2)") whether a specific location is suitable for the version requested.
+
 # 10 Custom Commands
 Frequently the build process for a software project goes beyond simply compiling libraries and executables. In many cases, additional tasks may be required during or after the build process. Common examples include: compiling documentation using a documentation package; generating source files by running another executable; generating files using tools for which CMake doesn’t have rules (such as lex and yacc); moving the resulting executables; post processing the executable, etc. CMake supports these additional tasks using the [`add_custom_command`](https://cmake.org/cmake/help/latest/command/add_custom_command.html#command: add_custom_command "(in CMake v3.30.3)") and [`add_custom_target`](https://cmake.org/cmake/help/latest/command/add_custom_target.html#command: add_custom_target "(in CMake v3.30.3)") commands. This chapter will describe how to use custom commands and targets to perform complex tasks that CMake does not inherently support.
 > 软件在构建过程之后可能需要做额外的工作
-> 例如：使用 documantation package 编译 documentation；运行另一个 exe 生成源文件；使用 CMake 没有对应规则的工具例如 lex 和 yacc 生成文件；移动 exe；后处理 exe
-> CMake 通过 `add_custom_command/target` 为这些工作提供支持
+> 例如：使用 documentation package 编译 documentation；运行另一个 exe 生成源文件；使用 CMake 没有对应规则的工具例如 lex 和 yacc 生成文件；移动 exe；后处理 exe
+> CMake 通过 `add_custom_command, add_custom_target` 为这些工作提供支持
+
 ## 10.1 Portable Custom Commands
 Before going into detail on how to use custom commands, we will discuss how to deal with some of their portability issues. Custom commands typically involve running programs with files as inputs or outputs. Even a simple command, such as copying a file, can be tricky to do in a cross-platform way. For example, copying a file on UNIX is done with the `cp` command, while on Windows it is done with the `copy` command. To make matters worse, frequently the names of files will change on different platforms. Executables on Windows end with .exe, while on UNIX they do not. Even between UNIX implementations there are differences, such as which extensions are used for shared libraries; `.so`, `.sl`, `.dylib`, etc.
 > 我们首先讨论自定义命令的可移植性
@@ -1812,6 +1824,7 @@ Finally, CMake supports [`generator expressions`](https://cmake.org/cmake/help
 > CMake 支持自定义命令中的 generator 表达式
 > 这些表达式使用特殊语法 `$<...>` ，并且在处理 CMake 输入文件时不会被评估，会被延迟到生成最终构建系统时评估
 > 因此它们的值会和它们的评估上下文相关，包括当前构建配置和目标相关的所有构建属性
+
 ## 10.2 Add Custom Command
 Now we will consider the signature for [`add_custom_command`](https://cmake.org/cmake/help/latest/command/add_custom_command.html#command: add_custom_command "(in CMake v3.30.3)"). In Makefile terminology, [`add_custom_command`](https://cmake.org/cmake/help/latest/command/add_custom_command.html#command: add_custom_command "(in CMake v3.30.3)") adds a rule to a Makefile. For those more familiar with Visual Studio, it adds a custom build step to a file. [`add_custom_command`](https://cmake.org/cmake/help/latest/command/add_custom_command.html#command: add_custom_command "(in CMake v3.30.3)") has two main signatures: one for adding a custom command to a target and one for adding a custom command to build a file.
 >对于 Makefile， `add_custom_command` 向 Makefile 中添加一个规则，对于 VS，则为文件添加一个自定义构建步骤
@@ -1820,6 +1833,7 @@ Now we will consider the signature for [`add_custom_command`](https://cmake.org
 The target is the name of a CMake target (executable, library, or custom) to which you want to add the custom command. There is a choice of when the custom command should be executed. You can specify as many commands as you want for a custom command. They will be executed in the order specified.
 
 Now let us consider a simple custom command for copying an executable once it has been built.
+
 ```cmake
 # first define the executable target as usual
 add_executable(Foo bar.c)
@@ -1832,13 +1846,16 @@ add_custom_command(
   ARGS -E copy $<TARGET_FILE:Foo> /testing_department/files
   )
 ```
+
 The first command in this example is the standard command for creating an executable from a list of source files. In this case, an executable named `Foo` is created from the source file `bar.c`. Next is the [`add_custom_command`](https://cmake.org/cmake/help/latest/command/add_custom_command.html#command: add_custom_command "(in CMake v3.30.3)") invocation. Here the target is simply `Foo` and we are adding a post build command. The command to execute is [`cmake`](https://cmake.org/cmake/help/latest/manual/cmake.1.html#manual:cmake(1) "(in CMake v3.30.3)") which has its full path specified in the [`CMAKE_COMMAND`](https://cmake.org/cmake/help/latest/variable/CMAKE_COMMAND.html#variable: CMAKE_COMMAND "(in CMake v3.30.3)") variable. Its arguments are `-E copy` and the source and destination locations. In this case, it will copy the `Foo` executable from where it was built into the `/testing_department/files` directory. Note that the `TARGET` parameter accepts a CMake target (`Foo` in this example), but arguments specified to the `COMMAND` parameter normally require full paths. In this case, we pass to `cmake -E copy`, the full path to the executable referenced via the `$<TARGET_FILE:...>` generator expression.
 > 本例中为目标添加了一个 `POST_BUILD` 命令
-> `${CMAKE_COMMAND}` 指定了 cmake 命令的路径
+> `${CMAKE_COMMAND}` 指定了 `cmake` 命令的路径
+
 ## 10.3 Generate a File
 The second use for [`add_custom_command`](https://cmake.org/cmake/help/latest/command/add_custom_command.html#command: add_custom_command "(in CMake v3.30.3)") is to add a rule for how to build an output file. Here the rule provided will replace any current rules for building that file. Keep in mind that [`add_custom_command`](https://cmake.org/cmake/help/latest/command/add_custom_command.html#command: add_custom_command "(in CMake v3.30.3)") output must be consumed by a target in the same scope. As discussed later, the [`add_custom_target`](https://cmake.org/cmake/help/latest/command/add_custom_target.html#command: add_custom_target "(in CMake v3.30.3)") command can be used for this.
 > 除了为目标添加命令，`add_custom_command` 还可以为如何构建输出文件添加规则，它会替换原来构建该文件的规则
 > 注意 `add_custom_command` 的输出必须被相同作用域内的 target 使用
+
 ### 10.3.1 Using an Executable to Build a Source File
 Sometimes a software project builds an executable that is then used for generating source files, which are used to build other executables or libraries. This may sound like an odd case, but it occurs quite frequently. 
 > 项目有时会构建 exe，然后 exe 生成源文件，然后根据源文件再构建 exe 或库
