@@ -108,7 +108,7 @@ When you commit code to your repository, you can continuously build and test the
 >  测试可以包括代码格式检查、安全检查、代码覆盖率、功能测试等
 
 Building and testing your code requires a server. You can build and test updates locally before pushing code to a repository, or you can use a CI server that checks for new code commits in a repository.
->  可以在随送代码之前本地构建并测试，也可以在推送后在 CI 服务器测试
+>  可以在推送代码之前本地构建并测试，也可以在推送后在 CI 服务器测试
 
 ## About continuous integration using GitHub Actions
 CI using GitHub Actions offers workflows that can build the code in your repository and run your tests. Workflows can run on GitHub-hosted virtual machines, or on machines that you host yourself. For more information, see [Using GitHub-hosted runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners) and [About self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners).

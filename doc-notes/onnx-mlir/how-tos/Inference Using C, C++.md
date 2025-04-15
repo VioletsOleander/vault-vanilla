@@ -30,9 +30,7 @@ Intuitively, the model takes a list of tensors as input and returns a list of te
 
 >  所有编译好的模型都有相同签名的入口点函数 `run_main_graph`，接收 `OMTensorList*`，返回 `OMTensorList*`
 
-## Invoke Models Using C Runtime
-API
-
+## Invoke Models Using C Runtime API
 We demonstrate using the API functions to run a simple ONNX model consisting of an add operation. To create such an onnx model, use this [**python script**](https://onnx.ai/onnx-mlir/doxygen_html/OnnxMlirRuntime/gen_add_onnx.py)
 
 To compile the above model, run `onnx-mlir add.onnx` and a binary library "add.so" should appear. We can use the following C code to call into the compiled function computing the sum of two inputs:
