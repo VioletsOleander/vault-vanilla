@@ -4344,7 +4344,7 @@ Submodule path 'DbConnector': checked out 'c3f01dc8862123d317dd46284b05b6892c7b2
 ```
 
 If you already cloned the project and forgot `--recurse-submodules`, you can combine the `git submodule init` and `git submodule update` steps by running `git submodule update --init`. To also initialize, fetch and checkout any nested submodules, you can use the foolproof `git submodule update --init --recursive`.
->  `git submodule updtae --init` 也等价于 `submodule init + submodule update`
+>  `git submodule update --init` 也等价于 `submodule init + submodule update`
 >  如果要递归地执行，则使用 `git submodule update --init --recursive`
 
 ### Working on a Project with Submodules
