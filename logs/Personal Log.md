@@ -1978,11 +1978,92 @@ Date: 2025.3.31-2025.4.7
 \[Doc\]
 - [[doc-notes/gerrit/Quickstart for Installing Gerrit on Linux|gerrit/Quickstart for Installing Gerrit on Linux]]: All
 - [[doc-notes/gerrit/about-gerrit/Why Code Review|gerrit/about-gerrit/Why Code Review]]: All
+    gerrit implements a web interface for the workflow of code review
+    gerrit uses change-id to identify a conceptual change. The change-id is the footer of every commit message.
+    The web interface will group commits based on their change-id, so the reviewers can see how a conceptual change evolves.
+    The change-id is randomly generated at first, and should be retained by utilizing the fact that `git commit --amend` retain the commit message by default.
 - [[doc-notes/gerrit/about-gerrit/Product Overview|gerrit/about-gerrit/Product Overview]]: All
 - [[doc-notes/gerrit/about-gerrit/How Gerrit Works|gerrit/about-gerrit/How Gerrit Works]]: All
+    A typical project contains a central source repository (authoritative repository).
+    Gerrit will add an additional pending changes repository, and all code changes are sent to the pending changes repository for review. A commit in the pending changes can be submit to the authoritative repository only when enough reviewers approve it.
 
 ### Week 2
 Date: 2025.4.7-2025.4.14
 
 \[Paper\]
-- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]
+- [[paper-notes/distributed-system/Chain Replication for Supporting High Throughput and Availability-2004-OSDI|2004-OSDI-Chain Replication for Supporting High Throughput and Availability]]: All
+    0-Abstract
+        Chain replication is an approach for coordinating clusters of fail-stop storage servers. This approach is intended for supporting storage service with high throughput, high availability, and strong consistency.
+    1-Introduction
+        A storage system typically implements operations like store, retrieve, change data for the clients. File systems and database systems are two common storage systems. File systems implement idempotent read and write operations for a single object, and database systems implement transaction for accessing multiple objects, and database systems implement serializable transaction for accessing multiple objects.
+        This paper focus on storage systems that sit between file system and database system, called storage service. The storage service store objects, and support query and update operations. The update operations automatically change the state of a single object.
+        A storage service with strong consistency guarantee satisfies (1) operations to query and update individual objects are executed in some sequential order. (2) the effects of update operations are reflected in results returned by subsequent query operations.
+    2-A Storage Service Interface
+        Chain replication provides two client API: `update, query`.
+        The query operation is idempotent, and the update operation is not. Therefore, a client that re-issue a nonidempotent update request must take precautions to ensure the update has not already been performed. For example, issue a query first to check whether the result is already updated.
+        The functionality of the storage service provided by chain replication can be specified by the object states and state transitions from the client view.
+        The state are described by two variables: $Hist$ and $Pending$, which represents the list of update operations executed and the list of operations to be executed respectively.
+        There are three possible state transitions, transition T1 add the arriving request to $Pending$, transition T2 ignore some specified pending request, transition T3 remove an request from $Pending$, and process it.
+    3-Chain Replication Protocol
+        In chain replication, an object replicated to $N$ servers can tolerate $N-1$ server failure while providing availability.
+        In chain replication, every update request will be redirected to the head, and be automatically processed by the head. Every query update request will be redirected to the tail, and be processed by the tail. 
+        The tail is responsible for generating response for all requests. The update request will be passed from the head to the tail. Only when the tail finish the updating, the whole process is considered finished.
+        Because update and query operations are all sequentially processed in a single server, the strong consistency is guaranteed.
+        3.1-Protocol Details
+            In chain replication's implementation of the storage service functionality specification, $Hist$ is only stored in the tail, $Pending$ is the set of client requests received by any server in the chain but not yes processed by the tail.
+            In the chain replication protocol, every transition is equivalent to either a no-op or to one of the three specified transitions. Therefore, chain replication protocol satisfies the specification.
+        3.2-Coping with Server Failures
+            We employ a master service to detect failure, change the configuration correspondingly, and notify the clients the new head and tail.
+            When the head fail, the master remove it, and make the successor the new head. The master should also remove the requests that received by the original head but not forwarded to it successor from $Pending$. This operation is consistent with transition T2. For the client, if they find that their request does not be replied on time, they will just resend the request.
+            When the tail fail, the master remove it, and make the predecessor the new tail. The master should also decrease $Pending$ and increase $Hist$, because the predecessor may have finished more requests than the original tail.
+            When other servers fail, the master remove it, and notify its predecessor and successor the new configuration. The master should also guarantee that requests received by the failed server before its failure can still be forwarded (instead of be missed).
+            Therefore, to guarantee it, the predecessor should forward the update requests that possibly have not be received by the successor to the successor. Only when those requests are sent, the predecessor can begin forward the newly received requests in the new configuration.
+            When extending a chain, the new server is added as the tail. The new tail can begin operation after the $Hist$ is transmitted completely, so the clients will not see inconsistency in the query reply.
+    4-Primary/Backup Protocols
+        Compared to primary/backup protocols, the chain replication protocol spilt the task of update and query, ensuring the low latency and low cost of query processing.
+        The disadvantage is that the update request is forwarded sequentially, therefore the reply generation for the an update request requires more time.
+        Both protocols ensure strong consistency.
+        The failure processing in chain replication protocol is faster than primary/backup protocol.
+    5-Simluation Experiments
+- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]: All
+
+\[Doc\]
+- [[doc-notes/pytorch/docs/python-api/torch.onnx/torch.onnx|pytorch/docs/python-api/torch.onnx/torch.onnx]]: All
+    `torch.onnx` module captures the computation graph from native PyTorch `torch.nn.Module` and convert it to an ONNX graph.
+    There are two types of exporter to be called. Both can be called through function `torch.onnx.export()`
+    TorchDynamo based exported utilize Dynamo to rewrite Python bytecode into an FX Graph. The FX Graph will be polished and then converted to an ONNX graph. The advantage is that the dynamic nature of model is preserved by the bytecode analysis.
+    TorchScript based exported utilize TorchScript to trace the model and capture a static computation graph. The resulting computation graph does not record any control-flow, does not differentiate `train` and `eval` mode, and does not truly handle dynamic inputs.
+- [[doc-notes/pytorch/docs/python-api/torch.onnx/TorchDynamo-based ONNX Exporter|pytorch/docs/python-api/torch.onnx/TorchDynamo-based ONNX Exporter]]: All
+    The TorchDynamo-based ONNX exporter uses TorchDynamo to first convert `torch.nn.Module` into an FX graph, and then the export optimize the FX graph, and translate it to ONNX graph.
+    When exporting, all we need is to provide the model and input to `torch.onnx.export()`, and the function will return an instance of `torch.onnx.ONNXProgram` which contains the exported graph and other information.
+    `ONNXProgram.optimize()` method can optimize the graph with constant folding and redundant operator elimination. The optimization is done in-place.
+- [[doc-notes/onnx-mlir/how-tos/Inference Using C, C++|onnx-mlir/how-tos/Inference Using C, C++]]: All
+    ONNX C Runtime API provides four data structures: `OMTensor`, `OMTensorList`, `OMEntryPoint`, `OMSignature`
+    All compiled model will have the same exact C function signature, which takes a list of tensor as input and output a list of tensor.
+    When `omTensorDestory` is called, if the tensor has `onwership` flag to `true`, then the associated memory buffer will be freed. If `false` , then the user should free the buffer manually.
+    `omTensorListDestroy` will invoke `omTensorDestroy` for all tensors it contains.
+- [[doc-notes/onnx-mlir/how-tos/Inference Using Python|onnx-mlir/how-tos/Inference Using Python]]: All
+    onnx-mlir have 5 binary libraries importable by Python using pybind. `PyOMCompileSession.hpp` to compile model, `PyExecutionSession.hpp` and `PyRuntime.py` to run models, `PyOMCompileExecutionSession.hpp` and `PyCompileAndRuntime.py` to compile and run models.
+- [[doc-notes/onnx-mlir/development/Add an Operation|onnx-mlir/development/Add an Operation]]
+- [[doc-notes/onnx-mlir/development/Testing Guidelines|onnx-mlir/development/Testing Guidelines]]
+- [[doc-notes/llvm/getting-involved/LLVM Coding Standards|llvm/getting-involved/LLVM Coding Standards]]
+    Introduction
+    Languages, Libraries, and Standards
+        LLVM are written using standard C++17.
+        LLVM support libraries implement specialized data structures or functionalities missing in the standard library. (in namespace `llvm`)
+        Prefer LLVM support library when the support library provides similar functionality as the standard library.
+- [[doc-notes/cmake/reference-manuals/cmake-commands/cmake_parse_arguments|cmake/reference-manuals/cmake-commands/cmake_parse_arguments]]
+- [[doc-notes/cmake/command-line-tools/cmake|cmake/command-line-tools/cmake]]
+- [[doc-notes/github/ci,cd-and-devops/github-actions/About GitHub Actions|github/ci,cd-and-devops/github-actions/About GitHub Actions]]: All
+- [[doc-notes/YAML v1.2|YAML v1.2]]
+- [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]: Control Structures, Functions
+    Control Structures
+        In Go, the only loop structure is `for`. 
+        The loop structure and condition structure can accept optional initialization statements.
+        `break` and `continue` can take optional label to identify where to break or continue.
+        There are no parentheses for the control structure, and the code block must be brace-limited. 
+    Functions
+        The return or result parameters can have names.
+        `defer` defer the function to be run immediately before the function executing the `defer` returns. `defer` is effective for handling resource release regardless which path the function takes. The canonical examples are unlocking a mutex or closing a file.
+
+
