@@ -2065,3 +2065,613 @@ well tuned for concurrency and synchronization
             The server also needs to check and send watch notifications if there is such notifications in between `largest_zxid` and the server's current `zxid`  
 - Snapshot: fuzzy snapshot in Zookeeper -- take snapshot without locking, possible because it is a state replication system and writes are idempotent​  
 - Client liveness: ZooKeeper checks the liveness of client (for ephemeral znodes) by timeout  
+
+# 7 Chain Replication
+## Problem Definition
+In a quorum based replication algorithm (e.g., Paxos, Raft, Zab), a replication cluster of 2N+1 nodes will stop working after losing N+1 nodes. 
+- There are still N alive nodes but no progress -- a waste of resources 
+- At least 3 replicas -- two is not enough
+
+In contrast, in a primary/backup replication system
+- a replication cluster of N nodes can still make progress after losing N-1 nodes  
+- can start from 2 nodes​  
+- the algorithm is also much simpler  
+    Easier to be integrated into existing systems  
+    Replication method is built-in supported by many existing systems  
+    In contrast, using quorum based replication typically requires a refactoring of the original software
+
+>  primary/backup 相较于 quorum-based 的优势在于故障容忍率更高，同时更加简单
+
+What is the problem of primary/backup and how to mitigate it? How to choose?
+
+## Primary/Backup
+### Primary/Backup Revisit
+Basic Replication Procedure
+- One primary server and arbitrary number of backup server(s)  
+- All write operations should be re-directed to the primary  
+- After receiving a write request and the primary will​ 
+    number the operation for ordering 
+    remember the request ID for guaranteeing exact-once (the same algorithm we used in the duplication detecting mechanism of Raft) 
+    replicating the request to all the backup servers (in parallel) 
+    wait ack from all the backup servers (why not use a timeout?) 
+    return to the client
+
+![](https://cdn-mineru.openxlab.org.cn/extract/2855b925-4e88-422e-95f2-4795928a290b/5d84f5091c530ea56e5e0b3e82d9cd125fe7eb3855aec8721221ac10fb1e232d.jpg)
+
+
+Read Procedure
+- Primary can respond to reads without communicating with the backups (as long as it can assure that it is primary, similar to Raft's read-only optimization)
+- How can we assure that the system never reveals uncommitted data
+    i.e., data that might not survive a tolerated failure 
+    a read is returned if **all the previous write is already committed** 
+    A write is committed only after the primary receive ack from all the backup servers
+- A backup can also return to read request (for better throughput) only if stale data is allowed
+
+### Failure Recovery in Primary/Backup
+Configuration service (CFG)
+- All the nodes in a backup/primary cluster should not actively change their own role  
+    It is **impossible** to make a consensus on who is the primary without a consensus algorithm  
+    neither primary nor backup -- primary **cannot remove** a backup on its own after a timeout​ 
+        Why? what if the primary crashes after it removes a backup by itself? The state of different backup will diverge and we do not want a complex roll-back based (like RAFT) mechanism to converge​
+        Problem -- any single node's crash (not even the primary) will block the whole cluster
+- Typically, there is a separate configuration service (CFG) manages failover 
+    **configuration =¸​ identity of current primary and backups** 
+    CFG is usually built on Paxos or Raft or ZooKeeper for high availability
+    CFG pings all servers to detect failures and make new configuration 
+    At least one replica from the previous configuration in any new configuration.
+    CFG broadcasts the new configuration to all the nodes for a re-configuration
+
+An example of the typical architecture
+Patroni is a system for high-available PostgreSQL (a database) cluster
+
+Patroni architecture:
+
+![](https://cdn-mineru.openxlab.org.cn/extract/2855b925-4e88-422e-95f2-4795928a290b/355db03cdfe23996484edea4d4ba70f61fe049668da70935325bb2137de4a556.jpg)
+
+- CFG of Patroni is based on etcd, which is based on Raft.
+- There is also a load balancer that re-directs client requests (read backup if stale data is allowed)​ 
+    - How to achieve high-availability of load balancer? 
+    - Much simpler because it is a stateless service​   
+    - A typical solution is sharing the same domain name (the basic method of a CDN)
+- Why Raft for CFG and Primary/Backup for PostgreSQL?
+    The data size and the throughput of CFG are both much **smaller** than the real database  
+    3 replicas can be a large cost and hence **only one backup** is used in many real-world scenarios​  
+    An efficient Raft-based replication requires modifications in the application/database services' internal logic. In contrast, a primary/backup is much more mature and widely supported 
+        MySQL Group Replication is MySQL's official Paxos-based high-availability solution. Still not widely adopted by the industry
+
+**Re-configuration**
+- After a re-configuration, all replicas must **agree to achieve a true failure recovery​**  
+- It is straightforward if only backup servers crash  
+- In contrast, if the primary crashes, initially, some of the nodes may see the last msg from primary, but the others did not. 
+    The new primary could merge all replicas' last few operations. 
+    or, **elect** as primary the backup that received the highest # op.  
+- New primary must start by forcing backups to agree with its decision
+    May need to resend the last op
+    The received backup server needs a detection mechanism to avoid duplication
+
+**Split Brain Problem**
+If a primary is **partitioned from** both some of the backup servers and the CFG and the CFG select a new primary. Is there a split brain problem?
+- For write operations
+    the old primary **cannot commit** a write because it needs ac**k from all the backup servers** to commit​ 
+    so replicas must be careful not to reply to an old primary! -- with a sequence id
+- For read operations
+    It is possible because the primary do not need to communicate with backup for reads 
+    Solution -- lease!
+
+What if the primary can talk to all the backup servers but partitioned from the CFG?
+- Typically, a re-configuration is executed by the CFG 
+- Does not impact the correctness, but leads to performance fluctuations
+- Better solution: CFG communicates with backup servers to check whether they can communicate with the primary. Postpone the re-configuration if all the backup servers say that they are ok.
+
+### Problems of Broadcast based Primary/Backup
+Impossible to fix without a consensus algorithm
+- A re-configuration is needed for every node's failure
+- A separate CFG is needed  
+
+Can be mitigated by the following chain replication 
+- primary has to do a lot of work​ 
+- primary has to send a lot of network data for broadcasting to all the backup servers​
+- re-sync after primary failure is complex, since backups may differ
+
+## Chain Replication
+### The basic Chain Replication Idea
+We already saw it in Lecture 3 GFS
+- GFS's chunkserver uses a non-strict primary/backup scheme and hence delivers only relaxed consistency  
+- HDFS achieves strong consistency through using a chain replication (that is slightly different from the one taught today)
+
+A chain of servers
+
+![](https://cdn-mineru.openxlab.org.cn/extract/2855b925-4e88-422e-95f2-4795928a290b/f1d202c544487bd7704f29e448f47d6c67a95fb2b53b1d0946e0011581349b06.jpg)
+
+- clients send updates requests to head  
+- Head picks an order (assigns sequence numbers); updates local replica, sends it to the next server​  
+- The next server updates its local replica and then sends to the next next server​  
+- The last sever (the tail) updates local replica, sends response to client  
+
+Updates (Write) / Queries (Read) 
+- updates move along the chain in order: at each server, earlier updates delivered before later ones  
+- Queries are directly sent to tail and the tail can read **local replica** and responds to client 
+    Why?​ all the previous nodes are guaranteed to be newer than the tail​ Thus directly query the tail **will not unveil uncommitted data** -- but **may not the newest​**
+
+Benefits
+- head sends less network data than a primary
+- **client interaction work is split** between head and tail
+
+### Failure Recovery in Chain Replication
+A separate CFG is also used in chain replication to detect failure and invoke failover
+
+What if the head fails?
+- CFG tells 2nd chain server to be new head and tells clients who the new head is
+- There is no need to check the last op for selecting the newest replica -- simple!
+- Will all (remaining) servers still be exact replicas?
+    Each node will just miss the last few updates  
+    Each server needs to compare notes with successor and just send those last few updates​  
+    What if the original head restarted? Is there a split brain problem?
+- Some client update requests **may be lost** if only the failed head knew about them 
+    clients won't receive responses and will eventually re-send to new head
+
+What if the tail fails?
+- CFG tells next-to-last server to be new tail and tells clients, for read requests 
+- for updates that new tail received but old tail didn't 
+    system won't send responses to clients.
+    clients will time out and re-send
+    Section 2 of the paper says clients are responsible for checking whether timed-out operations have actually already been executed
+        maybe with a duplication detection mechanism 
+        Global unique client ID + monotonical sequence ID 
+        Where to get this global unique client ID? 
+        How to assure the monocity of sequence ID upon failures of client?
+
+What if an intermediate server fails?
+- CFG tells previous/next servers to talk to each other
+- previous server may have to re-send some updates that it had already sent to failed server
+
+Note that servers need to **remember updates even after forwarding**  
+- in case a failure requires them to re-send  
+- When to free? -- tail sends **ACKs back up** the chain as it receives updates when a server gets an ACK, it can **free all through that op**  
+- Similar to HDFS
+
+Partition situation is much as in primary/backup
+- CFG makes all decisions  
+- new head is old 2nd server, it should **ignore updates from the old head**, to cope with "what if old head is alive but CFG thinks it has failed"  
+- CFG needs to **grant tail a lease to serve client reads**, and **not designate a new tail until lease has expired**
+
+### Extend the chain
+New server is added at the tail
+
+The full procedure
+- tell the old tail to stop processing updates  
+- tell the old tail to send a complete copy of its data to the new tail  
+- tell the old tail to start acting as an intermediate server, forwarding to the new tail  
+- tell the new tail to start acting as the tail  
+- tell clients about new tail
+
+A long pause because of data cloning​
+- snapshot can rescue -- no need to pause the system during snapshot cloning​
+- Only the few last updates need to be forward during the pause
+
+### Comparison
+Primary/Backup versus Chain Replication?
+- Primary/Backup may have lower latency (for small requests)  
+- Chain head has less network load than primary, which **is important if data items are big** (as with GFS)  
+- Chain splits work between head and tail  
+- Chain has **simpler story for which server should take over if head fails**, and **how ensure servers get back in sync**
+
+Chain (or p/b) versus Raft/Paxos/Zab (quorum)?
+- p/b can tolerate N-1 of N failures, quorum only N/2  
+- p/b simpler, maybe faster than quorum 
+- p/b requires separate CFG, quorum self-contained 
+- p/b must wait for reconfiguration after failure, quorum keeps going  
+- **p/b slow if even one server slow, quorum tolerates temporary slow minority**
+- p/b CFG's server failure detector hard to tune:
+    any failed server stalls p/b , so want to find failed quickly! 
+    but over-eager failure detector will waste time copying data to new server. 
+    quorum system handles short/unclear failures more gracefully
+
+### Sharding
+What if you have **too much data to fit on a single replica group**? -- you need to "shard" across many "replica groups"
+
+A not-so-great chain or p/b sharding arrangement -- load imbalance!
+
+```
+1 each set of three servers serves a single shard / chain  
+2 shard A: S1 S2 S3  
+3 shard B: S4 S5 S6
+```
+
+a better plan ("rndpar" in Section 5.4):
+- split data into many **more shards than servers** (so each shard is much smaller than in previous arrangement)
+
+```
+1 each server is a replica in many shard groups  
+2 shard A: S1 S2 S3  
+3 shard B: S2 S3 S1  
+4 shard C: S3 S1 S2
+```
+
+- for chain, a server is head in some, tail in others, middle in others 
+- now request processing work is likely to be more balanced
+- Repair?
+    one server that **participated in M replica groups** fail 
+    instead of designating a single replacement server, let's choose M replacement servers, a different one for each shard.
+    now repair of the M shards can go on in parallel!
+        The amount of data on the failed server is the same
+        At what cost?
+            M shard will pause due to the re-configuration may impact more requests  
+            The re-configuration time is much smaller than the repairing time because of the data cloning in repair​  
+            for the paper's setup, speed of reconstruction seems to be more important than simultaneous failures wiping out a chain. However, they assume MTBF of a single server of 24 hours, which does mean fast repair is crucial when repair can take hours but 24 hours seems unrealistically short.
+- Also applicable in quorum based systems, e.g., the multi-raft in TiDB
+
+![](https://cdn-mineru.openxlab.org.cn/extract/2855b925-4e88-422e-95f2-4795928a290b/85e63b1d38856b14f4a9be79c2e359fc1728c8d7a97c20a7c094e17682f5d353.jpg)
+
+# 8 Distributed Transaction 101: 2PL + 2PC
+## Problem Definition
+We have learned how to achieve atomicity (all all nothing) and high availability in a distributed environment​ 
+- Can be achieved via either **redo or undo log** in a **single-machine durable** environment​ 
+- Can be achieved via **replicated state machines** in a **distributed** environment (**atomic broadcast**)  
+
+Problem: atomic via replication naturally implies serial processing -- not able to scale-out​ 
+- Solution: sharding -- split the data up over multiple replication groups 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/dc0bfc10c869abf29ce6c1663ef038cd62e218fd3aee16368edc507efcf27b09.jpg)
+
+- Further Problem: what if we want **an atomic operation that involves records in different shards?​**
+    Further Solution: use **transaction**! -- **multiple operations** included in a pair of begin and end marks  
+    Example Transaction
+
+```
+1  x and y are bank balances -- records in database tables  
+2    that may on different servers/shards (maybe at different banks)
+3    both start out as $10
+4  T1 and T2 are transactions
+5    T1: transfer $1 from y to x
+6    T2: audit, to check that no money is lost
+7  T1:        T2:
+8  BEGIN-X    BEGIN-X
+9    add(x, 1)    tmp1=get(x)
+10   add(y, -1)   tmp2=get(y)
+11 END-X          assert(tmp1+tmp2==20) -- semantic-level invariant
+12            END-X
+13
+14 The following execution order will be excluded
+15   T1:        T2:
+16     add(x,1)   
+17                tmp1=get(x)
+18                tmp2=get(y)
+19    add(y,-1)
+```
+
+- **Transaction = Concurrency Control + Atomic Commit**
+- Caveats
+    Transaction is needed **as long as there is concurrency**, no need to be distributed  
+    In this 101 lecture, we will first focus on the single-machine transactional system (that processes concurrent transactions)
+
+## ACID
+Atomicity: guarantees that **each transaction** is treated as a single "**unit**", which either succeeds completely or fails completely  
+
+Consistency: ensures that a transaction can only bring the database from one consistent state to another, preserving **database invariants**  
+
+Isolation: ensures that concurrent execution of transactions leaves the database in the same state that **would have been obtained if** the transactions were executed sequentially. 
+- We also use the term **serializable** to represent this kind of isolation
+- There are also weaker versions of isolation. Actually, weaker versions are used more prevalently in the real-world because of their better performance. 
+- Compare with linearizability later
+
+Durability: guarantees that once a transaction has been committed, it will **remain committed** even in the case of a system failure
+- DRAM is volatile and hence flush to disk is needed for durability
+- In contrast, it is ambiguous to decide whether it is durable or not if there are three volatile copies in a distributed environment -- it is not durable in strict definition but it is high available​
+
+Benefits of ACID Transaction: ACID transactions are magic! (the power of abstraction)
+- programmer writes straightforward serial code 
+- system automatically adds correct locking! 
+- system automatically adds fault tolerance!
+
+## Atomic/Durability in a Single Machine
+Why atomic is still a problem even in a single-thread serial execution mode?
+
+A transaction can "abort" if something goes wrong​  
+- an abort un-does any record modifications -- result of abort should be as if never executed!!!  
+- the transaction might voluntarily abort, e.g. if the account doesn't exist, or y's balance is <=0
+- the system may force an abort, e.g. to break a locking deadlock  
+- server failure can result in abort​  
+- the application might (or might not) try an abort transaction again
+
+**Rollback is needed for an aborted transaction** for atomicity
+- Use write-ahead log 
+- Method 1: write in-place + undo log 
+- Method 2: Read redirect (redo log)
+
+Durability can also be achieved by flushing the log to disk -- redo log 
+- why not flush the data records?  
+- the access pattern of log is mostly **sequential** (append), which leads to better performance than flushing the modified data records that may scattered on random locations of the disk​
+
+## Consistency/Isolation in ACID V.S. Consistency in General
+Be careful! very ambiguous discussion.
+- Recap the metaphor/definition we give in Lecture 1
+    The consistency of a distributed system is just like the "virtue" of a person -- the more the better, but hard to define, and frequently compromised due to the consideration of other interests (especially those interests related to money). 
+    Consistency means a certain agreement on what good behaviors are at semantics-level​ 
+- Both consistency in ACID and isolation in ACID are **a special form of the generalized concept of consistency​** 
+- Consistency in ACID is a **higher semantics-level consistency** that relates to "preserving database invariants" 
+    It means to obey application-specific invariants 
+    "A Relational Model of Data for Large Shared Data Bank" by Edgar F. Codd @@ 1970 (another Turing-award paper) (pic refer to the original pdf)
+- Z are user-defined constraints. For example, in MySQL, one can define the following types of "constraint"
+
+The following constraints are commonly used in SQL:
+
+- NOT NULL - Ensures that a column cannot have a NULL value  
+- UNIQUE - Ensures that all values in a column are different  
+- PRIMARY KEY - A combination of a NOT NULL and UNIQUE . Uniquely identifies each row in a table  
+- FOREIGN KEY - Prevents actions that would destroy links between tables  
+- CHEXK - Ensures that the values in a column satisfies a specific condition  
+- DEFAULT - Sets a default value for a column if no value is specified  
+- CREATE INDEX - Used to create and retrieve data from the database very quickly
+
+```
+1 CREATE TABLE Persons (
+
+2 ID int NOT NULL,  
+3 LastName varchar(255) NOT NULL,  
+4 FirstName varchar(255),  
+5 Age int,  
+6 City varchar(255),  
+7 CONSTRAINT CHK_Person CHECK (Age>=18 AND City =1=1 Sandnes')  
+8 );
+```
+
+In contrast, isolation in ACID is actually more similar to the consistency in general we talked about before 
+- but still many differences 
+- discussed later by comparing with the consistency in CAP/Raft (Serializability vs. Linearizability)
+
+## Serializable
+Serializability is **a specific isolation level**
+
+You execute some concurrent transactions, which yield results "results" means both output and changes in the DB. The results are serializable if:
+
+There exists a serial execution order of the transactions that yields the same results as the actual execution  
+◦ serial means one at a time -- no concurrent execution
+
+Why serializability is popular: An easy model for programmers. They can write complex transactions while ignoring concurrency​
+
+## Serializability v.s. Linearizability
+Also Isolation in ACID (a form of consistency) V.S. Consistency in CAP/Raft
+
+Linearizability recap
+
+Definition: an execution history is linearizable if one can find a total order of all operations, that matches real-time (for nonoverlapping ops), and in which each read sees the value from the write preceding it in the order ◦ Example: Linearizable as Wx1 Rx1 Wx2 Rx2 (although Rx2 actually starts before Rx1 but read a newer version of value)
+
+```
+1 |-Wx1-| |-Wx2-|  
+2   |- -Rx2- -|  
+3     |-Rx1-|
+```
+
+Linearizability: single-operation, single-object, real-time order ◦ Real-time order: imprecisely, once a write completes, all later reads (where “later” is defined by wall-clock end time) should return the value of that write or the value of a later write.​
+
+But what is time?
+
+ambiguous concept in a distributed environment Linearizability is not possible without a definition of time
+
+Example: The below example is not linearizable even if there is a possible order Wx1 Rx1, Wx2​
+
+```
+1 |-Wx1-| |-Wx2-|  
+2                 |- Rx1 -|
+```
+
+To some extent, It is a property that can be viewed as a more strict version of atomicity!
+
+Each operation, even if it accesses only a single object, is not executed "in no time", i lasts a period of time from start to end  
+We use some mechanisms to make it work like each operation is executed "in no time", aka atomic, to achieve linearizability​  
+Here, atomic means not only "all or nothing", it is just like an atomic instruction
+
+Linearizability is the level of consistency in CAP/Raft
+
+Serializability: multi-operation, multi-object, arbitrary total order  
+◦ Arbitrary total order: serializability does not—by itself—impose any real-time constraints on the ordering of transactions.  
+◦ For example, if T1 starts before T2 and the result is T2;T1 -- serializable but not linearizable Here we mean physical time by using the term "before"​
+
+Strict Serializability =¸=¸​ Serializability ++ Linearizability
+
+## Concurrency control -- The Method Used for Achieving Isolation
+Concurrency control ensures that correct results for concurrent operations are generated, while getting those results as quickly as possible.
+
+• Using only one replication group will lead to correct results, but not the fastest way​ Two transactions that do not conflict with each other can be processed concurrently ◦ but what does it mean when we use the term conflict? ◦ It depends on the level of isolation (consistency in general not in ACID) that is promised to the users​ Actually, it should be the level of isolation in ACID
+
+▪ Actually, actually, the no different levels of isolation in ACID, it should be serializable in its original definition. But, actually, it is compromised in most of the real-world scenario
+
+Concurrency control is mainly used for assuring isolation in ACID
+
+Two classes of concurrency control for transactions:
+
+Pessimistic (taught in this lecture)
+
+An easy model: lock records before use Conflicts cause delays (waiting for locks)
+
+◦ Optimistic (Optimistic Concurrency Control (OCC), taught in Lec 11)
+
+use records without locking  
+commit checks if reads/writes were serializable  
+conflict causes abort+retry
+
+Pessimistic is faster if conflicts are frequent; optimistic is faster if conflicts are rare
+
+#### Strict Two-phase Locking -- A Concurrency Control that Achieves Serializability
+
+The default pessimistic way of implementing serializable concurrency control.
+
+Strict 2PL rules:
+
+a transaction must acquire a record's lock before using it ◦ a transaction must hold its locks until after commit or abort [fig 3]
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/ccadb99413be6aefd67b1981c059911050d4570145c50a1e15e3b5c9244c3c11.jpg)
+
+Default implementation
+
+programmer doesn't explicitly lock, instead supplying BEGIN-X/END-X​ ◦ DB locks automatically, on first use of each record ◦ DB unlocks automatically, at transaction end -- END-X() releases all locks
+
+DB may automatically abort to cure deadlock
+
+Two-phase locking can produce deadlock ◦ Why deadlock? -- Tx1: Lock A, Lock B; Tx2: Lock B, Lock A
+
+```
+1 T1     T2  
+2 get(x) get(y)  
+3 get(y) get(x)
+```
+
+◦ The system must detect (cycles? timeout?) and abort a transaction ◦ How to avoid it? -- define an order of data records and only lock the records according to the order​
+
+◦ Why is there still deadlock?
+
+The above solution needs the transaction to declare its access set beforehand and locking in a specific order.  
+not all the data records are available at the beginning of the transaction, e.g., interactive transactions
+
+Why hold locks until after commit/abort?
+
+2PL that is not S2PL
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/8ae3e8c69c32c4bfd85994782626e8efe917e747af62bc641caf68542b74d61f.jpg)
+
+◦ 2PL can guarantee serializable but may lead to cascade rollback
+
+After releasing a lock the updated value become visisble to other transactions But the current transaction is still not finished and hence may rolled back later If it is rolled back, all the transactions seeing its updates should also be rolled back
+
+Could S2PL ever forbid a correct (serializable) execution?
+
+```
+1 T1     T2  
+2 get(x)  
+3         get(x)  
+4         put(x,2)  
+5 put(x,1)
+```
+
+◦ Serializable in the external view (still a cycle dependency but not exposed to external users)​  
+◦ This is the reason why we develop other kinds of concurrency control, such as Timestamp based and OCC based.
+
+### Weaker Level of Isolation By ANSI
+
+Four levels of isolation from ANSI SQL-92 [fig 4] ◦ Dirty Read [fig 2]: read an uncommitted value that may be rolled back later ◦ Fuzzy Read (Non-repeatable Read) [fig 2]: read the same value but returns different values
+
+Table 1. ANSi SQL Isolation Levels Defined in terms of the Three Original Phenomena
+
+
+| Isolation Level      | P1 (or A1) Dirty Read | P2 (or A2) Fuzzy Read | P3 (or A3) Phantom |
+| -------------------- | --------------------- | --------------------- | ------------------ |
+| ANSIREADUNCOMMITTED  | Possible              | Possible              | Possible           |
+| ANSIREAD COMMITTED   | Not Possible          | Possible              | Possible           |
+| ANSIREPEATABLEREAD   | Not Possible          | Not Possible          | Possible           |
+| ANOMALY SERIALIZABLE | Not Possible          | Not Possible          | Not Possible       |
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/ceb34dc065090de033c5d02120630c85732e673bbdb140d4c853a03f82dc4108.jpg)
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/cee93886fd44705d627f1ccb40477a413dbedd2c8e1fba0f9b9a350a56f009b0.jpg)
+
+◦ Phantom Read [fig 2]: similar to fuzzy read but corresponding to a search range
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/0b9f54afbb1d1279001a7f1bd29de4f5dd27eaab090be06bc463873b1637ab89.jpg)
+
+Row-level lock is enough to avoid fuzzy read.  
+▪ A range-level lock (e.g., table-level lock, index lock, predict lock, prev/next-key lock) is needed to avoid phantom read
+
+Implementation ◦ Long duration lock means release only at the end of transaction (S2PL)
+
+Table 2. Degrees of Consistency and Locking Isolation Levels defined in terms of locks.
+
+| Consistency Level = Locking Isolation Level | Read Locks on Data ltems and Predicates (the same unless noted)                            | Write Locks on Data Items and Predicates      |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| Degree 0                                    | none required                                                                              | (always the same) Well-formed Writes          |
+| Degree 1 = Locking READ UNCOMMITTED         | none required                                                                              | Well-formed Writes Long duration Write locks  |
+| Degree 2 = Locking READ COMMITTED           | Well-formed Reads Short duration Read locks (both)                                         | Well-formed Writes, Long duration Write locks |
+| Cursor Stability (see Section 4.1)          | Well-formed Reads Read locks held on current of cursor Short duration Read Predicate locks | Well-formed Writes, Long duration Write locks |
+| Locking REPEATABLE READ                     | Well-formed Reads Long duration data-item Read locks                                       | Well-formed Writes, Long duration Write locks |
+| Degree 3 = Locking SERIALIZABLE             | Short duration Read Predicate locks Well-formed Reads Long duration Read locks (both)      | Well-formed Writes, Long duration Write locks |
+
+◦ Short duration lock means release as soon as the data is not used again (2PL)
+
+Problems of ANSI's definition
+
+- No Dirty Read ++ No Fuzzy Read ++ No Phantom Read is only a necessary but insufficient condition of serializable  
+- There are many other kinds of anomaly phenomenal defined in [A Critique of ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
+    See more in [隔离级别的前世今生(三) 基于锁调度的隔离级别](https://mp.weixin.qq.com/s/0D1BKRiZAf0x0E87oPOg1Q)
+    Also see [Generalized Isolation Level](https://www.pmg.csail.mit.edu/papers/icde00.pdf) Definitions 
+        defined with dependency graph, not a collection of anomaly phenomenal 
+        Check serializability by checking whether there is a circle in the dependency graph 
+        This dependency graph is very useful. We can even learn a dependency graph in the training runs and use them to avoid concurrency bugs at deployed runs without explicitly fixing the bugs -- [my own paper](https://madsys.cs.tsinghua.edu.cn/publication/ai-a-lightweight-system-for-tolerating-concurrency-bugs/FSE2014-zhang.pdf) won a Distinguished Paper Award at FSE2014
+
+The combination of these other kinds of anomaly phenomenal leads to other levels of isolation
+
+a trade-off!  
+The most important level of isolation not included in ANSI is snapshot isolation, which will be discussed in the next lecture.
+
+### Distributed transaction = concurrency control + atomic commit
+#### Atomic commit
+An atomic commit point is a time point that: if a failure happens before this point, all the modifications are rolled back; otherwise, the modification is committed/applied once after this point.​  
+
+It is actually a combination of atomic and durability in ACID.  
+
+As discussed before, it can be achieved with undo/redo log in a single-machine environment
+
+**Problem of Atomic Commit in a Distributed Environment**
+Why not use replicated state machines? -- again, the accessed data may belong to different replicated groups for better performance. 
+
+How to achieve atomic commit over multiple shards? -- it is possible that some of shards commit and the others fail, which will break the atomicity of the whole transaction
+
+#### Two-phase commit
+High-level Idea 
+Use a coordinator to make sure that all the participants will all commit or all rollback.
+
+A preparation phase that collects "votes" from participants -- all the participants should be able to commit, not a quorum
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/c66eaa195dd304ac1715c61756d4549c7e7c6d4e2e86d4df71398133da19f8b4.jpg)
+
+**Serializability & 2PC**
+2PC is a general approach to achieve atomic commit in a distributed environment​
+- It is not bound to 2PL, it can be combined with different kinds of concurrency control to achieve different levels of isolation  
+
+2PC can be combined with S2PL to achieve serializable distributed transaction 
+- locks are required from the preparation phase
+- and released only after receiving the final commit message from the coordinator
+
+### Failure Handling in 2PC
+**States** 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/51cb88861b1c34fa729e20a43d0298499560c9c3a39afec51d17ee37bfd82ce0.jpg)
+
+- A log record needs to be flushed to the persistent log for every state change
+
+**Failure of Coordinator**  
+The global commit point of 2PC is the time that the log record of "state change from prepare to commit" is flushed in the coordinator​ 
+- even though some of the participants may have not received the commit message
+- Even even though the coordinator fails after the flushing and before sending all the commit messages -- the restarted coordinator can use this persistent log to resend the commit messages
+- When can the coordinator completely forget about a committed transaction? -- only after it sees an acknowledgement from every participant for the COMMIT.  
+
+Participants must filter out duplicate COMMITs (using unique transaction ID).
+- It can be implemented straightforwardly via remembering all the live transactions 
+- A COMMIT for non-live transaction can be simply replied with ack without any other steps  
+
+What if the coordinator has not received a prepared or aborted message from the participant
+- It is possible because of the network failure
+- Timeout can be used and the coordinator abort the whole transaction to release locks on other participants​
+- Timeout is dangerous in a distributed environment, but in 2PC we assume only a single coordinator, thus it is fine for it to make its own decision
+
+**Failure of Participant**
+Similarly, a log record "state change from init to prepared" must be flushed to participant's persistent log before sending "can commit" vote to coordinator
+- With this log, after the restarting of the participant, it can ask coordinator to commit or rollback the prepared transaction
+- Meanwhile, the participant must continue to hold the prepared transaction's locks (acquire the lock during the restart procedure, before accepting any further requests). 
+
+Otherwise, the participant can abort and release the locks if it decides to abort​ 
+
+In contrast, the participant must block until receiving a commit/abort message from the coordinator if it has already sent prepared message to the coordinator
+- Even if the participant never receives this message for a long period of time, a timeout should not be used​
+- How to avoid this blocking?: implement coordinator as a highly-available service via replicated state machine
+
+### Critique of the Original 2PC + S2PL
+The original implementation of 2PC is slow for many reasons
+
+- Two rounds of messages and lock even for read-only transactions
+    locks are held during the prepare/commit exchanges; blocks other transactions
+    A disk flush is needed for every state change
+- Block due to coordinator failure
+    2PC does not help availability since all servers must be up to get anything done
+    In contrast, Raft does not ensure that all servers do something since only a majority have to be alive
+    A combination of 2PC + S2PL ++ Raft can lead to highly-available distributed transaction
+
