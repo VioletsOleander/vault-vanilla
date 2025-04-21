@@ -23,7 +23,7 @@ See [using enum](https://en.cppreference.com/w/cpp/language/enum#Using-enum-dec
 
 - `declarator-list` : comma-separated list of one or more declarators of the `typename` (optional) nested-name-specifier unqualified-id. Some or all of the declarators may be followed by an ellipsis ... to indicate [pack expansion](https://en.cppreference.com/w/cpp/language/parameter_pack "cpp/language/parameter pack")
 
-# Explanation
+### Explanation
 Using-declarations can be used to introduce namespace members into other namespaces and block scopes, or to introduce base class members into derived class definitions, or to introduce [enumerators](https://en.cppreference.com/w/cpp/language/enum "cpp/language/enum") into namespaces, block, and class scopes(since C++20).
 >  using-声明将命名空间成员引入另一个命名空间和块作用域，
 >  或者将基类成员引入衍生类定义，
@@ -31,7 +31,7 @@ Using-declarations can be used to introduce namespace members into other namespa
 
 A using-declaration with more than one using-declarator is equivalent to a corresponding sequence of using-declarations with one using-declarator. (since C++17)
 
-## In namespace and block scope
+#### In namespace and block scope
 [Using-declarations](https://en.cppreference.com/w/cpp/language/namespace#Using-declarations "cpp/language/namespace") introduce a member of another namespace into the current namespace or block scope.
 >  using-声明可以将另一个命名空间的成员引入当前命名空间或块作用域
 
@@ -51,7 +51,7 @@ int main()
 
 See [namespace](https://en.cppreference.com/w/cpp/language/namespace "cpp/language/namespace") for details.
 
-## In class definition
+#### In class definition
 Using-declaration introduces a member of a base class into the derived class definition, such as to expose a protected member of base as public member of derived. In this case, nested-name-specifier must name a base class of the one being defined. If the name is the name of an overloaded member function of the base class, all base class member functions with that name are introduced. If the derived class already has a member with the same name, parameter list, and qualifications, the derived class member hides or overrides (doesn't conflict with) the member that is introduced from the base class.
 >  using-声明可以将基类的成员引入到派生类定义中，例如将基类的保护成员暴露为派生类的公开成员
 >  此时，nested-name-specifier 必须是所定义的类的某个基类
@@ -107,7 +107,7 @@ int main()
 }
 ```
 
-### Inheriting constructors
+#### Inheriting constructors
 If the _using-declaration_ refers to a constructor of a direct base of the class being defined (e.g. using Base:: Base;), all constructors of that base (ignoring member access) are made visible to overload resolution when initializing the derived class.
 >  如果 using-声明指代了当前类的某个直接基类的构造函数，则在初始化派生类时 (创建派生类对象)，基类的所有构造函数 (忽略成员访问) 均对重载决议可见 
 >  (也就是此时不管私有公有还是保护的基类构造函数都可以被用于构造派生类)
