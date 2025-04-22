@@ -24,7 +24,7 @@ Concurrent actions have the before-or-after property if their effect from the po
 >  如果并发动作的效果，从其调用者的视角来看，和它们完全发生在彼此之前或者彼此之后的效果相同，则这些并发动作具有 before-or-after 原子性
 
 In Chapter 5 we saw how before-or-after actions can be created with explicit locks and a thread manager that implements the procedures ACQUIRE and RELEASE. Chapter 5 showed some examples of before-or-after actions using locks, and emphasized that programming correct before-or-after actions, for example coordinating a bounded buffer with several producers or several consumers, can be a tricky proposition. To be confident of correct­ness, one needs to establish a compelling argument that every action that touches a shared variable follows the locking protocol.  
->  可以通过显示锁或者一个实现了过程 ACQUIRE 和 RELEASE 的线程管理器来创建满足 before-or-after 原子性的并发动作
+>  可以通过显式锁或者一个实现了过程 ACQUIRE 和 RELEASE 的线程管理器来创建满足 before-or-after 原子性的并发动作
 >  编写正确的 before-or-after actions (例如协调带有多个消费者和生产者的有界缓冲区) 是一个棘手的问题，为了确保正确性，需要论证每个触及了共享变量的动作都遵循了锁协议
 
 One thing that makes before-or-after atomicity different from sequence coordination is that the programmer of an action that must have the before-or-after property does not necessarily know the identities of all the other actions that might touch the shared variable. This lack of knowledge can make it problematic to coordinate actions by explicit program steps. Instead, what the programmer needs is an automatic, implicit mechanism that ensures proper handling of every shared variable. This chapter will describe several such mechanisms. 
@@ -265,7 +265,7 @@ Disciplines that allow all possible concurrency while at the same time ensuring 
 
 There are two interactions between locks and logs that require some thought: (1) individual transactions that abort, and (2) system recovery. 
 >  在锁和日志之间有两种交互需要考虑
->  (1) 单独的事务终止 (2) 系统恢复
+>  (1) 单独的事务中止 (2) 系统恢复
 
 Aborts are the easiest to deal with. Since we require that an aborting transaction restore its changed data objects to their original values before releasing any locks, no special account need be taken of aborted transactions. For purposes of before-or-after atomicity they look just like committed transactions that didn’t change anything. The rule about not releasing any locks on modified data before the end of the transaction is essential to accomplishing an abort. If a lock on some modified object were released, and then the transaction decided to abort, it might find that some other transaction has now acquired that lock and changed the object again. Backing out an aborted change is likely to be impossible unless the locks on modified objects have been held.  
 >  中止容易处理，因为我们要求中止的事务在释放任何锁之前，将它改变的数据对象恢复为其原来的值，因此无需特别考虑中止的事务
@@ -335,12 +335,12 @@ and let the three workers handle the details. We need some clue how Bob could ac
 
 The clue comes from recognizing that the coordinator has created a higher-layer transaction and each of the workers is to perform a transaction that is nested in the higher-layer transaction. Thus, what we need is a distributed version of the two-phase commit protocol. The complication is that the coordinator and workers cannot reliably communicate. The problem thus reduces to constructing a reliable distributed version of the two-phase commit protocol. We can do that by applying persistent senders and duplicate suppression.
 >  我们需要认识到协调者创建了一个更高层次的事务，每个 worker 则需要执行一个嵌套在该高层事务中的一个事务
->  因此，我们需要的是两阶段提交协议的分布时版本，此时难点在于协调者和 worker 无法可靠地通信
->  故问题归结为构建一个可靠的分布时两阶段提交协议，我们可以通过应用持久化发送方和重复抑制来实现这一点
+>  因此，我们需要的是两阶段提交协议的分布式版本，此时难点在于协调者和 worker 无法可靠地通信
+>  故问题归结为构建一个可靠的分布式两阶段提交协议，我们可以通过应用持久化发送方和重复抑制来实现这一点
 
 Phase one of the protocol starts with coordinator Alice creating a top-layer outcome record for the overall transaction. Then Alice begins persistently sending to Bob an RPClike message:
 >  协议的第一阶段从 Alice 为整个提交创建一个顶层的结果记录开始，之后，Alice 开始持续向 Bob 发送一个类 RPC 的消息，示例如下：
-
+    
 ```
 From: Alice 
 To: Bob 
@@ -418,14 +418,6 @@ Each worker site, upon receiving such a message, changes its state from PREPARED
 >  同时，Alice 可以继续处理其他事务，但必须能够可靠地在未来的无限长事件记住此事务的结果，原因是他发送的完成消息可能会丢失，故会需要重新发送
 >  处于 PREPARE 状态的 worker 在合理的时间内没有收到完成消息，会重新发送其 PREPARED 消息，每当 Alice 收到 PREPARE 消息后，他只需返回对应事务的结果记录上的状态
 
-
-If a worker site that uses logs and locks crashes, the recovery procedure at that site has to take three extra steps. First, it must classify any PREPARED transaction as a tentative winner that it should restore to the PREPARED state. Second, if the worker is using locks for before-or-after atomicity, the recovery procedure must reacquire any locks the PREPARED transaction was holding at the time of the failure. Finally, the recovery procedure must restart the persistent sender, to learn the current status of the higher-layer transaction. If the worker site uses version histories, only the last step, restarting the persistent sender, is required.
->  如果使用日志和锁的 worker 崩溃，该 worker 的恢复程序需要额外执行三个步骤
->  首先，必须将任何处于 PREPARED 状态的事务分类为暂定胜者，将其恢复到 PREPARED 状态
->  其次，如果 worker 使用锁来实现 before-or-after 原子性，则恢复程序必须重新获取 PREPARED 事务在故障时获取的所有锁
->  最后，恢复程序必须重新启动持久化发送器，以了解高层事务的当前状态
->  如果 worker 使用了版本历史记录，则只需要执行最后一个步骤，即重启持久化发送器
-
 Since the workers act as persistent senders of their PREPARED messages, Alice can be confident that every worker will eventually learn that her transaction committed. But since the persistent senders of the workers are independent, Alice has no way of ensuring that they will act simultaneously. Instead, Alice can only be certain of eventual completion of her transaction. This distinction between simultaneous action and eventual action is critically important, as will soon be seen.
 >  因为 worker 会持续发送他们的 PREPARED 消息，Alice 可以确定每个 worker 最终都会知道它的事务已经提交
 >  但由于 workers 的发送器是独立的，故 Alice 没有任何方法可以确保它们会同时行动，相反，Alice 只能确定她的事务最终会完成
@@ -437,7 +429,7 @@ Since the workers act as persistent senders of their PREPARED messages, Alice ca
 Timing diagram for distributed two-phase commit, using 3Nmessages. (The initial RPC request and response messages are not shown.) Each of the four participants maintains its own version history or recovery log. The diagram shows log entries made by the coordinator and by one of the workers.
 
 If all goes well, two-phase commit of N worker sites will be accomplished in 3N messages, as shown in Figure 9.37: for each worker site a PREPARE message, a PREPARED message in response, and a COMMIT message. This 3N message protocol is complete and sufficient, although there are several variations one can propose.
->  如果进展顺利，N worker 的两阶段提交可以通过 3N 条消息完成，其中每个 worker 会发送一条 PREPARE 消息，接收一条 PREPARED 回应消息，发送一条 COMMIT 消息
+>  如果进展顺利，N worker 的两阶段提交可以通过 3N 条消息完成，其中协调者会向每个 worker 会发送一条 PREPARE 消息，接收一条 PREPARED 回应消息，发送一条 COMMIT 消息
 >  这个 3N 消息协议是完备的，尽管存在一些变体
 
 An example of a simplifying variation is that the initial RPC request and response could also carry the PREPARE and PREPARED messages, respectively. However, once a worker sends a PREPARED message, it loses the ability to unilaterally abort, and it must remain on the knife edge awaiting instructions from the coordinator. To minimize this wait, it is usually preferable to delay the PREPARE/PREPARED message pair until the coordinator knows that the other workers seem to be in a position to do their parts.

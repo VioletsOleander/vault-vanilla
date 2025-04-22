@@ -174,7 +174,7 @@ Let’s break down the anatomy of this MLIR operation:
 
 > [! info] SSA
 > 静态单赋值 (Static Single Assignment) 是编译器 IR 中常用的一种形式，在该形式下，每个变量在生命周期内只能被赋值一次
-> 该形式有助于简化编译器优化，同时是数据流分析更简单
+> 该形式有助于简化编译器优化，同时使数据流分析更简单
 > 例如，代码
 > ```c
 > x = 1
@@ -247,7 +247,7 @@ It’s worth noting that the mlir-opt tool - a tool for testing compiler passes 
 ### Opaque API 
 MLIR is designed to allow all IR elements, such as attributes, operations, and types, to be customized. At the same time, IR elements can always be reduced to the above fundamental concepts. This allows MLIR to parse, represent, and [round-trip](https://mlir.llvm.org/getting_started/Glossary/#round-trip) IR for _any_ operation. 
 >  MLIR 在设计上允许自定义所有的 IR 元素，例如属性、操作、类型
->  注意所有的 IR 元素都可以按照之前的基本概念分类
+>  注意所有的 IR 元素都可以归结为之前的基本概念
 >  通过自定义，MLIR 可以解析、表示、往返任何操作的 IR
 
 For example, we could place our Toy operation from above into an `.mlir` file and round-trip through _mlir-opt_ without registering any `toy` related dialect:
