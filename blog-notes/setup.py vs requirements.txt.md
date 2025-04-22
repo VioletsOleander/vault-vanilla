@@ -1,6 +1,4 @@
-22 July 2013
-
----
+>  https://caremad.io/posts/2013/07/setup-vs-requirement/
 
 There’s a lot of misunderstanding between `setup.py` and `requirements.txt` and their roles. A lot of people have felt they are duplicated information and have even created [tools](https://pypi.python.org/pypi/pbr/#requirements) to handle this “duplication”.
 

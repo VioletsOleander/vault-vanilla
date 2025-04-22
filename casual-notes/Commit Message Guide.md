@@ -633,6 +633,7 @@ scopes:
     - lecture
     - course
     - causal
+    - blog
 - log
     - daily
     - weekly
