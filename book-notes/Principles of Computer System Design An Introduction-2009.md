@@ -299,38 +299,167 @@ Since RECOVER performs UNDO actions in reverse order as specified in the log, an
 
 ## 9.6 Atomicity across Layers and Multiple Sites
 ### 9.6.3 Multiple-Site Atomicity: Distributed Two-Phase Commit
-If a transaction requires executing component transactions at several sites that are sepa­ rated by a best-effort network, obtaining atomicity is more difficult because any of the messages used to coordinate the transactions of the various sites can be lost, delayed, or duplicated. In Chapter 4 we learned of a method, known as Remote Procedure Call (RPC) for performing an action at another site. In Chapter 7[on-line] we learned how to design protocols such as RPC with a persistent sender to ensure at-least-once execu­ tion and duplicate suppression to ensure at-most-once execution. Unfortunately, neither of these two assurances is exactly what is needed to ensure atomicity of a multiple-site transaction. However, by properly combining a two-phase commit protocol with persis­ tent senders, duplicate suppression, and single-site transactions, we can create a correct multiple-site transaction. We assume that each site, on its own, is capable of implement­ ing local transactions, using techniques such as version histories or logs and locks for allor-nothing atomicity and before-or-after atomicity. Correctness of the multiple-site ato­ micity protocol will be achieved if all the sites commit or if all the sites abort; we will have failed if some sites commit their part of a multiple-site transaction while others abort their part of that same transaction.
+If a transaction requires executing component transactions at several sites that are separated by a best-effort network, obtaining atomicity is more difficult because any of the messages used to coordinate the transactions of the various sites can be lost, delayed, or duplicated. 
+>  如果一个事务的完成涉及到在由尽力而为的网络分隔的多个站点上执行不同的组件事务，那么实现原子性将更加困难，因为用于协调各个站点上的组件事务的消息可能会丢失、延迟或重复
 
-Suppose the multiple-site transaction consists of a coordinator Alice requesting com­ ponent transactions X, Y, and Z of worker sites Bob, Charles, and Dawn, respectively. The simple expedient of issuing three remote procedure calls certainly does not produce a transaction for Alice because Bob may do X while Charles may report that he cannot do Y. Conceptually, the coordinator would like to send three messages, to the three workers, like this one to Bob:
+In Chapter 4 we learned of a method, known as Remote Procedure Call (RPC) for performing an action at another site. In Chapter 7[on-line] we learned how to design protocols such as RPC with a persistent sender to ensure at-least-once execution and duplicate suppression to ensure at-most-once execution. Unfortunately, neither of these two assurances is exactly what is needed to ensure atomicity of a multiple-site transaction. 
+>  Chapter 4 介绍了 RPC 可以用于在远程站点执行一个操作，Chapter 7 介绍了如何设计协议 (例如具有持久发送方的 RPC)，以确保远程调用被执行且仅被执行一次 (至少一次执行 + 重复抑制)
+>  不幸的是，这两个保证都不是确保多站点事务原子性的理想选择
 
-From: Alice To: Bob Re: my transaction 91 if (Charles does Y and Dawn does Z) then do $\mathsf{X},$ please.
+However, by properly combining a two-phase commit protocol with persistent senders, duplicate suppression, and single-site transactions, we can create a correct multiple-site transaction. 
+>  但是，通过正确将一个两阶段提交协议和持久化发送者、重复抑制、单站点事务结合，我们可以创建一个正确的多站点事务
 
-and let the three workers handle the details. We need some clue how Bob could accom­ plish this strange request.
+We assume that each site, on its own, is capable of implementing local transactions, using techniques such as version histories or logs and locks for all-or-nothing atomicity and before-or-after atomicity. Correctness of the multiple-site atomicity protocol will be achieved if all the sites commit or if all the sites abort; we will have failed if some sites commit their part of a multiple-site transaction while others abort their part of that same transaction.
+>  我们假设每个站点本身可以使用例如版本历史或日志和锁实现本地事务的 all-or-nothing 和 before-or-after 原子性
+>  如果多站点原子性协议可以满足要么所有站点都提交要么所有站点都中止，该协议就是正确的
+>  如果某些站点提交了他们的部分，而其他站点中止了他们的部分，那么该协议就是失败的
+
+Suppose the multiple-site transaction consists of a coordinator Alice requesting com­ponent transactions X, Y, and Z of worker sites Bob, Charles, and Dawn, respectively. The simple expedient of issuing three remote procedure calls certainly does not produce a transaction for Alice because Bob may do X while Charles may report that he cannot do Y. 
+>  考虑一个多站点事务，它的内容是一个协调者 Alice 请求 worker 站点 Bob, Charles, Dawn 分别执行组件事务 X, Y, Z
+>  简单地发出三个 RPC 显然不会为 Alice 创建一个事务，因为 Bob 可能执行 X，但 Charles 可能报告它无法执行 Y
+
+Conceptually, the coordinator would like to send three messages, to the three workers, like this one to Bob:
+>  概念上，协调者将向三个 workers 发送三条消息
+>  如下是一条向 Bob 发送的示例消息
+
+```
+From: Alice 
+To: Bob 
+Re: my transaction 91 
+    if (Charles does Y and Dawn does Z) then do X, please.
+```
+
+and let the three workers handle the details. We need some clue how Bob could accomplish this strange request.
+>  Alice 负责发送这样消息，三个 worker 负责处理事务执行细节
+>  我们需要考虑 Bob 应该如何完成 Alice 在这样的消息中的请求
 
 The clue comes from recognizing that the coordinator has created a higher-layer transaction and each of the workers is to perform a transaction that is nested in the higher-layer transaction. Thus, what we need is a distributed version of the two-phase commit protocol. The complication is that the coordinator and workers cannot reliably communicate. The problem thus reduces to constructing a reliable distributed version of the two-phase commit protocol. We can do that by applying persistent senders and duplicate suppression.
+>  我们需要认识到协调者创建了一个更高层次的事务，每个 worker 则需要执行一个嵌套在该高层事务中的一个事务
+>  因此，我们需要的是两阶段提交协议的分布时版本，此时难点在于协调者和 worker 无法可靠地通信
+>  故问题归结为构建一个可靠的分布时两阶段提交协议，我们可以通过应用持久化发送方和重复抑制来实现这一点
 
 Phase one of the protocol starts with coordinator Alice creating a top-layer outcome record for the overall transaction. Then Alice begins persistently sending to Bob an RPClike message:
+>  协议的第一阶段从 Alice 为整个提交创建一个顶层的结果记录开始，之后，Alice 开始持续向 Bob 发送一个类 RPC 的消息，示例如下：
 
-From: Alice To: Bob Re: my transaction 271 Please do X as part of my transaction.
+```
+From: Alice 
+To: Bob 
+Re: my transaction 271 
+    Please do X as part of my transaction.
+```
 
 Similar messages go from Alice to Charles and Dawn, also referring to transaction 271, and requesting that they do Y and Z, respectively. As with an ordinary remote procedure call, if Alice doesn’t receive a response from one or more of the workers in a reasonable time she resends the message to the non-responding workers as many times as necessary to elicit a response.
+>  Alice 也会向 Charles 和 Dawn 发送类似的消息，请求他们执行 Y, Z，并且同样在消息中指出当前事务为 transaction 271
+>  和普通的 RPC 一样，如果 Alice 在合理的时间内没有从一个或者多个 workers 受到响应，它会多次重新发送消息给未响应的 workers，直到收到响应
 
 A worker site, upon receiving a request of this form, checks for duplicates and then creates a transaction of its own, but it makes the transaction a nested one, with its superior being Alice’s original transaction. It then goes about doing the pre-commit part of the requested action, reporting back to Alice that this much has gone well:
+>  在 worker 端，收到请求后，worker 首先检查重复，然后创建自己的事务，并将其设置为一个嵌套的事务，该事务的上层是 Alice 的原始事务
+>  随后，它开始处理所请求动作 (X) 的预提交部分，并向 Alice 报告这部分的处理进行顺利：
 
-From: Bob To: Alice Re: your transaction 271 My part X is ready to commit.
+```
+From: Bob 
+To: Alice 
+Re: your transaction 271 
+    My part X is ready to commit.
+```
 
 Alice, upon collecting a complete set of such responses then moves to the two-phase commit part of the transaction, by sending messages to each of Bob, Charles, and Dawn saying, e.g.:
+>  Alice 收到三个 workers 的回应后，进展到该事务处理的第二阶段，即提交部分，Alice 会向 workers 发送一条消息，示例如下：
+
+```
 Two-phase-commit message #1 :
-From: Alice To: Bob Re: my transaction 271 PREPARE to commit X.
+From: Alice 
+To: Bob 
+Re: my transaction 271 
+    PREPARE to commit X.
+```
 
 Bob, upon receiving this message, commits—but only tentatively—or aborts. Having created durable tentative versions (or logged to journal storage its planned updates) and having recorded an outcome record saying that it is PREPARED either to commit or abort, Bob then persistently sends a response to Alice reporting his state:
+>  Bob 收到该消息后，进行 (试探性的) 提交或者中止
+>  Bob 在创建了持久的试探性提交后 (或者将计划的更新记录存储到其日志存储中后)，就记录一条结果记录，表明他已经准备要么提交要么中止
+>  然后 Bob 持久化地向 Alice 发送一个响应，报告他的状态 (PREPARED):
+
+```
+Two-phase-commit message #2:
+From:Bob
+To:Alice
+Re: your transaction 271
+    I am PREPARED to commit my part. Have you decided to commit yet? Regards.
+```
+
+or alternatively, a message reporting it has aborted. If Bob receives a duplicate request from Alice, his persistent sender sends back a duplicate of the PREPARED or ABORTED response.
+>  或者相反，Bob 会发送一条报告事务已经中止的消息 (ABORTED)
+>  如果 Bob 之后收到 Alice 的重复请求，他的持久化发送程序就会返回 PREPARED 或 ABORTED 响应消息
+
+At this point Bob, being in the PREPARED state, is out on a limb. Just as in a local hierarchical nesting, Bob must be able either to run to the end or to abort, to maintain that state of preparation indefinitely, and wait for someone else (Alice) to say which. In addition, the coordinator may independently crash or lose communication contact, increasing Bob’s uncertainty. If the coordinator goes down, all of the workers must wait until it recovers; in this protocol, the coordinator is a single point of failure.
+>  此时，Bob 处于 PREPARED 状态，如果 Alice 失去联系或者崩溃，Bob 将无限期保持在这个状态，事实上所有的 workers 都需要等待协调者的恢复
+>  在这个协议中，协调者是一个单点故障
+
+As coordinator, Alice collects the response messages from her several workers (perhaps re-requesting PREPARED responses several times from some worker sites). If all workers send PREPARED messages, phase one of the two-phase commit is complete. If any worker responds with an abort message, or doesn’t respond at all, Alice has the usual choice of aborting the entire transaction or perhaps trying a different worker site to carry out that component transaction. 
+>  Alice 作为协调者收集从 workers 中的响应
+>  如果所有的 workers 都发送了 PREPARED 消息，则两阶段提交的第一阶段就完成，如果任意 worker 回应了 ABORTED 消息，或者没有回应，Alice 可以选择通常的处理方式，即中止整个事务，或者尝试让其他工作站点执行该子事务
+
+Phase two begins when Alice commits the entire transaction by marking her own outcome record COMMITTED.
+>  当 Alice 将其结果记录标记为 COMMITED 后，Alice 提交了整个事务，此时协议的第二阶段开始
+
+Once the higher-layer outcome record is marked as COMMITTED or ABORTED, Alice sends a completion message back to each of Bob, Charles, and Dawn:
+>  当 Alice 将高层结果记录标记为 COMMITED 或 ABORTED 后，向 workers 发送一条完成消息:
+
+```
+Two-phase-commit message #3
+From:Alice
+To:Bob
+Re: my transaction 271
+    My transaction committed. Thanks for your help.
+```
+
+Each worker site, upon receiving such a message, changes its state from PREPARED to COMMITTED, performs any needed post-commit actions, and exits. Meanwhile, Alice can go about other business, with one important requirement for the future: she must remember, reliably and for an indefinite time, the outcome of this transaction. The reason is that one or more of her completion messages may have been lost. Any worker sites that are in the PREPARED state are awaiting the completion message to tell them which way to go. If a completion message does not arrive in a reasonable period of time, the persistent sender at the worker site will resend its PREPARED message. Whenever Alice receives a duplicate PREPARED message, she simply sends back the current state of the outcome record for the named transaction
+>  每个 worker 收到这样的消息后，会将其状态从 PREPARED 改为 COMMITED，并执行任何必要的提交后操作
+>  同时，Alice 可以继续处理其他事务，但必须能够可靠地在未来的无限长事件记住此事务的结果，原因是他发送的完成消息可能会丢失，故会需要重新发送
+>  处于 PREPARE 状态的 worker 在合理的时间内没有收到完成消息，会重新发送其 PREPARED 消息，每当 Alice 收到 PREPARE 消息后，他只需返回对应事务的结果记录上的状态
+
+
+If a worker site that uses logs and locks crashes, the recovery procedure at that site has to take three extra steps. First, it must classify any PREPARED transaction as a tentative winner that it should restore to the PREPARED state. Second, if the worker is using locks for before-or-after atomicity, the recovery procedure must reacquire any locks the PREPARED transaction was holding at the time of the failure. Finally, the recovery procedure must restart the persistent sender, to learn the current status of the higher-layer transaction. If the worker site uses version histories, only the last step, restarting the persistent sender, is required.
+>  如果使用日志和锁的 worker 崩溃，该 worker 的恢复程序需要额外执行三个步骤
+>  首先，必须将任何处于 PREPARED 状态的事务分类为暂定胜者，将其恢复到 PREPARED 状态
+>  其次，如果 worker 使用锁来实现 before-or-after 原子性，则恢复程序必须重新获取 PREPARED 事务在故障时获取的所有锁
+>  最后，恢复程序必须重新启动持久化发送器，以了解高层事务的当前状态
+>  如果 worker 使用了版本历史记录，则只需要执行最后一个步骤，即重启持久化发送器
+
+Since the workers act as persistent senders of their PREPARED messages, Alice can be confident that every worker will eventually learn that her transaction committed. But since the persistent senders of the workers are independent, Alice has no way of ensuring that they will act simultaneously. Instead, Alice can only be certain of eventual completion of her transaction. This distinction between simultaneous action and eventual action is critically important, as will soon be seen.
+>  因为 worker 会持续发送他们的 PREPARED 消息，Alice 可以确定每个 worker 最终都会知道它的事务已经提交
+>  但由于 workers 的发送器是独立的，故 Alice 没有任何方法可以确保它们会同时行动，相反，Alice 只能确定她的事务最终会完成
+>  这种同时行动与最终行动之间的区别至关重要，很快就会看到这一点
+
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/0ad2aa4a-dde4-4e4b-82df-c25c550c440b/365944f06d4e3d6f621257cff800c056f69fe31ab38228c7b570a0f6d34c9da0.jpg)
 
-## FIGURE 9.37
-
 Timing diagram for distributed two-phase commit, using 3Nmessages. (The initial RPC request and response messages are not shown.) Each of the four participants maintains its own version history or recovery log. The diagram shows log entries made by the coordinator and by one of the workers.
 
-sending the PREPARE message but before sending the COMMIT or ABORT message the worker sites are in left in the PREPARED state with no way to proceed. Even without that concern, Alice and her co-workers are standing uncomfortably close to a multiple-site atomicity problem that, at least in principle, can not be solved. The only thing that rescues them is our observation that the several workers will do their parts eventually, not necessarily simultaneously. If she had required simultaneous action, Alice would have been in trouble.
+If all goes well, two-phase commit of N worker sites will be accomplished in 3N messages, as shown in Figure 9.37: for each worker site a PREPARE message, a PREPARED message in response, and a COMMIT message. This 3N message protocol is complete and sufficient, although there are several variations one can propose.
+>  如果进展顺利，N worker 的两阶段提交可以通过 3N 条消息完成，其中每个 worker 会发送一条 PREPARE 消息，接收一条 PREPARED 回应消息，发送一条 COMMIT 消息
+>  这个 3N 消息协议是完备的，尽管存在一些变体
+
+An example of a simplifying variation is that the initial RPC request and response could also carry the PREPARE and PREPARED messages, respectively. However, once a worker sends a PREPARED message, it loses the ability to unilaterally abort, and it must remain on the knife edge awaiting instructions from the coordinator. To minimize this wait, it is usually preferable to delay the PREPARE/PREPARED message pair until the coordinator knows that the other workers seem to be in a position to do their parts.
+>  一个简单的变体是初始的 RPC 请求和响应也可以分别携带 PREPARE 和 PREPARED 消息
+>  然而，一旦一个 worker 发送了 PREPARED 消息，它就失去了单方面中止的能力，并且必须保持待命状态，等待协调者的指令
+>  为了尽量减少等待时间，通常更可取的做法是延迟发送 PREPARE/PREPARED 消息对，直到协调者确认其他工作节点似乎已经准备好完成他们的任务为止
+
+Some versions of the distributed two-phase commit protocol have a fourth acknowledgment message from the worker sites to the coordinator. The intent is to collect a complete set of acknowledgment messages—the coordinator persistently sends completion messages until every site acknowledges. Once all acknowledgments are in, the coordinator can then safely discard its outcome record, since every worker site is known to have gotten the word.
+>  一些版本的分布式两阶段提交协议中，多出一条 worker 发送给协调者的确认消息，其目的是收集完整的确认消息集——协调者会持续的发送完成消息直到收到所有的确认
+>  当收到所有的确认后，协调者可以安全地丢弃其结果记录，因为此时可以确认每个 worker 都已经接收到相关信息
+
+A system that is concerned both about outcome record storage space and the cost of extra messages can use a further refinement, called presumed commit. Since one would expect that most transactions commit, we can use a slightly odd but very space-efficient representation for the value COMMITTED of an outcome record: non-existence. 
+>  如果系统非常关心结果记录的存储空间，又关心额外消息的成本，可以使用一种进一步优化方法，称为假定提交
+>  因为我们预期大多数事务都会提交，故我们可以使用一个非常节省空间的方式来表示一个结果记录的提交值 COMMITED: non-existence
+
+The coordinator answers any inquiry about a non-existent outcome record by sending a COMMITTED response. If the coordinator uses this representation, it commits by destroying the outcome record, so a fourth acknowledgment message from every worker is unnecessary. In return for this apparent magic reduction in both message count and space, we notice that outcome records for aborted transactions can not easily be discarded because if an inquiry arrives after discarding, the inquiry will receive the response COMMITTED. The coordinator can, however, persistently ask for acknowledgment of aborted transactions, and discard the outcome record after all these acknowledgments are in. This protocol that leads to discarding an outcome record is identical to the protocol described in Chapter 7[on-line] to close a stream and discard the record of that stream.
+>  也就是说，协调者收到任何关于不存在的结果记录的查询时，都会发送了COMMITED 响应
+>  如果协调者使用这种表示，它可以通过销毁一条结果记录来表示它已提交，也不需要从 workers 中再接收确认消息
+>  显然，这种方式减少了消息数量和空间
+>  但注意中止事务的结果记录不能轻易销毁，因为如果在销毁后，到达了一条对该事务的查询，则查询结果将会是 COMMMITED，因此，协调者需要持续请求 workers 对中止事务进行确认，并在收到所有确认后再丢弃结果记录
+
+Distributed two-phase commit does not solve all multiple-site atomicity problems. For example, if the coordinator site (in this case, Alice) is aboard a ship that sinks after sending the PREPARE message but before sending the COMMIT or ABORT message the worker sites are in left in the PREPARED state with no way to proceed. Even without that concern, Alice and her co-workers are standing uncomfortably close to a multiple-site atomicity problem that, at least in principle, can not be solved. The only thing that rescues them is our observation that the several workers will do their parts eventually, not necessarily simultaneously. If she had required simultaneous action, Alice would have been in trouble.
+>  分布式两阶段提交并不能解决所有涉及多站点的原子性问题，例如，如果协调者在发送 PREPARE 消息后并在发送 COMMIT 或 ABORT 消息前故障，则 workers 将停留在 PREPARED 状态，无法继续
 
 The unsolvable problem is known as the dilemma of the two generals.
