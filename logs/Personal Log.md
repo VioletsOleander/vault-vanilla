@@ -1830,7 +1830,7 @@ Date: 2025.3.24-2025.3.31
 - [[doc-notes/go/package-documentation/plugin|go/package-documentation/plugin]]: All
 - [[doc-notes/go/references/go.mod file reference|go/references/go.mod file reference]]
 - [[doc-notes/go/command-documentation/go|go/command-documentation/go]]
-- [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]
+- [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]: Introduction, Formatting, Commentary, Names, Semicolons
     Introduction
     Formatting
         Use tab for indentation. No parentheses for control structures.
@@ -1840,7 +1840,7 @@ Date: 2025.3.24-2025.3.31
     Semicolons
 
 \[Blog\]
-- [[casual-notes/setup.py vs requirements.txt|setup.py vs requirements.txt]]
+- [[blog-notes/setup.py vs requirements.txt|setup.py vs requirements.txt]]
 
 ## April
 ### Week 1
@@ -2026,6 +2026,7 @@ Date: 2025.4.7-2025.4.14
         The failure processing in chain replication protocol is faster than primary/backup protocol.
     5-Simluation Experiments
 - [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]: All
+    Use LLM to do automatic GUI testing.
 
 \[Doc\]
 - [[doc-notes/pytorch/docs/python-api/torch.onnx/torch.onnx|pytorch/docs/python-api/torch.onnx/torch.onnx]]: All
@@ -2046,7 +2047,7 @@ Date: 2025.4.7-2025.4.14
     onnx-mlir have 5 binary libraries importable by Python using pybind. `PyOMCompileSession.hpp` to compile model, `PyExecutionSession.hpp` and `PyRuntime.py` to run models, `PyOMCompileExecutionSession.hpp` and `PyCompileAndRuntime.py` to compile and run models.
 - [[doc-notes/onnx-mlir/development/Add an Operation|onnx-mlir/development/Add an Operation]]
 - [[doc-notes/onnx-mlir/development/Testing Guidelines|onnx-mlir/development/Testing Guidelines]]
-- [[doc-notes/llvm/getting-involved/LLVM Coding Standards|llvm/getting-involved/LLVM Coding Standards]]
+- [[doc-notes/llvm/community/getting-involved/LLVM Coding Standards|llvm/community/getting-involved/LLVM Coding Standards]]
     Introduction
     Languages, Libraries, and Standards
         LLVM are written using standard C++17.
@@ -2066,4 +2067,46 @@ Date: 2025.4.7-2025.4.14
         The return or result parameters can have names.
         `defer` defer the function to be run immediately before the function executing the `defer` returns. `defer` is effective for handling resource release regardless which path the function takes. The canonical examples are unlocking a mutex or closing a file.
 
+### Week 3
+Date: 2025.4.14-2025.4.21
 
+\[Book\]
+- [[book-notes/Principles of Computer System Design An Introduction-2009|Principles of Computer System Design An Introduction]]: CH9.1, CH9.5, CH9.6
+    CH9-Atomicity: All-or-Nothing and Before-or-After
+        CH9.1-Atomicity
+            Path across between concurrent threads can always be described in terms of shared, writable data.
+            From the perspective of programmers, there are two kinds of concurrency coordination requirements: sequence coordination and before-or-after atomicity.
+            Concurrent actions have before-or-after atomicity property if their effect from the perspective of their invokers is the same as if actions occurred either completely before or completely after one another.
+            The programmer needs an automatic, implicit mechanism that ensures proper handling of every shared variable, to guarantee before-or-after atomicity.
+            It's better to have a more general concept of correctness that is independent of application. With application independence, we can make argument of correctness about the mechanism that provides before-or-after atomicity instead of considering the application details.
+            The correctness criterion is that the resulting state ought to be one of those that would have resulted from some serialization of the concurrent actions.
+            Obviously, if the actions are before-or-after, the correctness will be satisfied.
+            Therefore, we can call before-or-after atomicity has the effect of serializing the actions.
+        CH9.5-Before-or-After Atomicity II: Pragmatics
+            When a system uses logs for all-or-nothing atomicity, it usually adopts the lock mechanism for before-or-after atomicity.
+            The simple locking discipline has two rules: 1. each transaction must acquire a lock for every shared data object it intends to read or write before doing the actual reading or writing. 2. each transaction may release the lock only after it installs its last update and commits or completely restores the data and aborts.
+            The transaction has a lock point: the first instant at which it has acquired all of its locks. The collection of locks that the transaction has acquired when it reaches its lock point is called its lock set.
+            In a word, in the simple locking discipline, the transaction first acquire its lock set, and do execution, and then release its lock set.
+            The simple locking discipline correctly coordinates concurrent transactions.
+            The two-phase locking discipline allows a transaction to acquire locks as it proceeds, and the transaction may read or write a data object as soon as it acquires a lock on that object.
+            The constraint is that the transaction may not release any locks until it passes its lock point, and the transaction can release a lock on an object that it only reads any time after it reaches its lock point if it will never need to read that object again.
+            Compared to the simple locking discipline, the two-phase locking discipline allows the number of locks acquired by a transaction monotonically increases up to the lock point (the first phase), after which it monotonically decrease (the second phase).
+            Two-phase locking also guarantee before-or-after atomicity.
+            The argument for the correct of two-phase locking is more complicated.
+            The two-phase locking discipline can potentially allow more concurrency than the simple locking discipline.
+        CH9.6-Atomicity across Layers and Multiple Sites
+            Properly combine a two-phase commit protocol with persistent senders, duplicate suppression, and single-site transaction, we can create a correct multiple-site transaction.
+            If the protocol guarantees either all sites commit or all sites abort, then the protocol is correct.
+            The problem is essentially constructing a reliable distributed version of the two-phase commit protocol. We can do that by applying persistent sender and duplicate suppression.
+
+\[Doc\]
+- [[doc-notes/llvm/documentation/user-guides/code-generation/tablegen/TableGen Overview|llvm/documentation/user-guides/code-generation/tablegen/TableGen Overview]]
+- [[doc-notes/gdb/Debugging with GDB|gdb/Debugging with GDB]]
+- [[doc-notes/cppreference/language/templates/Class template|cppreference/language/templates/Class template]]
+- [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]: Data, Initialization, Methods, Interface and other types, The blank identifier, Embedding, Concurrency, Errors
+
+\[Blog\]
+- [[blog-notes/Canonicalization|Canonicalization]]: All
+
+\[Code-Analysis\]
+- [[codeflow-analysis/onnx-mlir|onnx-mlir]]
