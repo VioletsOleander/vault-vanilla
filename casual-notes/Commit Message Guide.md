@@ -634,6 +634,7 @@ scopes:
     - course
     - causal
     - blog
+    - wiki
 - log
     - daily
     - weekly
