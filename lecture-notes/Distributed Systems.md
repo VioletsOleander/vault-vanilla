@@ -2334,7 +2334,7 @@ Problem: atomic via replication naturally implies serial processing -- not able 
 13
 14 The following execution order will be excluded
 15   T1:        T2:
-16     add(x,1)   
+16    add(x,1)   
 17                tmp1=get(x)
 18                tmp2=get(y)
 19    add(y,-1)
@@ -2345,26 +2345,35 @@ Problem: atomic via replication naturally implies serial processing -- not able 
     Transaction is needed **as long as there is concurrency**, no need to be distributed  
     In this 101 lecture, we will first focus on the single-machine transactional system (that processes concurrent transactions)
 
+>  事务 = 并发控制 + 原子化提交
+>  只要存在并发性 (即便不是分布式的)，就需要事务
+
 ## ACID
 Atomicity: guarantees that **each transaction** is treated as a single "**unit**", which either succeeds completely or fails completely  
+>  原子性：每个事务都是一个 “单位”，要么完全成功，要么完全失败
 
 Consistency: ensures that a transaction can only bring the database from one consistent state to another, preserving **database invariants**  
+>  一致性：事务的执行能维护数据库不变式
 
 Isolation: ensures that concurrent execution of transactions leaves the database in the same state that **would have been obtained if** the transactions were executed sequentially. 
 - We also use the term **serializable** to represent this kind of isolation
 - There are also weaker versions of isolation. Actually, weaker versions are used more prevalently in the real-world because of their better performance. 
 - Compare with linearizability later
 
+>  隔离性：并发事务的执行可以等价于由某个串行顺序执行，即可串行性
+
 Durability: guarantees that once a transaction has been committed, it will **remain committed** even in the case of a system failure
 - DRAM is volatile and hence flush to disk is needed for durability
 - In contrast, it is ambiguous to decide whether it is durable or not if there are three volatile copies in a distributed environment -- it is not durable in strict definition but it is high available​
+
+>  持久性：一旦事务提交，在系统故障之前，提交状态不会丢失
 
 Benefits of ACID Transaction: ACID transactions are magic! (the power of abstraction)
 - programmer writes straightforward serial code 
 - system automatically adds correct locking! 
 - system automatically adds fault tolerance!
 
-## Atomic/Durability in a Single Machine
+### Atomic/Durability in a Single Machine
 Why atomic is still a problem even in a single-thread serial execution mode?
 
 A transaction can "abort" if something goes wrong​  
@@ -2375,24 +2384,35 @@ A transaction can "abort" if something goes wrong​
 - the application might (or might not) try an abort transaction again
 
 **Rollback is needed for an aborted transaction** for atomicity
-- Use write-ahead log 
+- Use **write-ahead log** 
 - Method 1: write in-place + undo log 
 - Method 2: Read redirect (redo log)
+
+>  预写日志的思想是在对实际数据修改之前，先将描述修改的记录写入日志，便于在事务中止时执行恢复
+>  方法一：原地写入 + undo log，其中 undo log 记录了数据被写入修改之前的值，便于在事务中止时回滚数据的值
+>  方法二：不原地写入，使用 redo log，它记录了有关修改操作的信息，如果事务提交后，机器崩溃，redo log 可以用于在恢复后前滚数据的值
+>  因为写入操作不是原地的，而是先写入 redo log，故在处理读取操作时，如果检测到当前数据被修改过，但尚未修改尚未写入磁盘，则会先将读取操作重定向到 redo log 中，以读取最新的数据
 
 Durability can also be achieved by flushing the log to disk -- redo log 
 - why not flush the data records?  
 - the access pattern of log is mostly **sequential** (append), which leads to better performance than flushing the modified data records that may scattered on random locations of the disk​
 
-## Consistency/Isolation in ACID V.S. Consistency in General
+### Consistency/Isolation in ACID V.S. Consistency in General
 Be careful! very ambiguous discussion.
 - Recap the metaphor/definition we give in Lecture 1
     The consistency of a distributed system is just like the "virtue" of a person -- the more the better, but hard to define, and frequently compromised due to the consideration of other interests (especially those interests related to money). 
     Consistency means a certain agreement on what good behaviors are at semantics-level​ 
 - Both consistency in ACID and isolation in ACID are **a special form of the generalized concept of consistency​** 
+
+>  ACID 中的 consistency 和 isolation 都是广义概念上的 consistency 的一个特定形式
+
 - Consistency in ACID is a **higher semantics-level consistency** that relates to "preserving database invariants" 
     It means to obey application-specific invariants 
-    "A Relational Model of Data for Large Shared Data Bank" by Edgar F. Codd @@ 1970 (another Turing-award paper) (pic refer to the original pdf)
-- Z are user-defined constraints. For example, in MySQL, one can define the following types of "constraint"
+    "A Relational Model of Data for Large Shared Data Bank" by Edgar F. Codd @ 1970 (another Turing-award paper) (pic refer to the original pdf)
+
+>  ACID 中的 consistency 等价于 "preserving database invariants"
+
+- Z are user-defined constraints. For example, in MySQL, one can define the following types of "constraint":
 
 The following constraints are commonly used in SQL:
 
@@ -2400,19 +2420,18 @@ The following constraints are commonly used in SQL:
 - UNIQUE - Ensures that all values in a column are different  
 - PRIMARY KEY - A combination of a NOT NULL and UNIQUE . Uniquely identifies each row in a table  
 - FOREIGN KEY - Prevents actions that would destroy links between tables  
-- CHEXK - Ensures that the values in a column satisfies a specific condition  
+- CHECK - Ensures that the values in a column satisfies a specific condition 
 - DEFAULT - Sets a default value for a column if no value is specified  
 - CREATE INDEX - Used to create and retrieve data from the database very quickly
 
-```
+```sql
 1 CREATE TABLE Persons (
-
-2 ID int NOT NULL,  
-3 LastName varchar(255) NOT NULL,  
-4 FirstName varchar(255),  
-5 Age int,  
-6 City varchar(255),  
-7 CONSTRAINT CHK_Person CHECK (Age>=18 AND City =1=1 Sandnes')  
+2     ID int NOT NULL,  
+3     LastName varchar(255) NOT NULL,  
+4     FirstName varchar(255),  
+5     Age int,  
+6     City varchar(255),  
+7     CONSTRAINT CHK_Person CHECK (Age>=18 AND City='Sandnes')  
 8 );
 ```
 
@@ -2420,22 +2439,50 @@ In contrast, isolation in ACID is actually more similar to the consistency in ge
 - but still many differences 
 - discussed later by comparing with the consistency in CAP/Raft (Serializability vs. Linearizability)
 
-## Serializable
+>  ACID 中的 isolation 更接近之前在分布式系统中讨论的 consistency
+
+### Serializability
 Serializability is **a specific isolation level**
+>  可串行性是一个特定的隔离性级别
 
-You execute some concurrent transactions, which yield results "results" means both output and changes in the DB. The results are serializable if:
+You execute some concurrent transactions, which yield results. "results" means both output and changes in the DB. The results are serializable if:
+- There **exists** a serial execution order of the transactions that yields the same results as the actual execution  
+- serial means one at a time -- no concurrent execution
+- Example
 
-There exists a serial execution order of the transactions that yields the same results as the actual execution  
-◦ serial means one at a time -- no concurrent execution
+```
+1 ==== serializable ==== 
+2 T1; T2 : x=11 y=9 "11,9"
+3 T2; T1 : x=11 y=9 "10,10"
+4 ==== non-serializable case 1 ====
+5 BEGIN-X         BEGIN-X
+6     add(x, 1)
+7                     tmp1 = get(x)
+8                     tmp2 = get(y)
+9     add(y, -1)
+10 END-X              assert(tmp1 + tmp2 == 20)
+11                END-X
+12 x=11 y=9 "11,10"
+13 ==== non-serializable case 2 ==== 
+14 BEGIN-X        BEGIN-X
+15                     tmp1 = get(x)
+16     add(x, 1)
+17     add(y, -1)
+18                     tmp2 = get(y)
+19 END-X               assert(tmp1 + tmp2 == 20)
+20                 END-X
+21 x=11 y=9 "10,9"
+```
 
 Why serializability is popular: An easy model for programmers. They can write complex transactions while ignoring concurrency​
 
-## Serializability v.s. Linearizability
-Also Isolation in ACID (a form of consistency) V.S. Consistency in CAP/Raft
+### Serializability vs. Linearizability
+Also Isolation in ACID (a form of consistency) vs. Consistency in CAP/Raft
 
 Linearizability recap
-
-Definition: an execution history is linearizable if one can find a total order of all operations, that matches real-time (for nonoverlapping ops), and in which each read sees the value from the write preceding it in the order ◦ Example: Linearizable as Wx1 Rx1 Wx2 Rx2 (although Rx2 actually starts before Rx1 but read a newer version of value)
+- Definition: an execution history is linearizable if 
+    one can find **a total order** of all operations, that **matches real-time** (for nonoverlapping ops), and in which each read sees the value from the write **preceding** it in the order
+- Example: Linearizable as Wx1 Rx1 Wx2 Rx2 (although Rx2 actually starts before Rx1 but read a newer version of value)
 
 ```
 1 |-Wx1-| |-Wx2-|  
@@ -2443,73 +2490,81 @@ Definition: an execution history is linearizable if one can find a total order o
 3     |-Rx1-|
 ```
 
-Linearizability: single-operation, single-object, real-time order ◦ Real-time order: imprecisely, once a write completes, all later reads (where “later” is defined by wall-clock end time) should return the value of that write or the value of a later write.​
-
-But what is time?
-
-ambiguous concept in a distributed environment Linearizability is not possible without a definition of time
-
-Example: The below example is not linearizable even if there is a possible order Wx1 Rx1, Wx2​
+Linearizability: **single-operation**, single-object, real-time order 
+- Real-time order: imprecisely, once a write completes, all **later** reads (where “later” is defined by wall-clock end time) should return the value of that write or the value of a later write.​
+    But what is time? - Time is an ambiguous concept in a distributed environment, while linearizability is not possible without a definition of time
+    Example: The below example is not linearizable even if there is a possible order Wx1 Rx1, Wx2​
 
 ```
 1 |-Wx1-| |-Wx2-|  
 2                 |- Rx1 -|
 ```
 
-To some extent, It is a property that can be viewed as a more strict version of atomicity!
+- To some extent, It is a property that can be viewed as a more strict version of atomicity!
+    Each operation, even if it accesses only a single object, is not executed "in no time", it **lasts a period of time** from start to end  
+    We use some mechanisms to **make it work like each operation is executed "in no time",** aka atomic, to achieve linearizability​  
+    Here, atomic means not only "all or nothing", it is just like an **atomic instruction**
+- Linearizability is the level of consistency in CAP/Raft
 
-Each operation, even if it accesses only a single object, is not executed "in no time", i lasts a period of time from start to end  
-We use some mechanisms to make it work like each operation is executed "in no time", aka atomic, to achieve linearizability​  
-Here, atomic means not only "all or nothing", it is just like an atomic instruction
+Serializability: **multi-operation**, multi-object, arbitrary total order  
+- Arbitrary total order: serializability does not—by itself—impose any real-time constraints on the ordering of transactions.  
+- For example, if T1 starts before T2 and the result is T2;T1 -- **serializable but not linearizable** 
+    Here we mean **physical time** by using the term "before"​
 
-Linearizability is the level of consistency in CAP/Raft
+>  Linearizability 和物理时间相关，Serializability 和物理时间无关
 
-Serializability: multi-operation, multi-object, arbitrary total order  
-◦ Arbitrary total order: serializability does not—by itself—impose any real-time constraints on the ordering of transactions.  
-◦ For example, if T1 starts before T2 and the result is T2;T1 -- serializable but not linearizable Here we mean physical time by using the term "before"​
-
-Strict Serializability =¸=¸​ Serializability ++ Linearizability
+Strict Serializability =​ Serializability + Linearizability
 
 ## Concurrency control -- The Method Used for Achieving Isolation
-Concurrency control ensures that correct results for concurrent operations are generated, while getting those results as quickly as possible.
+Concurrency control ensures that correct results for concurrent operations are generated, while getting those results **as quickly as possible**.
+>  并发控制先确保并发操作能产生正确的结果，在此基础上尽可能加快这一个过程
 
-• Using only one replication group will lead to correct results, but not the fastest way​ Two transactions that do not conflict with each other can be processed concurrently ◦ but what does it mean when we use the term conflict? ◦ It depends on the level of isolation (consistency in general not in ACID) that is promised to the users​ Actually, it should be the level of isolation in ACID
+- Using only one replication group will lead to correct results, but not the fastest way​ 
+- Two transactions that do not conflict with each other can be processed concurrently 
+    but what does it mean when we use the term conflict? 
+    It depends on the level of isolation (consistency in general not in ACID) that is promised to the users​ 
+        Actually, it should be the level of isolation in ACID
+        Actually, the no different levels of isolation in ACID, it should be serializable in its original definition. 
+        But, actually, it is compromised in most of the real-world scenario
+- Concurrency control is mainly used for **assuring isolation in ACID**
+- **Two classes of concurrency control** for transactions:
+    Pessimistic (taught in this lecture)
+        An easy model: lock records **before** use 
+        Conflicts cause delays (waiting for locks)
+    Optimistic (Optimistic Concurrency Control (OCC), taught in Lec 11)
+        use records without locking  
+        commit checks if reads/writes were serializable  
+        conflict causes abort + retry
+    Pessimistic is faster if conflicts are frequent; optimistic is faster if conflicts are rare
 
-▪ Actually, actually, the no different levels of isolation in ACID, it should be serializable in its original definition. But, actually, it is compromised in most of the real-world scenario
-
-Concurrency control is mainly used for assuring isolation in ACID
-
-Two classes of concurrency control for transactions:
-
-Pessimistic (taught in this lecture)
-
-An easy model: lock records before use Conflicts cause delays (waiting for locks)
-
-◦ Optimistic (Optimistic Concurrency Control (OCC), taught in Lec 11)
-
-use records without locking  
-commit checks if reads/writes were serializable  
-conflict causes abort+retry
-
-Pessimistic is faster if conflicts are frequent; optimistic is faster if conflicts are rare
+>  并发控制主要用于确保 ACID 中的隔离性/可串行性
+>  有两类并发控制
+>  - 悲观的：最简单的例子是在使用记录之前上锁
+>  - 乐观的：使用记录而不是锁，事务在提交之前会检查是否满足隔离性，如果存在冲突，则中止并重试
+>  如果冲突频繁，适合悲观的并发控制，否则使用乐观的并发控制
 
 #### Strict Two-phase Locking -- A Concurrency Control that Achieves Serializability
-
-The default pessimistic way of implementing serializable concurrency control.
+The default **pessimistic** way of implementing serializable concurrency control.
+>  二阶段锁 (2PL) 是默认的实现可串行并发控制的悲观方法
 
 Strict 2PL rules:
+- a transaction must acquire a record's lock before using it
+- a transaction must hold its locks until after commit or abort
 
-a transaction must acquire a record's lock before using it ◦ a transaction must hold its locks until after commit or abort [fig 3]
+>  严格的 2PL 规则
+>  - 事务使用记录之前，必须获取它的锁
+>  - 事务必须在其提交或中止之前，都获取它的锁
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/ccadb99413be6aefd67b1981c059911050d4570145c50a1e15e3b5c9244c3c11.jpg)
 
 Default implementation
+- programmer doesn't explicitly lock, instead **supplying BEGIN-X/END-X​** 
+- DB locks automatically, on first use of each record
+- DB unlocks automatically, at transaction end -- END-X() releases all locks
+- DB may automatically abort to cure deadlock
 
-programmer doesn't explicitly lock, instead supplying BEGIN-X/END-X​ ◦ DB locks automatically, on first use of each record ◦ DB unlocks automatically, at transaction end -- END-X() releases all locks
-
-DB may automatically abort to cure deadlock
-
-Two-phase locking can produce deadlock ◦ Why deadlock? -- Tx1: Lock A, Lock B; Tx2: Lock B, Lock A
+Two-phase locking can produce deadlock 
+- Why deadlock? -- Tx1: Lock A, Lock B; Tx2: Lock B, Lock A
 
 ```
 1 T1     T2  
@@ -2517,22 +2572,25 @@ Two-phase locking can produce deadlock ◦ Why deadlock? -- Tx1: Lock A, Lock B;
 3 get(y) get(x)
 ```
 
-◦ The system must detect (cycles? timeout?) and abort a transaction ◦ How to avoid it? -- define an order of data records and only lock the records according to the order​
-
-◦ Why is there still deadlock?
-
-The above solution needs the transaction to declare its access set beforehand and locking in a specific order.  
-not all the data records are available at the beginning of the transaction, e.g., interactive transactions
+- The system must detect (cycles? timeout?) and abort a transaction 
+- How to avoid it? -- **define an order of data records and only lock the records according to the order​**
+- Why is there still deadlock?
+    The above solution needs the transaction to **declare its access set beforehand** and **locking in a specific order**.  
+    not all the data records are available at the beginning of the transaction, e.g., interactive transactions
 
 Why hold locks until after commit/abort?
-
-2PL that is not S2PL
+- 2PL that is not S2PL
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/8ae3e8c69c32c4bfd85994782626e8efe917e747af62bc641caf68542b74d61f.jpg)
 
-◦ 2PL can guarantee serializable but may lead to cascade rollback
+- 2PL can guarantee serializable but may lead to cascade rollback
+    After releasing a lock the updated value become visible to other transactions 
+    But the current transaction is still not finished and hence may rolled back later 
+    If it is rolled back, all the transactions seeing its updates should also be rolled back
 
-After releasing a lock the updated value become visisble to other transactions But the current transaction is still not finished and hence may rolled back later If it is rolled back, all the transactions seeing its updates should also be rolled back
+>  非 Simple 的 Two-Phase Locking 允许事务在其提交或中止之前释放部分锁
+>  这类 2PL 可以保证可串行性，但可能导致级联回滚
+>  例如，在提前释放锁后，其他的事务获取了该锁，但当前事务最后没有提交，而是中止了，故当前事务回滚时，其他看到了它的更新的事务也需要回滚，进而会导致级联回滚
 
 Could S2PL ever forbid a correct (serializable) execution?
 
@@ -2544,35 +2602,49 @@ Could S2PL ever forbid a correct (serializable) execution?
 5 put(x,1)
 ```
 
-◦ Serializable in the external view (still a cycle dependency but not exposed to external users)​  
-◦ This is the reason why we develop other kinds of concurrency control, such as Timestamp based and OCC based.
+- Serializable in the external view (still a cycle dependency but not exposed to external users)​  
+- This is the reason why we develop other kinds of concurrency control, such as Timestamp based and OCC based.
 
-### Weaker Level of Isolation By ANSI
+>  Simple 2 PL 虽然确保了可串行执行，但过于严格，也禁止了一些可串行同时可并发的执行顺序出现
+>  为此，我们会使用其他类型的并发控制方法
 
-Four levels of isolation from ANSI SQL-92 [fig 4] ◦ Dirty Read [fig 2]: read an uncommitted value that may be rolled back later ◦ Fuzzy Read (Non-repeatable Read) [fig 2]: read the same value but returns different values
+## Weaker Level of Isolation By ANSI
+Four levels of isolation from ANSI SQL-92:
 
-Table 1. ANSi SQL Isolation Levels Defined in terms of the Three Original Phenomena
+Table 1. ANSI SQL Isolation Levels Defined in terms of the Three Original Phenomena
 
+| Isolation Level       | P1 (or A1) Dirty Read | P2 (or A2) Fuzzy Read | P3 (or A3) Phantom |
+| --------------------- | --------------------- | --------------------- | ------------------ |
+| ANSI READ UNCOMMITTED | Possible              | Possible              | Possible           |
+| ANSI READ COMMITTED   | Not Possible          | Possible              | Possible           |
+| ANSI REPEATABLE READ  | Not Possible          | Not Possible          | Possible           |
+| ANOMALY SERIALIZABLE  | Not Possible          | Not Possible          | Not Possible       |
 
-| Isolation Level      | P1 (or A1) Dirty Read | P2 (or A2) Fuzzy Read | P3 (or A3) Phantom |
-| -------------------- | --------------------- | --------------------- | ------------------ |
-| ANSIREADUNCOMMITTED  | Possible              | Possible              | Possible           |
-| ANSIREAD COMMITTED   | Not Possible          | Possible              | Possible           |
-| ANSIREPEATABLEREAD   | Not Possible          | Not Possible          | Possible           |
-| ANOMALY SERIALIZABLE | Not Possible          | Not Possible          | Not Possible       |
+- Dirty Read: read an uncommitted value that may be rolled back later 
+- Fuzzy Read (Non-repeatable Read): read the same value but returns different values
+
+>  Dirty Read: 事务读取了一个尚未提交，之后可能被回滚的值
+>  Fuzzy Read (Non-repeatable Read): 事务读取了相同的对象两次，但返回了不同的值
+
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/ceb34dc065090de033c5d02120630c85732e673bbdb140d4c853a03f82dc4108.jpg)
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/cee93886fd44705d627f1ccb40477a413dbedd2c8e1fba0f9b9a350a56f009b0.jpg)
 
-◦ Phantom Read [fig 2]: similar to fuzzy read but corresponding to a search range
+- Phantom Read: similar to fuzzy read but corresponding to a search range
+    Row-level lock is enough to avoid fuzzy read.  
+    A range-level lock (e.g., table-level lock, index lock, predict lock, prev/next-key lock) is needed to avoid phantom read
+
+>  Phantom Read: 事务读取了相同的区间内的多个对象两次，但返回了不同的值
+>  Row-level lock (锁定单个对象) 可以避免 fuzzy read
+>  要避免 Phantom Read，则需要 Range-level lock (锁定多个对象)
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/0b9f54afbb1d1279001a7f1bd29de4f5dd27eaab090be06bc463873b1637ab89.jpg)
 
-Row-level lock is enough to avoid fuzzy read.  
-▪ A range-level lock (e.g., table-level lock, index lock, predict lock, prev/next-key lock) is needed to avoid phantom read
 
-Implementation ◦ Long duration lock means release only at the end of transaction (S2PL)
+Implementation
+- Long duration lock means **release only at the end of transaction** (S2PL)
+- Short duration lock means **release as soon as the data is not used again** (2PL)
 
 Table 2. Degrees of Consistency and Locking Isolation Levels defined in terms of locks.
 
@@ -2585,28 +2657,25 @@ Table 2. Degrees of Consistency and Locking Isolation Levels defined in terms of
 | Locking REPEATABLE READ                     | Well-formed Reads Long duration data-item Read locks                                       | Well-formed Writes, Long duration Write locks |
 | Degree 3 = Locking SERIALIZABLE             | Short duration Read Predicate locks Well-formed Reads Long duration Read locks (both)      | Well-formed Writes, Long duration Write locks |
 
-◦ Short duration lock means release as soon as the data is not used again (2PL)
-
 Problems of ANSI's definition
+- No Dirty Read + No Fuzzy Read + No Phantom Read is only a necessary but insufficient condition of serializable  
+>  ANSI 的 Isolation 定义中，No Dirty Read + No Fuzzy Read + No Phantom Read 仅仅是可串行性的必要不充分条件，也就是这三者成立，不代表可串行性成立
 
-- No Dirty Read ++ No Fuzzy Read ++ No Phantom Read is only a necessary but insufficient condition of serializable  
 - There are many other kinds of anomaly phenomenal defined in [A Critique of ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
     See more in [隔离级别的前世今生(三) 基于锁调度的隔离级别](https://mp.weixin.qq.com/s/0D1BKRiZAf0x0E87oPOg1Q)
     Also see [Generalized Isolation Level](https://www.pmg.csail.mit.edu/papers/icde00.pdf) Definitions 
         defined with dependency graph, not a collection of anomaly phenomenal 
         Check serializability by checking whether there is a circle in the dependency graph 
         This dependency graph is very useful. We can even learn a dependency graph in the training runs and use them to avoid concurrency bugs at deployed runs without explicitly fixing the bugs -- [my own paper](https://madsys.cs.tsinghua.edu.cn/publication/ai-a-lightweight-system-for-tolerating-concurrency-bugs/FSE2014-zhang.pdf) won a Distinguished Paper Award at FSE2014
+- The combination of these other kinds of anomaly phenomenal leads to other levels of isolation
+    a trade-off!  
+    The most important level of isolation not included in ANSI is snapshot isolation, which will be discussed in the next lecture.
 
-The combination of these other kinds of anomaly phenomenal leads to other levels of isolation
+## Distributed transaction = concurrency control + atomic commit
+**Atomic commit**
+An atomic commit **point** is a time point that: if a failure happens before this point, all the modifications are rolled back; otherwise, the modification is committed/applied once after this point.​  
 
-a trade-off!  
-The most important level of isolation not included in ANSI is snapshot isolation, which will be discussed in the next lecture.
-
-### Distributed transaction = concurrency control + atomic commit
-#### Atomic commit
-An atomic commit point is a time point that: if a failure happens before this point, all the modifications are rolled back; otherwise, the modification is committed/applied once after this point.​  
-
-It is actually a combination of atomic and durability in ACID.  
+It is actually a **combination of atomic and durability** in ACID.  
 
 As discussed before, it can be achieved with undo/redo log in a single-machine environment
 
@@ -2615,11 +2684,18 @@ Why not use replicated state machines? -- again, the accessed data may belong to
 
 How to achieve atomic commit over multiple shards? -- it is possible that some of shards commit and the others fail, which will break the atomicity of the whole transaction
 
-#### Two-phase commit
-High-level Idea 
-Use a coordinator to make sure that all the participants will all commit or all rollback.
+>  为什么不使用 RSM 实现分布式的原子化提交？
+>  使用 RSM 时，为了提高性能，需要使用 shrading 技术，则事务所访问的数据可能属于不同的 replication group
+>  因此，问题就成了考虑在多个 shards 上达成原子化提交，如果某些 shards 成功提交而其他 shards 失败，则原子化仍然会被打破
+>  因此，根本原因是所处理的数据量太大，不便于在一次通信中传输，故 RSM 主要还是用于对状态信息/元信息进行提交
 
-A preparation phase that collects "votes" from participants -- all the participants should be able to commit, not a quorum
+### Two-phase commit
+**High-level Idea** 
+- Use a coordinator to make sure that all the participants will all commit or all rollback.
+- A preparation phase that collects "votes" from participants -- all the participants should be able to commit, not a quorum
+
+>  达成分布式原子化提交的一个方法是两阶段提交
+>  它使用一个 coordinator，确保所有的 (注意是所有，不是多数) workers 都提交或者都回滚
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/c66eaa195dd304ac1715c61756d4549c7e7c6d4e2e86d4df71398133da19f8b4.jpg)
 
@@ -2631,27 +2707,35 @@ A preparation phase that collects "votes" from participants -- all the participa
 - locks are required from the preparation phase
 - and released only after receiving the final commit message from the coordinator
 
+>  借由 2PC 实现原子化提交后，我们就实现了分布式事务
+>  我们进而可以使用之前介绍的 2PL 或 S2PL 进一步实现可串行的分布式事务
+
 ### Failure Handling in 2PC
 **States** 
+- A log record needs to be **flushed** to the persistent log for every state change
+
+>  2PC 中，Coordinator 和 Participant 的状态转换过程如下
+>  每一次状态改变时，都要求将一个日志记录写入持久化存储
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/51cb88861b1c34fa729e20a43d0298499560c9c3a39afec51d17ee37bfd82ce0.jpg)
 
-- A log record needs to be flushed to the persistent log for every state change
 
 **Failure of Coordinator**  
-The global commit point of 2PC is the time that the log record of "state change from prepare to commit" is flushed in the coordinator​ 
+The global commit point of 2PC is the time that the log record of "state change from prepare to commit" is **flushed** in the coordinator​ 
 - even though some of the participants may have not received the commit message
-- Even even though the coordinator fails after the flushing and before sending all the commit messages -- the restarted coordinator can use this persistent log to resend the commit messages
-- When can the coordinator completely forget about a committed transaction? -- only after it sees an acknowledgement from every participant for the COMMIT.  
+- even though the coordinator fails after the flushing and before sending all the commit messages -- the restarted coordinator can use this persistent log to resend the commit messages
+- When can the coordinator completely forget about a committed transaction? -- only after it **sees an acknowledgement from every participant** for the COMMIT.  
 
-Participants must filter out duplicate COMMITs (using unique transaction ID).
+>  2PC 的 global commit point 是 Coordinator 从 PREPARE 到 COMMIT 的状态转变写入持久化存储的时间点
+
+Participants must **filter out duplicate COMMITs** (using unique transaction ID).
 - It can be implemented straightforwardly via remembering all the live transactions 
 - A COMMIT for non-live transaction can be simply replied with ack without any other steps  
 
 What if the coordinator has not received a prepared or aborted message from the participant
 - It is possible because of the network failure
-- Timeout can be used and the coordinator abort the whole transaction to release locks on other participants​
-- Timeout is dangerous in a distributed environment, but in 2PC we assume only a single coordinator, thus it is fine for it to make its own decision
+- **Timeout** can be used and the coordinator abort the whole transaction to release locks on other participants​
+- Timeout is dangerous in a distributed environment, but in 2PC **we assume only a single coordinator**, thus it is fine for it to make its own decision
 
 **Failure of Participant**
 Similarly, a log record "state change from init to prepared" must be flushed to participant's persistent log before sending "can commit" vote to coordinator
@@ -2661,17 +2745,16 @@ Similarly, a log record "state change from init to prepared" must be flushed to 
 Otherwise, the participant can abort and release the locks if it decides to abort​ 
 
 In contrast, the participant must block until receiving a commit/abort message from the coordinator if it has already sent prepared message to the coordinator
-- Even if the participant never receives this message for a long period of time, a timeout should not be used​
-- How to avoid this blocking?: implement coordinator as a highly-available service via replicated state machine
+- Even if the participant never receives this message for a long period of time, a timeout **should not** be used​
+- How to avoid this blocking? implement coordinator as a **highly-available** service via replicated state machine
 
-### Critique of the Original 2PC + S2PL
-The original implementation of 2PC is slow for many reasons
-
-- Two rounds of messages and lock even for read-only transactions
+## Critique of the Original 2PC + S2PL
+The original implementation of 2PC is **slow** for many reasons
+- Two rounds of messages and lock **even for read-only transactions**
     locks are held during the prepare/commit exchanges; blocks other transactions
     A disk flush is needed for every state change
 - Block due to coordinator failure
-    2PC does not help availability since all servers must be up to get anything done
+    2PC does not help availability since **all servers must be up** to get anything done
     In contrast, Raft does not ensure that all servers do something since only a majority have to be alive
-    A combination of 2PC + S2PL ++ Raft can lead to highly-available distributed transaction
+    A combination of 2PC + S2PL + Raft can lead to highly-available distributed transaction
 
