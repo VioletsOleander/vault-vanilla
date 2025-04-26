@@ -57,13 +57,19 @@ type Plugin struct {
 
 Plugin is a loaded Go plugin.
 
+>  导入的 Go plugin 都以 `Plugin` 类型展现
+
 #### func `Open`
 
 ```go
 func Open(path string) (*Plugin, error)
 ```
 
-Open opens a Go plugin. If a path has already been opened, then the existing *[Plugin](https://pkg.go.dev/plugin#Plugin) is returned. It is safe for concurrent use by multiple goroutines.
+`Open` opens a Go plugin. If a path has already been opened, then the existing \*[Plugin](https://pkg.go.dev/plugin#Plugin) is returned. It is safe for concurrent use by multiple goroutines.
+
+>  `Open` 根据路径 `path` 打开编译得到的 Go plugin
+>  如果 `path` 指向的 Go plugin 已经被打开过，则直接返回现存的 `*Plugin`
+>  `Open` 是并发安全的
 
 #### func `(*Plugin) Lookup`
 
@@ -71,7 +77,11 @@ Open opens a Go plugin. If a path has already been opened, then the existing *[P
 func (*Plugin) Lookup(symName string) (Symbol, error)
 ```
 
-Lookup searches for a symbol named `symName` in plugin p. A symbol is any exported variable or function. It reports an error if the symbol is not found. It is safe for concurrent use by multiple goroutines.
+`Lookup` searches for a symbol named ` symName ` in plugin p. A symbol is any exported variable or function. It reports an error if the symbol is not found. It is safe for concurrent use by multiple goroutines.
+
+>  `Lookup` 方法搜索 `Plugin` 中的 `symName` 符号
+>  符号即任意导出的变量或函数
+>  `Lookup` 是并发安全的
 
 #### type `Symbol `
 
@@ -80,6 +90,8 @@ type Symbol any
 ```
 
 A Symbol is a pointer to a variable or function.
+
+>  类型 `Symbol` 表示了指向变量或函数的指针
 
 For example, a plugin defined as
 
