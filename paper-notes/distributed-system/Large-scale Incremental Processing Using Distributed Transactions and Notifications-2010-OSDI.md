@@ -31,11 +31,11 @@ Now, consider how to update that index after recrawling some small portion of th
 The indexing system could store the repository in a DBMS and update individual documents while using transactions to maintain invariants. However, existing DBMSs can’t handle the sheer volume of data: Google’s indexing system stores tens of petabytes across thousands of machines [30]. Distributed storage systems like Bigtable [9] can scale to the size of our repository but don’t provide tools to help programmers maintain data invariants in the face of concurrent updates. 
 >  一种办法是，索引系统将存储库存储在 DBMS 中，使用事务来更新单个文档，同时维护不变式
 >  但是，现存的 DBMS 无法处理如此庞大的数据量：Google 的索引系统在上千台机器中存储了数十 PB 的数据
->  像 Bigtable 这样的分布式存储系统可以拓展到这样的规模，但在面对并发更新时，并没有为程序员提供工具，以维护数据不变式
+>  像 Bigtable 这样的分布式存储系统可以拓展到这样的规模，**但在面对并发更新时，并没有为程序员提供工具，以维护数据不变式**
 
 An ideal data processing system for the task of maintaining the web search index would be optimized for incremental processing; that is, it would allow us to maintain a very large repository of documents and update it efficiently as each new document was crawled. Given that the system will be processing many small updates concurrently, an ideal system would also provide mechanisms for maintaining invariants despite concurrent updates and for keeping track of which updates have been processed. 
->  一个理想的维护网络搜索索引的数据处理系统应该针对增量处理进行优化，也就是说，它可以在维护非常大的文档库的同时，随着新文档的到来执行高效的更新
->  考虑到系统将需要并发处理多个小型更新，理想的系统应该还能够提供一种在并发更新下维护不变式，并跟踪哪些更新已经被处理的机制
+>  一个理想的维护网络搜索索引的数据处理系统应该针对**增量处理**进行优化，也就是说，它可以在维护非常大的文档库的同时，随着新文档的到来执行高效的更新
+>  考虑到系统将需要并发处理多个小型更新，理想的系统应该还能够**提供一种在并发更新下维护不变式，并跟踪哪些更新已经被处理的机制**
 
 The remainder of this paper describes a particular incremental processing system: Percolator. Percolator provides the user with random access to a multi-PB repository. Random access allows us to process documents individually, avoiding the global scans of the repository that MapReduce requires. To achieve high throughput, many threads on many machines need to transform the repository concurrently, so Percolator provides ACIDcompliant transactions to make it easier for programmers to reason about the state of the repository; we currently implement snapshot isolation semantics [5]. 
 >  本文将描述 Percolator 增量更新系统
@@ -115,8 +115,6 @@ The decision to build on Bigtable defined the overall shape of Percolator. Perco
 >  因此，实现 Percolator 的挑战在于提供 Bigtable 并未提供的特性: 多行事务和 observer 框架
 
 ## 2.2 Transactions 
-
-
 Percolator provides cross-row, cross-table transactions with ACID snapshot-isolation semantics. Percolator users write their transaction code in an imperative language (currently C++,) and mix calls to the Percolator API with their code. 
 >  Percolator 提供了具有 ACID snapshot-isolation 语义的跨行、跨表事务
 >  Percolator 使用命令式语言 (目前为 C++) 编写其事务代码，并调用 Percolator API
@@ -176,18 +174,22 @@ We’ll now consider the transaction protocol in more detail. Figure 6 shows the
 >  Fig6 展示了 Percolator 事务的伪代码，Fig4 展示了在事务执行过程中 Percolator 数据和元数据的布局，Fig5 描述了系统使用的各种元数据列
 
 The transaction’s constructor asks the timestamp oracle for a start timestamp (line 6), which determines the consistent snapshot seen by Get(). Calls to Set() are buffered (line 7) until commit time. The basic approach for committing buffered writes is two-phase commit, which is coordinated by the client. Transactions on different machines interact through row transactions on Bigtable tablet servers. 
+>  事务的构造函数会请求 timestamp oracle，获取一个起始时间戳 (line 6)，起始时间戳决定了 `Get()` 方法所看到的一致性快照
+>  对 `Set()` 的调用会被缓存 (line 7) 直到提交时
+>  提交缓存的写入的基本方法是两阶段提交，由客户端协调
+>  不同机器上的事务通过 Bigtable tablet servers 交互
 
 In the first phase of commit (“prewrite”), we try to lock all the cells being written. (To handle client failure, we designate one lock arbitrarily as the primary; we’ll discuss this mechanism below.) The transaction reads metadata to check for conflicts in each cell being written. There are two kinds of conflicting metadata: if the transaction sees another write record after its start timestamp, it aborts (line 32); this is the write-write conflict that snapshot isolation guards against. If the transaction sees another lock at any timestamp, it also aborts (line 34). It’s possible that the other transaction is just being slow to release its lock after having already committed below our start timestamp, but we consider this unlikely, so we abort. If there is no conflict, we write the lock and 
 
 ```cpp
 1 class Transaction { 
 2 struct Write { Row row; Column col; string value; }; 
-3 vector $<$ <Write> writes ; 
-4 int start ts ; 
+3 vector<Write> writes_; // 事务涉及到的 Writes
+4 int start_ts_; 
 5 
-6 Transaction() : start ts (oracle.GetTimestamp()) {} 
-7 void Set(Write w) $\{$ writes .push back(w); } 
-8 bool Get(Row row, Column c, string\* value) { 
+6 Transaction() : start_ts_(oracle.GetTimestamp()) {} 
+7 void Set(Write w) { writes_.push_back(w); } // Set() 缓存 Writes
+8 bool Get(Row row, Column c, string* value) { 
 9 while (true) { 
 10 bigtable::Txn $\mathrm{~T~}=$ bigtable::StartRowTransaction(row); 
 11 // Check for locks that signal concurrent writes. 
