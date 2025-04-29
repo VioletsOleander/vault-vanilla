@@ -1827,9 +1827,9 @@ Date: 2025.3.24-2025.3.31
 \[Doc\]
 - [[doc-notes/python/packaging/discussions/install_requires vs requirements files|python/packaging/discussions/install_requires vs requirements files]]: All
 - [[doc-notes/python/packages/gymnasium/environments/Box2D|python/packages/gymnasium/environments/Box2D]]: All
-- [[doc-notes/go/package-documentation/plugin|go/package-documentation/plugin]]: All
+- [[doc-notes/go/references/package-documentation/plugin|go/package-documentation/plugin]]: All
 - [[doc-notes/go/references/go.mod file reference|go/references/go.mod file reference]]
-- [[doc-notes/go/command-documentation/go|go/command-documentation/go]]
+- [[doc-notes/go/references/command-documentation/go|go/command-documentation/go]]
 - [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]: Introduction, Formatting, Commentary, Names, Semicolons
     Introduction
     Formatting
@@ -2107,6 +2107,23 @@ Date: 2025.4.14-2025.4.21
 
 \[Blog\]
 - [[blog-notes/Canonicalization|Canonicalization]]: All
+
+\[Code-Analysis\]
+- [[codeflow-analysis/onnx-mlir|onnx-mlir]]
+
+### Week 4
+Date: 2025.4.21-2025.4.28
+
+\[Doc\]
+- [[doc-notes/gdb/Debugging with GDB|Debugging with GDB]]
+- [[doc-notes/mlir/code-documentation/Operation Canonicalization|Operation Canonicalization]]: All
+    MLIR provides a single canonicalization infrastructure and reuse it across many different IRs that it represents.
+    MLIR has a single canonicalization pass. This pass iteratively greedily apply the canonicalization pattern of all loaded dialects.
+    Canonicalization patterns are registered with operations.
+    The goal of canonicalization is to make subsequent optimization more effective, thus performance improvement is not necessary for canonicalization.
+    It is generally better to canonicalize operations towards fewer uses of value.
+    It's good to eliminate some operations entirely when possible.
+    Canonicalization should not lose the semantic of original operation. The original information should always be recoverable from the transformed IR. 
 
 \[Code-Analysis\]
 - [[codeflow-analysis/onnx-mlir|onnx-mlir]]
