@@ -236,7 +236,7 @@ In Table 2-1 we see some useful ways the current working directory can be quickl
 Table 2-1: cd Shortcuts 
 <html><body><table><tr><td>Shortcut</td><td>Result</td></tr><tr><td>cd</td><td>Changes the working directory to your home directory.</td></tr><tr><td>cd-</td><td>Changes the working directory to the previous working directory.</td></tr><tr><td>cd ~user_name</td><td>Changes the working directory to the home directory of user_name. For example, cd ~bob will change the directory to the home directory of user “bob."</td></tr></table></body></html> 
 
->  `cd -` : 切换到前一个工作目录
+>  `cd -` : 切换到前一个工作目录 (挺好用的)
 >  `cd ~user_name`: 切换到 `user_name` 的家目录
 
 **Important Facts About Filenames** 
@@ -317,6 +317,16 @@ The ls command has a large number of possible options. The most common are liste
 Table 3-1: Common ls Options 
 <html><body><table><tr><td> Option</td><td>Long Option</td><td>Description</td></tr><tr><td>-a</td><td>--all</td><td>List all files, even those with names that begin with a period, which are normally not listed (that is, hidden).</td></tr><tr><td>-A</td><td>- -almost-all</td><td>Like the -a option above except it does not list . (current directory) and .. (parent directory).</td></tr><tr><td>-d</td><td>- -directory</td><td>Ordinarily, if a directory is specified, ls will list the contents of the directory, not the directory itself. Use this option in conjunction with the - l option to see details about the directory rather than its contents.</td></tr><tr><td>-F</td><td>--classify</td><td>This option will append an indicator character to the end of each listed name. For example, a forward slash (/) if the name is a directory.</td></tr><tr><td>-h</td><td>- - human-readable</td><td>In long format listings, display file sizes in human readable format rather than in bytes.</td></tr><tr><td>-l</td><td></td><td>Display results in long format.</td></tr><tr><td>-r</td><td>- -reverse</td><td>Display the results in reverse order. Normally, ls displays its results in ascending alphabetical order.</td></tr><tr><td>-S</td><td></td><td>Sort results by file size.</td></tr><tr><td>-t</td><td></td><td>Sort by modification time.</td></tr></table></body></html> 
 
+>  `-a, --all`: 列出所有文件，包括 `.` 开头的隐藏文件
+> `-A, --almost-all` : 类似 `-a`，但不列出 `.` 和 `..`
+>  `-d, --directory`: 通常情况下，如果给定目录，`ls` 会列出其内容，而不是目录本身，使用 `-d -l`，可以查看目录本身的细节
+>  `-F, --classify`: 为每个列出的名字后附加一个指示字符，例如目录会添加 `/`
+>  `-h, --human-readable`: 和 `-l` 一起使用时，文件大小以人类可读方式显示
+>  `-l`
+>  `-r, --reverse`: 逆序展示，正常情况下是按字典序升序展示
+>  `-S`: 按文件大小排序
+>  `-t`: 按修改时间排序
+
 ### A Longer Look at Long Format 
 As we saw earlier, the -l option causes ls to display its results in long format. This format contains a great deal of useful information. Here is the Examples directory from an early Ubuntu system: 
 
@@ -328,8 +338,15 @@ Table 3-2 provides us with a look at the different fields from one of the files 
 
 Table 3-2: ls Long Listing Fields 
 <html><body><table><tr><td>Field</td><td>Meaning</td></tr><tr><td>-rw-r--r-</td><td>Access rights to the file. The first character indicates the type of file. Among the different types, a leading dash means a regular file, while a “d" indicates a directory. The next three characters are the access rights for the file's owner, the next three are for members of the file's group, and the final three are for everyone else. Chapter 9 "Permissions" discusses the full meaning of this in more detail.</td></tr><tr><td>1</td><td>File's number of hard links. See the sections "Symbolic Links" and "Hard Links" later in this chapter.</td></tr><tr><td>root</td><td>The username of the file's owner.</td></tr><tr><td>root 32059</td><td>The name of the group that owns the file.</td></tr><tr><td>2017-04-03 11:05</td><td>Size of the file in bytes.</td></tr><tr><td></td><td>Date and time of the file's last modification.</td></tr><tr><td>oo-cd-cover.odf</td><td>Name of the file.</td></tr></table></body></html> 
-************
 
+>  `-rw-r--r--`: 文件的访问权限，第一个字符表示文件的类型: `-` 表示常规文件; `d` 表示目录，之后三个字符表示文件所有者的访问权限，之后三个字符表示文件组成员的访问权限，之后三个字符表示所有其他成员的访问权限
+>  `1`: 文件的硬链接数量
+>  `root`: 文件所有者的用户名
+>  `root`: 文件所有组的组名
+>  `32059`: 文件的大小 (bytes)
+>  `2017-04-03 11:05`: 文件上次修改的日期和时间
+>  `oo-cd-cover.pdf`: 文件名
+ 
 ## Determining a File's Type with file 
 As we explore the system it will be useful to know what kind of data files contain. To do this we will use the file command to determine a file's type. As we discussed earlier, filenames in Linux are not required to reflect a file's contents. While a file named “picture.jpg” would normally be expected to contain a JPEG compressed image, it is not required to in Linux. We invoke the file command this way: 
 
@@ -439,8 +456,17 @@ Table 3-4: Directories Found on Linux Systems
 
 >  - `/usr`: 是 Linux 系统上最大的目录，包含了所有普通用户使用的程序和支持文件
 >  - `/usr/bin`: 包含了由 Linux 发行版安装的可执行程序，这个目录通常会包含上千个程序
+>  - `/usr/lib`: 包含了 `/usr/bin` 中程序的共享库
+>  - `/usr/local`: 包含了不在发行版中会包含的，但是为系统范围使用的程序，从源码编译的程序通常会被安装在 `/usr/local/bin`，在新安装的 Linux 系统长，这个树通常是空的，直到管理员向里面添加内容
+> - `/usr/sbin`: 包含更多的系统管理程序
+> - `/usr/share`: 包含了 `/usr/bin` 中程序使用的所有共享数据，例如默认配置文件、图标、屏幕背景、声音文件等
+> - `/usr/share/doc`: 包含了系统上安装的包的文档
+> - `/var`: 除了 `/tmp, /home` 目录以外，我们目前讨论的目录都相对静态，即它们的内容不会改变，而 `/var` 目录用于存储可能发生变化的数据，各种数据库、假脱机文件、用户邮件等都位于这里
+> - `/var/log`: 包含了日志文件，记录了各种系统活动，这些日志文件非常重要，会被定期监控，其中最有用的是 `/var/log/messages, /var/log/syslog`，处于安全原因，一般仅有超级用户可以查看这些日志文件
 
 <html><body><table><tr><td>Directory</td><td>Comments</td></tr><tr><td>~/.config and ~/.local</td><td>These two directories are located in the home directory of each desktop user. They are used to store user-specific configuration data for desktop applications.</td></tr></table></body></html> 
+
+>  `~/.config, ~/.local`: 这两个目录位于每个桌面用户的家目录，它们用于存储特定于用户针对桌面应用的的配置数据
 
 ## Symbolic Links 
 As we look around, we are likely to see a directory listing (for example in /usr/lib) with an entry like this: 
@@ -448,212 +474,500 @@ As we look around, we are likely to see a directory listing (for example in /usr
 <html><body><table><tr><td>lrwxrwxrwx 1 root root 11 2007-08-11 07:34 libc.s0.6 -> libc-2.6.s0</td></tr></table></body></html> 
 
 Notice how the first letter of the listing is “l” and the entry seems to have two filenames? This is a special kind of a file called a symbolic link (also known as a soft link or symlink). In most Unix-like systems it is possible to have a file referenced by multiple names. While the value of this might not be obvious, it is really a useful feature. 
+>  第一个字母 `l` 表示了该文件是一个特殊的文件类型，称为符号链接/软连接 (symbolic/soft/sym link)
+>  在多数类 Unix 系统中，可以用多个名称引用相同文件，这通过符号链接实现
 
 Picture this scenario: A program requires the use of a shared resource of some kind contained in a file named “foo,” but “foo” has frequent version changes. It would be good to include the version number in the filename so the administrator or other interested party could see what version of “foo” is installed. This presents a problem. If we change the name of the shared resource, we have to track down every program that might use it and change it to look for a new resource name every time a new version of the resource is installed. That doesn't sound like fun at all. 
 
 Here is where symbolic links save the day. Suppose we install version 2.6 of “foo,” which has the filename “foo- $2.6^{\prime\prime}$ and then create a symbolic link simply called “foo” that points to “foo-2.6.” This means that when a program opens the file “foo”, it is actually opening the file “foo- $2.6^{\prime\prime}$ . Now everybody is happy. The programs that rely on “foo” can find it and we can still see what actual version is installed. When it is time to upgrade to “foo2.7,” we just add the file to our system, delete the symbolic link “foo” and create a new one that points to the new version. Not only does this solve the problem of the version upgrade, but it also allows us to keep both versions on our machine. Imagine that “foo $2.7^{\mathfrak{n}}$ has a bug (damn those developers!) and we need to revert to the old version. Again, we just delete the symbolic link pointing to the new version and create a new symbolic link pointing to the old version. 
 
+>  符号链接的一个使用场景：假设程序需要使用名为 `foo` 的资源，而 `foo` 会经常更新版本，其实际名称带有版本号，例如 `foo-2.6`
+>  我们可以创建名为 `foo` 的符号链接，连接到实际文件，这使得程序代码不需要频繁修改对 `foo` 的引用形式
+
 The directory listing at the beginning of this section (from the /usr/lib directory of a Fedora system) shows a symbolic link called libc.so.6 that points to a shared library file called libc-2.6.so. This means that programs looking for libc.so.6 will actually get the file libc-2.6.so. We will learn how to create symbolic links in the next chapter. 
-# Hard Links 
+
+## Hard Links 
 While we are on the subject of links, we need to mention that there is a second type of link called a hard link. Hard links also allow files to have multiple names, but they do it in a different way. We’ll talk more about the differences between symbolic and hard links in the next chapter. 
-# Summing Up 
+
+## Summing Up 
 With our tour behind us, we have learned a lot about our system. We've seen various files and directories and their contents. One thing we should take away from this is how open the system is. In Linux there are many important files that are plain human-readable text. Unlike many proprietary systems, Linux makes everything available for examination and study. 
-# Further Reading 
-The full version of the Linux Filesystem Hierarchy Standard can be found here: 
-https://refspecs.linuxfoundation.org/fhs.shtml 
-An article about the directory structure of Unix and Unix-like systems: http:// 
-en.wikipedia.org/wiki/Unix_directory_structure 
-A detailed description of the ASCII text format: http://en.wikipedia.org/wiki/ 
-ASCII 
-# 4 – Manipulating Files and Directories 
+
+## Further Reading 
+- The full version of the Linux Filesystem Hierarchy Standard can be found here:  https://refspecs.linuxfoundation.org/fhs.shtml 
+- An article about the directory structure of Unix and Unix-like systems:  http://en.wikipedia.org/wiki/Unix_directory_structure 
+- A detailed description of the ASCII text format: http://en.wikipedia.org/wiki/ASCII 
+
+# 4 Manipulating Files and Directories 
 Now we’re are ready for some real work! This chapter will introduce the following commands: 
-cp – Copy files and directories mv – Move/rename files and directories mkdir – Create directories rm – Remove files and directories ln – Create hard and symbolic links 
+
+- `cp` – Copy files and directories 
+- `mv` – Move/rename files and directories 
+- `mkdir` – Create directories 
+- `rm` – Remove files and directories 
+- `ln` – Create hard and symbolic links 
+
 These five commands are among the most frequently used Linux commands. They are used for manipulating both files and directories. 
+
 Now, to be frank, some of the tasks performed by these commands are more easily done with a graphical file manager. With a file manager, we can drag and drop a file from one directory to another, cut and paste files, delete files, and so on. So why use these old command line programs? 
+
 The answer is power and flexibility. While it is easy to perform simple file manipulations with a graphical file manager, complicated tasks can be easier with the command line programs. For example, how could we copy all the HTML files from one directory to another but only copy files that do not exist in the destination directory or are newer than the versions in the destination directory? It's pretty hard with a file manager but pretty easy with the command line. 
-<html><body><table><tr><td>cp -u *.html destination</td></tr></table></body></html> 
-# Wildcards 
-Before we begin using our commands, we need to talk about a shell feature that makes these commands so powerful. Since the shell uses filenames so much, it provides special characters to help us rapidly specify groups of filenames. These special characters are 
-called wildcards. Using wildcards (which is also known as globbing) allows us to select filenames based on patterns of characters. Table 4-1 lists the wildcards and what they select. 
+
+```
+cp -u *.html destination
+```
+
+## Wildcards 
+Before we begin using our commands, we need to talk about a shell feature that makes these commands so powerful. Since the shell uses filenames so much, it provides special characters to help us rapidly specify groups of filenames. These special characters are called wildcards. 
+
+Using wildcards (which is also known as globbing) allows us to select filenames based on patterns of characters. Table 4-1 lists the wildcards and what they select. 
+
+>  shell 提供了通配符解析语义，使用通配符可以选择出匹配模式的文件名
+
 Table 4-1: Wildcards 
 <html><body><table><tr><td>Wildcard</td><td>Meaning</td></tr><tr><td>*</td><td>Matches any characters</td></tr><tr><td>？</td><td>Matches any single character</td></tr><tr><td>[characters]</td><td>Matches any character that is a member of the set characters</td></tr><tr><td>[!characters] or [^characters]</td><td>Matches any character that is not a member of the set characters</td></tr><tr><td>[[:class:]]</td><td>Matches any character that is a member of the specified class</td></tr></table></body></html> 
+
+>  通配符包括
+>  `*`: 匹配任意 (单个/多个) 字符
+>  `?`: 匹配任意单个字符
+>  `[character]`: 匹配 `[]` 中指定的字符
+>  `[!chacacter] or [^character]`: 匹配 `[]` 中未指定的字符
+>  `[[:class:]]`: 匹配对应 `class` 中的字符
+
 Table 4-2 lists the most commonly used character classes. 
+
 Table 4-2: Commonly Used Character Classes 
 <html><body><table><tr><td>Character Class</td><td>Meaning</td></tr><tr><td>[:alnum:]</td><td>Matches any alphanumeric character</td></tr><tr><td>[:alpha:]</td><td>Matches any alphabetic character</td></tr><tr><td>[:digit:]</td><td> Matches any numeral</td></tr><tr><td>[:lower:]</td><td>Matches any lowercase letter</td></tr><tr><td>[:upper:]</td><td>Matches any uppercase letter</td></tr></table></body></html> 
+
+>  字符类包括
+>  `[:alnum:]`: 字母和数字
+>  `[:alpha:]`: 字母
+>  `[:digit:]`: 数字
+>  `[:lower:]`: 小写字母
+>  `[:upper:]`: 大写字母
+
 Using wildcards makes it possible to construct sophisticated selection criteria for filenames. Table 4-3 provides some examples of patterns and what they match. 
+
 Table 4-3: Wildcard Examples 
-<html><body><table><tr><td>Pattern</td><td>Matches</td></tr><tr><td>*</td><td>All files</td></tr><tr><td>g*</td><td>Any file beginning with “g"</td></tr><tr><td>b*.txt</td><td>Any file beginning with “b" followed by</td></tr></table></body></html> 
-<html><body><table><tr><td></td><td>any characters and ending with “.txt"</td></tr><tr><td>Data???</td><td>Any file beginning with “Data" followed by exactly three characters</td></tr><tr><td>[abc]*</td><td>Any file beginning with either an “a", a “b",or a “c”</td></tr><tr><td>BACKUP .[0-9][0-9][0-9]</td><td>Any file beginning with “BACKUP." followed by exactly three numerals</td></tr><tr><td>[[:upper:]]*</td><td>Any file beginning with an uppercase letter</td></tr><tr><td>[![:digit:]]*</td><td>Any file not beginning with a numeral</td></tr><tr><td>*[[:lower:]123]</td><td>Any file ending with a lowercase letter or the numerals “1",“2", or “3"</td></tr></table></body></html> 
+<html><body><table><tr><td>Pattern</td><td>Matches</td></tr><tr><td>*</td><td>All files</td></tr><tr><td>g*</td><td>Any file beginning with “g"</td></tr><tr><td>b*.txt</td><td>Any file beginning with “b" followed by any characters and ending with ". txt"</td></tr> <tr><td>Data???</td><td>Any file beginning with “Data" followed by exactly three characters</td></tr><tr><td>[abc]*</td><td>Any file beginning with either an “a", a “b",or a “c”</td></tr><tr><td>BACKUP .[0-9][0-9][0-9]</td><td>Any file beginning with “BACKUP." followed by exactly three numerals</td></tr><tr><td>[[:upper:]]*</td><td>Any file beginning with an uppercase letter</td></tr><tr><td>[![:digit:] ]*</td><td>Any file not beginning with a numeral</td></tr><tr><td>*[[:lower:]123]</td><td>Any file ending with a lowercase letter or the numerals “1",“2", or “3"</td></tr></table></body></html> 
+
 Wildcards can be used with any command that accepts filenames as arguments, but we’ll talk more about that in Chapter 7, "Seeing the World As the Shell Sees It. 
-# Character Ranges 
-If you are coming from another Unix-like environment or have been reading some other books on this subject, you may have encountered the [A-Z] and [az] character range notations. These are traditional Unix notations and worked in older versions of Linux as well. They can still work, but you have to be careful with them because they will not produce the expected results unless properly configured. For now, you should avoid using them and use character classes instead. 
-# Dot Files 
-If we look at our home directory with ls using the -a option we will notice that there are a number of files and directories whose name begin with a dot. As we have discussed, these files are hidden. It’s not a special attribute of the file; it only means that the file will not appear in the output of ls unless the -a or -A options are included. This hidden characteristic also applies to wildcards. Hidden files will not appear unless we use a wildcard pattern such as .\*. However, when we do this we will also see both . (the current directory) and .. (the current directory’s parent) in the results. To exclude them we can use patterns such as . $[!.]^{\star}$ or . $??^{\star}$ . 
-# Wildcards Work in the GUI Too 
+
+**Character Ranges** 
+If you are coming from another Unix-like environment or have been reading some other books on this subject, you may have encountered the \[A-Z\] and \[a-z\] character range notations. These are traditional Unix notations and worked in older versions of Linux as well. They can still work, but you have to be careful with them because they will not produce the expected results unless properly configured. For now, you should avoid using them and use character classes instead. 
+>  字符范围通配符例如 `[A-Z], [a-z]` 应该避免使用，因为它们可能不会产生预期的结果
+
+**Dot Files** 
+If we look at our home directory with ls using the -a option we will notice that there are a number of files and directories whose name begin with a dot. As we have discussed, these files are hidden. **It’s not a special attribute of the file; it only means that the file will not appear in the output of ls unless the -a or -A options are included.** This hidden characteristic also applies to wildcards. Hidden files will not appear unless we use a wildcard pattern such as `.*`. However, when we do this we will also see both . (the current directory) and .. (the current directory’s parent) in the results. To exclude them we can use patterns such as . `.[!.]*` or `.??*` . 
+>  通配符 (例如 `*`) 通常不会匹配 `. ` 开头的文件，为此，需要显示指定为 `.*`
+
+**Wildcards Work in the GUI Too** 
 Wildcards are especially valuable not only because they are used so frequently on the command line, but because they are also supported by some graphical file managers. 
+
 In Nautilus (the file manager for GNOME), you can select files by pressing Ctrl-s and entering a file selection pattern with wildcards and the files in the currently displayed directory will be selected. In some versions of Dolphin and Konqueror (the file managers for KDE), you can enter wildcards directly on the location bar. For example, if you want to see all the files starting with a lowercase “u” in the /usr/bin directory, enter “/ usr/bin/u\*” in the location bar and it will display the result. 
+
 Many ideas originally found in the command line interface make their way into the graphical interface, too. It is one of the many things that make the Linux desktop so powerful. 
-# mkdir – Create Directories 
-The mkdir command is used to create directories. It works like this: 
+
+## `mkdir` – Create Directories 
+The `mkdir` command is used to create directories. It works like this: 
+
+```
+mkdir directory...
+```
+
+**A note on notation:** When three periods follow an argument in the description of a command (as above), it means that the argument can be repeated, thus the following command:
+>  命令描述中，如果参数后跟随 `...` ，表示该参数可以重复
+
+```
+mkdir dir1
+```
+
 would create a single directory named dir1, while the following: 
-# mkdir dir1 dir2 dir3 
+
+```
+mkdir dir1 dir2 dir3 
+```
+
 would create three directories named dir1, dir2, and dir3. 
-# cp – Copy Files and Directories 
+
+## `cp` – Copy Files and Directories 
 The cp command copies files or directories. It can be used two different ways. The following: 
-# cp item1 item2 
+
+```
+cp item1 item2 
+```
+
 copies the single file or directory item1 to the file or directory item2 and the following: 
-# cp item... directory 
+
+```
+cp item... directory 
+```
+
 copies multiple items (either files or directories) into a directory. 
-# Useful Options and Examples 
+
+>  `cp item1 item2` 将单个文件或目录 `item1` 拷贝到文件或目录 `item2` 中
+>  `cp item... directory` 将多个文件拷贝到目录中
+
+### Useful Options and Examples 
 Table 4-4 lists some of the commonly used options for cp. 
+
 Table 4-4: cp Options 
-<html><body><table><tr><td>Option</td><td>Long Option</td><td>Meaning</td></tr><tr><td>-a</td><td>- -archive</td><td>Copy the files and directories and all of their attributes, including ownerships and permissions. Normally, copies take on the default attributes of the user performing the copy. We'll take a look at file permissions in Chapter 9 "Permissions."</td></tr><tr><td>-i</td><td>--interactive</td><td>Before overwriting an existing file, prompt the user for confirmation. If this option is not specified, cp will silently (meaning there will be no warning) overwrite files.</td></tr></table></body></html> 
-<html><body><table><tr><td>-r</td><td>--recursive</td><td>Recursively copy directories and their contents. This option (or the - a option) is required when copying directories.</td></tr><tr><td>-u</td><td>- -update</td><td>When copying files from one directory to another, only copy files that either don't exist or are newer than the existing corresponding files, in the destination directory. This is useful when copying large numbers of files as it skips files that don't need to be copied.</td></tr><tr><td>-V</td><td>- -verbose</td><td>Display informative messages as the copy is performed.</td></tr></table></body></html> 
+<html><body><table><tr><td>Option</td><td>Long Option</td><td>Meaning</td></tr><tr><td>-a</td><td>- -archive</td><td>Copy the files and directories and all of their attributes, including ownerships and permissions. Normally, copies take on the default attributes of the user performing the copy. We'll take a look at file permissions in Chapter 9 "Permissions."</td></tr><tr><td>-i</td><td>--interactive</td><td>Before overwriting an existing file, prompt the user for confirmation. If this option is not specified, cp will silently (meaning there will be no warning) overwrite files.</td></tr><tr><td>-r</td><td>--recursive</td><td>Recursively copy directories and their contents. This option (or the - a option) is required when copying directories.</td></tr><tr><td>-u</td><td>- -update</td><td>When copying files from one directory to another, only copy files that either don't exist or are newer than the existing corresponding files, in the destination directory. This is useful when copying large numbers of files as it skips files that don't need to be copied.</td></tr><tr><td>-V</td><td>- -verbose</td><td>Display informative messages as the copy is performed.</td></tr></table></body></html> 
+
+>  `-a, --archive`: 拷贝文件和目录以及它们的所有属性，包括所有权和权限，注意，通常 (没有选项 `-a` 时)，拷贝得到的文件的属性采用的是执行 ` cp ` 的用户的属性
+>  `-i, --interactive`: 在覆盖现存的文件之前，提示用户确认，如果没有指定 `-i`，则 `cp` 会静默地覆盖现存文件 (不会发出警告)
+>  `-r, --recursive`: 递归复制目录及其内容，在拷贝目录时，需要使用该选项 (或者使用 `-a` 选项)
+>  `-u, --update`: 将文件从一个目录拷贝到另一个目录时，仅拷贝另一个目录中不存在的文件或者比现存文件更新的文件，这在拷贝大量文件时非常有用，因为它跳过了不需要拷贝的文件
+>  `-V, --verbose`
+
 Table 4-5: cp Examples 
 <html><body><table><tr><td>Command</td><td>Results</td></tr><tr><td>cp file1 file2</td><td>Copy file1 to file2. If file2 exists, it is overwritten with the contents of file1. If file2 does not exist, it is created.</td></tr><tr><td>cp -i file1 file2</td><td>Same as previous command, except that if file2 exists, the user is prompted before it is overwritten.</td></tr><tr><td>cp file1 file2 dir1</td><td>Copy file1 and file2 into directory dir1. The directory dir1 must already exist.</td></tr><tr><td>cp dir1/* dir2</td><td>Using a wildcard, copy all the files in dir1 into dir2. The directory dir2 must already exist.</td></tr><tr><td>cp -r dir1 dir2</td><td>Copy the contents of directory dir1 to directory dir2. If directory dir2 does not exist, it is created and, after the copy, will contain the same contents as directory dir1. If directory dir2 does exist, then directory dir1 (and its contents) will be copied into dir2.</td></tr></table></body></html> 
-# mv – Move and Rename Files 
+
+>  `cp file1 file2`: 将 `file1` 拷贝至 `file2`，如果 `file2` 存在，则会被 `file1` 的内容覆盖写，如果 `file2` 不存在，则会被创建
+>  `cp -i file1 file2`: 和上一个命令效果一样，差异在于会在覆盖 `file2` 之前提示用户确认
+>  `cp file1 file2 dir1`: 将 `file1, file2` 拷贝到目录 `dir1`，目录 `dir1` 必须已经存在
+>  `cp dir1/* dir2`: 使用通配符，将目录 `dir1` 中的所有文件拷贝到 `dir2`，`dir2` 必须已经存在
+>  `cp -r dir1 dir2`: 将 `dir1` 中的内容拷贝到 `dir2`，如果 `dir2` 不存在，则创建它，并且 `dir2` 的内容将和 `dir1` 相同，如果 ` dir2 ` 已经存在，则目录 ` dir1 ` 本身会被拷贝到 ` dir2 ` 中
+
+## `mv` – Move and Rename Files 
 The mv command performs both file moving and file renaming, depending on how it is used. In either case, the original filename no longer exists after the operation. mv is used in much the same way as cp, as shown here: 
-# mv item1 item2 
+
+```
+mv item1 item2 
+```
+
 to move or rename the file or directory item1 to item2 or: 
-# mv item... directory 
+
+```
+mv item... directory 
+```
+
 to move one or more items from one directory to another. 
-# Useful Options and Examples 
+
+>  `mv item1 item2` 将目录/文件 `item1` 重命名为 `item2`
+>  `mv item... directory` 将多个 `item` 移动到 `directory` 中
+
+### Useful Options and Examples 
 mv shares many of the same options as cp as described in Table 4-6. 
+
 Table 4-6: mv Options 
 <html><body><table><tr><td>Option</td><td>Long Option</td><td>Meaning</td></tr><tr><td>-i</td><td>--interactive</td><td>Before overwriting an existing file, prompt the user for confirmation. If this option is not specified, mv will silently overwrite files.</td></tr><tr><td>-u</td><td>- -update</td><td>When moving files from one directory to another, only move files that either don't exist, or are newer than the existing corresponding files in the destination directory.</td></tr><tr><td>-V</td><td>--verbose</td><td>Display informative messages as the move is performed.</td></tr></table></body></html> 
+
+>  `-i, --interactive`: 在覆盖写现存的文件之前，提醒用户确认，如果没有指定 `-i`，则静默覆盖写
+>  `-u, --update`: 当把文件从一个目录移动到另一个目录时，仅移动目标目录中不存在的或者更新的文件
+>  `-V, --verbose`
+
 Table 4-7 provides some examples of mv usage. 
+
 Table 4-7: mv Examples 
 <html><body><table><tr><td>Command</td><td>Results</td></tr><tr><td>mv file1 file2</td><td>Move file1 to file2. If file2 exists, it is overwritten with the contents of file1. If file2 does not exist, it is created. In either case, file1 ceases to exist.</td></tr><tr><td>mv -i file1 file2</td><td>Same as the previous command, except that if file2 exists, the user is prompted before it is overwritten.</td></tr><tr><td>mv file1 file2 dir1</td><td>Move file1 and file2 into directory dir1. The directory dir1 must already exist.</td></tr></table></body></html> 
 <html><body><table><tr><td>mv dir1 dir2</td><td>If directory dir2 does not exist, create directory dir2 and move the contents of directory dir1 into dir2 and delete directory dir1. If directory dir2 does exist, move directory dir1 (and its contents) into directory dir2.</td></tr></table></body></html> 
-# rm – Remove Files and Directories 
+
+>  `mv file1 file2`: 将 `file1` 移动到 `file2`，如果 `file2` 存在，则内容会被覆盖写，如果 `file2` 不存在，则会被创建
+>  `mv -i file1 file2`: 和上一个命令一样，差异在于会在覆盖写之前提示用户
+>  `mv file1 file2 dir1`: 将 `file1, file2` 移动到目录 `dir1`，`dir1` 必须已经存在
+>  `mv dir1 dir2`: 如果 `dir2` 不存在，则创建 `dir2` ，将 `dir1` 的内容移动到 `dir2`，如果 `dir2` 已经存在，则将 `dir1` 移动到 `dir2` 中
+
+## `rm` – Remove Files and Directories 
 The rm command is used to remove (delete) files and directories, as shown here: 
-rm item.. 
+
+```
+rm item...
+```
+
 where item is one or more files or directories. 
-# Useful Options and Examples 
+
+### Useful Options and Examples 
 Table 4-8 describes some of the common options for rm. 
+
 Table 4-8: rm Options 
 <html><body><table><tr><td>Option</td><td>Long Option</td><td>Meaning</td></tr><tr><td>-i</td><td>--interactive</td><td>Before deleting an existing file, prompt the user for confirmation. If this option is not specified, rm will silently delete files.</td></tr><tr><td>-r</td><td>- -recursive</td><td>Recursively delete directories. This means that if a directory being deleted has subdirectories, delete them too. To delete a directory, this option must be specified.</td></tr><tr><td>-f</td><td>--force</td><td>Ignore nonexistent files and do not prompt. This overrides the - - interactive option.</td></tr><tr><td>-V</td><td>- -verbose</td><td>Display informative messages as the deletion is performed.</td></tr></table></body></html> 
+
+>  `-i, --interactive`: 删除现存文件之前，请求确认
+>  `-r, --recursive`: 递归删除目录，要删除一个目录，必须给定 `-r`
+>  `-f, --force`: 忽略不存在的文件并且不提示用户，该选项会覆盖 `--interactive`
+>  `-V, --verbose`
+
 Table 4-9 provides some examples of using the rm command. 
+
 Table 4-9: rm Examples 
-<html><body><table><tr><td>Command</td><td>Results</td></tr><tr><td></td><td></td></tr><tr><td></td><td></td></tr></table></body></html> 
-<html><body><table><tr><td>rm file1</td><td>Delete file1 silently.</td></tr><tr><td>rm -i file1</td><td>Same as the previous command, except that the user is prompted for confirmation before the deletion is performed.</td></tr><tr><td>rm -r file1 dir1</td><td>Delete file1 and dir1 and its contents.</td></tr><tr><td>rm -rf file1 dir1</td><td>Same as the previous command, except that if either file1 or dir1 do not exist, rm will continue silently.</td></tr></table></body></html> 
-# Be Careful with rm! 
+<html><body><table><tr><td>Command</td><td>Results</td></tr>
+<tr><td>rm file1</td><td>Delete file1 silently.</td></tr><tr><td>rm -i file1</td><td>Same as the previous command, except that the user is prompted for confirmation before the deletion is performed.</td></tr><tr><td>rm -r file1 dir1</td><td>Delete file1 and dir1 and its contents.</td></tr><tr><td>rm -rf file1 dir1</td><td>Same as the previous command, except that if either file1 or dir1 do not exist, rm will continue silently.</td></tr></table></body></html> 
+
+>  `rm file1`: 静默删除 `file1`
+>  `rm -i file1`
+>  `rm -r file1 dir1`: 删除 `file1, dir1`
+>  `rm -rf file1 dir1`
+
+**Be Careful with rm!** 
 Unix-like operating systems such as Linux do not have an undelete command. Once you delete something with rm, it's gone. Linux assumes you're smart and you know what you're doing. 
-Be particularly careful with wildcards. Consider this classic example. Let's say you want to delete just the HTML files in a directory. To do this, you type the fol - lowing: 
-rm \*.html 
+
+Be particularly careful with wildcards. Consider this classic example. Let's say you want to delete just the HTML files in a directory. To do this, you type the following: 
+
+```
+rm *.html 
+```
+
 This is correct, but if you accidentally place a space between the \* and the .html like so: 
-rm \* .html 
-the rm command will delete all the files in the directory and then complain that there is no file called .html. 
+
+```
+rm * .html 
+```
+
+the rm command will delete all the files in the directory and then complain that there is no file called `.html`. 
+
 Here is a useful tip: whenever you use wildcards with rm (besides carefully checking your typing!), test the wildcard first with ls. This will let you see the files that will be deleted. Then press the up arrow key to recall the command and replace ls with rm. 
-# ln – Create Links 
+>  无论何时在使用 `rm` 时使用通配符，都先用 `ls` 测试通配符
+
+## ln – Create Links 
 The ln command is used to create either hard or symbolic links. It is used in one of two ways. The following creates a hard link: 
-# ln file link 
+
+```
+ln file link 
+```
+
+>  `ln file link` 创建硬链接
+
 The following creates a symbolic link: 
-# ln -s item link 
+
+```
+ln -s item link 
+```
+
 to create a symbolic link where item is either a file or a directory. 
-# Hard Links 
+
+>  `ln -s item link`: `item` 可以是文件或目录
+
+### Hard Links 
 Hard links are the original Unix way of creating links, compared to symbolic links, which are more modern. By default, every file has a single hard link that gives the file its name. When we create a hard link, we create an additional directory entry for a file. Hard links have two important limitations: 
-1. A hard link cannot reference a file outside its own file system. This means a link cannot reference a file that is not on the same disk partition as the link itself. 2. A hard link may not reference a directory. 
+
+1. A hard link cannot reference a file outside its own file system. This means a link cannot reference a file that is not on the same disk partition as the link itself. 
+2. A hard link may not reference a directory. 
+
+>  默认情况下，每个文件只有一个硬链接，这个硬链接赋予了文件其名称
+>  当我们创建一个额外的硬链接时，我们为该文件创建了一个额外的目录条目
+>  硬链接的两个限制是
+>  1. 硬链接不能引用其所在文件系统以外的文件，也就是一个链接不能引用不在同一磁盘分区上的文件
+>  2. 硬链接不能引用目录
+
 A hard link is indistinguishable from the file itself. Unlike a symbolic link, when we list a directory containing a hard link we will see no special indication of the link. When a hard link is deleted, the link is removed but the contents of the file itself continue to exist (that is, its space is not deallocated) until all links to the file are deleted. 
+>  硬链接和文件本身无法区分
+>  和符号链接不同，当我们列出包含硬链接的目录时，不会看到任何特殊的链接指示，当硬链接被删除时，链接会被移除，但文件本身的内容将继续存在 (即空间不会被释放)，直到所有指向该文件的硬链接都被删除
+
 It is important to be aware of hard links because you might encounter them from time to time, but modern practice prefers symbolic links, which we will cover next. 
-# Symbolic Links 
+
+### Symbolic Links 
 Symbolic links were created to overcome the limitations of hard links. Symbolic links work by creating a special type of file that contains a text pointer to the referenced file or directory. In this regard, they operate in much the same way as a Windows shortcut, though of course they predate the Windows feature by many years. 
+>  符号链接通过创建一种特殊的文件来实现，该文件包含了指向所引用文件或目录的文本指针
+>  它们的工作方式和 Windows 的快捷方式很相似
+
 A file pointed to by a symbolic link, and the symbolic link itself are largely indistinguishable from one another. For example, if we write something to the symbolic link, the referenced file is written to. However when we delete a symbolic link, only the link is deleted, not the file itself. If the file is deleted before the symbolic link, the link will continue to exist but will point to nothing. In this case, the link is said to be broken. In many implementations, the ls command will display broken links in a distinguishing color, such as red, to reveal their presence. 
-The concept of links can seem confusing, but hang in there. We're going to try all this 
-stuff and it will, hopefully, become clear. 
-# Let's Build a Playground 
+>  由符号链接所指向的文件和符号链接本身在很大程度上是无法区分的
+>  例如，当我们向符号链接写入内容时，实际写入的是被引用的文件
+>  但当我们删除符号链接时，仅会删除链接而不是文件本身
+>  如果文件在符号链接被删除之前被删除，则链接会保持存在，但会指向空无一物的内容，这种情况下，我们称链接是 “损坏” 的
+>  在许多实现中，`ls` 会以特殊的颜色 (例如红色) 显示损坏的链接
+
+The concept of links can seem confusing, but hang in there. We're going to try all this stuff and it will, hopefully, become clear. 
+
+## Let's Build a Playground 
 Since we are going to do some real file manipulation, let's build a safe place to “play” with our file manipulation commands. First we need a directory to work in. We'll create one in our home directory and call it playground. 
-# Creating Directories 
-The mkdir command is used to create a directory. To create our playground directory we will first make sure we are in our home directory and will then create the new directory. 
-[me@linuxbox ~]$ cd [me@linuxbox ~]$ mkdir playground 
+
+### Creating Directories 
+The `mkdir` command is used to create a directory. To create our playground directory we will first make sure we are in our home directory and will then create the new directory. 
+
+```
+[me@linuxbox ~]$ cd 
+[me@linuxbox ~]$ mkdir playground 
+```
+
 To make our playground a little more interesting, let's create a couple of directories inside it called dir1 and dir2. To do this, we will change our current working directory to playground and execute another mkdir. 
-[me@linuxbox ~]$ cd playground [me@linuxbox playground] $|$1$ mkdir dir1 dir2 
+
+```
+[me@linuxbox ~]$ cd playground 
+[me@linuxbox playground]$ mkdir dir1 dir2 
+```
+
 Notice that the mkdir command will accept multiple arguments allowing us to create both directories with a single command. 
-# Copying Files 
+
+### Copying Files 
 Next, let's get some data into our playground. We'll do this by copying a file. Using the cp command, we'll copy the passwd file from the /etc directory to the current working directory. 
-[me@linuxbox playground] $$1$ cp /etc/passwd . 
+
+```
+[me@linuxbox playground]$ cp /etc/passwd . 
+```
+
 Notice how we used shorthand for the current working directory, the single trailing period. So now if we perform an ls, we will see our file. 
+
+```
 [me@linuxbox playground]$ ls -l 
+
 total 12 
 drwxrwxr-x 2 me me 4096 2025-01-10 16:40 dir1 drwxrwxr-x 2 me me 4096 2025-01-10 16:40 dir2 -rw-r--r-- 1 me me 1650 2025-01-10 16:07 passwd 
+```
+
 Now, just for fun, let's repeat the copy using the “-v” option (verbose) to see what it does. 
-[me@linuxbox playground] $$1$ cp -v /etc/passwd \`/etc/passwd' -> \`./passwd' 
+
+```
+[me@linuxbox playground]$ cp -v /etc/passwd .
+`/etc/passwd' -> `./passwd' 
+```
+
 The cp command performed the copy again, but this time displayed a concise message indicating what operation it was performing. Notice that cp overwrote the first copy without any warning. Again this is a case of cp assuming that we know what we're doing. To get a warning, we'll include the “-i” (interactive) option. 
-[me@linuxbox playground] $$1$ cp -i /etc/passwd cp: overwrite \`./passwd'? 
+
+```
+[me@linuxbox playground]$ cp -i /etc/passwd 
+cp: overwrite \`./passwd'? 
+```
+
 Responding to the prompt by entering a y will cause the file to be overwritten, any other character (for example, n) will cause cp to leave the file alone. 
-# Moving and Renaming Files 
+
+### Moving and Renaming Files 
 Now, the name passwd doesn't seem very playful and this is a playground, so let's change it to something else. 
-<html><body><table><tr><td>[me@linuxbox playground]$ mv passwd fun</td></tr></table></body></html> 
+
+<html><body><table><tr><td>[ me@linuxbox playground]$ mv passwd fun</td></tr></table></body></html> 
+
 Let's pass the fun around a little by moving our renamed file to each of the directories and back again. The following moves it first to the directory dir1: 
-<html><body><table><tr><td>[me@linuxbox playground]$ mv fun dir1</td></tr></table></body></html> 
+
+<html><body><table><tr><td>[ me@linuxbox playground]$ mv fun dir1</td></tr></table></body></html> 
+
 The following then moves it from dir1 to dir2: 
-[me@linuxbox playground] $$1$ mv dir1/fun dir2 
+
+```
+[me@linuxbox playground]$ mv dir1/fun dir2 
+```
+
 Finally, the following brings it back to the current working directory: 
-[me@linuxbox playground] $$1$ mv dir2/fun 
+
+```
+[me@linuxbox playground]$ mv dir2/fun 
+```
+
 Next, let's see the effect of mv on directories. First we will move our data file into dir1 again, like this: 
-<html><body><table><tr><td>[me@linuxbox playground]$ mv fun dir1</td></tr></table></body></html> 
+
+<html><body><table><tr><td>[ me@linuxbox playground]$ mv fun dir1</td></tr></table></body></html> 
+
 Then we move dir1 into dir2 and confirm it with ls. 
-[me@linuxbox playground] $$1$ mv dir1 dir2 
-[me@linuxbox playground] $$1$ ls -l dir2 
+
+```
+[me@linuxbox playground]$ mv dir1 dir2 
+[me@linuxbox playground]$ ls -l dir2 
 total 4 
 drwxrwxr-x 2 me me 4096 2025-01-11 06:06 dir1 
-[me@linuxbox playground] $$1$ ls -l dir2/dir1 
+[me@linuxbox playground]$ ls -l dir2/dir1 
 total 4 
 -rw-r--r-- 1 me me 1650 2025-01-10 16:33 fun 
+```
+
 Note that since dir2 already existed, mv moved dir1 into dir2. If dir2 had not existed, mv would have renamed dir1 to dir2. Lastly, let's put everything back. 
-[me@linuxbox playground] $$1$ mv dir2/dir1 . 
-[me@linuxbox playground] $$1$ mv dir1/fun . 
-# Creating Hard Links 
+
+```
+[me@linuxbox playground]$ mv dir2/dir1 . 
+[me@linuxbox playground]$ mv dir1/fun . 
+```
+
+### Creating Hard Links 
 Now we'll try some links. We’ll first create some hard links to our data file like so: 
-[me@linuxbox playground] $$1$ ln fun fun-hard [me@linuxbox playground] $$1$ ln fun dir1/fun-hard [me@linuxbox playground] $$1$ ln fun dir2/fun-hard 
+
+```
+[me@linuxbox playground]$ ln fun fun-hard 
+[me@linuxbox playground]$ ln fun dir1/fun-hard 
+[me@linuxbox playground]$ ln fun dir2/fun-hard 
+```
+
 So now we have four instances of the file fun. Let's take a look at our playground directory. 
+
 <html><body><table><tr><td colspan="6">[me@linuxbox playground]$ ls -l</td></tr><tr><td>total 16</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>drwxrwxr-x 2 me</td><td> me</td><td>4096</td><td>2025-01-14 16:17 dir1 4096 2025-01-14 16:17 dir2</td><td></td><td></td></tr><tr><td>drwxrwxr-x 2</td><td>me me</td><td></td><td>1650 2025-01-10 16:33 fun</td><td></td><td></td></tr><tr><td>-rw-r--r-- 4 -rw-r--r-- </td><td>me me 4 me me</td><td></td><td>1650 2025-01-10 16:33 fun-hard</td><td></td><td></td></tr></table></body></html> 
+
 One thing we notice is that both the second fields in the listings for fun and fun-hard contain a 4 which is the number of hard links that now exist for the file. Remember that a file will always have at least one link because the file's name is created by a link. So, how do we know that fun and fun-hard are, in fact, the same file? In this case, ls is not very helpful. While we can see that fun and fun-hard are both the same size (field 5), our listing provides no way to be sure. To solve this problem, we're going to have to dig a little deeper. 
+
 When thinking about hard links, it is helpful to imagine that files are made up of two parts. 
+
 1. The data part containing the file's contents. 
 2. The name part that holds the file's name. 
+
 When we create hard links, we are actually creating additional name parts that all refer to the same data part. The system assigns a chain of disk blocks to what is called an inode, which is then associated with the name part. Each hard link therefore refers to a specific inode containing the file's contents. 
+
 The ls command has a way to reveal this information. It is invoked with the -i option. 
+
 <html><body><table><tr><td colspan="6">[me@linuxbox playground]$ ls -li</td></tr><tr><td>total 16</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>12353539 drwxrwxr-x 2 me</td><td></td><td> me</td><td></td><td>4096 2025-01-14 16:17 dir1</td><td></td></tr><tr><td>12353540 drwxrwxr-x 2</td><td>me</td><td> me</td><td></td><td>4096 2025-01-14 16:17 dir2</td><td></td></tr><tr><td>12353538 -rw-r--r-- 4 me</td><td></td><td> me</td><td></td><td>1650 2025-01-10 16:33 fun</td><td></td></tr><tr><td>12353538 -rw-r--r-- 4 me</td><td></td><td>me</td><td></td><td></td><td>1650 2025-01-10 16:33 fun-hard</td></tr></table></body></html> 
+
 In this version of the listing, the first field is the inode number and, as we can see, both fun and fun-hard share the same inode number, which confirms they are the same file. 
-# Creating Symbolic Links 
+
+### Creating Symbolic Links 
 Symbolic links were created to overcome the two disadvantages of hard links. 
 1. Hard links cannot span physical devices. 
 2. Hard links cannot reference directories, only files. 
 Symbolic links are a special type of file that contains a text pointer to the target file or directory. 
 Creating symbolic links is similar to creating hard links. 
-[me@linuxbox playground] $$1$ ln -s fun fun-sym [me@linuxbox playground] $$1$ ln -s ../fun dir1/fun-sym [me@linuxbox playground] $$1$ ln -s ../fun dir2/fun-sym 
+
+```
+[me@linuxbox playground]$ ln -s fun fun-sym 
+[me@linuxbox playground]$ ln -s ../fun dir1/fun-sym 
+[me@linuxbox playground]$ ln -s ../fun dir2/fun-sym 
+```
+
 The first example is pretty straightforward; we simply add the $^{66}-5^{33}$ option to create a symbolic link rather than a hard link. But what about the next two? Remember, when we create a symbolic link, we are creating a text description of where the target file is rela - tive to the symbolic link. It's easier to see if we look at the ls output shown here: 
-<html><body><table><tr><td colspan="6">[me@linuxbox playground]$ ls -l dir1</td></tr><tr><td>total 4</td><td></td><td></td><td>1650 2025-01-10 16:33 fun-hard</td><td></td><td></td></tr><tr><td>-rw-r--r-- 4 me lrwxrwxrwx 1 me</td><td>me me</td><td></td><td></td><td></td><td>6 2025-01-15 15:17 fun-sym -> ../fun</td></tr></table></body></html> 
+
+<html><body><table><tr><td colspan="6">[ me@linuxbox playground]$ ls -l dir1</td></tr><tr><td>total 4</td><td></td><td></td><td>1650 2025-01-10 16:33 fun-hard</td><td></td><td></td></tr><tr><td>-rw-r--r-- 4 me lrwxrwxrwx 1 me</td><td>me me</td><td></td><td></td><td></td><td>6 2025-01-15 15:17 fun-sym -> ../fun</td></tr></table></body></html> 
 The listing for fun-sym in dir1 shows that it is a symbolic link by the leading l in the first field and that it points to ../fun, which is correct. Relative to the location of funsym, fun is in the directory above it. Notice too, that the length of the symbolic link file is 6, the number of characters in the string ../fun rather than the length of the file to which it is pointing. 
+
 When creating symbolic links, we can either use absolute pathnames, as shown here: 
-# [me@linuxbox playground] $$1$ ln -s /home/me/playground/fun dir1/fun-sym 
+
+```
+[me@linuxbox playground]$ ln -s /home/me/playground/fun dir1/fun-sym 
+```
+
 or relative pathnames, as we did in our earlier example. In most cases, using relative pathnames is more desirable because it allows a directory tree containing symbolic links and their referenced files to be renamed and/or moved without breaking the links. 
+
 In addition to regular files, symbolic links can also reference directories. 
-[me@linuxbox playground] $$1$ ln -s dir1 dir1-sym [me@linuxbox playground] $$1$ ls -l 
+
+```
+[me@linuxbox playground]$ ln -s dir1 dir1-sym 
+[me@linuxbox playground]$ ls -l 
+```
+
 <html><body><table><tr><td colspan="8">total 16</td></tr><tr><td>drwxrwxr-x</td><td>2 me</td><td>me</td><td></td><td>4096 2025-01-15 15:17 dir1</td><td></td><td></td></tr><tr><td>lrwxrwxrwx</td><td>1 me</td><td>me</td><td></td><td></td><td></td><td>4 2025-01-16 14:45 dir1-sym -> dir1</td></tr><tr><td>drwxrwxr-x</td><td>2 me</td><td>me</td><td></td><td>4096 2025-01-15 15:17</td><td></td><td>dir2</td></tr><tr><td>-rw-r--r--</td><td>4 me</td><td>me</td><td>1650</td><td>2025-01-10 16:33</td><td></td><td>fun</td></tr><tr><td>-rw-r--r--</td><td>4 me</td><td>me</td><td>1650</td><td>2025-01-10 16:33</td><td></td><td> fun-hard</td></tr><tr><td>lrwxrwxrwx</td><td>1 me</td><td>me</td><td></td><td>3 2025-01-15</td><td>15:15</td><td>fun-sym -> fun</td></tr></table></body></html> 
-# Removing Files and Directories 
+
+### Removing Files and Directories 
 As we covered earlier, the rm command is used to delete files and directories. We are going to use it to clean up our playground a little bit. First, let's delete one of our hard links. 
-<html><body><table><tr><td>[me@linuxbox playground]$ rm fun-hard [me@linuxbox playground]$ ls -l</td></tr></table></body></html> 
+
+<html><body><table><tr><td>[ me@linuxbox playground]$ rm fun-hard [ me@linuxbox playground]$ ls -l</td></tr></table></body></html> 
+
 That worked as expected. The file fun-hard is gone and the link count shown for fun is reduced from four to three, as indicated in the second field of the directory listing. Next, we'll delete the file fun, and just for enjoyment, we'll include the -i option to show what that does. 
-<html><body><table><tr><td>[me@linuxbox playground]$ rm -i fun rm: remove regular file “fun'?</td></tr></table></body></html> 
+
+<html><body><table><tr><td>[ me@linuxbox playground]$ rm -i fun rm: remove regular file “fun'?</td></tr></table></body></html> 
+
 Enter y at the prompt and the file is deleted. But let's look at the output of ls now. Notice what happened to fun-sym? Since it's a symbolic link pointing to a now-nonexistent file, the link is broken. 
+
 <html><body><table><tr><td colspan="5">[me@linuxbox playground]$ ls -l</td></tr><tr><td>total 8 drwxrwxr-x 2 me me</td><td></td><td></td><td>4096 2025-01-15 15:17 dir1</td><td></td></tr><tr><td>lrwxrwxrwx 1 me me</td><td></td><td>4 2025-01-16 14:45</td><td></td><td>dir1-sym -> dir1</td></tr></table></body></html> 
 <html><body><table><tr><td>drwxrwxr-x 2 me</td><td></td><td></td><td> me</td><td></td><td>4096 2025-01-15 15:17 dir2</td><td></td><td></td><td></td></tr><tr><td>lrwxrwxrwx 1 me</td><td></td><td></td><td> me </td><td></td><td>3 2025-01-15 15:15</td><td></td><td>fun-sym -> fun</td><td></td></tr></table></body></html> 
+
 Most Linux distributions configure ls to display broken links. The presence of a broken link is not in and of itself dangerous, but it is rather messy. If we try to use a broken link we will see this: 
+
 <html><body><table><tr><td>[me@linuxbox playground]$ less fun-sym</td></tr><tr><td>fun-sym: No such file or directory</td></tr></table></body></html> 
+
 Let's clean up a little. We'll delete the symbolic links here: 
+
 <html><body><table><tr><td>[me@linuxbox playground]$ ls -l</td><td>[me@linuxbox playground]$ rm fun-sym dir1-sym</td><td></td><td></td></tr><tr><td>total 8</td><td></td><td></td><td>4096 2025-01-15 15:17 dir1</td></tr><tr><td>drwxrwxr-x 2 me</td><td> me</td><td></td><td></td></tr><tr><td>drwxrwxr-x 2 me</td><td> me</td><td>4096 2025-01-15 15:17 dir2</td><td></td></tr></table></body></html> 
+
 One thing to remember about symbolic links is that most file operations are carried out on the link's target, not the link itself. rm is an exception. When we delete a link, it is the link that is deleted, not the target. 
+
 Finally, we will remove our playground. To do this, we will return to our home directory and use rm with the recursive option (-r) to delete playground and all of its contents, including its subdirectories. 
-[me@linuxbox playground] $$1$ cd [me@linuxbox ~]$ rm -r playground 
-# Creating Symlinks With The GUI 
+`
+```
+[me@linuxbox playground]$ cd [me@linuxbox ~]$ rm -r playground 
+```
+
+### Creating Symlinks With The GUI 
 The file managers in both GNOME and KDE provide an easy and automatic method of creating symbolic links. With GNOME, holding the Ctrl+Shift keys while dragging a file will create a link rather than copying (or moving) the file. In KDE, a small menu appears whenever a file is dropped, offering a choice of copying, moving, or linking the file. 
-# Summing Up 
+
+## Summing Up 
 We've covered a lot of ground here and it will take a while for it all to fully sink in. Per - form the playground exercise over and over until it makes sense. It is important to get a good understanding of basic file manipulation commands and wildcards. Feel free to expand on the playground exercise by adding more files and directories, using wildcards to specify files for various operations. The concept of links is a little confusing at first, but take the time to learn how they work. They can be a real lifesaver. 
-# Further Reading 
+
+## Further Reading 
 A discussion of symbolic links: http://en.wikipedia.org/wiki/Symbolic_link 
-# 5 – Working with Commands 
+
+# 5 Working with Commands 
 Up to this point, we have seen a series of mysterious commands, each with its own mysterious options and arguments. In this chapter, we will attempt to remove some of that mystery and even create our own commands. The commands introduced in this chapter are: 
 type – Indicate how a command name is interpreted which – Display which executable program will be executed help – Get help for shell builtins man – Display a command's manual page apropos – Display a list of appropriate commands info – Display a command's info entry whatis – Display one-line manual page descriptions alias – Create an alias for a command 
 # What Exactly Are Commands? 
@@ -1076,9 +1390,9 @@ Now that we've seen how many ways the shell can perform expansions, it's time to
 <html><body><table><tr><td>[me@linuxbox ~]$ echo this is a test this is a test</td></tr></table></body></html> 
 or this one: 
 [me@linuxbox $-]$1$ echo The total is $$100.00$ The total is 00.00 
-In the first example, word-splitting by the shell removed extra whitespace from the echo command's list of arguments. In the second example, parameter expansion substituted an empty string for the value of $$1$ because it was an undefined variable. The shell provides a mechanism called quoting to selectively suppress unwanted expansions. 
+In the first example, word-splitting by the shell removed extra whitespace from the echo command's list of arguments. In the second example, parameter expansion substituted an empty string for the value of$ because it was an undefined variable. The shell provides a mechanism called quoting to selectively suppress unwanted expansions. 
 # Double Quotes 
-The first type of quoting we will look at is double quotes. If we place text inside double quotes, all the special characters used by the shell lose their special meaning and are treated as ordinary characters. The exceptions are $$1$ , \ (backslash), and \` (back-quote). This means that word-splitting, pathname expansion, tilde expansion, and brace expansion are suppressed, but parameter expansion, arithmetic expansion, and command substitution are still carried out. Using double quotes, we can cope with filenames containing embedded spaces. Say we were the unfortunate victim of a file called two words.txt. If we tried to use this on the command line, word-splitting would cause this to be treated as two separate arguments rather than the desired single argument. 
+The first type of quoting we will look at is double quotes. If we place text inside double quotes, all the special characters used by the shell lose their special meaning and are treated as ordinary characters. The exceptions are$ , \ (backslash), and \` (back-quote). This means that word-splitting, pathname expansion, tilde expansion, and brace expansion are suppressed, but parameter expansion, arithmetic expansion, and command substitution are still carried out. Using double quotes, we can cope with filenames containing embedded spaces. Say we were the unfortunate victim of a file called two words.txt. If we tried to use this on the command line, word-splitting would cause this to be treated as two separate arguments rather than the desired single argument. 
 [me@linuxbox ~]$ ls -l two words.txt ls: cannot access two: No such file or directory ls: cannot access words.txt: No such file or directory 
 By using double quotes, we stop the word-splitting and get the desired result; further, we can even repair the damage. 
 [me@linuxbox $-]$1$ ls -l "two words.txt" $-r w-r w-r\textrm{-}1$ me me 18 2016-02-20 13:03 two words.txt [me@linuxbox $-]$1$ mv "two words.txt" two_words.txt 
@@ -1099,7 +1413,7 @@ In the first instance, the unquoted command substitution resulted in a command l
 If we need to suppress all expansions, we use single quotes. Here is a comparison of unquoted, double quotes, and single quotes: 
 $\mathsf{\Lambda}[\mathsf{m e}\oplus\mathsf{l i n u}\times\mathsf{b o}\times\mathsf{\Lambda}\sim]\Phi$ echo text $-/\star$ .txt {a,b} $$5$ (echo foo) $$1(2+2)$ ) $USER text /home/me/ls-output.txt a b foo 4 me 
 [me@linuxbox $-]$1$ echo "text $-/\star$ .txt {a,b} $$5$ (echo foo) $$(2+2)$ ) $USER" text $-/\star$ .txt $\{\mathsf{a},\mathsf{b}\}$ foo 4 me 
-[me@linuxbox $-]$1$ echo 'text $-/\star$ .txt {a,b} $$5$ (echo foo) $$(2+2)$ ) $USER' text $-/\star$ .txt {a,b} $$1$ (echo foo) $(( $2+2)$ ) $USER 
+[me@linuxbox $-]$1$ echo 'text $-/\star$ .txt {a,b} $$5$ (echo foo) $$(2+2)$ ) $USER' text $-/\star$ .txt {a,b}$ (echo foo) $(( $2+2)$ ) $USER 
 As we can see, with each succeeding level of quoting, more and more of the expansions are suppressed. 
 # Escaping Characters 
 Sometimes we want to quote only a single character. To do this, we can precede a character with a backslash, which in this context is called the escape character. Often this is done inside double quotes to selectively prevent an expansion. 
@@ -1112,7 +1426,7 @@ Another use of the backslash escape is suppressing aliases. For example, assumin
 In addition to its role as the escape character, the backslash is also used as part of a notation to represent certain special characters called control codes. The first 32 characters in the ASCII coding scheme are used to transmit commands to teletype-like devices. Some of these codes are familiar (tab, backspace, linefeed, and carriage return), while others are not (null, end-of-transmission, and acknowledge). 
 <html><body><table><tr><td>Escape Sequence</td><td>Meaning</td></tr><tr><td>\a</td><td>Bell (an alert that causes the computer to beep)</td></tr><tr><td>\b \n</td><td>Backspace Newline. On Unix-like systems, this</td></tr><tr><td></td><td>produces a linefeed.</td></tr><tr><td>\r \t</td><td>Carriage return</td></tr><tr><td></td><td>Tab</td></tr></table></body></html> 
 The table above lists some of the common backslash escape sequences. The idea behind this representation using the backslash originated in the C programming language and has been adopted by many others, including the shell. 
-Adding the -e option to echo will enable interpretation of escape sequences. You may also place them inside $$1$ '. Here, using the sleep command, a simple program that just waits for the specified number of seconds and then exits, we can create a primitive countdown timer: 
+Adding the -e option to echo will enable interpretation of escape sequences. You may also place them inside$ '. Here, using the sleep command, a simple program that just waits for the specified number of seconds and then exits, we can create a primitive countdown timer: 
 sleep 10; echo -e "Time's up\a" 
 We could also do this: sleep 10; echo "Time's up" $'\a' 
 # Summing Up 
@@ -1155,7 +1469,7 @@ Now press the Tab key.
 See how the shell completed the line for us? Let's try another one. Again, don't press Enter. 
 <html><body><table><tr><td>[me@linuxbox ~]$ ls D</td></tr></table></body></html> 
 Press Tab. 
-While this example shows completion of pathnames, which is its most common use, completion will also work on variables (if the beginning of the word is a $$1$ ), user names (if the word begins with ~), commands (if the word is the first word on the line) and hostnames (if the beginning of the word is $@$ ). Hostname completion works only for hostnames listed in /etc/hosts. 
+While this example shows completion of pathnames, which is its most common use, completion will also work on variables (if the beginning of the word is a$ ), user names (if the word begins with ~), commands (if the word is the first word on the line) and hostnames (if the beginning of the word is $@$ ). Hostname completion works only for hostnames listed in /etc/hosts. 
 There are a number of control and meta key sequences that are associated with completion, as listed in Table 8-4. 
 Table 8-4: Completion Commands 
 <html><body><table><tr><td>Key</td><td>Action</td></tr><tr><td>Alt-?</td><td>Display a list of possible completions. On most systems you can also do this by pressing the Tab key a second time, which is much easier.</td></tr><tr><td>Alt-*</td><td>Insert all possible completions. This is useful when you want to use more than one possible match.</td></tr></table></body></html> 
@@ -1329,7 +1643,7 @@ The su command is used to start a shell as another user. The command syntax look
 ![](https://cdn-mineru.openxlab.org.cn/extract/e52c4087-794e-43f3-821f-0f8eb1fdf822/c03dacc85930d1f439d406ad281600ef3b3b91c3be1349810efda93f98df8d81.jpg) 
 If the “-l” option is included, the resulting shell session is a login shell for the specified user. This means the user's environment is loaded and the working directory is changed to the user's home directory. This is usually what we want. If the user is not specified, the superuser is assumed. Notice that (strangely) the -l may be abbreviated as -, which is how it is most often used. Assuming that the root account has a password set (which is not the custom in modern distributions) we can start a shell for the superuser this way: 
 [me@linuxbox ~]$ su - Password: [root@linuxbox ~]# 
-After entering the command, we are prompted for the superuser's password. If it is successfully entered, a new shell prompt appears indicating that this shell has superuser privileges (the trailing # rather than a $$1$ ), and the current working directory is now the home directory for the superuser (normally /root). Once in the new shell, we can carry out commands as the superuser. When finished, enter exit to return to the previous shell. 
+After entering the command, we are prompted for the superuser's password. If it is successfully entered, a new shell prompt appears indicating that this shell has superuser privileges (the trailing # rather than a$ ), and the current working directory is now the home directory for the superuser (normally /root). Once in the new shell, we can carry out commands as the superuser. When finished, enter exit to return to the previous shell. 
 [root@linuxbox ~]# exit [me@linuxbox ~]$ 
 It is also possible to execute a single command rather than starting a new interactive command by using su this way. 
 Using this form, a single command line is passed to the new shell for execution. It is important to enclose the command in quotes, as we do not want expansion to occur in our shell, but rather in the new shell. 
