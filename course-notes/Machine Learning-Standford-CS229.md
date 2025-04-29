@@ -352,5 +352,5 @@ $$\begin{align}
 
 # Appendix
 ## Decision Trees
-## Probility Theory Review and Reference
+## Probability Theory Review and Reference
 
