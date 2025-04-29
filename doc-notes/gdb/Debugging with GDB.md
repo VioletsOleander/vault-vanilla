@@ -526,74 +526,383 @@ this contains a PIPE char!
 
 The convenience variables `$_shell_exitcode` and `$_shell_exitsignal` can be used to examine the exit status of the last shell command launched by `shell`, `make`, `pipe` and `|`. See [Convenience Variables](https://sourceware.org/gdb/current/onlinedocs/gdb#Convenience-Vars).
 
-## 8 Examining the Stack
-When your program has stopped, the first thing you need to know is where it stopped and how it got there.
->  当我们的程序停止时，我们需要知道它在哪里停止，并且是如何到达那里的
+## 3 GDB Commands
+You can abbreviate a GDB command to the first few letters of the command name, if that abbreviation is unambiguous; and you can repeat certain GDB commands by typing just RET. You can also use the TAB key to get GDB to fill out the rest of a word in a command (or to show you the alternatives available, if there is more than one possibility).
+>  可以将 GDB 命令缩写为命令名称的前几个字母，只要这种缩写是唯一的
+>  可以仅键入 RET 来重复某些 GDB 命令
+>  可以使用 TAB 自动补全
 
-Each time your program performs a function call, information about the call is generated. That information includes the location of the call in your program, the arguments of the call, and the local variables of the function being called. The information is saved in a block of data called a _stack frame_. The stack frames are allocated in a region of memory called the _call stack_.
->  我们的程序每次执行一次函数调用，都会生成关于该调用的信息
->  信息包括了调用的位置、调用的参数、被调用函数的局部变量
->  这些信息存在一个称为栈帧的数据块中，栈帧会在内存中一块称为调用栈的区域中进行分配
+### 3.1 Command Syntax
+A GDB command is a single line of input. There is no limit on how long it can be. It starts with a command name, which is followed by arguments whose meaning depends on the command name. For example, the command `step` accepts an argument which is the number of times to step, as in ‘step 5’. You can also use the `step` command with no arguments. Some commands do not allow any arguments.
+>  一条 GDB 命令是一行输入，它没有长度限制
+>  它以命令名称开始，后面跟着根据命令名称而定的参数
+>  例如，`step` 命令接收表示步进次数的参数，例如 `step 5`
+>   一些命名不允许任何参数
 
-When your program stops, the GDB commands for examining the stack allow you to see all of this information.
+## 5 Stopping and Continuing
+The principal purposes of using a debugger are so that you can stop your program before it terminates; or so that, if your program runs into trouble, you can investigate and find out why.
 
-One of the stack frames is _selected_ by GDB and many GDB commands refer implicitly to the selected frame. In particular, whenever you ask GDB for the value of a variable in your program, the value is found in the selected frame. There are special GDB commands to select whichever frame you are interested in. See [Selecting a Frame](https://sourceware.org/gdb/current/onlinedocs/gdb#Selection).
->  其中一个栈帧被 GDB 选中，并且许多 GDB 命令会隐式引用所选的帧
+Inside GDB, your program may stop for any of several reasons, such as a signal, a breakpoint, or reaching a new line after a GDB command such as `step`. You may then examine and change variables, set new breakpoints or remove old ones, and then continue execution. 
+>  在 GDB 中，我们的程序可能因为多种原因停止运行，例如接收到信号、触发断点，或执行了诸如 `step` 等 GDB 命令后到达新行
+>  此时，我们可以检查和修改变量，设置新的断点或移除旧的断点，然后继续执行程序
 
-When your program stops, GDB automatically selects the currently executing frame and describes it briefly, similar to the `frame` command (see [Information about a Frame](https://sourceware.org/gdb/current/onlinedocs/gdb#Frame-Info)).
->  程序停止时，GDB 自动选择当前执行帧，并简要描述它
+Usually, the messages shown by GDB provide ample explanation of the status of your program—but you can also explicitly request this information at any time.
 
-### 8.1 Stack Frames
-The call stack is divided up into contiguous pieces called _stack frames_, or _frames_ for short; each frame is the data associated with one call to one function. The frame contains the arguments given to the function, the function’s local variables, and the address at which the function is executing.
->  调用栈被划分为连续的片段，这些片段被称为栈帧，每个栈帧与某个函数的一次调用相关联，包括了该函数的参数、局部变量、执行的地址
+`info program`
 
-When your program is started, the stack has only one frame, that of the function `main`. This is called the _initial_ frame or the _outermost_ frame. Each time a function is called, a new frame is made. Each time a function returns, the frame for that function invocation is eliminated. If a function is recursive, there can be many frames for the same function. The frame for the function in which execution is actually occurring is called the _innermost_ frame. This is the most recently created of all the stack frames that still exist.
->  程序启动时，只有一个 `main` 函数的栈帧，称为初始帧或最外层帧
->  函数调用会创建新帧，函数返回会消除对应的帧，当前正在执行的函数对应最内层帧
+Display information about the status of your program: whether it is running or not, what process it is, and why it stopped.
 
-Inside your program, stack frames are identified by their addresses. A stack frame consists of many bytes, each of which has its own address; each kind of computer has a convention for choosing one byte whose address serves as the address of the frame. Usually this address is kept in a register called the _frame pointer register_ (see [$fp](https://sourceware.org/gdb/current/onlinedocs/gdb#Registers)) while execution is going on in that frame.
->  栈帧在程序中通过地址标识，栈帧本身包括多个字节的数据，其中一个字节的地址会用于表示栈帧的地址
->  通常当前栈帧的地址会保存在帧指针寄存器中 `$fp`
+>  `info program` 会显示关于程序状态的信息: 程序是否在运行，处于哪个进程，以及为什么停止
 
-GDB labels each existing stack frame with a _level_, a number that is zero for the innermost frame, one for the frame that called it, and so on upward. These level numbers give you a way of designating stack frames in GDB commands. The terms _frame number_ and _frame level_ can be used interchangeably to describe this number.
->  GDB 为每个现存栈帧标记一个级别，最内层帧是 0
->  “帧级别” 和 "帧编号" 可以交换使用，本质是在 GDB 命令中标识帧的数字
+### 5.1 Breakpoints, Watchpoints, and Catchpoints
+A _breakpoint_ makes your program stop whenever a certain point in the program is reached. For each breakpoint, you can add conditions to control in finer detail whether your program stops. You can set breakpoints with the `break` command and its variants (see [Setting Breakpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Set-Breaks)), to specify the place where your program should stop by line number, function name or exact address in the program.
+>  breakpoint 会让程序执行到特定位置时停止，对于每个断点，可以添加条件以更精细地控制程序是否停止
+>  可以通过 `break` 命令及其变体设置断点，指定程序在哪一个行号、函数名或程序中的确切地址停止
 
-Some compilers provide a way to compile functions so that they operate without stack frames. (For example, the GCC option
+On some systems, you can set breakpoints in shared libraries before the executable is run.
+>  在一些系统上，可以在程序执行之前在共享库中设置断点
+
+A _watchpoint_ is a special breakpoint that stops your program when the value of an expression changes. The expression may be a value of a variable, or it could involve values of one or more variables combined by operators, such as ‘a + b’. This is sometimes called _data breakpoints_. You must use a different command to set watchpoints (see [Setting Watchpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Set-Watchpoints)), but aside from that, you can manage a watchpoint like any other breakpoint: you enable, disable, and delete both breakpoints and watchpoints using the same commands.
+>  watchpoint 是一类特殊的 breakpoint，它当表达式发生变化时停止程序，表达式可以是某个变量的值，或者是通过运算符组合的一个或多个变量的值，例如 `a + b`
+>  watchpoint 有时也被称为 datapoint，我们需要使用一个不同的命令来设置 watchpoint，然后可以像管理其他断点一样管理观察点: 使用相同的命令启用、禁用、删除断点和观察点
+
+You can arrange to have values from your program displayed automatically whenever GDB stops at a breakpoint. See [Automatic Display](https://sourceware.org/gdb/current/onlinedocs/gdb#Auto-Display).
+>  我们可以安排程序在每次断点处停止时自动显示某些值
+
+A _catchpoint_ is another special breakpoint that stops your program when a certain kind of event occurs, such as the throwing of a C++ exception or the loading of a library. As with watchpoints, you use a different command to set a catchpoint (see [Setting Catchpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Set-Catchpoints)), but aside from that, you can manage a catchpoint like any other breakpoint. (To stop when your program receives a signal, use the `handle` command; see [Signals](https://sourceware.org/gdb/current/onlinedocs/gdb#Signals).)
+>  catchpoint 是另一类特殊的断点，当特定类型的事件发生时，它会停止我们的程序，例如抛出 C++ 异常或加载库
+>  我们需要使用一个不同的命令设置捕获点，然后就像管理其他断点一样管理捕获点 (要在我们的程序接收到信号是停止，使用 `handle` 命令)
+
+GDB assigns a number to each breakpoint, watchpoint, or catchpoint when you create it; these numbers are successive integers starting with one. In many of the commands for controlling various features of breakpoints you use the breakpoint number to say which breakpoint you want to change. Each breakpoint may be _enabled_ or _disabled_; if disabled, it has no effect on your program until you enable it again.
+>  当我们创建 breakpoint, watchpoint, catchpoint 时，GDB 会为其分配一个编号，这些编号是从 1 开始逐渐递增的整数
+>  许多用于控制断点各种功能的命令都要求使用编号来指定断点
+>  每个断点可以是 enabled 或 disabled 状态，如果 disabled，断点将不会对程序产生影响
+
+Some GDB commands accept a space-separated list of breakpoints on which to operate. A list element can be either a single breakpoint number, like ‘5’, or a range of such numbers, like ‘5-7’. When a breakpoint list is given to a command, all breakpoints in that list are operated on.
+>  一些 GDB 命令接收空格分离的断点列表，列表中的元素可以是单独的断点编号，例如 `5`，也可以是一个编号范围，例如 `5-7`
+
+#### 5.1.1 Setting Breakpoints
+Breakpoints are set with the `break` command (abbreviated `b`). The debugger convenience variable ‘ `$bpnum` ’ records the number of the breakpoint you’ve set most recently:
 
 ```
-‘-fomit-frame-pointer’
+(gdb) b main
+Breakpoint 1 at 0x11c6: file zeoes.c, line 24.
+(gdb) p $bpnum
+$1 = 1
 ```
 
-generates functions without a frame.) This is occasionally done with heavily used library functions to save the frame setup time. GDB has limited facilities for dealing with these function invocations. If the innermost function invocation has no stack frame, GDB nevertheless regards it as though it had a separate frame, which is numbered zero as usual, allowing correct tracing of the function call chain. However, GDB has no provision for frameless functions elsewhere in the stack.
+>  断点通过 `break` (缩写为 `b`) 命令设置，GDB 内建变量 `$bpnum` 记录了最近设置的断点编号
 
-### 8.2 Backtraces
-A backtrace is a summary of how your program got where it is. It shows one line per frame, for many frames, starting with the currently executing frame (frame zero), followed by its caller (frame one), and on up the stack.
-
-To print a backtrace of the entire stack, use the `backtrace` command, or its alias `bt`. This command will print one line per frame for frames in the stack. By default, all stack frames are printed. You can stop the backtrace at any time by typing the system interrupt character, normally Ctrl-c.
-
-The names `where` and `info stack` (abbreviated `info s`) are additional aliases for `backtrace`.
-
-In a multi-threaded program, GDB by default shows the backtrace only for the current thread. To display the backtrace for several or all of the threads, use the command `thread apply` (see [thread apply](https://sourceware.org/gdb/current/onlinedocs/gdb#Threads)). For example, if you type thread apply all backtrace, GDB will display the backtrace for all the threads; this is handy when you debug a core dump of a multi-threaded program.
-
-Each line in the backtrace shows the frame number and the function name. The program counter value is also shown—unless you use `set print address off`. The backtrace also shows the source file name and line number, as well as the arguments to the function. The program counter value is omitted if it is at the beginning of the code for that line number.
->  backtrace 的每一行都显示了帧号和函数名称，以及程序计数器的值 (执行指令的地址)
->  backtrace 还显示源文件名、行号以及传递给函数的参数，如果程序计数器位于该行号代码的起始位置，则会省略其值
-
-Here is an example of a backtrace. It was made with the command ‘ `bt 3` ’, so it shows the innermost three frames.
+A breakpoint may be mapped to multiple code locations for example with inlined functions, Ada generics, C++ templates or overloaded function names. GDB then indicates the number of code locations in the breakpoint command output:
 
 ```
-#0  m4_traceon (obs=0x24eb0, argc=1, argv=0x2b8c8)
-    at builtin.c:993
-#1  0x6e38 in expand_macro (sym=0x2b600, data=...) at macro.c:242
-#2  0x6840 in expand_token (obs=0x0, t=177664, td=0xf7fffb08)
-    at macro.c:71
-(More stack frames follow...)
+(gdb) b some_func
+Breakpoint 2 at 0x1179: some_func. (3 locations)
+(gdb) p $bpnum
+$2 = 2
+(gdb)
 ```
 
-The display for frame zero does not begin with a program counter value, indicating that your program has stopped at the beginning of the code for line `993` of `builtin.c`.
->  上例中，第零帧的显示不以程序计数器的值开头，这表明的程序在 `builtin.c` 文件的第 993 行代码开始处停止运行
+>  一个断点可以被映射到多个代码位置，例如内联函数、Ada 通用程序、C++、模板或重载函数名
+>  GDB 会在 `break` 命令输出中显示断点关联的代码位置的数量
 
-The value of parameter `data` in frame 1 has been replaced by `…`. By default, GDB prints the value of a parameter only if it is a scalar (integer, pointer, enumeration, etc). See command set print frame-arguments in [Print Settings](https://sourceware.org/gdb/current/onlinedocs/gdb#Print-Settings) for more details on how to configure the way function parameter values are printed. The command `set print frame-info` (see [Print Settings](https://sourceware.org/gdb/current/onlinedocs/gdb#Print-Settings)) controls what frame information is printed.
->  在第 1 帧中，参数 `data` 的值已被替换为 `…`
->  默认情况下，GDB 只在参数是标量 (例如整数、指针、枚举等) 打印参数的值
+When your program stops on a breakpoint, the convenience variables ‘ `$_hit_bpnum` ’ and ‘ `$_hit_locno` ’ are respectively set to the number of the encountered breakpoint and the number of the breakpoint’s code location:
+
+```
+Thread 1 "zeoes" hit Breakpoint 2.1, some_func () at zeoes.c:8
+8	  printf("some func\n");
+(gdb) p $_hit_bpnum
+$5 = 2
+(gdb) p $_hit_locno
+$6 = 1
+(gdb)
+```
+
+>  程序在断点处停止时，GDB 内建变量 `$_hit_bpnum` 和 `$_hit_locno` 会分别被设置为遇到的断点编号和停止处代码位置的编号
+
+Note that ‘ `$_hit_bpnum` ’ and ‘ `$bpnum` ’ are not equivalent: ‘ `$_hit_bpnum` ’ is set to the breakpoint number **last hit**, while ‘ `$bpnum` ’ is set to the breakpoint number **last set**.
+>  注意，`$_hit_bpnum` 和 `$bpnum` 不等价: `$_hit_bpnum` 是最后一次触发的断点编号，`$bpnum` 是最后一次设置的断点编号
+
+If the encountered breakpoint has only one code location, ‘ `$_hit_locno` ’ is set to 1:
+
+```
+Breakpoint 1, main (argc=1, argv=0x7fffffffe018) at zeoes.c:24
+24	  if (argc > 1)
+(gdb) p $_hit_bpnum
+$3 = 1
+(gdb) p $_hit_locno
+$4 = 1
+(gdb)
+```
+
+>  如果触发的断点是唯一的代码位置，则 `$_hit_locno` 就是 1
+
+The ‘ `$_hit_bpnum` ’ and ‘ `$_hit_locno` ’ variables can typically be used in a breakpoint command list. (see [Breakpoint Command Lists](https://sourceware.org/gdb/current/onlinedocs/gdb#Break-Commands)). For example, as part of the breakpoint command list, you can disable completely the encountered breakpoint using disable `$_hit_bpnum` or disable the specific encountered breakpoint location using disable `$_hit_bpnum`. `$ _hit_locno`. If a breakpoint has only one location, ‘ `$_hit_locno` ’ is set to 1 and the commands disable `$_hit_bpnum` and disable `$_hit_bpnum`. `$ _hit_locno` both disable the breakpoint.
+>  skip
+
+You can also define aliases to easily disable the last hit location or last hit breakpoint:
+
+```
+(gdb) alias lld = disable $_hit_bpnum.$_hit_locno
+(gdb) alias lbd = disable $_hit_bpnum
+```
+
+
+`break locspec`
+
+Set a breakpoint at all the code locations in your program that result from resolving the given `locspec`. `locspec` can specify a function name, a line number, an address of an instruction, and more. See [Location Specifications](https://sourceware.org/gdb/current/onlinedocs/gdb#Location-Specifications), for the various forms of locspec. The breakpoint will stop your program just before it executes the instruction at the address of any of the breakpoint’s code locations.
+>  `break locspec` 会在程序中所有通过解析给定的 `locspec` 得到的代码位置设定断点，`locspec` 可以是函数名、行号、指令地址等
+>  程序会在执行任意断点代码位置处的指令之前停止
+
+When using source languages that permit overloading of symbols, such as C++, a function name may refer to more than one symbol, and thus more than one place to break. See [Ambiguous Expressions](https://sourceware.org/gdb/current/onlinedocs/gdb#Ambiguous-Expressions), for a discussion of that situation.
+
+It is also possible to insert a breakpoint that will stop the program only if a specific thread (see [Thread-Specific Breakpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Thread_002dSpecific-Breakpoints)), specific inferior (see [Inferior-Specific Breakpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Inferior_002dSpecific-Breakpoints)), or a specific task (see [Ada Tasks](https://sourceware.org/gdb/current/onlinedocs/gdb#Ada-Tasks)) hits that breakpoint.
+
+`info breakpoints [list…]`
+`info break [list…]`
+
+Print a table of all breakpoints, watchpoints, tracepoints, and catchpoints set and not deleted. Optional argument n means print information only about the specified breakpoint(s) (or watchpoint(s) or tracepoint(s) or catchpoint(s)). For each breakpoint, following columns are printed:
+
+_Breakpoint Numbers_
+
+_Type_ : Breakpoint, watchpoint, tracepoint, or catchpoint.
+
+_Disposition_ : Whether the breakpoint is marked to be disabled or deleted when hit.
+
+_Enabled or Disabled_ : Enabled breakpoints are marked with ‘y’. ‘n’ marks breakpoints that are not enabled.
+
+_Address_ : Where the breakpoint is in your program, as a memory address. For a pending breakpoint whose address is not yet known, this field will contain ‘ `<PENDING>` ’. Such breakpoint won’t fire until a shared library that has the symbol or line referred by breakpoint is loaded. See below for details. A breakpoint with several locations will have ‘ `<MULTIPLE>` ’ in this field—see below for details.
+
+_What_ : Where the breakpoint is in the source for your program, as a file and line number. For a pending breakpoint, the original string passed to the breakpoint command will be listed as it cannot be resolved until the appropriate shared library is loaded in the future.
+
+#### 5.1.6 Break Conditions
+The simplest sort of breakpoint breaks every time your program reaches a specified place. You can also specify a _condition_ for a breakpoint. A condition is just a Boolean expression in your programming language (see [Expressions](https://sourceware.org/gdb/current/onlinedocs/gdb#Expressions)). A breakpoint with a condition evaluates the expression each time your program reaches it, and your program stops only if the condition is _true_.
+>  我们可以为 breakpoint 设定指定一个 condition, condition 即我们在编程语言中编写的一个布尔表达式
+>  带有 condition 的 breakpoint 会在每次程序到达断点时评估该表达式，只有当条件为真时，程序才会停止运行
+
+This is the converse of using assertions for program validation; in that situation, you want to stop when the assertion is violated—that is, when the condition is false. In C, if you want to test an assertion expressed by the condition assert, you should set the condition ‘! assert’ on the appropriate breakpoint.
+
+Conditions are also accepted for watchpoints; you may not need them, since a watchpoint is inspecting the value of an expression anyhow—but it might be simpler, say, to just set a watchpoint on a variable name, and specify a condition that tests whether the new value is an interesting one.
+
+Break conditions can have side effects, and may even call functions in your program. This can be useful, for example, to activate functions that log program progress, or to use your own print functions to format special data structures. The effects are completely predictable unless there is another enabled breakpoint at the same address. (In that case, GDB might see the other breakpoint first and stop your program without checking the condition of this one.) Note that breakpoint commands are usually more convenient and flexible than break conditions for the purpose of performing side effects when a breakpoint is reached (see [Breakpoint Command Lists](https://sourceware.org/gdb/current/onlinedocs/gdb#Break-Commands)).
+
+Breakpoint conditions can also be evaluated on the target’s side if the target supports it. Instead of evaluating the conditions locally, GDB encodes the expression into an agent expression (see [Agent Expressions](https://sourceware.org/gdb/current/onlinedocs/gdb#Agent-Expressions)) suitable for execution on the target, independently of GDB. Global variables become raw memory locations, locals become stack accesses, and so forth.
+
+In this case, GDB will only be notified of a breakpoint trigger when its condition evaluates to true. This mechanism may provide faster response times depending on the performance characteristics of the target since it does not need to keep GDB informed about every breakpoint trigger, even those with false conditions.
+
+Break conditions can be specified when a breakpoint is set, by using ‘if’ in the arguments to the `break` command. See [Setting Breakpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Set-Breaks). They can also be changed at any time with the `condition` command.
+
+You can also use the `if` keyword with the `watch` command. The `catch` command does not recognize the `if` keyword; `condition` is the only way to impose a further condition on a catchpoint.
+
+`condition bnum expression`
+
+Specify expression as the break condition for breakpoint, watchpoint, or catchpoint number bnum. After you set a condition, breakpoint bnum stops your program only if the value of expression is true (nonzero, in C). When you use `condition`, GDB checks expression immediately for syntactic correctness, and to determine whether symbols in it have referents in the context of your breakpoint. If expression uses symbols not referenced in the context of the breakpoint, GDB prints an error message:
+
+No symbol "foo" in current context.
+
+GDB does not actually evaluate expression at the time the `condition` command (or a command that sets a breakpoint with a condition, like `break if …`) is given, however. See [Expressions](https://sourceware.org/gdb/current/onlinedocs/gdb#Expressions).
+
+`condition -force bnum expression`
+
+When the `-force` flag is used, define the condition even if expression is invalid at all the current locations of breakpoint bnum. This is similar to the `-force-condition` option of the `break` command.
+
+`condition bnum`
+
+Remove the condition from breakpoint number bnum. It becomes an ordinary unconditional breakpoint.
+
+A special case of a breakpoint condition is to stop only when the breakpoint has been reached a certain number of times. This is so useful that there is a special way to do it, using the _ignore count_ of the breakpoint. Every breakpoint has an ignore count, which is an integer. Most of the time, the ignore count is zero, and therefore has no effect. But if your program reaches a breakpoint whose ignore count is positive, then instead of stopping, it just decrements the ignore count by one and continues. As a result, if the ignore count value is n, the breakpoint does not stop the next n times your program reaches it.
+
+`ignore bnum count`
+
+Set the ignore count of breakpoint number bnum to count. The next count times the breakpoint is reached, your program’s execution does not stop; other than to decrement the ignore count, GDB takes no action.
+
+To make the breakpoint stop the next time it is reached, specify a count of zero.
+
+When you use `continue` to resume execution of your program from a breakpoint, you can specify an ignore count directly as an argument to `continue`, rather than using `ignore`. See [Continuing and Stepping](https://sourceware.org/gdb/current/onlinedocs/gdb#Continuing-and-Stepping).
+
+If a breakpoint has a positive ignore count and a condition, the condition is not checked. Once the ignore count reaches zero, GDB resumes checking the condition.
+
+You could achieve the effect of the ignore count with a condition such as ‘$foo-- <= 0’ using a debugger convenience variable that is decremented each time. See [Convenience Variables](https://sourceware.org/gdb/current/onlinedocs/gdb#Convenience-Vars).
+
+Ignore counts apply to breakpoints, watchpoints, tracepoints, and catchpoints.
+
+### 5.2 Continuing and Stepping
+_Continuing_ means resuming program execution until your program completes normally. In contrast, _stepping_ means executing just one more “step” of your program, where “step” may mean either one line of source code, or one machine instruction (depending on what particular command you use). Either when continuing or when stepping, your program may stop even sooner, due to a breakpoint or a signal. (If it stops due to a signal, you may want to use `handle`, or use ‘ `signal 0` ’ to resume execution (see [Signals](https://sourceware.org/gdb/current/onlinedocs/gdb#Signals)), or you may step into the signal’s handler (see [stepping and signal handlers](https://sourceware.org/gdb/current/onlinedocs/gdb#stepping-and-signal-handlers)).)
+>  Continuing 意味着恢复程序的执行，直到程序正常完成，而 Stepping 则意味着至执行程序中的 “一步”，“一步” 可以指源代码中的一行，或一条机器指令
+>  无论是继续执行还是单步执行，程序仍然会因为断点或信号再次停止 (如果是因为信号而停止，可能需要使用 `handle` 或 `signal 0` 还恢复执行)，或者可以步入信号处理程序
+
+`continue [ignore-count]`
+`c [ignore-count]`
+`fg [ignore-count]`
+
+Resume program execution, at the address where your program last stopped; any breakpoints set at that address are bypassed. The optional argument ignore-count allows you to specify a further number of times to ignore a breakpoint at this location; its effect is like that of `ignore` (see [Break Conditions](https://sourceware.org/gdb/current/onlinedocs/gdb#Conditions)).
+>  `continue/c/fg` 会从程序上一次停止的地方恢复程序执行，该地址上的任何断点会被略过，`[ignore-count]` 用以设置之后忽略这个地方断点的次数
+
+The argument ignore-count is meaningful only when your program stopped due to a breakpoint. At other times, the argument to `continue` is ignored.
+
+The synonyms `c` and `fg` (for _foreground_, as the debugged program is deemed to be the foreground program) are provided purely for convenience, and have exactly the same behavior as `continue`.
+
+To resume execution at a different place, you can use `return` (see [Returning from a Function](https://sourceware.org/gdb/current/onlinedocs/gdb#Returning)) to go back to the calling function; or `jump` (see [Continuing at a Different Address](https://sourceware.org/gdb/current/onlinedocs/gdb#Jumping)) to go to an arbitrary location in your program.
+
+A typical technique for using stepping is to set a breakpoint (see [Breakpoints; Watchpoints; and Catchpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Breakpoints)) at the beginning of the function or the section of your program where a problem is believed to lie, run your program until it stops at that breakpoint, and then step through the suspect area, examining the variables that are interesting, until you see the problem happen.
+
+`step`
+
+Continue running your program until control reaches a different source line, then stop it and return control to GDB. This command is abbreviated `s`.
+>  `step/s` 将继续运行程序，直到控制权达到不同的源代码行时停止，然后返回控制权给 GDB
+
+> _Warning:_ If you use the `step` command while control is within a function that was compiled without debugging information, execution proceeds until control reaches a function that does have debugging information. Likewise, it will not step into a function which is compiled without debugging information. To step through functions without debugging information, use the `stepi` command, described below.
+
+The `step` command only stops at the first instruction of a source line. This prevents the multiple stops that could otherwise occur in `switch` statements, `for` loops, etc. `step` continues to stop if a function that has debugging information is called within the line. In other words, `step` _steps inside_ any functions called within the line.
+
+Also, the `step` command only enters a function if there is line number information for the function. Otherwise it acts like the `next` command. This avoids problems when using `cc -gl` on MIPS machines. Previously, `step` entered subroutines if there was any debugging information about the routine.
+
+`step count`
+
+Continue running as in `step`, but do so count times. If a breakpoint is reached, or a signal not related to stepping occurs before count steps, stepping stops right away.
+
+`next [count]`
+
+Continue to the next source line in the current (innermost) stack frame. This is similar to `step`, but function calls that appear within the line of code are executed without stopping. Execution stops when control reaches a different line of code at the original stack level that was executing when you gave the `next` command. This command is abbreviated `n`.
+>  `next` 将继续执行到当前 (最内层) 栈帧的下一个源代码行处停止
+
+An argument count is a repeat count, as for `step`.
+
+The `next` command only stops at the first instruction of a source line. This prevents multiple stops that could otherwise occur in `switch` statements, `for` loops, etc.
+
+### 5.4 Signals
+A signal is an asynchronous event that can happen in a program. The operating system defines the possible kinds of signals, and gives each kind a name and a number. For example, in Unix `SIGINT` is the signal a program gets when you type an interrupt character (often Ctrl-c); `SIGSEGV` is the signal a program gets from referencing a place in memory far away from all the areas in use; `SIGALRM` occurs when the alarm clock timer goes off (which happens only if your program has requested an alarm).
+>  signal 是会在程序中发生的一个异步事件，操作系统定义了 signal 的可能类型，并且为每种 signal 赋予了一个名称和编号
+>  例如，Unix 系统中，`SIGINT` 是用户键入 Ctrl-c 时，程序接收到的中断信号; `SIGSEGV` 是程序尝试访问远离它没有权限的内存区域时收到的信号; `SIGALRM` 则是在程序请求了闹钟时，闹钟定时器触发后收到的信号
+
+Some signals, including `SIGALRM`, are a normal part of the functioning of your program. Others, such as `SIGSEGV`, indicate errors; these signals are _fatal_ (they kill your program immediately) if the program has not specified in advance some other way to handle the signal. `SIGINT` does not indicate an error in your program, but it is normally fatal so it can carry out the purpose of the interrupt: to kill the program.
+>  一些 signal，包括 `SIGALRM` ，是程序正常运行的一部分
+>  一些 signal，例如 `SIGSEGV`，则表示出现了错误，如果程序没有提前指定其他方式来处理这些信号，这些信号就是致命的 (它们会立即中止程序)
+>  `SIGINT` 不表示程序本身存在错误，但通常是致命的，以便实现中断的目的: 中止程序
+
+GDB has the ability to detect any occurrence of a signal in your program. You can tell GDB in advance what to do for each kind of signal, apart from SIGKILL, which has its usual effect regardless.
+>  GDB 可以检测程序中任何信号的发生，我们可以预先告诉 GDB 对每种信号 (除了 `SIGKILL` ，它始终具有其常规效果) 应该如何处理
+
+When specifying a signal by number, GDB translates the number to the target platform according to the corresponding signal name. For example, GDB always treats signal 1 as `SIGHUP`. So, when specifying ‘1’ as a signal, GDB will translate this to the target’s `SIGHUP`, whatever that might be.
+>  当通过数字指定信号时，GDB 根据对应的信号名称，将数字转换到目标平台上的信号
+>  例如，GDB 总是将信号 1 视作 `SIGHUP` ，因此，当指定 1 作为信号时，GDB 会将其转换为目标平台的 `SIGHUP` 
+
+Numbers may only be used for signals 1 through 15. GDB uses this mapping:
+
+|Number|Name|
+|---|---|
+|1|SIGHUP|
+|2|SIGINT|
+|3|SIGQUIT|
+|4|SIGILL|
+|5|SIGTRAP|
+|6|SIGABRT|
+|7|SIGEMT|
+|8|SIGFPE|
+|9|SIGKILL|
+|10|SIGBUS|
+|11|SIGSEGV|
+|12|SIGSYS|
+|13|SIGPIPE|
+|14|SIGALRM|
+|15|SIGTERM|
+
+Normally, GDB is set up to let the non-erroneous signals like `SIGALRM` be silently passed to your program (so as not to interfere with their role in the program’s functioning) but to stop your program immediately whenever an error signal happens. You can change these settings with the `handle` command.
+>  通常，GDB 会让非错误信号 (例如 `SIGALRM`) 静默地传递给我们的程序 (以便不影响它们在程序功能中的作用)，但会在错误信号发生时中止程序
+
+`info signals`
+`info handle`
+
+Print a table of all the kinds of signals and how GDB has been told to handle each one. You can use this to see the signal numbers of all the defined types of signals.
+
+`info signals sig`
+
+Similar, but print information only about the specified signal number.
+
+`info handle` is an alias for `info signals`.
+
+`catch signal [signal… | ‘all’]`
+
+Set a catchpoint for the indicated signals. See [Set Catchpoints](https://sourceware.org/gdb/current/onlinedocs/gdb#Set-Catchpoints), for details about this command.
+
+`handle signal [ signal … ] [keywords…]`
+
+Change the way GDB handles each signal. Each signal can be the number of a signal or its name (with or without the ‘SIG’ at the beginning); a list of signal numbers of the form ‘low-high’; or the word ‘ `all` ’, meaning all the known signals, except ` SIGINT ` and ` SIGTRAP `, which are used by GDB. Optional argument keywords, described below, say what changes to make to all of the specified signals.
+
+The keywords allowed by the `handle` command can be abbreviated. Their full names are:
+
+- `nostop` : GDB should not stop your program when this signal happens. It may still print a message telling you that the signal has come in.
+- `stop` : GDB should stop your program when this signal happens. This implies the `print` keyword as well.
+- `print` : GDB should print a message when this signal happens.
+- `noprint` : GDB should not mention the occurrence of the signal at all. This implies the `nostop` keyword as well.
+- `pass`, `noignore` : GDB should allow your program to see this signal; your program can handle the signal, or else it may terminate if the signal is fatal and not handled. `pass` and `noignore` are synonyms.
+- `nopass`, `ignore` : GDB should not allow your program to see this signal. `nopass` and `ignore` are synonyms.
+
+When a signal stops your program, the signal is not visible to the program until you continue. Your program sees the signal then, if `pass` is in effect for the signal in question _at that time_. In other words, after GDB reports a signal, you can use the `handle` command with `pass` or `nopass` to control whether your program sees that signal when you continue.
+
+The default is set to `nostop`, `noprint`, `pass` for non-erroneous signals such as `SIGALRM`, `SIGWINCH` and `SIGCHLD`, and to `stop`, `print`, `pass` for the erroneous signals.
+
+You can also use the `signal` command to prevent your program from seeing a signal, or cause it to see a signal it normally would not see, or to give it any signal at any time. For example, if your program stopped due to some sort of memory reference error, you might store correct values into the erroneous variables and continue, hoping to see more execution; but your program would probably terminate immediately as a result of the fatal signal once it saw the signal. To prevent this, you can continue with ‘signal 0’. See [Giving your Program a Signal](https://sourceware.org/gdb/current/onlinedocs/gdb#Signaling).
+
+GDB optimizes for stepping the mainline code. If a signal that has `handle nostop` and `handle pass` set arrives while a stepping command (e.g., `stepi`, `step`, `next`) is in progress, GDB lets the signal handler run and then resumes stepping the mainline code once the signal handler returns. In other words, GDB steps over the signal handler. This prevents signals that you’ve specified as not interesting (with `handle nostop`) from changing the focus of debugging unexpectedly. Note that the signal handler itself may still hit a breakpoint, stop for another signal that has `handle stop` in effect, or for any other event that normally results in stopping the stepping command sooner. Also note that GDB still informs you that the program received a signal if `handle print` is set.
+
+If you set `handle pass` for a signal, and your program sets up a handler for it, then issuing a stepping command, such as `step` or `stepi`, when your program is stopped due to the signal will step _into_ the signal handler (if the target supports that).
+
+Likewise, if you use the `queue-signal` command to queue a signal to be delivered to the current thread when execution of the thread resumes (see [Giving your Program a Signal](https://sourceware.org/gdb/current/onlinedocs/gdb#Signaling)), then a stepping command will step into the signal handler.
+
+Here’s an example, using `stepi` to step to the first instruction of `SIGUSR1`’s handler:
+
+(gdb) handle SIGUSR1
+Signal        Stop      Print   Pass to program Description
+SIGUSR1       Yes       Yes     Yes             User defined signal 1
+(gdb) c
+Continuing.
+
+Program received signal SIGUSR1, User defined signal 1.
+main () sigusr1.c:28
+28        p = 0;
+(gdb) si
+sigusr1_handler () at sigusr1.c:9
+9       {
+
+The same, but using `queue-signal` instead of waiting for the program to receive the signal first:
+
+(gdb) n
+28        p = 0;
+(gdb) queue-signal SIGUSR1
+(gdb) si
+sigusr1_handler () at sigusr1.c:9
+9       {
+(gdb)
+
+On some targets, GDB can inspect extra signal information associated with the intercepted signal, before it is actually delivered to the program being debugged. This information is exported by the convenience variable `$_siginfo`, and consists of data that is passed by the kernel to the signal handler at the time of the receipt of a signal. The data type of the information itself is target dependent. You can see the data type using the `ptype $_siginfo` command. On Unix systems, it typically corresponds to the standard `siginfo_t` type, as defined in the signal.h system header.
+
+Here’s an example, on a GNU/Linux system, printing the stray referenced address that raised a segmentation fault.
+
+(gdb) continue
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000000400766 in main ()
+69        *(int *)p = 0;
+(gdb) ptype $_siginfo
+type = struct {
+    int si_signo;
+    int si_errno;
+    int si_code;
+    union {
+        int _pad[28];
+        struct {...} _kill;
+        struct {...} _timer;
+        struct {...} _rt;
+        struct {...} _sigchld;
+        struct {...} _sigfault;
+        struct {...} _sigpoll;
+    } _sifields;
+}
+(gdb) ptype $_siginfo._sifields._sigfault
+type = struct {
+    void *si_addr;
+}
+(gdb) p $_siginfo._sifields._sigfault.si_addr
+$1 = (void *) 0x7ffff7ff7000
+
+Depending on target support, `$_siginfo` may also be writable.
