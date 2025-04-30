@@ -372,6 +372,7 @@ Invoke the `matchAndRewrite` method of `mlir::PatternApplicator` , which in turn
 
 # Topic: Issue solving
 Date: 2025.4.24, 4.28
+State: Solved
 See [issue](https://github.com/onnx/onnx-mlir/issues/2989)
 
 The pattern that caused the problem is `FuseAddConvPattern`, which is defined originally in `src/Dialect/ONNX/ONNXOps/ONNXCanonicalize.td`, and will generate `bulid/src/Dialect/ONNX/ONNXOps/ONNXCanonicalize.inc`.
