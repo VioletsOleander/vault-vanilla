@@ -2134,7 +2134,7 @@ Date: 2025.4.28-2025.5.5
 
 \[Paper\]
 - [[paper-notes/distributed-system/Large-scale Incremental Processing Using Distributed Transactions and Notifications-2010-OSDI|2010-OSDI-Large-scale Incremental Processing Using Distributed Transactions and Notifications]]
-- [[paper-notes/rl/RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-CoRL-2023|2023-RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-CoRL]]
+- [[paper-notes/rl/RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-2023-CoRL|2023-CoRL-RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning]]
     Abstract
     Introduction
         The goal is to correctly play a variety of piano pieces in the simulated system, i.e. correctly press the sequence of keys on a keyboard, conditioned on MIDI sheet music.
@@ -2159,7 +2159,7 @@ Date: 2025.4.28-2025.5.5
         Too high control frequency will make the MDP too long-horizon, which complicates exploration, and thus hurts performance. Too low control frequency will make the discretization of MIDI file too coarse, and thus negatively impacts the timing of the notes.
         Too large discount factor will make the agent too conservative, and thus hurt exploration.
     Discussion
-- [[paper-notes/rl/PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-CoRL-2024|2024-PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-CoRL]]
+- [[paper-notes/rl/PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-2024-CoRL|2024-CoRL-PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-2024-CoRL]]
     Abstract
         PianoMime includes three stages: the data preparation stage extract informative features from the demonstration videos; the policy learning stage train sone-specific expert policies from the information extracted from the previous stage; the policy distillation stage distill policies into a single generalist agent.
         The zero-shot generalization performance of the generalist agent improves largely compared to ROBOPIANIST.
