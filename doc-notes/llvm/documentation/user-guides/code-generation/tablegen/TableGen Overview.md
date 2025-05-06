@@ -143,18 +143,30 @@ TableGen files consist of two key parts: ‘classes’ and ‘definitions’, bo
 **TableGen records** have a unique name, a list of values, and a list of superclasses. The list of values is the main data that TableGen builds for each record; it is this that holds the domain specific information for the application. The interpretation of this data is left to a specific [backend](https://llvm.org/docs/TableGen/index.html#backend), but the structure and format rules are taken care of and are fixed by TableGen.
 >  TableGen records
 >  记录具有一个唯一的名称、一组值和一组超类
->  一组值是
+>  这组值是 TableGen 为该记录构建的主要数据，它承载了应用的领域特定信息，对这组值的解释由特定的后端复杂，但其结构和格式狗则由 TableGen 确定并固定下来
 
-**TableGen definitions** are the concrete form of ‘records’. These generally do not have any undefined values, and are marked with the ‘`def`’ keyword.
+**TableGen definitions** are the concrete form of ‘records’. These generally do not have any undefined values, and are marked with the ‘ `def` ’ keyword.
+>  TableGen definitions
+>  TableGen definitions 是 “记录” 的具体形式
+>  这些定义中通常不会有未定义的值，定义以 `def` 关键字标记
 
 ```
-def FeatureFPARMv8 : SubtargetFeature<"fp-armv8", "HasFPARMv8", "true",
-                                      "Enable ARMv8 FP">;
+def FeatureFPARMv8 : SubtargetFeature<"fp-armv8", "HasFPARMv8", "true", "Enable ARMv8 FP">;
 ```
 
-In this example, FeatureFPARMv8 is `SubtargetFeature` record initialised with some values. The names of the classes are defined via the keyword class either on the same file or some other included. Most target TableGen files include the generic ones in `include/llvm/Target`.
+In this example, FeatureFPARMv8 is `SubtargetFeature` record initialised with some values. 
+>  上例中，`FeatureFPARMv8` 是一个初始化了一些值的 `SubtargetFeature` 记录
 
-**TableGen classes** are abstract records that are used to build and describe other records. These classes allow the end-user to build abstractions for either the domain they are targeting (such as “Register”, “RegisterClass”, and “Instruction” in the LLVM code generator) or for the implementor to help factor out common properties of records (such as “FPInst”, which is used to represent floating point instructions in the X86 backend). TableGen keeps track of all of the classes that are used to build up a definition, so the backend can find all definitions of a particular class, such as “Instruction”.
+The names of the classes are defined via the keyword class either on the same file or some other included. Most target TableGen files include the generic ones in `include/llvm/Target`.
+>  类的名称通过关键字 `class` 在同一文件或某些 included 的文件中定义 (类似头文件的用法)，大多数目标 TableGen 文件会 include 位于 `include/llvm/Target` 中的通用文件
+
+**TableGen classes** are abstract records that are used to build and describe other records. These classes allow the end-user to build abstractions for either the domain they are targeting (such as “Register”, “RegisterClass”, and “Instruction” in the LLVM code generator) or for the implementor to help factor out common properties of records (such as “FPInst”, which is used to represent floating point instructions in the X86 backend). 
+>  TableGen classes
+>  TableGen 类是抽象的记录，用于构建和描述其他距离
+>  类可以用于为目标领域 (例如 LLVM 代码生成器中的 “寄存器”，“寄存器类”，“指令”) 构建抽象，或者用于帮助实现者提取记录的通用属性 (例如 “FPInst”，用于表示 X86 后端中的浮点指令)
+
+TableGen keeps track of all of the classes that are used to build up a definition, so the backend can find all definitions of a particular class, such as “Instruction”.
+>  TableGen 跟踪所有用于构建一个定义的类，故后端可以找到一个特定的类的所有定义，例如 “Instruction”
 
 ```
 class ProcNoItin<string Name, list<SubtargetFeature> Features>
@@ -162,12 +174,15 @@ class ProcNoItin<string Name, list<SubtargetFeature> Features>
 ```
 
 Here, the class ProcNoItin, receiving parameters Name of type string and a list of target features is specializing the class Processor by passing the arguments down as well as hard-coding NoItineraries.
+>  上例中，类 `ProcNoltin` 接收类型为 `string` 的参数 `Name` ，以及一个目标特性列表，通过将参数传递下去并硬编码 `Noltineraries` 来特化类 `Processor`
 
 **TableGen multiclasses** are groups of abstract records that are instantiated all at once. Each instantiation can result in multiple TableGen definitions. If a multiclass inherits from another multiclass, the definitions in the sub-multiclass become part of the current multiclass, as if they were declared in the current multiclass.
+>  TableGen multiclasses
+>  TableGen 多类是一组抽象记录的集合，它会会被一次性实例化，每次实例化可能会生成多个 TableGen 定义
+>  如果一个多类继承自另一个多类，子多类中的定义会称为当前多类中的一部分，就好像它们声明在当前多类中一样
 
 ```
-multiclass ro_signed_pats<string T, string Rm, dag Base, dag Offset, dag Extend,
-                        dag address, ValueType sty> {
+multiclass ro_signed_pats<string T, string Rm, dag Base, dag Offset, dag Extend, dag address, ValueType sty> {
 def : Pat<(i32 (!cast<SDNode>("sextload" # sty) address)),
           (!cast<Instruction>("LDRS" # T # "w_" # Rm # "_RegOffset")
             Base, Offset, Extend)>;
@@ -186,11 +201,19 @@ defm : ro_signed_pats<"B", Rm, Base, Offset, Extend,
 See the [TableGen Programmer’s Reference](https://llvm.org/docs/TableGen/ProgRef.html) for an in-depth description of TableGen.
 
 ## TableGen backends
-TableGen files have no real meaning without a backend. The default operation when running `*-tblgen` is to print the information in a textual format, but that’s only useful for debugging the TableGen files themselves. The power in TableGen is, however, to interpret the source files into an internal representation that can be generated into anything you want.
+TableGen files have no real meaning without a backend. The default operation when running `*-tblgen` is to print the information in a textual format, but that’s only useful for debugging the TableGen files themselves. 
+>  TableGen 文件没有后端，就没有实际意义
+>  运行 `*-tblgen` 的默认操作是将信息以文本格式输出，但这仅对调试 TableGen 文件本身有用
+
+The power in TableGen is, however, to interpret the source files into an internal representation that can be generated into anything you want.
+>  TableGen 的强大之处在于将其源文件解释为一个内部表现形式，然后可以生成我们想要的任何内容
 
 Current usage of TableGen is to create huge include files with tables that you can either include directly (if the output is in the language you’re coding), or be used in pre-processing via macros surrounding the include of the file.
+>  目前 TableGen 的主要用途是创建包含大量表格的大型头文件，这些表格可以直接 include (如果输出的语言是我们正在使用的语言)，或者通过围绕文件的 include 的宏在预处理阶段使用
 
 Direct output can be used if the backend already prints a table in C format or if the output is just a list of strings (for error and warning messages). Pre-processed output should be used if the same information needs to be used in different contexts (like Instruction names), so your backend should print a meta-information list that can be shaped into different compile-time formats.
+>  如果后端已经以 C 形式打印了表格，或者输出只是一个字符串列表 (用于错误和警告消息)，则可以使用直接输出
+>  
 
 See [TableGen BackEnds](https://llvm.org/docs/TableGen/BackEnds.html) for a list of available backends, and see the [TableGen Backend Developer’s Guide](https://llvm.org/docs/TableGen/BackGuide.html) for information on how to write and debug a new backend.
 
