@@ -969,88 +969,248 @@ A discussion of symbolic links: http://en.wikipedia.org/wiki/Symbolic_link
 
 # 5 Working with Commands 
 Up to this point, we have seen a series of mysterious commands, each with its own mysterious options and arguments. In this chapter, we will attempt to remove some of that mystery and even create our own commands. The commands introduced in this chapter are: 
-type – Indicate how a command name is interpreted which – Display which executable program will be executed help – Get help for shell builtins man – Display a command's manual page apropos – Display a list of appropriate commands info – Display a command's info entry whatis – Display one-line manual page descriptions alias – Create an alias for a command 
-# What Exactly Are Commands? 
+
+- `type` – Indicate how a command name is interpreted 
+- `which` – Display which executable program will be executed 
+- `help` – Get help for shell builtins 
+- `man` – Display a command's manual page 
+- `apropos` – Display a list of appropriate commands 
+- `info` – Display a command's info entry 
+- `whatis` – Display one-line manual page descriptions alias – Create an alias for a command 
+
+## What Exactly Are Commands? 
 A command can be one of four different things: 
-1. An executable program like all those files we saw in /usr/bin. Within this category, programs can be compiled binaries such as programs written in C and $\scriptstyle\mathbf{C}++$ , or programs written in scripting languages such as the shell, Perl, Python, Ruby, and so on. 
+1. An executable program like all those files we saw in /usr/bin. Within this category, programs can be compiled binaries such as programs written in C and C++ , or programs written in scripting languages such as the shell, Perl, Python, Ruby, and so on. 
 2. A command built into the shell itself. bash supports a number of commands internally called shell builtins. The cd command, for example, is a shell builtin. 
 3. A shell function. Shell functions are miniature shell scripts incorporated into the environment. We will cover configuring the environment and writing shell functions in later chapters, but for now, just be aware that they exist. 
 4. An alias. Aliases are commands that we can define ourselves, built from other commands. 
-# Identifying Commands 
+
+>  一个命令可以是以下四种类型之一
+>  1. 可执行程序，就像我们在 `/usr/bin` 中看到的那些文件，“程序“ 可以是编译后得到的二进制文件，也可以是脚本语言编写的程序
+>  2. 内建于 shell 自身的命令，shell 内建的命令称为 shell builtins，例如 bash 就内建了许多命令，包括 `cd` 等
+>  3. shell 函数，shell 函数是嵌入到环境中的微型 shell 脚本
+>  4. 别名，别名是我们自己定义的命令，它由其他命令组合而成
+
+## Identifying Commands 
 It is often useful to know exactly which of the four kinds of commands is being used and Linux provides a couple of ways to find out. 
-# type – Display a Command's Type 
+
+### type – Display a Command's Type 
 The type command is a shell builtin that displays the kind of command the shell will execute, given a particular command name. It works like this: 
-# type command 
-where “command” is the name of the command we want to examine. Here are some examples: 
-[me@linuxbox $-]$1$ type type type is a shell builtin [me@linuxbox $-]$1$ type ls ls is aliased to \`ls --color $\c=$ auto' [me@linuxbox $-]$1$ type cp cp is /usr/bin/cp 
-Here we see the results for three different commands. Notice the one for ls (taken from a Fedora system) and how the ls command is actually an alias for the ls command with the “--color $\mathbf{\sigma}=$ tty” option added. Now we know why the output from ls is displayed in color! 
-# which – Display an Executable's Location 
+
+```
+type command 
+```
+
+where “command” is the name of the command we want to examine. 
+
+>  `type` 命令是 shell 内建命令，它用于确定命令到底属于上述四种类型的哪一种
+
+Here are some examples: 
+
+```
+[me@linuxbox ~]$ type type
+type is a shell builtin 
+[me@linuxbox ~]$ type ls
+ls is aliased to `ls --color=auto' 
+[me@linuxbox ~]$ type cp
+cp is /usr/bin/cp
+```
+
+Here we see the results for three different commands. Notice the one for ls (taken from a Fedora system) and how the ls command is actually an alias for the ls command with the “--color=tty” option added. Now we know why the output from ls is displayed in color! 
+>  注意到 `ls` 本身是 `ls --color=tty` 的别名
+
+### which – Display an Executable's Location 
 Sometimes there is more than one version of an executable program installed on a system. While this is not common on desktop systems, it's not unusual on large servers. To determine the exact location of a given executable, the which command is used. 
-[me@linuxbox ~]$ which ls /usr/bin/ls 
-which only works for executable programs, not builtins nor aliases that are substitutes for actual executable programs. When we try to use which on a shell builtin for example, cd, we either get no response or get an error message: 
+
+```
+[me@linuxbox ~]$ which ls 
+/usr/bin/ls 
+```
+
+which only works for executable programs, not builtins nor aliases that are substitutes for actual executable programs. 
+
+>  如果我们确定命令是可执行文件，则 `which` 可以用于判断具体的可执行文件的位置，这可以用于判断我们执行的具体是哪一个版本的可执行文件 (因此叫 which)
+>  `which` 仅适用于可执行文件类型的命令
+
+When we try to use which on a shell builtin for example, cd, we either get no response or get an error message: 
+
+```
 [me@linuxbox ~]$ which cd 
 /usr/bin/which: no cd in (/usr/local/bin:/usr/bin:/bin:/usr/local 
 /games:/usr/games) 
+```
+
 This response is a fancy way of saying “command not found.” 
-# Getting a Command's Documentation 
+
+>  如果对 `which` 传递非可执行文件类型的命令，它将找不到对应的可执行文件
+
+## Getting a Command's Documentation 
 With this knowledge of what a command is, we can now search for the documentation available for each kind of command. 
-# help – Get Help for Shell Builtins 
+
+### help – Get Help for Shell Builtins 
 bash has a built-in help facility available for each of the shell builtins. To use it, type “help” followed by the name of the shell builtin. Here is an example: 
+>  `help` 是 bash 内建命令，它可以用于获取关于各个 bash 内建命令的帮助信息
+
+```
 [me@linuxbox ~]$ help cd 
-cd: cd [-L|[-P [-e]] [-@]] [dir] Change the shell working directory. Change the current directory to DIR. The default DIR is the value of the HOME shell variable. The variable CDPATH defines the search path for the directory containing DIR. Alternative directory names in CDPATH are separated by a colon (:). A null directory name is the same as the current directory. If DIR begins with a slash (/), then CDPATH is not used. If the directory is not found, and the shell option \`cdable_vars' is set, the word is assumed to be a variable name. If that variable has a value, its value is used for DIR. 
-# Options: 
--L force symbolic links to be followed: resolve symbolic links in DIR after processing instances of \`. 
--P use the physical directory structure without following symbolic links: resolve symbolic links in DIR before processing instances of \`. 
--e if the -P option is supplied, and the current working directory cannot be determined successfully, exit with a non-zero status 
-- $\boldsymbol{\@parallel}$ on systems that support it, present a file with extended attributes as a directory containing the file attributes 
-The default is to follow symbolic links, as if \`-L' were specified. \`..' is processed by removing the immediately previous pathname component back to a slash or the beginning of DIR. 
-Exit Status: 
-Returns 0 if the directory is changed, and if $PWD is set successfully when -P is used; non-zero otherwise. 
-A note on notation: When square brackets appear in the description of a command's syntax, they indicate optional items. A vertical bar character indicates mutually exclusive items. In the case of the cd command above: 
+cd: cd [-L|[-P [-e]] [-@]] [dir] 
+    Change the shell working directory. 
+    
+    Change the current directory to DIR. The default DIR is the value of the HOME shell variable. 
+    
+    The variable CDPATH defines the search path for the directory containing DIR. Alternative directory names in CDPATH are separated by a colon (:). A null directory name is the same as the current directory. If DIR begins with a slash (/), then CDPATH is not used.
+    
+    If the directory is not found, and the shell option \`cdable_vars' is set, the word is assumed to be a variable name. If that variable has a value, its value is used for DIR. 
+    
+    Options: 
+        -L force symbolic links to be followed: resolve symbolic links in DIR after processing instances of \`. 
+        -P use the physical directory structure without following symbolic links: resolve symbolic links in DIR before processing instances of \`. 
+        -e if the -P option is supplied, and the current working directory cannot be determined successfully, exit with a non-zero status 
+        -@ on systems that support it, present a file with extended attributes as a directory containing the file attributes 
+        
+    The default is to follow symbolic links, as if \`-L' were specified. \`..' is processed by removing the immediately previous pathname component back to a slash or the beginning of DIR. 
+    
+    Exit Status: 
+    Returns 0 if the directory is changed, and if $PWD is set successfully when -P is used; non-zero otherwise. 
+```
+
+A note on notation: When square brackets appear in the description of a command's syntax, they indicate optional items. A vertical bar character indicates mutually exclusive items. 
+>  在命令语法的描述中， `[]` 表示其中的内容是可选的，`|` 表示互斥的选项
+
+In the case of the cd command above: 
+
+```
+cd [-L|[-P[-e]]] [dir]
+```
+
 This notation says that the command cd may be followed optionally by either a “-L” or a “-P” and further, if the “-P” option is specified the “-e” option may also be included followed by the optional argument “dir”. 
+
 While the output of help for the cd commands is concise and accurate, it is by no means tutorial and as we can see, it also seems to mention a lot of things we haven't talked about yet! Don't worry. We'll get there. 
+
 Helpful hint: By using the help command with the -m option, help will display its output in an alternate format. 
-# --help – Display Usage Information 
+>  `help -m ...` 可以以另一种形式展示帮助信息
+
+### --help – Display Usage Information 
 Many executable programs support a “--help” option that displays a description of the command's supported syntax and options. For example: 
-[me@linuxbox $-]$1$ mkdir --help 
-Usage: mkdir [OPTION] DIRECTORY.. 
-Create the DIRECTORY(ies), if they do not already exist. -Z, --context=CONTEXT (SELinux) set security context to CONTEXT 
-Mandatory arguments to long options are mandatory for short options 
-too. -m, --mode=MODE set file mode (as in chmod), not $\mathsf{a}\mathsf{=r w}\mathsf{\times}$ – umask -p, --parents no error if existing, make parent directories as 
-needed -v, --verbose print a message for each created directory --help display this help and exit --version output version information and exit Report bugs to <bug-coreutils@gnu.org>. 
+
+```
+[me@linuxbox ~]$ mkdir --help
+Usage: mkdir [OPTION] DIRECTORY...
+    Create the DIRECTORY(ies), if they do not already exist.
+
+    -Z, --context=CONTEXT (SELinux) set security context to CONTEXT Mandatory arguments to long options are mandatory for short options too.
+    -m, --mode=MODE set file mode (as in chmod), not a=rwx – umask 
+    -p, --parents no error if existing, make parent directories as needed
+    -v, --verbose print a message for each created directory --help display this help and exit
+    --version output version information and exit 
+Report bugs to <bug-coreutils@gnu.org>.
+```
+
 Some programs don't support the “--help” option, but try it anyway. Often it results in an error message that will reveal the same usage information. 
-# man – Display a Program's Manual Page 
+
+>  大多数程序都会有 `--help` 选项
+
+### man – Display a Program's Manual Page 
 Most executable programs intended for command line use provide a formal piece of documentation called a manual or man page. A special paging program called man is used to view them. It is used like this: 
-# man program 
+
+```
+man program 
+```
+
 where “program” is the name of the command to view. 
+
+>  许多可执行程序类型的命令都会提供一份正式的文档，称为手册
+>  `man` 命令可以用于查看各个可执行程序类命令的文档
+
 Man pages vary somewhat in format but generally contain the following: 
-A title (the page’s name) 
-A synopsis of the command's syntax 
-A description of the command's purpose 
-A listing and description of each of the command's options 
+- A title (the page’s name) 
+- A synopsis of the command's syntax 
+- A description of the command's purpose 
+- A listing and description of each of the command's options 
+
+>  命令手册通常包含以下的信息
+>  - 标题
+>  - 命令语法的概述
+>  - 命令用途的描述
+>  - 命令各个选项的描述
+
 Man pages, however, do not usually include examples, and are intended as a reference, not a tutorial. As an example, let's try viewing the man page for the ls command: 
+
+```
 [me@linuxbox ~]$ man ls 
+```
+
+>  手册通常不包含例子，主要用作参考，而不是教程
+
 On most Linux systems, man uses less to display the manual page, so all of the familiar less commands work while displaying the page. 
+>  大多数 Linux 系统中，`man` 使用 `less` 来展示手册
+
 The “manual” that man displays is divided into sections and covers not only user commands but also system administration commands, programming interfaces, file formats and more. Table 5-1 describes the layout of the manual. 
+>  `man` 展示的手册被划分为了多个章节，它实际上不仅涵盖了用户命令方面的手册，也涵盖了系统管理命令、编程接口、文件格式等的手册
+
 Table 5-1: Man Page Organization 
-<html><body><table><tr><td>Section</td><td>Contents</td></tr><tr><td>1</td><td>User commands</td></tr><tr><td>２</td><td> Programming interfaces for kernel system calls</td></tr><tr><td>3</td><td>Programming interfaces to the C library</td></tr><tr><td>4</td><td>Special files such as device nodes and drivers</td></tr><tr><td>5</td><td>File formats</td></tr><tr><td>6</td><td>Games and amusements such as screen savers</td></tr><tr><td>7</td><td>Miscellaneous</td></tr><tr><td>8</td><td>System administration commands</td></tr></table></body></html> 
+
+<html><body><center><table><tr><td>Section</td><td>Contents</td></tr><tr><td>1</td><td>User commands</td></tr><tr><td>２</td><td> Programming interfaces for kernel system calls</td></tr><tr><td>3</td><td>Programming interfaces to the C library</td></tr><tr><td>4</td><td>Special files such as device nodes and drivers</td></tr><tr><td>5</td><td>File formats</td></tr><tr><td>6</td><td>Games and amusements such as screen savers</td></tr><tr><td>7</td><td>Miscellaneous</td></tr><tr><td>8</td><td>System administration commands</td></tr></center></table></body></html> 
+
+>  整个手册的布局如上所示
+>  - 第一部分: 用户命令
+>  - 第二部分: kernel 系统调用的编程接口
+>  - 第三部分: C 库的编程接口
+>  - 第四部分: 特殊为念，例如设备节点和驱动
+>  - 第五部分: 文件格式
+>  - 第六部分: 游戏和娱乐，例如屏幕保护程序
+>  - 第七部分: 杂项
+>  - 第八部分: 系统管理命令
+
 Sometimes we need to refer to a specific section of the manual to find what we are looking for. This is particularly true if we are looking for a file format that is also the name of a command. Without specifying a section number, we will always get the first instance of a match, probably in section 1. To specify a section number, we use man like this: 
+
 <html><body><table><tr><td>man section search_term</td></tr></table></body></html> 
+
 Here's an example: 
-<html><body><table><tr><td>[me@linuxbox ~]$ man 5 passwd</td></tr></table></body></html> 
+
+<html><body><table><tr><td>[ me@linuxbox ~]$ man 5 passwd</td></tr></table></body></html> 
+
 This will display the man page describing the file format of the /etc/passwd file. 
-# apropos – Display Appropriate Commands 
+
+>  有时，我们需要到特定的部分才能找到具体的手册
+>  例如某个命令和文件格式共享一个名称，如果不具体指定哪个部分，我们一般看到的是第一个匹配的部分 (通常是 section 1)
+>  例如 `man 5 passwd` 会展示描述 `/etc/passwd` 文件格式的手册
+
+### apropos – Display Appropriate Commands 
 It is also possible to search the list of man pages for possible matches based on a search term. It's crude but sometimes helpful. Here is an example of a search for man pages using the search term partition: 
-<html><body><table><tr><td colspan="5">[me@linuxbox ~]$ apropos partition</td></tr><tr><td>addpart (8)</td><td> - simple wrapper around the "add partition".</td><td></td><td></td><td></td></tr><tr><td>all-swaps (7)</td><td>- event signalling that all swap partitions.</td><td></td><td></td><td></td></tr><tr><td>cfdisk (8)</td><td>- display or manipulate disk partition table</td><td></td><td></td><td></td></tr></table></body></html> 
-<html><body><table><tr><td>cgdisk (8)</td><td>- Curses-based GUID partition table (GPT)...</td></tr><tr><td>delpart (8)</td><td>- simple wrapper around the "del partition".</td></tr><tr><td>fdisk (8)</td><td>- manipulate disk partition table</td></tr><tr><td>fixparts (8)</td><td>- MBR partition table repair utility</td></tr><tr><td></td><td>- Interactive GUID partition table (GPT).</td></tr><tr><td>gdisk (8)</td><td></td></tr><tr><td>mpartition (1)</td><td>- partition an MsDos hard disk</td></tr><tr><td>partprobe (8)</td><td>- inform the Os of partition table changes</td></tr><tr><td>partx (8) resizepart (8)</td><td>- tell the Linux kernel about the presence.. - simple wrapper around the "resize partition..</td></tr><tr><td></td><td></td></tr><tr><td>sfdisk (8)</td><td>- partition table manipulator for Linux</td></tr><tr><td>sgdisk (8)</td><td>- Command-line GUID partition table (GPT)..</td></tr></table></body></html> 
+
+```
+[me@linuxbox ~]$ apropos partition
+
+addpart (8) - simple wrapper around the "add partition"... 
+all-swaps (7) - event signalling that all swap partitions...
+cfdisk (8) - display or manipulate disk partition table
+cgdisk (8) - Curses-based GUID partition table (GPT)...
+delpart (8) - simple wrapper around the "del partition"...
+fdisk (8) - manipulate disk partition table
+fixparts (8) - MBR partition table repair utility
+gdisk (8) - Interactive GUID partition table (GPT)...
+mpartition (1) - partition an MSDOS hard disk
+partprobe (8) - inform the OS of partition table changes
+partx (8) - tell the Linux kernel about the presence...
+resizepart (8) - simple wrapper around the "resize partition...
+sfdisk (8) - partition table manipulator for Linux
+sgdisk (8) - Command-line GUID partition table (GPT)...
+```
+
 The first field in each line of output is the name of the man page, and the second field shows the section. Note that the man command with the $\bf\Pi^{\epsilon_{\mathrm{<}}}\bf k^{\prime\prime}$ option performs the same function as apropos. 
-# whatis – Display One-line Manual Page Descriptions 
+
+### whatis – Display One-line Manual Page Descriptions 
 The whatis program displays the name and a one-line description of a man page matching a specified keyword: 
-<html><body><table><tr><td>[me@linuxbox ~]$ whatis ls ls</td><td>(1) - list directory contents</td></tr></table></body></html> 
-# The Most Brutal Man Page Of Them All 
+
+<html><body><table><tr><td>[ me@linuxbox ~]$ whatis ls ls</td><td>(1) - list directory contents</td></tr></table></body></html> 
+
+## The Most Brutal Man Page Of Them All 
 As we have seen, the manual pages supplied with Linux and other Unix-like systems are intended as reference documentation and not as tutorials. Many man pages are hard to read, but I think that the grand prize for difficulty has got to go to the man page for bash. As I was doing research for this book, I gave the bash man page careful review to ensure that I was covering most of its topics. When printed, it's more than 80 pages long and extremely dense, and its structure makes absolutely no sense to a new user. 
+
 On the other hand, it is very accurate and concise, as well as being extremely complete. So check it out if you dare and look forward to the day when you can read it and it all makes sense. 
-# info – Display a Program's Info Entry 
+
+### info – Display a Program's Info Entry 
 The GNU Project provides an alternative to man pages for their programs, called “info.” Info manuals are displayed with a reader program named, appropriately enough, info. Info pages are hyperlinked much like web pages. Here is a sample: 
 <html><body><table><tr><td>File: coreutils.info, Node: ls invocation, Next: dir invocation, Up: Directory listing 10.1 ^ls': List directory contents</td></tr><tr><td>The *ls' program lists information about files (of any type, including directories). Options and file arguments can be intermixed arbitrarily, as usual. For non-option command-line arguments that are directories, by default *ls' lists the contents of directories, not recursively, and omitting files with names beginning with ^.'. For other non-option arguments, by default *ls' lists just the filename. If no non-option</td></tr></table></body></html> 
 The info program reads info files, which are tree structured into individual nodes, each containing a single topic. Info files contain hyperlinks that can move the reader from node to node. A hyperlink can be identified by its leading asterisk and is activated by placing the cursor upon it and pressing the Enter key. 
