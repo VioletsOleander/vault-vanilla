@@ -1827,9 +1827,9 @@ Date: 2025.3.24-2025.3.31
 \[Doc\]
 - [[doc-notes/python/packaging/discussions/install_requires vs requirements files|python/packaging/discussions/install_requires vs requirements files]]: All
 - [[doc-notes/python/packages/gymnasium/environments/Box2D|python/packages/gymnasium/environments/Box2D]]: All
-- [[doc-notes/go/references/package-documentation/plugin|go/package-documentation/plugin]]: All
+- [[doc-notes/go/references/package-documentation/plugin|go/references/package-documentation/plugin]]: All
 - [[doc-notes/go/references/go.mod file reference|go/references/go.mod file reference]]
-- [[doc-notes/go/references/command-documentation/go|go/command-documentation/go]]
+- [[doc-notes/go/references/command-documentation/go|go/references/command-documentation/go]]
 - [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]: Introduction, Formatting, Commentary, Names, Semicolons
     Introduction
     Formatting
@@ -2115,8 +2115,8 @@ Date: 2025.4.14-2025.4.21
 Date: 2025.4.21-2025.4.28
 
 \[Doc\]
-- [[doc-notes/gdb/Debugging with GDB|Debugging with GDB]]
-- [[doc-notes/mlir/code-documentation/Operation Canonicalization|Operation Canonicalization]]: All
+- [[doc-notes/gdb/Debugging with GDB|gdb/Debugging with GDB]]
+- [[doc-notes/mlir/code-documentation/Operation Canonicalization|mlir/code-documentation/Operation Canonicalization]]: All
     MLIR provides a single canonicalization infrastructure and reuse it across many different IRs that it represents.
     MLIR has a single canonicalization pass. This pass iteratively greedily apply the canonicalization pattern of all loaded dialects.
     Canonicalization patterns are registered with operations.
@@ -2127,3 +2127,75 @@ Date: 2025.4.21-2025.4.28
 
 \[Code-Analysis\]
 - [[codeflow-analysis/onnx-mlir|onnx-mlir]]
+
+## May
+### Week 1
+Date: 2025.4.28-2025.5.5
+
+\[Paper\]
+- [[paper-notes/distributed-system/Large-scale Incremental Processing Using Distributed Transactions and Notifications-2010-OSDI|2010-OSDI-Large-scale Incremental Processing Using Distributed Transactions and Notifications]]
+- [[paper-notes/rl/RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-CoRL-2023|2023-RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-CoRL]]
+    Abstract
+    Introduction
+        The goal is to correctly play a variety of piano pieces in the simulated system, i.e. correctly press the sequence of keys on a keyboard, conditioned on MIDI sheet music.
+    Related Work
+    Experimental Setup
+        The simulated piano playing environment is built on MuJoCo physics engine.
+        The MIDI file is converted to a time-indexed note trajectory. The trajectory is used as a goal representation (part of the observation) for the agent, informing it which keys should be pressed at each time step.
+        Piano-playing is modeled as a finite-horizon MDP. The goal of the agent is to maximize the total expected discounted reward.
+        The observation consists of the proprioceptive information of the agent and the goal state information. The proprioceptive information includes the hands and keyboard joint states. The goal state information includes the target keys at the timestep and corresponding fingering arrangement information.
+        To let the agent aware of states of future goals, the goal state information will stack for some lookahead horizon $L$.
+        The agent predicts target joint angles at 20Hz and the angles are converted to torques by the PD controllers with 500Hz.
+    ROBOPIANIST System Design
+        To enable robots with high-dimensional control ability to performing music pieces. The address the exploration challenge in the high dimensional space, we combine careful system design with human priors.
+        The human priors refer to the fingering label. The fingering label is not only included in the observation, but also included in the reward function. Including the fingering information in the reward function can significantly improve the learning progress.
+        The reward includes a key pressing term, a fingering term, and a energy expenditure term (to reduce variance).
+        Adding future goal states to the observation can improve performance and reduce variance.
+        To alleviate exploration further, we disable some degrees of freedom in the Shadow Hand that are not necessary for the task. Constraining the action space can speed up learning considerably.
+    Results
+        The policy optimizer is DroQ, a regularized variant of Soft-Actor-Critic.
+        The performance of multi-task policy will not perform as good as the single-task policy in the specific music piece.
+        The zero-shot generalization performance of multi-task policy is very low.
+        Too high control frequency will make the MDP too long-horizon, which complicates exploration, and thus hurts performance. Too low control frequency will make the discretization of MIDI file too coarse, and thus negatively impacts the timing of the notes.
+        Too large discount factor will make the agent too conservative, and thus hurt exploration.
+    Discussion
+- [[paper-notes/rl/PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-CoRL-2024|2024-PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-CoRL]]
+    Abstract
+        PianoMime includes three stages: the data preparation stage extract informative features from the demonstration videos; the policy learning stage train sone-specific expert policies from the information extracted from the previous stage; the policy distillation stage distill policies into a single generalist agent.
+        The zero-shot generalization performance of the generalist agent improves largely compared to ROBOPIANIST.
+    Introduction
+        The policy is represented as a two-level model. The high-level policy generates the fingertip trajectory using RL. The low-level policy generates the joint states trajectory using IL.
+    Related Work
+    Method
+        In the data preparation stage, we extract the fingertip trajectory from the video demonstration. (while ROBOPIANIST just using the human annotated fingering labels)
+        In the policy learning stage, we use a reward function combining the fingertip information and the key pressing information to train expert policies for each song. (This stage is similar to ROBOPIANIST, the difference is the representation of the policy.)
+        In the policy distillation stage, we train a single behaviour cloning policy to mimic all the song-specific policies.
+        The fingertip information is extracted by MediaPipe.
+        The policy is represented as a sum of IK policy and residual PPO RL policy. The IK policy is solved based on the fingertip trajectory. The RL policy is trained based on the reward function combining the fingertip trajectory and key pressing trajectory.
+        The behaviour cloning policy uses the diffusion policy. Also, we train an observation encoder over the piano state to learn space consistent features as additional input to the behaviour cloning policy. The intuition is two piano states that are spatially close should lead to latent features that are close, and use the latent feature can lead to better generalization.
+        Still, the behaviour cloning policy is represented in two layer. The diffusion policy serves as the fingertip policy, and the joint policy is still solved from IK.
+    Experimental Results
+        In specialist policy training, using layered policy can largely improve performance.
+        In behaviour cloning, using layered policy can largely improve performance, and using diffusion policy can also improve performance. Representation learning also has positive impact.
+    Conclusion 
+- [[paper-notes/rl/RP1M A Large-Scale Motion Dataset for Piano Playing with Bimanual Dexterous Robot Hands-2024-CoRL|2024-CoRL-RP1M A Large-Scale Motion Dataset for Piano Playing with Bimanual Dexterous Robot Hands]]
+    Abstract
+        We introduce Robot Piano 1 Million dataset, which contains one million robot piano playing trajectories, covering 2000 songs. (each song 500 trajectories)
+        The finger placement problem is modeled as an optimal transport problem to enable automatic annotation of unlabeled songs.
+    Introduction
+        The optimal transport problem aims to minimized the moving distance of fingers which ensure the correct keys will be pressed.
+    Related Work
+        We do not introduce a separate fingering model like other works, but discover the fingerling which playing the piano, like human pianists. Hereby largely expanding the pool of usable data to train a generalist piano-playing agent.
+    Background
+        The human annotated fingering is removed from the observation space, because we aims to discover the fingering automatically.
+    Large-Scale Motion Dataset Collection
+        In training, apart from maximizing the key pressing reward, we also minimizing the moving distance of fingers (Compared to other works, other works is also maximizing the fingering reward based on human annotation or extracted annotation).
+        The distance will in turn be incorporated into the reward function, therefore, this work just essentially use another way to represent/discover the fingering.
+        Evaluations shows that the policy trained with automatically discovered fingering will match the policy trained with human annotated fingering. What's more, the automatically discovered fingered is more flexible than human annotation.
+    Benchmarking Results
+    Limitations & Conclusion
+
+\[Doc\]
+- [[doc-notes/github/collaborative-coding/pull-requests/Collaborate with pull requests|github/collaborative-coding/pull-requests/Collaborate with pull requests]]
+- [[doc-notes/github/collaborative-coding/pull-requests/Commit changes to your project|github/collaborative-coding/pull-requests/Commit changes to your project]]
+
