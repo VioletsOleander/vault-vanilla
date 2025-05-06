@@ -68,7 +68,7 @@ Finally, we release the dataset and trained models as a benchmark for testing In
 **Robotic Piano Playing.** Several studies have investigated the development of robots capable of playing the piano. In [14], multi-target Inverse Kinematics (IK) and offline trajectory planning are used to position the fingers over the intended keys. In [15], a Reinforcement Learning (RL) agent is trained to control a single Allegro hand to play the piano using tactile sensor feedback. However, the piano pieces used in these studies are relatively simple. Subsequently, in [11], an RL agent is trained to control two Shadow hands to play complex piano pieces by designing a reward function that includes a fingering reward, a task reward, and an energy reward. In contrast to previous approaches, our approach exploits YouTube piano-playing videos, allowing for faster training and more accurate robot behavior. 
 >  [14] 使用多目标逆运动学和离线轨迹规划来定位手指以覆盖目标琴键
 >  [15] 利用触觉传感器反馈，训练 RL agent 控制单个 Allegro 手演奏钢琴
->  [11] 使涉及了指法奖励、任务奖励和能量奖励的奖励函数训练 RL agent 控制两个 Shadow hands 演奏曲子
+>  [11] 使用涉及了指法奖励、任务奖励和能量奖励的奖励函数训练 RL agent 控制两个 Shadow hands 演奏曲子
 >  我们利用演奏视频训练 agent
 
 **Motion Retargeting and Reinforcement Learning.** Our work has similarities with motion retargeting [16], especially those works that combine motion retargeting with RL to learn control policies [17, 18, 5, 19, 6]. Given a mocap demonstration, it is common to use the demonstration either as a reward function [5, 19] or as a nominal behavior for residual policy learning [18, 6]. In our work, we extract not only the mocap information, but also task-related information (piano states), which allows the agent to balance between mimicking the demonstrations and solving the task. 
@@ -169,7 +169,7 @@ Also, inspired by current behavioral cloning approaches [22, 25], we train polic
 
 **Representation Learning.** We pre-train an observation encoder over the piano state $♪$ to learn spatially consistent latent features. We hypothesize that two piano states that are spatially close should lead to latent features that are close. Using these latent features as a target should lead to better generalization. 
 >  表示学习
->  我们在钢琴状态 $♪$ 上与训练一个 observation 编码器，以学习空间一致的潜在特征，我们假设**两个在空间上接近的钢琴状态的潜在特征也会接近**，使用这些潜在特征作为目标应该能够实现更好的泛化能力
+>  我们在钢琴状态 $♪$ 上预训练一个 observation 编码器，以学习空间一致的潜在特征，我们假设**两个在空间上接近的钢琴状态的潜在特征也会接近**，使用这些潜在特征作为目标应该能够实现更好的泛化能力
 
 To obtain the observation encoder, we train an autoencoder with a reconstruction loss over a Signed Distance Field (SDF) defined on the piano state. Specifically, the encoder compresses the binary vector of the goal into a latent space, while the decoder predicts the SDF function value of a randomly sampled query point (the distance between the query point and the closest ”on” piano key). 
 >  我们用基于定义在钢琴状态上的 SDF (符号距离场) 重构损失训练一个自动编码器，其中，encoder 将目标的二进制向量压缩到潜在空间，decoder 基于潜在向量预测随机采样的查询点的 SDF 函数值 (查询点和最近的 "on" 琴键之间的距离)
@@ -188,7 +188,7 @@ For the BC policy, we concatenate L-timestep desired piano states and pass throu
 On the one hand, while fingertip trajectory data is readily available from the Internet, obtaining low-level joint trajectories requires solving a computationally expensive RL problem. On the other hand, while the high-level mapping $(♪\mapsto\pmb{{x}})$ is complex and involves fingerings, the low-level mapping $(x\mapsto{\pmb q})$ ) is relatively simple, involving a task space to configuration space mapping. This decoupling allows us to train the more complex high-level mapping on large, cheap datasets, and the simpler low-level mapping on smaller, expensive datasets. We visualize the policy in Figure 2. 
 >  一方面，指尖轨迹的数据可以轻松从互联网获取，而低级的关节轨迹则需要求解复杂的 RL 问题才可以获得
 >  另一方面，高层的映射 $(♪ \mapsto \pmb x)$ 涉及指法，较为复杂，而底层映射 $(\pmb x\mapsto \pmb q)$ 涉及任务空间到配置空间的映射，则相对简单
->  这种解耦使得我们可以用大规模的数据训练复杂的高层映射，而使用小型的数据训练底层的数据
+>  这种解耦使得我们可以用大规模的数据训练复杂的高层映射，而使用小型的数据训练底层的映射
 
 **Expressive Generative Models.** Considering that the human demonstration data of piano playing is highly multimodal, we explore the use of expressive generative models to better represent this multimodality. We compare the performance of different deep generative models based policies, such as Diffusion Policies [22] and Behavioral Transformer [23], as well as a deterministic policy. 
 >  表现性生成模型
@@ -254,6 +254,8 @@ We also observe that our method trains faster than the baseline. On an RTX 4090,
 **Impact of Elements.** Our RL method has two main elements: a style-mimicking reward and a residual learning. We exclude each element individually to study their respective influences on policy performance (see Figure 3). 
 >  我们的 RL 方法有两个主要元素: 风格模仿奖励和残差学习
 >  我们分别排除每个元素，研究它们各自对策略性能的影响
+
+>  感觉这两个元素并不是对等的，风格模仿奖励仅仅在于奖励设计，残差学习则是策略结构设计
 
 We clearly observe the critical role of residual learning, which implies the benefit of using human demonstrations as nominal behavior. We observe a marginal performance increase of 0.03 when excluding the style-mimicking reward, but this also results in a larger discrepancy between the robot and human fingertip trajectories. Thus, the weight of the style-mimicking reward can be considered as a parameter that controls the human similarity of the learned robot actions. The ablation study for this weight is discussed in Appendix F. 
 >  结果表明残差学习的作用最关键，这表明使用人类演示作为规范行为是有益的
@@ -324,7 +326,7 @@ In addition, we introduce a high-level oracle policy that outputs the ground-tru
 >  我们引入一个高阶的 oracle 策略，它直接输出人类展示视频中的真实指尖位置
 
 The results (see Figure 5 Bottom) demonstrate that the overall performance of the policy is significantly influenced by the quality of the high-level policy. Low-level policies paired with Oracle high-level policies consistently outperform the ones paired with other high-level policies. Besides, we observe early performance convergence with increasing training data when paired with a low-quality high-level policy. 
->  策略的整体性能受到高级策略质量的显著影响，使用Orcale 高阶策略的策略优于使用其他高阶策略的策略
+>  策略的整体性能受到高级策略质量的显著影响，使用 Oracle 高阶策略的策略优于使用其他高阶策略的策略
 >  此外，我们观察到随着训练数据增加，性能会更快地收敛
 
 ## 4.4 Limitations 

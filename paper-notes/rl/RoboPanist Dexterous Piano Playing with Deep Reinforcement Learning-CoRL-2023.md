@@ -113,7 +113,6 @@ To successfully play the piano, the agent must be aware of at least a few second
 A detailed description of the observation space is given in Table 1.  
 >  Table 1 描述了 agent 的 observation space
 
-
 <html><center><body><table><tr><td>Observations</td><td>Unit</td><td>Size</td></tr><tr><td>Hand and forearm joints</td><td>rad</td><td>52</td></tr><tr><td>Forearm Cartesian position</td><td>m</td><td>6</td></tr><tr><td>Piano key joints</td><td>rad</td><td>88</td></tr><tr><td>Active fingers</td><td>discrete</td><td>L·10</td></tr><tr><td>Piano key goal state</td><td>discrete</td><td>L·88</td></tr></table></body></center></html>
 
 Table 1: The agent’s observation space. $L$ corresponds to the lookahead horizon. 
@@ -156,7 +155,7 @@ These behaviors do not emerge if we solely optimize with a sparse reward for pre
 
 We overcome this challenge with careful system design and human priors, which we detail in this section. The main results are illustrated in Figure 2. We pick 3 songs in increasing difficulty from ROBOPIANIST-REPERTOIRE-150. We note that “Twinkle Twinkle” is the easiest while “Nocturne” is the hardest. We train for 5M samples, 3 seeds. We evaluate the F1 every 10K training steps for 1 episode (no stochasticity in the environment). 
 >  为此，我们结合了系统设计和人类先验，主要的结果展示于 Fig2
->  我们训练了 500 万个样本, 3 个随机种子, 在每 10K 次训练步后评估一次一个会和的 F1 score (环境中没有随机性)
+>  我们训练了 500 万个样本, 3 个随机种子, 在每 10K 次训练步后评估一次一个回合的 F1 score (环境中没有随机性)
 
 ## 4.1 Human priors 
 We found that the agent struggled to play the piano with a sparse reward signal due to the exploration challenge associated with the high-dimensional action space. To overcome this issue, we incorporated the fingering labels within the reward formulation (Table 2). When we remove this prior and only reward the agent for the key press, the agent’s F1 stays at zero and no substantial learning progress is made. We suspect that the benefit of fingering comes not only from helping the agent achieve the current goal, but facilitating key presses in subsequent timesteps. 
@@ -241,7 +240,6 @@ A detailed discussion of this choice of baseline and its implementation can be f
 Our method uses 5 million samples to train for each song using the same set of hyperparameters, and the MPC baseline is run at one-tenth of real-time speed to give the planner adequate search time. 
 >  我们使用 500 万个样本 (500 万次按键？500 万次演奏？) 来训练每一首曲子，所有曲子使用相同的超参数集合
 >  MPC baseline 以现实时间的 1/10 运行，以为规划器提供足够搜索时间
-
 
 ![[pics/RoboPianist-Fig4.png]]
 

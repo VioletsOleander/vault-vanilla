@@ -1,6 +1,6 @@
 # Abstract
 It has been a long-standing research goal to endow robot hands with human-level dexterity. Bimanual robot piano playing constitutes a task that combines challenges from dynamic tasks, such as generating fast while precise motions, with slower but contact-rich manipulation problems. 
->  双手机器人弹钢琴是一项结合了动态任务挑战 (例如生成快速而精确的动作) 和较慢单接触丰富的操作的问题
+>  双手机器人弹钢琴是一项结合了动态任务挑战 (例如生成快速而精确的动作) 和较慢但接触丰富的操作的问题
 
 Although reinforcement learning-based approaches have shown promising results in single-task performance, these methods struggle in a multi-song setting. Our work aims to close this gap and, thereby, enable imitation learning approaches for robot piano playing at scale. 
 >  基于 RL 的方法在单一任务上表现出色，但在多曲子的设定下则不行
@@ -49,8 +49,7 @@ Agents trained using our automatic fingering match the performance of agents tra
 >  自动指法标记也允许用不同的身体形态学习钢琴演奏，例如只有四个手指的机器人
 
 With RP1M, it is now possible to train and test imitation learning approaches at scale. We benchmark various behavior cloning approaches and find that using RP1M, existing methods perform better in terms of generalization capabilities in multi-song piano play. 
->  有了 RP1M，现在可以大规模训练和测试模仿学习方法，我们测试了许多行为克隆方法，并发现使用 RP1M，现存的方法在演奏多首曲目是都有更强的泛化性
-
+>  有了 RP1M，现在可以大规模训练和测试模仿学习方法，我们测试了许多行为克隆方法，并发现使用 RP1M，现存的方法在演奏多首曲目时都有更强的泛化性
 
 This work contributes in various ways: 
 
@@ -207,7 +206,7 @@ The performance of the specialist RL agents decides the quality of our dataset. 
 >  专用 agent 的性能决定了我们数据集的质量
 >  我们研究我们的专用 agent 的表现，具体在以下三个方面
 >  i) 我们提出的基于最优传输的手指放置如何帮助学习
->  ii) agent 自身发现的手指拜访和人类标记的指法相比如何
+>  ii) agent 自身发现的手指放置和人类标记的指法相比如何
 >  iii) 我们的方法在其他形态上的迁移能力如何
 
 ![[pics/RP1M-Fig2.png]]
@@ -311,7 +310,7 @@ In the zero-shot out-of-distribution evaluation, we find that performance improv
 >  Limitations
 >  其一，虽然我们的方法消除了对人类标记的指法的需求，从而能够在多样的曲目上进行 RL 训练，但由于机器人手的快节奏和机械限制，仍然在面对具有挑战性的曲子上无法取到高性能，改进 RL 方法和硬件设计可能有助于解决这个问题
 >  其二，评估指标 F1 score 可能无法完全反映音乐表现，而基于位置的控制器未能达到目标速度可能会阻碍表现
->  其三，我们的数据集进包含本体感觉观测，而人类演奏时，包含了多模态输入，包括视觉、触觉、听觉，将这些输入结合可能会增强 agent 的能力
+>  其三，我们的数据集仅包含本体感觉观测，而人类演奏时，包含了多模态输入，包括视觉、触觉、听觉，将这些输入结合可能会增强 agent 的能力
 
  Furthermore, there are several challenges to deploying the learned agent on a real-world robot. This includes the challenges of obtaining the state of the piano and the hands (e.g., tracking the precise fingertip positions), optimizing a precise position controller at high speed as well as the sim-to-real gap for the highly dynamic piano-playing task, etc. 
 >  此外，部署到真实世界的机器人还存在许多挑战，包括了获取钢琴和手的状态的挑战 (例如，精确跟踪指尖位置)、优化高速的控制器的精确位置的挑战、以及 sim-to-real 的差距等等
@@ -362,7 +361,6 @@ $r_{t}^{\mathrm{Sustain}}$ encourages the agent to press the pseudo sustain peda
 $r_{t}^{\mathrm{Collision}}$ penalizes the agent from collision, defined as $r_{t}^{\mathrm{Collision}}=1-\mathbf 1_{\mathrm{collision}}$ , where $\mathbf{1}_{\mathrm{collision}}$ is 1 if collision happens and 0 otherwise. 
 
 $r_{t}^{\mathrm{Energy}}$ prioritizes energy-saving behavior. It is defined as   $r_t^{\text{Energy}} = |\tau_{\text{joints}}|^T|\mathbf v_{\text{joints}}|$ .  $\tau_{\text{joints}}$ and $\mathbf v_{\text{joints}}$ are joint torques and joint velocities respectively. 
-
 
 ## B.2 Training Details 
 **Observation Space** Our 1144-dimensional observation space includes the proprioceptive state of dexterous robot hands and the piano as well as L-step goal states obtained from the MIDI file. In our case, we include the current goal and 10-step future goals in the observation space $({L}=11)$ . 
