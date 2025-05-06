@@ -3,8 +3,8 @@ We propose a new family of policy gradient methods for reinforcement learning, w
 >  强化学习方法交替执行与环境交互采样数据和使用随机梯度上升优化替代目标函数
 
 Whereas standard policy gradient methods perform one gradient update per data sample, we propose a novel objective function that enables multiple epochs of minibatch updates. The new methods, which we call proximal policy optimization (PPO), have some of the benefits of trust region policy optimization (TRPO), but they are much simpler to implement, more general, and have better sample complexity (empirically). 
->  标准策略梯度方法为每个数据样本执行一次梯度上升，我们提出支持多轮 minibatch 更新的目标函数，该方法称为近端策略优化 PPO
->  PPO 在某些方面具备置信域策略优化 TRPO 的特点，但更易于实现，更通用，且试验证明具有更好的样本复杂性
+>  标准策略梯度方法为每个数据样本执行一次梯度上升，我们提出支持多轮 minibatch 更新的目标函数，该方法称为近端策略优化 (PPO)
+>  PPO 在某些方面具备置信域策略优化 (TRPO) 的特点，但更易于实现，更通用，且试验证明其经验上具有更好的样本复杂性
 
 Our experiments test PPO on a collection of benchmark tasks, including simulated robotic locomotion and Atari game playing, and we show that PPO outperforms other online policy gradient methods, and overall strikes a favorable balance between sample complexity, simplicity, and wall-time. 
 >  我们在一系列基准任务中测试了 PPO，包括模拟机器人运动、Atari 游戏
@@ -14,7 +14,7 @@ Our experiments test PPO on a collection of benchmark tasks, including simulated
 In recent years, several different approaches have been proposed for reinforcement learning with neural network function approximators. The leading contenders are deep $Q$ -learning [Mni+15], “vanilla” policy gradient methods [Mni + 16], and trust region / natural policy gradient methods [Sch+15b]. However, there is room for improvement in developing a method that is scalable (to large models and parallel implementations), data efficient, and robust (i.e., successful on a variety of problems without hyperparameter tuning). $Q$ -learning (with function approximation) fails on many simple problems $^{1}$ and is poorly understood, vanilla policy gradient methods have poor data efficiency and robustness; and trust region policy optimization (TRPO) is relatively complicated, and is not compatible with architectures that include noise (such as dropout) or parameter sharing (between the policy and value function, or with auxiliary tasks). 
 >  近年来，DRL 领域的方法包括 deep Q-Learning、标准的策略梯度方法、置信域策略梯度方法
 >  目前仍需要开发一个可拓展 (拓展到大规模模型和并行实现)、数据高效且 robust (在无需调节超参数的情况下在多种问题上取得成功) 的算法
->  deep Q-learning 在许多简单的问题上 (主要是连续控制问题) 失败，标准策略梯度方法数据效率较低且健壮性差 (因为是 on-policy)，置信域策略优化相对复杂，并且不兼容包含噪声 (如 dropout) 或参数共享 (策略函数和价值函数之间，或与辅助任务之间)
+>  deep Q-learning 在许多简单的问题上 (主要是连续控制问题) 失败 (应该是因为连续动作空间下，随机的行为策略已经无法取得较好的 exploration 和 exploitation 的平衡)，标准策略梯度方法数据效率较低且健壮性差 (因为是 on-policy)，置信域策略优化相对复杂，并且不兼容包含噪声 (如 dropout) 或参数共享 (策略函数和价值函数之间，或与辅助任务之间)
 
 This paper seeks to improve the current state of affairs by introducing an algorithm that attains the data efficiency and reliable performance of TRPO, while using only first-order optimization. We propose a novel objective with clipped probability ratios, which forms a pessimistic estimate (i.e., lower bound) of the performance of the policy. To optimize policies, we alternate between sampling data from the policy and performing several epochs of optimization on the sampled data. 
 >  本文旨在引入一种算法来改善现状，该算法在仅使用一阶优化的情况下，达到了和 TRPO 相当的数据效率和可靠性能

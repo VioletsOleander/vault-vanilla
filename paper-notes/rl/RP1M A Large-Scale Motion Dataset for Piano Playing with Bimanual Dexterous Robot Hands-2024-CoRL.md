@@ -370,6 +370,7 @@ $r_{t}^{\mathrm{Energy}}$ prioritizes energy-saving behavior. It is defined as  
 At each time step, an 89-dimensional binary vector is used to represent the goal, where 88 dimensions are for key states and the last dimension is for the sustain pedal. The dimension of each component in the observation space is given in Table 3. 
 
 Table 3: Observation space. 
+
 <html><body><center><table><tr><td>Observations</td><td>Dim</td></tr><tr><td>Piano goal state</td><td>L·88</td></tr><tr><td>Sustain goal state</td><td>L·1</td></tr><tr><td>Piano key joints</td><td>88</td></tr><tr><td>Piano sustain state</td><td>1</td></tr><tr><td>Fingertip position</td><td>3.10</td></tr><tr><td>Hand state</td><td>46</td></tr></table></center></body></html> 
 
 **Training Algorithm & Hyperparameters** Although our proposed method is compatible with any reinforcement learning method, we choose the DroQ [40] as Zakka et al. [4] for fair comparison. DroQ is a model-free RL method, which uses Dropout and Layer normalization in the Q function to improve sample efficiency. We list the main hyperparameters used in our RL training in Table 4. 
