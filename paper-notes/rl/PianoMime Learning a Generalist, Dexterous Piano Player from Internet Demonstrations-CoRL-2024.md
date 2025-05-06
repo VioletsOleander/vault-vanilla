@@ -38,7 +38,7 @@ In addition, the Internet is full of videos of professional piano players perfor
 
 To learn a generalist piano-playing agent from Internet data, we introduce PianoMime, a framework for training a single policy capable of playing any song (see Figure 1). In essence, the PianoMime agent is a goal-conditioned policy that generates actions in the configuration space, given the desired song to be played. At each time step, the agent receives a trajectory of keys to press as goal input. The policy then generates a trajectory of actions and executes them in chunks. 
 >  PianoMime 是一个训练通用的演奏策略的训练框架
->  本质上，PianoMime agent 是以条件于目标的策略，它在给定目标 (需要演奏的歌曲) 后，在配置空间中生成动作
+>  本质上，PianoMime agent 是一个条件于目标的策略，它在给定目标 (需要演奏的歌曲) 后，在配置空间中生成动作
 >  在每个时间步，agent 会接收一串需要按下的琴键作为目标输入，然后策略生成一系列动作，并分块执行这些动作
 
 **To train the agent**, we combine both reinforcement learning and imitation learning. We train individual song-specific expert policies using reinforcement learning in conjunction with YouTube demonstrations, and we distill all the expert policies into a single generalist behavior cloning policy. 
@@ -114,8 +114,8 @@ Note that since the videos are RGB, we lack the depth signal. Therefore, we pred
 ## 3.2 Policy Learning: Generating robot actions from observations 
 In the data preparation phase, we extract two trajectories: a human fingertip trajectory $\tau_{\pmb x}$ and a piano state trajectory $\tau_{♪}$ . The human fingertip trajectory $\tau_{\pmb{x}}:(\pmb{x}_{0},\dots,\pmb{x}_{T})$ is a $T$ -step trajectory of the 3D fingertip positions of two hands $\boldsymbol{x}~\in~\mathbb{R}^{3\times10}$ (10 fingers). The piano state trajectory $\tau_{♪}:(♪_{1},\dots,♪_{T})$ is a $T$ -step trajectory of piano states $♪\in\mathbb{B}^{88}$ , represented by an 88-dimensional binary variable representing which keys should be pressed. 
 >  在数据准备阶段，我们提取两条轨迹: 人类指尖轨迹 $\tau_{\pmb x}$ 和钢琴状态轨迹 $\tau_{♪}$
->  人类指尖轨迹 $\tau_{\pmb x}:(\pmb x_0, \dots, \pmb x_T)$ 是一个 $T$ 步轨迹，记录了两只手的手指间的 3D 位置，故 $\pmb x\in \mathbb R^{3\times 10}$ (10 根手指)
->  钢琴状态轨迹 $\tau_♪ :(♪_1, ♪_T)$ 是一个 $T$ 步轨迹，其中 $♪ \in\mathbb B^{88}$，其中每一维都是二元变量，表示是否应该按下对应的键
+>  人类指尖轨迹 $\tau_{\pmb x}:(\pmb x_0, \dots, \pmb x_T)$ 是一个 $T$ 步轨迹，记录了两只手的手指尖的 3D 位置，故 $\pmb x\in \mathbb R^{3\times 10}$ (10 根手指)
+>  钢琴状态轨迹 $\tau_♪ :(♪_1,\dots, ♪_T)$ 是一个 $T$ 步轨迹，其中 $♪ \in\mathbb B^{88}$，其每一维都是二元变量，表示是否应该按下对应的键
 
 Given the ROBOPIANIST [11] environment, our goal is to learn a goal-conditioned policy $\pi_{\boldsymbol{\theta}}$ that plays the song defined by $\tau_{♪}$ while matching the fingertip movement given by $\tau_{\pmb x}$ . Note that satisfying both objectives jointly may be impossible. Perfectly tracking the fingertip trajectory $\tau_{x}$ might not lead to playing the song correctly. Although both trajectories are collected from the same source, errors in hand tracking and embodiment mismatches might lead to deviations, resulting in poor song performance. Therefore, we suggest using $\tau_{x}$ as a style guide behavior. 
 >  给定 ROBOPIANIST 环境，我们的目标是学习一个目标条件策略 $\pi_{\pmb \theta}$，该策略能够演奏钢琴状态轨迹 $\tau_{♪}$ 定义的曲子，同时匹配人类指尖轨迹 $\tau_{\pmb x}$ 定义的指尖移动
@@ -231,7 +231,7 @@ We compare our model to two baselines:
 
 **RoboPianist** [11] We use the RL method introduced in [11]. We keep the same reward functions as in the original work and manually label the fingering from the demonstration videos to provide the fingering reward. 
 
-**Inverse Kinematics (IK)** [21] Given a fingertip trajectory demonstration $\tau_{x}$ , a Quadratic Programming-based IK solver [21] is used to compute a target, joint position trajectory and execute it open-loop. 
+**Inverse Kinematics (IK)** [21] Given a fingertip trajectory demonstration $\tau_{\pmb x}$ , a Quadratic Programming-based IK solver [21] is used to compute a target, joint position trajectory and execute it open-loop. 
 
 >  baseline 包括了 ROBOPIANIST 和 IK
 >  ROBOPIANIST: 保留原始工作的奖励函数，其中指法奖励通过手动标记展示视频中的指法来提供
@@ -420,7 +420,13 @@ where $w_{i}$ is the weight of each task, $K_{i}$ is the proportional gain and $
 >  IK 求解器的实现基于 [21]，该求解器通过构建一个优化问题并找到最小化目标函数的最优关节速率来同时处理多个任务
 >  优化问题的定义如上，其中 $w_i$ 是每个任务的权重，$K_i$ 是比例增益，$v_i$ 为速度残差
 
-We define a set of 10 tasks, each specifying the desired position of one of the robot’s fingertips. We do not specify the desired quaternions. All the weights $w_{i}$ are set to be equal. We use quadprog 3 to solve the optimization problem with quadratic programming. The other parameters are listed in Table 2. 
+>  目标函数是一个关于关节速度 $\dot q$ 的函数，我们期望找到最小化目标函数的 $\dot q$
+>  目标函数外层是一个对任务 $i$ 求和的和式，$w_i$ 是赋予每个任务的权重
+>  $J_i$ 是 Jacobian 矩阵，它将关节速度 $\dot q$ 映射到任务空间的速度，因此 Jacobian 矩阵实际上描述了关节的运动是如何影响末端执行器在任务空间的运动
+>  $K_i$ 为比例增益，$v_i$ 为速度残差，$K_iv_i$ 表示了我们期望末端执行器在任务空间达到的速度
+>  $J_i\dot q - K_iv_i$ 表示了末端执行器实际速度和期望速度之间的差异，我们的目标是让末端执行器的实际运动尽可能接近期望的运动
+
+We define a set of 10 tasks, each specifying the desired position of one of the robot’s fingertips. We do not specify the desired quaternions. All the weights $w_{i}$ are set to be equal. We use quadprog3 to solve the optimization problem with quadratic programming. The other parameters are listed in Table 2. 
 >  我们定义了一组 10 个任务，每个任务指定机器人的一个指尖的预期位置
 
 Table 2: The parameters of IK solver 
