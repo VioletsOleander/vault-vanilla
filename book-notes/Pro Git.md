@@ -486,46 +486,205 @@ git log -- path/to/file
 ```
 
 一些常用的限制性选项总结如下
+
 ![[ProGit-Table3.png]]
 
 有时我们的日志历史记录中相当大比例的提交可能只是合并提交，这通常不会提供很多信息，要防止合并提交显示，只需添加选项 `no-merge`
-## 2.4 Undoing Things
-Git 提供了撤销操作，但要注意的是我们不能总是撤销我们的一些撤销操作，这也是 Git 中如果误操作就会失去一些工作的为数不多的几个领域之一
 
-最常见的撤销操作发生于我们过早提交而忘记添加一些文件，或者我们写错了提交信息，如果我们需要重新进行一次提交，我们需要先完成需要的修改，然后将其暂存，然后再一次提交，使用 `--amend` 选项
+## 2.4 Undoing Things
+At any stage, you may want to undo something. Here, we’ll review a few basic tools for undoing changes that you’ve made. Be careful, because you can’t always undo some of these undos. This is one of the few areas in Git where you may lose some work if you do it wrong.
+>  Git 提供了撤销操作，但要注意的是我们不能总是撤销我们的一些撤销操作，这也是 Git 中如果误操作就会失去一些工作的为数不多的几个领域之一
+
+One of the common undos takes place when you commit too early and possibly forget to add some files, or you mess up your commit message. If you want to redo that commit, make the additional changes you forgot, stage them, and commit again using the `--amend` option:
+>  最常见的撤销操作发生于我们过早提交而忘记添加一些文件，或者我们写错了提交信息，如果我们需要重新进行一次提交，我们需要先完成需要的修改，然后将其暂存，然后再一次提交，使用 `--amend` 选项
+
 ```
 git commit --amend
 ```
-此时我们可以修改之前的提交信息，这次修改会将之前的提交信息覆盖写
-如果我们只是想修改提交信息，就什么也不暂存，直接提交即可
 
-示例
+This command takes your staging area and uses it for the commit. If you’ve made no changes since your last commit (for instance, you run this command immediately after your previous commit), then your snapshot will look exactly the same, and all you’ll change is your commit message.
+>  此时我们可以修改之前的提交信息，这次修改会将之前的提交信息覆盖写
+>  如果我们只是想修改提交信息，就什么也不暂存，直接提交即可
+
+The same commit-message editor fires up, but it already contains the message of your previous commit. You can edit the message the same as always, but it overwrites your previous commit.
+
+As an example, if you commit and then realize you forgot to stage the changes in a file you wanted to add to this commit, you can do something like this:
+
 ```
 git commit -m 'Initail commit'
 git add forgotten_file
 git commit --amend
 ```
 
-对上一次提交进行修改不会在日志中产生新的提交项
-### 2.4.1 Unstaging a Staged File
-对于已经暂存的文件，可以使用 `git reset HEAD <file>` 取消暂存 (unstage)
-例如 `git reset HEAD CONTIRBUTING.md`
-### 2.4.2 Unmodifying a Modified File
-如果我们想要取消对某个文件的修改 (unmodifiy)，即将文件恢复为上次提交的时候的样子 (或最初克隆下来的样子)，可以使用 `git checkout -- <file>`
-例如 `git checkout -- CONTRIBUTING.md`
+You end up with a single commit — the second commit replaces the results of the first.
+>  对上一次提交进行修改不会在日志中产生新的提交项
 
-注意 `git checkout -- <file>` 实际上是一个危险的命令，这会让我们对文件做的任何本地修改丢失，Git 会直接检出上次提交的文件，替换本地文件
-任何已经提交到 Git 的文件几乎可以总是被恢复，即便是在已经删除的分支上的提交，又或者是用 `--amend` 覆盖写了的提交，对应的，任意没有提交的信息丢失了就再也找不回了
-### 2.4.3 Undoing things with git restore
-Git v2.23.0 引入了 `git restore` 命令，该命令基本上是 `git reset` 的替代，从 v2.23.0 开始，Git 的许多撤销操作将使用 `git restore` 而非 `git reset`  
-#### 2.4.3.1 Unstaging a Staged File with git restore
-`git restore --staged <file>` 可以用于取消暂存某个文件，例如
-`git restore --staged CONTRIBUTING.md`
-#### 2.4.3.2 Unmodifying a Modified File with git restore
-`git restore <file>` 可以用于取消对某个文件的修改，例如
-`git restore CONTRIBUTING.md`
+Note:
+It’s important to understand that when you’re amending your last commit, you’re not so much fixing it as replacing it entirely with a new, improved commit that pushes the old commit out of the way and puts the new commit in its place. Effectively, it’s as if the previous commit never happened, and it won’t show up in your repository history.
 
-注意 `git restore` 实际上是一个危险的命令，这会让我们对文件做的任何本地修改丢失，Git 会直接检出上次提交的文件，替换本地文件
+The obvious value to amending commits is to make minor improvements to your last commit, without cluttering your repository history with commit messages of the form, “Oops, forgot to add a file” or “Darn, fixing a typo in last commit”.
+
+>  要注意的是 `commit --amend` 实际上是用一个新的提交替换了之前的提交
+
+
+Note:
+Only amend commits that are still local and have not been pushed somewhere. Amending previously pushed commits and force pushing the branch will cause problems for your collaborators. For more on what happens when you do this and how to recover if you’re on the receiving end read  [The Perils of Rebasing](https://git-scm.com/book/en/v2/ch00/_rebase_peril).
+
+>  注意仅对尚未 push 的 commit 进行 amend
+
+### Unstaging a Staged File
+The next two sections demonstrate how to work with your staging area and working directory changes. The nice part is that the command you use to determine the state of those two areas also reminds you how to undo changes to them. 
+
+For example, let’s say you’ve changed two files and want to commit them as two separate changes, but you accidentally type `git add *` and stage them both. How can you unstage one of the two? The `git status` command reminds you:
+
+```console
+$ git add *
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    renamed:    README.md -> README
+    modified:   CONTRIBUTING.md
+```
+
+Right below the “Changes to be committed” text, it says use `git reset HEAD <file>…​` to unstage. So, let’s use that advice to unstage the `CONTRIBUTING.md` file:
+
+>  对于已经暂存的文件，可以使用 `git reset HEAD <file>` 取消暂存 (unstage)
+>  例如 `git reset HEAD CONTIRBUTING.md`
+
+```console
+$ git reset HEAD CONTRIBUTING.md
+Unstaged changes after reset:
+M	CONTRIBUTING.md
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    renamed:    README.md -> README
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+    modified:   CONTRIBUTING.md
+```
+
+The command is a bit strange, but it works. The `CONTRIBUTING.md` file is modified but once again unstaged.
+
+Note:
+It’s true that git reset can be a dangerous command, especially if you provide the --hard flag. However, in the scenario described above, the file in your working directory is not touched, so it’s relatively safe.
+>  `git reset HEAD <file>` 仅会修改暂存区的文件，不会修改工作区的文件
+
+For now this magic invocation is all you need to know about the `git reset` command. We’ll go into much more detail about what `reset` does and how to master it to do really interesting things in [Reset Demystified](https://git-scm.com/book/en/v2/ch00/_git_reset).
+
+### Unmodifying a Modified File
+What if you realize that you don’t want to keep your changes to the `CONTRIBUTING.md` file? How can you easily unmodify it — revert it back to what it looked like when you last committed (or initially cloned, or however you got it into your working directory)? Luckily, `git status` tells you how to do that, too. In the last example output, the unstaged area looks like this:
+
+```console
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+    modified:   CONTRIBUTING.md
+```
+
+It tells you pretty explicitly how to discard the changes you’ve made. Let’s do what it says:
+
+```console
+$ git checkout -- CONTRIBUTING.md
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    renamed:    README.md -> README
+```
+
+You can see that the changes have been reverted.
+
+>  如果我们想要取消对某个文件的修改 (unmodifiy)，即将文件恢复为上次提交的时候的样子 (或最初克隆下来的样子)，可以使用 `git checkout -- <file>`
+>  例如 `git checkout -- CONTRIBUTING.md`
+
+Important:
+It’s important to understand that `git checkout -- <file>` is a dangerous command. Any local changes you made to that file are gone — Git just replaced that file with the last staged or committed version. Don’t ever use this command unless you absolutely know that you don’t want those unsaved local changes.
+>  注意 `git checkout -- <file>` 实际上是一个危险的命令，这会让我们对文件做的任何本地修改丢失，Git 会直接检出上次提交的文件，替换本地文件
+
+If you would like to keep the changes you’ve made to that file but still need to get it out of the way for now, we’ll go over stashing and branching in [Git Branching](https://git-scm.com/book/en/v2/ch00/ch03-git-branching); these are generally better ways to go.
+
+Remember, anything that is _committed_ in Git can almost always be recovered. Even commits that were on branches that were deleted or commits that were overwritten with an `--amend` commit can be recovered (see [Data Recovery](https://git-scm.com/book/en/v2/ch00/_data_recovery) for data recovery). However, anything you lose that was never committed is likely never to be seen again.
+>  任何已经**提交到** Git 的文件几乎可以总是被恢复，即便是在已经删除的分支上的提交，又或者是用 `--amend` 覆盖写了的提交，对应的，任意没有提交的信息丢失了就再也找不回了
+
+### Undoing things with git restore
+Git version 2.23.0 introduced a new command: `git restore`. It’s basically an alternative to `git reset` which we just covered. From Git version 2.23.0 onwards, Git will use `git restore` instead of `git reset` for many undo operations.
+>  Git v2.23.0 引入了 `git restore` 命令，该命令基本上是 `git reset` 的替代，从 v2.23.0 开始，Git 的许多撤销操作将使用 `git restore` 而非 `git reset`  
+
+Let’s retrace our steps, and undo things with `git restore` instead of `git reset`.
+
+#### Unstaging a Staged File with git restore
+The next two sections demonstrate how to work with your staging area and working directory changes with `git restore`. The nice part is that the command you use to determine the state of those two areas also reminds you how to undo changes to them. For example, let’s say you’ve changed two files and want to commit them as two separate changes, but you accidentally type `git add *` and stage them both. How can you unstage one of the two? The `git status` command reminds you:
+
+```console
+$ git add *
+$ git status
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   CONTRIBUTING.md
+	renamed:    README.md -> README
+```
+
+Right below the “Changes to be committed” text, it says use `git restore --staged <file>…​` to unstage. So, let’s use that advice to unstage the `CONTRIBUTING.md` file:
+
+```console
+$ git restore --staged CONTRIBUTING.md
+$ git status
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	renamed:    README.md -> README
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   CONTRIBUTING.md
+```
+
+The `CONTRIBUTING.md` file is modified but once again unstaged.
+
+>  `git restore --staged <file>` 可以用于取消暂存某个文件，例如
+>  `git restore --staged CONTRIBUTING.md`
+
+#### Unmodifying a Modified File with git restore
+What if you realize that you don’t want to keep your changes to the `CONTRIBUTING.md` file? How can you easily unmodify it — revert it back to what it looked like when you last committed (or initially cloned, or however you got it into your working directory)? Luckily, `git status` tells you how to do that, too. In the last example output, the unstaged area looks like this:
+
+```console
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   CONTRIBUTING.md
+```
+
+It tells you pretty explicitly how to discard the changes you’ve made. Let’s do what it says:
+
+```console
+$ git restore CONTRIBUTING.md
+$ git status
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	renamed:    README.md -> README
+```
+
+>  `git restore <file>` 可以用于取消对某个文件的修改，例如
+>  `git restore CONTRIBUTING.md`
+
+
+Important:
+It’s important to understand that `git restore <file>` is a dangerous command. Any local changes you made to that file are gone — Git just replaced that file with the last staged or committed version. Don’t ever use this command unless you absolutely know that you don’t want those unsaved local changes.
+>  注意 `git restore` 实际上是一个危险的命令，这会让我们对文件做的任何本地修改丢失，Git 会直接检出上次提交的文件，替换本地文件
+
 ## 2.5 Working with Remotes
 远程仓库 (remote repositories) 是托管在 Internet 上的 Git 仓库，远程仓库可以是只读的，也可以是可读写的
 可以在远程仓库与他人协作，包括管理这些远程仓库，将我们需要共享的工作推送至远程仓库，以及从远程仓库拉取数据
@@ -1863,23 +2022,78 @@ You can get the best of both worlds: rebase local changes before pushing to clea
 >  你可以两全其美：**在推送之前变基本地更改以清理你的工作，但永远不要变基你已经推送过的任何东西**
 
 # 4 Git on the Server
-远程仓库通常是一个裸 (bare) 仓库——一个没有工作目录的 Git 仓库，因为仓库仅用作协作点，所以没有必要在磁盘上检出一个快照；它只是 Git 数据。用最简单的话来说，裸仓库就是你的项目的. git 目录的内容，除此之外没有其他东西
-## 4.1 The Protocals
-### 4.1.1 Local Protocal
+At this point, you should be able to do most of the day-to-day tasks for which you’ll be using Git. However, in order to do any collaboration in Git, you’ll need to have a remote Git repository. Although you can technically push changes to and pull changes from individuals' repositories, doing so is discouraged because you can fairly easily confuse what they’re working on if you’re not careful. Furthermore, you want your collaborators to be able to access the repository even if your computer is offline — having a more reliable common repository is often useful. Therefore, the preferred method for collaborating with someone is to set up an intermediate repository that you both have access to, and push to and pull from that.
+
+Running a Git server is fairly straightforward. First, you choose which protocols you want your server to support. The first section of this chapter will cover the available protocols and the pros and cons of each. The next sections will explain some typical setups using those protocols and how to get your server running with them. Last, we’ll go over a few hosted options, if you don’t mind hosting your code on someone else’s server and don’t want to go through the hassle of setting up and maintaining your own server.
+
+If you have no interest in running your own server, you can skip to the last section of the chapter to see some options for setting up a hosted account and then move on to the next chapter, where we discuss the various ins and outs of working in a distributed source control environment.
+
+A remote repository is generally a _bare repository_ — a Git repository that has no working directory. Because the repository is only used as a collaboration point, there is no reason to have a snapshot checked out on disk; it’s just the Git data. In the simplest terms, a bare repository is the contents of your project’s `.git` directory and nothing else.
+>  远程仓库通常是一个裸 (bare) 仓库——一个没有工作目录的 Git 仓库，因为仓库仅用作协作点，所以没有必要在磁盘上检出一个快照；它只是 Git 数据
+>  用最简单的话来说，裸仓库就是你的项目的 `.git` 目录的内容，除此之外没有其他东西
+
+## 4.1 The Protocols
+Git can use four distinct protocols to transfer data: Local, HTTP, Secure Shell (SSH) and Git. Here we’ll discuss what they are and in what basic circumstances you would want (or not want) to use them.
+>  Git 使用 4 种协议来传输数据: Local, HTTP, Secure Shell (SSH), Git
+
+### Local Protocol
+The most basic is the _Local protocol_, in which the remote repository is in another directory on the same host. This is often used if everyone on your team has access to a shared filesystem such as an [NFS](https://en.wikipedia.org/wiki/Network_File_System) mount, or in the less likely case that everyone logs in to the same computer. The latter wouldn’t be ideal, because all your code repository instances would reside on the same computer, making a catastrophic loss much more likely.
+>  最基本的协议是 Local protocol，该协议下，远程仓库应该处于同一主机下的另一个目录
+>  它的使用场景是团队都访问一个共享文件系统，例如一个挂载的 NFS
+
+If you have a shared mounted filesystem, then you can clone, push to, and pull from a local file-based repository. To clone a repository like this, or to add one as a remote to an existing project, use the path to the repository as the URL. For example, to clone a local repository, you can run something like this:
+
 ```
 $ git clone /srv/git/project.git
+```
+
+Or you can do this:
+
+```
 $ git clone file:///srv/git/project.git
 ```
-如果你在 URL 开头明确指定了 `file://` ，Git 的操作会略有不同，如果你只指定路径，Git 会尝试使用硬链接或直接复制它需要的文件，如果你指定了`file://` ，Git 会启动它通常用于通过网络传输数据的过程，这通常效率要低得多，指定 `file://` 前缀的主要原因是，如果你想要一个干净的仓库副本，不包含多余的引用或对象 (extraneous reference or objects)——通常是在从另一个版本控制系统导入或类似操作之后 (见 Git Internals 中的维护任务)，我们将在这里使用普通路径，因为这样做几乎总是更快
 
-要将一个本地仓库添加到现有的 Git 项目中，你可以运行类似于这样的命令：
-```
+>  在这种情况下，执行 clone, push, pull 等操作时，我们只需要用本地的路径作为仓库的 URL 即可
+>  例如以上的两个示例
+
+Git operates slightly differently if you explicitly specify `file://` at the beginning of the URL. If you just specify the path, Git tries to use hardlinks or directly copy the files it needs. If you specify `file://`, Git fires up the processes that it normally uses to transfer data over a network, which is generally much less efficient. 
+>  如果我们在 URL 开头明确指定了 `file://` ，Git 的操作会略有不同
+>  如果只指定了路径，Git 会尝试使用硬链接或直接复制它需要的文件，如果指定了 `file://` ，Git 会启动它通常用于通过网络传输数据的过程，这通常效率要低得多
+
+The main reason to specify the `file://` prefix is if you want a clean copy of the repository with extraneous references or objects left out — generally after an import from another VCS or something similar (see [Git Internals](https://git-scm.com/book/en/v2/ch00/ch10-git-internals) for maintenance tasks). 
+>  指定 `file://` 前缀的主要场景是: 你想要一个干净的仓库副本，不包含多余的引用或对象——这通常是在从另一个版本控制系统导入后进行维护任务时
+  
+We’ll use the normal path here because doing so is almost always faster.
+>  我们将在这里使用普通路径，因为这样做几乎总是更快
+
+
+To add a local repository to an existing Git project, you can run something like this:
+>  要将一个本地仓库添加到现有的 Git 项目中，可以运行 `git remote add local_proj <url/path>` :
+
+```console
 $ git remote add local_proj /srv/git/project.git
 ```
-然后，你可以通过你的新远程名称 `local_proj` 推送和拉取该远程仓库，就像你是通过网络进行操作一样
-##### 4.1.1.1 The Pros
-##### 4.1.1.2 The Cons
-### 4.1.2 The HTTP Protocals
+
+Then, you can push to and pull from that remote via your new remote name `local_proj` as though you were doing so over a network.
+>  然后，你可以通过你的新远程名称 `local_proj` 推送和拉取该远程仓库，就像你是通过网络进行操作一样
+
+#### The Pros
+The pros of file-based repositories are that they’re simple and they use existing file permissions and network access. If you already have a shared filesystem to which your whole team has access, setting up a repository is very easy. You stick the bare repository copy somewhere everyone has shared access to and set the read/write permissions as you would for any other shared directory. We’ll discuss how to export a bare repository copy for this purpose in [Getting Git on a Server](https://git-scm.com/book/en/v2/ch00/_getting_git_on_a_server).
+>  基于本地文件系统的好处在于简单，且读写权限直接由文件系统或网络访问权限管理
+
+This is also a nice option for quickly grabbing work from someone else’s working repository. If you and a co-worker are working on the same project and they want you to check something out, running a command like `git pull /home/john/project` is often easier than them pushing to a remote server and you subsequently fetching from it.
+
+#### The Cons
+The cons of this method are that shared access is generally more difficult to set up and reach from multiple locations than basic network access. If you want to push from your laptop when you’re at home, you have to mount the remote disk, which can be difficult and slow compared to network-based access.
+>  缺点在于，要远程访问，必须挂载远程磁盘，这于基于网络的访问相比可能更慢且麻烦
+
+It’s important to mention that this isn’t necessarily the fastest option if you’re using a shared mount of some kind. A local repository is fast only if you have fast access to the data. A repository on NFS is often slower than the repository over SSH on the same server, allowing Git to run off local disks on each system.
+>  注意，NFS 上的仓库通常慢于同一服务器上通过 SSH 的仓库
+
+Finally, this protocol does not protect the repository against accidental damage. Every user has full shell access to the “remote” directory, and there is nothing preventing them from changing or removing internal Git files and corrupting the repository.
+>  另外，这种方法无法保护仓库免受以外的损坏，没有措施防止用户更改或删除内部 Git 文件
+
+### 4.1.2 The HTTP Protocols
 ##### 4.1.2.1 Smart HTTP
 它可能已经成为现在使用 Git 最受欢迎的方式，因为它可以像 `git://` 协议一样匿名设置服务，并且也可以像 SSH 协议一样在认证和加密之上进行推送，你不再需要为这些设置不同的 URL，现在你可以使用单一的 URL 来实现两者
 如果你尝试推送，并且仓库需要认证 (它通常应该需要)，服务器可以提示输入用户名和密码，对于读取访问权限也是如此
@@ -3263,8 +3477,34 @@ Tom Preston-Werner (4):
 ### 6.1.3 Your Email Addresses
 ### 6.1.4 Two Factor Authentication
 ## 6.2 Contributing to a Project
-### 6.2.1 Forking Projects
-### 6.2.2 The Github Flow
+Now that our account is set up, let’s walk through some details that could be useful in helping you contribute to an existing project.
+### Forking Projects
+If you want to contribute to an existing project to which you don’t have push access, you can “fork” the project. When you “fork” a project, GitHub will make a copy of the project that is entirely yours; it lives in your namespace, and you can push to it.
+
+Note:
+Historically, the term “fork” has been somewhat negative in context, meaning that someone took an open source project in a different direction, sometimes creating a competing project and splitting the contributors. In GitHub, a “fork” is simply the same project in your own namespace, allowing you to make changes to a project publicly as a way to contribute in a more open manner.
+
+This way, projects don’t have to worry about adding users as collaborators to give them push access. People can fork a project, push to it, and **contribute their changes back to the original repository by creating what’s called a Pull Request**, which we’ll cover next. This opens up a discussion thread with code review, and the owner and the contributor can then communicate about the change until the owner is happy with it, at which point the owner can merge it in.
+>  pr 会开启一个讨论区，供合作者进行沟通，直到满意时，可以将 pr 进行 merge
+
+To fork a project, visit the project page and click the “Fork” button at the top-right of the page.
+
+![The “Fork” button](https://git-scm.com/book/en/v2/images/forkbutton.png)
+
+Figure 88. The “Fork” button
+
+After a few seconds, you’ll be taken to your new project page, with your own writeable copy of the code.
+
+### The Github Flow
+GitHub is designed around a particular collaboration workflow, centered on Pull Requests. 
+>  GitHub 是围绕一种特定的协作流设计的，其核心就是 pr
+
+This flow works whether you’re collaborating with a tightly-knit team in a single shared repository, or a globally-distributed company or network of strangers contributing to a project through dozens of forks. It is centered on the [Topic Branches](https://git-scm.com/book/en/v2/ch00/_topic_branch) workflow covered in [Git Branching](https://git-scm.com/book/en/v2/ch00/ch03-git-branching).
+>  无论是在小团队的共享 repo 中协作，还是通过 fork 为大项目进行贡献，这种工作流都可以发挥作用
+>  这种工作流以 Topic Branch 为核心
+
+Here’s how it generally works:
+
 1. Fork the project
 2. Create a topic branch from `master`
 3. Make some commits to improve the project
@@ -3274,13 +3514,195 @@ Tom Preston-Werner (4):
 7. The project owner merges or closes the Pull Request
 8. Sync the updated `master` back to your fork
 
+>  这种工作流的工作方式大致如上
+
+This is basically the Integration Manager workflow covered in [Integration-Manager Workflow](https://git-scm.com/book/en/v2/ch00/_integration_manager), but instead of using email to communicate and review changes, teams use GitHub’s web based tools.
+>  这种工作流实际上就是 5.1 节介绍的 Integration-Manager 工作流，只不过不适用邮件来交流和审查更改，而是直接在网页上
+
+Let’s walk through an example of proposing a change to an open source project hosted on GitHub using this flow.
+
+Tip
+You can use the official **GitHub CLI** tool instead of the GitHub web interface for most things. The tool can be used on Windows, macOS, and Linux systems. Go to the [GitHub CLI homepage](https://cli.github.com/) for installation instructions and the manual.
+
 **Creating a Pull Request**
+Tony is looking for code to run on his Arduino programmable microcontroller and has found a great program file on GitHub at [https://github.com/schacon/blink](https://github.com/schacon/blink).
+
+![The project we want to contribute to](https://git-scm.com/book/en/v2/images/blink-01-start.png)
+
+Figure 89. The project we want to contribute to
+
+The only problem is that the blinking rate is too fast. We think it’s much nicer to wait 3 seconds instead of 1 in between each state change. So let’s improve the program and submit it back to the project as a proposed change.
+
+First, we click the 'Fork' button as mentioned earlier to get our own copy of the project. Our user name here is “tonychacon” so our copy of this project is at `https://github.com/tonychacon/blink` and that’s where we can edit it. We will clone it locally, create a topic branch, make the code change and finally push that change back up to GitHub.
+
+```console
+$ git clone https://github.com/tonychacon/blink (1)
+Cloning into 'blink'...
+
+$ cd blink
+$ git checkout -b slow-blink (2)
+Switched to a new branch 'slow-blink'
+
+$ sed -i '' 's/1000/3000/' blink.ino (macOS) (3)
+# If you're on a Linux system, do this instead:
+# $ sed -i 's/1000/3000/' blink.ino (3)
+
+$ git diff --word-diff (4)
+diff --git a/blink.ino b/blink.ino
+index 15b9911..a6cc5a5 100644
+--- a/blink.ino
++++ b/blink.ino
+@@ -18,7 +18,7 @@ void setup() {
+// the loop routine runs over and over again forever:
+void loop() {
+  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+  [-delay(1000);-]{+delay(3000);+}               // wait for a second
+  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+  [-delay(1000);-]{+delay(3000);+}               // wait for a second
+}
+
+$ git commit -a -m 'Change delay to 3 seconds' (5)
+[slow-blink 5ca509d] Change delay to 3 seconds
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+$ git push origin slow-blink (6)
+Username for 'https://github.com': tonychacon
+Password for 'https://tonychacon@github.com':
+Counting objects: 5, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 340 bytes | 0 bytes/s, done.
+Total 3 (delta 1), reused 0 (delta 0)
+To https://github.com/tonychacon/blink
+ * [new branch]      slow-blink -> slow-blink
+```
+
+1. Clone our fork of the project locally.
+2. Create a descriptive topic branch.
+3. Make our change to the code.
+4. Check that the change is good.
+5. Commit our change to the topic branch.
+6. Push our new topic branch back up to our GitHub fork.
+
+Now if we go back to our fork on GitHub, we can see that GitHub noticed that we pushed a new topic branch up and presents us with a big green button to check out our changes and open a Pull Request to the original project.
+
+You can alternatively go to the “Branches” page at `https://github.com/<user>/<project>/branches` to locate your branch and open a new Pull Request from there.
+
+![Pull Request button](https://git-scm.com/book/en/v2/images/blink-02-pr.png)
+
+Figure 90. Pull Request button
+
+If we click that green button, we’ll see a screen that asks us to give our Pull Request a title and description. It is almost always worthwhile to put some effort into this, since a good description helps the owner of the original project determine what you were trying to do, whether your proposed changes are correct, and whether accepting the changes would improve the original project.
+
+We also see a list of the commits in our topic branch that are “ahead” of the `master` branch (in this case, just the one) and a unified diff of all the changes that will be made should this branch get merged by the project owner.
+
+![Pull Request creation page](https://git-scm.com/book/en/v2/images/blink-03-pull-request-open.png)
+
+Figure 91. Pull Request creation page
+
+When you hit the 'Create pull request' button on this screen, the owner of the project you forked will get a notification that someone is suggesting a change and will link to a page that has all of this information on it.
+>  创建 pr 后，项目的所有者会收到通知
+
+Note:
+Though Pull Requests are used commonly for public projects like this when the contributor has a complete change ready to be made, it’s also often used in internal projects at the beginning of the development cycle. Since you can keep pushing to the topic branch even after the Pull Request is opened, it’s often opened early and used as a way to iterate on work as a team within a context, rather than opened at the very end of the process.
+>  pr 在内部项目的起始开发周期中也可以使用，因为即便 pr 已经 open，我们仍可以继续向 topic branch 推送更改
+>  故可以在早期就打开 pr，然后将 pr 用作团队在特定的上下文中协作和迭代工作的手段，而不是在流程的最后阶段才打开
 
 **Iterating on a Pull Request**
-### 6.2.3 Advanced Pull Requests
+At this point, the project owner can look at the suggested change and merge it, reject it or comment on it. Let’s say that he likes the idea, but would prefer a slightly longer time for the light to be off than on.
+
+Where this conversation may take place over email in the workflows presented in [Distributed Git](https://git-scm.com/book/en/v2/ch00/ch05-distributed-git), on GitHub this happens online. The project owner can review the unified diff and leave a comment by clicking on any of the lines.
+>  pr 中，可以对任意一行代码评论
+
+![Comment on a specific line of code in a Pull Request](https://git-scm.com/book/en/v2/images/blink-04-pr-comment.png)
+
+Figure 92. Comment on a specific line of code in a Pull Request
+
+Once the maintainer makes this comment, the person who opened the Pull Request (and indeed, anyone else watching the repository) will get a notification. We’ll go over customizing this later, but if he had email notifications turned on, Tony would get an email like this:
+
+![Comments sent as email notifications](https://git-scm.com/book/en/v2/images/blink-04-email.png)
+
+Figure 93. Comments sent as email notifications
+
+>  维护者留下评论后，pr 的提出者会收到通知 (以及任意 watching 该 repo 的人)，如果他设置了邮件通知，他还会收到邮件
+
+Anyone can also leave general comments on the Pull Request. In [Pull Request discussion page](https://git-scm.com/book/en/v2/ch00/_pr_discussion) we can see an example of the project owner both commenting on a line of code and then leaving a general comment in the discussion section. You can see that the code comments are brought into the conversation as well.
+>  除了对代码的具体一行评论，也可以留下一般性评论
+
+![Pull Request discussion page](https://git-scm.com/book/en/v2/images/blink-05-general-comment.png)
+
+Figure 94. Pull Request discussion page
+
+Now the contributor can see what they need to do in order to get their change accepted. Luckily this is very straightforward. Where over email you may have to re-roll your series and resubmit it to the mailing list, with GitHub you simply commit to the topic branch again and push, which will automatically update the Pull Request. In [Pull Request final](https://git-scm.com/book/en/v2/ch00/_pr_final) you can also see that the old code comment has been collapsed in the updated Pull Request, since it was made on a line that has since been changed.
+
+  
+![Pull Request final](https://git-scm.com/book/en/v2/images/blink-06-final.png)
+
+Figure 95. Pull Request final
+
+>  需要更改时，pr 的提出者只需要再向 topic branch 推送 commit 即可，pr 会被自动更新
+>  在更新后的 pr 界面中，对旧代码的 inline 评论会被折叠
+
+Adding commits to an existing Pull Request doesn’t trigger a notification, so once Tony has pushed his corrections he decides to leave a comment to inform the project owner that he made the requested change.
+>  对现存的 pr 添加 commits 不会再次触发通知，所以最好再留下通用评论以提醒审查者
+
+An interesting thing to notice is that if you click on the “Files Changed” tab on this Pull Request, you’ll get the “unified” diff — that is, the total aggregate difference that would be introduced to your main branch if this topic branch was merged in. In `git diff` terms, it basically automatically shows you `git diff master…​<branch>` for the branch this Pull Request is based on. See [Determining What Is Introduced](https://git-scm.com/book/en/v2/ch00/_what_is_introduced) for more about this type of diff.
+>  "Files Changed" 会显示 pr 和 `master` 的差异，即如果将 pr 合并到 `master` ，将引入哪些变化
+>  这些差异等价于运行 `git diff master...<branch>` 得到的结果，其中 `<branch>` 即提出 pr 的 topic branch
+
+The other thing you’ll notice is that GitHub checks to see if the Pull Request merges cleanly and provides a button to do the merge for you on the server. This button only shows up if you have write access to the repository and a trivial merge is possible. If you click it GitHub will perform a “non-fast-forward” merge, meaning that even if the merge **could** be a fast-forward, it will still create a merge commit.
+>  GitHub 会检查 pr 是否可以直接 merge，如果可以直接 merge，并且我们对 repo 有写入权限，则 GitHub 会显示按钮
+>  按下该按钮，GitHub 会执行 "non-fast-forward" merge，也就是即便 merge 可以是 fast-forward, GitHub 仍然会创建一个 merge commit
+
+If you would prefer, you can simply pull the branch down and merge it locally. If you merge this branch into the `master` branch and push it to GitHub, the Pull Request will automatically be closed.
+>  如果我们想要 fast-forward，我们可以拉取该 branch，在本地 merge，然后再 push
+>  pr 会被自动关闭
+
+This is the basic workflow that most GitHub projects use. Topic branches are created, Pull Requests are opened on them, a discussion ensues, possibly more work is done on the branch and eventually the request is either closed or merged.
+>  以上就是大多数 GitHub 项目使用的工作流
+
+Note: Not only forks
+It’s important to note that you can also open a Pull Request between two branches in the same repository. If you’re working on a feature with someone and you both have write access to the project, you can push a topic branch to the repository and open a Pull Request on it to the master branch of that same project to initiate the code review and discussion process. No forking necessary.
+>  注意，我们也可以在同一个 repo 的两个 branch 之间打开 pr (即不一定要先 fork)
+
+### Advanced Pull Requests
+Now that we’ve covered the basics of contributing to a project on GitHub, let’s cover a few interesting tips and tricks about Pull Requests so you can be more effective in using them.
+
 **Pull Requests as Patches**
+It’s important to understand that many projects don’t really think of Pull Requests as queues of perfect patches that should apply cleanly in order, as most mailing list-based projects think of patch series contributions. Most GitHub projects think about Pull Request branches as iterative conversations around a proposed change, culminating in a unified diff that is applied by merging.
+>  注意，大多数 GitHub 项目并不会将 pr 视作可以直接完美应用的 patch (和大多数基于邮件沟通的项目不同)
+
+This is an important distinction, because generally the change is suggested before the code is thought to be perfect, which is far more rare with mailing list based patch series contributions. This enables an earlier conversation with the maintainers so that arriving at the proper solution is more of a community effort. When code is proposed with a Pull Request and the maintainers or community suggest a change, the patch series is generally not re-rolled, but instead the difference is pushed as a new commit to the branch, moving the conversation forward with the context of the previous work intact.
+>  这意味着，通常情况下，是先提出更改建议，代码在建议中修改，然后趋于完整，而不是一开始就完整
+>  这将找到一个正确解决方案的过程变为社区共同努力的结果
+
+For instance, if you go back and look again at [Pull Request final](https://git-scm.com/book/en/v2/ch00/_pr_final), you’ll notice that the contributor did not rebase his commit and send another Pull Request. Instead they added new commits and pushed them to the existing branch. This way if you go back and look at this Pull Request in the future, you can easily find all of the context of why decisions were made. Pushing the “Merge” button on the site purposefully creates a merge commit that references the Pull Request so that it’s easy to go back and research the original conversation if necessary.
+>  并且，整个迭代过程的讨论上下文会在 pr 中记录，merge commit 应该引用该 pr，以便在必要时候可以回顾该上下文
 
 **Keeping up with Upstream**
+If your Pull Request becomes out of date or otherwise doesn’t merge cleanly, you will want to fix it so the maintainer can easily merge it. GitHub will test this for you and let you know at the bottom of every Pull Request if the merge is trivial or not.
+
+![Pull Request does not merge cleanly](https://git-scm.com/book/en/v2/images/pr-01-fail.png)
+
+Figure 96. Pull Request does not merge cleanly
+
+If you see something like [Pull Request does not merge cleanly](https://git-scm.com/book/en/v2/ch00/_pr_fail), you’ll want to fix your branch so that it turns green and the maintainer doesn’t have to do extra work.
+
+>  pr 的提出者应该确保其 pr 能够直接 merge
+
+You have two main options in order to do this. You can either rebase your branch on top of whatever the target branch is (normally the `master` branch of the repository you forked), or you can merge the target branch into your branch.
+>  为此，有两种方法
+>  可以将 topic branch rebase 到目标 branch (通常是 `master`)
+>  或者将目标 branch merge 到 topic branch
+
+Most developers on GitHub will choose to do the latter, for the same reasons we just went over in the previous section. What matters is the history and the final merge, so rebasing isn’t getting you much other than a slightly cleaner history and in return is **far** more difficult and error prone.
+>  rebase 过于容易出错，故大多数开发者会使用第二种方法
+
+If you want to merge in the target branch to make your Pull Request mergeable, you would add the original repository as a new remote, fetch from it, merge the main branch of that repository into your topic branch, fix any issues and finally push it back up to the same branch you opened the Pull Request on.
+>  要将 topic branch merge 到 target branch，我们需要将原 repo 设为新的 remote，在本地 fetch 并 merge，然后再 push back
+
+For example, let’s say that in the “tonychacon” example we were using before, the original author made a change that would create a conflict in the Pull Request. Let’s go through those steps.
+
 ```
 $ git remote add upstream https://github.com/schacon/blink
 
@@ -3315,19 +3737,67 @@ To https://github.com/tonychacon/blink
 1. Add the original repository as a remote named `upstream`
 2. Fetch the newest work from that remote
 3. Merge the main branch of that repository into your topic branch
-4. Fix the confilct that occurred
+4. Fix the conflict that occurred
 5. Push back up to that same topic branch
 
+Once you do that, the Pull Request will be automatically updated and re-checked to see if it merges cleanly.
+
+![Pull Request now merges cleanly](https://git-scm.com/book/en/v2/images/pr-02-merge-fix.png)
+
+Figure 97. Pull Request now merges cleanly
+
+One of the great things about Git is that you can do that continuously. If you have a very long-running project, you can easily merge from the target branch over and over again and only have to deal with conflicts that have arisen since the last time that you merged, making the process very manageable.
+
+If you absolutely wish to rebase the branch to clean it up, you can certainly do so, but it is highly encouraged to not force push over the branch that the Pull Request is already opened on. If other people have pulled it down and done more work on it, you run into all of the issues outlined in [The Perils of Rebasing](https://git-scm.com/book/en/v2/ch00/_rebase_peril). Instead, push the rebased branch to a new branch on GitHub and open a brand new Pull Request referencing the old one, then close the original.
+>  如果确定要用 rebase，如果有其他人基于原来的 topic branch 进行了工作，则不要 force push，将 rebase 得到的 branch push 到 GitHub 上的新 branch，并开启新的 pr，引用旧的 pr，然后关闭旧的 pr
+
 **References**
-GitHub 有许多种方式可以引用你可以在 GitHub 上写入的几乎任何东西
+Your next question may be “How do I reference the old Pull Request?”. It turns out there are many, many ways to reference other things almost anywhere you can write in GitHub.
+>  GitHub 有许多种方式可以引用你可以在 GitHub 上写入的几乎任何东西
 
-让我们从如何交叉引用另一个拉取请求 (pull request) 或问题 (issue) 开始，所有的拉取请求和问题都被分配了编号，它们在项目中是唯一的 (unique within the project)，例如，你不能同时拥有 Pull Request #3和Issue #3 ，如果你想在任何其他请求或问题中引用任何拉取请求或问题，你只需在任何评论或描述中简单地写上`#<num>`
+Let’s start with how to cross-reference another Pull Request or an Issue. All Pull Requests and Issues are assigned numbers and they are unique within the project. For example, you can’t have Pull Request #3 _and_ Issue #3 . If you want to reference any Pull Request or Issue from any other one, you can simply put `#<num>` in any comment or description. 
+>  让我们从如何交叉引用另一个拉取请求 (pull request) 或问题 (issue) 开始，所有的拉取请求和问题都被分配了编号，它们在项目中是唯一的，例如，你不能同时拥有 Pull Request `#3` 和 Issue `#3` ，如果你想在任何其他请求或问题中引用任何拉取请求或问题，你只需在任何评论或描述中简单地写上 ` #<num>`
 
-如果问题或拉取请求位于其他地方，你也可以更具体地引用；如果你要引用的是你所在的仓库的分支 (fork) 中的一个问题或拉取请求，请写上`username#<num>`，或者使用`username/repo#<num>`来引用另一个仓库中的某个问题或拉取请求
+You can also be more specific if the Issue or Pull request lives somewhere else; write `username#<num>` if you’re referring to an Issue or Pull Request in a fork of the repository you’re in, or `username/repo#<num>` to reference something in another repository.
+>  如果 issue 或 pr 位于其他地方，你也可以更具体地引用
+>  如果你要引用的是你所在的仓库的分支 (fork) 中的 issue 或 pr，请写上 `username#<num>`，或者使用 `username/repo#<num>` 来引用另一个仓库中的某个问题或拉取请求
 
-除了 issue 编号，您还可以通过 SHA-1 引用特定的提交，您必须指定一个完整的 40 个字符的 SHA-1，GitHub 在会将评论中的 SHA-1 值直接链接到该提交，同样，您可以像处理 issue 一样引用分叉或其他存储库中的提交
+Let’s look at an example. Say we rebased the branch in the previous example, created a new pull request for it, and now we want to reference the old pull request from the new one. We also want to reference an issue in the fork of the repository and an issue in a completely different project. We can fill out the description just like [Cross references in a Pull Request](https://git-scm.com/book/en/v2/ch00/_pr_references).
+
+![Cross references in a Pull Request](https://git-scm.com/book/en/v2/images/mentions-01-syntax.png)
+
+Figure 98. Cross references in a Pull Request
+
+When we submit this pull request, we’ll see all of that rendered like [Cross references rendered in a Pull Request](https://git-scm.com/book/en/v2/ch00/_pr_references_render).
+
+![Cross references rendered in a Pull Request](https://git-scm.com/book/en/v2/images/mentions-02-render.png)
+
+Figure 99. Cross references rendered in a Pull Request
+
+Notice that the full GitHub URL we put in there was shortened to just the information needed.
+>  GitHub 也会自动折叠完整的 URL，保留重要的信息
+
+Now if Tony goes back and closes out the original Pull Request, we can see that by mentioning it in the new one, GitHub has automatically created a trackback event in the Pull Request timeline. This means that anyone who visits this Pull Request and sees that it is closed can easily link back to the one that superseded it. The link will look something like [Link back to the new Pull Request in the closed Pull Request timeline](https://git-scm.com/book/en/v2/ch00/_pr_closed).
+
+![Link back to the new Pull Request in the closed Pull Request timeline](https://git-scm.com/book/en/v2/images/mentions-03-closed.png)
+
+Figure 100. Link back to the new Pull Request in the closed Pull Request timeline
+
+In addition to issue numbers, you can also reference a specific commit by SHA-1. You have to specify a full 40 character SHA-1, but if GitHub sees that in a comment, it will link directly to the commit. Again, you can reference commits in forks or other repositories in the same way you did with issues.
+>  除了 issue 编号，还可以通过 SHA-1 引用特定的提交，但必须指定一个完整的 40 个字符的 SHA-1，GitHub 在会将评论中的 SHA-1 值直接链接到该提交
+>  同样，可以像处理 issue 一样引用 fork 或其他 repo 中的提交
+
 ### 6.2.4 GitHub Flavored Markdown
-GitHub 支持在评论 (comment) 或描述 (description) 以及几乎所有文本框 (text box) 中自动渲染 Markdown 格式的文本
+Linking to other Issues is just the beginning of interesting things you can do with almost any text box on GitHub. In Issue and Pull Request descriptions, comments, code comments and more, you can use what is called “GitHub Flavored Markdown”. Markdown is like writing in plain text but which is rendered richly.
+>  GitHub 支持在 comment 或 description 以及几乎所有文本框中自动渲染 Markdown 格式的文本
+
+See [An example of GitHub Flavored Markdown as written and as rendered](https://git-scm.com/book/en/v2/ch00/_example_markdown) for an example of how comments or text can be written and then rendered using Markdown.
+
+![An example of GitHub Flavored Markdown as written and as rendered](https://git-scm.com/book/en/v2/images/markdown-01-example.png)
+
+Figure 101. An example of GitHub Flavored Markdown as written and as rendered
+
+The GitHub flavor of Markdown adds more things you can do beyond the basic Markdown syntax. These can all be really useful when creating useful Pull Request or Issue comments or descriptions.
 
 **Task Lists**
 You can create a task list like this:
