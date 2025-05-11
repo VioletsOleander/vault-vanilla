@@ -35,7 +35,7 @@ where T1 and T2 can be marshaled by encoding/gob. These requirements apply even 
 
 The method's first argument represents the arguments provided by the caller; the second argument represents the result parameters to be returned to the caller. The method's return value, if non-nil, is passed back as a string that the client sees as if created by [errors.New](https://pkg.go.dev/errors#New). If an error is returned, the reply parameter will not be sent back to the client.
 >  方法的第一个参数代表 caller 提供的参数，第二个参数表示应该返回给 caller 的参数
->  方法的返回值 (如果非 `nil`) 会以字符串形式传递，client 回将其视为由 ` errors.New ` 创建的错误，如果方法返回了错误，` reply ` 参数不会发送回客户端
+>  方法的返回值 (如果非 `nil`) 会以字符串形式传递，客户端应将其视为由 ` errors.New ` 创建的错误，如果方法返回了错误，` reply ` 参数不会发送回客户端
 
 The server may handle requests on a single connection by calling [ServeConn](https://pkg.go.dev/net/rpc@go1.24.2#ServeConn). More typically it will create a network listener and call [Accept](https://pkg.go.dev/net/rpc@go1.24.2#Accept) or, for an HTTP listener, [HandleHTTP](https://pkg.go.dev/net/rpc@go1.24.2#HandleHTTP) and [http.Serve](https://pkg.go.dev/net/http#Serve).
 >  server 可以调用 `ServeConn` 处理单个链接上的请求

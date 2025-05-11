@@ -698,7 +698,7 @@ Note that, unlike in C, it's perfectly OK to return the address of a local varia
 
 The fields of a composite literal are laid out in order and must all be present. However, by labeling the elements explicitly as _field_ `:` _value_ pairs, the initializers can appear in any order, with the missing ones left as their respective zero values. Thus we could say
 >  组合字面量的字段需要按序，并且都需要出现
->  可以显式以 `field: value` 的形式指定字段，就不需要按需，且缺少的字段默认为零值
+>  可以显式以 `field: value` 的形式指定字段，就不需要按序，且缺少的字段默认为零值
 
 ```go
     return &File{fd: fd, name: name}
