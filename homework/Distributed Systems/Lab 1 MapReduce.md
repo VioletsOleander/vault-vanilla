@@ -142,7 +142,7 @@ You may see some errors from the Go RPC package that look like
 2019/12/16 13:27:09 rpc.Register: method "Done" has 1 input parameters; needs exactly three
 ```
 
-Ignore these messages; registering the coordinator as an [RPC server](https://golang.org/src/net/rpc/server.go) checks if all its methods are suitable for RPCs (have 3 inputs); we know that `Done` is not called via RPC.
+Ignore these messages; registering the coordinator as an [RPC server](https://golang.org/src/net/rpc/server.go) checks if **all its methods** are suitable for RPCs (have 3 inputs); we know that `Done` is **not called via RPC**.
 
 ### A few rules:
 - The map phase should divide the intermediate keys into buckets for `nReduce` reduce tasks, where `nReduce` is the number of reduce tasks -- the argument that `main/mrcoordinator.go` passes to `MakeCoordinator()`. Each mapper should create `nReduce` intermediate files for consumption by the reduce tasks.
@@ -244,7 +244,7 @@ Ignore these messages; registering the coordinator as an [RPC server](https://g
 >  `test-mr-manay.sh` 用于多次运行 `test-mr.sh`
 
 - Go RPC sends only struct fields whose names start with capital letters. Sub-structures must also have capitalized field names.
->  Go RPC 仅会发送字段名为大写开头的字段
+>  Go RPC 仅会发送名称为大写开头的 struct fields, sub-structures 也必须有大写开头的名称
 
 - When calling the RPC `call()` function, the reply struct should contain all default values. RPC calls should look like this:
     
@@ -257,3 +257,14 @@ Ignore these messages; registering the coordinator as an [RPC server](https://g
 Implement your own MapReduce application (see examples in `mrapps/*`), e.g., Distributed Grep (Section 2.3 of the MapReduce paper).
 
 Get your MapReduce coordinator and workers to run on separate machines, as they would in practice. You will need to set up your RPCs to communicate over TCP/IP instead of Unix sockets (see the commented out line in `Coordinator.server()`), and read/write files using a shared file system. For example, you can ssh into multiple [Athena cluster](http://kb.mit.edu/confluence/display/istcontrib/Getting+Started+with+Athena) machines at MIT, which use [AFS](http://kb.mit.edu/confluence/display/istcontrib/AFS+at+MIT+-+An+Introduction) to share files; or you could rent a couple AWS instances and use [S3](https://aws.amazon.com/s3/) for storage.
+
+# Code Analysis
+The  `main` folder:
+
+`main/mrcoordinator.go` 
+接收输入文件，调用 `mr/coordinator.go` 中定义的 `MakeCoordinator()` 函数创建 `Coordinator` 实例 (其类型也定义在 `mr/coordinator.go` 中)，之后循环等待 `Coordinator` 实例的 `Done()` 方法返回 `true` (表示 MapReduce 任务完成)，之后退出
+因此其作用是启动一个 Coordinator 进程，并等待 MapReduce 完成
+
+`main/mrworker.go` 
+接收 `mrapps/` 中的源文件 (定义了 `Map, Reduce` 函数) 编译出的 `.so ` 文件，从 `.so` 文件中查找到 `Map`, `Reduce` 函数，然后将其作为参数，传递给 `mr/worker.go` 中定义的 `Worker()` 函数，就退出
+因此其作用是启动一个 Worker 进程
