@@ -162,7 +162,7 @@ Figure 1 shows the overall flow of a MapReduce operation in our implementation. 
 2. One of the copies of the program is special – the master. The rest are workers that are assigned work by the master. There are $M$ map tasks and $R$ reduce tasks to assign. The master picks idle workers and assigns each one a map task or a reduce task. 
 
 >  (1) 用户程序的 MapReduce 库将输入划分为 M 个片段，每个片段一般 16MB 到 64 MB (用户可通过参数控制)，然后在集群上启动多个程序副本
->  (2) 一个程序副本会作为主控程序，剩余为工作程序，其工作由 master 分配。一共有 M 个 map 任务和 R 个 reduce 任务需要分配，master 会空闲的工作者分配一个 map 任务或 reduce 任务
+>  (2) 一个程序副本会作为主控程序，剩余为工作程序，其工作由 master 分配。一共有 M 个 map 任务和 R 个 reduce 任务需要分配，master 会为空闲的工作者分配一个 map 任务或 reduce 任务
 
 3. A worker who is assigned a map task reads the contents of the corresponding input split. It parses key/value pairs out of the input data and passes each pair to the user-defined Map function. The intermediate key/value pairs produced by the Map function are buffered in memory. 
 4. Periodically, the buffered pairs are written to local disk, partitioned into $R$ regions by the partitioning function. The locations of these buffered pairs on the local disk are passed back to the master, who is responsible for forwarding these locations to the reduce workers. 
@@ -198,8 +198,8 @@ Since the MapReduce library is designed to help process very large amounts of da
 
 ### Worker Failure 
 The master pings every worker periodically. If no response is received from a worker in a certain amount of time, the master marks the worker as failed. Any map tasks completed by the worker are reset back to their initial idle state, and therefore become eligible for scheduling on other workers. Similarly, any map task or reduce task in progress on a failed worker is also reset to idle and becomes eligible for rescheduling. 
->  master 会周期性 ping 每个 worker，如果一段时间没收到恢复，master 标记该 worker 故障
->  任意由该 worker 完成的 map 任务会重置回其初始的 idle 状态，进而能调度给其他 worker，类似地，任意执行中的 map 任务或 reduce 任务也会重置会 idle 状态，以重新调度
+>  master 会周期性 ping 每个 worker，如果一段时间没收到回复，master 标记该 worker 故障
+>  任意由该 worker 完成的 map 任务会重置回其初始的 idle 状态，进而能调度给其他 worker，类似地，任意执行中的 map 任务或 reduce 任务也会重置回 idle 状态，以重新调度
 
 Completed map tasks are re-executed on a failure because their output is stored on the local disk (s) of the failed machine and is therefore inaccessible. Completed reduce tasks do not need to be re-executed since their output is stored in a global file system. 
 >  完成的 map 任务需要重新执行的原因在于其输出存储在故障机器的本地磁盘上，因此不能再访问
