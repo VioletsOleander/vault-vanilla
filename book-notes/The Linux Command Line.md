@@ -1150,7 +1150,7 @@ The “manual” that man displays is divided into sections and covers not only 
 
 Table 5-1: Man Page Organization 
 
-<html><body><center><table><tr><td>Section</td><td>Contents</td></tr><tr><td>1</td><td>User commands</td></tr><tr><td>２</td><td> Programming interfaces for kernel system calls</td></tr><tr><td>3</td><td>Programming interfaces to the C library</td></tr><tr><td>4</td><td>Special files such as device nodes and drivers</td></tr><tr><td>5</td><td>File formats</td></tr><tr><td>6</td><td>Games and amusements such as screen savers</td></tr><tr><td>7</td><td>Miscellaneous</td></tr><tr><td>8</td><td>System administration commands</td></tr></center></table></body></html> 
+<html><body><center><table><tr><td>Section</td><td>Contents</td></tr><tr><td>1</td><td>User commands</td></tr><tr><td>2</td><td> Programming interfaces for kernel system calls</td></tr><tr><td>3</td><td>Programming interfaces to the C library</td></tr><tr><td>4</td><td>Special files such as device nodes and drivers</td></tr><tr><td>5</td><td>File formats</td></tr><tr><td>6</td><td>Games and amusements such as screen savers</td></tr><tr><td>7</td><td>Miscellaneous</td></tr><tr><td>8</td><td>System administration commands</td></tr></center></table></body></html> 
 
 >  整个手册的布局如上所示
 >  - 第一部分: 用户命令
@@ -1176,8 +1176,9 @@ This will display the man page describing the file format of the /etc/passwd fil
 >  例如某个命令和文件格式共享一个名称，如果不具体指定哪个部分，我们一般看到的是第一个匹配的部分 (通常是 section 1)
 >  例如 `man 5 passwd` 会展示描述 `/etc/passwd` 文件格式的手册
 
-### apropos – Display Appropriate Commands 
+### `apropos` – Display Appropriate Commands 
 It is also possible to search the list of man pages for possible matches based on a search term. It's crude but sometimes helpful. Here is an example of a search for man pages using the search term partition: 
+>  `apropos` 用于在手册列表中搜索其内容能够匹配给定关键词的手册
 
 ```
 [me@linuxbox ~]$ apropos partition
@@ -1198,875 +1199,228 @@ sfdisk (8) - partition table manipulator for Linux
 sgdisk (8) - Command-line GUID partition table (GPT)...
 ```
 
-The first field in each line of output is the name of the man page, and the second field shows the section. Note that the man command with the $\bf\Pi^{\epsilon_{\mathrm{<}}}\bf k^{\prime\prime}$ option performs the same function as apropos. 
+The first field in each line of output is the name of the man page, and the second field shows the section. 
+>  `apropos` 的输出中，每行的第一个字段是手册名称，第二个字段显示手册属于哪个章节
 
-### whatis – Display One-line Manual Page Descriptions 
-The whatis program displays the name and a one-line description of a man page matching a specified keyword: 
+Note that the man command with the `-k` option performs the same function as `apropos`. 
+>  `man -k` 的功能和 `apropos` 是一样的
 
-<html><body><table><tr><td>[ me@linuxbox ~]$ whatis ls ls</td><td>(1) - list directory contents</td></tr></table></body></html> 
+### `whatis` – Display One-line Manual Page Descriptions 
+The `whatis` program displays the name and a one-line description of a man page matching a specified keyword: 
+>  `whatis` 显示与指定关键字匹配的手册页的名称和一行描述
 
-## The Most Brutal Man Page Of Them All 
+```
+[me@linuxbox ~]$ whatis ls
+ls (1) - list directory
+```
+
+>  `apropos` 是根据关键词搜索命令或程序的简短描述，它会搜索 `man` 手册页面的名称和描述部分，返回所有包含指定关键词的命令或程序的描述
+>  `apropos` 应该用于不确定命令或程序的具体名称，但知道它的功能关键词的场景下
+>  `whatis` 用于显示指定命令或程序的简短描述，它会搜索 `man` 手册页面的名称和描述部分，并返回匹配的结果，如果找到多个匹配项，它会显示所有匹配项的描述
+>  `whatis` 应该用于知道命令或程序的名称，但想快速确认它的功能时的场景
+
+**The Most Brutal Man Page Of Them All** 
 As we have seen, the manual pages supplied with Linux and other Unix-like systems are intended as reference documentation and not as tutorials. Many man pages are hard to read, but I think that the grand prize for difficulty has got to go to the man page for bash. As I was doing research for this book, I gave the bash man page careful review to ensure that I was covering most of its topics. When printed, it's more than 80 pages long and extremely dense, and its structure makes absolutely no sense to a new user. 
 
 On the other hand, it is very accurate and concise, as well as being extremely complete. So check it out if you dare and look forward to the day when you can read it and it all makes sense. 
 
-### info – Display a Program's Info Entry 
+### `info` – Display a Program's Info Entry 
 The GNU Project provides an alternative to man pages for their programs, called “info.” Info manuals are displayed with a reader program named, appropriately enough, info. Info pages are hyperlinked much like web pages. Here is a sample: 
-<html><body><table><tr><td>File: coreutils.info, Node: ls invocation, Next: dir invocation, Up: Directory listing 10.1 ^ls': List directory contents</td></tr><tr><td>The *ls' program lists information about files (of any type, including directories). Options and file arguments can be intermixed arbitrarily, as usual. For non-option command-line arguments that are directories, by default *ls' lists the contents of directories, not recursively, and omitting files with names beginning with ^.'. For other non-option arguments, by default *ls' lists just the filename. If no non-option</td></tr></table></body></html> 
-The info program reads info files, which are tree structured into individual nodes, each containing a single topic. Info files contain hyperlinks that can move the reader from node to node. A hyperlink can be identified by its leading asterisk and is activated by placing the cursor upon it and pressing the Enter key. 
+>  `info` 命令由于显示程序的 Info 文档 (大多数命令会有 manual 文档，但不一定有 Info 文档，通常一些 GNU 工具和程序额外有 Info 文档)
+>  manual 文档通常提供关于命令的简明参考信息，适合快速查找命令的用法和选项；Info 文档通常提供更详细的文档，包括背景信息、示例和更深入的解释，适合更全面的学习
+>  `info` 命令会用 `info` 阅读程序展示 Info 文档，Info 文档以信息节点的形式组织，并且其中允许有超链接
+
+```
+File: coreutils.info, Node: ls invocation, Next: dir invocation, Up: Directory listing
+10.1 `ls': List directory contents 
+==================================
+The `ls' program lists information about files (of any type, including directories). Options and file arguments can be intermixed arbitrarily, as usual.
+    For non-option command-line arguments that are directories, by default `ls' lists the contents of directories, not recursively, and omitting files with names beginning with `.'. For other non-option arguments, by default `ls' lists just the filename. If no non-option argument is specified, `ls' operates on the current directory, acting as if it had been invoked with a single argument of `.'.
+    By default, the output is sorted alphabetically, according to the
+--zz-Info: (coreutils.info.gz)ls invocation, 63 lines --Top----------
+```
+
+The `info` program reads info files, which are tree structured into individual nodes, each containing a single topic. Info files contain hyperlinks that can move the reader from node to node. A hyperlink can be identified by its leading asterisk and is activated by placing the cursor upon it and pressing the Enter key. 
+>  `info` 命令读取 Info 文件，这些文件是一个个节点，组织为一个树状结构，每个节点包含一个主体
+>  Info 文件包含超链接，可以从一个节点跳转到另一个节点，超链接会有一个前导的 `*` ，将光标放在超链接上，按下 `Enter` 就可以跳转
+
 To invoke info, type info followed optionally by the name of a program. Table 5-2 describes the commands used to control the reader while displaying an info page. 
+
 Table 5-2: info Commands 
-<html><body><table><tr><td>Command</td><td>Action</td></tr><tr><td>？</td><td>Display command help</td></tr><tr><td>PgUp or Backspace</td><td>Display previous page</td></tr><tr><td>PgDn or Space</td><td>Display next page</td></tr><tr><td>n</td><td>Next - Display the next node</td></tr><tr><td>p</td><td>Previous - Display the previous node</td></tr><tr><td>u</td><td>Up - Display the parent node of the currently displayed node, usually a menu</td></tr></table></body></html> 
-<html><body><table><tr><td>Enter</td><td>Follow the hyperlink at the cursor location</td></tr><tr><td>q</td><td>Quit</td></tr></table></body></html> 
-Most of the command line programs we have discussed so far are part of the GNU Project's coreutils package, so typing the following: 
-<html><body><table><tr><td>[me@linuxbox ~]$ info coreutils</td></tr></table></body></html> 
-will display a menu page with hyperlinks to each program contained in the coreutils package. 
-# README and Other Program Documentation Files 
-Many software packages installed on our system have documentation files residing in the /usr/share/doc directory. Most of these are stored in plain text format and can be viewed with less. Some of the files are in HTML format and can be viewed with a web browser. We may encounter some files ending with a “.gz” extension. This indicates that they have been compressed with the gzip compression program. The gzip package includes a special version of less called zless that will display the contents of gzipcompressed text files. 
-# Creating Our Own Commands with alias 
-Now for our first experience with programming! We will create a command of our own using the alias command. But before we start, we need to reveal a small command line trick. It's possible to put more than one command on a line by separating each command with a semicolon. It works like this: 
-command1; command2; command3... 
-Here's the example we will use: 
-[me@linuxbox ~]$ cd /usr; ls; cd - 
-bin games include lib local sbin share src 
-/home/me 
-[me@linuxbox ~]$ 
-As we can see, we have combined three commands on one line. First we change directory to /usr then list the directory and finally return to the original directory (by using 'cd -') so we end up where we started. Now let's turn this sequence into a new command using alias. The first thing we have to do is dream up a name for our new command. Let's try “test”. Before we do that, it would be a good idea to find out if the name “test” is already being used. To find out, we can use the type command again: 
-<html><body><table><tr><td>[me@linuxbox ~]$ type test test is a shell builtin</td></tr></table></body></html> 
-Oops! The name test is already taken. Let's try foo: 
-[me@linuxbox $-]$1$ type foo bash: type: foo: not found 
-Great! “foo” is not taken. So let's create our alias: 
-[me@linuxbox ~]$ alias foo $\mathbf{\lambda}=\mathbf{\lambda}$ 'cd /usr; ls; cd -' 
-Notice the structure of this command shown here: 
-alias name $\underline{{\underline{{\mathbf{\Pi}}}}}=$ 'string' 
-After the command alias, we give alias a name followed immediately (no whitespace allowed) by an equal sign, followed immediately by a quoted string containing the meaning to be assigned to the name. After we define our alias, we can use it anywhere the shell would expect a command. Let's try it: 
-[me@linuxbox ~]$ foo 
-bin games include lib local sbin share src 
-/home/me 
-[me@linuxbox ~]$ 
-We can also use the type command again to see our alias: 
-[me@linuxbox ~]$ type foo foo is aliased to \`cd /usr; ls; cd - 
-To remove an alias, the unalias command is used, like so: 
-[me@linuxbox ~]$ unalias foo $[\mathfrak{m}\in{\varnothing}{\mathrm{{linu}}}\times\mathfrak{b}\circ\times\ \mathfrak{-}]\Phi$ type foo bash: type: foo: not found 
-While we purposefully avoided naming our alias with an existing command name, it is not uncommon to do so. This is often done to apply a commonly desired option to each invocation of a common command. For instance, we saw earlier how the ls command is often aliased to add color support: 
-[me@linuxbox ~]$ type ls ls is aliased to \`ls --color=tty' 
-To see all the aliases defined in the environment, use the alias command without arguments. Here are some of the aliases defined by default on a Fedora system. Try to figure out what they all do: 
-[me@linuxbox ~]$ alias alias l. $\mathbf{\epsilon}=\mathbf{\epsilon}^{\prime}$ ls -d .\* --color=tty' alias ll='ls -l --color=tty' alias ls='ls --color=tty' 
-There is one tiny problem with defining aliases on the command line. They vanish when our shell session ends. In Chapter 11, "The Environment", we will see how to add our own aliases to the files that establish the environment each time we log on, but for now, enjoy the fact that we have taken our first, albeit tiny, step into the world of shell pro - gramming! 
+<html><body><center><table><tr><td>Command</td><td>Action</td></tr><tr><td>？</td><td>Display command help</td></tr><tr><td>PgUp or Backspace</td><td>Display previous page</td></tr><tr><td>PgDn or Space</td><td>Display next page</td></tr><tr><td>n</td><td>Next - Display the next node</td></tr><tr><td>p</td><td>Previous - Display the previous node</td></tr><tr><td>u</td><td>Up - Display the parent node of the currently displayed node, usually a menu</td></tr>
+<tr><td>Enter</td><td>Follow the hyperlink at the cursor location</td></tr><tr><td>q</td><td>Quit</td></tr></table></center></body></html> 
+
+>  `info` 阅读器中的常见快捷命令
+>  `?` : 显示 help
+>  `PgUp/Backspace`: 显示上一个 page
+>  `PgDn/Space` : 显示下一个 page
+>  `n`: 显示下一个节点
+>  `p`: 显示上一个节点
+>  `u` : 显示当前节点的父节点，通常是菜单
+>  `Enter`: 跳转到光标处的超链接
+>  `q` : 退出
+
+Most of the command line programs we have discussed so far are part of the GNU Project's `coreutils` package, so typing the following: 
+
+<html><body><table><tr><td>[ me@linuxbox ~]$ info coreutils</td></tr></table></body></html> 
+
+will display a menu page with hyperlinks to each program contained in the `coreutils` package. 
+
+>  目前为止讨论的大多数命令都是 GNU 的 `coreutils` 包的一部分
+>  故 `info coreutils` 会显示一个菜单页面，它包含了许多超链接，指向了 `coreutils` 中的各个程序的 Info 节点
+
+### README and Other Program Documentation Files 
+Many software packages installed on our system have documentation files residing in the `/usr/share/doc` directory. Most of these are stored in plain text format and can be viewed with less. Some of the files are in HTML format and can be viewed with a web browser. We may encounter some files ending with a “`.gz`” extension. This indicates that they have been compressed with the `gzip` compression program. The `gzip` package includes a special version of less called `zless` that will display the contents of `gzip` compressed text files. 
+
+# Part 3 – Common Tasks and Essential Tools 
+
+# 14 Package Management 
+If we spend any time in the Linux community, we hear many opinions as to which of the many Linux distributions is “best.” Often, these discussions get really silly, focusing on such things as the prettiness of the desktop background (some people won't use Ubuntu because of its default color scheme!) and other trivial matters. 
+
+The most important determinant of distribution quality is the packaging system and the vitality of the distribution's support community. As we spend more time with Linux, we see that its software landscape is extremely dynamic. Things are constantly changing. Most of the top-tier Linux distributions release new versions every six months and many individual program updates every day. To keep up with this blizzard of software, we need good tools for package management. 
+>  Linux 发行版质量的决定因素是其包管理系统和发行版的支持社区的活力
+>  Linux 的软件环境非常动态化，大多数顶级 Linux 发行版每 6 个月发布一个新版本，许多独立程序每天都会更新
+> 为此，我们需要一个良好的包管理工具
+
+Package management is a method of installing and maintaining software on the system. Today, most people can satisfy all of their software needs by installing packages from their Linux distributor. This contrasts with the early days of Linux, when one had to download and compile source code to install software. There isn’t anything wrong with compiling source code; in fact, having access to source code is the great wonder of Linux. It gives us (and everybody else) the ability to examine and improve the system. It's just that having a precompiled package is faster and easier to deal with. 
+>  包管理是在系统上安装和维护软件的方法
+>  如今，大多数软件可以直接从 Linux 发行商处直接安装预编译好的软件包，在早期，则需要下载并编译源代码
+
+In this chapter, we will look at some of the command line tools used for package management. While all the major distributions provide powerful and sophisticated graphical programs for maintaining the system, it is important to learn about the command line programs, too. They can perform many tasks that are difficult (or impossible) to do with their graphical counterparts. 
+
+## Packaging Systems 
+Different distributions use different packaging systems, and as a general rule, a package intended for one distribution is not compatible with another distribution. Most distributions fall into one of two camps of packaging technologies: the Debian .deb camp and the Red Hat .rpm camp. 
+>  不同的发行版使用不同的包管理系统
+>  一般来说，为一个发行版设计的包与其他发行版是不兼容的
+>  大多数发行版的打包技术都属于以下两类之一: 使用Debian 风格的 `.deb` 包，或 Red Hat 风格的 `.rpm` 包
+
+There are some important exceptions such as Gentoo, Slackware, and Arch, but most others use one of these two basic systems as shown in Table 14-1. 
+>  也有一些例外情况，例如 Gentoo, Slackware, Arch
+
+Table 14-1: Major Packaging System Families 
+
+| Packaging System       | Distributions (Partial Listing)                    |
+| ---------------------- | -------------------------------------------------- |
+| Debian Style (`.deb`)  | Debian, Ubuntu, Linux Mint, Raspberry Pi OS        |
+| Red Hat Style (`.rpm`) | Fedora, CentOS, Red Hat Enterprise Linux, OpenSUSE |
+
+>  使用 `.deb` 的发行版主要为 Debian, Ubuntu
+>  使用 `.rpm` 的发行版主要为 Fedora, CentOS, OpenSUSE
+
+## How a Package System Works 
+The method of software distribution found in the proprietary software industry usually entails buying a piece of installation media such as an “install disk” or visiting a vendor's web site and downloading a product and then running an “installation wizard” to install a new application on the system. 
+Linux doesn't work that way. Virtually all software for a Linux system will be found on the Internet. Most of it will be provided by the distribution vendor in the form of package files, and the rest will be available in source code form that can be installed manually. We'll talk about how to install software by compiling source code in chapter 23, “Compiling Programs.” 
+
+### Package Files 
+The basic unit of software in a packaging system is the package file. A package file is a compressed collection of files that comprise the software package. A package may consist of numerous programs and data files that support the programs. In addition to the files to be installed, the package file also includes metadata about the package, such as a text description of the package and its contents. Additionally, many packages contain pre- and post-installation scripts that perform configuration tasks before and after the package installation. 
+
+Package files are created by a person known as a package maintainer, often (but not always) an employee of the distribution vendor. The package maintainer gets the software in source code form from the upstream provider (the author of the program), compiles it, and creates the package metadata and any necessary installation scripts. Often, the package maintainer will apply modifications to the original source code to improve the program's integration with the other parts of the Linux distribution. 
+
+### Repositories 
+While some software projects choose to perform their own packaging and distribution, most packages today are created by the distribution vendors and interested third parties. Packages are made available to the users of a distribution in central repositories that may contain many thousands of packages, each specially built and maintained for the distribution. 
+
+A distribution may maintain several different repositories for different stages of the software development life cycle. For example, there will usually be a “testing” repository that contains packages that have just been built and are intended for use by brave souls who are looking for bugs before the packages are released for general distribution. A distribution will often have a “development” repository where work-in-progress packages destined for inclusion in the distribution's next major release are kept. 
+
+A distribution may also have related third-party repositories. These are often needed to supply software that, for legal reasons such as patents or DRM anti-circumvention issues, cannot be included with the distribution. Perhaps the best known case is that of encrypted DVD support, which is not legal in the United States. The third-party repositories operate in countries where software patents and anti-circumvention laws do not apply. These repositories are usually wholly independent of the distribution they support, and to use them, one must know about them and manually include them in the configuration files for the package management system. 
+
+### Dependencies 
+Programs are seldom “standalone”; rather they rely on the presence of other software components to get their work done. Common activities, such as input/output for example, are handled by routines shared by many programs. These routines are stored in what are called shared libraries, which provide essential services to more than one program. If a package requires a shared resource such as a shared library, it is said to have a dependency. Modern package management systems all provide some method of dependency resolution to ensure that when a package is installed, all of its dependencies are installed, too. 
+
+# High and Low-level Package Tools 
+Package management systems usually consist of two types of tools. 
+Low-level tools which handle tasks such as installing and removing package files High-level tools that perform metadata searching and dependency resolution 
+In this chapter, we will look at the tools supplied with Debian-style systems (such as Ubuntu and many others) and those used by Red Hat products. While all Red Hat-style distributions rely on the same low-level program (rpm), they use different high-level tools. For our discussion, we will cover the high-level program dnf, used by Red Hat Enterprise Linux, CentOS, and Fedora. Other Red Hat-style distributions provide highlevel tools with comparable features (see Table 14-2). 
+Table 14- 2: Packaging System Tools 
+<html><body><table><tr><td>Distributions</td><td>Low-Level Tools</td><td>High-Level Tools</td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table></body></html> 
+<html><body><table><tr><td>Debian style</td><td>dpkg</td><td>apt, apt-get, aptitude</td></tr><tr><td>Fedora, Red Hat</td><td>rpm</td><td>dnf, yum</td></tr><tr><td>Enterprise Linux, CentOS</td><td></td><td></td></tr></table></body></html> 
+# Common Package Management Tasks 
+Many operations can be performed with the command line package management tools. We will look at the most common. Be aware that the low-level tools also support the creation of package files, an activity outside the scope of this book. 
+In the discussion below, the term package_name refers to the actual name of a package rather than the term package_file, which is the name of the file that contains the package. Also, before any package operations can be performed, the package repository needs to be queried so that the local copy of its database can be synchronized. Red Hat’s dnf program does this automatically and updates the local database if too much time has elapsed since the last update. On the other hand, Debian’s apt program must be run with the update command to explicitly update the local database. This needs to be done every so often. In the examples below, the apt update command is done before any operations, but in real life this only needs to be done every few hours to stay safe. 
+Since operations that involve installing or removing software on a system-wise basis is an administrative task, superuser privileges are required regardless of the package management tool. 
+# Finding a Package in a Repository 
+Using the high-level tools to search repository metadata, a package can be located based on its name or description (see Table 14-3). 
+Table 14-3: Package Search Commands 
+<html><body><table><tr><td>Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>apt update; apt search search_string</td></tr><tr><td>Red Hat</td><td>dnf search search_string</td></tr></table></body></html> 
+For example, to search a dnf repository for the emacs text editor, we can use this command: 
+dnf search emacs 
+# Installing a Package from a Repository 
+High-level tools permit a package to be downloaded from a repository and installed with full dependency resolution (see Table 14-4). 
+Table 14-4: Package Installation Commands 
+<html><body><table><tr><td>Style</td><td colspan="3">Command(s)</td></tr><tr><td>Debian</td><td></td><td>apt update; apt install package_name</td><td></td></tr><tr><td>Red Hat</td><td>dnf install package_name</td><td></td><td></td></tr></table></body></html> 
+For example, to install the emacs text editor from an apt repository on a Debian system, we can use this command: 
+<html><body><table><tr><td>apt update; apt install emacs</td></tr></table></body></html> 
+# Installing a Package from a Package File 
+If a package file has been downloaded from a source other than a repository, it can be installed directly (though without dependency resolution) using a low-level tool (see Table 14-5). 
+Table 14-5: Low-Level Package Installation Commands 
+<html><body><table><tr><td>Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -i package_file</td></tr><tr><td>Red Hat</td><td>rpm -i package_file</td></tr></table></body></html> 
+For example, if the emacs-22.1-7.fc7-i386.rpm package file had been downloaded from a non-repository site, it would be installed this way: 
+rpm -i emacs-22.1-7.fc7-i386.rpm 
+Note: Because this technique uses the low-level rpm program to perform the installation, no dependency resolution is performed. If rpm discovers a missing de 
+pendency, rpm will exit with an error. 
+# Removing a Package 
+Packages can be uninstalled using either the high-level or low-level tools. The high-level tools are shown in Table 14-6. 
+Table 14-6: Package Removal Commands 
+<html><body><table><tr><td>Style</td><td colspan="2">Command(s)</td></tr><tr><td>Debian</td><td>apt remove package_name</td><td></td></tr><tr><td>Red Hat</td><td></td><td>dnf erase package_name</td></tr></table></body></html> 
+For example, to uninstall the emacs package from a Debian-style system, we can use this command: 
+# Updating Packages from a Repository 
+The most common package management task is keeping the system up-to-date with the latest versions of packages. The high-level tools can perform this vital task in a single step (see Table 14-7). 
+Table 14-7: Package Update Commands 
+<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>apt update; apt upgrade</td></tr><tr><td>Red Hat</td><td>dnf update</td></tr></table></body></html> 
+For example, to apply all available updates to the installed packages on a Debian-style system, we can use this command: 
+apt update; apt upgrade 
+# Upgrading a Package from a Package File 
+If an updated version of a package has been downloaded from a non-repository source, it can be installed, replacing the previous version (see Table 14-8). 
+Table 14-8: Low-Level Package Upgrade Commands 
+<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -i package_file</td></tr><tr><td>Red Hat</td><td>rpm -U package_file</td></tr></table></body></html> 
+For example, to update an existing installation of emacs to the version contained in the package file emacs-22.1-7.fc7-i386.rpm on a Red Hat system, we can use this command: 
+rpm -U emacs-22.1-7.fc7-i386.rpm 
+Note: dpkg does not have a specific option for upgrading a package versus installing one as rpm does. 
+# Listing Installed Packages 
+Table 14-9 lists the commands we can use to display a list of all the packages installed on the system. 
+Table 14-9: Package Listing Commands 
+<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -l</td></tr><tr><td>Red Hat</td><td>rpm -qa</td></tr></table></body></html> 
+# Determining Whether a Package is Installed 
+Table 14-10 list the low-level tools we can use to display whether a specified package is installed. 
+Table 14-10: Package Status Commands 
+<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -s package_name</td></tr><tr><td>Red Hat</td><td>rpm -q package_name</td></tr></table></body></html> 
+For example, to determine whether the emacs package is installed on a Debian style system, we can use this command: 
+<html><body><table><tr><td>dpkg --status emacs</td></tr></table></body></html> 
+# Displaying Information About an Installed Package 
+If the name of an installed package is known, we can use the commands in Table 14-11 to display a description of the package. 
+Table 14-11: Package Information Commands 
+<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>apt show package_name</td></tr><tr><td>Red Hat</td><td>dnf info package_name</td></tr></table></body></html> 
+For example, to see a description of the emacs package on a Debian-style system, we can use this command: 
+<html><body><table><tr><td>apt-cache show emacs</td></tr></table></body></html> 
+# Finding Which Package Installed a File 
+To determine what package is responsible for the installation of a particular file, we can use the commands in Table 14-12. 
+Table 14-12: Package File Identification Commands 
+<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -S file_name</td></tr></table></body></html> 
+<html><body><table><tr><td>Red Hat rpm -qf file_name</td></tr></table></body></html> 
+For example, to see what package installed the /usr/bin/vim file on a Red Hat system, we can use the following: 
+rpm -qf /usr/bin/vim 
+# Distribution-Independent Package Formats 
+Over the last several years distribution vendors have come out with universal package formats that are not tied to a particular Linux distribution. These include Snaps (developed and promoted by Canonical), Flatpaks (pioneered by Red Hat, but now widely available) and AppImages. Though they each work a little differently, their goal is to have an application and all of its dependencies bundled together and installed in a single piece. This is not an entirely new idea. In the early days of Linux (think the late 1990s) the was a technique called static linking which combined an application and its required libraries into a single large binary. 
+There are some benefits to this packaging approach. First among them is reducing the effort needed to distribute an application. Rather than tailoring the application to work with the libraries and other support files included a distribution's base system, the application is built once and can be installed on any system. Some of these formats also run the application in a containerized sandbox to provide additional security. 
+But there are some serious downsides too. Applications packaged this way are large. Sometimes really large. This has two effects. First, they require a lot of disk space to store. Second, their large size can make them very slow to load. This may not be much of an issue on modern ultra-fast hardware, but on older machines it’s a real problem. The next technical problem has to do with distribution integration. Since these applications bring all of their stuff with them, they don’t take advantage of the underlying distribution's facilities. Sometimes the containerized application cannot access system resources needed of optimal performance. 
+Then there are the philosophical issues. Perhaps the biggest beneficiary of these all-in-one application packages are proprietary software vendors. They can build a Linux version once and every distribution can use it. No need to custom tailor their application for different distros. 
+Users were not crying out for these packaging formats and they do little to enhance the open source community, thus until such time the various performance issues are resolved use of these formats is not recommended. 
 # Summing Up 
-Now that we have learned how to find the documentation for commands, go and look up the documentation for all the commands we have encountered so far. Study what additional options are available and try them! 
+In the chapters that follow, we will explore many different programs covering a wide range of application areas. While most of these programs are commonly installed by default, we may need to install additional packages if the necessary programs are not provided. With our newfound knowledge (and appreciation) of package management, we should have no problem installing and managing the programs we need. 
+# The Linux Software Installation Myth 
+People migrating from other platforms sometimes fall victim to the myth that software is somehow difficult to install under Linux and that the variety of packaging schemes used by different distributions is a hindrance. Well, it is a hindrance, but only to proprietary software vendors that want to distribute binaryonly versions of their secret software. 
+The Linux software ecosystem is based on the idea of open source code. If a program developer releases source code for a program, it is likely that a person associated with a distribution will package the program and include it in their repository. This method ensures that the program is well integrated into the distribution, and the user is given the convenience of “one-stop shopping” for software, rather than having to search for each program's website. Recently, major proprietary platform vendors have begun building application stores that mimic this idea. 
+Device drivers are handled in much the same way, except that instead of being separate items in a distribution's repository, they become part of the Linux kernel. Generally speaking, there is no such thing as a “driver disk” in Linux. Either the kernel supports a device or it doesn't, and the Linux kernel supports a lot of devices. Many more, in fact, than Windows does. Of course, this is of no consolation if the particular device you need is not supported. When that happens, you need to look at the cause. A lack of driver support is usually caused by one of three things: 
+1. The device is too new. Since many hardware vendors don't actively support Linux development, it falls upon a member of the Linux community to write the kernel driver code. This takes time. 
+2. The device is too exotic. Not all distributions include every possible device driver. Each distribution builds its own kernels, and since kernels are very configurable (which is what makes it possible to run Linux on everything from wristwatches to mainframes) they may have overlooked a particular device. By locating and downloading the source code for the driver, it is possible for you (yes, you) to compile and install the driver yourself. This process is not overly difficult, but it is rather involved. We'll talk about compiling software in a later chapter. 
+3. The hardware vendor is hiding something. It has neither released source code for a Linux driver, nor has it released the technical documentation for somebody to create one for them. This means the hardware vendor is trying to keep the programming interfaces to the device a secret. Since we don't want secret devices in our computers, it is best that you avoid such products. 
 # Further Reading 
-There are many online sources of documentation for Linux and the command line. Here are some of the best: 
-The Bash Reference Manual is a reference guide to the bash shell. It’s still a reference work but contains examples and is easier to read than the bash man page. http://www.gnu.org/software/bash/manual/bashref.html 
-The Bash FAQ contains answers to frequently asked questions regarding bash. This list is aimed at intermediate to advanced users, but contains a lot of good information. 
-http://mywiki.wooledge.org/BashFAQ 
-The GNU Project provides extensive documentation for its programs, which form the core of the Linux command line experience. You can see a complete list here: http://www.gnu.org/manual/manual.html 
-Wikipedia has an interesting article on man pages: 
-http://en.wikipedia.org/wiki/Man_page 
-# 6 – Redirection 
-In this lesson we are going to unleash what may be the coolest feature of the command line. It's called I/O redirection. The “I/O” stands for input/output and with this facility we can redirect the input and output of commands to and from files, as well as connect multiple commands together into powerful command pipelines. To show off this facility, we will introduce the following commands: 
-cat – Concatenate files 
-sort – Sort lines of text 
-uniq – Report or omit repeated lines 
-grep – Print lines matching a pattern 
-wc – Print newline, word, and byte counts for each file 
-head – Output the first part of a file 
-tail – Output the last part of a file 
-tee – Read from standard input and write to standard output and files 
-# Standard Input, Output, and Error 
-Many of the programs that we have used so far produce output of some kind. This output often consists of two types: 
-The program's results, that is, the data the program is designed to produce Status and error messages that tell us how the program is getting along 
-If we look at a command like ls, we can see that it displays its results and its error messages on the screen. 
-Keeping with the Unix theme of “everything is a file,” programs such as ls actually send their results to a special file called standard output (often expressed as stdout) and their status messages to another file called standard error (stderr). By default, both standard output and standard error are linked to the screen and not saved into a disk file. 
-In addition, many programs take input from a facility called standard input (stdin), which is, by default, attached to the keyboard. 
-I/O redirection allows us to change where output goes and where input comes from. Normally, output goes to the screen and input comes from the keyboard, but with I/O redirection, we can change that. 
-# Redirecting Standard Output 
-I/O redirection allows us to redefine where standard output goes. To redirect standard output to another file instead of the screen, we use the $>$ redirection operator followed by the name of the file. Why would we want to do this? It's often useful to store the output of a command in a file. For example, we could tell the shell to send the output of the ls command to the file ls-output.txt instead of the screen: 
-[me@linuxbox ~]$ ls -l /usr/bin $>$ ls-output.txt 
-Here, we created a long listing of the /usr/bin directory and sent the results to the file ls-output.txt. Let's examine the redirected output of the command, shown here: 
-[me@linuxbox ~]$ ls -l ls-output.txt -rw-rw-r-- 1 me me 167878 2025-02-01 15:07 ls-output.txt 
-Good — a nice, large, text file. If we look at the file with less, we will see that the file ls-output.txt does indeed contain the results from our ls command. 
-[me@linuxbox ~]$ less ls-output.txt 
-Now, let's repeat our redirection test, but this time with a twist. We'll change the name of the directory to one that does not exist: 
-[me@linuxbox ~]$ ls -l /bin/usr $>$ ls-output.txt ls: cannot access /bin/usr: No such file or director 
-We received an error message. This makes sense since we specified the nonexistent directory /bin/usr, but why was the error message displayed on the screen rather than being redirected to the file ls-output.txt? The answer is that the ls program does not send its error messages to standard output. Instead, like most well-written Unix programs, it sends its error messages to standard error (stderr). Since we only redirected standard output and not standard error, the error message was still sent to the screen. We'll see how to redirect standard error in just a minute, but first let's look at what happened to our output file: 
-<html><body><table><tr><td>[me@linuxbox ~]$ ls -l ls-output.txt -rw-rw-r-- 1 me me 0 2025-02-01 15:08 ls-0utput.txt</td></tr></table></body></html> 
-The file now has zero length! This is because when we redirect output with the $">"$ redirection operator, the destination file is always rewritten from the beginning. Since our ls command generated no results and only an error message, the redirection operation started to rewrite the file and then stopped because of the error, resulting in its truncation. In fact, if we ever need to actually truncate a file (or create a new, empty file), we can use a trick like this: 
-<html><body><table><tr><td>[me@linuxbox ~]$ > ls-output.txt</td></tr></table></body></html> 
-Simply using the redirection operator with no command preceding it will truncate an existing file or create a new, empty file. 
-So, how can we append redirected output to a file instead of overwriting the file from the beginning? For that, we use the $\gg$ redirection operator, like so: 
-# [me@linuxbox ~]$ ls -l /usr/bin >> ls-output.txt 
-Using the $\gg$ operator will result in the output being appended to the file. If the file does not already exist, it is created just as though the $>$ operator had been used. Let's put it to the test by repeating a command and appending its output to a file: 
-[me@linuxbox ~]$ ls -l /usr/bin $\gg$ ls-output.txt [me@linuxbox ~]$ ls -l /usr/bin >> ls-output.txt [me@linuxbox ~]$ ls -l /usr/bin >> ls-output.txt [me@linuxbox ~]$ ls -l ls-output.txt -rw-rw-r-- 1 me me 503634 2025-02-01 15:45 ls-output.txt 
-We repeated the ls command three times resulting in an output file three times as large. 
-# Group Commands 
-Let’s imagine a situation where we want to execute a series of commands and send the results to a log file. With we know already, we could do this: 
-[me@linuxbox ~]$ command1 $>$ logfile.txt [me@linuxbox ~]$ command2 $\gg$ logfile.txt [me@linuxbox ~]$ command3 $\gg$ logfile.txt 
-The first command in this sequence creates/truncates a file named logfile.txt and each subsequent command appends its output to that file. This technique will work but there is a lot of redundant typing. There must be a better way. 
-As we saw in the previous chapter, we can put multiple commands on a single line like this: 
-[me@linuxbox ~]$ command1; command2; command3 
-So we could place all of our commands and redirections on a single line: 
-[me@linuxbox ~]$ command1 $>$ logfile.txt; command2 $\gg$ logfile.txt; command3 $\gg$ logfile.txt 
-But what if we could treat the sequence as a single entity with a single output stream? We can do this by creating a group command. To do this, we surround our sequence with brace characters: 
-[me@linuxbox ~]$ { command1; command2; command3; $\}>$ logfile.txt 
-With our sequence surrounded by braces, the shell will consider it a single command in terms of redirection. Note that the shell requires whitespace around the braces and the final command in the sequence must be terminated with either a semicolon or a newline. 
-# Redirecting Standard Error 
-Redirecting standard error lacks the ease of a dedicated redirection operator. To redirect standard error we must refer to its file descriptor. A program can produce output on any of several numbered file streams. While we have referred to the first three of these file streams as standard input, output and error, the shell references them internally as file descriptors 0, 1, and 2, respectively. The shell provides a notation for redirecting files using the file descriptor number. Since standard error is the same as file descriptor number 2, we can redirect standard error with this notation: 
-[me@linuxbox ~]$ ls -l /bin/usr $2>$ ls-error.txt 
-The file descriptor $^{\infty}2^{\dag}$ is placed immediately before the redirection operator to perform the redirection of standard error to the file ls-error.txt. 
-# Redirecting Standard Output and Standard Error to One File 
-There are cases in which we may want to capture all of the output of a command to a single file. To do this, we must redirect both standard output and standard error at the same time. There are two ways to do this. Shown here is the traditional way, which works with old versions of the shell: 
-# [me@linuxbox ~]$ ls -l /bin/usr $>$ ls-output.txt $2>21$ 
-Using this method, we perform two redirections. First we redirect standard output to the file ls-output.txt and then we redirect file descriptor 2 (standard error) to file descriptor 1 (standard output) using the notation $2>\&1$ . 
-Notice that the order of the redirections is significant. The redirection of standard error must always occur after redirecting standard output or it doesn't work. The following example redirects standard error to the file ls-output.txt: 
->ls-output.txt 2>&1 
-However, if the order is changed to the following, standard error is directed to the screen. 
-Recent versions of bash provide a second, more streamlined method for performing this combined redirection shown here: 
-[me@linuxbox ~]$ ls -l /bin/usr &> ls-output.txt 
-In this example, we use the single notation $\&>$ to redirect both standard output and standard error to the file ls-output.txt. We can also append the standard output and standard error streams to a single file like so: 
-[me@linuxbox ~]$ ls -l /bin/usr &>> ls-output.txt 
-# Disposing of Unwanted Output 
-Sometimes “silence is golden,” and we don't want output from a command, we just want to throw it away. This applies particularly to error and status messages. The system provides a way to do this by redirecting output to a special file called “/dev/null”. This file is a system device often referred to as a bit bucket, which accepts input and does nothing with it. To suppress error messages from a command, we do this: 
-[me@linuxbox ~]$ ls -l /bin/usr 2> /dev/null 
-# /dev/null In Unix Culture 
-The bit bucket is an ancient Unix concept and because of its universality, it has appeared in many parts of Unix culture. When someone says he/she is sending your comments to /dev/null, now you know what it means. For more examples, see the Wikipedia article on /dev/null. 
-# Redirecting Standard Input 
-Up to now, we haven't encountered any commands that make use of standard input (actually we have, but we’ll reveal that surprise a little bit later), so we need to introduce one. 
-# cat – Concatenate Files 
-The cat command reads one or more files and copies them to standard output like so: 
-We can use it to display files without paging. For example, the following will display the contents of the file ls-output.txt: 
-[me@linuxbox ~]$ cat ls-output.txt 
-cat is often used to display short text files. Since cat can accept more than one file as an argument, it can also be used to join files together. Say we have downloaded a large file that has been split into multiple parts (multimedia files are often split this way on Usenet), and we want to join them back together. If the files were named: 
-movie.mpeg.001 movie.mpeg.002 ... movie.mpeg.099 we could join them back together with this command as follows: 
-cat movie.mpeg. ${\mathfrak{o}}^{\star}$ $>$ movie.mpeg 
-Since wildcards always expand in sorted order, the arguments will be arranged in the correct order. 
-This is all well and good, but what does this have to do with standard input? Nothing yet, but let's try something else. What happens if we enter cat with no arguments? 
-[me@linuxbox ~]$ cat 
-Nothing happens, it just sits there like it's hung. It might seem that way, but it's really doing exactly what it's supposed to do. 
-If cat is not given any arguments, it reads from standard input and since standard input is, by default, attached to the keyboard, it's waiting for us to type something! Try adding the following text and pressing Enter: 
-[me@linuxbox ~]$ cat The quick brown fox jumps over the lazy dog. 
-Next, type a Ctrl-d (i.e., hold down the Ctrl key and press “d”) to tell cat that it has reached end of file (EOF) on standard input: 
-[me@linuxbox $-]$1$ cat The quick brown fox jumps over the lazy dog. 
-The quick brown fox jumps over the lazy dog. 
-In the absence of filename arguments, cat copies standard input to standard output, so we see our line of text repeated. We can use this behavior to create short text files. Let's say we wanted to create a file called lazy_dog.txt containing the text in our example. We would do this: 
-[me@linuxbox $-]$1$ cat $>$ lazy_dog.txt The quick brown fox jumps over the lazy dog. 
-Type the command followed by the text we want to place in the file. Remember to type Ctrl-d at the end. Using the command line, we have implemented the world's dumbest word processor! To see our results, we can use cat to copy the file to stdout again. 
-[me@linuxbox $-]$1$ cat lazy_dog.txt The quick brown fox jumps over the lazy dog. 
-Now that we know how cat accepts standard input, in addition to filename arguments, let's try redirecting standard input. 
-[me@linuxbox $-]$1$ cat $\mathbf{\boldsymbol{\mathsf{\Sigma}}}<\mathbf{\boldsymbol{\mathsf{\Sigma}}}$ lazy_dog.txt The quick brown fox jumps over the lazy dog. 
-Using the $\rvert<$ redirection operator, we change the source of standard input from the keyboard to the file lazy_dog.txt. We see that the result is the same as passing a single filename argument. This is not particularly useful compared to passing a filename argument, but it serves to demonstrate using a file as a source of standard input. Other commands make better use of standard input, as we will soon see. 
-Before we move on, check out the man page for cat, because it has several interesting options. 
-# Pipelines 
-The capability of commands to read data from standard input and send to standard output is utilized by a shell feature called pipelines. Using the pipe operator | (vertical bar), the standard output of one command can be piped into the standard input of another. 
-To fully demonstrate this, we are going to need some commands. Remember how we said there was one we already knew that accepts standard input? It's less. We can use less to display, page by page, the output of any command that sends its results to standard output: 
-# [me@linuxbox ~]$ ls -l /usr/bin | less 
-This is extremely handy! Using this technique, we can conveniently examine the output of any command that produces standard output. 
-# The Difference Between $>$ and | 
-At first glance, it may be hard to understand the redirection performed by the pipeline operator | versus the redirection operator $>$ . Simply put, the redirection operator connects a command with a file, while the pipeline operator connects the output of one command with the input of a second command. 
-command1 $>$ file1 command1 | command2 
-A lot of people will try the following when they are learning about pipelines, “just to see what happens”: 
-command1 $>$ command2 
-Answer: sometimes something really bad. 
-Here is an actual example submitted by a reader who was administering a Linuxbased server appliance. As the superuser, he did this: 
-# cd /usr/bin # ls $>$ less 
-The first command put him in the directory where most programs are stored and the second command told the shell to overwrite the file less with the output of the ls command. Since the /usr/bin directory already contained a file named less (the less program), the second command overwrote the less program file with the text from ls, thus destroying the less program on his system. 
-The lesson here is that the $>$ redirection operator silently creates or overwrites files, so you need to treat it with a lot of respect. 
-# Filters 
-Pipelines are often used to perform complex operations on data. It is possible to put several commands together into a pipeline. Frequently, the commands used this way are referred to as filters. Filters take input, change it somehow, and then output it. The first one we will try is sort. Imagine we wanted to make a combined list of all the executable programs in /bin and /usr/bin, put them in sorted order and view the resulting list: 
-# [me@linuxbox ~]$ ls /bin /usr/bin | sort | less 
-Since we specified two directories (/bin and /usr/bin), the output of ls would have consisted of two sorted lists, one for each directory. By including sort in our pipeline, we changed the data to produce a single, sorted list. 
-sort is a powerful command with many features and options. We’ll cover them in detail in Chapter 20. 
-# uniq - Report or Omit Repeated Lines 
-The uniq command is often used in conjunction with sort. uniq accepts a sorted list of data from either standard input or a single filename argument (see the uniq man page for details) and, by default, removes any duplicates from the list. So, to make sure our list has no duplicates (that is, any programs of the same name that appear in both the /bin and /usr/bin directories), we will add uniq to our pipeline. 
-# [me@linuxbox ~]$ ls /bin /usr/bin | sort | uniq | less 
-In this example, we use uniq to remove any duplicates from the output of the sort command. If we want to see the list of duplicates instead, we add the “-d” option to uniq like so: 
-[me@linuxbox ~]$ ls /bin /usr/bin | sort | uniq -d | less 
-# wc – Print Line, Word, and Byte Counts 
-The wc (word count) command is used to display the number of lines, words, and bytes contained in files. Here's an example: 
-[me@linuxbox ~]$ wc ls-output.txt 7902 64566 503634 ls-output.txt 
-In this case, it prints out three numbers: lines, words, and bytes contained in ls-output.txt. Like our previous commands, if executed without command line arguments, wc accepts standard input. The “-l” option limits its output to only report lines. Adding it to a pipeline is a handy way to count things. To see the number of items we have in our sorted list, we can do this: 
-[me@linuxbox ~]$ ls /bin /usr/bin | sort | uniq | wc -l 2728 
-# grep – Print Lines Matching a Pattern 
-grep is a powerful program used to find text patterns within files. It's used like this: 
-grep pattern [file...] 
-When grep encounters a “pattern” in the file, it prints out the lines containing it. The patterns that grep can match can be very complex, but for now we will concentrate on simple text matches. We'll cover the advanced patterns, called regular expressions in Chapter 19. 
-Let's say we wanted to find all the files in our list of programs that had the word zip embedded in the name. Such a search might give us an idea of some of the programs on our system that had something to do with file compression. We would do this: 
-[me@linuxbox ~]$ ls /bin /usr/bin | sort | uniq | grep zip 
-bunzip2 
-bzip2 
-gunzip 
-gzip 
-unzip 
-<html><body><table><tr><td>zip</td></tr><tr><td>zipcloak</td></tr><tr><td>zipgrep</td></tr><tr><td>zipinfo</td></tr><tr><td>zipnote</td></tr><tr><td>zipsplit</td></tr></table></body></html> 
-Here are a few handy options for grep: 
--i, causes grep to ignore case when performing the search (normally searches are case sensitive) 
--l, causes grep to only output the names of the files containing text that matches the pattern. 
--v, causes grep to print only those lines that do not match the pattern. 
--w, causes grep to only match whole words. 
-# head / tail – Print First / Last Part of Files 
-Sometimes we don't want all the output from a command. We may only want the first few lines or the last few lines. The head command prints the first ten lines of a file, and the tail command prints the last ten lines. While both commands print ten lines of text by default, this can be adjusted with the -n option. 
-<html><body><table><tr><td>[me@linuxbox ~]$ head -n 5 ls-output.txt</td><td rowspan="2"></td><td rowspan="2"></td><td colspan="4"></td></tr><tr><td>total 343496</td><td></td><td></td><td></td><td></td></tr><tr><td>-rwxr-xr-x 1 root root</td><td></td><td></td><td></td><td>31316 2007-12-05 08:58[</td><td></td><td></td></tr><tr><td>-rwxr-xr-x 1 root root</td><td></td><td></td><td></td><td>8240 2007-12-09 13:39 411toppm</td><td></td><td></td></tr><tr><td>-rwxr-xr-x 1 root root</td><td></td><td></td><td></td><td>111276 2007-11-26 14:27 a2p</td><td></td><td></td></tr><tr><td>-rwxr-xr-x 1 root root</td><td></td><td></td><td></td><td>25368 2006-10-06 20:16 a52dec</td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>[me@linuxbox ~]$ tail -n 5 ls-output.txt</td><td></td><td></td><td></td></tr><tr><td>-rwxr-xr-x 1 root root</td><td></td><td></td><td></td><td>5234 2007-06-27 10:56 znew</td><td></td><td></td></tr><tr><td>-rwxr-xr-x 1 root root</td><td></td><td></td><td></td><td></td><td></td><td>691 2005-09-10 04:21 zonetab2pot.py</td></tr><tr><td>-rw-r--r-- 1 root root</td><td></td><td></td><td></td><td>930 2007-11-01 12:23 z0netab2p0t.pyc</td><td></td><td></td></tr><tr><td>-rw-r--r-- 1 root root</td><td></td><td></td><td></td><td>930 2007-11-01 12:23 z0netab2p0t.pyo</td><td></td><td></td></tr><tr><td>lrwxrwxrwx 1 root root</td><td></td><td></td><td></td><td></td><td></td><td>6 2016-01-31 05:22 zs0elim -> s0elim</td></tr></table></body></html> 
-These commands can be used in pipelines as well: 
-<html><body><table><tr><td>[me@linuxbox ~]$ ls /usr/bin | tail -n 5</td></tr></table></body></html> 
-<html><body><table><tr><td>znew</td></tr><tr><td>zonetab2pot .py</td></tr><tr><td>zonetab2pot .pyc</td></tr><tr><td>zonetab2pot .pyo</td></tr><tr><td>zsoelim</td></tr></table></body></html> 
-Using the -n option with head and tail together allows us to cut an excerpt from the middle of a file. Let’s imagine we have a text file with a 5 line header and a 5 line footer that we want to remove leaving only the “good” part in the middle containing the data. We could do a trick like this: 
-[me@linuxbox ~]$ head -n -5 text_header_footer.txt | tail -n +5 > text.txt 
-The $-n$ option when used with head allows a negative value which causes all but the last $n$ lines to be output. Similarly, the -n option with tail allows a plus sign causing all but the first $n$ lines to be output. 
-tail also has an option which allows us to follow the contents of a file in real time. This is useful for watching the progress of log files as they are being written. In the following example, we will look at the messages file in /var/log (or the /var/log/syslog file if messages is missing). Superuser privileges may be required to do this on some Linux distributions because log files may contain security information: 
-[me@linuxbox ~]$ tail -f /var/log/messages 
-Feb 8 13:40:05 twin4 dhclient: DHCPACK from 192.168.1.1 
-Feb 8 13:40:05 twin4 dhclient: bound to 192.168.1.4 -- renewal in 1652 seconds. 
-Feb 8 13:55:32 twin4 mountd[3953]: /var/NFSv4/musicbox exported to both 192.168.1.0/24 and twin7.localdomain in 
-192.168.1.0/24,twin7.localdomain 
-Feb 8 14:07:37 twin4 dhclient: DHCPREQUEST on eth0 to 192.168.1.1 port 67 
-Feb 8 14:07:37 twin4 dhclient: DHCPACK from 192.168.1.1 
-Feb 8 14:07:37 twin4 dhclient: bound to 192.168.1.4 -- renewal in 1771 seconds. 
-Feb 8 14:09:56 twin4 smartd[3468]: Device: /dev/hda, SMART 
-Prefailure Attribute: 8 Seek_Time_Performance changed from 237 to 236 Feb 8 14:10:37 twin4 mountd[3953]: /var/NFSv4/musicbox exported to both 192.168.1.0/24 and twin7.localdomain in 
-192.168.1.0/24,twin7.localdomain 
-Feb 8 14:25:07 twin4 sshd(pam_unix)[29234]: session opened for user 
-me by ( $\mathbf{uid}{=}\Theta$ ) 
-Feb 8 14:25:36 twin4 su(pam_unix)[29279]: session opened for user 
-root by me(uid $=500$ ) 
-Using the -f option, tail continues to monitor the file, and when new lines are appended, they immediately appear on the display. This continues until we press Ctrl-c. 
-# tee – Read from Stdin and Output to Stdout and Files 
-In keeping with our plumbing metaphor, Linux provides a command called tee which creates a “tee” fitting on our pipe. The tee program reads standard input and copies it to both standard output (allowing the data to continue down the pipeline) and to one or more files. This is useful for capturing a pipeline's contents at an intermediate stage of processing. Here we repeat one of our earlier examples, this time including tee to capture the entire directory listing to the file ls.txt before grep filters the pipeline's contents: 
-<html><body><table><tr><td>[me@linuxbox ~]$ ls /usr/bin I tee ls.txt I grep zip</td></tr><tr><td>bunzip2 bzip2</td></tr><tr><td></td></tr><tr><td>gunzip</td></tr><tr><td>gzip unzip</td></tr><tr><td>zip</td></tr><tr><td>zipcloak</td></tr><tr><td>zipgrep</td></tr><tr><td>zipinfo</td></tr><tr><td>zipnote</td></tr><tr><td>zipsplit</td></tr></table></body></html> 
-# Summing Up 
-As always, check out the documentation of each of the commands we have covered in this chapter. We have seen only their most basic usage. They all have a number of interesting options. As we gain Linux experience, we will see that the redirection feature of the command line is extremely useful for solving specialized problems. There are many commands that make use of standard input and output, and almost all command line programs use standard error to display their informative messages. 
-# Linux Is About Imagination 
-When I am asked to explain the difference between Windows and Linux, I often use a toy analogy. 
-Windows is like a Game Boy. You go to the store and buy one all shiny new in the box. You take it home, turn it on, and play with it. Pretty graphics, cute sounds. After a while, though, you get tired of the game that came with it, so you go back to the store and buy another one. This cycle repeats over and over. Finally, you go back to the store and say to the person behind the counter, “I want a game that does this!” only to be told that no such game exists because there is no “market demand” for it. Then you say, “But I only need to change this one thing!” The person behind the counter says you can't change it. The games are all sealed up in their cartridges. You discover that your toy is limited to the games others have decided that you need. 
-Linux, on the other hand, is like the world's largest Erector Set. You open it, and it's just a huge collection of parts. There's a lot of steel struts, screws, nuts, gears, pulleys, motors, and a few suggestions on what to build. So, you start to play with it. You build one of the suggestions and then another. After a while you discover that you have your own ideas of what to make. You don't ever have to go back to the store, as you already have everything you need. The Erector Set takes on the shape of your imagination. It does what you want. 
-Your choice of toys is, of course, a personal thing, so which toy would you find more satisfying? 
-# 7 – Seeing the World as the Shell Sees It 
-In this chapter we are going to look at some of the “magic” that occurs on the command line when we press the Enter key. While we will examine several interesting and complex features of the shell, we will do it with just one new command. 
-echo – Display a line of text 
-# Expansion 
-Each time we type a command and press the Enter key, bash performs several substitutions upon the text before it carries out our command. We have seen a couple of cases of how a simple character sequence, for example \*, can have a lot of meaning to the shell. The process that makes this happen is called expansion. With expansion, we enter something and it is expanded into something else before the shell acts upon it. To demonstrate what we mean by this, let's take a look at the echo command. echo is a shell builtin that performs a very simple task. It prints its text arguments on standard output. 
-[me@linuxbox $-]$1$ echo this is a test this is a test 
-That's pretty straightforward. Any argument passed to echo gets displayed. Let's try another example. 
-[me@linuxbox $-]$1$ echo \* 
-Desktop Documents ls-output.txt Music Pictures Public Templates 
-Videos 
-So what just happened? Why didn't echo print $^{\star}?$ As we recall from our work with wildcards, the \* character means match any characters in a filename, but what we didn't see in our original discussion was how the shell does that. The simple answer is that the shell expands the \* into something else (in this instance, the names of the files in the current working directory) before the echo command is executed. When the Enter key is pressed, the shell automatically expands any qualifying characters on the command line before the command is carried out, so the echo command never saw the \*, only its expanded result. Knowing this, we can see that echo behaved as expected. 
-# Pathname Expansion 
-The mechanism by which wildcards work is called pathname expansion. If we try some of the techniques that we employed in earlier chapters, we will see that they are really expansions. Given a home directory that looks like this: 
-[me@linuxbox ~]$ ls Desktop ls-output.txt Pictures Templates Documents Music Public Videos 
-we could carry out the following expansions: 
-[me@linuxbox ~]$ echo $D^{\star}$ Desktop Documents 
-and this: 
-[me@linuxbox ~]$ echo $\pmb{\star}_{\pmb{\mathsf{S}}}$ Documents Pictures Templates Videos 
-or even this: 
-[me@linuxbox ~]$ echo [[:upper:]]\* Desktop Documents Music Pictures Public Templates Videos 
-and looking beyond our home directory, we could do this: 
-[me@linuxbox ~]$ echo /usr/\*/share /usr/kerberos/share /usr/local/share 
-# Pathname Expansion of Hidden Files 
-As we know, filenames that begin with a period character are hidden. Pathname expansion also respects this behavior. An expansion such as the following does not reveal hidden files. 
-echo \* 
-It might appear at first glance that we could include hidden files in an expansion 
-by starting the pattern with a leading period, like this: 
-echo .\* 
-It almost works. However, if we examine the results closely, we will see that the names . and .. will also appear in the results. Because these names refer to the current working directory and its parent directory, using this pattern will likely produce an incorrect result. We can see this if we try the following command: 
-ls -d .\* | less 
-To better perform pathname expansion in this situation, we have to employ a more specific pattern. 
-echo .[!.]\* 
-This pattern expands into every filename that begins with only one period followed by any other characters. This will work correctly with most hidden files (though it still won't include filenames with multiple leading periods). The ls command with the -A option (“almost all”) will provide a correct listing of hidden files. 
-ls -A 
-# Tilde Expansion 
-As we may recall from our introduction to the cd command, the tilde character $(\sim)$ has a special meaning. When used at the beginning of a word, it expands into the name of the home directory of the named user or, if no user is named, the home directory of the current user. 
-[me@linuxbox ~]$ echo ~ /home/me 
-If user “bob” has an account, then it expands into this: 
-[me@linuxbox ~]$ echo ~bob /home/bob 
-# Arithmetic Expansion 
-The shell allows arithmetic to be performed by expansion. This allows us to use the shell prompt as a calculator. 
-<html><body><table><tr><td>[me@linuxbox ~]$ echo $((2 + 2)) 4</td></tr></table></body></html> 
-Arithmetic expansion uses the following form: 
-$((expression)) 
-where expression is an arithmetic expression consisting of values and arithmetic operators. 
-Arithmetic expansion supports only integers (whole numbers, no decimals) but can perform quite a number of different operations. Table 7-1 describes a few of the supported operators. 
-Table 7-1: Arithmetic Operators 
-<html><body><table><tr><td>Operator</td><td>Description</td></tr><tr><td>+</td><td>Addition</td></tr><tr><td></td><td>Subtraction</td></tr><tr><td>*</td><td>Multiplication</td></tr><tr><td>/</td><td>Division (but remember, since expansion supports only integer arithmetic, results are integers)</td></tr><tr><td>%</td><td>Modulo, which simply means “remainder"</td></tr><tr><td>**</td><td>Exponentiation</td></tr></table></body></html> 
-Spaces are not significant in arithmetic expressions and expressions may be nested. For example, to multiply 5 squared by 3, we can use this: 
-Single parentheses may be used to group multiple subexpressions. With this technique, we can rewrite the previous example and get the same result using a single expansion instead of two. 
-[me@linuxbox ~]$ echo $(((5\*\*2) \* 3)) 75 
-Here is an example using the division and remainder operators. Notice the effect of integer division. 
-[me@linuxbox $-]$1$ echo Five divided by two equals $((5/2)) Five divided by two equals 2 
-[me@linuxbox $-]$1$ echo with $$1(5\%2)$ ) left over. 
-with 1 left over. 
-Arithmetic expansion is covered in greater detail in Chapter 34. 
-# Brace Expansion 
-Perhaps the strangest expansion is called brace expansion. With it, we can create multiple text strings from a pattern containing braces. Here's an example: 
-[me@linuxbox ~]$ echo Front-{A,B,C}-Back Front-A-Back Front-B-Back Front-C-Back 
-Patterns to be brace expanded may contain a leading portion called a preamble and a trailing portion called a postscript. The brace expression itself may contain either a comma-separated list of strings or a range of integers or single characters. The pattern may not contain unquoted whitespace. Here is an example using a range of integers: 
-[me@linuxbox $-]$1$ echo Number_{1..5} Number_1 Number_2 Number_3 Number_4 Number_5 
-In bash version 4.0 and newer, integers may also be zero-padded like so: 
-[me@linuxbox ~]$ echo {01..15} 
-01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 
-[me@linuxbox ~]$ echo {001..15} 
-001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 
-Here is a range of letters in reverse order: 
-![](https://cdn-mineru.openxlab.org.cn/extract/e52c4087-794e-43f3-821f-0f8eb1fdf822/94cae717366543e491cdcc09a7387138afb43ca787c54fdef636113eed0a9c0d.jpg) 
-Brace expansions may be nested. 
-<html><body><table><tr><td>[me@linuxbox ~]$ echo a{A{1,2},B{3,4}}b aA1b aA2b aB3b aB4b</td></tr></table></body></html> 
-So, what is this good for? The most common application is making lists of files or directories to be created. For example, if we were photographers and had a large collection of images that we wanted to organize into years and months, the first thing we might do is create a series of directories named in numeric “Year-Month” format. This way, the directory names would sort in chronological order. We could type out a complete list of directories, but that's a lot of work and it's error-prone. Instead, we could do this: 
-<html><body><table><tr><td colspan="6">[me@linuxbox ~]$ mkdir Photos</td></tr><tr><td>[me@linuxbox ~]$ cd Photos</td><td colspan="5">[me@linuxbox Photos]$ mkdir {2007..2009}-{01..12}</td></tr><tr><td>[me@linuxbox Photos]$ ls</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>2007-07</td><td></td><td></td><td>2008-07</td><td>2009-01</td><td></td></tr><tr><td>2007-01 2007-02</td><td>2008-01</td><td>2008-02</td><td>2008-08</td><td>2009-02</td><td>2009-07</td></tr><tr><td>2007-03</td><td>2007-08</td><td>2008-03</td><td>2008-09</td><td>2009-03</td><td>2009-08</td></tr><tr><td>2007-04</td><td>2007-09 2007-10</td><td>2008-04</td><td>2008-10</td><td>2009-04</td><td>2009-09</td></tr><tr><td>2007-05</td><td>2007-11</td><td>2008-05</td><td>2008-11</td><td>2009-05</td><td>2009-10 2009-11</td></tr><tr><td>2007-06</td><td>2007-12</td><td>2008-06</td><td>2008-12</td><td>2009-06</td><td>2009-12</td></tr></table></body></html> 
-Pretty slick! 
-# Parameter Expansion 
-We're going to touch only briefly on parameter expansion in this chapter, but we'll be covering it extensively later. It's a feature that is more useful in shell scripts than directly on the command line. Many of its capabilities have to do with the system's ability to store small chunks of data and to give each chunk a name. Many such chunks, more properly called variables, are available for our examination. For example, the variable named USER contains our username. To invoke parameter expansion and reveal the contents of USER we would do this: 
-[me@linuxbox ~]$ echo $USER me 
-To see a list of available variables, try this: 
-[me@linuxbox ~]$ printenv | less 
-You may have noticed that with other types of expansion, if we mistype a pattern, the expansion will not take place, and the echo command will simply display the mistyped pattern. With parameter expansion, if we misspell the name of a variable, the expansion will still take place but will result in an empty string: 
-[me@linuxbox ~]$ echo $SUER [me@linuxbox ~]$ 
-# Command Substitution 
-Command substitution allows us to use the output of a command as an expansion. 
-[me@linuxbox $-]$1$ echo $$5$ (ls) 
-Desktop Documents ls-output.txt Music Pictures Public Templates 
-Videos 
-One of my favorites goes something like this: 
-[me@linuxbox ~]$ ls -l $(which cp) -rwxr-xr-x 1 root root 71516 2007-12-05 08:58 /bin/cp 
-Here we passed the results of which cp as an argument to the ls command, thereby getting the listing of the cp program without having to know its full pathname. We are not limited to just simple commands. Entire pipelines can be used (only partial output is shown here): 
-[me@linuxbox ~]$ file $(ls -d /usr/bin/\* | grep zip) 
-/usr/bin/bunzip2: symbolic link to \`bzip2' 
-/usr/bin/bzip2: ELF 32-bit LSB executable, Intel 80386, 
-version 1 (SYSV), dynamically linked (uses shared libs), for 
-GNU/Linux 2.6.9, stripped 
-/usr/bin/bzip2recover: ELF 32-bit LSB executable, Intel 80386, 
-version 1 (SYSV), dynamically linked (uses shared libs), for 
-GNU/Linux 2.6.9, stripped 
-/usr/bin/funzip: ELF 32-bit LSB executable, Intel 80386, 
-version 1 (SYSV), dynamically linked (uses shared libs), for 
-GNU/Linux 2.6.9, stripped 
-/usr/bin/gpg-zip: Bourne shell script text executable 
-/usr/bin/gunzip: symbolic link to \`../../bin/gunzip' 
-/usr/bin/gzip: symbolic link to \`../../bin/gzip' 
-/usr/bin/mzip: symbolic link to \`mtools' 
-In this example, the results of the pipeline became the argument list of the file command. 
-There is an alternate syntax for command substitution used by older shell programs that is also supported in bash. It uses backquotes instead of the dollar sign and parentheses. 
-<html><body><table><tr><td>[me@linuxbox ~]$ ls -l “which cp -rwxr-xr-x 1 r00t r00t 71516 2007-12-05 08:58 /bin/cp</td></tr></table></body></html> 
-# Quoting 
-Now that we've seen how many ways the shell can perform expansions, it's time to learn how we can control it. Take for example the following: 
-<html><body><table><tr><td>[me@linuxbox ~]$ echo this is a test this is a test</td></tr></table></body></html> 
-or this one: 
-[me@linuxbox $-]$1$ echo The total is $$100.00$ The total is 00.00 
-In the first example, word-splitting by the shell removed extra whitespace from the echo command's list of arguments. In the second example, parameter expansion substituted an empty string for the value of$ because it was an undefined variable. The shell provides a mechanism called quoting to selectively suppress unwanted expansions. 
-# Double Quotes 
-The first type of quoting we will look at is double quotes. If we place text inside double quotes, all the special characters used by the shell lose their special meaning and are treated as ordinary characters. The exceptions are$ , \ (backslash), and \` (back-quote). This means that word-splitting, pathname expansion, tilde expansion, and brace expansion are suppressed, but parameter expansion, arithmetic expansion, and command substitution are still carried out. Using double quotes, we can cope with filenames containing embedded spaces. Say we were the unfortunate victim of a file called two words.txt. If we tried to use this on the command line, word-splitting would cause this to be treated as two separate arguments rather than the desired single argument. 
-[me@linuxbox ~]$ ls -l two words.txt ls: cannot access two: No such file or directory ls: cannot access words.txt: No such file or directory 
-By using double quotes, we stop the word-splitting and get the desired result; further, we can even repair the damage. 
-[me@linuxbox $-]$1$ ls -l "two words.txt" $-r w-r w-r\textrm{-}1$ me me 18 2016-02-20 13:03 two words.txt [me@linuxbox $-]$1$ mv "two words.txt" two_words.txt 
-There! Now we don't have to keep typing those pesky double quotes. 
-Remember, parameter expansion, arithmetic expansion, and command substitution still take place within double quotes. 
-[me@linuxbox ~]$ echo "$USER $((2+2)) $(df -h)" me 4 Filesystem Size Used Avail Use% Mounted on tmpfs 1.6G 2.0M 1.6G $1\%$ /run 
-<html><body><table><tr><td>/dev/sda2</td><td>94G</td><td>19G</td><td>71G</td><td>21%／</td><td></td></tr><tr><td>tmpfs</td><td>7.8G</td><td>0</td><td>7.8G</td><td>0% /dev/shm</td><td></td></tr><tr><td>tmpfs</td><td>5.0M</td><td>4.0K</td><td>5.0M</td><td></td><td>1% /run/lock</td></tr><tr><td>/dev/sda1</td><td>975M</td><td>6.1M</td><td>969M</td><td></td><td>1% /boot/efi</td></tr><tr><td>/dev/sdb1</td><td>907G</td><td>574G</td><td>287G</td><td>67% /home</td><td></td></tr><tr><td>tmpfs</td><td>1.6G</td><td>1.8M</td><td>1.6G</td><td></td><td>1% /run/user/1000</td></tr></table></body></html> 
-We should take a moment to look at the effect of double quotes on command substitution. First let's look a little deeper at how word splitting works. In our earlier example, we saw how word-splitting appears to remove extra spaces in our text. 
-<html><body><table><tr><td>[me@linuxbox ~]$ echo this is a this is a test</td><td>test</td></tr></table></body></html> 
-By default, word-splitting looks for the presence of spaces, tabs, and newlines (linefeed characters) and treats them as delimiters between words. This means unquoted spaces, tabs, and newlines are not considered to be part of the text. They serve only as separators. Since they separate the words into different arguments, our example command line contains a command followed by four distinct arguments. If we add double quotes: 
-<html><body><table><tr><td>[me@linuxbox ~]$ echo "this is a this is a test</td><td></td><td>test"</td></tr></table></body></html> 
-word-splitting is suppressed and the embedded spaces are not treated as delimiters; rather they become part of the argument. Once the double quotes are added, our command line contains a command followed by a single argument. 
-The fact that newlines are considered delimiters by the word-splitting mechanism causes an interesting, albeit subtle, effect on command substitution. Consider the following: 
-<html><body><table><tr><td>[me@linuxbox ~]$ echo $(df -h) Filesystem Size Used Avail Use% Mounted on tmpfs 1.6G 2.0M 1.6G 1% /run /dev/sda2 94G 19G 71G 21% / tmpfs 7.8G 0 7.8G 0% /dev/shm tmpfs</td></tr><tr><td>5.0M 4.0K 5.0M 1% /run/lock /dev/sda1 975M 6.1M 969M 1% /b0ot/efi</td></tr><tr><td>/dev/sdb1 907G 574G 287G 67% /h0me tmpfs 1.6G 1.8M 1.6G 1% /run/user/1000</td></tr><tr><td>[me@linuxbox ~]$ echo "$(df -h)"</td></tr><tr><td>Filesystem Size Used Avail Use% Mounted on tmpfs 1.6G 2.0M 1.6G 1% /run</td></tr></table></body></html> 
-<html><body><table><tr><td>/dev/sda2</td><td>94G</td><td>19G</td><td>71G</td><td>21% ／</td><td></td></tr><tr><td>tmpfs</td><td>7.8G</td><td>0</td><td>7.8G</td><td>0% /dev/shm</td><td></td></tr><tr><td>tmpfs</td><td>5.0M</td><td>4.0K</td><td>5.0M</td><td></td><td>1% /run/lock</td></tr><tr><td>/dev/sda1</td><td>975M</td><td>6.1M</td><td>969M</td><td></td><td>1% /boot/efi</td></tr><tr><td>/dev/sdb1</td><td>907G</td><td>574G</td><td>287G</td><td>67% /home</td><td></td></tr><tr><td>tmpfs</td><td>1.6G</td><td>1.8M</td><td>1.6G</td><td></td><td>1% /run/user/1000</td></tr></table></body></html> 
-In the first instance, the unquoted command substitution resulted in a command line containing 49 arguments. In the second, it resulted in a command line with one argument that includes the embedded spaces and newlines. 
-# Single Quotes 
-If we need to suppress all expansions, we use single quotes. Here is a comparison of unquoted, double quotes, and single quotes: 
-$\mathsf{\Lambda}[\mathsf{m e}\oplus\mathsf{l i n u}\times\mathsf{b o}\times\mathsf{\Lambda}\sim]\Phi$ echo text $-/\star$ .txt {a,b} $$5$ (echo foo) $$1(2+2)$ ) $USER text /home/me/ls-output.txt a b foo 4 me 
-[me@linuxbox $-]$1$ echo "text $-/\star$ .txt {a,b} $$5$ (echo foo) $$(2+2)$ ) $USER" text $-/\star$ .txt $\{\mathsf{a},\mathsf{b}\}$ foo 4 me 
-[me@linuxbox $-]$1$ echo 'text $-/\star$ .txt {a,b} $$5$ (echo foo) $$(2+2)$ ) $USER' text $-/\star$ .txt {a,b}$ (echo foo) $(( $2+2)$ ) $USER 
-As we can see, with each succeeding level of quoting, more and more of the expansions are suppressed. 
-# Escaping Characters 
-Sometimes we want to quote only a single character. To do this, we can precede a character with a backslash, which in this context is called the escape character. Often this is done inside double quotes to selectively prevent an expansion. 
-[me@linuxbox $-]$1$ echo "The balance for user $USER is: \$5.00" The balance for user me is: $$5.00$ 
-It is also common to use escaping to eliminate the special meaning of a character in a filename. For example, it is possible to use characters in filenames that normally have special meaning to the shell. These would include $$1,2$ , spaces, and others. To include a special character in a filename we can do this: 
-# [me@linuxbox ~]$ mv bad\&filename good_filename 
-To allow a backslash character to appear, escape it by typing \\. Note that within single quotes, the backslash loses its special meaning and is treated as an ordinary character. 
-Another use of the backslash escape is suppressing aliases. For example, assuming the ls command is aliased to $\begin{array}{r}{\mathsf{l s}={}^{\prime}\mathsf{l s}\mathsf{\Pi}-\mathsf{c o l o r}=\mathsf{a u t o}^{\prime}}\end{array}$ , the default on many Linux distributions, we can precede the command with a backslash and the alias will be ignored and the ls command will be executed without the color option. 
-# Backslash Escape Sequences 
-In addition to its role as the escape character, the backslash is also used as part of a notation to represent certain special characters called control codes. The first 32 characters in the ASCII coding scheme are used to transmit commands to teletype-like devices. Some of these codes are familiar (tab, backspace, linefeed, and carriage return), while others are not (null, end-of-transmission, and acknowledge). 
-<html><body><table><tr><td>Escape Sequence</td><td>Meaning</td></tr><tr><td>\a</td><td>Bell (an alert that causes the computer to beep)</td></tr><tr><td>\b \n</td><td>Backspace Newline. On Unix-like systems, this</td></tr><tr><td></td><td>produces a linefeed.</td></tr><tr><td>\r \t</td><td>Carriage return</td></tr><tr><td></td><td>Tab</td></tr></table></body></html> 
-The table above lists some of the common backslash escape sequences. The idea behind this representation using the backslash originated in the C programming language and has been adopted by many others, including the shell. 
-Adding the -e option to echo will enable interpretation of escape sequences. You may also place them inside$ '. Here, using the sleep command, a simple program that just waits for the specified number of seconds and then exits, we can create a primitive countdown timer: 
-sleep 10; echo -e "Time's up\a" 
-We could also do this: sleep 10; echo "Time's up" $'\a' 
-# Summing Up 
-As we move forward with using the shell, we will find that expansions and quoting will be used with increasing frequency, so it makes sense to get a good understanding of the way they work. In fact, it could be argued that they are the most important subjects to learn about the shell. Without a proper understanding of expansion, the shell will always be a source of mystery and confusion, with much of its potential power wasted. 
-# Further Reading 
-The bash man page has major sections on both expansion and quoting which cover these topics in a more formal manner. 
-The Bash Reference Manual also contains chapters on expansion and quoting: http://www.gnu.org/software/bash/manual/bashref.html 
-# 8 – Advanced Keyboard Tricks 
-I often kiddingly describe Unix as “the operating system for people who like to type.” Of course, the fact that it even has a command line is a testament to that. But command line users don't like to type that much. Why else would so many commands have such short names like cp, ls, mv, and rm? In fact, one of the most cherished goals of the command line is laziness; doing the most work with the fewest number of keystrokes. Another goal is never having to lift our fingers from the keyboard and reach for the mouse. In this chapter, we will look at bash features that make keyboard use faster and more efficient. 
-The following commands will make an appearance: 
-clear – Clear the screen history – Display the contents of the history list 
-# Command Line Editing 
-bash uses a library (a shared collection of routines that different programs can use) called Readline to implement command line editing. We have already seen some of this. We know, for example, that the arrow keys move the cursor, but there are many more features. Think of these as additional tools that we can employ in our work. It’s not important to learn all of them, but many of them are very useful. Pick and choose as desired. 
-Note: Some of the key sequences below (particularly those that use the Alt key) may be intercepted by the GUI for other functions. All of the key sequences should work properly when using a virtual console. 
-# Cursor Movement 
-The following table lists the keys used to move the cursor: 
-Table 8-1: Cursor Movement Commands 
-<html><body><table><tr><td> Key</td><td>Action</td></tr></table></body></html> 
-<html><body><table><tr><td>Ctrl-a</td><td>Move cursor to the beginning of the line.</td></tr><tr><td>Ctrl-e</td><td>Move cursor to the end of the line.</td></tr><tr><td>ctrl-f</td><td> Move cursor forward one character; same as the right arrow key.</td></tr><tr><td>Ctrl-b</td><td> Move cursor backward one character; same as the left arrow key.</td></tr><tr><td>Alt-f</td><td>Move cursor forward one word.</td></tr><tr><td>Alt-b</td><td>Move cursor backward one word.</td></tr><tr><td>Ctrl-l</td><td>Clear the screen and move the cursor to the top-left corner. The clear command does the same thing.</td></tr></table></body></html> 
-# Modifying Text 
-Since we might make a mistake when composing a command, we need a way to correct them efficiently. Table 8-2 describes keyboard commands that are used to edit characters on the command line. 
-Table 8-2: Text Editing Commands 
-<html><body><table><tr><td>Key</td><td>Action</td></tr><tr><td>Ctrl-d</td><td>Delete the character at the cursor location.</td></tr><tr><td>Ctrl-t</td><td>Transpose (exchange) the character at the cursor location with the one preceding it.</td></tr><tr><td>Alt-t</td><td>Transpose the word at the cursor location with the one preceding it</td></tr><tr><td>Alt-l</td><td>Convert the characters from the cursor location to the end of the word to lowercase.</td></tr><tr><td>Alt-u</td><td>Convert the characters from the cursor location to the end of the word to uppercase.</td></tr></table></body></html> 
-# Cutting and Pasting (Killing and Yanking) Text 
-The Readline documentation uses the terms killing and yanking to refer to what we would commonly call cutting and pasting. Items that are cut are stored in a buffer (a temporary storage area in memory) called the kill-ring. 
-Table 8-3: Cut and Paste Commands 
-<html><body><table><tr><td>Key</td><td>Action</td></tr><tr><td>Ctrl-k</td><td>Kill text from the cursor location to the end of line.</td></tr><tr><td>Ctrl-u</td><td>Kill text from the cursor location to the beginning of the line.</td></tr><tr><td>Alt-d</td><td>Kill text from the cursor location to the end of the current word.</td></tr><tr><td>Alt- Backspace</td><td>Kill text from the cursor location to the beginning of the current word. If the cursor is at the beginning of a word, kill the previous word.</td></tr><tr><td>ctrl-y</td><td>Yank text from the kill-ring and insert it at the cursor location.</td></tr></table></body></html> 
-# The Meta Key 
-If you venture into the Readline documentation, which can be found in the “READLINE” section of the bash man page, you will encounter the term meta key. On modern keyboards this maps to the Alt key but it wasn't always so. 
-Back in the dim times (before PCs but after Unix), not everybody had their own computer. What they might have had was a device called a terminal. A terminal was a communication device that featured a text display screen and a keyboard and just enough electronics inside to display text characters and move the cursor around. It was attached (usually by serial cable) to a larger computer or the communication network of a larger computer. There were many different brands of terminals, and they all had different keyboards and display feature sets. Since they all tended to at least understand ASCII, software developers wanting portable applications wrote to the lowest common denominator. Unix systems have an elaborate way of dealing with terminals and their different display features. Since the developers of Readline could not be sure of the presence of a dedicated extra control key, they invented one and called it meta. While the Alt key serves as the meta key on modern keyboards, you can also press and release the Esc key to get the same effect as holding down the Alt key if you're using a terminal (which you can still do in Linux!). 
-# Completion 
-Another way that the shell can help us is through a mechanism called completion. Completion occurs when we press the tab key while typing a command. Let's see how this works. Given a home directory that looks like this: 
-[me@linuxbox ~]$ ls 
-Desktop ls-output.txt Pictures Templates Videos 
-Documents Music Public 
-Try typing the following but don't press the Enter key: 
-<html><body><table><tr><td>[me@linuxbox ~]$ ls l</td></tr></table></body></html> 
-Now press the Tab key. 
-[me@linuxbox ~]$ ls ls-output.txt 
-See how the shell completed the line for us? Let's try another one. Again, don't press Enter. 
-<html><body><table><tr><td>[me@linuxbox ~]$ ls D</td></tr></table></body></html> 
-Press Tab. 
-While this example shows completion of pathnames, which is its most common use, completion will also work on variables (if the beginning of the word is a$ ), user names (if the word begins with ~), commands (if the word is the first word on the line) and hostnames (if the beginning of the word is $@$ ). Hostname completion works only for hostnames listed in /etc/hosts. 
-There are a number of control and meta key sequences that are associated with completion, as listed in Table 8-4. 
-Table 8-4: Completion Commands 
-<html><body><table><tr><td>Key</td><td>Action</td></tr><tr><td>Alt-?</td><td>Display a list of possible completions. On most systems you can also do this by pressing the Tab key a second time, which is much easier.</td></tr><tr><td>Alt-*</td><td>Insert all possible completions. This is useful when you want to use more than one possible match.</td></tr></table></body></html> 
-There are quite a few more that are rather obscure. A list appears in the bash man page under “READLINE”. 
-# Programmable Completion 
-Recent versions of bash have a facility called programmable completion. Programmable completion allows you (or more likely, your distribution provider) to add additional completion rules. Usually this is done to add support for specific applications. For example, it is possible to add completions for the option list of a command or match particular file types that an application supports. Ubuntu has a fairly large set defined by default. Programmable completion is implemented by shell functions, a kind of mini shell script that we will cover in later chapters. If you are curious, try the following: 
-# set | less 
-and see if you can find them. Not all distributions include them by default. 
-# Using History 
-As we discovered in Chapter 1, bash maintains a history of commands that have been entered. This list of commands is kept in our home directory in a file called 
-.bash_history. The history facility is a useful resource for reducing the amount of typing we have to do, especially when combined with command line editing. 
-# Searching History 
-At any time, we can view the contents of the history list by doing the following: 
-[me@linuxbox $-]$1$ history | less 
-By default, most modern Linux distributions configure bash to store the last 1000 commands we have entered. We will see how to adjust this value in Chapter 11. Let's say we want to find the commands we used to list /usr/bin. This is one way we could do this: 
-# [me@linuxbox ~]$ history | grep /usr/bin 
-And let's say that among our results we got a line containing an interesting command like this: 
-The 88 is the line number of the command in the history list. We could use this immediately using another type of expansion called history expansion. To use our discovered line, we could do this: 
-[me@linuxbox ~]$ !88 
-bash will expand !88 into the contents of the 88th line in the history list. There are other forms of history expansion that we will cover in the next section. 
-bash also provides the ability to search the history list incrementally. This means we can tell bash to search the history list as we enter characters, with each additional character further refining our search. To start incremental search press Ctrl-r followed by the text we are looking for. When we find it, we can either press Enter to execute the command or press Ctrl-j to copy the line from the history list to the current command line. To find the next occurrence of the text (moving “up” the history list), press Ctrl-r again. To quit searching, press either Ctrl-g or Ctrl-c. Here we see it in action: 
-First press Ctrl-r. 
-The prompt changes to indicate that we are performing a reverse incremental search. It is “reverse” because we are searching from “now” to some time in the past. Next, we start typing our search text. In this example, /usr/bin: 
-(reverse-i-search)\`/usr/bin': ls -l /usr/bin $>$ ls-output.txt 
-Immediately, the search returns our result. With our result, we can execute the command by pressing Enter, or we can copy the command to our current command line for further editing by pressing Ctrl-j. Let's copy it. Press Ctrl-j. 
-# [me@linuxbox ~]$ ls -l /usr/bin $>$ ls-output.txt 
-Our shell prompt returns, and our command line is loaded and ready for action! The Table 8-5 lists some of the keystrokes used to manipulate the history list. 
-Table 8-5: History Commands 
-<html><body><table><tr><td>Key</td><td>Action</td></tr><tr><td>Ctrl-p</td><td>Move to the previous history entry. This is the same action as the up arrow.</td></tr><tr><td>Ctrl-n</td><td>Move to the next history entry. This is the same action as the down arrow.</td></tr><tr><td>Alt-<</td><td> Move to the beginning (top) of the history list.</td></tr><tr><td>Alt-></td><td>Move to the end (bottom) of the history list, i.e., the current command line.</td></tr><tr><td>ctrl-r</td><td>Reverse incremental search. This searches incrementally from the current command line up the history list.</td></tr><tr><td>Alt-p</td><td>Reverse search, nonincremental. With this key, type in the search string and press enter before the search is performed.</td></tr><tr><td>Alt-n</td><td>Forward search, nonincremental.</td></tr><tr><td>Ctrl-o</td><td>Execute the current item in the history list and advance to the next</td></tr></table></body></html> 
-one. This is handy if we are trying to re-execute a sequence of commands in the history list. 
-# History Expansion 
-The shell offers a specialized type of expansion for items in the history list by using the ! character. We have already seen how the exclamation point can be followed by a number to insert an entry from the history list. There are a number of other expansion features, as described in Table 8-6. 
-Table 8-6: History Expansion Commands 
-<html><body><table><tr><td>Sequence</td><td>Action</td></tr><tr><td>!!</td><td>Repeat the last command. It is probably easier to press up arrow and enter.</td></tr><tr><td>!number</td><td>Repeat history list item number.</td></tr><tr><td>!string</td><td>Repeat last history list item starting with string.</td></tr><tr><td>!?string</td><td>Repeat last history list item containing string.</td></tr></table></body></html> 
-Use caution with the !string and !?string forms unless youyou are absolutely sure of the contents of the history list items. We can mitigate this problem somewhat by appending “:p” to our expansion. This tells the shell to print the result of the expansion and place it into the command history. Here’s an example: 
-<html><body><table><tr><td>[me@linuxbox ~]$ !ls:p</td></tr><tr><td></td></tr><tr><td>ls -l /usr/bin > ls-output.txt</td></tr></table></body></html> 
-Now that the command has been recalled and placed as the most recent item on the history list, we can execute it with Up-Arrow and Return or !! and Return. 
-By the way, history expansions such as !! are not recorded in the history list but their results are. 
-Many more features are available in the history expansion mechanism, but this subject is already too arcane and our heads may explode if we continue. The HISTORY EXPANSION section of the bash man page goes into all the gory details. Feel free to explore! 
-# script 
-In addition to the command history feature in bash, most Linux distributions include a program called script that can be used to record an entire shell session and store it in a file. The basic syntax of the command is as follows: 
-script $[\mathop{f i l e}]$ 
-where file is the name of the file used for storing the recording. If no file is specified, the file typescript is used. See the script man page for a complete list of the program’s options and features. 
-# Summing Up 
-In this chapter we covered some of the keyboard tricks that the shell provides to help hardcore typists reduce their workloads. As time goes by and we become more involved with the command line, we can refer back to this chapter to pick up more of these tricks. For now, consider them optional and potentially helpful. 
-# Further Reading 
-The Wikipedia has a good article on computer terminals: http://en.wikipedia.org/wiki/Computer_terminal 
-# 9 – Permissions 
-Operating systems in the Unix tradition differ from those in the MS-DOS tradition in that they are not only multitasking systems, but also multi-user systems. 
-What exactly does this mean? It means that more than one person can be using the computer at the same time. While a typical computer will likely have only one keyboard and monitor, it can still be used by more than one user. For example, if a computer is attached to a network or the Internet, remote users can log in via ssh (secure shell) and operate the computer. In fact, remote users can execute graphical applications and have the graphical output appear on a remote display. 
-The multi-user capability of Linux is not a recent "innovation," but rather a feature that is deeply embedded into the design of the operating system. Considering the environment in which Unix was created, this makes perfect sense. Years ago, before computers were "personal," they were large, expensive, and centralized. A typical university computer system, for example, consisted of a large central computer located in one building and terminals that were located throughout the campus, each connected to the large central computer. The computer would support many users at the same time. 
-To make this practical, a method had to be devised to protect the users from each other. After all, the actions of one user could not be allowed to crash the computer, nor could one user interfere with the files belonging to another user. 
-In this chapter we will look at this essential part of system security and introduce the following commands: 
-id – Display user identity chmod – Change a file's mode umask – Set the default file permissions su – Run a shell as another user sudo – Execute a command as another user chown – Change a file's owner chgrp – Change a file's group ownership addgroup – Add a user or a group to the system usermod – Modify a user account passwd – Change a user's password 
-# Users, Group Members, and Everybody Else 
-When we were exploring the system in Chapter 3, we may have encountered a problem when trying to examine a file such as /etc/shadow: 
-$\mathsf{\Lambda}[\mathsf{m e}\oplus\mathsf{l i n u}\times\mathsf{b o}\times\mathsf{\Lambda}\sim]\Phi$ file /etc/shadow /etc/shadow: regular file, no read permission [me@linuxbox ~]$ less /etc/shadow /etc/shadow: Permission denied 
-The reason for this error message is that, as regular users, we do not have permission to read this file. 
-In the Unix security model, a user may own files and directories. When a user owns a file or directory, the user has control over its access. Users can, in turn, belong to a group consisting of one or more users who are given access to files and directories by their owners. In addition to granting access to a group, an owner may also grant some set of access rights to everybody, which are called others (sometimes referred to as the world). To find information about our identity, we use the id command. 
-[me@linuxbox ~]$ id uid $\mathtt{\Gamma}=5\Theta\Theta$ (me) gid $=500$ (me) groups $\scriptstyle\mathbf{\lambda}=5\Theta\Theta$ (me) 
-Let's look at the output. When user accounts are created, users are assigned a number called a user ID (uid) which is then, for the sake of the humans, mapped to a username. The user is assigned a primary group ID (gid) and may belong to additional groups. The above example is from a Fedora system. On other systems, such as Ubuntu, the output may look a little different: 
-[me@linuxbox ~]$ id 
-uid $\mathtt{\Gamma}=\mathtt{1000}$ (me) $9\dot{1}0=1000$ (me) 
-group $\mathord{\mathsf{s}}=4$ (adm),20(dialout),24(cdrom),25(floppy),29(audio),30(dip),44(v 
-ideo),46(plugdev),108(lpadmin),114(admin),1000(me) 
-As we can see, the uid and gid numbers are different. This is simply because Fedora starts its numbering of regular user accounts at 500, while Ubuntu starts at 1000. We can also see that the Ubuntu user belongs to a lot more groups. This has to do with the way Ubuntu manages privileges for system devices and services. 
-So where does this information come from? Like so many things in Linux, it comes from a couple of text files. User accounts are defined in the /etc/passwd file and groups are defined in the /etc/group file. When user accounts and groups are created, these files are modified along with /etc/shadow which holds information about the user's password. For each user account, the /etc/passwd file defines the user (login) name, uid, gid, user’s real name, home directory, and login shell. If we examine the contents of /etc/passwd and /etc/group, we notice that besides the regular user accounts, there are accounts for the superuser (always uid 0) and various other system users. 
-In the next chapter, when we cover processes, we will see that some of these other “users” are, in fact, quite busy. 
-While many Unix-like systems assign regular users to a common group such as “users”, modern Linux practice is to create a unique, single-member group with the same name as the user. This makes certain types of permission assignment easier. 
-# Reading, Writing, and Executing 
-Access rights to files and directories are defined in terms of read access, write access, and execution access. If we look at the output of the ls command, we can get some clue as to how this is implemented: 
-<html><body><table><tr><td>[me@linuxbox ~]$ > foo.txt</td></tr><tr><td></td></tr><tr><td>[me@linuxbox ~]$ ls -l foo.txt -rw-rw-r-- 1 me me 0 2016-03-06 14:52 f00.txt</td></tr></table></body></html> 
-The first 10 characters of the listing are the file attributes. The first of these characters is the file type. Table 9-1 describes the file types we are most likely to see (there are other, less common types too): 
-Table 9-1: File Types 
-<html><body><table><tr><td>Attribute</td><td>File Type</td></tr><tr><td>-</td><td>A regular file.</td></tr><tr><td>d</td><td>A directory.</td></tr><tr><td>l</td><td>A symbolic link. Notice that with symbolic links, the remaining file attributes are always “rwxrwxrwx" and are dummy values. The real</td></tr></table></body></html> 
-<html><body><table><tr><td>file attributes are those of the file the symbolic link points to.</td></tr><tr><td>C A character special file. This file type refers to a device that handles data as a stream of bytes, such as a terminal or /dev/null.</td></tr><tr><td>b A block special file. This file type refers to a device that handles data in blocks, such as a hard disk or DVD drive.</td></tr></table></body></html> 
-The remaining nine characters of the file attributes, called the file mode, represent the read, write, and execute permissions for the file's owner, the file's group owner, and everybody else. 
-<html><body><table><tr><td>User</td><td>Group</td><td>Other</td></tr><tr><td>rwx</td><td>rwx</td><td>rwx</td></tr></table></body></html> 
-Table 9-2 describes the effect the ${\mathsf{r}},{\mathsf{w}},$ and $\mathsf{x}$ mode attributes have on files and directories: 
-Table 9-2: Permission Attributes 
-<html><body><table><tr><td>Attribute</td><td>Files</td><td>Directories</td></tr><tr><td>r</td><td>Allows a file to be opened and read.</td><td>Allows a directory's contents to be listed, but no file information is available unless the execute attribute is also set.</td></tr><tr><td>W</td><td>Allows a file to be written to or truncated, however this attribute does not allow files to be renamed or deleted. The ability to delete or rename files is determined by directory attributes.</td><td>Allows files within a directory to be created, deleted, and renamed if the execute attribute is also set.</td></tr><tr><td>×</td><td>Allows a file to be treated as a program and executed. Program files written in scripting languages must also be set as readable to be executed.</td><td>Allows a directory to be entered (i.e., cd directory) and directory metadata (i.e, ls - l directory) to be accessed. File operations such cp, rm, and mv require this access to the</td></tr></table></body></html> 
-<html><body><table><tr><td>directory.</td></tr></table></body></html> 
-Table 9-3 provides some examples of file attribute settings: 
-Table 9-3: Permission Attribute Examples 
-<html><body><table><tr><td>File Attributes</td><td>Meaning</td></tr><tr><td>-rwx-</td><td>A regular file that is readable, writable, and executable by the file's owner. No one else has any access.</td></tr><tr><td>-rw-</td><td>A regular file that is readable and writable by the file's owner. No one else has any access.</td></tr><tr><td>-rw-r--r--</td><td>A regular file that is readable and writable by the file's owner. Members of the file's owner group may read the file. The file is readable by others.</td></tr><tr><td>- rwxr-xr-x</td><td>A regular file that is readable, writable, and executable by the file's owner. The file may be read and executed by everybody else.</td></tr><tr><td>- rw-rw--</td><td>A regular file that is readable and writable by the file's owner and members of the file's group owner only.</td></tr><tr><td>lrwxrwxrwx</td><td>A symbolic link. All symbolic links have “dummy" permissions. The real permissions are kept with the actual file pointed to by the symbolic link.</td></tr><tr><td>drwxrwx--</td><td>A directory. The owner and the members of the owner group may enter the directory and create, rename and remove files within the directory.</td></tr><tr><td>drwxr-x---</td><td>A directory. The owner may enter the directory and create, rename, and delete files within the directory. Members of the owner group may enter the directory but cannot create, delete, or rename files.</td></tr></table></body></html> 
-# chmod – Change File Mode 
-To change the mode (permissions) of a file or directory, the chmod command is used. Be aware that only the file’s owner or the superuser can change the mode of a file or directory. chmod supports two distinct ways of specifying mode changes: octal number representation, or symbolic representation. We will cover octal number representation first. 
-# What the Heck is Octal? 
-Octal (base 8), and its cousin, hexadecimal (base 16) are number systems often used to express numbers on computers. We humans, owing to the fact that we (or at least most of us) were born with 10 fingers, count using a base 10 number system. Computers, on the other hand, were born with only one finger and thus do all their counting in binary (base 2). Their number system has only two numerals, 0 and 1. So, in binary, counting looks like this: 
-0, 1, 10, 11, 100, 101, 110, 111, 1000, 1001, 1010, 1011... 
-In octal, counting is done with the numerals zero through seven, like so: 
-0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 20, 21... 
-Hexadecimal counting uses the numerals zero through nine plus the letters “A” through “F”: 
-0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F, 10, 11, 12, 13... 
-While we can see the sense in binary (since computers have only one finger), what are octal and hexadecimal good for? The answer has to do with human convenience. Many times, small portions of data are represented on computers as bit patterns. Take for example an RGB color. On most computer displays, each pixel is composed of three color components: eight bits of red, eight bits of green, and eight bits of blue. A lovely medium blue would be a 24 digit number: 
-# 010000110110111111001101 
-How would you like to read and write those kinds of numbers all day? I didn't think so. Here's where another number system would help. Each digit in a hexadecimal number represents four digits in binary. In octal, each digit represents three binary digits. So our 24 digit medium blue could be condensed to a six-digit hexadecimal number: 
-# 436FCD 
-Since the digits in the hexadecimal number “line up” with the bits in the binary number, we can see that the red component of our color is 43, the green 6F, and the blue CD. 
-These days, hexadecimal notation (often referred to as “hex”) is more common than octal, but as we will soon see, octal's ability to express three bits of binary will be very useful... 
-With octal notation, we use octal numbers to set the pattern of desired permissions. Since each digit in an octal number represents three binary digits, this maps nicely to the scheme used to store the file mode. Table 9-4 shows what we mean. 
-Table 9-4: File Modes in Binary and Octal 
-<html><body><table><tr><td>Octal</td><td>Binary</td><td>File Mode</td></tr><tr><td>0</td><td>000</td></tr><tr><td>1</td><td>001 --X</td></tr><tr><td>2 010</td><td>-W-</td></tr><tr><td>3 011</td><td>-WX</td></tr><tr><td>4 100</td><td>r--</td></tr><tr><td>5 101</td><td>r-x</td></tr><tr><td>6 110</td><td>rw-</td></tr><tr><td>7 111</td><td>rwx</td></tr></table></body></html> 
-By using three octal digits, we can set the file mode for the owner, group owner, and world. 
-[me@linuxbox ~]$ > foo.txt 
-$\mathsf{\Lambda}[\mathsf{m e}\ @\mathsf{l i n u}\times\mathsf{b o}\times\mathsf{\Lambda}\sim]\Phi$ ls -l foo.txt 
-$-r w-r w-r\textrm{-}1$ me me 0 2016-03-06 14:52 foo.txt 
-[me@linuxbox ~]$ chmod 600 foo.txt 
-[me@linuxbox $-]$1$ ls -l foo.txt 
--rw-- -- 1 me me 0 2016-03-06 14:52 foo.txt 
-By passing the argument $"600"$ , we were able to set the permissions of the owner to read and write while removing all permissions from the group owner and others. Though remembering the octal to binary mapping may seem inconvenient, we will usually have only to use a few common ones: 7 $\mathsf{^{\prime}}(\mathsf{r w}\mathsf{\times}),6(\mathsf{r w}-),5(\mathsf{r}-\mathsf{\times}),4(\mathsf{r}--),$ , and 0 (---). 
-chmod also supports a symbolic notation for specifying file modes. Symbolic notation is divided into three parts. 
-Who the change will affect Which operation will be performed What permission will be set. 
-To specify who is affected, a combination of the characters “u”, “g”, “o”, and “a” is used as shown in Table 9-5. 
-Table 9-5: chmod Symbolic Notation 
-<html><body><table><tr><td>Symbol</td><td>Meaning</td></tr><tr><td>u</td><td>Short for “user" i.e. the file or directory's owner.</td></tr><tr><td>ｇ</td><td>Group owner.</td></tr><tr><td>0</td><td>Short for others.</td></tr><tr><td>a</td><td>Short for “all." This is the combination of “u", “g", and “o".</td></tr></table></body></html> 
-If no character is specified, “all” will be assumed. The operation may be a $^{66}+^{99}$ indicating that a permission is to be added, a “-” indicating that a permission is to be taken away, or a $"="$ indicating that only the specified permissions are to be applied and that all others are to be removed. 
-Permissions are specified with the “r”, “w”, and “x” characters. Table 9-6 provides some examples of symbolic notation: 
-Table 9-6: chmod Symbolic Notation Examples 
-<html><body><table><tr><td>Notation</td><td>Meaning</td></tr><tr><td>u+x</td><td>Add execute permission for the owner.</td></tr><tr><td>u-x</td><td>Remove execute permission from the owner.</td></tr><tr><td>+X</td><td>Add execute permission for the user, group, and others. This is equivalent to a+x.</td></tr><tr><td>o-rw</td><td>Remove the read and write permissions from anyone besides the user and group owner.</td></tr><tr><td>go=rw</td><td>Set the group owner and anyone besides the user to have read and write permission. If either the group owner or others previously had execute permission, it is removed.</td></tr><tr><td>u+x,go=rx</td><td>Add execute permission for the user and set the permissions for the group and others to read and execute. Multiple specifications may be separated by commas.</td></tr></table></body></html> 
-Some people prefer to use octal notation, and some folks really like the symbolic. Symbolic notation does offer the advantage of allowing us to set a single attribute without disturbing any of the others. 
-Take a look at the chmod man page for more details and a list of options. A word of caution regarding the “--recursive” option: it acts on both files and directories, so it's not as useful as we would hope since we rarely want files and directories to have the same permissions. 
-# Setting File Mode with the GUI 
-Now that we have seen how the permissions on files and directories are set, we can better understand the permission dialogs in the GUI. In both Files (GNOME) and Dolphin (KDE), right-clicking a file or directory icon will expose a properties dialog. Here is an example from GNOME: 
-![](https://cdn-mineru.openxlab.org.cn/extract/e52c4087-794e-43f3-821f-0f8eb1fdf822/7ec463fe32c278ccef035e08e5d6a50c0807b13cdb7d5894ce3aa057151f3b8a.jpg) 
-Figure 2: GNOME file permissions dialog 
-Here we can see the settings for the owner, group, and others. 
-# umask – Set Default Permissions 
-The umask command controls the default permissions given to a file when it is created. It uses octal notation to express a mask of bits to be removed from a file's mode attributes. Let's take a look. 
-[me@linuxbox ~]$ rm -f foo.txt 
-[me@linuxbox ~]$ umask 
-0002 
-[me@linuxbox ~]$ > foo.txt 
-[me@linuxbox ~]$ ls -l foo.txt 
--rw-rw-r-- 1 me me 0 2025-03-06 14:53 foo.txt 
-We first removed any old copy of foo.txt to make sure we were starting fresh. Next, we ran the umask command without an argument to see the current value. It responded with the value 0002 (the value 0022 is another common default value), which is the octal representation of our mask. We next create a new instance of the file foo.txt and observe its permissions. 
-We can see that both the user and group get read and write permission, while everyone else only gets read permission. The reason that world does not have write permission is because of the value of the mask. Let's repeat our example, this time setting the mask ourselves. 
-<html><body><table><tr><td>[me@linuxbox ~]$ rm foo.txt</td><td></td></tr><tr><td>[me@linuxbox ~]$ umask 0000</td><td></td></tr><tr><td>[me@linuxbox ~]$ > foo.txt</td><td></td></tr><tr><td>[me@linuxbox ~]$ ls -l foo.txt</td><td></td></tr><tr><td>-rw-rw-rw- 1 me</td><td>me 0 2025-03-06 14:58 f00.txt</td></tr></table></body></html> 
-When we set the mask to 0000 (effectively turning it off), we see that the file is now world writable. To understand how this works, we have to look at octal numbers again. If we change the mask to 0002, expand it into binary, and then compare it to the attributes we can see what happens. 
-<html><body><table><tr><td>Original file mode</td><td>rw- rw- rw-</td></tr><tr><td>Mask</td><td>000 000 000 010</td></tr><tr><td>Result</td><td>rw- rw- r--</td></tr></table></body></html> 
-Ignore for the moment the leading zeros (we'll get to those in a minute) and observe that where the 1 appears in our mask, an attribute was removed — in this case, the world write permission. That's what the mask does. Everywhere a 1 appears in the binary value of the mask, an attribute is unset. If we look at a mask value of 0022, we can see what it does. 
-<html><body><table><tr><td>Original file mode</td><td>rw- rw- rw-</td></tr><tr><td>Mask</td><td>000 000 010 010</td></tr><tr><td>Result</td><td>rw- r-- r--</td></tr></table></body></html> 
-Again, where a 1 appears in the binary value, the corresponding attribute is unset. Play with some values (try some sevens) to get used to how this works. When you're done, remember to clean up. 
-[me@linuxbox $-]$1$ rm foo.txt; umask 0002 
-Most of the time we won't have to change the mask; the default provided by the distribution will be fine. In some high-security situations, however, we will want to control it. 
-# Some Special Permissions 
-Though we usually see an octal permission mask expressed as a three-digit number, it is more technically correct to express it in four digits. Why? Because, in addition to read, write, and execute permission, there are some other, less used, permission settings. 
-The first of these is the setuid bit (octal 4000). When applied to an executable file, it sets the effective user ID from that of the real user (the user actually running the program) to that of the program's owner. Most often this is given to a few programs owned by the superuser. When an ordinary user runs a program that is “setuid root” , the program runs with the effective privileges of the superuser. This allows the program to access files and directories that an ordinary user would normally be prohibited from accessing. Clearly, because this raises security concerns, the number of setuid programs must be held to an absolute minimum. 
-The second less-used setting is the setgid bit (octal 2000), which, like the setuid bit, changes the effective group ID from the real group ID of the real user to that of the file owner. If the setgid bit is set on a directory, newly created files in the directory will be given the group ownership of the directory rather the group ownership of the file's creator. This is useful in a shared directory when members of a common group need access to all the files in the directory, regardless of the file owner's primary group. 
-The third is called the sticky bit (octal 1000). This is a holdover from ancient Unix, where it was possible to mark an executable file as “not swappable.” On files, Linux ignores the sticky bit, but if applied to a directory, it prevents users from deleting or renaming files unless the user is either the owner of the directory, the owner of the file, or the superuser. This is often used to control access to a shared directory, such as /tmp. 
-Here are some examples of using chmod with symbolic notation to set these special permissions. Here’s an example of assigning setuid to a program: 
-chmod $\mathsf{u}{+}\mathsf{s}$ program 
-Next, here’s and example of assigning setgid to a directory: 
-chmod $9^{+}{\mathsf{s}}$ dir 
-Finally, here’s an example of assigning the sticky bit to a directory: 
-chmod +t dir 
-When viewing the output from ls, you can determine the special permissions. Here are some examples. First, an example of a program that is setuid: 
--rwsr-xr-x 
-Here’s an example of a directory that has the setgid attribute: 
-drwxrwsr-x 
-Here’s an example of a directory with the sticky bit set: 
-drwxrwxrwt 
-# Changing Identities 
-Sometimes we may find it necessary to take on the identity of another user. Often we want to gain superuser privileges to carry out some administrative task, but it is also possible to “become” another regular user for such things as testing an account. There are three ways to take on an alternate identity. 
-1. Log out and log back in as the alternate user. 
-2. Use the su command. 
-3. Use the sudo command. 
-We will skip the first technique since we know how to do it and it lacks the convenience of the other two. From within our own shell session, the su command allows us to assume the identity of another user and either start a new shell session with that user's ID, or to issue a single command as that user. The sudo command allows an administrator to set up a configuration file called /etc/sudoers and define specific commands that particular users are permitted to execute under an assumed identity. The choice of which command to use is largely determined by which Linux distribution you use. Your distribution probably includes both commands, but its configuration will favor either one or the other. We'll start with su. Though be aware that the use of su is falling out of favor in modern Linux distributions. 
-# su – Run a Shell with Substitute User and Group IDs 
-The su command is used to start a shell as another user. The command syntax looks like this: 
-![](https://cdn-mineru.openxlab.org.cn/extract/e52c4087-794e-43f3-821f-0f8eb1fdf822/c03dacc85930d1f439d406ad281600ef3b3b91c3be1349810efda93f98df8d81.jpg) 
-If the “-l” option is included, the resulting shell session is a login shell for the specified user. This means the user's environment is loaded and the working directory is changed to the user's home directory. This is usually what we want. If the user is not specified, the superuser is assumed. Notice that (strangely) the -l may be abbreviated as -, which is how it is most often used. Assuming that the root account has a password set (which is not the custom in modern distributions) we can start a shell for the superuser this way: 
-[me@linuxbox ~]$ su - Password: [root@linuxbox ~]# 
-After entering the command, we are prompted for the superuser's password. If it is successfully entered, a new shell prompt appears indicating that this shell has superuser privileges (the trailing # rather than a$ ), and the current working directory is now the home directory for the superuser (normally /root). Once in the new shell, we can carry out commands as the superuser. When finished, enter exit to return to the previous shell. 
-[root@linuxbox ~]# exit [me@linuxbox ~]$ 
-It is also possible to execute a single command rather than starting a new interactive command by using su this way. 
-Using this form, a single command line is passed to the new shell for execution. It is important to enclose the command in quotes, as we do not want expansion to occur in our shell, but rather in the new shell. 
-[me@linuxbox ~]$ su -c 'ls -l /root/\*' 
-Password: 
--rw- - 1 root root 754 2007-08-11 03:19 /root/anaconda-ks.cfg 
-/root/Mail: 
-total 0 
-[me@linuxbox ~]$ 
-# sudo – Execute a Command as Another User 
-The sudo command is like su in many ways but has some important additional capabilities. The administrator can configure sudo to allow an ordinary user to execute commands as a different user (usually the superuser) in a controlled way. In particular, a user may be restricted to one or more specific commands and no others. Another important difference is that the use of sudo does not require access to the superuser's password. Authenticating using sudo, requires the user’s own password. Let's say, for example, that sudo has been configured to allow us to run a fictitious backup program called “backup_script”, which requires superuser privileges. With sudo it would be done like this: 
-[me@linuxbox ~]$ sudo backup_script Password: System Backup Starting... 
-After entering the command, we are prompted for our password (not the superuser's) and once the authentication is complete, the specified command is carried out. One important difference between su and sudo is that sudo does not start a new shell, nor does it load another user's environment. This means that commands do not need to be quoted any differently than they would be without using sudo. Note that this behavior can be overridden by specifying various options. Note, too, that sudo can be used to start an interactive superuser session (much like su -) by using the -i option. See the sudo man page for details. 
-To see what privileges are granted by sudo, use the -l option to list them: 
-[me@linuxbox ~]$ sudo -l 
-User me may run the following commands on this host: (ALL) ALL 
-# Modern Linux Distributions and sudo 
-One of the recurrent problems for regular users is how to perform certain tasks that require superuser privileges. These tasks include installing and updating software, editing system configuration files, and accessing devices. In the Windows world, this is often done by giving users administrative privileges. This allows users to perform these tasks. However, it also enables programs executed by the user to have the same abilities. This is desirable in most cases, but it also permits malware (malicious software) such as viruses to have free rein of the computer. 
-In the Unix world, there has always been a larger division between regular users and administrators, owing to the multiuser heritage of Unix. The approach taken in Unix is to grant superuser privileges only when needed. To do this, the su and sudo commands are commonly used. 
-Years ago, most Linux distributions relied on su for this purpose. su didn't require the configuration that sudo required, and having a root account is traditional in Unix. This, however introduced a problem. Users were tempted to operate as root unnecessarily. In fact, some users operated their systems as the root user exclusively, since it does away with all those annoying “permission denied” messages. This is how you reduce the security of a Linux system to that of a Windows system. Not a good idea. 
-When Ubuntu was introduced, its creators took a different tack. By default, Ubuntu disables logins to the root account (by failing to set a password for the account) and instead uses sudo to grant superuser privileges. The initial user account is granted full access to superuser privileges via sudo and may grant similar powers to subsequent user accounts. This method of granting privileges is now the accepted standard is most modern distributions. 
-# chown – Change File Owner and Group 
-The chown command is used to change the owner and group owner of a file or directory. Superuser privileges are required to use this command. The syntax of chown looks like this: 
-# chown [owner][:[group]] file.. 
-chown can change the file owner and/or the file group owner depending on the first argument of the command. Table 9-7 provides some examples. 
-Table 9-7: chown Argument Examples 
-<html><body><table><tr><td> Argument</td><td>Results</td></tr><tr><td>bob</td><td>Changes the ownership of the file from its current owner to user bob.</td></tr><tr><td>bob:users</td><td>Changes the ownership of the file from its current owner to user bob and changes the file group owner to group users.</td></tr><tr><td>:admins</td><td>Changes the group owner to the group admins. The file owner is unchanged.</td></tr><tr><td>bob:</td><td>Changes the file owner from the current owner to user bob and changes the group owner to the login group of user bob.</td></tr></table></body></html> 
-Let's say we have two users; janet, who has access to superuser privileges and tony, who does not. User janet wants to copy a file from her home directory to the home directory of user tony. Since user janet wants tony to be able to edit the file, janet changes the ownership of the copied file from janet to tony. 
-[janet@linuxbox ~]$ sudo cp myfile.txt ~tony 
-Password: 
-[janet@linuxbox ~]$ sudo ls -l ~tony/myfile.txt 
--rw-r--r-- 1 root root root 2025-03-20 14:30 /home/tony/myfile.txt 
-[janet@linuxbox ~]$ sudo chown tony: ~tony/myfile.txt 
-[janet@linuxbox $-]$1$ sudo ls -l ~tony/myfile.txt 
--rw-r--r-- 1 tony tony tony 2025-03-20 14:30 /home/tony/myfile.txt 
-Here we see user janet copy the file from her directory to the home directory of user tony. Next, janet changes the ownership of the file from root (a result of using sudo) to tony. Using the trailing colon in the first argument, janet also changed the group ownership of the file to the login group of tony, which happens to be group tony. 
-Notice that after the first use of sudo, janet was not prompted for her password. This is because sudo, in most configurations, “trusts” us for several minutes until its timer 
-runs out. 
-# chgrp – Change Group Ownership 
-In older versions of Unix, the chown command only changed file ownership, not group ownership. For that purpose, a separate command, chgrp was used. It works much the same way as chown, except for being more limited. 
-# Exercising Our Privileges 
-Now that we have learned how this permissions thing works, it's time to show it off. We are going to demonstrate the solution to a common problem — setting up a shared directory. Let's revisit our friends janet and tony. They both have music collections and want to set up a shared directory, where they will each store their music files as Ogg Vorbis or MP3. As before, user janet has access to superuser privileges via sudo. 
-A group needs to be created that will have both janet and tony as members. This is done in two steps. First, using the groupadd command, we create the group followed with the usermod command to add users to the group: 
-[janet@linuxbox ~]$ sudo groupadd music [janet@linuxbox ~]$ sudo usermod -a -G music janet [janet@linuxbox $-]$1$ sudo usermod -a -G music tony 
-The options used with the usermod command are short for --append and --group and they add the specified user to the corresponding group in the /etc/group file. 
-Next, janet creates the directory for the music files. 
-[janet@linuxbox ~]$ sudo mkdir /usr/local/share/Music Password: 
-Since janet is manipulating files outside of her home directory, superuser privileges are required. After the directory is created, it has the following ownerships and permissions: 
-[janet@linuxbox ~]$ ls -ld /usr/local/share/Music drwxr-xr-x 2 root root 4096 2025-03-21 18:05 /usr/local/share/Music 
-As we can see, the directory is owned by root and has permission mode 755. To make this directory shareable, janet needs to change the group ownership and the group permissions to allow writing. 
-[janet@linuxbox ~]$ sudo chown :music /usr/local/share/Music [janet@linuxbox $-]$1$ sudo chmod 2775 /usr/local/share/Music [janet@linuxbox ~]$ ls -ld /usr/local/share/Music drwxrwsr-x 2 root music 4096 2025-03-21 18:05 /usr/local/share/Music 
-Using the chown command, janet sets the group owner of the directory to music then uses chmod to set the directory permissions to 2755. This sets the setguid to cause all files in the directory to inherit the same group ownership as the directory. We did this by executing chmod 2755 but we could have done thing by using the symbolic method with chmod $9^{+}{\mathsf{s}}$ . 
-What does this all mean? It means that we now have a directory, /usr/local/ share/Music that is owned by root and allows read and write access to group music. Group music has members janet and tony; thus, janet and tony can create files in directory /usr/local/share/Music. Other users can list the contents of the directory but cannot create files there. 
-But we still have a problem. The default umask on this system is 0022, which prevents group members from writing files belonging to other members of the group. This would not be a problem if the shared directory contained only files, but since this directory will store music, and music is usually organized in a hierarchy of artists and albums, members of the group will need the ability to create files and directories inside directories created by other members. We need to change the umask used by janet and tony to 0002 instead. 
-janet sets her umask to 0002, and creates a new test file and directory: 
-[janet@linuxbox ~]$ umask 0002 
-[janet@linuxbox ~]$ > /usr/local/share/Music/test_file 
-[janet@linuxbox ~]$ mkdir /usr/local/share/Music/test_dir 
-[janet@linuxbox ~]$ ls -l /usr/local/share/Music 
-drwxrwsr-x 2 janet music 4096 2025-03-24 20:24 test_dir 
--rw-rw-r-- 1 janet music 0 2025-03-24 20:22 test_file 
-[janet@linuxbox ~]$ 
-Both files and directories are now created with the correct permissions to allow all members of the group music to create files and directories inside the Music directory. 
-The one remaining issue is umask. The necessary setting only lasts until the end of session and must be reset. In Chapter 11, we'll look at making the change to umask permanent. 
-# Changing Your Password 
-The last topic we'll cover in this chapter is setting passwords for ourselves (and for other users if we have access to superuser privileges). To set or change a password, the passwd command is used. The command syntax looks like this: 
-# passwd [user] 
-To change our password, we just enter the passwd command. We will be prompted for our old password and our new password. 
-[me@linuxbox ~]$ passwd (current) UNIX password: New UNIX password: 
-The passwd command will try to enforce use of “strong” passwords. This means it will refuse to accept passwords that are too short, are too similar to previous passwords, are dictionary words, or are too easily guessed. 
-[me@linuxbox ~]$ passwd 
-(current) UNIX password: 
-New UNIX password: 
-BAD PASSWORD: is too similar to the old one 
-New UNIX password: 
-BAD PASSWORD: it is WAY too short 
-New UNIX password: 
-BAD PASSWORD: it is based on a dictionary word 
-If we have superuser privileges, you can specify a username as an argument to the passwd command to set the password for another user. Other options are available to the superuser to allow account locking, password expiration, and so on. See the passwd man page for details. 
-The passwd, addgroup, and usermod commands are part of a suite of commands in the shadow-utils package. Table 9-8 lists some of the commands contained in that package: 
-Table 9-8: shadow-utils Commands 
-<html><body><table><tr><td>Command</td><td>Description</td></tr><tr><td>lastlog</td><td>Reports the most recent login of all users or of a given user.</td></tr><tr><td>useradd</td><td>Create a new user or update default new user information.</td></tr><tr><td>userdel</td><td>Delete a user account and related files.</td></tr><tr><td>usermod</td><td>Modify a user account.</td></tr><tr><td>groupadd</td><td>Create a new group.</td></tr><tr><td>groupdel</td><td>Delete a group.</td></tr><tr><td>groupmod</td><td>.Modify a group definition on the system.</td></tr></table></body></html> 
-We won’t be covering these commands in any detail as they fall a little outside the scope of this book. For further information, consult each command’s man page. 
-# Summing Up 
-In this chapter we saw how Unix-like systems such as Linux manage user permissions to allow the read, write, and execution access to files and directories. The basic ideas of this system of permissions date back to the early days of Unix and have stood up pretty well to the test of time. But the native permissions mechanism in Unix-like systems lacks the fine granularity of more modern systems. 
-# Further Reading 
-Wikipedia has a good article on malware: http://en.wikipedia.org/wiki/Malware 
-# 10 – Processes 
-Modern operating systems are usually multitasking, meaning they create the illusion of doing more than one thing at once by rapidly switching from one executing program to another. The Linux kernel manages this through the use of processes. Processes are how Linux organizes the different programs waiting for their turn at the CPU. 
-Sometimes a computer will become sluggish or an application will stop responding. In this chapter, we will look at some of the tools available at the command line that let us examine what programs are doing and how to terminate processes that are misbehaving. 
-This chapter will introduce the following commands: 
-ps – Report a snapshot of current processes 
-top – Display tasks 
-jobs – List active jobs 
-bg – Place a job in the background 
-fg – Place a job in the foreground 
-kill – Send a signal to a process 
-killall – Kill processes by name 
-nice - Run a program with modified scheduling priority 
-renice - Alter priority of running processes 
-nohup - Run a command immune to hangups 
-halt/poweroff/reboot - Halt, power-off, or reboot the system 
-shutdown – Shutdown or reboot the system 
-# How a Process Works 
-When a system starts up, the kernel initiates a few of its own activities as processes and launches a program called init. init, in turn, starts systemd which starts all the system services. In older Linux distributions init runs a series of shell scripts (located in /etc) called init scripts to perform a similar function. Many system services are implemented as daemon programs, programs that just sit in the background and do their thing without having any user interface. So, even if we are not logged in, the system is at least a little busy performing routine stuff. 
-The fact that a program can launch other programs is expressed in the process scheme as a parent process producing a child process. 
-The kernel maintains information about each process to help keep things organized. For example, each process is assigned a number called a process ID (PID). PIDs are assigned in ascending order, with init always getting PID 1. The kernel also keeps track of the memory assigned to each process, as well as the processes' readiness to resume execution. Like files, processes also have owners and user IDs, effective user IDs, etc. 
-# Viewing Processes 
-The most commonly used tool to view processes (there are several) is the ps command. The ps program has a lot of options, but in its simplest form it is used like this: 
-<html><body><table><tr><td>[me@linuxbox ~]$ ps</td><td colspan="2"></td></tr><tr><td>PID TTY</td><td></td><td>TIME CMD</td></tr><tr><td>5198 pts/1</td><td>00:00:00 bash</td><td></td></tr><tr><td>10129 pts/1</td><td>00:00:00 ps</td><td></td></tr></table></body></html> 
-The result in this example lists two processes, process 5198 and process 10129, which are bash and ps respectively. As we can see, by default, ps doesn't show us very much, just the processes associated with the current terminal session. To see more, we need to add some options, but before we do that, let's look at the other fields produced by ps. TTY is short for “teletype,” and refers to the controlling terminal for the process. Unix is showing its age here. The TIME field is the amount of CPU time consumed by the process. As we can see, neither process makes the computer work very hard. 
-If we add an option, we can get a bigger picture of what the system is doing. 
-<html><body><table><tr><td>[me@linuxbox ~]$ ps x</td><td colspan="3"></td></tr><tr><td>PID TTY</td><td>STAT</td><td>TIME COMMAND</td><td></td></tr><tr><td>2799 ?</td><td>Ssl</td><td></td><td>0:00 /usr/libexec/bonobo-activation-server -ac</td></tr><tr><td>2820 ?</td><td>Sl</td><td></td><td>0:01 /usr/libexec/evolution-data-server-1.10 -</td></tr><tr><td>15647 ？</td><td>Ss</td><td></td><td>0:00 /bin/sh /usr/bin/startkde</td></tr><tr><td>15751？</td><td>Ss</td><td></td><td>0:00 /usr/bin/ssh-agent /usr/bin/dbus-launch -</td></tr><tr><td>15754 ?</td><td>S</td><td></td><td>0:00 /usr/bin/dbus-launch --exit-with-session</td></tr><tr><td>15755？</td><td>Ss</td><td></td><td>0:01 /bin/dbus-daemon --fork --print-pid 4 -pr</td></tr></table></body></html> 
-<html><body><table><tr><td>15774 ?</td><td>Ss</td><td></td><td>0:02 /usr/bin/gpg-agent -s -daemon</td></tr><tr><td>15793 ?</td><td>S</td><td></td><td>0:00 start_kdeinit --new-startup +kcminit_start</td></tr><tr><td>15794？</td><td>Ss</td><td></td><td>0:00 kdeinit Running...</td></tr><tr><td>15797？</td><td>S</td><td></td><td>0:00 dcopserver -nosid</td></tr><tr><td>and many more...</td><td></td><td></td><td></td></tr></table></body></html> 
-Adding the “x” option (note that there is no leading dash) tells ps to show all of our processes regardless of what terminal (if any) they are controlled by. The presence of a “?” in the TTY column indicates no controlling terminal. Using this option, we see a list of every process that we own. 
-Since the system is running a lot of processes, ps produces a long list. It is often helpful to pipe the output from ps into less for easier viewing. Some option combinations also produce long lines of output, so maximizing the terminal emulator window may be a good idea, too. 
-A new column titled STAT has been added to the output. STAT is short for “state” and reveals the current status of the process, as shown in Table 10-1. 
-Table 10-1: Process States 
-<html><body><table><tr><td> State</td><td>Meaning</td></tr><tr><td>R</td><td>Running. This means that the process is running or ready to run.</td></tr><tr><td>S</td><td>Sleeping. The process is not running; rather, it is waiting for an event, such as a keystroke or network packet.</td></tr><tr><td>D</td><td>Uninterruptible sleep. The process is waiting for I/O such as a disk drive.</td></tr><tr><td>T</td><td>Stopped. The process has been instructed to stop. More on this later in the chapter.</td></tr><tr><td>Z</td><td>A defunct or “zombie" process. This is a child process that has terminated but has not been cleaned up by its parent.</td></tr><tr><td>Λ</td><td>A high-priority process. It's possible to grant more importance to a process, giving it more time on the CPU. This property of a process is called niceness.A process with high priority is said to be less nice because it's taking more of the CPU's time, which leaves less for everybody else.</td></tr><tr><td>N</td><td>A low-priority process.A process with low priority (a“nice" process) will get processor time only after other processes with higher priority have been serviced.</td></tr></table></body></html> 
-The process state may be followed by other characters. These indicate various exotic process characteristics. See the ps man page for more detail. 
-Another popular set of options is “aux” (without a leading dash). This gives us even more information. 
-<html><body><table><tr><td>[me@linuxbox ~]$ ps aux</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>USER</td><td>PID</td><td>%CPU</td><td>%MEM</td><td>VSZ</td><td>RSS</td><td>TTY</td><td>STAT</td><td> START</td><td>TIME</td><td>COMMAND</td></tr><tr><td>root</td><td>1</td><td>0.0</td><td>0.0</td><td>2136</td><td>644 ?</td><td></td><td>Ss</td><td>Mar05</td><td>0:31</td><td>init</td></tr><tr><td>root</td><td>2</td><td>0.0</td><td>0.0</td><td>0</td><td></td><td></td><td>S<</td><td>Mar05</td><td>0:00</td><td>[kt]</td></tr><tr><td>root</td><td>3</td><td>0.0</td><td>0.0</td><td>0</td><td></td><td></td><td>S<</td><td>Mar05</td><td>0:00</td><td>[mi]</td></tr><tr><td>root</td><td>4</td><td>0.0</td><td>0.0</td><td>0</td><td>口？</td><td></td><td>S<</td><td>Mar05</td><td>0:00</td><td>[ks]</td></tr><tr><td>root</td><td>5</td><td>0.0</td><td>0.0</td><td>0</td><td></td><td></td><td>S<</td><td>Mar05</td><td>0:06</td><td>[wa]</td></tr><tr><td>root</td><td>6</td><td>0.0</td><td>0.0</td><td>0</td><td></td><td></td><td>S<</td><td>Mar05</td><td>0:36</td><td>[ev]</td></tr><tr><td>root</td><td>7</td><td>0.0</td><td>0.0</td><td>0</td><td></td><td></td><td>S<</td><td>Mar05</td><td>0:00</td><td>[kh]</td></tr><tr><td>and many more...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></body></html> 
-This set of options displays the processes belonging to every user. Using the options without the leading dash invokes the command with “BSD style” behavior. The Linux version of ps can emulate the behavior of the ps program found in several different Unix implementations. The most popular BSD options are shown in Table 10-2. 
-Table 10-2: Popular BSD Style ps Options 
-<html><body><table><tr><td>Option</td><td>Function</td></tr><tr><td>X</td><td>List our running processes.</td></tr><tr><td>ax</td><td>List all running processes..</td></tr><tr><td>W</td><td>Include full command names.</td></tr><tr><td>u</td><td>Verbose listing.</td></tr></table></body></html> 
-With the aux options, we get the additional columns shown in Table 10-3. 
-Table 10-3: BSD Style ps Column Headers 
-<html><body><table><tr><td> Header</td><td>Meaning</td></tr><tr><td>USER</td><td>User ID. This is the owner of the process.</td></tr><tr><td>%CPU</td><td>CPU usage in percent.</td></tr></table></body></html> 
-<html><body><table><tr><td>%MEM Memory usage in percent.</td><td></td></tr><tr><td>VSZ</td><td>Virtual memory size.</td></tr><tr><td>RSS</td><td>Resident set size. This is the amount of physical memory (RAM) the process is using in kilobytes.</td></tr><tr><td>START</td><td>Time when the process started. For values over 24 hours, a date is used.</td></tr><tr><td>TIME</td><td>The amount of CPU time consumed by the process.</td></tr></table></body></html> 
-It’s also possible to produce a detailed snapshot of a single process by including a PID as a command argument as shown in the example below. 
-<html><body><table><tr><td colspan="10">[me@linuxbox ~]$ ps uw 44719</td></tr><tr><td>USER PID</td><td></td><td></td><td>%CPU %MEM VSZ</td><td></td><td>RSS TTY</td><td></td><td> STAT START</td><td></td><td>TIME COMMAND</td><td></td></tr><tr><td>me</td><td>44719</td><td>0.0</td><td>0.0</td><td>13480</td><td>6492 pts/1</td><td></td><td>S</td><td>15:57</td><td>0:00 bash</td><td></td></tr></table></body></html> 
-# Viewing Processes Dynamically with top 
-While the ps command can reveal a lot about what the machine is doing, it provides only a snapshot of the machine's state at the moment the ps command is executed. To see a more dynamic view of the machine's activity, we use the top command: 
-top - 14:59:20 up 6:30, 2 users, load average: 0.07, 0.02, 0.00 Tasks: 109 total, 1 running, 106 sleeping, 0 stopped, 2 zombie Cpu(s): 0.7%us, 1.0%sy, 0.0%ni, 98.3%id, 0.0%wa, 0.0%hi, 0.0%si Mem: 319496k total, 314860k used, 4636k free, 19392k buff Swap: 875500k total, 149128k used, 726372k free, 114676k cach 
-<html><body><table><tr><td>PID USER</td><td></td><td>PR NI</td><td>VIRT</td><td></td><td>RES</td><td></td><td>SHR S %CPU %MEM</td><td></td><td>TIME+</td><td>COMMAND</td></tr><tr><td>6244</td><td>me</td><td>39</td><td>19</td><td>31752</td><td>3124</td><td>2188 S</td><td>6.3</td><td>1.0</td><td>16:24.42</td><td>trackerd</td></tr><tr><td>11071</td><td>me</td><td>20</td><td>0</td><td>2304</td><td>1092</td><td>840 R</td><td>1.3</td><td>0.3</td><td>0:00.14</td><td>top</td></tr><tr><td>6180</td><td> me</td><td>20</td><td>0</td><td>2700</td><td>1100</td><td>772</td><td>S 0.7</td><td>0.3</td><td>0:03.66</td><td>dbus-dae</td></tr><tr><td>6321</td><td> me</td><td>20</td><td>0</td><td>20944</td><td>7248</td><td>6560</td><td>S 0.7</td><td>2.3</td><td>2:51.38</td><td>multiloa</td></tr><tr><td>4955</td><td>root</td><td>20</td><td>0</td><td>104m</td><td>9668</td><td>5776</td><td>S 0.3</td><td>3.0</td><td>2:19.39</td><td>Xorg</td></tr><tr><td>1</td><td>root</td><td>20</td><td>0</td><td>2976</td><td>528</td><td>476</td><td>S 0.0</td><td>0.2</td><td>0:03.14 init</td><td></td></tr><tr><td>2</td><td>root</td><td>15</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:00.00</td><td>kthreadd</td></tr><tr><td>3</td><td>root</td><td>RT</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:00.00</td><td>migratio</td></tr><tr><td></td><td>4 root</td><td>15</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:00.72 ksoftirq</td><td></td></tr><tr><td>5</td><td>root</td><td>RT</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:00.04 watchdog</td><td></td></tr><tr><td>6</td><td>root</td><td>15</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td></td><td>0:00.42 events/0</td></tr><tr><td>7</td><td>root</td><td>15</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:00.06 khelper</td><td></td></tr><tr><td>41</td><td>root</td><td>15</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:01.08 kblockd/</td><td></td></tr><tr><td>67</td><td>root</td><td>15</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:00.00 kseriod</td><td></td></tr><tr><td>114</td><td>root</td><td>20</td><td>0</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td>0:01.62 pdflush</td><td></td></tr><tr><td>116</td><td>root</td><td>15</td><td>-5</td><td>0</td><td>0</td><td>0</td><td>S 0.0</td><td>0.0</td><td></td><td>0:02.44 kswapd0</td></tr></table></body></html> 
-The system summary contains a lot of good stuff. Here's a rundown: 
-Table 10-4: top Information Fields 
-<html><body><table><tr><td>Row</td><td>Field</td><td>Meaning</td></tr><tr><td>1</td><td>top</td><td>The name of the program.</td></tr><tr><td></td><td>14:59:20</td><td>The current time of day.</td></tr><tr><td></td><td>up 6:30</td><td>This is called uptime. It is the amount of time since the machine was last booted. In this example, the system has been up for six-and-a- half hours.</td></tr><tr><td></td><td>2 users</td><td>There are two users logged in.</td></tr><tr><td></td><td>load average:</td><td>Load average refers to the number of processes that are waiting to run, that is, the number of processes that are in a runnable state and are sharing the CPU. Three values are shown, each</td></tr></table></body></html> 
-<html><body><table><tr><td></td><td>for a different period of time. The first is the average for the last 6O seconds, the next the previous 5 minutes, and finally the previous 15 minutes. Values less than 1.O indicate that the machine is not busy.</td></tr><tr><td>2 Tasks:</td><td>This summarizes the number of processes and their various process states.</td></tr><tr><td>3 Cpu(s):</td><td>This row describes the character of the activities that the CPU is performing.</td></tr><tr><td>0.7%us</td><td>0.7 percent of the CPU is being used for user processes. This means processes outside the kernel.</td></tr><tr><td>1.0%sy</td><td>1.0 percent of the CPU is being used for system (kernel) processes.</td></tr><tr><td>0.0%ni</td><td>0.0 percent of the CPU is being used by “nice" (low-priority) processes.</td></tr><tr><td>98.3%id</td><td>98.3 percent of the CPU is idle.</td></tr><tr><td>0.0%wa</td><td>0.0 percent of the CPU is waiting for I/O.</td></tr><tr><td>4 Mem:</td><td>This shows how physical RAM is being used.</td></tr><tr><td>5 Swap :</td><td>This shows how swap space (virtual memory) is being used.</td></tr></table></body></html> 
-The top program accepts a number of keyboard commands. The two most interesting are h, which displays the program's help screen, and q, which quits top. 
-Both major desktop environments provide graphical applications that display information similar to top (in much the same way that Task Manager in Windows works), but top is better than the graphical versions because it is faster and it consumes far fewer system resources. After all, our system monitor program shouldn't be the source of the system slowdown that we are trying to track. 
-# Controlling Processes 
-Now that we can see and monitor processes, let's gain some control over them. For our experiments, we're going to use a little program called xlogo as our guinea pig. The xlogo program is a sample program supplied with the X Window System (the underlying engine that makes the graphics on our display go though it’s going out of fashion in 
-favor of Wayland), which simply displays a re-sizable window containing the X logo. 
-First, we'll get to know our test subject. 
-After entering the command, a small window containing the logo should appear somewhere on the screen. On some systems, xlogo may print a warning message, but it may be safely ignored. 
-Tip: If your system does not include the xlogo program, try using gedit or kwrite instead. 
-We can verify that xlogo is running by resizing its window. If the logo is redrawn in the new size, the program is running. 
-Notice how our shell prompt has not returned? This is because the shell is waiting for the program to finish, just like all the other programs we have used so far. If we close the xlogo window, the prompt returns. 
-![](https://cdn-mineru.openxlab.org.cn/extract/e52c4087-794e-43f3-821f-0f8eb1fdf822/bb5cd8d0c13781c1b43b5f27f39d459aadd6130ced359a530f9061bf0e168860.jpg) 
-Figure 3: The xlogo program 
-# Interrupting a Process 
-Let's observe what happens when we run xlogo again. First, enter the xlogo command and verify that the program is running. Next, return to the terminal window and press Ctrl-c. 
-[me@linuxbox ~]$ xlogo 
-In a terminal, pressing Ctrl-c, interrupts a program. This means we are politely asking the program to terminate. After we pressed Ctrl-c, the xlogo window closed and the shell prompt returned. 
-Many (but not all) command-line programs can be interrupted by using this technique. 
-# Putting a Process in the Background 
-Let's say we wanted to get the shell prompt back without terminating the xlogo program. We can do this by placing the program in the background. Think of the terminal as having a foreground (with stuff visible on the surface like the shell prompt) and a background (with stuff hidden behind the surface). To launch a program so that it is immediately placed in the background, we follow the command with an ampersand (&) character. 
-<html><body><table><tr><td>[me@linuxbox ~]$ xlogo &</td></tr><tr><td></td></tr><tr><td>[1]28236</td></tr><tr><td>[me@linuxbox ~]$</td></tr></table></body></html> 
-After entering the command, the xlogo window appeared and the shell prompt returned, but some funny numbers were printed too. This message is part of a shell feature called job control. With this message, the shell is telling us that we have started job number 1 ([1]) and that it has PID 28236. If we run ps, we can see our process. 
-<html><body><table><tr><td colspan="2">[me@linuxbox ~]$ ps</td><td></td></tr><tr><td>PID TTY</td><td></td><td>TIME CMD</td></tr><tr><td>10603 pts/1</td><td></td><td>00:00:00 bash</td></tr><tr><td>28236 pts/1</td><td></td><td>00:00:00 xlogo</td></tr><tr><td>28239 pts/1</td><td></td><td>00:00:00 ps</td></tr></table></body></html> 
-The shell's job control facility also gives us a way to list the jobs that have been launched from our terminal. Using the jobs command, we can see this list: 
-<html><body><table><tr><td>[me@linuxbox ~]$ jobs [1]+ Running xlogo &</td></tr></table></body></html> 
-The results show that we have one job, numbered 1, that it is running, and that the com 
-mand was xlogo &. 
-Note that we can put multiple commands in the background by using this shortcut as shown below. 
-<html><body><table><tr><td>me@linuxbox:~$ xlogo & gedit &</td></tr><tr><td>[1]47211</td></tr><tr><td></td></tr><tr><td>[2]47212</td></tr></table></body></html> 
-# Returning a Process to the Foreground 
-A process in the background is immune from terminal keyboard input, including any attempt to interrupt it with $\tt c t r l-c$ . To return a process to the foreground, use the fg command in this way: 
-<html><body><table><tr><td>[me@linuxbox ~]$ jobs</td><td></td></tr><tr><td>[1]+ Running</td><td>xlogo &</td></tr><tr><td>[me@linuxbox ~]$ fg %1 xlogo</td><td></td></tr></table></body></html> 
-The $\mathsf{f}\mathsf{g}$ command followed by a percent sign and the job number (called a jobspec) does the trick. If we only have one background job, the jobspec is optional. To terminate xlogo, press Ctrl-c. 
-# Stopping (Pausing) a Process 
-Sometimes we'll want to stop a process without terminating it. This is often done to allow a foreground process to be moved to the background. To stop a foreground process and place it in the background, press Ctrl-z. Let's try it. At the command prompt, type xlogo, press the Enter key, and then press Ctrl-z: 
-<html><body><table><tr><td>[me@linuxbox ~]$ xlogo</td></tr><tr><td>[1]+ Stopped</td></tr><tr><td>xlogo</td></tr><tr><td>[me@linuxbox ~]$</td></tr></table></body></html> 
-After stopping xlogo, we can verify that the program has stopped by attempting to resize the xlogo window. We will see that it appears quite dead. We can either continue the program's execution in the foreground, using the $\mathsf{f}\mathsf{g}$ command, or resume the program's execution in the background with the bg command: 
-[me@linuxbox ~]$ bg %1 [1]+ xlogo & [me@linuxbox ~]$ 
-As with the fg command, the jobspec is optional if there is only one job. 
-Moving a process from the foreground to the background is handy if we launch a graphical program from the command line, but forget to place it in the background by appending the trailing &. 
-Why would we want to launch a graphical program from the command line? There are two reasons. 
-The program we want to run might not be listed on the window manager's menus (such as xlogo). 
-By launching a program from the command line, we might be able to see error messages that would otherwise be invisible if the program were launched graphically. Sometimes, a program will fail to start up when launched from the graphical menu. By launching it from the command line instead, we may see an error message that will reveal the problem. Also, some graphical programs have interesting and useful command line options. 
-# Changing Process Priority 
-As we saw in the output of the ps command (as well as top) there is a process attribute called “niceness” which refers to the scheduling priority given to a process. In certain circumstances such as when video transcoding or performing CPU-based ray tracing for example, we may want to give a process more priority (less niceness) or alternately if we want a process to use less CPU time we could give it more niceness. Niceness can be adjusted with the nice and renice commands. It is important to remember that only the superuser may increase the priority of a process and that regular users may only decrease the priority of processes that they own. 
-The nice command launches a process with a specified niceness. Niceness adjustments are expressed from -20 (the most favorable) to 19 (the least favorable) with a default of value of zero (no adjustment). Let’s see how this works. Imagine we have a program called cpu-hog that we want to run at a lower priority than it’s normal 20. We can launch the program with nice as follows: 
-Likewise if we have a program called must-run-fast that needs to be given more 
-CPU priority, we (as the superuser) could do this: 
-<html><body><table><tr><td>[me@linuxbox ~]$ sudo nice -n -10 must-run-fast</td></tr></table></body></html> 
-It’s rarely necessary to run a command with increased priority and doing so runs the risk of starving essential system processes of needed CPU time, so be careful. 
-The renice command adjusts the priority of a running process. For example, if we had launched the cpu-hog program and wanted to increase its niceness after the fact, we could do this: 
-<html><body><table><tr><td colspan="2">[me@linuxbox ~]$ ps</td><td></td></tr><tr><td>PID TTY</td><td>TIME CMD</td><td></td></tr><tr><td>379087 pts/9</td><td></td><td>00:00: 00 bash</td></tr><tr><td>379215 pts/9</td><td>00:00:00 cpu-hog</td><td></td></tr><tr><td>379223 pts/9</td><td>00:00:00 ps</td><td></td></tr><tr><td></td><td>[me@linuxbox ~]$ renice -n 19 379215</td><td></td></tr></table></body></html> 
-First, we run ps to determine the process id of the running cpu-hog program followed by the renice command with the desired niceness level and the process id. The niceness level of 19 (the maximum value) is useful as it makes the process only use CPU cycles when nothing else is waiting. 
-# Signals 
-The kill command is used to “kill” processes. This allows us to terminate programs that need killing (that is, some kind of pausing or termination). Here's an example: 
-<html><body><table><tr><td>[me@linuxbox ~]$ xlogo &</td></tr><tr><td>[1] 28401 [me@linuxbox ~]$ kill 28401</td></tr><tr><td>[1]+ Terminated xlogo</td></tr></table></body></html> 
-We first launch xlogo in the background. The shell prints the jobspec and the PID of the background process. Next, we use the kill command and specify the PID of the process we want to terminate. We could have also specified the process using a jobspec (for example, %1) instead of a PID. 
-While this is all very straightforward, there is more to it than that. The kill command doesn't exactly “kill” processes: rather it sends them signals. Signals are one of several ways that the operating system communicates with programs. We have already seen signals in action with the use of $\tt c t r l-c$ and Ctrl-z. When the terminal receives one of these keystrokes, it sends a signal to the program in the foreground. In the case of Ctrlc, a signal called INT (interrupt) is sent; with Ctrl-z, a signal called TSTP (terminal stop) is sent. Programs, in turn, “listen” for signals and may act upon them as they are received. The fact that a program can listen and act upon signals allows a program to do things such as save work in progress when it is sent a termination signal. 
-# Sending Signals to Processes with kill 
-The kill command is used to send signals to programs. Its most common syntax looks like this: 
-# kill [-signal] PID... 
-If no signal is specified on the command line, then the TERM (terminate) signal is sent by default. The kill command is most often used to send the following signals: 
-Table 10-5: Common Signals 
-<html><body><table><tr><td>Number</td><td>Name</td><td>Meaning</td></tr><tr><td>1</td><td>HUP</td><td>Hangup. This is a vestige of the good old days when terminals were attached to remote computers with phone lines and modems. The signal is used to indicate to programs that the controlling terminal has “hung up." The effect of this signal can be demonstrated by closing a terminal session. The foreground program running on the terminal will be sent the signal and</td></tr><tr><td></td><td></td><td>This signal is also used by many daemon programs to cause a reinitialization. This means that when a daemon is sent this signal, it will restart and reread its configuration file. The</td></tr><tr><td></td><td></td><td>Apache web server is an example of a daemon that uses the HUP signal in this way. It's possible to make a process immune to the</td></tr></table></body></html> 
-<html><body><table><tr><td colspan="2"></td><td>command which is discussed below.</td></tr><tr><td>2 9</td><td>INT</td><td>Interrupt. This performs the same function as a Ctrl-c sent from the terminal. It will usually terminate a program.</td></tr><tr><td></td><td>KILL</td><td>Kill. This signal is special. Whereas programs may choose to handle signals sent to them in different ways, including ignoring them all together, the KILL signal is never actually sent to the target program. Rather, the kernel immediately terminates the process. When a process is terminated in this manner, it is given no opportunity to “clean up" after itself or save its work. For this reason, the KILL signal should be used only as a last resort when other termination signals fail.</td></tr><tr><td>15</td><td>TERM</td><td>Terminate. This is the default signal sent by the kill command. If a program is still “alive" enough to receive signals, it will terminate.</td></tr><tr><td>18</td><td>CONT</td><td>Continue. This will restore a process after a STOP or TSTP signal. This signal is sent by the bg and fg commands.</td></tr><tr><td>19</td><td>STOP</td><td>Stop. This signal causes a process to pause without terminating. Like the KI LL signal, it is not sent to the target process, and thus it cannot be ignored.</td></tr><tr><td>20</td><td>TSTP</td><td>Terminal stop. This is the signal sent by the terminal when Ctrl - z is pressed. Unlike the STOP signal, the TSTP signal is received by the program, but the program may choose to ignore it.</td></tr></table></body></html> 
-Let's try out the kill command: 
-<html><body><table><tr><td>[me@linuxbox ~]$ xlogo &</td></tr><tr><td>[1]13546</td></tr><tr><td>[me@linuxbox ~]$ kill -1 13546</td></tr><tr><td>[1]+ Hangup xlogo</td></tr></table></body></html> 
-In this example, we start the xlogo program in the background and then send it a HUP signal with kill. The xlogo program terminates, and the shell indicates that the background process has received a hangup signal. We may need to press the Enter key a couple of times before the message appears. Note that signals may be specified either by number or by name, including the name prefixed with the letters SIG. 
-<html><body><table><tr><td>[me@linuxbox ~]$ xlogo &</td></tr><tr><td>[1]13601 [me@linuxbox ~]$ kill -INT 13601</td></tr><tr><td>[1]+ Interrupt xlogo</td></tr><tr><td>[me@linuxbox ~]$ xlogo &</td></tr><tr><td>[1] 13608</td></tr><tr><td>[me@linuxbox ~]$ kill -SIGINT 13608</td></tr><tr><td>[1]+ Interrupt xlogo</td></tr></table></body></html> 
-Repeat the example above and try the other signals. Remember, we can also use jobspecs in place of PIDs. 
-Processes, like files, have owners, and you must be the owner of a process (or the superuser) to send it signals with kill. 
-In addition to the list of signals above, which are most often used with kill, there are other signals frequently used by the system as listed in Table 10-5. 
-Table 10-6: Other Common Signals 
-<html><body><table><tr><td>Number</td><td>Name</td><td>Meaning</td></tr><tr><td>3</td><td>QUIT</td><td>Quit.</td></tr><tr><td>11</td><td>SEGV</td><td>Segmentation violation. This signal is sent if a program makes illegal use of memory, that is, if it tried to write somewhere it was not allowed to write.</td></tr><tr><td>28</td><td>WINCH</td><td>Window change. This is the signal sent by the system when a window changes size. Some programs , such as top and less will respond to this signal by redrawing themselves to fit the new window dimensions.</td></tr></table></body></html> 
-For the curious, a complete list of signals can be displayed with the following command: 
-# Making a Process Hangup Proof 
-As we discussed, above many command line programs will respond to the HUP signal by terminating when its controlling terminal “hangs up” (i.e. closes or disconnects). To prevent this behavior, we can launch the program with the nohup command. Here’s an example. 
-<html><body><table><tr><td>[me@linuxbox ~]$ xlogo</td></tr></table></body></html> 
-If we launch the xlogo program again then close our terminal window, the xlogo program will terminate because it is sent a HUP signal when its controlling terminal is closed. To prevent this we can launch xlogo with the nohup command like so: 
-[me@linuxbox ~]$ nohup xlogo 
-Now when we close the terminal window, xlogo will continue running. 
-# Sending Signals to Multiple Processes with killall 
-It's also possible to send signals to multiple processes matching a specified program or username by using the killall command. Here is the syntax: 
-# killall [-u user] [-signal] name.. 
-To demonstrate, we will start a couple of instances of the xlogo program and then terminate them. 
-[me@linuxbox ~]$ xlogo & 
-[1] 18801 
-[me@linuxbox ~]$ xlogo & 
-[2] 18802 
-[me@linuxbox ~]$ killall xlogo 
-[1]- Terminated xlogo 
-$[2]+$ Terminated xlogo 
-Remember, as with kill, we must have superuser privileges to send signals to processes that do not belong to us. 
-# Shutting Down the System 
-The process of shutting down the system involves the orderly termination of all the processes on the system, as well as performing some vital housekeeping chores (such as syncing all of the mounted file systems) before the system powers off. There are four commands that can perform this function. They are halt, poweroff, reboot, and shutdown. The first three are pretty self-explanatory and are generally used without any command line options. Here’s an example: 
-The shutdown command is a bit more interesting. With it, we can specify which of the actions to perform (halt, power down, or reboot) and provide a time delay to the shutdown event. Most often it is used like this to halt the system: 
-[me@linuxbox $-]$1$ sudo shutdown -h now or like this to reboot the system: 
-[me@linuxbox $-]$1$ sudo shutdown -r now 
-The delay can be specified in a variety of ways. See the shutdown man page for details. Once the shutdown command is executed, a message is “broadcast” to all logged-in users warning them of the impending event. 
-# More Process-Related Commands 
-Since monitoring processes is an important system administration task, there are a lot of commands for it. Table 10-6 lists some to play with: 
-Table 10-7: Other Process Related Commands 
-<html><body><table><tr><td>Command</td><td>Description</td></tr><tr><td>pstree</td><td>Outputs a process list arranged in a tree-like pattern showing the parent-child relationships between processes.</td></tr><tr><td>vmstat</td><td>Outputs a snapshot of system resource usage including, memory, swap, and disk I/O. To see a continuous display, follow the command with a time delay (in seconds) for updates. Here's an example: Vmstat 5. Terminate the output with Ctrl-c.</td></tr><tr><td>xload</td><td>A graphical program that draws a graph showing system load over time.</td></tr><tr><td>tload</td><td>Similar to the x load program but draws the graph in the terminal. Terminate the output with Ct rl-c.</td></tr></table></body></html> 
-# Summing Up 
-Most modern systems feature a mechanism for managing multiple processes. Linux provides a rich set of tools for this purpose. Given that Linux is the world's most deployed server operating system, this makes a lot of sense. However, unlike some other systems, Linux relies primarily on command line tools for process management. Though there are graphical process tools for Linux, the command line tools are greatly preferred because of their speed and light footprint. While the GUI tools may look pretty, they often create a lot of system load themselves, which somewhat defeats the purpose. 
-## 1 What is the Shell
-## 2 Navigation
-## 3 Exploring the System
-## 4 Manipulating Files and Directories
-## 5 Working with Commands
-## 6 Redirection
-## 7 Seeing the World as the Shell Sees it
-## 8 Advanced Keyboard Tricks
-## 9 Permissions
-## 10 Processes
-# Part 2 Configuration and the Environment
-## 11 The Environment
-## 12 A Gentle Introduction to vi
-## 13 Customizing the Prompt
-# Part3 Common Tasks and Essential Tools
-## 14 Package Management
-## 15 Storage Media
-## 16 Networking
-## 17 Searching for Files
-## 18 Archiving and Backup
-## 19 Regular Expressions
-## 20 Text Processing
-## 21 Formatting Output
+Spend some time getting to know the package management system for your distribution. Each distribution provides documentation for its package management tools. In addition, here are some more generic sources: 
+The Debian GNU/Linux FAQ chapter on package management provides an over 
+view of package management on Debian systems : 
+https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html 
+The home page for the RPM project: 
+http://www.rpm.org 
+For a little background, the Wikipedia has an article on metadata: 
+http://en.wikipedia.org/wiki/Metadata 
+A good article comparing Snap, Flatpak, and AppImage formats: https:// 
+www.baeldung.com/linux/snaps-flatpak-appimage 
