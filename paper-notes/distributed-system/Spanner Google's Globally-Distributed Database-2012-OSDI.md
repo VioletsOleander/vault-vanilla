@@ -123,6 +123,8 @@ Figure 1 illustrates the servers in a Spanner universe. A zone has one zonemaste
 The per-zone location proxies are used by clients to locate the spanservers assigned to serve their data. 
 >  客户端使用每个 zone 的 location proxies 来定位负责向其提供数据的 spanservers
 
+>  类似 DNS 服务，客户端只需要知道 spanservers 的 “域名”，location proxies 将 “域名” 转化为具体的 “IP 地址”
+
 The universe master and the placement driver are currently singletons. The universe master is primarily a console that displays status information about all the zones for interactive debugging. The placement driver handles automated movement of data across zones on the timescale of minutes. The placement driver periodically communicates with the spanservers to find data that needs to be moved, either to meet updated replication constraints or to balance load. 
 >  universe master 和 placement driver 目前是单例的
 >  universe master 主要作为控制台，显示所有 zones 的状态信息，以供交互式调试
@@ -132,7 +134,7 @@ For space reasons, we will only describe the spanserver in any detail.
 
 ## 2.1 Spanserver Software Stack 
 This section focuses on the spanserver implementation to illustrate how replication and distributed transactions have been layered onto our Bigtable-based implementation. 
->  本节介绍 spanserver 的实现，解释如何在基于 Bigtable 的实现上实现 replication 和分布式事务
+>  本节介绍 spanserver 的实现，解释如何基于 Bigtable 实现 replication 和分布式事务
 
 ![[pics/Spanner-Fig2.png]]
 
@@ -147,15 +149,17 @@ The software stack is shown in Figure 2. At the bottom, each spanserver is respo
 >  这里的 tablet 类似于 Bigtable 的 tablet 抽象，它实现了一组形式如上的映射，将 `key` 和 `timestamp` 映射到 `string` 类型的 `value`
 
 Unlike Bigtable, Spanner assigns timestamps to data, which is an important way in which Spanner is more like a multi-version database than a key-value store. A tablet’s state is stored in set of B-tree-like files and a write-ahead log, all on a distributed file system called Colossus (the successor to the Google File System [15]). 
->  和 Bigtable 不同，Spanner 会为数据分配时间戳，也因此 Spanner 更像一个多版本数据库而不是键值存储
+>  和 Bigtable 不同，Spanner 会为数据分配时间戳，也因此 Spanner 更像一个多版本数据库而不是键值存储 (不妨说是将键变为了 `(key, timestamp)` tuple)
 >  一个 tablet 的状态被存储在一组类似 B-tree 的文件以及一个预写日志中，所有这些文件都存储在 Colossus 分布式文件系统中 (GFS 的后继系统)
 
 To support replication, each spanserver implements a single Paxos state machine on top of each tablet. (An early Spanner incarnation supported multiple Paxos state machines per tablet, which allowed for more flexible replication configurations. The complexity of that design led us to abandon it.) Each state machine stores its metadata and log in its corresponding tablet. 
 >  为了支持 replication，每个 spanserver 都在每个 tablet 上实现了一个 Paxos 状态机 (早期的 Spanner 设想在每个 tablet 上支持多个 Paxos 状态机，允许了更灵活的 replication 配置，但其设计过于复杂，故被放弃)
->  tablet 上的 Paxos 将其元数据和日志存储在其对应的 tablet 中
+>  tablet 上的 Paxos 状态机将其元数据和日志存储在其对应的 tablet 中
+
+>  也就是每个 spanserver 会在其负责的 100 到 1000 个 tablets 上实现一个 Paxos group，其中每个 tablet 有自己的 Paxos 状态机，整个 Paxos group 会对写入操作达成共识，进而实现了这 100 到 1000 个 tablets 上的一致状态 (tablet 存储的 `(key, timestamp)->value` 映射情况)
 
 Our Paxos implementation supports long-lived leaders with time-based leader leases, whose length defaults to 10 seconds. The current Spanner implementation logs every Paxos write twice: once in the tablet’s log, and once in the Paxos log. This choice was made out of expediency, and we are likely to remedy this eventually. 
->  我们的 Paxos 实现使用基于时间的 leader lease 支持 long-lived leaders，租约的时间默认为 10s
+>  我们的 Paxos 实现使用基于时间的 leader lease 以支持 long-lived leaders，租约的时间默认为 10s
 >  目前的 Spanner 实现会将每个 Paxos 写操作记录两次: 一次记录到 tablet 的 log，一次记录到 Paxos log，这一设计是出于便利性考虑，我们最终可能会改进这点
 
 Our implementation of Paxos is pipelined, so as to improve Spanner’s throughput in the presence of WAN latencies; but writes are applied by Paxos in order (a fact on which we will depend in Section 4). 
@@ -172,10 +176,10 @@ At every replica that is a leader, each spanserver implements a lock table to im
 
 In both Bigtable and Spanner, we designed for long-lived transactions (for example, for report generation, which might take on the order of minutes), which perform poorly under optimistic concurrency control in the presence of conflicts. Operations that require synchronization, such as transactional reads, acquire locks in the lock table; other operations bypass the lock table. 
 >  Bigtable 和 Spanner 都针对长时间的事务进行了设计 (例如 report generation 事务需要几分钟的时间才能完成)，在乐观的并发控制下，如果这些长时间事务存在冲突，就会导致非常差的性能 (因此采用悲观的并发控制)
->  Spanner 中，需要同步的操作，例如事务式读，都需要在 lock table 中获取锁，其他不需要同步的操作可以绕过 lock table
+>  Spanner 中，需要同步的操作，例如事务式读，都需要在 lock table 中获取锁 (即需要经过 leader，以实现 Paxos 组内的同步)，其他不需要同步的操作可以绕过 lock table
 
 At every replica that is a leader, each spanserver also implements a transaction manager to support distributed transactions. The transaction manager is used to implement a participant leader; the other replicas in the group will be referred to as participant slaves. 
->  在每个作为 leader 的副本上，每个 spanserver 还实现了一个事务管理器以支持分布式事务
+>  在每个作为 leader 的副本上，每个 spanserver 还实现了一个事务管理器以支持分布式事务 (涉及多个 Paxos 组的事务)
 >  事务管理器会被用于实现一个 participant leader，组内的其他副本则称为 participant slaves
 
 If a transaction involves only one Paxos group (as is the case for most transactions), it can bypass the transaction manager, since the lock table and Paxos together provide transactionality. If a transaction involves more than one Paxos group, those groups’ leaders coordinate to perform two-phase commit. One of the participant groups is chosen as the coordinator: the participant leader of that group will be referred to as the coordinator leader, and the slaves of that group as coordinator slaves. 
@@ -196,22 +200,24 @@ We will explain the source of that prefix in Section 2.3. Supporting directories
 ![[pics/Spanner-Fig3.png]]
 
 A directory is the unit of data placement. All data in a directory has the same replication configuration. When data is moved between Paxos groups, it is moved directory by directory, as shown in Figure 3. Spanner might move a directory to shed load from a Paxos group; to put directories that are frequently accessed together into the same group; or to move a directory into a group that is closer to its accessors. Directories can be moved while client operations are ongoing. One could expect that a 50MB directory can be moved in a few seconds. 
->  目录是数据放置的单位，一个目录中的所有数据都有相同的 replication 配置
+>  目录是数据放置的单位，一个目录中的所有数据都有**相同的 replication 配置**
 >  数据在 Paxos groups 之间移动时，是以目录单位进行的，如 Fig3 所示
 >  Spanner 移动目录的理由一般有: 减轻某个 Paxos group 的负载、将经常一起访问的目录放入同一个 Paxos group、将目录移动到离其访问者更近的 Paxos group
 >  目录可以在客户端操作进行的同时被移动，50MB 大小的目录一般可以在几秒内被移动完成
 
+>  注意，一个 Paxos group 等价于一个 spanserver
+
 The fact that a Paxos group may contain multiple directories implies that a Spanner tablet is different from a Bigtable tablet: the former is not necessarily a single lexicographically contiguous partition of the row space. Instead, a Spanner tablet is a container that may encapsulate multiple partitions of the row space. We made this decision so that it would be possible to colocate multiple directories that are frequently accessed together. 
->  Spanner 中的 Paxos group 可以包含多个目录，这说明了 Spanner tablet 和 Bigtable tablet 是不同的: Spanner tablet 不必要是一个按照字典序的连续行空间分区，Spanner tablet 可以是一个封装了多个行空间分区的容器
+>  Spanner 中的 Paxos group 可以包含多个目录，这说明了 Spanner tablet 和 Bigtable tablet 是不同的: Spanner tablet 不必要是一个按照字典序的连续行空间分区，Spanner tablet 可以是一个封装了多个行空间分区 (多个目录) 的容器
 >  这样的设计是为了能够将经常一起被访问的目录放置在一起
 
 Movedir is the background task used to move directories between Paxos groups [14]. Movedir is also used to add or remove replicas to Paxos groups [25], because Spanner does not yet support in-Paxos configuration changes. 
->  Paxos groups 之间移动目录的后台任务是 `Movdir`
->  `Movedir` 还用于向 Paxos groups 添加或移除副本，因为 Spanner 当前尚不支持 Paxos 组内的配置更改
+>  Paxos groups 之间移动目录的后台任务是 `Movedir`
+>  `Movedir` 还用于向 Paxos groups 添加或移除副本，因为 Spanner 当前尚不支持 Paxos 组内的配置更改 (因此需要由组间的移动语义来间接实现)
 
 Movedir is not implemented as a single transaction, so as to avoid blocking ongoing reads and writes on a bulky data move. Instead, movedir registers the fact that it is starting to move data and moves the data in the background. When it has moved all but a nominal amount of the data, it uses a transaction to atomically move that nominal amount and update the metadata for the two Paxos groups. 
 >  `Movedir` 并未以单个事务的形式实现，以避免在数据移动时阻塞读写操作
->  `Movedir` 会先注册它开始移动数据的事实，然后在后台移动数据，当它完成几乎所有的数据迁移后，它会使用是一个事务将剩余的一小部分数据原子地迁移并为两个相关的 Paxos  groups 更新元数据
+>  `Movedir` 会先注册它开始移动数据的事实，然后在后台移动数据，当它完成几乎所有的数据迁移后，它会使用一个事务将剩余的一小部分数据原子地迁移并为两个相关的 Paxos  groups **更新元数据** (即虽然大部分的数据已经完成了迁移，但在没有原子化地完成最后的一小部分迁移之前，元数据是不会更新的)
 
 A directory is also the smallest unit whose geographic-replication properties (or placement, for short) can be specified by an application. The design of our placement-specification language separates responsibilities for managing replication configurations. Administrators control two dimensions: the number and types of replicas, and the geographic placement of those replicas. They create a menu of named options in these two dimensions (e.g., North America, replicated 5 ways with 1 witness). An application controls how data is replicated, by tagging each database and/or individual directories with a combination of those options. 
 >  目录也是应用能够指定地理复制属性 (即放置位置) 的最小单元
@@ -243,16 +249,51 @@ Finally, the lack of cross-row transactions in Bigtable led to frequent complain
 >  一些人认为，由于性能或可用性问题，支持通用的两阶段提交的成本过高；我们认为，让应用编程者在性能瓶颈出现时再处理过度使用事务的问题，要好于围绕着缺乏事务的形式而进行编程，并且在 Paxos 上运行两阶段提交缓解了可用性问题
 
 The application data model is layered on top of the directory-bucketed key-value mappings supported by the implementation. An application creates one or more databases in a universe. Each database can contain an unlimited number of schematized tables. Tables look like relational-database tables, with rows, columns, and versioned values. We will not go into detail about the query language for Spanner. It looks like SQL with some extensions to support protocol-buffer-valued fields. 
->  应用的数据模型建立在 Spanner 所支持的基于目录的键值映射上
->  应用在 universe 中创建一个或多个数据库，每个数据库可以包含无限数量的模式化表，这些模式化表看起来像关系型数据库表，具有行、列和版本化的值
+>  应用的数据模型建立在 Spanner 所支持的**基于目录的键值映射**上
+>  应用**在 universe 中**创建一个或多个数据库，每个数据库可以包含无限数量的模式化表，这些模式化表看起来像关系型数据库表，具有行、列和版本化的值
 >  Spanner 的查询语言类似 SQL，并有一些拓展来支持协议缓冲区字段
 
-Spanner’s data model is not purely relational, in that rows must have names. More precisely, every table is required to have an ordered set of one or more primary-key columns. This requirement is where Spanner still looks like a key-value store: the primary keys form the name for a row, and each table defines a mapping from the primary-key columns to the non-primary-key columns. A row has existence only if some value (even if it is NULL) is defined for the row’s keys. Imposing this structure is useful because it lets applications control data locality through their choices of keys. 
->  Spanner 的数据模型并不是完全的关系型
->  Spanner 的数据模型中，行必须有名字，更准确地说，每个表都需要有一个包含了一个或多个 primary-key column 的有序集合
+Spanner’s data model is not purely relational, in that rows must have names. 
+>  Spanner 的数据模型并不是完全的关系型，Spanner 的数据模型中，行必须有名字
+
+> [!info] 关系型数据模型
+> 关系型数据模型用二维表来表示实体以及实体之间的关系
+> 这种二维表由行和列组成，每张表都有一个唯一的名称，称为关系名
+> 例如，在一个学校数据库中，可以有一个 “学生” ，其中包含学生的学号、姓名、性别、年龄、专业等属性
+> 关系型数据模型通过主键 (Primary Key) 来唯一标识表中的每一行，主键是表中**一个或多个列的组合**，其值在表中是唯一的
+> 
+> 主要组成部分
+>   1. 关系: 关系就是一张二维表
+>       表中的**每一行称为一个元组**，对应现实世界中的一个实体
+>       例如，在 “学生” 表中，每一行就代表一个学生
+>       表中的**每一列称为一个属性**，对应实体的某个特征
+>       例如， “姓名”“性别” 等列就是学生的属性。
+>       关系具有一些性质，例如: 表中的列是无序的，列的顺序可以任意交换；行也是无序的，行的顺序可以任意交换；不允许有重复的行
+> 
+>   2. 域: 域是一组具有相同数据类型的值的集合
+>       例如，在 “学号” 这个属性的域可能是字符串类型，用于存储学号的字符组合；而 “年龄” 属性的域是整数类型，范围可能是 16 - 30 等等
+>       域为属性提供了可能的取值范围，是**数据类型和取值范围的抽象**
+> 
+>   3. 元组和属性的完整性约束
+>      元组完整性约束是指关系中的元组必须满足的规则
+>      例如，在 “学生” 表中，每个学生必须有一个唯一的学号，这就要求 “学号” 属性不能有重复值
+>      属性完整性约束是指关系中是属性必须满足的规则
+>      例如，“性别” 属性只能取 “男” 或 “女”
+> 
+> 优点
+>   - 结构简单清晰: 通过 SQL (结构化查询语言)，可以方便地进行复杂的数据查询和操作
+>   - 理论基础坚实: 关系型数据模型建立在集合代数和谓词逻辑等数学理论基础上，这使得数据库的操作具有严格的数学依据，可以方便地进行数据的查询、插入、删除和更新等操作，并且能够保证操作的正确性和一致性
+>   - 数据独立性高: 数据的**物理存储和逻辑结构是分离的**，应用程序可以只关注数据的逻辑结构，而不需要关心数据是如何存储在物理存储设备上的。例如，当数据库管理员对数据存储位置进行调整或者对存储结构优化进行时，应用程序可以不受影响。
+> 
+
+More precisely, every table is required to have an ordered set of one or more primary-key columns. This requirement is where Spanner still looks like a key-value store: the primary keys form the name for a row, and each table defines a mapping from the primary-key columns to the non-primary-key columns. A row has existence only if some value (even if it is NULL) is defined for the row’s keys. Imposing this structure is useful because it lets applications control data locality through their choices of keys. 
+>  更准确地说，每个表都需要有一个包含了一个或多个 primary-key column 的有序集合 (也就是主键)
 >  这一要求使得 Spanner 某种程度上看起来仍然像一个键值存储: primary keys 构成了行的名称，每个表则定义了**从 primary-key columns 到 non-primary-key columns 的映射**
 >  行仅在其 primary-keys 定义了值 (即便是 NULL) 时才存在
 >  这一结构使得应用可以通过对 keys 的选择来控制数据位置
+
+>  实际上，差异在于传统关系型模型中，主键列为 NULL 值是允许的 (这种设计允许在没有主键值的情况下插入行，只要数据库允许主键列的 NULL 值)，而 Spanner 要求只有主键列不为 NULL，行才允许存在
+>  因此 Spanner 中，主键列不仅用于唯一标识行，还作为行存在的必要条件，这种机制就类似于键-值存储系统，键存在才能有对应的值
 
 ![[pics/Spanner-Fig4.png]]
 
@@ -266,8 +307,8 @@ Figure 4 contains an example Spanner schema for storing photo metadata on a per-
 
 Client applications declare the hierarchies in database schemas via the `INTERLEAVE IN` declarations. The table at the top of a hierarchy is a directory table. Each row in a directory table with key $K$ , together with all of the rows in descendant tables that start with $K$ in lexicographic order, forms a directory. `ON DELETE CASCADE` says that deleting a row in the directory table deletes any associated child rows. 
 >  客户端应用通过 `INTERLEAVE IN` 在数据库模式中声明表的层次
->  层次顶端的表是一个目录表，目录表中，带有 key $K$ 的行，和所有后代表中，其 key 按照字典序从 $K$ 开始的行，构成了一个字典
->  声明中的 `ON DELETE CASCADE` 表示删除目录表中的某一行会删除所有相关的子航
+>  层次顶端的表是一个目录表，目录表中，带有 key $K$ 的行，和所有后代表中，其 key 按照字典序从 $K$ 开始的行，构成了一个字典 (这里的 $K$ 不是字母 K，是表示一个变量 $K$)
+>  声明中的 `ON DELETE CASCADE` 表示删除目录表中的某一行会删除所有相关的子行
 
 The figure also illustrates the interleaved layout for the example database: for example, `Albums(2,1)` represents the row from the `Albums` table for `user_id 2`, `album_id 1`. This interleaving of tables to form directories is significant because it allows clients to describe the locality relationships that exist between multiple tables, which is necessary for good performance in a sharded, distributed database. Without it, Spanner would not know the most important locality relationships. 
 >  Fig4 中展示了示例数据库的交错布局: `Albums(2,1)` 表示了 `Albums` 表中的 `user_id 2, album_id 1` 对应的行
@@ -275,51 +316,134 @@ The figure also illustrates the interleaved layout for the example database: for
 >  没有这一点，Spanner 将无法了解最重要的局部关系
 
 # 3 TrueTime 
+This section describes the TrueTime API and sketches its implementation. We leave most of the details for another paper: our goal is to demonstrate the power of having such an API. 
+>  本节描述 TrueTime API 及其实现的概要
 
 ![[pics/Spanner-Table1.png]]
 
-This section describes the TrueTime API and sketches its implementation. We leave most of the details for another paper: our goal is to demonstrate the power of having such an API. 
->  
+Table 1 lists the methods of the API. TrueTime explicitly represents time as a `TTinterval`, which is an interval with bounded time uncertainty (unlike standard time interfaces that give clients no notion of uncertainty). The endpoints of a `TTinterval` are of type `TTstamp`. 
+>  TrueTime API 的方法如 Table1 所示
+>  TrueTime API 将时间显式的表示为一个具有有限不确定性的时间区间，记作 `TTinterval` (和向客户端提供没有不确定性概念的标准时间接口不同)
+>  `TTinterval` 的端点的类型是 `TTstamp`
 
-Table 1 lists the methods of the API. TrueTime explicitly represents time as a `TTinterval`, which is an interval with bounded time uncertainty (unlike standard time interfaces that give clients no notion of uncertainty). The endpoints of a `TTinterval` are of type `TTstamp`. The `TT.now()` method returns a `TTinterval` that is guaranteed to contain the absolute time during which `TT.now()` was invoked. The time epoch is analogous to UNIX time with leap-second smearing. Define the instantaneous error bound as $\epsilon$ , which is half of the interval’s width, and the average error bound as ϵ. The `TT.after()` and `TT.before()` methods are convenience wrappers around `TT.now()` . 
+The `TT.now()` method returns a `TTinterval` that is guaranteed to contain the absolute time during which `TT.now()` was invoked. The time epoch is analogous to UNIX time with leap-second smearing. Define the instantaneous error bound as $\epsilon$ , which is half of the interval’s width, and the average error bound as ϵ. 
+>  `TT.now()` 方法返回一个 `TTinterval` ，该区间保证包含 `TT.now()` 被调用时的绝对时间
+>  我们定义瞬时误差界限为 $\epsilon$，它是区间宽度的一半，平均误差界限因此也是 $\epsilon$
 
-Denote the absolute time of an event $e$ by the function $t_{a b s}(e)$ . In more formal terms, TrueTime guarantees that for an invocation $t t=T T.n o w()$ , tt.earliest $\leq$ $t_{a b s}(e_{n o w})\leq t t.$ .latest, where $e_{n o w}$ is the invocation event. 
+The `TT.after()` and `TT.before()` methods are convenience wrappers around `TT.now()` . 
+>  `TT.after(), TT.before()` 是 `TT.now()` 方法的包装器
 
-The underlying time references used by TrueTime are GPS and atomic clocks. TrueTime uses two forms of time reference because they have different failure modes. GPS reference-source vulnerabilities include antenna and receiver failures, local radio interference, correlated failures (e.g., design faults such as incorrect leapsecond handling and spoofing), and GPS system outages. Atomic clocks can fail in ways uncorrelated to GPS and each other, and over long periods of time can drift significantly due to frequency error. 
-TrueTime is implemented by a set of time master machines per datacenter and a timeslave daemon per machine. The majority of masters have GPS receivers with dedicated antennas; these masters are separated physically to reduce the effects of antenna failures, radio interference, and spoofing. The remaining masters (which we refer to as Armageddon masters) are equipped with atomic clocks. An atomic clock is not that expensive: the cost of an Armageddon master is of the same order as that of a GPS master. All masters’ time references are regularly compared against each other. Each master also cross-checks the rate at which its reference advances time against its own local clock, and evicts itself if there is substantial divergence. Between synchronizations, Armageddon masters advertise a slowly increasing time uncertainty that is derived from conservatively applied worst-case clock drift. GPS masters advertise uncertainty that is typically close to zero. 
+Denote the absolute time of an event $e$ by the function $t_{a b s}(e)$ . In more formal terms, TrueTime guarantees that for an invocation $t t=T T.n o w()$ , $tt.earliest \leq t_{a b s}(e_{n o w})\leq t t.latest$, where $e_{n o w}$ is the invocation event. 
+>  我们用函数 $t_{abs}(e)$ 表示事件 $e$ 的绝对时间
+>  形式化地说，TrueTime API 保证对于一次 `TT.now()` 的调用 $tt = TT. now()$，其返回值 $tt$ 满足 $tt. earliest \le t_{abs}(e_{now}) \le tt. latest$，其中 $e_{now}$ 表示调用事件
 
-Every daemon polls a variety of masters [29] to reduce vulnerability to errors from any one master. Some are GPS masters chosen from nearby datacenters; the rest are GPS masters from farther datacenters, as well as some Armageddon masters. Daemons apply a variant of Marzullo’s algorithm [27] to detect and reject liars, and synchronize the local machine clocks to the nonliars. To protect against broken local clocks, machines that exhibit frequency excursions larger than the worstcase bound derived from component specifications and operating environment are evicted. 
+>  也就是 `TT.now()` 并不会返回一个表示调用时刻的时间点，而是返回一个包含了调用时刻的时间区间
 
-Between synchronizations, a daemon advertises a slowly increasing time uncertainty. $\epsilon$ is derived from conservatively applied worst-case local clock drift. $\epsilon$ also depends on time-master uncertainty and communication delay to the time masters. In our production environment, $\epsilon$ is typically a sawtooth function of time, varying from about 1 to 7 ms over each poll interval. $\overline{\epsilon}$ is therefore 4 ms most of the time. The daemon’s poll interval is currently 30 seconds, and the current applied drift rate is set at 200 microseconds/second, which together account for the sawtooth bounds from 0 to $6~\mathrm{ms}$ . The remaining $1~\mathrm{ms}$ comes from the communication delay to the time masters. Excursions from this sawtooth are possible in the presence of failures. For example, occasional time-master unavailability can cause datacenter-wide increases in $\epsilon$ . Similarly, overloaded machines and network links can result in occasional localized $\epsilon$ spikes. 
+The underlying time references used by TrueTime are GPS and atomic clocks. TrueTime uses two forms of time reference because they have different failure modes. GPS reference-source vulnerabilities include antenna and receiver failures, local radio interference, correlated failures (e.g., design faults such as incorrect leap-second handling and spoofing), and GPS system outages. Atomic clocks can fail in ways uncorrelated to GPS and each other, and over long periods of time can drift significantly due to frequency error. 
+>  TrueTime API 所使用的时间参考是 GPS 和原子钟，之所以使用两种形式的时间参考是因为二者具有不同的故障模式
+>  GPS 的漏洞包括天线和接收器故障、本地射频干扰、相关故障 (例如设计缺陷，如错误处理闰秒和欺骗)，以及 GPS 系统中断
+>  原子钟的故障方式则与 GPS 无关，原子钟自身可能在长时间下会由于频率误差而显著漂移
 
-Table 2: Types of reads and writes in Spanner, and how they compare. 
+TrueTime is implemented by a set of time master machines per datacenter and a timeslave daemon per machine. The majority of masters have GPS receivers with dedicated antennas; these masters are separated physically to reduce the effects of antenna failures, radio interference, and spoofing. 
+>  TrueTime 在每个数据中心由一组 time master machines 和每台机器上的一个 timeslave daemon 实现
+>  大多数的 master 都配有带有专用天线的 GPS 接收器，这些 masters 会在物理上被分开，以减少天线故障、射频干扰和欺骗的影响
 
-<html><body><table><tr><td>Operation</td><td>Timestamp Discussion</td><td>Concurrency Control</td><td>Replica Required</td></tr><tr><td>Read-Write Transaction</td><td>4.1.2</td><td>pessimistic</td><td>leader</td></tr><tr><td>Read-Only Transaction</td><td>4.1.4</td><td>lock-free</td><td>leader for timestamp; any for read, subject to 4.1.3</td></tr><tr><td>Snapshot Read, client-provided timestamp</td><td>一</td><td>lock-free</td><td> any, subject to 4.1.3</td></tr><tr><td>Snapshot Read, client-provided bound</td><td>4.1.3</td><td>lock-free</td><td> any, subject to 4.1.3</td></tr></table></body></html> 
+The remaining masters (which we refer to as Armageddon masters) are equipped with atomic clocks. An atomic clock is not that expensive: the cost of an Armageddon master is of the same order as that of a GPS master. 
+>   剩余的 masters (我们称为 Armageddon masters) 配有原子钟
+>   原子钟并不昂贵: Armageddon master 的成本与 GPS master 的成本处于同一量级
+
+All masters’ time references are regularly compared against each other. Each master also cross-checks the rate at which its reference advances time against its own local clock, and evicts itself if there is substantial divergence.  Between synchronizations, Armageddon masters advertise a slowly increasing time uncertainty that is derived from conservatively applied worst-case clock drift. GPS masters advertise uncertainty that is typically close to zero. 
+>  所有 time masters 的参考时间会定期互相比较
+>  每个 master 也会将其参考时间的推进速率和本地的时钟进行交叉验证，如果存在显著偏差，会自动排除自身
+>  在同步时，Armageddon masters 会发布一个逐渐增加的时间不确定性，该不确定性基于保守应用的最坏情况时钟偏移计算得到，GPS masters 发布的不确定性通常接近于零
+
+Every daemon polls a variety of masters [29] to reduce vulnerability to errors from any one master. Some are GPS masters chosen from nearby datacenters; the rest are GPS masters from farther datacenters, as well as some Armageddon masters. Daemons apply a variant of Marzullo’s algorithm [27] to detect and reject liars, and synchronize the local machine clocks to the nonliars. To protect against broken local clocks, machines that exhibit frequency excursions larger than the worst-case bound derived from component specifications and operating environment are evicted. 
+>  每台 time master machine 上的 timeslave daemon 会轮询多个 masters，以减少错误
+>  其中一些是来自附近数据中心的 GPS masters，剩余是来自较远数据中心的 GPS masters，也有 Armageddon masters
+>  daemon 会应用 Marzullo's 算法的变体来检测和拒绝谎报者，然后将本地机器时钟和非谎报者进行同步
+>  为了防止本地时钟损坏，那些频率波动超出根据组件规格和运行环境推断出的最坏情况界限的机器会被驱逐
+
+Between synchronizations, a daemon advertises a slowly increasing time uncertainty. $\epsilon$ is derived from conservatively applied worst-case local clock drift. $\epsilon$ also depends on time-master uncertainty and communication delay to the time masters. 
+>  在同步时，daemon 会发布一个逐渐增加的时间不确定性 $\epsilon$ (如上面所说的)
+>  $\epsilon$ 是从保守应用的最坏情况下的本地时钟漂移推导出的，$\epsilon$ 还取决于 time masters 的不确定性和与 time masters 的通信延迟
+
+In our production environment, $\epsilon$ is typically a sawtooth function of time, varying from about 1 to 7 ms over each poll interval. $\overline{\epsilon}$ is therefore 4 ms most of the time. The daemon’s poll interval is currently 30 seconds, and the current applied drift rate is set at 200 microseconds/second, which together account for the sawtooth bounds from 0 to $6~\mathrm{ms}$ . The remaining $1~\mathrm{ms}$ comes from the communication delay to the time masters. 
+>  在生产环境中，$\epsilon$ 通常是时间的锯齿波函数，在每次轮询间隔内从 1m 到 7ms 变化，故 $\bar \epsilon$ 大多数情况下是 4ms
+>  daemon 的轮询间隔目前是 30s，当前应用的偏移速率则设定为每秒 200 微妙，这两个因素共同导致了从 0ms 到 6ms 的锯齿波范围
+>  剩下的 1ms 来自于和 time masters 的通信延迟
+
+Excursions from this sawtooth are possible in the presence of failures. For example, occasional time-master unavailability can cause datacenter-wide increases in $\epsilon$ . Similarly, overloaded machines and network links can result in occasional localized $\epsilon$ spikes. 
+>  在出现故障的情况下，可能会偏离这个锯齿波
+>  例如，偶尔的 time master 不可用情况会导致整个数据中心的 $\epsilon$ 增加，类似地，过载的机器和网络链接也可能导致偶尔的局部 $\epsilon$ 尖峰
 
 # 4 Concurrency Control 
-This section describes how TrueTime is used to guarantee the correctness properties around concurrency control, and how those properties are used to implement features such as externally consistent transactions, lockfree read-only transactions, and non-blocking reads in the past. These features enable, for example, the guarantee that a whole-database audit read at a timestamp t will see exactly the effects of every transaction that has committed as of $t$ . 
+This section describes how TrueTime is used to guarantee the correctness properties around concurrency control, and how those properties are used to implement features such as externally consistent transactions, lock-free read-only transactions, and non-blocking reads in the past. These features enable, for example, the guarantee that a whole-database audit read at a timestamp $t$ will see exactly the effects of every transaction that has committed as of $t$ . 
+>  本节描述 TrueTime 如何用于保证并发控制的正确性质，以及这些性质如何用于实现例如外部一致事务、无锁只读事务、对过去的非阻塞读这些特性
+>  这些特性可以用于确保在时间戳 $t$ 进行的整个数据库的审计读取将精确看到 $t$ 时刻所有已提交事务的效果
 
 Going forward, it will be important to distinguish writes as seen by Paxos (which we will refer to as Paxos writes unless the context is clear) from Spanner client writes. For example, two-phase commit generates a Paxos write for the prepare phase that has no corresponding Spanner client write. 
+>  我们需要对 Paxos 的写操作和 Spanner client 的写操作进行区分
+>  例如，两阶段提交会在准备阶段生成一个 Paxos write，而这个 Paxos write 没有对应的 Spanner client write
 
 ## 4.1 Timestamp Management 
-Table 2 lists the types of operations that Spanner supports. The Spanner implementation supports readwrite transactions, read-only transactions (predeclared snapshot-isolation transactions), and snapshot reads. Standalone writes are implemented as read-write transactions; non-snapshot standalone reads are implemented as read-only transactions. Both are internally retried (clients need not write their own retry loops). 
+
+![[pics/Spanner-Table2.png]]
+
+Table 2 lists the types of operations that Spanner supports. The Spanner implementation supports read-write transactions, read-only transactions (predeclared snapshot-isolation transactions), and snapshot reads. Standalone writes are implemented as read-write transactions; non-snapshot standalone reads are implemented as read-only transactions. Both are internally retried (clients need not write their own retry loops). 
+>  Spanner 所支持的操作见 Table2
+>  Spanner 支持读写事务、只读事务 (预先声明的快照隔离事务)、快照读
+>  独立的写操作通过读写事务实现，非快照的独立读操作通过只读事务实现，这两个操作都会在内部进行重试 (client 无需编写自己的重试循环)
+
 A read-only transaction is a kind of transaction that has the performance benefits of snapshot isolation [6]. A read-only transaction must be predeclared as not having any writes; it is not simply a read-write transaction without any writes. Reads in a read-only transaction execute at a system-chosen timestamp without locking, so that incoming writes are not blocked. The execution of the reads in a read-only transaction can proceed on any replica that is sufficiently up-to-date (Section 4.1.3). 
+>  Spanner 支持的只读事务遵循快照隔离语义，以提供更好的性能
+>  一个只读事务必须预先声明为不包含任何写入操作，只读事务并没有实现为没有写入操作的读写事务，只读事务中的读操作会在系统选择的时间戳上执行，不需要锁，因此并发的写操作不会被阻塞
+>  只读事务的读操作的执行 (实际读取数据的操作) 可以在任意足够新的副本上进行
+
 A snapshot read is a read in the past that executes without locking. A client can either specify a timestamp for a snapshot read, or provide an upper bound on the desired timestamp’s staleness and let Spanner choose a timestamp. In either case, the execution of a snapshot read proceeds at any replica that is sufficiently up-to-date. 
-For both read-only transactions and snapshot reads, commit is inevitable once a timestamp has been chosen, unless the data at that timestamp has been garbagecollected. As a result, clients can avoid buffering results inside a retry loop. When a server fails, clients can internally continue the query on a different server by repeating the timestamp and the current read position. 
-# 4.1.1 Paxos Leader Leases 
-Spanner’s Paxos implementation uses timed leases to make leadership long-lived (10 seconds by default). A potential leader sends requests for timed lease votes; upon receiving a quorum of lease votes the leader knows it has a lease. A replica extends its lease vote implicitly on a successful write, and the leader requests lease-vote extensions if they are near expiration. Define a leader’s lease interval as starting when it discovers it has a quorum of lease votes, and as ending when it no longer has a quorum of lease votes (because some have expired). Spanner depends on the following disjointness invariant: for each Paxos group, each Paxos leader’s lease interval is disjoint from every other leader’s. Appendix A describes how this invariant is enforced. 
-The Spanner implementation permits a Paxos leader to abdicate by releasing its slaves from their lease votes. To preserve the disjointness invariant, Spanner constrains when abdication is permissible. Define $s_{m a x}$ to be the maximum timestamp used by a leader. Subsequent sections will describe when $s_{m a x}$ is advanced. Before abdicating, a leader must wait until TT.after $\left(s_{m a x}\right)$ is true. 
-# 4.1.2 Assigning Timestamps to RW Transactions 
+>  快照读是对过去的一次读操作，不需要锁
+>  client 可以为快照都指定时间戳，或者提供一个时间戳上界，让 Spanner 自行选择
+>  在两种情况下，快照读的执行 (实际读取数据的操作) 可以在任意足够新的副本上进行
+
+For both read-only transactions and snapshot reads, commit is inevitable once a timestamp has been chosen, unless the data at that timestamp has been garbage-collected. As a result, clients can avoid buffering results inside a retry loop. When a server fails, clients can internally continue the query on a different server by repeating the timestamp and the current read position. 
+>  对于只读事务和快照读，一旦 client 选定好了时间戳，该操作就一定会提交 (即一定会被执行)，除非在该时间戳上的数据被垃圾收集
+>  因为操作一定会提交，client 就不需要在重试循环中缓存结果，当处理操作的 server 故障后，client 只需要换一个 server，重复当前的读取位置和时间戳即可继续进行读取 (而不需要自行缓冲部分读取到的结果数据)
+
+### 4.1.1 Paxos Leader Leases 
+Spanner’s Paxos implementation uses timed leases to make leadership long-lived (10 seconds by default). A potential leader sends requests for timed lease votes; upon receiving a quorum of lease votes the leader knows it has a lease. A replica extends its lease vote implicitly on a successful write, and the leader requests lease-vote extensions if they are near expiration. 
+>  Spanner 的 Paxos 实现使用定时租约使得 leadership 长期有效 (默认为 10s)
+>  潜在的 leader 会发送请求获得定时租约投票，收到多数租约投票的 leader 就会获取租约
+>  副本在成功写入后可以隐式地延长其租约投票，leader 在接近到期时会请求延长它收到的租约投票
+
+Define a leader’s lease interval as starting when it discovers it has a quorum of lease votes, and as ending when it no longer has a quorum of lease votes (because some have expired). 
+>  leader 的租约间隔定义为从其发现自己获得多数租约投票开始，到不再具有多数租约投票 (因为某些租约投票已经过期) 时结束
+
+Spanner depends on the following disjointness invariant: for each Paxos group, each Paxos leader’s lease interval is disjoint from every other leader’s. Appendix A describes how this invariant is enforced. 
+>  Spanner 依赖于以下不相交不变式: 
+>  对于每个 Paxos group，其每个 leader 的租约间隔和所有其他 leader 的租约间隔互不重叠 (不会同时有两个 leader)
+>  该不变式的实现方式见 Appendix A
+
+The Spanner implementation permits a Paxos leader to abdicate by releasing its slaves from their lease votes. To preserve the disjointness invariant, Spanner constrains when abdication is permissible. Define $s_{m a x}$ to be the maximum timestamp used by a leader. Subsequent sections will describe when $s_{m a x}$ is advanced. Before abdicating, a leader must wait until $TT.after \left(s_{m a x}\right)$ is true. 
+>  Spanner 允许 Paxos leader 通过释放其从属节点的租约投票来放弃领导权
+>  为了维护不相交不变式，Spanner 对放弃领导权的时间进行了限制
+>  定义 $s_{max}$ 为 leader 所使用的最大时间戳，在放弃领导权之前，leader 必须等待到 $TT. after(s_{max})$ 为 true (等待到当前的时间点一定大于 $s_{max}$)
+
+### 4.1.2 Assigning Timestamps to RW Transactions 
 Transactional reads and writes use two-phase locking. As a result, they can be assigned timestamps at any time when all locks have been acquired, but before any locks have been released. For a given transaction, Spanner assigns it the timestamp that Paxos assigns to the Paxos write that represents the transaction commit. 
+
 Spanner depends on the following monotonicity invariant: within each Paxos group, Spanner assigns timestamps to Paxos writes in monotonically increasing order, even across leaders. A single leader replica can trivially assign timestamps in monotonically increasing order. This invariant is enforced across leaders by making use of the disjointness invariant: a leader must only assign timestamps within the interval of its leader lease. Note that whenever a timestamp $s$ is assigned, $s_{m a x}$ is advanced to $s$ to preserve disjointness. 
-Spanner also enforces the following externalconsistency invariant: if the start of a transaction $T_{2}$ occurs after the commit of a transaction $T_{1}$ , then the commit timestamp of $T_{2}$ must be greater than the commit timestamp of $T_{1}$ . Define the start and commit events for a transaction $T_{i}$ by $e_{i}^{s t a r t}$ and $e_{i}^{c o m m i t}$ ; and the commit timestamp of a transaction $T_{i}$ by $s_{i}$ . The invariant becomes $t_{a b s}(e_{1}^{c o m m i t})<t_{a b s}(e_{2}^{s t a r t})\Rightarrow s_{1}<s_{2}$ . The protocol for executing transactions and assigning timestamps obeys two rules, which together guarantee this invariant, as shown below. Define the arrival event of the commit request at the coordinator leader for a write $T_{i}$ to be $e_{i}^{s e r\nu e r}$ . 
+
+Spanner also enforces the following external-consistency invariant: if the start of a transaction $T_{2}$ occurs after the commit of a transaction $T_{1}$ , then the commit timestamp of $T_{2}$ must be greater than the commit timestamp of $T_{1}$ . Define the start and commit events for a transaction $T_{i}$ by $e_{i}^{s t a r t}$ and $e_{i}^{c o m m i t}$ ; and the commit timestamp of a transaction $T_{i}$ by $s_{i}$ . The invariant becomes $t_{a b s}(e_{1}^{c o m m i t})<t_{a b s}(e_{2}^{s t a r t})\Rightarrow s_{1}<s_{2}$ . The protocol for executing transactions and assigning timestamps obeys two rules, which together guarantee this invariant, as shown below. Define the arrival event of the commit request at the coordinator leader for a write $T_{i}$ to be $e_{i}^{s e r\nu e r}$ . 
+
 Start The coordinator leader for a write $T_{i}$ assigns a commit timestamp $s_{i}$ no less than the value of ${{T T.n o w()}}$ .latest, computed after $e_{i}^{s e r\nu e r}$ . Note that the participant leaders do not matter here; Section 4.2.1 describes how they are involved in the implementation of the next rule. 
+
 Commit Wait The coordinator leader ensures that clients cannot see any data committed by $T_{i}$ until $T T.a f t e r(s_{i})$ is true. Commit wait ensures that $s_{i}$ is less than the absolute commit time of $T_{i}$ , or $s_{i}\mathrm{~\ensuremath~{~<~}~}$ $t_{a b s}(e_{i}^{c o m m i t})$ . The implementation of commit wait is described in Section 4.2.1. Proof: 
+
 <html><body><table><tr><td> 81 <tabs(ecommit)</td><td>(commit wait)</td></tr><tr><td>tabs(ecommit)< tabs(esart)</td><td>(assumption)</td></tr><tr><td>tabs(estart)tabs(eserver)</td><td>(causality)</td></tr><tr><td>tabs(eserver)≤ 82</td><td>(start)</td></tr><tr><td>S1< S2</td><td>(transitivity)</td></tr></table></body></html> 
 maximum timestamp at which a replica is up-to-date. A replica can satisfy a read at a timestamp $t$ if $t<=t_{s a f e}$ . 
 Define $t_{s a f e}~=~m i n(t_{s a f e}^{P a x o s},t_{s a f e}^{T M})$ , where each Paxos state machine has a safe time $t_{s a f e}^{P a x o s}$ and each transaction manager has a safe time $t_{s a f e}^{T M}$ . $t_{s a f e}^{P a x o s}$ is simpler: it is the timestamp of the highest-applied Paxos write. Because timestamps increase monotonically and writes are applied in order, writes will no longer occur at or below tsPafxeos with respect to Paxos. 
 $t_{s a f e}^{T M}$ is $\infty$ at a replica if there are zero prepared (but not committed) transactions—that is, transactions in between the two phases of two-phase commit. (For a participant slave, $t_{s a f e}^{T M}$ actually refers to the replica’s leader’s transaction manager, whose state the slave can infer through metadata passed on Paxos writes.) If there are any such transactions, then the state affected by those transactions is indeterminate: a participant replica does not know yet whether such transactions will commit. As we discuss in Section 4.2.1, the commit protocol ensures that every participant knows a lower bound on a prepared transaction’s timestamp. Every participant leader (for a group $g$ ) for a transaction $T_{i}$ assigns a prepare tlieamdeesrtaemnps $s_{i,g}^{p r e p a r e}$ atothites tprraenpsarcetiroenc’os cd.omThmeitctoiomredistna tmopr $s_{i}>=s_{i,g}^{p r e p a r e}$ $g$ for every replica in a group $g$ , over all transactions $T_{i}$ prepared at $g$ $\begin{array}{r}{\mathcal{I},t_{s a f e}^{T M}=m i n_{i}(s_{i,g}^{p r e p a r e})-1}\end{array}$ over all transactions prepared at $g$ . 
-# 4.1.4 Assigning Timestamps to RO Transactions 
+
+### 4.1.4 Assigning Timestamps to RO Transactions 
 A read-only transaction executes in two phases: assign a timestamp $s_{r e a d}$ [8], and then execute the transaction’s reads as snapshot reads at $s_{r e a d}$ . The snapshot reads can execute at any replicas that are sufficiently up-to-date. 
 The simple assignment of $s_{r e a d}=T T.n o w()$ ).latest, at any time after a transaction starts, preserves external consistency by an argument analogous to that presented for writes in Section 4.1.2. However, such a timestamp may require the execution of the data reads at $s_{r e a d}$ to block if $t_{s a f e}$ has not advanced sufficiently. (In addition, note that choosing a value of $s_{r e a d}$ may also advance $s_{m a x}$ to preserve disjointness.) To reduce the chances of blocking, Spanner should assign the oldest timestamp that preserves external consistency. Section 4.2.2 explains how such a timestamp can be chosen. 
 # 4.1.3 Serving Reads at a Timestamp 
