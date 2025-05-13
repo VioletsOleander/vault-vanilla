@@ -1271,6 +1271,8 @@ will display a menu page with hyperlinks to each program contained in the `coreu
 
 ### README and Other Program Documentation Files 
 Many software packages installed on our system have documentation files residing in the `/usr/share/doc` directory. Most of these are stored in plain text format and can be viewed with less. Some of the files are in HTML format and can be viewed with a web browser. We may encounter some files ending with a “`.gz`” extension. This indicates that they have been compressed with the `gzip` compression program. The `gzip` package includes a special version of less called `zless` that will display the contents of `gzip` compressed text files. 
+>  大多数安装在系统中的软件在 `/usr/share/doc` 中有文档文件，大多数文档文件都以纯文本形式存储，部分以 HTML 格式存储
+>  一些以 `.gz` 后缀的文件表示它们是通过 `gzip` 程序压缩的，`gzip` 包包含了 `zless` ，它可以展示 `gzip` 压缩的文本文件
 
 # Part 3 – Common Tasks and Essential Tools 
 
@@ -1309,15 +1311,25 @@ Table 14-1: Major Packaging System Families
 
 ## How a Package System Works 
 The method of software distribution found in the proprietary software industry usually entails buying a piece of installation media such as an “install disk” or visiting a vendor's web site and downloading a product and then running an “installation wizard” to install a new application on the system. 
+>  专有软件的常见分发方法是购买安装介质，例如安装光盘，或者访问供应商的网站下载产品，然后运行 “安装向导” 以在系统上安装应用
+
 Linux doesn't work that way. Virtually all software for a Linux system will be found on the Internet. Most of it will be provided by the distribution vendor in the form of package files, and the rest will be available in source code form that can be installed manually. We'll talk about how to install software by compiling source code in chapter 23, “Compiling Programs.” 
+>  几乎所有 Linux 系统的软件都可以在网络上找到，大多数会以软件包文件的形式由发行版供应商提供，其余的则是源代码形式，需要手动安装
 
 ### Package Files 
 The basic unit of software in a packaging system is the package file. A package file is a compressed collection of files that comprise the software package. A package may consist of numerous programs and data files that support the programs. In addition to the files to be installed, the package file also includes metadata about the package, such as a text description of the package and its contents. Additionally, many packages contain pre- and post-installation scripts that perform configuration tasks before and after the package installation. 
+>  packaging system 中的软件的基本单元是包文件，包文件是一个压缩的文件集合，包含了构成软件本身的文件
+>  一个包可以包含许多程序和支持这些程序的数据文件，除了要安装的文件外，包文件还包含了关于包的元数据，例如包的文本描述
+>  此外，许多包还包含预安装和后安装脚本，用于在软件包安装之前和之后执行配置任务
 
 Package files are created by a person known as a package maintainer, often (but not always) an employee of the distribution vendor. The package maintainer gets the software in source code form from the upstream provider (the author of the program), compiles it, and creates the package metadata and any necessary installation scripts. Often, the package maintainer will apply modifications to the original source code to improve the program's integration with the other parts of the Linux distribution. 
+>  包文件由包维护者创建，通常是发行版供应商的员工
+>  包维护者获取源代码形式的软件，编译它，并创建包元数据和任何必要的安装脚本
+>  包维护者通常会对源代码进行修改，以优化该程序和 Linux 发行版的其他部分的集成
 
 ### Repositories 
 While some software projects choose to perform their own packaging and distribution, most packages today are created by the distribution vendors and interested third parties. Packages are made available to the users of a distribution in central repositories that may contain many thousands of packages, each specially built and maintained for the distribution. 
+>  大多数软件包都是由发行版供应商创建的，一个发行版可用的包会被放置在中心存储库中，通常该存储库专门为发行版构建和维护
 
 A distribution may maintain several different repositories for different stages of the software development life cycle. For example, there will usually be a “testing” repository that contains packages that have just been built and are intended for use by brave souls who are looking for bugs before the packages are released for general distribution. A distribution will often have a “development” repository where work-in-progress packages destined for inclusion in the distribution's next major release are kept. 
 
@@ -1326,14 +1338,20 @@ A distribution may also have related third-party repositories. These are often n
 ### Dependencies 
 Programs are seldom “standalone”; rather they rely on the presence of other software components to get their work done. Common activities, such as input/output for example, are handled by routines shared by many programs. These routines are stored in what are called shared libraries, which provide essential services to more than one program. If a package requires a shared resource such as a shared library, it is said to have a dependency. Modern package management systems all provide some method of dependency resolution to ensure that when a package is installed, all of its dependencies are installed, too. 
 
-# High and Low-level Package Tools 
+## High and Low-level Package Tools 
 Package management systems usually consist of two types of tools. 
 Low-level tools which handle tasks such as installing and removing package files High-level tools that perform metadata searching and dependency resolution 
+
 In this chapter, we will look at the tools supplied with Debian-style systems (such as Ubuntu and many others) and those used by Red Hat products. While all Red Hat-style distributions rely on the same low-level program (rpm), they use different high-level tools. For our discussion, we will cover the high-level program dnf, used by Red Hat Enterprise Linux, CentOS, and Fedora. Other Red Hat-style distributions provide highlevel tools with comparable features (see Table 14-2). 
+
 Table 14- 2: Packaging System Tools 
-<html><body><table><tr><td>Distributions</td><td>Low-Level Tools</td><td>High-Level Tools</td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table></body></html> 
-<html><body><table><tr><td>Debian style</td><td>dpkg</td><td>apt, apt-get, aptitude</td></tr><tr><td>Fedora, Red Hat</td><td>rpm</td><td>dnf, yum</td></tr><tr><td>Enterprise Linux, CentOS</td><td></td><td></td></tr></table></body></html> 
-# Common Package Management Tasks 
+
+|              Distributions               | Low-Level Tools |     High-Level Tools     |
+| :--------------------------------------: | :-------------: | :----------------------: |
+|               Debian style               |     `dpkg`      | `apt, apt-get, aptitude` |
+| Fedora, Red Hat Enterprise Linux, CentOS |      `rpm`      |        `dnf, yum`        |
+
+## Common Package Management Tasks 
 Many operations can be performed with the command line package management tools. We will look at the most common. Be aware that the low-level tools also support the creation of package files, an activity outside the scope of this book. 
 In the discussion below, the term package_name refers to the actual name of a package rather than the term package_file, which is the name of the file that contains the package. Also, before any package operations can be performed, the package repository needs to be queried so that the local copy of its database can be synchronized. Red Hat’s dnf program does this automatically and updates the local database if too much time has elapsed since the last update. On the other hand, Debian’s apt program must be run with the update command to explicitly update the local database. This needs to be done every so often. In the examples below, the apt update command is done before any operations, but in real life this only needs to be done every few hours to stay safe. 
 Since operations that involve installing or removing software on a system-wise basis is an administrative task, superuser privileges are required regardless of the package management tool. 
