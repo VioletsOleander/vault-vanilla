@@ -1316,7 +1316,7 @@ Date: 2025.2.24-2025.3.3
             In policy iteration, the policy evaluation and policy improvement process can interact in more different ways. The ultimate results is the same: convergence to the optimal value function and an optimal policy.
 
 \[Doc\]
-- [[doc-notes/go/getting-started/Tutorial|go/getting-started/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
+- [[doc-notes/go/getting-started/tutorials/Tutorial|go/getting-started/tutorials/Tutorial]]: Get started with Go, Create a Go module, Getting started with multi-module workspaces
 - [[doc-notes/go/getting-started/A Tour of Go|go/getting-started/A Tour of Go]]: All
     Basics
         In Go, a name is exported if it begins with a capital letter. When a package is imported, only its exported names can be used.
@@ -2114,6 +2114,9 @@ Date: 2025.4.14-2025.4.21
 ### Week 4
 Date: 2025.4.21-2025.4.28
 
+\[Book\]
+- [[book-notes/The Linux Command Line|The Linux Command Line]]: CH1-CH4
+
 \[Doc\]
 - [[doc-notes/gdb/Debugging with GDB|gdb/Debugging with GDB]]
 - [[doc-notes/mlir/code-documentation/Operation Canonicalization|mlir/code-documentation/Operation Canonicalization]]: All
@@ -2134,6 +2137,63 @@ Date: 2025.4.28-2025.5.5
 
 \[Paper\]
 - [[paper-notes/distributed-system/Large-scale Incremental Processing Using Distributed Transactions and Notifications-2010-OSDI|2010-OSDI-Large-scale Incremental Processing Using Distributed Transactions and Notifications]]
+    0-Abstract
+        Updating an index of web requires continuously transforming a large repository of existing documents as new documents arrive. That is, transforming a large repository of data via small, independent mutations.
+        There is no existing infrastructure suitable for executing this task when the repository is at web-scale. Databases do not meet the storage and throughput requirement (tens of petabytes of data, millions updates to process per day on thousands of machines); MapReduce relies on large-batch for efficiency, and can not handle small updates individually.
+        Percolator is a system for incrementally processing updates to a large data set.
+    1-Introduction
+        Using MapReduce to update the originally constructed web index requires reprocessing the entire repository (include new pages and old pages) again. This makes the latency of update proportional to the size of the entire repository, rather than the size of the newly added page collection.
+        Using databases to store the repository and execute updates with transactions to preserve invariants is not feasible because existing DBMS can't handle tens of petabytes of data across thousands of machines.
+        Distributed storage system like Bigtable can scale to such size, but don't provide tools for programmers maintain data invariant during concurrent updates. (That means, the updates to web index are concurrent, therefore transactional semantics/invariant preserving semantics is needed)
+        The updates to web index are made concurrent because the old pages related to different newly arrived pages may not overlap, therefore concurrency can improve efficiency. However, the they overlap, transactional semantics/invariant preserving semantics are needed to maintain correctness.
+        An ideal web index processing system should be optimized for incremental processing, which means it should provide mechanisms for maintaining invariants during concurrent updates, as well as keeping track of which updates have been processed.
+        Percolator provides user with random access to a multiple-PB repository, enabling us to process documents individually. To achieve high throughput, multiple threads on multiple machines need transform the repository concurrently, so Percolator provides ACID complaint transactions. Percolator provides snapshot isolation semantic for transactions.
+        Percolator provides observers to keep track of the state of incremental updates. Observers are essentially a piece of code which will be called when a user-specified column changes.
+        Applications based on Percolator should be organized as a series of observers/observer chain. Each observer complete a task and write data to columns to create more task for downstream observers. 
+        Percolator is built specifically for incremental processing with large existing repository.
+    2-Design
+        Percolator provides two main abstraction for large-scale incremental processing: ACID transactions over a random-access repository; observers, a way to organize incremental computation/update.
+        A Percolator system consists of three binaries that run on every machines on the cluster: a Percolator worker, a Bigtable tablet server, a GFS chunkserver.
+        All observers are linked to the Percolator worker, which scan the tablet for changed columns and invoke the corresponding observers.
+        Percolator also relies on timestamp oracle service and lightweight lock service. The timestamp oracle service provides monotonically increasing timestamp, which is required by snapshot isolation. The lightweight lock service is used by Percolator worker to search dirty notifications more efficiently.
+        Percolator repository consists of a small number of tables in the perspective of programmers. 
+        The target task is not strict with latency, therefore Percolator uses a lazy approach to clean up locks left by transactions running on failed machines. Percolator has no central location for transaction management, and therefore lacks a global dead lock detector. This increasing a latency of conflicting transactions but allow the system to scale out more.
+        2.1-Bigtable Overview
+            Bigtable provides lookup and update operations on each row, and Bigtable row transaction support atomic read-modify-write operation on each row.
+            Bigtable handles petabytes of data.
+            Each server(tablet server) in Bigtable manages several tablets. Tablet means a contiguous region of keys.
+            Percolator organize data into Bigtable rows and columns. The metadata stores in special columns.
+            Percolator specific computation warps Bigtable operations. That means that Percolator is based on Bigtable operations to provide multi-row transaction and the observer feature.
+        2.2-Transactions
+            The first feature Percolator (API) provides is cross-row, cross-table ACID snapshot-isolation transactions. 
+            In snapshot isolation, each transaction can be seen as reading from a stable snapshot at some timestamp, and writing in a different, later timestamp.
+            Snapshot isolation prevents write-write conflicts: two transactions writing a same cell will result in only one commit. Snapshot isolation is optimized for read operation: the read is lock-free because every timestamp represents a consistent snapshot.
+            To define multi-row transaction over Bigtable, Percolator need to explicitly maintain locks.
+            Locks must persist through machine failure: if lock disappear between two phases of commit due to machine failure, conflicted transactions may be mistakenly committed.
+            The lock service should provide high throughput because the updates are concurrent over thousands machines, which means there will be thousand lock requests concurrently.
+            Percolator stores its lock in a special Bigtable column. 
+            The transaction is done by two phase commit. The constructor of the transaction will first request a start timestamp, which determines the consistent snapshot seen be `Get()` . Calls to `Set()` are buffered until commit time.
+            The first phase of commit is prewrite, in which all the cells to be written will be locked, with one of which designated as the primary. Without conflicts, the transactions will write the lock to each cell at the start timestamp.
+            In the second phase of commit, the transaction acquires the commit timestamp, and then release each cell's lock (start from the primary) and write in a write record, making the cell visible to readers.
+            The write record contains a pointer to the start timestamp of the transaction.
+            After making the primary cell visible to readers, the transaction must commit.
+            Read operation should wait for concurrent writing transaction whose start timestamp is lower than the reading timestamp.
+            Primary lock is used as the synchronization point of cleaning and committing to prevent race condition. Because the primary lock only involves one row, thus the atomicity is guaranteed by Bigtable. Therefore, conflicts will not lead to inconsistent result.
+        2.3-Timestamps
+            Each transaction requires contact the timestamp service twice for the start timestamp and commit timestamp.
+            The save RPC overhead (at the cost of increasing latency), timestamp request will be batched.
+        2.4-Notifications
+            The above describes the transaction implementation.
+            Observers are the implementation to trigger the transaction.
+            In the index system, a loader transaction will loads crawled documents into Percolator, the loader transaction will trigger the document processor transaction to do indexing. (All specific transactions are implemented with Percolator API, and servers as observers).
+            Transnationality guarantees only one observers will commit for a particular notification.
+        2.5-Discussion
+            Batching RPCs increases the time window in which conflicts may occur, but in low-contention environment, this will not become a problem.
+            Prefetching, combined with a cache of items that have already been read, reduces the number of Bigtable reads the system would otherwise do by a factor of 10.
+    3-Evaluation
+        Percolator lies in between the performance space between MapReduce and DBMS. Compared to DBMS, Percolator uses more resource to process a fixed amount of data, this is the cost of scalability. Compared to MapReduce, Percolator has lower latency, but at cost of of additional resources to support random lookups.
+    4-Related Work
+    5-Conclusion and Future Work
 - [[paper-notes/rl/RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-2023-CoRL|2023-CoRL-RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning]]
     Abstract
     Introduction
@@ -2159,7 +2219,7 @@ Date: 2025.4.28-2025.5.5
         Too high control frequency will make the MDP too long-horizon, which complicates exploration, and thus hurts performance. Too low control frequency will make the discretization of MIDI file too coarse, and thus negatively impacts the timing of the notes.
         Too large discount factor will make the agent too conservative, and thus hurt exploration.
     Discussion
-- [[paper-notes/rl/PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-2024-CoRL|2024-CoRL-PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-2024-CoRL]]
+- [[paper-notes/rl/PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-2024-CoRL|2024-CoRL-PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations]]
     Abstract
         PianoMime includes three stages: the data preparation stage extract informative features from the demonstration videos; the policy learning stage train sone-specific expert policies from the information extracted from the previous stage; the policy distillation stage distill policies into a single generalist agent.
         The zero-shot generalization performance of the generalist agent improves largely compared to ROBOPIANIST.
@@ -2195,7 +2255,24 @@ Date: 2025.4.28-2025.5.5
     Benchmarking Results
     Limitations & Conclusion
 
+\[Book\]
+- [[book-notes/The Linux Command Line|The Linux Command Line]]: CH5
+
 \[Doc\]
 - [[doc-notes/github/collaborative-coding/pull-requests/Collaborate with pull requests|github/collaborative-coding/pull-requests/Collaborate with pull requests]]
 - [[doc-notes/github/collaborative-coding/pull-requests/Commit changes to your project|github/collaborative-coding/pull-requests/Commit changes to your project]]
 
+### Week 2
+Date: 2025.5.5-2025.5.13
+
+\[Doc\]
+- [[doc-notes/go/getting-started/tutorials/Create a Go module|go/getting-started/tutorials/Create a Go module]]: Add a Test
+- [[doc-notes/go/references/package-documentation/sync/sync|go/references/package-documentation/sync/sync]]
+
+\[Blog\]
+- [[blog-notes/Students' Guide to Raft|Students' Guide to Raft]]
+- [[blog-notes/Instructor's Guide to Raft|Instructor's Guide to Raft]]
+
+\[Code\]
+- Distributed Systems Lab
+    Lab1 MapReduce
