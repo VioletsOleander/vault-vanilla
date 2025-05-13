@@ -57,7 +57,7 @@ Percolator was built specifically for incremental processing and is not intended
 >  因此，Percolator 针对的是在某一维度上 (如总数据量，转换所需求的 CPU 核心数等) 非常庞大、具有强一致性要求、能够分解为小型更新的计算任务
 
 Within Google, the primary application of Percolator is preparing web pages for inclusion in the live web search index. By converting the indexing system to an incremental system, we are able to process individual documents as they are crawled. This reduced the average document processing latency by a factor of 100, and the average age of a document appearing in a search result dropped by nearly 50 percent (the age of a search result includes delays other than indexing such as the time between a document being changed and being crawled). The system has also been used to render pages into images; Percolator tracks the relationship between web pages and the resources they depend on, so pages can be reprocessed when any depended-upon resources change. 
->  在 Google 中，Precolator 的主要应用是纳入新的网页，实时更新网络索引
+>  在 Google 中，Percolator 的主要应用是纳入新的网页，实时更新网络索引
 >  Percolator 将 Google 的索引系统转化为了增量系统，进而可以随着文档被爬取而逐个处理它们，这将平均的文档处理延迟降低了 100 倍，并将出现在搜索结果中的文档的平均年龄降低了近 50% (一个搜索结果的年龄除了包含索引延迟以外，还包含了文档被更改与被爬取之间的时间等其他延迟)
 >  索引系统还被用于将页面渲染为图像，Percolator 追踪网页之间的关系，以及它们依赖的资源，因此当它们依赖的资源改变时，页面可以被重新处理
 
@@ -306,7 +306,7 @@ If no cells conflict, the transaction may commit and proceeds to the second phas
 
 A Get() operation first checks for a lock in the timestamp range `[0, start timestamp]`, which is the range of timestamps visible in the transaction’s snapshot (line 12). If a lock is present, another transaction is concurrently writing this cell, so the reading transaction must wait until the lock is released. If no conflicting lock is found, Get() reads the latest write record in that timestamp range (line 19) and returns the data item corresponding to that write record (line 22). 
 >  事务的 `Get()` 操作首先检查时间戳范围 `[0, start_timestamp]` 内是否存在锁 (line 12)，这个时间戳范围是该事务的 snapshot 可见的时间戳范围 (因为 snapshot 处于 `start_timestamp`)
->  如果存在锁，说明有另一个事务正在并发地向该 cell 写入，故对该 cell 内容的读取必须等待该锁被释放 (以读取新内容，因为存在锁就说明写入事务的提交时间戳小于 `start_timestamp`，故为了维护 snapshot isolation，必须读取该写入)
+>  如果存在锁，说明有另一个事务正在并发地向该 cell 写入，故对该 cell 内容的读取必须等待该锁被释放 (以读取新内容，因为存在锁就说明写入事务的起始时间戳小于 `start_timestamp`，故为了维护 snapshot isolation，必须读取该写入)
 >  如果没有发现冲突锁，`Get()` 会读取该时间戳范围 (`[0, start_timestamp`]) 内的最新写入记录 (line 19)，并返回与该写入记录对应的数据项
 
 >  如果 cell 的时间戳范围 `[0, start_timestamp]` 内存在锁，依据上面描述的写入锁机制，说明有其他的起始时间戳位于 `[0, start_timestamp]` 范围的事务正在对该 cell 进行写入，注意该事务写入完成后，该 cell 的 `data` 列将会有一个时间戳在 `[0, start_timestamp]` 范围内的新数据，根据 snapshot isolation 语义，这个数据必须要被当前起始时间戳为 `start_timestampe` 的事务读到
@@ -606,8 +606,6 @@ MapReduce is subject to the same effect: eventually crawled documents accumulate
 
 These results show that Percolator can process documents at orders of magnitude better latency than MapReduce in the regime where we expect real systems to operate (single-digit crawl rates). 
 >  试验结果说明了，在我们预期的真实系统运行环境下 (爬取速率的百分比为个位数)，Percolator 的处理延迟将远低于 MapReduce
-
-
 
 ## 3.2 Microbenchmarks 
 In this section, we determine the cost of the transactional semantics provided by Percolator. In these experiments, we compare Percolator to a “raw” Bigtable. We are only interested in the relative performance of Bigtable and Percolator since any improvement in Bigtable performance will translate directly into an improvement in Percolator performance.
