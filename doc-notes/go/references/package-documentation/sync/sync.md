@@ -68,3 +68,23 @@ A locked [Mutex](https://pkg.go.dev/sync@go1.24.3#Mutex) is not associated wit
 >  `Unlock` 解锁 `Mutex`，如果 `Mutex` 已经解锁，则触发 runtime error
 >  锁住的 `Mutex` 并不关联特定的 goroutine，可以由一个 goroutine 上锁，另一个 goroutine 解锁
 
+#### `type RWMutex`
+
+```go
+type RWMutex struct {
+	// contains filtered or unexported fields
+}
+```
+
+A `RWMutex` is a reader/writer mutual exclusion lock. The lock can be held by an arbitrary number of readers or a single writer. The zero value for a `RWMutex` is an unlocked mutex.
+>  `RWMutex` 表示读者/写者互斥锁
+>  该锁可以被任意数量的读者持有，或者被单个写者持有
+>  其零值表示锁是解开的
+
+A `RWMutex` must not be copied after first use.
+>  `RWMutex` 在使用后，就不能被复制
+
+If any goroutine calls `RWMutex.Lock` while the lock is already held by one or more readers, concurrent calls to `RWMutex.RLock` will block until the writer has acquired (and released) the lock, to ensure that the lock eventually becomes available to the writer. Note that this prohibits recursive read-locking. A `RWMutex.RLock` cannot be upgraded into a `RWMutex.Lock`, nor can a `RWMutex.Lock` be downgraded into a ` RWMutex.RLock `.
+>  如果任意 goroutine 在 `RWMutex` 已经被一个或多个读者持有时调用 `RWMutex.Lock` ，并发的对 `RWMutex.RLock` 的调用会阻塞，直到写者获取了 (并且释放了) 锁，这一机制是为了确保写者最终能获得锁 (避免饥饿)
+>  `RWMutex` 不允许递归读锁，即已经获取了读锁的 goroutine 在释放读锁之前再获取读锁会导致死锁
+>  `RWMutex.RLock` 不能升级为 `RWMutex.Lock`，`RWMutex.Lock` 也不能降级为 `RWMutex.RLock`
