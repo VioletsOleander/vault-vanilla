@@ -2366,7 +2366,7 @@ Durability: guarantees that once a transaction has been committed, it will **rem
 - DRAM is volatile and hence flush to disk is needed for durability
 - In contrast, it is ambiguous to decide whether it is durable or not if there are three volatile copies in a distributed environment -- it is not durable in strict definition but it is high available​
 
->  持久性：一旦事务提交，在系统故障之前，提交状态不会丢失
+>  持久性：一旦事务提交，在系统故障时，提交状态不会丢失
 
 Benefits of ACID Transaction: ACID transactions are magic! (the power of abstraction)
 - programmer writes straightforward serial code 
@@ -2491,7 +2491,7 @@ Linearizability recap
 ```
 
 Linearizability: **single-operation**, single-object, real-time order 
-- Real-time order: imprecisely, once a write completes, all **later** reads (where “later” is defined by wall-clock end time) should return the value of that write or the value of a later write.​
+- Real-time order: imprecisely, once a write completes, all **later** reads (where “later” is defined by **wall-clock** end time) should return the value of that write or the value of a later write.​
     But what is time? - Time is an ambiguous concept in a distributed environment, while linearizability is not possible without a definition of time
     Example: The below example is not linearizable even if there is a possible order Wx1 Rx1, Wx2​
 
@@ -2513,6 +2513,13 @@ Serializability: **multi-operation**, multi-object, arbitrary total order
 
 >  Linearizability 和物理时间相关，Serializability 和物理时间无关
 
+>  Linearizability 意味着在物理时间上，后提交的读操作总是能读到先提交的写操作的结果
+>  要注意的是每个操作的完成不是瞬间的，而是持续一段时间的，故为了实现 Linearizability，我们还需要采用机制，让操作看起来是在一瞬间完成的，就像一个原子化的指令
+>  因此某种程度上 Linearizability 可以视作更严格的 atomicity
+
+>  Serializability 意味着并发提交的多个操作的执行结果等价于对这些操作排出某个顺序，按序执行这些操作的结果
+>  它和物理时间无关，物理时间上后提交的操作可以排序到物理时间上前提交的操作之前，也能满足 Serializability
+
 Strict Serializability =​ Serializability + Linearizability
 
 ## Concurrency control -- The Method Used for Achieving Isolation
@@ -2526,6 +2533,11 @@ Concurrency control ensures that correct results for concurrent operations are g
         Actually, it should be the level of isolation in ACID
         Actually, the no different levels of isolation in ACID, it should be serializable in its original definition. 
         But, actually, it is compromised in most of the real-world scenario
+
+>  为了加快，不冲突的事务可以被并发执行
+>  但 “冲突” 的定义取决于我们想要为用户提供的 Isolation 等级
+>  最强的 Isolation 等级就是 Serializability
+
 - Concurrency control is mainly used for **assuring isolation in ACID**
 - **Two classes of concurrency control** for transactions:
     Pessimistic (taught in this lecture)
@@ -2537,7 +2549,7 @@ Concurrency control ensures that correct results for concurrent operations are g
         conflict causes abort + retry
     Pessimistic is faster if conflicts are frequent; optimistic is faster if conflicts are rare
 
->  并发控制主要用于确保 ACID 中的隔离性/可串行性
+>  要确保 ACID 中的 Isolation，需要进行并发控制
 >  有两类并发控制
 >  - 悲观的：最简单的例子是在使用记录之前上锁
 >  - 乐观的：使用记录而不是锁，事务在提交之前会检查是否满足隔离性，如果存在冲突，则中止并重试
@@ -2552,8 +2564,8 @@ Strict 2PL rules:
 - a transaction must hold its locks until after commit or abort
 
 >  严格的 2PL 规则
->  - 事务使用记录之前，必须获取它的锁
->  - 事务必须在其提交或中止之前，都获取它的锁
+>  - 事务使用记录之前，必须获取它的锁 (预先声明它的 access set)
+>  - 事务必须在其提交或中止之前，都持有它的锁
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/c11fdab6-010d-47fc-b08f-81d387adcfb5/ccadb99413be6aefd67b1981c059911050d4570145c50a1e15e3b5c9244c3c11.jpg)
 
@@ -2578,6 +2590,8 @@ Two-phase locking can produce deadlock
     The above solution needs the transaction to **declare its access set beforehand** and **locking in a specific order**.  
     not all the data records are available at the beginning of the transaction, e.g., interactive transactions
 
+>  为了避免上例中的死锁，事务需要按照特定的顺序对数据上锁
+
 Why hold locks until after commit/abort?
 - 2PL that is not S2PL
 
@@ -2588,7 +2602,7 @@ Why hold locks until after commit/abort?
     But the current transaction is still not finished and hence may rolled back later 
     If it is rolled back, all the transactions seeing its updates should also be rolled back
 
->  非 Simple 的 Two-Phase Locking 允许事务在其提交或中止之前释放部分锁
+>  不严格的 Two-Phase Locking 允许事务在其提交或中止之前释放部分锁
 >  这类 2PL 可以保证可串行性，但可能导致级联回滚
 >  例如，在提前释放锁后，其他的事务获取了该锁，但当前事务最后没有提交，而是中止了，故当前事务回滚时，其他看到了它的更新的事务也需要回滚，进而会导致级联回滚
 
@@ -2605,8 +2619,8 @@ Could S2PL ever forbid a correct (serializable) execution?
 - Serializable in the external view (still a cycle dependency but not exposed to external users)​  
 - This is the reason why we develop other kinds of concurrency control, such as Timestamp based and OCC based.
 
->  Simple 2 PL 虽然确保了可串行执行，但过于严格，也禁止了一些可串行同时可并发的执行顺序出现
->  为此，我们会使用其他类型的并发控制方法
+>  S2PL 虽然确保了可串行执行，但过于严格，也禁止了一些可串行同时可并发的执行顺序出现
+>  为此，我们会使用其他类型的并发控制方法，例如基于时间戳的，和基于 OCC 的
 
 ## Weaker Level of Isolation By ANSI
 Four levels of isolation from ANSI SQL-92:
@@ -2669,7 +2683,7 @@ Problems of ANSI's definition
         This dependency graph is very useful. We can even learn a dependency graph in the training runs and use them to avoid concurrency bugs at deployed runs without explicitly fixing the bugs -- [my own paper](https://madsys.cs.tsinghua.edu.cn/publication/ai-a-lightweight-system-for-tolerating-concurrency-bugs/FSE2014-zhang.pdf) won a Distinguished Paper Award at FSE2014
 - The combination of these other kinds of anomaly phenomenal leads to other levels of isolation
     a trade-off!  
-    The most important level of isolation not included in ANSI is snapshot isolation, which will be discussed in the next lecture.
+    The most important level of isolation not included in ANSI is **snapshot isolation**, which will be discussed in the next lecture.
 
 ## Distributed transaction = concurrency control + atomic commit
 **Atomic commit**
@@ -2707,8 +2721,9 @@ How to achieve atomic commit over multiple shards? -- it is possible that some o
 - locks are required from the preparation phase
 - and released only after receiving the final commit message from the coordinator
 
->  借由 2PC 实现原子化提交后，我们就实现了分布式事务
->  我们进而可以使用之前介绍的 2PL 或 S2PL 进一步实现可串行的分布式事务
+>  借由 2PC 实现原子化提交后，我们可以和任何的并发控制方法结合，以实现具有级别的 Isolation 语义的分布式事务 (并发控制 + 原子化提交 = 分布式事务)
+>  (2PC 仅涉及提交，至于如何获取锁，释放锁，则需要由并发控制方法定义)
+>  例如结合 2PL 或  S2PL 可以实现可串行的分布式事务
 
 ### Failure Handling in 2PC
 **States** 
@@ -2727,10 +2742,14 @@ The global commit point of 2PC is the time that the log record of "state change 
 - When can the coordinator completely forget about a committed transaction? -- only after it **sees an acknowledgement from every participant** for the COMMIT.  
 
 >  2PC 的 global commit point 是 Coordinator 从 PREPARE 到 COMMIT 的状态转变写入持久化存储的时间点
+>  在该点后，Coorcinator 即便故障，也可以恢复，并继续发送 commit message
+>  当 Coordinator 收到所有 participant 对 commit message 的 acknowledgement 之后，就不需要再发送 commit message
 
 Participants must **filter out duplicate COMMITs** (using unique transaction ID).
 - It can be implemented straightforwardly via remembering all the **live transactions** 
 - A COMMIT for **non-live transaction** can be simply **replied with ack** without any other steps  
+
+>  Participants 需要能够辨别重复的 commit message
 
 What if the coordinator has not received a prepared or aborted message from the participant
 - It is possible because of the network failure
@@ -2742,13 +2761,15 @@ Similarly, a log record "state change from init to prepared" must be flushed to 
 - With this log, after the restarting of the participant, it can ask coordinator to commit or rollback the prepared transaction
 - Meanwhile, the participant must continue to hold the prepared transaction's locks (acquire the lock during the restart procedure, before accepting any further requests). 
 
+>  Participant 在向 coordinator 发送 "can commit" 消息时，必须确保将 INIT 到 PREPARED 的状态转变写入持久化存储
+
 Otherwise, the participant can abort and release the locks if it decides to abort​ 
 
 In contrast, the participant must block until receiving a commit/abort message from the coordinator if it has already sent prepared message to the coordinator
 - Even if the participant never receives this message for a long period of time, a timeout **should not** be used​
 - How to avoid this blocking? implement coordinator as a **highly-available** service via replicated state machine
 
-## Critique of the Original 2PC + S2PL
+### Critique of the Original 2PC + S2PL
 The original implementation of 2PC is **slow** for many reasons
 - Two rounds of messages and lock **even for read-only transactions**
     locks are held during the prepare/commit exchanges; blocks other transactions (cascade blocking)
@@ -2758,11 +2779,19 @@ The original implementation of 2PC is **slow** for many reasons
     In contrast, Raft does not ensure that all servers do something since only a majority have to be alive
     A combination of 2PC + S2PL + Raft can lead to highly-available distributed transaction
 
+>  2PC + S2PL 的劣势包括
+>  - 2PC 需要两轮消息交换，在 S2PL 下，锁必须在消息交换期间一直持有
+>  - 2PC 的每次状态转换都需要写入磁盘
+>  - 2PC 要求所有的服务器都活跃，故只要一个服务器故障，就需要等待 (低可用性) (为了解决可用性问题，可以使用 2PC + S2PL + Raft)
+
 # 9 Snapshot Isolation + Percolator
 ## Multi-version Concurrency Control (MVCC)
 In the last lecture, we assume that there is only one version for each data record -- **updated inplace.** -- long-term read lock is needed for a higher level of isolation.
+>  在之前，我们一直假设仅维护记录的一个版本
+>  在这种情况下，为了保持 Isolation，往往读操作也需要获取锁
 
 However, we can actually maintain multiple versions of each record, which gives more opportunities for optimizations -- Multi-version Concurrency Control (MVCC).
+>  我们考虑维护多个版本的记录 —— 多版本并发控制
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/9eafa8f2-3bef-4a20-9605-9fd40e05b680/f959a1aa82eab0800cce31cdb68b99bf3b3741dbe2f95b5a9bb015584f200c06.jpg)
 
@@ -2780,13 +2809,18 @@ In MVCC, instead of writing in-place, **each write will generate a new version o
     one of the most important optimizations in Spanner taught in Lecture 9
 - It is also a difficult problem when there is a lot of concurrent threads, where the global atomic `fetch_and_add` can become a bottleneck -- we need advanced OCC taught in Lecture 10​
 
+>  和单版本的情况不同，多版本并发控制下，写入不再是原地写入，而是生成一个新版本的记录 (旧版本的数据不会被覆盖)
+>  - 每个版本的记录都有一个有效时段，从它的起始时间戳到结束时间戳
+>  - 给定一个时间戳，我们可以找到该时间戳下，整个数据库状态的一个快照
+>  时间戳应该是整个集群认可的单调递增的全局数，可以用 RSM 实现 (Timestamp Oracle) 
+
 ## Different Kinds of Concurrency Control Methods
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/9eafa8f2-3bef-4a20-9605-9fd40e05b680/499e9f62ae8ef22b35336a5a479a10a85587ef58a8814d9a8c29c19454e2371f.jpg)
 
 The method of implementing concurrency control is not directly decided by the level of isolation.  
 
-Typically, a multi-version based concurrency control is used to implement SI 
+Typically, a multi-version based concurrency control is used to implement SI (Snapshot Isolation)
 - Because, otherwise, the read lock is still needed and hence leads to no performance benefits​  
 
 All the above six methods can be used to implement serializable
@@ -2803,7 +2837,7 @@ These concurrency control methods are first used in single-machine transactional
 
 **Read-Write Transaction**
 - Similar to S2PL, acquire lock for every record access
-    Read the newest version of each record
+    Read the **newest** version of each record
 - Acquire a `commit_t` timestamp **after acquiring all the locks**, which is the beginning of committing of this transaction.
 - Commit all the write record with `commit_t` timestamp
 
@@ -2811,7 +2845,7 @@ These concurrency control methods are first used in single-machine transactional
 >  MV2PL 更常用，因为 Internet-scale database 的 90% 请求都是 Read-only
 
 **Isolation Level of MV2PL**
-- Serializable, because we use read lock and read only the newest version in RW transaction
+- Serializable, **because we use read lock and read only the newest version in RW transaction**
     Equivalent to the serial order in which each RO transaction is ordered by its `start_t` and each RW transaction is ordered by its `commit_t`
 - How to downgrade to a weaker level of isolation?
     Read old but consistent versions without lock => Snapshot Isolation
@@ -2825,6 +2859,12 @@ It is not one of the ANSI isolation levels, but prevalently used in real-world
 
 Snapshot isolation is a guarantee that **all reads made in a transaction will see a consistent snapshot of the database** (in practice it reads the last committed values that existed at the time it started) 
 - Is lost update allowed? 
+
+>  Snapshot Isolation 即保证事务的所有读都可以看到数据库的一个一致的快照 
+
+>  在快照隔离级别下，丢失更新是被允许的，这是因为快照隔离主要关注于确保读操作的一致性，而不是防止并发事务之间的写冲突
+>  在快照隔离级别下，事务在开始时会获得一个数据库的快照，并基于这个快照进行读取和更新，在事务提交时，不会考虑其他事务在该事务开始后所做的修改
+>  因此，如果多个事务同时读取并更新同一个数据项，可能会导致后面提交的事务覆盖前面事务的更新，从而产生丢失更新的问题
 
 Benefit of SI​ 
 - We do not need to use any lock in read-only transactions via MVCC based SI​ 
