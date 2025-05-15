@@ -2662,14 +2662,14 @@ Implementation
 
 Table 2. Degrees of Consistency and Locking Isolation Levels defined in terms of locks.
 
-| Consistency Level = Locking Isolation Level | Read Locks on Data ltems and Predicates (the same unless noted)                            | Write Locks on Data Items and Predicates      |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------- |
-| Degree 0                                    | none required                                                                              | (always the same) Well-formed Writes          |
-| Degree 1 = Locking READ UNCOMMITTED         | none required                                                                              | Well-formed Writes Long duration Write locks  |
-| Degree 2 = Locking READ COMMITTED           | Well-formed Reads Short duration Read locks (both)                                         | Well-formed Writes, Long duration Write locks |
-| Cursor Stability (see Section 4.1)          | Well-formed Reads Read locks held on current of cursor Short duration Read Predicate locks | Well-formed Writes, Long duration Write locks |
-| Locking REPEATABLE READ                     | Well-formed Reads Long duration data-item Read locks                                       | Well-formed Writes, Long duration Write locks |
-| Degree 3 = Locking SERIALIZABLE             | Short duration Read Predicate locks Well-formed Reads Long duration Read locks (both)      | Well-formed Writes, Long duration Write locks |
+| Consistency Level = Locking Isolation Level | Read Locks on Data ltems and Predicates (the same unless noted)                                 | Write Locks on Data Items and Predicates          |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Degree 0                                    | none required                                                                                   | (always the same) Well-formed Writes              |
+| Degree 1 = Locking READ UNCOMMITTED         | none required                                                                                   | Well-formed Writes <br>Long duration Write locks  |
+| Degree 2 = Locking READ COMMITTED           | Well-formed Reads <br>Short duration Read locks (both)<br>                                      | Well-formed Writes, <br>Long duration Write locks |
+| Cursor Stability (see Section 4.1)          | Well-formed Reads <br>Read locks held on current of cursor Short duration Read Predicate locks  | Well-formed Writes, <br>Long duration Write locks |
+| Locking REPEATABLE READ                     | Well-formed Reads <br>Long duration data-item Read locks<br>Short duration Read Predicate locks | Well-formed Writes, <br>Long duration Write locks |
+| Degree 3 = Locking SERIALIZABLE             | Well-formed Reads <br>Long duration Read locks (both)                                           | Well-formed Writes, Long duration Write locks     |
 
 Problems of ANSI's definition
 - No Dirty Read + No Fuzzy Read + No Phantom Read is only a necessary but insufficient condition of serializable  
@@ -2835,11 +2835,25 @@ These concurrency control methods are first used in single-machine transactional
 - Read only records whose \[start, end) satisfy `start <= start_t < end`.  
 - There is **no need** to acquire any lock -- only read only transactions don't acquire read lock​
 
+>  read-only 事务
+>  - 在 read-only 事务的开始获取 `start_t` 时间戳
+>  - read-only 事务可以读取的数据记录需要满足它的有效时间段 `[start, end)` 包裹了事务的起始时间戳 `start_t`
+>  - read-only 事务不需要获取锁
+
 **Read-Write Transaction**
 - Similar to S2PL, acquire lock for every record access
     Read the **newest** version of each record
 - Acquire a `commit_t` timestamp **after acquiring all the locks**, which is the beginning of committing of this transaction.
 - Commit all the write record with `commit_t` timestamp
+
+>  read-write 事务
+>  - read-write 事务需要为它所需要访问的所有记录获取锁，因为它需要读取最新版本的数据 (故需要防止在事务期间这些数据被其他 read-write 事务更新)
+>  - read-write 事务在获取了所有的锁之后，获取 `commit_t` 时间戳，作为事务提交的开始
+>  - read-write 事务将缓存的写入记录写入持久化存储，以 `commit_t` 的时间戳提交 (即新数据的起始有效时间从 `commit_t` 开始，旧数据的有效时间以 `commit_t` 结束)
+
+>  相较于 S2PL，MV2PL 的 read-only 事务不再需要获取锁，read-write 事务则没差别
+>  因此，MV2PL 中 read-only 在读的时候同时有 read-write 写入也是允许的
+>  相应的，MV2PL 的 read-only 事务不再保证一定能读到最新的 (或者说最新的 snapshot) 记录，只能保证读到数据库的一个一致的 snapshot 记录 
 
 >  MVCC 增加了存储需求，但也增加了并发潜力，Read-only 和 Read-Write 可以并发，因为 Read-only 不需要获取锁了
 >  MV2PL 更常用，因为 Internet-scale database 的 90% 请求都是 Read-only
@@ -2862,13 +2876,15 @@ Snapshot isolation is a guarantee that **all reads made in a transaction will se
 
 >  Snapshot Isolation 即保证事务的所有读都可以看到数据库的一个一致的快照 
 
->  在快照隔离级别下，丢失更新是被允许的，这是因为快照隔离主要关注于确保读操作的一致性，而不是防止并发事务之间的写冲突
->  在快照隔离级别下，事务在开始时会获得一个数据库的快照，并基于这个快照进行读取和更新，在事务提交时，不会考虑其他事务在该事务开始后所做的修改
->  因此，如果多个事务同时读取并更新同一个数据项，可能会导致后面提交的事务覆盖前面事务的更新，从而产生丢失更新的问题
-
 Benefit of SI​ 
 - We do not need to use any lock in read-only transactions via MVCC based SI​ 
 - It is also possible to achieve more read parallelism via multi-version concurrency control (MVCC) in read-write transactions
+
+>  Snapshot Isolation 的好处是 read-only 事务不再需要任何锁
+
+>  MV2PL 满足 Snapshot Isolation，甚至比 Snapshot Isolation 更强一点
+>  Snapshot Isolation 原则上不允许 lost update，但允许 write skew
+>  MV2PL 不允许 lost update，同时不允许 write skew
 
 ## Lost Update Problem  
 
@@ -2889,11 +2905,20 @@ Lost Update is **not defined** in ANSI.  
 - ANSI focuses **mostly on read** anomaly phenomena, which ignores the write anomaly phenomena​  
 - Thus, it is possible that even a repeatable read isolation in ANSI can lead to lost update problem​  
 - But, actually, the RR implemented in the real-world usually uses the modified version of RR defined in [A Critique of ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf), which requires RR to avoid lost updates by acquiring long duration data-item read locks​  
-  
 
-<html><body><table><tr><td colspan="3">Table 2. Degrees of Consistency and Locking lsolation Levels defined in terms of locks.</td></tr><tr><td>Consistency Level = Locking Isolation Level</td><td>Read Locks on Data Items and Predicates (the same unless noted)</td><td>Write Locks on Data Items and Predicates (always the same)</td></tr><tr><td>Degree 0</td><td>none required</td><td>Well-formed Writes</td></tr><tr><td>Degree 1 = Locking READ UNCOMMITTED</td><td> none required</td><td>Well-formed Writes Long duration Write locks</td></tr><tr><td>Degree 2 = Locking READ COMMITTED</td><td>Well-formed Reads Short duration Read locks (both)</td><td>Well-formed Writes, Long duration Write locks</td></tr><tr><td>Cursor Stability (see Section 4.1)</td><td>Well-formed Reads Read locks held on current of cursor Short duration Read Predicate locks</td><td>Well-formed Writes, Long duration Write locks</td></tr><tr><td>Locking REPEATABLE READ</td><td>Well-formed Reads Long duration data-item Read locks Short duration Read Predicate locks</td><td>Well-formed Writes, Long duration Write locks</td></tr><tr><td>Degree 3 = Locking SERIALIZABLE</td><td>Well-formed Reads Long duration Read locks (both)</td><td>Well-formed Writes, Long duration Write locks</td></tr></table></body></html>  
+>  ANSI 的 Isolation level 没有定义 lost update 的情况
 
-  
+Table 2. Degrees of Consistency and Locking Isolation Levels defined in terms of locks.
+
+| Consistency Level = Locking Isolation Level | Read Locks on Data ltems and Predicates (the same unless noted)                                 | Write Locks on Data Items and Predicates          |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Degree 0                                    | none required                                                                                   | (always the same) Well-formed Writes              |
+| Degree 1 = Locking READ UNCOMMITTED         | none required                                                                                   | Well-formed Writes <br>Long duration Write locks  |
+| Degree 2 = Locking READ COMMITTED           | Well-formed Reads <br>Short duration Read locks (both)<br>                                      | Well-formed Writes, <br>Long duration Write locks |
+| Cursor Stability (see Section 4.1)          | Well-formed Reads <br>Read locks held on current of cursor Short duration Read Predicate locks  | Well-formed Writes, <br>Long duration Write locks |
+| Locking REPEATABLE READ                     | Well-formed Reads <br>Long duration data-item Read locks<br>Short duration Read Predicate locks | Well-formed Writes, <br>Long duration Write locks |
+| Degree 3 = Locking SERIALIZABLE             | Well-formed Reads <br>Long duration Read locks (both)                                           | Well-formed Writes, Long duration Write locks     |
+
 Is it possible to avoid this long-duration read lock and simultaneously avoid the lost update problem?​  
 - We only try to avoid lost updates, but **it does not necessarily mean we can achieve serializability**​
 - Here, our main focus is avoiding long-duration read lock to improve performance  
@@ -2903,6 +2928,10 @@ Is it possible to avoid this long-duration read lock and simultaneously avoid th
 - Timestamp Oracle is a service that provides globally strictly increasing timestamps 
 - It can be implemented with a global atomic counter in a single-machine environment $\Rightarrow$ may become a bottleneck 
 - TSO is used to **assign** a start timestamp `start_t` and commit timestamp `commit_t` for every read-write transaction in MVTO (only `start_t` is needed for read-only transactions)  
+
+>  MVTO 中:
+>  read-only 事务仅需要获取 `start_t` 时间戳，不需要获取锁
+>  read-write 事务需要获取 `start_t` 时间戳和 `commit_t` 时间戳，不需要获取锁
 
 **Read-write transactions in MVTO**  
 Acquire a `start_t` from TSO at the beginning of each transaction  
@@ -2916,23 +2945,31 @@ After finishing the execution of the whole transaction, acquire a commit timesta
 
 Try to commit the transaction at `commit_t` with 2PC (explained later)  
 
->  MVTO is more optimistic than MV2PL
+>  和 MV2PL 不同，MVTO 中的 read-write 事务不需要获取锁，但相应地，需要获取一个 `start_t` 时间戳，故 MVTO 中的 read-write 事务不一定读取到最新的数据，而是根据其 `start_t` 时间戳读取一个 snapshot
+
+>  和 MV2PL 不同，MVTO 中的 read-write 事务完成写入后不会直接提交，而是会先将所有写入缓存，在提交时获取 `commit_t` 时间戳，然后**尝试**以 `commit_t` 提交 (检查提交是否会导致 lost update，如果是，则需要重试)
+
+>  显然 MVTO 比 MV2PL 要更加乐观，适合写场景更少的情况
 
 Comparison 
 - S2PL: lock even in read-only tx 
 - MV2PL: only lock in read-write tx 
-- MVTO: only lock of read-write tx in the execution phase  
+- MVTO: not lock even for read-write tx in the execution phase, lock in the commit phase
 
-Retry if the commit fails  
+Retry if the **commit fails**  
 - The commit phase of MV2PL will not fail because all locks are acquired before commit. But, it is possible that a commit may fail in MVTO.  
-- A successful retry will need to re-execute the transaction with a newer `start_t`
+- A successful retry will need to re-execute the transaction with a **newer** `start_t`
 - In some implementations (e.g., [certain configurations of TiDB](https://cn.pingcap.com/blog/best-practice-optimistic-transaction/)), the system may simply increase the `start_t`  without re-executing the read operations for performance $\Rightarrow$ may violate original isolation guarantee  
 
 **Check write-write conflicts at commit time to avoid lost update**  
 When committing, the transaction manager needs to check whether two concurrent transactions (there is an intersection between the `start_t`  => `commit_t` of these two transactions) have written to the same record.  
-    Because these two concurrent transactions will not see each other's write, which is the source of loas update​  
+    Because these two concurrent transactions will not see each other's write, which is the source of lost update​  
 
 If there is such a write-write conflict, at least one of the transactions should not commit to avoid lost update
+
+>  MVTO 在 read-write 事务的提交阶段需要检查并发的事务 (`[start_t, commit_t]` 区间存在重叠的事务) 是否会写入同一记录
+>  如果是，说明存在 write-write 冲突，会导致 lost update，故至少其中一个事务不能提交
+
 
 ![[pics/Percolator-Fig3.png]]
 
@@ -2961,11 +2998,19 @@ First-committer-win  
 Comparison: first-committer-win is more optimistic than first-modifier-win  
 
 ## Write Skew Problem  
-SI can avoid Dirty Read + Fuzzy Read + Phantom Read + Lost Update, but it is still not serializable
-  
+SI can avoid Dirty Read + Fuzzy Read + Phantom Read + Lost Update, but it is still **not serializable**
 
-<html><body><table><tr><td>T1</td><td>T2</td></tr><tr><td>read(A)</td><td></td></tr><tr><td>read(B)</td><td></td></tr><tr><td></td><td>read(A)</td></tr><tr><td></td><td>read(B)</td></tr><tr><td>A=B</td><td></td></tr><tr><td></td><td>B=A</td></tr><tr><td>write(A)</td><td></td></tr><tr><td></td><td>write(B)</td></tr></table></body></html>  
-
+```
+1 T1        T2
+2 read(A)
+3 read(B)
+4           read(A)
+5           read(B)
+6 A=B
+7           B=A
+8 write(A)
+9           write(B)
+```
 
 The above execution order is SI but its result will be a swap between A and B  
 In serializable execution, the result of A must equal to B  
@@ -2977,7 +3022,7 @@ Another Example
   
 Why? -- There is no read lock in SI  
 - it is both the good and bad part of SI 
-- We can still achieve serializable without read lock, but it requires other conflict checking mechanisms that track the read set of transactions -- leads to OCC taught in Lecture 11 
+- We can still achieve serializable without read lock, but it requires **other conflict checking mechanisms that track the read set of transactions** -- leads to OCC taught in Lecture 11 
 
 SI is higher than read committed (read skew is possible in RC but not possible in SI) but not comparable with repeatable read  
 
@@ -3005,7 +3050,7 @@ Percolator is built on BigTable (lec 12) a distributed key-value store that prov
 Figure 1: Percolator and its dependencies  
 
 In contrast, Percolator provides cross-row, cross-table transactions with ACID snapshot-isolation semantics. 
-- Percolator uses 2PC and solves the problem of indefinite blocking caused by crashed coordinator with a clever client-only architecture​  
+- Percolator uses 2PC and solves the problem of indefinite blocking caused by crashed coordinator with a clever **client-only** architecture​  
     It only solves the problem of indefinite blocking, and hence a temporary (e.g., 10ms) blocking is still possible​  
     Thus, it is not built for scenarios that have very strict requirements for p99 latency (should use Spanner taught in the next lecture)  
     Although the Percolator client itself is not highly available, it relies on the Paxos-based high availability provided by BigTable  
@@ -3022,7 +3067,7 @@ Percolator uses MVTO with first-committer-win +2PC to implement SI distributed t
 
 Percolator's Timestamp Oracle is a global service that provides globally strictly increasing timestamps  
 
-Why not use wall clock time on the computer? $\Rightarrow$ the problem of time synchronization  
+Why not use wall clock time on the computer? $\Rightarrow$ the problem of **time synchronization**  
 
 **MVTO = TSO + MVCC**  
 Acquire a `start_t` from TSO at the beginning of each transaction  
@@ -3059,7 +3104,7 @@ After finishing the execution of the whole transaction, try to commit the transa
 - In MV2PL, `commit_t` is acquired after acquiring all the locks. We will see a similar point in Percolator​ 
 
 Retry if the commit fails (talked before)
-- A successful retry will need to re-execute the transaction with a newer `start_t` 
+- A successful retry will need to re-execute the transaction with a **newer** `start_t` 
 - In some implementations (e.g., [certain configurations of TiDB](https://cn.pingcap.com/blog/best-practice-optimistic-transaction/)), the system may simply increase the `start_t` without re-executing the read operations for performance $\Rightarrow$ may violate original isolation guarantee  
 
 ### Percolator's Primary Record based 2PC  
@@ -3075,16 +3120,16 @@ Key-value Interface of BigTable  
 - Benefit: sparse tables, different rows have different columns  
 - More in Lec 12  
 
-Every data record is attached with two additional columns "lock" and "write" 
+**Every data record is attached with two additional columns** "lock" and "write" 
 
 <html><body><table><tr><td>Column</td><td>Use</td></tr><tr><td>c:lock</td><td>An uncommitted transaction is writing this cell; contains the location of primarylock</td></tr><tr><td>c:write</td><td>Committed data present; stores the Bigtable timestamp of the data</td></tr><tr><td>c:data</td><td>Stores the data itself</td></tr></table></body></html>  
 
 - c: lock contains not only a lock bit but also several auxiliary information  
 - c: write's content contains a timestamp (the modification of c: write is also attached with a timestamp, but it is different from the content of c:write)  
-- c: lock, c: write, c: data are different columns of the same row, thus a compare-and-swap atomic operation can be used to modify both c: lock and c: write simultaneously  
+- c: lock, c: write, c: data are different columns of **the same row**, thus a compare-and-swap atomic operation can be used to modify both c: lock and c: write simultaneously  
 
 Phase I: pre-write (the prepare phase of 2PC)  
-- Choose one of the written records as the primary record of this transaction -- any one is ok​  
+- Choose one of the written records as **the primary record of this transaction** -- any one is ok​  
 - Try to lock all the written records by modifying the "lock" column  
     Before locking, the system should check whether the record is already locked  
     The lock of the primary record should be acquired first  
@@ -3094,218 +3139,93 @@ Phase I: pre-write (the prepare phase of 2PC)  
 - The data is modified to the new data after locking with `start_t`
     The checking of existing lock, the locking, and the modification of data are implemented as an atomic operation​  
     This is possible because the underlying bigtable system provides row-level atomicity 
-        Thus, Percolator is actually implementing a cross-row atomicity based on the original row-level atomicity of BigTable  
+        Thus, Percolator is actually implementing a cross-row atomicity **based on the original row-level atomicity** of BigTable  
 - Abort if​  
     See newer record that is written after the current committing transaction's `start_t` to avoid write-write conflict​ 
     May abort if a written record is already locked by another transaction  
+        What if the client of this "another transaction" is dead? How to avoid deadlock?  
+        The current client may not only abort itself, but also abort this "another transaction" to continue  
+        Tricky part! Come back later  
+    Both these two scenarios mean there is a concurrent write transaction that may lead to lost update  
 
-  
-
-What if the client of this "another transaction" is dead? How to avoid deadlock?  
-
-The current client may not only abort itself, but also abort this "another transaction" to continue  
-
-Tricky part! Come back later  
-
-  
-
-Both these two scenarios mean there is a concurrent write transaction that may lead to lost update  
-
-  
-
-• If all the locks are acquired successfully without an abort, then the client goes to Phase II commit​ ◦ Acquiring the commit timestamp commit_t  from TSO ◦ Check the lock of the primary record is still there and then replace this lock with a committed "write" record at commit_t​ ▪ The above check and then replace operation need to be implemented as a row-level atomicity operation  
-
-  
-
-The current transaction should abort itself if the original lock is removed by other clients​  
-
-  
-
-• As mentioned before, the current transaction (executed by client X) may be aborted by other concurrently executing transaction's client Y if it thinks client X is dead (but it may not dead!)  
-
-This is not the same semantic as a single-machine's lock​  
-
-But it is needed to tolerate the failure of the client  
-
-  
-
-◦ For each other written records, replace the lock with the committed "write" record at commit_t​  
-
-  
-
-There is no need to check the existence of locks for other records ▪ In other words, the transaction is guaranteed to be committed after replacing the lock on the primary record -- the commit point!  
-
-  
+If all the locks are acquired successfully without an abort, then the client goes to Phase II commit​ 
+- Acquiring the commit timestamp `commit_t`  from TSO 
+- Check the lock of the primary record is **still there** and then replace this lock with a committed "write" record at `commit_t` ​ 
+    The above **check and then replace** operation need to be implemented as a row-level atomicity operation  
+    The current transaction **should abort itself if the original lock is removed by other clients​**  
+        As mentioned before, the current transaction (executed by client X) may be aborted by other concurrently executing transaction's client Y if it thinks client X is dead (but it may not dead!)  
+        This is not the same semantic as a single-machine's lock​  
+        But it is needed to tolerate the failure of the client  
+- For each other written records, replace the lock with the committed "write" record at `commit_t` ​  
+    There is no need to check the existence of locks for other records 
+    In other words, the transaction is guaranteed to be committed after replacing the lock on the primary record -- the **commit point**!  
 
 Is Percolator First-modifier-win or First-committer-win？  
+- Percolator is **First-committer-win**  
+- But Percolator acquires lock!  
+    Percolator buffer write in local until commit  
+    The write lock is only acquired during the commitment phase, which is more optimistic than First-modifier-win that acquires the lock during the transaction at the first time that the data is accessed  
 
-  
-
-# Percolator is First-committer-win  
-
-  
-
-◦ But Percolator acquires lock!  
-
-  
-
-Percolator buffer write in local until commit  
-
-The write lock is only acquired during the commitment phase, which is more optimistic than First-modifier-win that acquires the lock during the transaction at the first time that the data is accessed  
-
-  
-
-# An Example of Percolator's Primary Record based 2PC  
-
-  
-
-Example in [fig 5]  
-
-  
+### An Example of Percolator's Primary Record based 2PC  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/9eafa8f2-3bef-4a20-9605-9fd40e05b680/43dff8b4be7a40a869d6e8e66e0533ba64d66fc3766b2c7c1c3d132be1ed5cbe.jpg)  
 
-  
 
-# Problem I: How to Guarantee SI  
+### Problem I: How to Guarantee SI  
+The data of each record is modified in the prewrite phase independently. How can we guarantee SI?  
+- Is it possible that a concurrent transaction read a semi-committed transaction?  
+- Is it possible that a concurrent transaction read a record that will be rolled back later?  
 
-  
+Solution: the Get() operation will also read the "lock" and "write" columns of the record row that is immediately smaller than the read-only transaction's start timestamp `start_t` ​  
+- Although the Get() operation does not acquire a read lock  
+- It knows that it should do some further analysis if there is a "lock"  
+- Case 1: the timestamp of the nearest c:write is closer to `start_t` than the timestamp of the nearest c:lock​  
+    The data record is not locked at `start_t` (but it may be locked but in a timestamp later than `start_t`!)  
+    Read the content of c: write, which is a timestamp, and use this content timestamp to find the correct c: data @ (c: write's content timestamp)  
+    In the above example, read row "Joe" at the final state will first read "Joe": write whose content is "data @ 5". Then read "Joe": data at timestamp 5 to get the correct data \$9  
+    Why not read the nearest c: data? -- this data record may not be committed  
+- Case 2: the timestamp of the nearest c: lock is closer to `start_t` than the timestamp of the nearest c: write  
+    It is locked​  
+    The reader will check the state of the primary record of the locking transaction  
+        The location of this primary record is contained in the information of the "lock" column​  
+        If the primary record is still locked, the client should wait because we do not know the exact `commit_t` -- again how to avoid deadlock caused by failed client?​ 
+        Otherwise, the reading transaction should check the "write" column of the primary record to check the `commit_t` of the locking transaction  
+            If `commit_t` of the lock transaction is smaller than the `start_t` of the current transaction executing Get(), it is visible to the Get()  
+            Otherwise, it is not visible to the Get()  
 
-◦ The data of each record is modified in the prewrite phase independently. How can we guarantee SI?  
+The written record will only be visible to other transactions once after its primary record's lock is replaced with the written record at `commit_t` -- not its local lock​  
+- Why is it not possible that another transaction read a partial committed transaction? 
+- If the lock is cleared for this record, it is visible to the client's read  
+- If the record is still locked, the client will read the primary record for the exact `commit_t` ​ 
+    If the client has read at least one committed record, the primary record must have been committed 
+    Otherwise, there is no overlap in the accessed data records or the Get() will wait because of lock​  
 
-  
+### Problem II: How to Clear the Remained Locks of a Crashed Client  
+The remaining locks should be cleared if the client is dead to avoid indefinite hanging --  one of the most important limitations of 2PC​  
 
-▪ Is it possible that a concurrent transaction read a semi-committed transaction?  
+Case I: the client crashes before it replacing its primary record's lock at the beginning of Phase II​  
+- In this case, the transaction should be rolled back  
 
-  
-
-▪ Is it possible that a concurrent transaction read a record that will be rolled back later?  
-
-  
-
-◦ Solution: the Get() operation will also read the "lock" and "write" columns of the record row that is immediately smaller than the read-only transaction's start timestamp start_t​  
-
-  
-
-Although the Get() operation does not acquire a read lock  
-
-It knows that it should do some further analysis if there is a "lock"  
-
-Case 1: the timestamp of the nearest c:write is closer to start_t than the timestamp of  
-
-the nearest c:lock​  
-
-  
-
-The data record is not locked at start_t (but it may be locked but in a timestamp later than start_t!)  
-
-  
-
-Read the content of c:write, which is a timestamp, and use this content timestamp to find the correct c:data $@$ (c:write's content timestamp)  
-
-  
-
-In the above example, read row "Joe" at the final state will first read "Joe":write whose content is "data $@$ 5". Then read "Joe":data at timestamp 5 to get the correct data \$9  
-
-  
-
-Why not read the nearest c:data? -- this data record may not be commited  
-
-  
-
-Case 2: the timestamp of the nearest c:lock is closer to start_t than the timestamp of the nearest c:write  
-
-  
-
-It is locked​  
-
-The reader will check the state of the primary record of the locking transaction  
-
-◦ The location of this primary record is contained in the information of the "lock" column​  
-
-◦ If the primary record is still locked, the client should wait because we do not know the exact commit_t -- again how to avoid deadlock caused by failed client?​ Otherwise, the reading transaction should check the "write" column of the primary record to check the commit_t of the locking transaction  
-
-If commit_t of the lock transaction is smaller than the start_t of the current  
-
-transaction executing Get(), it is visible to the Get()  
-
-Otherwise, it is not visible to the Get()  
-
-  
-
-◦ The written record will only be visible to other transactions once after its primary record's lock is replaced with the written record at commit_t -- not its local lock​  
-
-  
-
-Why is it not possible that another transaction read a partial committed transaction? ▪ If the lock is cleared for this record, it is visible to the client's read  
-
-  
-
-If the record is still locked, the client will read the primary record for the exact commit_t​ If the client has read at least one committed record, the primary record must have been commited Otherwise, there is no overlap in the accessed data records or the Get() will wait because of lock​  
-
-  
-
-# Problem II: How to Clear the Remained Locks of a Crashed Client  
-
-  
-
-The remaining locks should be cleared if the client is dead to avoid indefinite hanging --  
-
-one of the most important limitations of 2PC​  
-
-Case I: the client crashes before it replacing its primary record's lock at the beginning of  
-
-Phase II​  
-
-◦ In this case, the transaction should be rolled back  
-
-Case II: the client crashes after it replacing its primary record's lock at the beginning of Phas  
-
-II​  
-
-$\mathrm{~\circ~}$ In this case, the transaction should be committed even if the client has not finished all the committing processes​  
+Case II: the client crashes after it replacing its primary record's lock at the beginning of Phase   II​  
+- In this case, the transaction should be committed even if the client has not finished all the committing processes​  
 
 Solution: lazy clean up at Get() operation  
+- As discussed before, if the Get() operation encounters a record that is still locked, it will check the primary record of the locking transaction​  
+- If the primary record of the locking transaction's lock is cleared and replaced with the "write" column​ 
+    Then this locking transaction should be committed 
+    The Get() operation will commit the current reading record as a helper of the locking transaction, in case that the client of the locking transaction is dead 
+    It is not a problem for committing multiple times at the same  `commit_t`. This operation is idempotent because they write to the same timestamp (not the newest timestamp).​  
+- If the primary record of the locking transaction's lock is still there​  
+    The locking transaction is still not committed. Maybe the client of the locking transaction is dead!  
+    The client of the Get() operation can clear the primary record of the locking transaction's lock without coordinating with the original locking transaction by writing a corresponding "write" column  
+    In this case, the locking transaction is actually aborted by the Get() transaction  
+        Because, if the  locking transaction is still alive, it will find its primary lock is cleared at the beginning of Phase II and hence it will abort itself​  
+    Problem: there may be a lot of aborting  
+        Further solution, maintain a heartbeat for every client with Chubby (similar to ZooKepper described in Lec 6) 
+        The client of the Get() operation will only abort the locking transaction if its client has not updated its heartbeat for a long period of time -- otherwise wait​  
+- If the primary record of the locking transaction's lock is cleared but there is not a corresponding "write" column​  
+    The locking transaction is aborted by another Get() operation 
+    The current transaction simply clears the current reading record's lock and read the previous version of data  
 
-◦ As discussed before, if the Get() operation encounters a record that is still locked, it will check the primary record of the locking transaction​  
-
-◦ If the primary record of the locking transaction's lock is cleared and replaced with the "write" column​ Then this locking transaction should be commited The Get() operation will commit the current reading record as a helper of the locking transaction, in case that the client of the locking transaction is dead It is not a problem for committing multiple times at the same commit_t. This operation is idempotent because they write to the same timestamp (not the newest timestamp).​  
-
-◦ If the primary record of the locking transaction's lock is still there​  
-
-  
-
-The locking transaction is still not committed. Maybe the client of the locking transaction is dead!  
-
-  
-
-The client of the Get() operation can clear the primary record of the locking transaction's lock without coordinating with the original locking transaction by writing a corresponding "write" column  
-
-  
-
-▪ In this case, the locking transaction is actually aborted by the Get() transaction  
-
-  
-
-Because, if the  locking transaction is still alive, it will find its primary lock is cleared at the beginning of Phase II and hence it will abort itself​  
-
-  
-
-Problem: there may be a lot of aborting  
-
-  
-
-Further solution, maintain a heartbeat for every client with Chubby (similar to ZooKepper described in Lec 6) The client of the Get() operation will only abort the locking transaction if its client has not updated its heartbeat for a long period of time -- otherwise wait​  
-
-  
-
-◦ If the primary record of the locking transaction's lock is cleared but there is not a corresponding "write" column​  
-
-  
-
-The locking transaction is aborted by another Get() operation The current transaction simply clears the current reading record's lock and read the previous version of data  
-
-  
-
-Comment: Safe, but may lead to high tail latency because the Get() operation must wait for a timeout of heartbeat to clear the dead lock from a dead client​  
-Solved by spanner  
+Comment: Safe, but may lead to high tail latency because the Get() operation must wait for a timeout of heartbeat to clear the dead lock from a dead client​
+- Solved by spanner  
