@@ -1332,17 +1332,35 @@ While some software projects choose to perform their own packaging and distribut
 >  大多数软件包都是由发行版供应商创建的，一个发行版可用的包会被放置在中心存储库中，通常该存储库专门为发行版构建和维护
 
 A distribution may maintain several different repositories for different stages of the software development life cycle. For example, there will usually be a “testing” repository that contains packages that have just been built and are intended for use by brave souls who are looking for bugs before the packages are released for general distribution. A distribution will often have a “development” repository where work-in-progress packages destined for inclusion in the distribution's next major release are kept. 
+>  一个发行版可能会为软件开发周期的不同阶段维护不同的仓库
+>  例如，通常会有一个 “testing” 仓库，存放刚刚构建好的，未稳定的软件包；通常会有一个 “development” 仓库，存放即将包含发行版的下一个主要版本中的正在开发中的软件包
 
 A distribution may also have related third-party repositories. These are often needed to supply software that, for legal reasons such as patents or DRM anti-circumvention issues, cannot be included with the distribution. Perhaps the best known case is that of encrypted DVD support, which is not legal in the United States. The third-party repositories operate in countries where software patents and anti-circumvention laws do not apply. These repositories are usually wholly independent of the distribution they support, and to use them, one must know about them and manually include them in the configuration files for the package management system. 
+>  一个发行版可能还会有相关的第三方仓库，这些仓库通常用于提供由于法律原因，例如专利或数字版权反规避问题无法在发行版中包含的软件
+>  最著名的例子是加密 DVD 支持，这在 US 是违法的
+>  第三方仓库通常在软件专利和反规避法都不适用的国家运营，这些仓库通常完全独立于它们所支持的发行版，要使用第三方仓库，用户需要手动将它们添加到包管理系统的配置文件中
 
 ### Dependencies 
-Programs are seldom “standalone”; rather they rely on the presence of other software components to get their work done. Common activities, such as input/output for example, are handled by routines shared by many programs. These routines are stored in what are called shared libraries, which provide essential services to more than one program. If a package requires a shared resource such as a shared library, it is said to have a dependency. Modern package management systems all provide some method of dependency resolution to ensure that when a package is installed, all of its dependencies are installed, too. 
+Programs are seldom “standalone”; rather they rely on the presence of other software components to get their work done. Common activities, such as input/output for example, are handled by routines shared by many programs. These routines are stored in what are called shared libraries, which provide essential services to more than one program. 
+>  程序很少是 “独立" 的，它们依赖于其他软件组件来完成工作
+>  例如，常见的功能如输入输出会由许多程序共享的例程处理，这些例程存储在共享库中，共享库的作用就是为多个程序提供基本服务
 
-## High and Low-level Package Tools 
+If a package requires a shared resource such as a shared library, it is said to have a dependency. Modern package management systems all provide some method of dependency resolution to ensure that when a package is installed, all of its dependencies are installed, too. 
+>  如果一个软件包需要类似共享库这样的共享资源，我们称它存在依赖
+>  现代的包管理系统都提供了某种形式的依赖解析方法，以确保当安装某个软件包时，其所有的依赖也会被一并安装
+
+### High and Low-level Package Tools 
 Package management systems usually consist of two types of tools. 
-Low-level tools which handle tasks such as installing and removing package files High-level tools that perform metadata searching and dependency resolution 
 
-In this chapter, we will look at the tools supplied with Debian-style systems (such as Ubuntu and many others) and those used by Red Hat products. While all Red Hat-style distributions rely on the same low-level program (rpm), they use different high-level tools. For our discussion, we will cover the high-level program dnf, used by Red Hat Enterprise Linux, CentOS, and Fedora. Other Red Hat-style distributions provide highlevel tools with comparable features (see Table 14-2). 
+- Low-level tools which handle tasks such as installing and removing package files 
+- High-level tools that perform metadata searching and dependency resolution 
+
+>  包管理系统通常包含两类工具
+>  - 低级工具: 处理例如安装和移除包文件的任务
+>  - 高级工具: 执行元数据搜索和依赖解析
+
+In this chapter, we will look at the tools supplied with Debian-style systems (such as Ubuntu and many others) and those used by Red Hat products. While all Red Hat-style distributions rely on the same low-level program (`rpm`), they use different high-level tools. For our discussion, we will cover the high-level program ` dnf `, used by Red Hat Enterprise Linux, CentOS, and Fedora. Other Red Hat-style distributions provide high-level tools with comparable features (see Table 14-2). 
+>  Red Hat 风格的发行版依赖于相同的低级工具 (`rpm`)，而使用不同的高级工具，包括了 `dnf` 和 `yum`
 
 Table 14- 2: Packaging System Tools 
 
@@ -1351,30 +1369,64 @@ Table 14- 2: Packaging System Tools
 |               Debian style               |     `dpkg`      | `apt, apt-get, aptitude` |
 | Fedora, Red Hat Enterprise Linux, CentOS |      `rpm`      |        `dnf, yum`        |
 
+>  Debian 风格的发行版的低级工具是 `dpkg` ，高级工具是 `apt, apt-get, aptitude`
+>  Red Hat 风格的发行版的低级工具是 `rpm` ，高级工具是 `dnf, yum`
+
 ## Common Package Management Tasks 
 Many operations can be performed with the command line package management tools. We will look at the most common. Be aware that the low-level tools also support the creation of package files, an activity outside the scope of this book. 
-In the discussion below, the term package_name refers to the actual name of a package rather than the term package_file, which is the name of the file that contains the package. Also, before any package operations can be performed, the package repository needs to be queried so that the local copy of its database can be synchronized. Red Hat’s dnf program does this automatically and updates the local database if too much time has elapsed since the last update. On the other hand, Debian’s apt program must be run with the update command to explicitly update the local database. This needs to be done every so often. In the examples below, the apt update command is done before any operations, but in real life this only needs to be done every few hours to stay safe. 
+>  虽然包文件的管理任务主要通过高级工具完成，但低级工具实际上也支持了包的创建
+
+In the discussion below, the term `package_name` refers to the actual name of a package rather than the term `package_file`, which is the name of the file that contains the package. Also, before any package operations can be performed, the package repository needs to be queried so that the local copy of its database can be synchronized. Red Hat’s `dnf` program does this automatically and updates the local database if too much time has elapsed since the last update. On the other hand, Debian’s apt program must be run with the update command to explicitly update the local database. This needs to be done every so often. In the examples below, the apt update command is done before any operations, but in real life this only needs to be done every few hours to stay safe. 
+>  我们用 `package_name` 表示软件包的实际名称，`package_file` 表示包含该软件包的文件的名称
+>  在执行任何包操作之前，都需要查询包存储库，以同步本地的数据库副本，Red Hat 的 `dnf` 程序会自动在距离上次更新时间较长的情况下执行此操作
+>  Debian 的 `apt` 程序则必须通过运行 `update` 命令显式更新本地数据库 (`apt update`)，这需要经常执行
+
 Since operations that involve installing or removing software on a system-wise basis is an administrative task, superuser privileges are required regardless of the package management tool. 
-# Finding a Package in a Repository 
+>  因为在系统级别上涉及了安装或移除软件的操作属于管理任务，故无论使用哪个包管理器，此时都需要管理员权限
+
+### Finding a Package in a Repository 
 Using the high-level tools to search repository metadata, a package can be located based on its name or description (see Table 14-3). 
+
 Table 14-3: Package Search Commands 
-<html><body><table><tr><td>Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>apt update; apt search search_string</td></tr><tr><td>Red Hat</td><td>dnf search search_string</td></tr></table></body></html> 
-For example, to search a dnf repository for the emacs text editor, we can use this command: 
+
+|  Style   |               Command(s)               |
+| :------: | :------------------------------------: |
+|  Debian  | `apt update; apt search search_string` |
+| Red  Hat |       `dnf search search_string`       |
+
+For example, to search a `dnf` repository for the emacs text editor, we can use this command: 
+
+```
 dnf search emacs 
-# Installing a Package from a Repository 
+```
+
+### Installing a Package from a Repository 
 High-level tools permit a package to be downloaded from a repository and installed with full dependency resolution (see Table 14-4). 
+
 Table 14-4: Package Installation Commands 
-<html><body><table><tr><td>Style</td><td colspan="3">Command(s)</td></tr><tr><td>Debian</td><td></td><td>apt update; apt install package_name</td><td></td></tr><tr><td>Red Hat</td><td>dnf install package_name</td><td></td><td></td></tr></table></body></html> 
+
+|  Style   |               Command(s)               |
+| :------: | :------------------------------------: |
+|  Debian  | `apt update; apt install package_name` |
+| Red  Hat |       `dnf intsall package_name`       |
 For example, to install the emacs text editor from an apt repository on a Debian system, we can use this command: 
+
 <html><body><table><tr><td>apt update; apt install emacs</td></tr></table></body></html> 
 # Installing a Package from a Package File 
 If a package file has been downloaded from a source other than a repository, it can be installed directly (though without dependency resolution) using a low-level tool (see Table 14-5). 
+
 Table 14-5: Low-Level Package Installation Commands 
+
 <html><body><table><tr><td>Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -i package_file</td></tr><tr><td>Red Hat</td><td>rpm -i package_file</td></tr></table></body></html> 
+
 For example, if the emacs-22.1-7.fc7-i386.rpm package file had been downloaded from a non-repository site, it would be installed this way: 
+
 rpm -i emacs-22.1-7.fc7-i386.rpm 
+
 Note: Because this technique uses the low-level rpm program to perform the installation, no dependency resolution is performed. If rpm discovers a missing de 
+
 pendency, rpm will exit with an error. 
+
 # Removing a Package 
 Packages can be uninstalled using either the high-level or low-level tools. The high-level tools are shown in Table 14-6. 
 Table 14-6: Package Removal Commands 
