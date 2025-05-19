@@ -88,3 +88,20 @@ If any goroutine calls `RWMutex.Lock` while the lock is already held by one or m
 >  如果任意 goroutine 在 `RWMutex` 已经被一个或多个读者持有时调用 `RWMutex.Lock` ，并发的对 `RWMutex.RLock` 的调用会阻塞，直到写者获取了 (并且释放了) 锁，这一机制是为了确保写者最终能获得锁 (避免饥饿)
 >  `RWMutex` 不允许递归读锁，即已经获取了读锁的 goroutine 在释放读锁之前再获取读锁会导致死锁
 >  `RWMutex.RLock` 不能升级为 `RWMutex.Lock`，`RWMutex.Lock` 也不能降级为 `RWMutex.RLock`
+
+#### `type WaitGroup`
+
+```go
+type WaitGroup struct {
+    // contains filtered or unexported fields
+}
+```
+
+A `WaitGroup` waits for a collection of goroutines to finish. The main goroutine calls [WaitGroup.Add](https://pkg.go.dev/sync#WaitGroup.Add) to set the number of goroutines to wait for. Then each of the goroutines runs and calls [WaitGroup.Done](https://pkg.go.dev/sync#WaitGroup.Done) when finished. At the same time, [WaitGroup.Wait](https://pkg.go.dev/sync#WaitGroup.Wait) can be used to block until all goroutines have finished.
+>  `WaitGroup` 等待一组 goroutine 完成
+>  main goroutine 调用 `WaitGroup.Add` 添加需要等待的 goroutine 数量，之后每个运行的 goroutine 在完成时调用 `WaitGroup.Done`
+>  main goroutine 调用 `WaitGroup.Wait` 来等待所有的 goroutine 完成
+
+A `WaitGroup` must not be copied after first use.
+
+
