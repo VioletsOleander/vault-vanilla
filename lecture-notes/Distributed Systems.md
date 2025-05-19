@@ -3229,3 +3229,390 @@ Solution: lazy clean up at Get() operation  
 
 Comment: Safe, but may lead to high tail latency because the Get() operation must wait for a timeout of heartbeat to clear the dead lock from a dead client​
 - Solved by spanner  
+
+# 10 Spanner
+## Problem Remained by Percolator  
+Support only one data center $\Rightarrow$ geo-distributed in Spanner​ 
+
+Support only snapshot isolation, not serializability $\Rightarrow$ Spanner supports "external consistency", which is actually **strict serializability**, i.e., linearizability + serializability. 
+
+Lazy clear of locks may lead to high tail latency left by dead client (otherwise there will be very high abortion rate) $\Rightarrow$ "TrueTime" based conflict resolution in Spanner​  
+
+## The Geo-distributed Architecture of Spanner  
+Spanner supports multiple "zones", each can be geo-distributed data center  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/323bf7f844f7ff0074e9143efe9e2fa0a8a8274471bf1e98b1f990e21eabdd39.jpg)  
+
+Two layers of master  
+
+Key space is partitioned into **contiguous ranges** called “directory” (or "bucket"), and each directory is replicated to multiple zones via Paxos  
+- A directory is the unit of data placement. All data in a directory has the same replication configuration  
+- A whole directory will be moved from one replication group to another for better load balance​  
+    This is also the reason why contiguous ranges (not hash based buckets) are used  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/8bd0a94fe862861a63ff83f77a26eadccf63dee24e50cdeb45bacff4510249f5.jpg)  
+
+## External Consistency  
+**External consistency invariant:**  
+- Serializability: each transaction has a timestamp and the result of concurrently executing these transactions is **the same as** executing them one by one according to the order of this timestamp​ 
+- Linearizability: if the start of a transaction T2 occurs after the commit of a transaction T1, then the commit timestamp of T2 must be greater than the commit timestamp of T1.  
+
+It is strict serializability, i.e., linearizability + serializability, because there is a timestamp attached to each transaction and the transactions should be strictly ordered by this timestamp​ 
+
+Where does this physical time and logical timestamp come from?  
+
+## What is Time?  
+**Problem Definition**  
+A global TSO service is used in Percolator to assign strictly increasing timestamp 
+
+It can be a bottleneck because acquiring timestamp is one of the most frequently used operation in transaction processing​  
+
+A global centralized TSO service will definitely be a **bottleneck** in geo-distributed environments 
+- Two WAN RTT for every Paxos commit​
+- remote accesses for many data centers. We want local reading for better performance!  
+
+**Why it is hard?**  
+UTC (Universal Coordinated Time) 
+- Offered by radio stations and satellites
+- Different accuracy varies due to the turbulence of communication  
+
+Theory of relativity: the time clock is different for each person, even in the physical world!  
+
+Thus, actually, there is no strict time point in a distributed environment​ 
+- We also do not need a strict time point. We only need to identify the **happen-before relationships** in order to achieve linearizability​
+- We only need time intervals that have strict upper/lower bounds!  
+
+**TrueTime**  
+The most important (and expensive) contribution of Spanner.  
+
+|     Method     |               Returns                |
+| :------------: | :----------------------------------: |
+|  $TT. now()$   |   $TTinterval:[earliest, latest]$    |
+| $TT.after(t)$  |  true if $t$ has definitely passed.  |
+| $TT.before(t)$ | true if t has definitely not arrived |
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/3fa60109903da2f4934ff8ea6b51e86eb86d7f31842440a896c85c65b1345b37.jpg)  
+
+  
+Interval timestamp, thus it is possible that T1 is not before T2 and T1 is also not after T2 [2] 
+
+It has a guaranteed error bound, and this interval should be as small as possible
+- Each time master has either a GPS receiver or an "atomic clock". 
+- Only $\mathsf { 1 } { \sim } \mathsf { 7 } \mathsf { m s }$ variance compared to the standard 100ms variance of NTP  
+
+The physical implementation in Google [2]  
+- GPS Time Master: These nodes are equipped with GPS receivers which receive GPS signals , including time information directly from satellites.  
+- Armageddon Master: These nodes are equipped with local Atomic clocks. Atomic clocks are used as a supplement to GPS time masters in case satellite connections become unavailable.  
+- All master’s time references are regularly compared to each other using an algorithm to identify outliers  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/f7461eba7b3352d7c9873490d954d04e46cddf10f6c81fe7b9b47fdb7e34a751.jpg)  
+
+Why do we need this expensive solution?  
+- What is the benefit:  
+    The client just needs to **ask for the nearest time master for the clock.** There is no cross data center communication  
+    The time master can scale out since they do not need to synchronize with each other very frequently  
+- Why do we want the time interval to be as small as possible?  
+    We want to shorten the below uncertainty interval as much as possible [2]  
+    As discussed later, the client must wait until the happens-before relationship becomes clear if a conflict happens  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/708c81f996b9cd1c4c0f357858c7f44e2b38a3583c57bf21f9462402f2d235f6.jpg)  
+
+## Optimization in Spanner  
+Goal: How to improve the latency of **read-only** transactions?  
+- This is the most important problem when implementing geo-distributed databases.  
+- We must avoid not only all kinds of read locks but also all kinds of cross data center communications  
+
+Optimization I: No locks, no two-phase commit, no transaction manager for read-only transaction.  
+- Read lock is needed in S2PL to achieve serializability  
+- Snapshot isolation does not need read lock but is not serializable 
+- Main Idea: MV2PL​  
+    Pessimistic 2PL for read-write transaction  
+    Similar to MV2PL = MVCC + S2PL (lec9)
+    But optimized in a distributed environment -- mainly reduce the period of write lock holding time through combing with 2PC​  
+
+Lock-free timestamp based MVCC read for read-only transaction  
+
+```
+1         x@10=9     x@20=8  
+2         y@10=11    y@20=12  
+3     T1 @ 10: Wx Wy C  
+4     T2 @ 20:         Wx Wy C  
+5     T3 @ 15:     Rx         Ry  
+6 "@ 10" indicates the time-stamp.  
+7 Now T3's reads will both be served from the @10 versions.  
+8 T3 won't see T2's write even though T3's read of y occurs after T2. 
+```
+
+Actually, spanner provides specialized optimizations for four kinds of transactions  
+
+<html><body><table><tr><td>Operation</td><td>Timestamp Discussion</td><td>Concurrencye Control</td><td>Replica Required</td></tr><tr><td>Read-Write Transaction.</td><td> 4.1.2</td><td>pessimistic</td><td>leader</td></tr><tr><td>Read-Only Transaction</td><td> 4.1.4</td><td>lock-free</td><td>leader for timestamp; any for. read, subject to 3 4.1.3</td></tr><tr><td>Snapshot Read, client-provided timestamp.</td><td></td><td>lock-free</td><td>any, subject to  4.1.3</td></tr><tr><td>Snapshot Read, client-provided bound</td><td> 4.1.3</td><td>lock-free</td><td>any, subject to  4.1.3</td></tr></table></body></html>  
+
+Optimization II: Read from local replicas, to avoid Paxos and cross-datacenter msgs.  
+- Review "Client Interaction (3) -- Read-only Optimization" of the Raft lecture 
+- It is possible to read only the master of each replication group as long as the master is still holding a lease  
+    But how to implement this lease? 
+    This is actually a surprisingly difficult problem in a geo-distributed environment
+- More importantly, the local replica may not be the leader.  
+    The local replica may not even be contained in the quorum 
+    As we can see from the above table, leader is needed for timestamp, but all the following reads can be served by local replicas  
+- It will contain stale data! 
+- Main Idea: use the TrueTime API  
+
+10x tail latency improvement as a result!  
+
+## Read-write Transaction  
+Pessimistic S2PL + 2PC  
+
+Execution Part  
+- Acquire read lock and read the **newest** version of each read record 
+    reads to the leader replica of the appropriate group
+        This can be a cross data center read
+        Spanner just tries to remove all cross data center read in read-only transactions 
+    which **acquires read locks** and then reads the most recent data  
+        Block other concurrent write but will not block read-only transactions  
+        This is the main reason why spanner can achieve serializability (i.e., higher than SI)  
+- Buffer the write in **local** until the commit time  
+    No write lock for now 
+        long duration read-lock to avoid write skew problem of snapshot isolation 
+        Short but long enough write lock that covers only the commit phase to avoid other anomaly phenomenon  
+- While a client transaction remains open, it sends **keepalive** messages to prevent participant leaders from timing out its transaction​  
+    Avoid dead clients holding locks forever​  
+    Similar to Percolator, a timeout is needed to revoke these locks  
+    But, more importantly, these are read locks that do not block concurrent read 
+        Percolator uses exclusive locks and hence block concurrent reads 
+        Where are the write locks in Spanner? Is there a similar lazy cleaning mechanism? - - simple answer: write locks are possessed by Paxos RSM and hence is high available​  
+
+  
+
+◦ Acquire a commit_t timestamp after acquiring all the locks, which is the beginning of committing of this transaction.  
+
+  
+
+Can we use the client's timestamp as the commit_t? -- No  
+
+There are actually many different timestamp for different machines in Spanner -- how to achieve true external consistency?  
+
+  
+
+Commit part  
+
+  
+
+◦ How to avoid blocking due to failures? -- Paxos for high available coordinator and participant [fig 1]  
+
+  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/24810be682bbbdcdad5d9029478fc5d45e387c0ec93daf33a3e7436081611fe0.jpg)  
+
+  
+
+Note, all the above coordinator and participant are Paxos groups that contain multiple machines in it and appear to the outside as a logical centralized high available service  
+
+  
+
+Client will choose one participant Paxos group as the coordinator and the other Paxos  
+
+groups as participants​  
+
+◦ The prepare/commit decision is replicated by Paxos for high availability  
+
+◦ The commit timestamp commit_t is also assigned by the leader of this chosen coordinator Paxos group Spanner assigns timestamps to Paxos writes in monotonically increasing order, even across leaders​ i.e., even after the original leader is dead and a new leader is elected in the same Paxos group.​ Do we need to replicate the operation of assigning timestamp as a Paxos agreement? -- No, lease protection is enough for monotonically increasing timestamp across leader A leader must only assign timestamps within the interval of its leader lease​  
+
+  
+
+But there will still be multiple different timestamps because there are multiple Paxos groups, which are needed for scalability  
+
+  
+
+How to tolerate this problem?  
+
+  
+
+Use the time interval guarantee of TrueTime!  
+
+  
+
+The first round of preparation is broadcast directly by the client, not the coordinator for a smaller latency  
+
+  
+
+All the non-coordinator participants should  
+
+  
+
+◦ first acquires write locks  
+
+◦ chooses a prepare timestamp that must be larger than any timestamps it has assigned to previous transactions -- also protected by the leader lease of this participant group  
+
+◦ logs a prepared record through Paxos​  
+
+◦ then notifies the coordinator of its prepare timestamp  
+
+  
+
+Coordinator  
+
+  
+
+◦ first acquires write locks  
+
+◦ chooses a timestamp for the entire transaction after hearing from all other participant leaders​  
+
+  
+
+The commit timestamp commit_s must be  
+
+  
+
+greater than TT.now().latest at the time the coordinator received the client's prepare message greater or equal to all prepare timestamps  
+
+and greater than any timestamps the leader has assigned to previous transactions  
+
+All the above "greater" are compared by TT.before() function that tolerate variance without direct synchronization between these Paxos groups ◦ This is also the reason why we want the variance interval to be as small as possible​ ◦ It is proportional to commit latency  
+
+  
+
+logs a commit record through Paxos $\llcorner$ this is the commit point of the whole transaction ◦ Before allowing any coordinator replica to apply the commit record, the coordinator leader waits until TT.after(commit_s)  
+
+  
+
+This is the crux of achieving external consistency in Spanner [fig 1]  
+
+  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/9f7a0eb5e8f1de45c4f13c815835f4a4c1ba0ce4f34d724b2ac55a17cca94e34.jpg)  
+
+  
+
+External consistency invariant: if the start of a transaction T2 occurs after the commit of a transaction T1, then the commit timestamp of T2 must be greater than the commit timestamp of T1.  
+
+  
+
+$\begin{array} { c } { s _ { 1 } < t _ { a b s } ( e _ { 1 } ^ { c o m m i t } ) } \\ { t _ { a b s } ( e _ { 1 } ^ { c o m m i t } ) < t _ { a b s } ( e _ { 2 } ^ { s t a r t } ) } \\ { t _ { a b s } ( e _ { 2 } ^ { s t a r t } ) \leq t _ { a b s } ( e _ { 2 } ^ { s e r v e r } ) } \\ { t _ { a b s } ( e _ { 2 } ^ { s e r v e r } ) \leq s _ { 2 } } \\ { s _ { 1 } < s _ { 2 } } \end{array}$ (commit wait) (assumption) (causality) (start) (transitivity)  
+
+  
+
+s1 and s2 in the above figure means the commit timestamp of T1 and T2, respectivly​ t_abs means physical time that is used in linearizability  
+
+  
+
+After commit wait, the coordinator sends the commit timestamp to the client and all other participant leaders.  
+
+  
+
+Each participant leader logs the transaction’s outcome through Paxos.  
+
+◦ All participants apply at the same timestamp and then release locks.  
+
+  
+
+1PC optimization: only 1 round is needed if only one Paxos group is involved  
+
+  
+
+# Read-only Transaction  
+
+  
+
+• The monotonicity invariant described above allows Spanner to correctly determine whether a replica's state is sufficiently up-to-date to satisfy a read.  
+
+  
+
+Every replica tracks a value called safe time t_safe maximum timestamp at which a replica is up-to-date -- so that the client does not need to communicate with the leader of this Paxos group that may not be in the same data center ◦ A replica can satisfy a read at a timestamp t_read if t_read $\displaystyle < = \mathbf { t }$ _safe  
+
+  
+
+Assigning the safe timestamp t_safe ◦ The oldest timestamp that preserves external consistency ◦ T^{Paxos}_{safe} is the timestamp of the highest-applied Paxos write.  
+
+  
+
+writes will no longer occur at or below T^{Paxos}_{safe} with respect to Paxos.  
+
+  
+
+◦ T^{TM}_{safe}  
+
+  
+
+It is infinite at a replica if there are zero prepared (but not committed) transactions — no transactions in between the two phases of two-phase commit.  
+
+  
+
+In contrast, if there are any such prepared transactions, a participant replica does not know yet whether such transactions will commit.  
+
+  
+
+What do we know? For each prepared transaction i  
+
+  
+
+◦ We know the minimum possible commit timestamp commit_t_i of this prepared transaction i if it is eventually committed  
+
+◦ commit_t_i must larger than the $\mathsf { s } ^ { \wedge }$ {prepare}_{i,g}, which is the prepare timestamp assigned by the leader of this Paxos group  
+
+◦ This is guaranteed by the commit wait described above  
+
+  
+
+$T ^ { \wedge } \{ \mathsf { T M } \} \_ { \mathsf { S } } \{ \mathsf { s a f e } \} = [ \mathsf { m i n } ( \mathsf { s } ^ { \wedge } \{ \mathsf { p r e p a r e } \} \_ { - } \{ \mathsf { i } , \mathsf { g } \} )$ for each prepared transaction i] - 1  
+
+  
+
+Assigning the read timestamp t_read ◦ Simple way: t_ $\mathsf { c e a d } = \mathsf { T } \mathsf { 7 }$ T.now().latest  
+
+  
+
+However, such a timestamp may require the execution of the data reads at t_read to block if t_safe has not advanced sufficiently.  
+
+  
+
+Better way:  
+
+  
+
+If the read-only transaction reads only one Paxos group: t_read can be assigned by that Paxos group’s leader to be the timestamp of the last committed write at a Paxos group.​  
+
+  
+
+▪ If the read-only transaction reads only more than one Paxos group:  
+
+  
+
+Use TT.now().latest It is possible to communicate with all these leaders, but it will be too complex  
+
+  
+
+## Hybrid Logical Clocks  
+Atomic clock based true clock is too expensive and hence it is only used internally in Google.  
+
+Open-source versions of Spanner such as CockroachDB use HLC instead.  
+- HLC’s timestamp is a combination of physical time and logical time
+    Physical time is usually based on Network Time Protocol (NTP)
+    Logical time is based on Lamport's logical clock algorithm.  
+- Lamport's vector clock  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/c59c912fcd7efc0ffaaf81760b8ccd37e68c3ed8c20f5fab7828d286cc58a2d5.jpg)  
+
+  
+- Key Idea: in many scenarios, we just need the happen-before relationship instead of the exact time [3]​ 
+- Each participant maintains a local counter. Thus globally, there is a vector of local counters whose length is equal to the number of participants​ 
+- When an event occurs on a participant, the process increments its own entry in the vector clock and sends the updated vector clock to all other processes. 
+    This event is a logical concept, it can be every log commit if each participant is a Paxos group​ 
+- When a process receives a vector clock from another process, it updates its own vector clock by taking the maximum of each entry in the two vector clocks. 
+- The resulting vector clock represents a partial ordering of events in the distributed system​
+
+CockroachDB combines HLC and serializable snapshot isolation (SSI) to provide externally consistent, lock-free reads and writes -- too complex to be summarized here. You can see this link for more information.​  
+
+  
+
+# Figure Reference  
+
+  
+
+[fig 1] https://zhuanlan.zhihu.com/p/47870235  
+
+[fig 2] https://sookocheff.com/post/time/truetime/  
+
+[fig 3] https://lass.cs.umass.edu/\~shenoy/courses/spring22/lectures/Lec13_notes.pdf​  
+
+[...] https://zhuanlan.zhihu.com/p/44254954
