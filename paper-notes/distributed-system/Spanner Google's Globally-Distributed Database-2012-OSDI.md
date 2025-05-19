@@ -46,7 +46,7 @@ As a globally-distributed database, Spanner provides several interesting feature
 >  其次，Spanner 具有两个在分布式数据库中难以实现的功能: 它提供了外部一致的读写，以及在时间戳上的跨整个数据库的全局一致读取。这些功能使得 Spanner 可以在全球范围内支持一致备份、一致 MapReduce 执行和原子化模式更新，并且同时可以持续运行事务
 
 These features are enabled by the fact that Spanner assigns globally-meaningful commit timestamps to transactions, even though transactions may be distributed. The timestamps reflect serialization order. In addition, the serialization order satisfies external consistency (or equivalently, linearizability [20]): if a transaction $T_{1}$ commits before another transaction $T_{2}$ starts, then $T_{1}$ ’s commit timestamp is smaller than $T_{2}$ ’s. Spanner is the first system to provide such guarantees at global scale. 
->  这些功能的实现得益于 Spanner 为事务分配了全局的提交时间戳，即便事务可能说分布式的
+>  这些功能的实现得益于 Spanner 为事务分配了全局的提交时间戳，即便事务可能是分布式的
 >  这些时间戳反映了序列化顺序，这一序列化顺序满足了外部一致性 (或者等价地说，线性一致性): 如果事务 $T_1$ 在另一个事务 $T_2$ 开始之前提交，则 $T_1$ 的提交时间戳将小于 $T_2$ 的提交时间戳
 >  Spanner 是首个在全球规模提供了这样保证的系统
 
@@ -487,7 +487,7 @@ $t_{s a f e}^{T M}$ is $\infty$ at a replica if there are zero prepared (but not
 >  (对于 participant slave，$t_{safe}^{TM}$ 实际上指副本的 leader 的事务管理器，slave 可以通过 Paxos writes 传入的元数据推断该事务管理器的状态)
 >  如果存在这样的事务，则这些事务所影响的状态是不确定的: participant replica 尚不知道这些事务是否会提交
 
-As we discuss in Section 4.2.1, the commit protocol ensures that every participant knows a lower bound on a prepared transaction’s timestamp. Every participant leader (for a group $g$ ) for a transaction $T_{i}$ assigns a prepare timestamp $s_{i,g}^{p r e p a r e}$  to its prepare record. The coordinator leader ensures that the transaction’s commit timestamp $s_{i}>=s_{i,g}^{p r e p a r e}$ $g$ for every replica in a group $g$ , over all transactions $T_{i}$ prepared at $g$ ,  $\begin{array}{r}{t_{s a f e}^{T M}=m i n_{i}(s_{i,g}^{p r e p a r e})-1}\end{array}$ over all transactions prepared at $g$ . 
+As we discuss in Section 4.2.1, the commit protocol ensures that every participant knows a lower bound on a prepared transaction’s timestamp. Every participant leader (for a group $g$ ) for a transaction $T_{i}$ assigns a prepare timestamp $s_{i,g}^{p r e p a r e}$  to its prepare record. The coordinator leader ensures that the transaction’s commit timestamp $s_{i}>=s_{i,g}^{p r e p a r e}$ for every replica in a group $g$ , over all transactions $T_{i}$ prepared at $g$ ,  $\begin{array}{r}{t_{s a f e}^{T M}=m i n_{i}(s_{i,g}^{p r e p a r e})-1}\end{array}$ over all transactions prepared at $g$ . 
 >  
 
 
