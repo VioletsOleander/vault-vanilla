@@ -326,7 +326,7 @@ If desired, the protocol can be optimized to reduce the number of rejected `Appe
 >  该协议可以进一步优化，以减少被拒绝的 `AppendEntries` 数量
 >  例如，当拒绝一个 `AppendEntries` 请求时，follower 在拒绝信息中包含冲突 entry 的任期以及它的 log 中该任期的第一个 entry 的索引
 >  leader 收到这些信息后，可以减少 `nextIndex` 以跳过该任期内的所有冲突 entries，每个带有冲突 entry 的任期只需要一个 `AppendEntries` RPC，而不是每个 entry 都发送一条 RPC (感觉上是不管任期内的其他 entry 有没有冲突，只要有一个 entry 存在冲突，就认为 follower 的这个任期内的所有 entries 都需要重写，这样还是会存在过度跳过的问题，但是安全性还是没问题的)
->  实践中，我们认为这种优化可能没有必要，因为故障发生的频率不高，不太可能出现大量不一致的 entries
+>  实践中，我们认为这种优化可能没有必要，因为故障发生的频率不高，不太可能出现大量不一致的 entries (然而在 MIT Lab 中这个优化有必要 qwq)
 
 With this mechanism, a leader does not need to take any special actions to restore log consistency when it comes to power. It just begins normal operation, and the logs automatically converge in response to failures of the `AppendEntries` consistency check. A leader never overwrites or deletes entries in its own log (the Leader Append-Only Property in Figure 3). 
 >  在该机制下，candidate 成为 leader 时，不需要执行任何特殊动作以恢复日志一致性 (照常发送 `AppendEntires` RPC，发现不一致再处理即可)
@@ -385,7 +385,7 @@ Raft determines which of two logs is more up-to-date by comparing the index and 
 
 >  情况 2. log a 的最后一个 entry 的任期大于 log b 的最后一个 entry 的任期
 >  假设 log a 最后一个 entry 的任期是 `T` ，那么 log a 一定是在任期 `T` 的 leader 执行 `AppendEntries` 操作时通过了一致性检查，log b 则没有通过
->  因为任期 `T` 的 leader 的 log 中一定包含了任期 `T` 之前所有已经提交的 entries, log a 通过了，根据 Log Matching Property 的保证，它一定也包含了任期 `T` 之前所有已经提交的 entries, log b 中所包含的已经提交的 entries 是其子集，故 log a 一定包含了 log b 中可能包含的所有已经提交的 entries
+>  因为任期 `T` 的 leader 的 log 中一定包含了任期 `T` 之前所有已经提交的 entries, log a 通过了一致性检查，根据 Log Matching Property 的保证，它一定也包含了任期 `T` 之前所有已经提交的 entries, log b 中所包含的已经提交的 entries 是其子集，故 log a 一定包含了 log b 中可能包含的所有已经提交的 entries
 
 >  情况 2 的论证看似存在循环论证，因为 "任期 `T` 的 leader 的 log 中一定包含了任期 `T` 之前所有已经提交的 entries" 本身利用了要证明的 Leader Completeness Property
 >  要破除循环，我们需要从最开始考虑，系统最初时，所有 logs 都为空，Leader Completeness Property 已经成立，之后，按照上述算法，我们总是在选举 leader 之前就确保 Leader Completeness Property 能够保持，因此，上述算法可以视作在 Leader Completeness Property 已经成立的前提下，继续地保持它成立
