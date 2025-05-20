@@ -164,20 +164,25 @@ Each "Passed" line contains five numbers; these are the time that the test took 
 
 When we grade your submissions, we will run the tests without the [-race flag](https://go.dev/blog/race-detector). However, you should make sure that your code consistently passes the tests with the `-race` flag.
 
-### Part 2B: log (hard) `
-Implement the leader and follower code to append new log entries, so that the go test -run 2B tests pass.
+### Part 2B: log (hard)
+Implement the leader and follower code to append new log entries, so that the `go test -run 2B` tests pass.
 
 - Run git pull to get the latest lab software.
-- Your first goal should be to pass TestBasicAgree2B(). Start by implementing Start(), then write the code to send and receive new log entries via AppendEntries RPCs, following Figure 2. Send each newly committed entry on applyCh on each peer.
+- Your first goal should be to pass `TestBasicAgree2B()`. Start by implementing `Start()`, then write the code to send and receive new log entries via `AppendEntries` RPCs, following Figure 2. Send each newly committed entry on `applyCh` on each peer.
+>  先实现 `Start()` ，然后实现 `AppendEntries` 中的 log 发送和接收逻辑，以通过 `TestBasicAgree2B()`
+>  每个 peer 通过 `applyCh` 发送提交的 entry
+
 - You will need to implement the election restriction (section 5.4.1 in the paper).
+>  实现 election restriction
+
 - One way to fail to reach agreement in the early Lab 2B tests is to hold repeated elections even though the leader is alive. Look for bugs in election timer management, or not sending out heartbeats immediately after winning an election.
-- Your code may have loops that repeatedly check for certain events. Don't have these loops execute continuously without pausing, since that will slow your implementation enough that it fails tests. Use Go's [condition variables](https://golang.org/pkg/sync/#Cond), or insert a time.Sleep(10 * time.Millisecond) in each loop iteration.
+- Your code may have loops that repeatedly check for certain events. Don't have these loops execute continuously without pausing, since that will slow your implementation enough that it fails tests. Use Go's [condition variables](https://golang.org/pkg/sync/#Cond), or insert a `time.Sleep(10 * time.Millisecond)` in each loop iteration.
 - Do yourself a favor for future labs and write (or re-write) code that's clean and clear. For ideas, re-visit our the [Guidance page](http://nil.csail.mit.edu/6.5840/2023/labs/guidance.html) with tips on how to develop and debug your code.
-- If you fail a test, look over the code for the test in config.go and test_test.go to get a better understanding what the test is testing. config.go also illustrates how the tester uses the Raft API.
+- If you fail a test, look over the code for the test in `config.go` and `test_test.go` to get a better understanding what the test is testing. `config.go` also illustrates how the tester uses the Raft API.
 
 The tests for upcoming labs may fail your code if it runs too slowly. You can check how much real time and CPU time your solution uses with the time command. Here's typical output:
 
-```go
+```
 $ time go test -run 2B
 Test (2B): basic agreement ...
   ... Passed --   0.9  3   16    4572    3
@@ -204,30 +209,40 @@ sys	0m1.458s
 $
 ```
 
-The "ok 6.5840/raft 35.557s" means that Go measured the time taken for the 2B tests to be 35.557 seconds of real (wall-clock) time. The "user 0m2.556s" means that the code consumed 2.556 seconds of CPU time, or time spent actually executing instructions (rather than waiting or sleeping). If your solution uses much more than a minute of real time for the 2B tests, or much more than 5 seconds of CPU time, you may run into trouble later on. Look for time spent sleeping or waiting for RPC timeouts, loops that run without sleeping or waiting for conditions or channel messages, or large numbers of RPCs sent.
+The "ok 6.5840/raft 35.557s" means that Go measured the time taken for the 2B tests to be 35.557 seconds of real (wall-clock) time. The "user 0m2.556s" means that the code consumed 2.556 seconds of CPU time, or time spent **actually executing instructions** (rather than waiting or sleeping). If your solution uses much more than a minute of real time for the 2B tests, or much more than 5 seconds of CPU time, you may run into trouble later on. Look for time spent sleeping or waiting for RPC timeouts, loops that run without sleeping or waiting for conditions or channel messages, or large numbers of RPCs sent.
 
-### Part 2C: persistence ([hard](http://nil.csail.mit.edu/6.5840/2023/labs/guidance.html))
-
+### Part 2C: persistence (hard)
 If a Raft-based server reboots it should resume service where it left off. This requires that Raft keep persistent state that survives a reboot. The paper's Figure 2 mentions which state should be persistent.
 
-A real implementation would write Raft's persistent state to disk each time it changed, and would read the state from disk when restarting after a reboot. Your implementation won't use the disk; instead, it will save and restore persistent state from a Persister object (see persister.go). Whoever calls Raft.Make() supplies a Persister that initially holds Raft's most recently persisted state (if any). Raft should initialize its state from that Persister, and should use it to save its persistent state each time the state changes. Use the Persister's ReadRaftState() and Save() methods.
+A real implementation would write Raft's persistent state to disk each time it changed, and would read the state from disk when restarting after a reboot. Your implementation won't use the disk; instead, it will save and restore persistent state from a `Persister` object (see ` persister.go `). Whoever calls `Raft.Make()` supplies a `Persister` that initially holds Raft's most recently persisted state (if any). Raft should initialize its state from that `Persister`, and should use it to save its persistent state each time the state changes. Use the Persister's `ReadRaftState()` and `Save()` methods.
+>  每次持久化状态改变时，都应该写入
+>  每次重启后，应该从磁盘读取持久化状态
+>  将持久化状态写入 `Persister` 对象
+>  在 `Raft.Make()` 中，利用传入的 `Persister` 进行初始化，并且之后也将持久化状态写入该 `Persister`
 
-Complete the functions persist() and readPersist() in raft.go by adding code to save and restore persistent state. You will need to encode (or "serialize") the state as an array of bytes in order to pass it to the Persister. Use the labgob encoder; see the comments in persist() and readPersist(). labgob is like Go's gob encoder but prints error messages if you try to encode structures with lower-case field names. For now, pass nil as the second argument to persister.Save(). Insert calls to persist() at the points where your implementation changes persistent state. Once you've done this, and if the rest of your implementation is correct, you should pass all of the 2C tests.
+Complete the functions `persist()` and `readPersist()` in `raft.go` by adding code to save and restore persistent state. You will need to encode (or "serialize") the state as an array of bytes in order to pass it to the `Persister`. Use the `labgob` encoder; see the comments in `persist()` and `readPersist()`. `labgob` is like Go's gob encoder but prints error messages if you try to encode structures with lower-case field names. For now, pass nil as the second argument to `persister.Save()`. Insert calls to `persist()` at the points where your implementation changes persistent state. Once you've done this, and if the rest of your implementation is correct, you should pass all of the 2C tests.
+>  完成 `persist(), readPersist()`
+>  需要将状态编码为字节数组以传入 `Persister` ，使用 `labgob` encoder
+>  `persister.Save()` 的第二个参数为 `nil`
 
-You will probably need the optimization that backs up nextIndex by more than one entry at a time. Look at the [extended Raft paper](http://nil.csail.mit.edu/6.5840/2023/papers/raft-extended.pdf) starting at the bottom of page 7 and top of page 8 (marked by a gray line). The paper is vague about the details; you will need to fill in the gaps. One possibility is to have a rejection message include:
+You will probably need the optimization that backs up `nextIndex` by more than one entry at a time. Look at the [extended Raft paper](http://nil.csail.mit.edu/6.5840/2023/papers/raft-extended.pdf) starting at the bottom of page 7 and top of page 8 (marked by a gray line). The paper is vague about the details; you will need to fill in the gaps. One possibility is to have a rejection message include:
 
+```
     XTerm:  term in the conflicting entry (if any)
     XIndex: index of first entry with that term (if any)
     XLen:   log length
+```
 
 Then the leader's logic can be something like:
 
+```
   Case 1: leader doesn't have XTerm:
     nextIndex = XIndex
   Case 2: leader has XTerm:
     nextIndex = leader's last entry for XTerm
   Case 3: follower's log is too short:
     nextIndex = XLen
+```
 
 A few other hints:
 
@@ -236,6 +251,7 @@ A few other hints:
 
 Your code should pass all the 2C tests (as shown below), as well as the 2A and 2B tests.
 
+```
 $ go test -run 2C
 Test (2C): basic persistence ...
   ... Passed --   5.0  3   86   22849    6
@@ -256,46 +272,66 @@ Test (2C): unreliable churn ...
 PASS
 ok  	6.5840/raft	123.564s
 $
+```
 
 It is a good idea to run the tests multiple times before submitting and check that each run prints PASS.
 
+```
 $ for i in {0..10}; do go test; done
+```
 
-### Part 2D: log compaction ([hard](http://nil.csail.mit.edu/6.5840/2023/labs/guidance.html))
-
+### Part 2D: log compaction (hard)
 As things stand now, a rebooting server replays the complete Raft log in order to restore its state. However, it's not practical for a long-running service to remember the complete Raft log forever. Instead, you'll modify Raft to cooperate with services that persistently store a "snapshot" of their state from time to time, at which point Raft discards log entries that precede the snapshot. The result is a smaller amount of persistent data and faster restart. However, it's now possible for a follower to fall so far behind that the leader has discarded the log entries it needs to catch up; the leader must then send a snapshot plus the log starting at the time of the snapshot. Section 7 of the [extended Raft paper](http://nil.csail.mit.edu/6.5840/2023/papers/raft-extended.pdf) outlines the scheme; you will have to design the details.
+>  snapshot 状态后，snapshot 之前的 log entries 都可以丢弃
+>  follower 过于落后时，leader 直接发送 snapshot，以及 snapshot 之后的 entries
 
 You may find it helpful to refer to the [diagram of Raft interactions](http://nil.csail.mit.edu/6.5840/2023/notes/raft_diagram.pdf) to understand how the replicated service and Raft communicate.
 
 Your Raft must provide the following function that the service can call with a serialized snapshot of its state:
 
+```go
 Snapshot(index int, snapshot []byte)
+```
 
-In Lab 2D, the tester calls Snapshot() periodically. In Lab 3, you will write a key/value server that calls Snapshot(); the snapshot will contain the complete table of key/value pairs. The service layer calls Snapshot() on every peer (not just on the leader).
+In Lab 2D, the tester calls `Snapshot() `periodically. In Lab 3, you will write a key/value server that calls `Snapshot()`; the snapshot will contain the complete table of key/value pairs. The service layer calls `Snapshot()` on every peer (not just on the leader).
 
 The index argument indicates the highest log entry that's reflected in the snapshot. Raft should discard its log entries before that point. You'll need to revise your Raft code to operate while storing only the tail of the log.
 
-You'll need to implement the InstallSnapshot RPC discussed in the paper that allows a Raft leader to tell a lagging Raft peer to replace its state with a snapshot. You will likely need to think through how InstallSnapshot should interact with the state and rules in Figure 2.
+>  `Snapshot` 方法将 `index` 及其之前的 entries 都丢弃，保留 `index` 处的状态
 
-When a follower's Raft code receives an InstallSnapshot RPC, it can use the applyCh to send the snapshot to the service in an ApplyMsg. The ApplyMsg struct definition already contains the fields you will need (and which the tester expects). Take care that these snapshots only advance the service's state, and don't cause it to move backwards.
+You'll need to implement the `InstallSnapshot` RPC discussed in the paper that allows a Raft leader to tell a lagging Raft peer to replace its state with a snapshot. You will likely need to think through how `InstallSnapshot` should interact with the state and rules in Figure 2.
+>  实现 `InstallSnapshot` RPC
 
-If a server crashes, it must restart from persisted data. Your Raft should persist both Raft state and the corresponding snapshot. Use the second argument to persister.Save() to save the snapshot. If there's no snapshot, pass nil as the second argument.
+When a follower's Raft code receives an `InstallSnapshot` RPC, it can use the `applyCh` to send the snapshot to the service in an `ApplyMsg`. The `ApplyMsg` struct definition already contains the fields you will need (and which the tester expects). Take care that these snapshots only advance the service's state, and don't cause it to move backwards.
+>  follower 收到 `InstallSnapshot` RPC 后，将 snapshot 包装在 `ApplyMeg` ，发送给 `applyCh`
+>  注意，snapshot 只能推动状态进展，不能导致状态倒退
+
+If a server crashes, it must restart from persisted data. Your Raft should persist both Raft state and the corresponding snapshot. Use the second argument to `persister.Save()` to save the snapshot. If there's no snapshot, pass nil as the second argument.
+>  持久化保存 Raft 状态和对应的 snapshot，如果没有 snapshot，传递 `nil`
 
 When a server restarts, the application layer reads the persisted snapshot and restores its saved state.
 
-Implement Snapshot() and the InstallSnapshot RPC, as well as the changes to Raft to support these (e.g, operation with a trimmed log). Your solution is complete when it passes the 2D tests (and all the previous Lab 2 tests).
+Implement `Snapshot()` and the `InstallSnapshot` RPC, as well as the changes to Raft to support these (e.g, operation with a trimmed log). Your solution is complete when it passes the 2D tests (and all the previous Lab 2 tests).
 
 - git pull to make sure you have the latest software.
-- A good place to start is to modify your code to so that it is able to store just the part of the log starting at some index X. Initially you can set X to zero and run the 2B/2C tests. Then make Snapshot(index) discard the log before index, and set X equal to index. If all goes well you should now pass the first 2D test.
+- A good place to start is to modify your code to so that it is able to store just the part of the log starting at some index X. Initially you can set X to zero and run the 2B/2C tests. Then make `Snapshot(index)` discard the log before index, and set X equal to index. If all goes well you should now pass the first 2D test.
+>  先让代码可以存储从索引 `X` 开始的 log
+>  开始将 `X` 设为 0
+>  然后让函数 `Snapshot(index)` 丢弃 `X` 之前的 log，并令 `X` 为 `index`
+
 - You won't be able to store the log in a Go slice and use Go slice indices interchangeably with Raft log indices; you'll need to index the slice in a way that accounts for the discarded portion of the log.
-- Next: have the leader send an InstallSnapshot RPC if it doesn't have the log entries required to bring a follower up to date.
-- Send the entire snapshot in a single InstallSnapshot RPC. Don't implement Figure 13's offset mechanism for splitting up the snapshot.
+
+- Next: have the leader send an `InstallSnapshot` RPC if it doesn't have the log entries required to bring a follower up to date.
+> 实现 `InstallSnapshot` RPC，让 leader 在没有 follower 所要求的 entries 时，直接发送该 RPC
+
+- Send the entire snapshot in a single `InstallSnapshot` RPC. Don't implement Figure 13's offset mechanism for splitting up the snapshot.
 - Raft must discard old log entries in a way that allows the Go garbage collector to free and re-use the memory; this requires that there be no reachable references (pointers) to the discarded log entries.
-- Even when the log is trimmed, your implemention still needs to properly send the term and index of the entry prior to new entries in AppendEntries RPCs; this may require saving and referencing the latest snapshot's lastIncludedTerm/lastIncludedIndex (consider whether this should be persisted).
+- Even when the log is trimmed, your implementation still needs to properly send the term and index of the entry prior to new entries in `AppendEntries` RPCs; this may require saving and referencing the latest snapshot's `lastIncludedTerm`/`lastIncludedIndex` (consider whether this should be persisted).
 - A reasonable amount of time to consume for the full set of Lab 2 tests (2A+2B+2C+2D) without -race is 6 minutes of real time and one minute of CPU time. When running with -race, it is about 10 minutes of real time and two minutes of CPU time.
 
 Your code should pass all the 2D tests (as shown below), as well as the 2A, 2B, and 2C tests.
 
+```
 $ go test -run 2D
 Test (2D): snapshots basic ...
   ... Passed --  11.6  3  176   61716  192
@@ -311,3 +347,213 @@ Test (2D): crash and restart all servers ...
   ... Passed --  19.5  3  268   81352   58
 PASS
 ok      6.5840/raft      293.456s
+```
+
+# Raft Locking Advice
+If you are wondering how to use locks in the 6.824 Raft labs, here are
+some rules and ways of thinking that might be helpful.
+
+Rule 1: Whenever you have data that more than one goroutine uses, and
+at least one goroutine might modify the data, the goroutines should
+use locks to prevent simultaneous use of the data. The Go race
+detector is pretty good at detecting violations of this rule (though
+it won't help with any of the rules below).
+
+Rule 2: Whenever code makes a sequence of modifications to shared
+data, and other goroutines might malfunction if they looked at the
+data midway through the sequence, you should use a lock around the
+whole sequence.
+
+An example:
+
+```
+  rf.mu.Lock()
+  rf.currentTerm += 1
+  rf.state = Candidate
+  rf.mu.Unlock()
+```
+
+It would be a mistake for another goroutine to see either of these
+updates alone (i.e. the old state with the new term, or the new term
+with the old state). So we need to hold the lock continuously over the
+whole sequence of updates. All other code that uses rf.currentTerm or
+rf.state must also hold the lock, in order to ensure exclusive access
+for all uses.
+
+The code between Lock() and Unlock() is often called a "critical
+section." The locking rules a programmer chooses (e.g. "a goroutine
+must hold rf.mu when using rf.currentTerm or rf.state") are often
+called a "locking protocol".
+
+Rule 3: Whenever code does a sequence of reads of shared data (or
+reads and writes), and would malfunction if another goroutine modified
+the data midway through the sequence, you should use a lock around the
+whole sequence.
+
+An example that could occur in a Raft RPC handler:
+
+```
+  rf.mu.Lock()
+  if args.Term > rf.currentTerm {
+   rf.currentTerm = args.Term
+  }
+  rf.mu.Unlock()
+```
+
+This code needs to hold the lock continuously for the whole sequence.
+Raft requires that currentTerm only increases, and never decreases.
+Another RPC handler could be executing in a separate goroutine; if it
+were allowed to modify rf.currentTerm between the if statement and the
+update to rf.currentTerm, this code might end up decreasing
+rf.currentTerm. Hence the lock must be held continuously over the
+whole sequence. In addition, every other use of currentTerm must hold
+the lock, to ensure that no other goroutine modifies currentTerm
+during our critical section.
+
+Real Raft code would need to use longer critical sections than these
+examples; for example, a Raft RPC handler should probably hold the
+lock for the entire handler.
+
+Rule 4: It's usually a bad idea to hold a lock while doing anything
+that might wait: reading a Go channel, sending on a channel, waiting
+for a timer, calling time.Sleep(), or sending an RPC (and waiting for the
+reply). One reason is that you probably want other goroutines to make
+progress during the wait. Another reason is deadlock avoidance. Imagine
+two peers sending each other RPCs while holding locks; both RPC
+handlers need the receiving peer's lock; neither RPC handler can ever
+complete because it needs the lock held by the waiting RPC call.
+
+Code that waits should first release locks. If that's not convenient,
+sometimes it's useful to create a separate goroutine to do the wait.
+
+Rule 5: Be careful about assumptions across a drop and re-acquire of a
+lock. One place this can arise is when avoiding waiting with locks
+held. For example, this code to send vote RPCs is incorrect:
+
+```
+  rf.mu.Lock()
+  rf.currentTerm += 1
+  rf.state = Candidate
+  for <each peer> {
+    go func() {
+      rf.mu.Lock()
+      args.Term = rf.currentTerm
+      rf.mu.Unlock()
+      Call("Raft.RequestVote", &args, ...)
+      // handle the reply...
+    } ()
+  }
+  rf.mu.Unlock()
+```
+
+The code sends each RPC in a separate goroutine. It's incorrect
+because `args.Term` may not be the same as the `rf.currentTerm` at which
+the surrounding code decided to become a Candidate. Lots of time may
+pass between when the surrounding code creates the goroutine and when
+the goroutine reads `rf.currentTerm`; for example, multiple terms may
+come and go, and the peer may no longer be a candidate. One way to fix
+this is for the created goroutine to use a copy of `rf.currentTerm` made
+while the outer code holds the lock. Similarly, reply-handling code
+after the Call() must re-check all relevant assumptions after
+re-acquiring the lock; for example, it should check that
+`rf.currentTerm` hasn't changed since the decision to become a
+candidate.
+
+It can be difficult to interpret and apply these rules. Perhaps most
+puzzling is the notion in Rules 2 and 3 of code sequences that
+shouldn't be interleaved with other goroutines' reads or writes. How
+can one recognize such sequences? How should one decide where a
+sequence ought to start and end?
+
+One approach is to start with code that has no locks, and think
+carefully about where one needs to add locks to attain correctness.
+This approach can be difficult since it requires reasoning about the
+correctness of concurrent code.
+
+A more pragmatic approach starts with the observation that if there
+were no concurrency (no simultaneously executing goroutines), you
+would not need locks at all. But you have concurrency forced on you
+when the RPC system creates goroutines to execute RPC handlers, and
+because you need to send RPCs in separate goroutines to avoid waiting.
+You can effectively eliminate this concurrency by identifying all
+places where goroutines start (RPC handlers, background goroutines you
+create in Make(), &c), acquiring the lock at the very start of each
+goroutine, and only releasing the lock when that goroutine has
+completely finished and returns. This locking protocol ensures that
+nothing significant ever executes in parallel; the locks ensure that
+each goroutine executes to completion before any other goroutine is
+allowed to start. With no parallel execution, it's hard to violate
+Rules 1, 2, 3, or 5. If each goroutine's code is correct in isolation
+(when executed alone, with no concurrent goroutines), it's likely to
+still be correct when you use locks to suppress concurrency. So you
+can avoid explicit reasoning about correctness, or explicitly
+identifying critical sections.
+
+However, Rule 4 is likely to be a problem. So the next step is to find
+places where the code waits, and to add lock releases and re-acquires
+(and/or goroutine creation) as needed, being careful to re-establish
+assumptions after each re-acquire. You may find this process easier to
+get right than directly identifying sequences that must be locked for
+correctness.
+
+(As an aside, what this approach sacrifices is any opportunity for
+better performance via parallel execution on multiple cores: your code
+is likely to hold locks when it doesn't need to, and may thus
+unnecessarily prohibit parallel execution of goroutines. On the other
+hand, there is not much opportunity for CPU parallelism within a
+single Raft peer.)
+
+# Raft Structure Advice
+A Raft instance has to deal with the arrival of external events
+(Start() calls, `AppendEntries` and `RequestVote` RPCs, and RPC replies),
+and it has to execute periodic tasks (elections and heart-beats).
+There are many ways to structure your Raft code to manage these
+activities; this document outlines a few ideas.
+
+Each Raft instance has a bunch of state (the log, the current index,
+&c) which must be updated in response to events arising in concurrent
+goroutines. The Go documentation points out that the goroutines can
+perform the updates directly using shared data structures and locks,
+or by passing messages on channels. Experience suggests that for Raft
+it is most straightforward to use shared data and locks.
+
+A Raft instance has two time-driven activities: the leader must send
+heart-beats, and others must start an election if too much time has
+passed since hearing from the leader. It's probably best to drive each
+of these activities with a dedicated long-running goroutine, rather
+than combining multiple activities into a single goroutine.
+
+The management of the election timeout is a common source of
+headaches. Perhaps the simplest plan is to maintain a variable in the
+Raft struct containing the last time at which the peer heard from the
+leader, and to have the election timeout goroutine periodically check
+to see whether the time since then is greater than the timeout period.
+It's easiest to use `time.Sleep()` with a small constant argument to
+drive the periodic checks. Don't use `time.Ticker` and `time.Timer`;
+they are tricky to use correctly.
+
+You'll want to have a separate long-running goroutine that sends
+committed log entries in order on the `applyCh`. It must be separate,
+since sending on the `applyCh` can block; and it must be a single
+goroutine, since otherwise it may be hard to ensure that you send log
+entries in log order. The code that advances `commitIndex` will need to
+kick the apply goroutine; it's probably easiest to use a condition
+variable (Go's `sync.Cond`) for this.
+
+Each RPC should probably be sent (and its reply processed) in its own
+goroutine, for two reasons: so that unreachable peers don't delay the
+collection of a majority of replies, and so that the heartbeat and
+election timers can continue to tick at all times. It's easiest to do
+the RPC reply processing in the same goroutine, rather than sending
+reply information over a channel.
+
+Keep in mind that the network can delay RPCs and RPC replies, and when
+you send concurrent RPCs, the network can re-order requests and
+replies. Figure 2 is pretty good about pointing out places where RPC
+handlers have to be careful about this (e.g. an RPC handler should
+ignore RPCs with old terms). Figure 2 is not always explicit about RPC
+reply processing. The leader has to be careful when processing
+replies; it must check that the term hasn't changed since sending the
+RPC, and must account for the possibility that replies from concurrent
+RPCs to the same follower have changed the leader's state (e.g.
+`nextIndex`).
