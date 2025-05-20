@@ -2270,9 +2270,22 @@ Date: 2025.5.5-2025.5.13
 - [[doc-notes/go/references/package-documentation/sync/sync|go/references/package-documentation/sync/sync]]
 
 \[Blog\]
-- [[blog-notes/Students' Guide to Raft|Students' Guide to Raft]]
-- [[blog-notes/Instructor's Guide to Raft|Instructor's Guide to Raft]]
+- [[blog-notes/Students' Guide to Raft|Students' Guide to Raft]]: All
+- [[blog-notes/Instructor's Guide to Raft|Instructor's Guide to Raft]]: All
 
 \[Code\]
 - Distributed Systems Lab
     Lab1 MapReduce
+
+### Week 3
+Date: 2025.5.13-2025.5.20
+
+\[Blog\]
+- [[blog-notes/Debugging by Pretty Printing|Debugging by Pretty Printing]]: All
+
+\[Code\]
+- Distributed Systems Lab
+    Lab2 Raft: 2A, 2B, 2C
+
+### Week 4
+Date: 2025.5.20-2025.5.27
