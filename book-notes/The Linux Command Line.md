@@ -1274,8 +1274,112 @@ Many software packages installed on our system have documentation files residing
 >  大多数安装在系统中的软件在 `/usr/share/doc` 中有文档文件，大多数文档文件都以纯文本形式存储，部分以 HTML 格式存储
 >  一些以 `.gz` 后缀的文件表示它们是通过 `gzip` 程序压缩的，`gzip` 包包含了 `zless` ，它可以展示 `gzip` 压缩的文本文件
 
-# Part 3 – Common Tasks and Essential Tools 
+## Creating Our Own Commands with alias 
+Now for our first experience with programming! We will create a command of our own using the alias command. But before we start, we need to reveal a small command line trick. It's possible to put more than one command on a line by separating each command with a semicolon. It works like this: 
 
+```
+command1; command2; command3... 
+```
+
+>  需要在同一行输入多个命令时，可以用 `;` 号隔开
+
+Here's the example we will use: 
+
+```
+[me@linuxbox ~]$ cd /usr; ls; cd - 
+bin games include lib local sbin share src 
+/home/me 
+[me@linuxbox ~]$ 
+```
+
+As we can see, we have combined three commands on one line. First we change directory to `/usr` then list the directory and finally return to the original directory (by using 'cd -') so we end up where we started. Now let's turn this sequence into a new command using alias. The first thing we have to do is dream up a name for our new command. Let's try “test”. Before we do that, it would be a good idea to find out if the name “test” is already being used. To find out, we can use the type command again: 
+
+```
+[me@linuxbox ~]$ type test 
+test is a shell builtin
+```
+
+Oops! The name test is already taken. Let's try foo: 
+
+```
+[me@linuxbox ~]$ type foo 
+bash: type: foo: not found 
+```
+
+Great! “foo” is not taken. So let's create our alias: 
+
+```bash
+[me@linuxbox ~]$ alias foo='cd /usr; ls; cd -'
+```
+
+Notice the structure of this command shown here: 
+
+```bash
+alias name='string'
+```
+
+>  `alias` 命令可以用于创建命令别名
+>  通过 `alias foo='cd /usr; ls; cd-'`，我们创建了别名 `foo` 以指代对应的命令序列
+>  `alias` 的语法为 `alias name='string'`，注意 `=` 两边没有空格
+
+After the command alias, we give alias a name followed immediately (no whitespace allowed) by an equal sign, followed immediately by a quoted string containing the meaning to be assigned to the name. After we define our alias, we can use it anywhere the shell would expect a command. Let's try it: 
+
+```
+[me@linuxbox ~]$ foo 
+bin games include lib local sbin share src 
+/home/me 
+[me@linuxbox ~]$ 
+```
+
+We can also use the type command again to see our alias: 
+
+```
+[me@linuxbox ~]$ type foo 
+foo is aliased to `cd /usr; ls; cd -'
+```
+
+To remove an alias, the unalias command is used, like so: 
+
+```
+[me@linuxbox ~]$ unalias foo 
+[me@linuxbox ~]$ type foo 
+bash: type: foo: not found
+```
+
+>  `unalias` 用于移除别名
+
+While we purposefully avoided naming our alias with an existing command name, it is not uncommon to do so. This is often done to apply a commonly desired option to each invocation of a common command. For instance, we saw earlier how the ls command is often aliased to add color support: 
+
+```
+[me@linuxbox ~]$ type ls
+ls is aliased to `ls --color=tty'
+```
+
+To see all the aliases defined in the environment, use the alias command without arguments. Here are some of the aliases defined by default on a Fedora system. Try to figure out what they all do: 
+
+```
+[me@linuxbox ~]$ alias
+alias l.='ls -d .* --color=tty' 
+alias ll='ls -l --color=tty' 
+alias ls='ls --color=tty'
+```
+
+>  `alias` 命令不带参数可以列出环境中所有的表明
+
+There is one tiny problem with defining aliases on the command line. They vanish when our shell session ends. In Chapter 11, "The Environment", we will see how to add our own aliases to the files that establish the environment each time we log on, but for now, enjoy the fact that we have taken our first, albeit tiny, step into the world of shell programming! 
+
+## Summing Up 
+Now that we have learned how to find the documentation for commands, go and look up the documentation for all the commands we have encountered so far. Study what additional options are available and try them! 
+
+## Further Reading 
+There are many online sources of documentation for Linux and the command line. Here are some of the best: 
+
+- The Bash Reference Manual is a reference guide to the bash shell. It’s still a reference work but contains examples and is easier to read than the bash man page. http://www.gnu.org/software/bash/manual/bashref.html 
+- The Bash FAQ contains answers to frequently asked questions regarding bash. This list is aimed at intermediate to advanced users, but contains a lot of good information.  http://mywiki.wooledge.org/BashFAQ 
+- The GNU Project provides extensive documentation for its programs, which form the core of the Linux command line experience. You can see a complete list here: http://www.gnu.org/manual/manual.html 
+- Wikipedia has an interesting article on man pages:  http://en.wikipedia.org/wiki/Man_page 
+
+# Part 3 – Common Tasks and Essential Tools 
 # 14 Package Management 
 If we spend any time in the Linux community, we hear many opinions as to which of the many Linux distributions is “best.” Often, these discussions get really silly, focusing on such things as the prettiness of the desktop background (some people won't use Ubuntu because of its default color scheme!) and other trivial matters. 
 
@@ -1400,6 +1504,9 @@ For example, to search a `dnf` repository for the emacs text editor, we can use 
 dnf search emacs 
 ```
 
+>  高级工具可以用于搜索仓库元数据，我们可以通过包的名称搜索包
+>  相关命令为 `apt search; dnf search`
+
 ### Installing a Package from a Repository 
 High-level tools permit a package to be downloaded from a repository and installed with full dependency resolution (see Table 14-4). 
 
@@ -1409,88 +1516,315 @@ Table 14-4: Package Installation Commands
 | :------: | :------------------------------------: |
 |  Debian  | `apt update; apt install package_name` |
 | Red  Hat |       `dnf intsall package_name`       |
+
 For example, to install the emacs text editor from an apt repository on a Debian system, we can use this command: 
 
-<html><body><table><tr><td>apt update; apt install emacs</td></tr></table></body></html> 
-# Installing a Package from a Package File 
+```
+apt update; apt install emacs
+```
+
+>  高级工具可以用于安装包，同时自动解析其依赖并安装其依赖
+>  相关命令为 `apt install; dnf install`
+
+### Installing a Package from a Package File 
 If a package file has been downloaded from a source other than a repository, it can be installed directly (though without dependency resolution) using a low-level tool (see Table 14-5). 
 
 Table 14-5: Low-Level Package Installation Commands 
 
-<html><body><table><tr><td>Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -i package_file</td></tr><tr><td>Red Hat</td><td>rpm -i package_file</td></tr></table></body></html> 
+|  Style   |       Command(s)       |
+| :------: | :--------------------: |
+|  Debian  | `dpkg -i package_file` |
+| Red  Hat | `rpm -i package_file`  |
 
-For example, if the emacs-22.1-7.fc7-i386.rpm package file had been downloaded from a non-repository site, it would be installed this way: 
+>  如果我们从其他来源下载了包的文件，则可以用低级工具直接安装它 (但是没有依赖解析)
+>  相关的命令为 `dpkg -i/rpm -i package_file`
 
+For example, if the `emacs-22.1-7.fc7-i386.rpm` package file had been downloaded from a non-repository site, it would be installed this way: 
+
+```
 rpm -i emacs-22.1-7.fc7-i386.rpm 
+```
 
-Note: Because this technique uses the low-level rpm program to perform the installation, no dependency resolution is performed. If rpm discovers a missing de 
+Note: Because this technique uses the low-level rpm program to perform the installation, no dependency resolution is performed. If rpm discovers a missing dependency, rpm will exit with an error. 
 
-pendency, rpm will exit with an error. 
+>  注意，直接使用低级工具安装包时是没有依赖解析的，如果低级工具发现依赖缺失，会直接退出并报错
 
-# Removing a Package 
+### Removing a Package 
 Packages can be uninstalled using either the high-level or low-level tools. The high-level tools are shown in Table 14-6. 
+
 Table 14-6: Package Removal Commands 
-<html><body><table><tr><td>Style</td><td colspan="2">Command(s)</td></tr><tr><td>Debian</td><td>apt remove package_name</td><td></td></tr><tr><td>Red Hat</td><td></td><td>dnf erase package_name</td></tr></table></body></html> 
+
+|  Style   |        Command(s)         |
+| :------: | :-----------------------: |
+|  Debian  | `apt remove package_name` |
+| Red  Hat | `dnf erase package_name`  |
+
 For example, to uninstall the emacs package from a Debian-style system, we can use this command: 
-# Updating Packages from a Repository 
+
+```
+apt remove emacs
+```
+
+>  可以使用高级工具卸载包
+>  相关命令为 `apt remove; dnf erase`
+
+### Updating Packages from a Repository 
 The most common package management task is keeping the system up-to-date with the latest versions of packages. The high-level tools can perform this vital task in a single step (see Table 14-7). 
+
 Table 14-7: Package Update Commands 
-<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>apt update; apt upgrade</td></tr><tr><td>Red Hat</td><td>dnf update</td></tr></table></body></html> 
+
+|  Style   |        Command(s)         |
+| :------: | :-----------------------: |
+|  Debian  | `apt update; apt upgrade` |
+| Red  Hat |       `dnf update`        |
+
 For example, to apply all available updates to the installed packages on a Debian-style system, we can use this command: 
+
+```
 apt update; apt upgrade 
-# Upgrading a Package from a Package File 
+```
+
+>  高级工具可以用于更新已经安装的包
+>  相关命令为 `apt upgrade; dnf update`
+
+### Upgrading a Package from a Package File 
 If an updated version of a package has been downloaded from a non-repository source, it can be installed, replacing the previous version (see Table 14-8). 
+
 Table 14-8: Low-Level Package Upgrade Commands 
-<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -i package_file</td></tr><tr><td>Red Hat</td><td>rpm -U package_file</td></tr></table></body></html> 
-For example, to update an existing installation of emacs to the version contained in the package file emacs-22.1-7.fc7-i386.rpm on a Red Hat system, we can use this command: 
+
+|  Style   |       Command(s)       |
+| :------: | :--------------------: |
+|  Debian  | `dpkg -i package_name` |
+| Red  Hat | `rpm -U package_name`  |
+
+For example, to update an existing installation of emacs to the version contained in the package file `emacs-22.1-7.fc7-i386.rpm` on a Red Hat system, we can use this command: 
+
+```
 rpm -U emacs-22.1-7.fc7-i386.rpm 
-Note: dpkg does not have a specific option for upgrading a package versus installing one as rpm does. 
-# Listing Installed Packages 
+```
+
+Note: `dpkg` does not have a specific option for upgrading a package versus installing one as rpm does. 
+
+>  如果是从其他渠道下载了更新的软件包，则可以使用低级工具进行升级
+>  相关命令为 `dpkg -i; rpm -U` (其中 `dpkg` 的 `-i` 选项是和安装包时用的 `-i` 一样的，而 `rpm` 则安装包时用 `-i` ，更新包时用 `-U`)
+
+### Listing Installed Packages 
 Table 14-9 lists the commands we can use to display a list of all the packages installed on the system. 
+
 Table 14-9: Package Listing Commands 
-<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -l</td></tr><tr><td>Red Hat</td><td>rpm -qa</td></tr></table></body></html> 
-# Determining Whether a Package is Installed 
+
+|  Style   | Command(s) |
+| :------: | :--------: |
+|  Debian  | `dpkg -l`  |
+| Red  Hat | `rpm -qa`  |
+
+>  低级工具可以用于列出系统中安装的所有包
+>  相关命令为 `dpkg -l; rpm -qa`
+
+### Determining Whether a Package is Installed 
 Table 14-10 list the low-level tools we can use to display whether a specified package is installed. 
+
 Table 14-10: Package Status Commands 
-<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -s package_name</td></tr><tr><td>Red Hat</td><td>rpm -q package_name</td></tr></table></body></html> 
+
+|  Style   |      Command (s)       |
+| :------: | :--------------------: |
+|  Debian  | `dpkg -s package_name` |
+| Red  Hat | `rpm -q package_name`  |
+
 For example, to determine whether the emacs package is installed on a Debian style system, we can use this command: 
-<html><body><table><tr><td>dpkg --status emacs</td></tr></table></body></html> 
-# Displaying Information About an Installed Package 
+
+```
+dpkg --status emacs
+```
+
+>  低级工具可以用于查询系统是否安装了特定包
+>  相关命令为 `dpkg -s; rpm -q`
+
+### Displaying Information About an Installed Package 
 If the name of an installed package is known, we can use the commands in Table 14-11 to display a description of the package. 
+
 Table 14-11: Package Information Commands 
-<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>apt show package_name</td></tr><tr><td>Red Hat</td><td>dnf info package_name</td></tr></table></body></html> 
+
+|  Style   |       Command (s)       |
+| :------: | :---------------------: |
+|  Debian  | `apt show package_name` |
+| Red  Hat | `dnf info package_name` |
+
 For example, to see a description of the emacs package on a Debian-style system, we can use this command: 
-<html><body><table><tr><td>apt-cache show emacs</td></tr></table></body></html> 
-# Finding Which Package Installed a File 
+
+```
+apt-cache show emacs
+```
+
+>  高级工具可以用于展示包的详细信息
+>  相关命令为 `apt show; dnf info`
+
+### Finding Which Package Installed a File 
 To determine what package is responsible for the installation of a particular file, we can use the commands in Table 14-12. 
+
 Table 14-12: Package File Identification Commands 
-<html><body><table><tr><td> Style</td><td>Command(s)</td></tr><tr><td>Debian</td><td>dpkg -S file_name</td></tr></table></body></html> 
-<html><body><table><tr><td>Red Hat rpm -qf file_name</td></tr></table></body></html> 
-For example, to see what package installed the /usr/bin/vim file on a Red Hat system, we can use the following: 
+
+|  Style   |     Command (s)     |
+| :------: | :-----------------: |
+|  Debian  | `dpkg -S file_name` |
+| Red  Hat | `rpm -qf file_name` |
+
+For example, to see what package installed the `/usr/bin/vim` file on a Red Hat system, we can use the following: 
+
+```
 rpm -qf /usr/bin/vim 
-# Distribution-Independent Package Formats 
+```
+
+>  低级工具可以用于确定文件具体是由哪个包安装的
+>  相关命令为 `dpkg -S; rpm -qf`
+
+
+**Distribution-Independent Package Formats** 
 Over the last several years distribution vendors have come out with universal package formats that are not tied to a particular Linux distribution. These include Snaps (developed and promoted by Canonical), Flatpaks (pioneered by Red Hat, but now widely available) and AppImages. Though they each work a little differently, their goal is to have an application and all of its dependencies bundled together and installed in a single piece. This is not an entirely new idea. In the early days of Linux (think the late 1990s) the was a technique called static linking which combined an application and its required libraries into a single large binary. 
+>  发行版厂商提出了许多和特定发行版无关的统一包格式，包括了 Snaps, Flatpaks, Applmages 
+>  包虽然格式不同，目的都是绑定应用和其依赖，作为一个整体进行安装
+>  这并不是一个新的思想，类似的思想是静态链接，将应用和其所需的库组合成单个大的二进制文件
+
 There are some benefits to this packaging approach. First among them is reducing the effort needed to distribute an application. Rather than tailoring the application to work with the libraries and other support files included a distribution's base system, the application is built once and can be installed on any system. Some of these formats also run the application in a containerized sandbox to provide additional security. 
+>  这样的打包方法存在好处，首要的好处是减少了分发应用的麻烦，与其调整应用以适应不同发行版的基础系统中所包含的库和支持文件，不如仅构建一次应用，然后可以在任意系统上安装
+>  一些打包格式可以在容器化的沙盒环境中运行应用，带来额外的安全性
+
 But there are some serious downsides too. Applications packaged this way are large. Sometimes really large. This has two effects. First, they require a lot of disk space to store. Second, their large size can make them very slow to load. This may not be much of an issue on modern ultra-fast hardware, but on older machines it’s a real problem. The next technical problem has to do with distribution integration. Since these applications bring all of their stuff with them, they don’t take advantage of the underlying distribution's facilities. Sometimes the containerized application cannot access system resources needed of optimal performance. 
+>  这样的打包方法也存在缺点，这样打包的应用会非常庞大，故需要占用更大的磁盘空间来存储，且其加载速度可能很慢
+>  在现代高性能硬件上，这可能不是问题，但在较旧的设备上就不一定
+>  此外，这样的应用由于自带了所有必要的组件，难以和发行版集成，无法利用发行版的底层实用库
+>  有时，容器化的应用无法访问达到最佳性能所需的系统资源
+
 Then there are the philosophical issues. Perhaps the biggest beneficiary of these all-in-one application packages are proprietary software vendors. They can build a Linux version once and every distribution can use it. No need to custom tailor their application for different distros. 
+>  这样的打包方式的最大受益者可能是软件供应商，它们仅需要构建一次 Linux 版本，每个发行版就都可以使用软件，无需为不同的发行版定制应用
+
 Users were not crying out for these packaging formats and they do little to enhance the open source community, thus until such time the various performance issues are resolved use of these formats is not recommended. 
-# Summing Up 
+
+## Summing Up 
 In the chapters that follow, we will explore many different programs covering a wide range of application areas. While most of these programs are commonly installed by default, we may need to install additional packages if the necessary programs are not provided. With our newfound knowledge (and appreciation) of package management, we should have no problem installing and managing the programs we need. 
-# The Linux Software Installation Myth 
-People migrating from other platforms sometimes fall victim to the myth that software is somehow difficult to install under Linux and that the variety of packaging schemes used by different distributions is a hindrance. Well, it is a hindrance, but only to proprietary software vendors that want to distribute binaryonly versions of their secret software. 
+
+**The Linux Software Installation Myth** 
+People migrating from other platforms sometimes fall victim to the myth that software is somehow difficult to install under Linux and that the variety of packaging schemes used by different distributions is a hindrance. Well, it is a hindrance, but only to proprietary software vendors that want to distribute binary-only versions of their secret software. 
+
 The Linux software ecosystem is based on the idea of open source code. If a program developer releases source code for a program, it is likely that a person associated with a distribution will package the program and include it in their repository. This method ensures that the program is well integrated into the distribution, and the user is given the convenience of “one-stop shopping” for software, rather than having to search for each program's website. Recently, major proprietary platform vendors have begun building application stores that mimic this idea. 
-Device drivers are handled in much the same way, except that instead of being separate items in a distribution's repository, they become part of the Linux kernel. Generally speaking, there is no such thing as a “driver disk” in Linux. Either the kernel supports a device or it doesn't, and the Linux kernel supports a lot of devices. Many more, in fact, than Windows does. Of course, this is of no consolation if the particular device you need is not supported. When that happens, you need to look at the cause. A lack of driver support is usually caused by one of three things: 
+>  通常，如果软件供应者愿意开源，则他不需要担心应用的分发问题，发行版供应商会自行调节软件以和发行版系统集成
+
+Device drivers are handled in much the same way, except that instead of being separate items in a distribution's repository, they become part of the Linux kernel. Generally speaking, there is no such thing as a “driver disk” in Linux. Either the kernel supports a device or it doesn't, and the Linux kernel supports a lot of devices. Many more, in fact, than Windows does. 
+>  设备驱动程序的处理方式和软件打包是大致相同的，只不过它们不是作为发行版软件仓库中的独立项目存在，而是成为 Linux 内核的一部分 (也就是安装 Linux 系统时，大部分设备驱动程序都已经作为内核的一部分被安装了)
+>  一般来说，Linux 中没有 “驱动盘” 的概念 (即依赖于物理的驱动磁盘来安装驱动)，要么 Linux kernel 支持某个设备，要么不支持
+>  事实上，Linux kernel 支持许多设备，比 Windows 支持的设备还要多得多
+
+Of course, this is of no consolation if the particular device you need is not supported. When that happens, you need to look at the cause. A lack of driver support is usually caused by one of three things: 
+>  当然，有时也会出现特定的设备不受支持
+>  缺乏驱动支持通常由以下三种原因造成:
+
 1. The device is too new. Since many hardware vendors don't actively support Linux development, it falls upon a member of the Linux community to write the kernel driver code. This takes time. 
 2. The device is too exotic. Not all distributions include every possible device driver. Each distribution builds its own kernels, and since kernels are very configurable (which is what makes it possible to run Linux on everything from wristwatches to mainframes) they may have overlooked a particular device. By locating and downloading the source code for the driver, it is possible for you (yes, you) to compile and install the driver yourself. This process is not overly difficult, but it is rather involved. We'll talk about compiling software in a later chapter. 
 3. The hardware vendor is hiding something. It has neither released source code for a Linux driver, nor has it released the technical documentation for somebody to create one for them. This means the hardware vendor is trying to keep the programming interfaces to the device a secret. Since we don't want secret devices in our computers, it is best that you avoid such products. 
-# Further Reading 
+
+>  1. 设备太新，因为许多硬件厂商并不积极支持 Linux 开发，故为设备编写 Linux 内核驱动代码的任务通常是 Linux 社区成员，这需要时间
+>  2. 设备太特殊，不是所有的发行版都会包含所有可能的设备驱动，每个发行版都会构建自己的内核，而由于 Linux 内核的可配置性很高 (这使得 Linux 可以在从手表到大型机的各种设备上运行)，发行版的内核可能会忽略特定的设备。我们可以通过找到并下载对应驱动的源代码，并自己编译和安装驱动程序
+>  3. 硬件厂商有所隐藏，它们既没有发布 Linux 驱动程序的源代码，也没有发布技术文档供他人为其创建驱动程序，这意味着硬件厂商试图将设备的编程接口保密，由于我们不希望在计算机中使用秘密设备，最好避免购买此类产品
+
+## Further Reading 
 Spend some time getting to know the package management system for your distribution. Each distribution provides documentation for its package management tools. In addition, here are some more generic sources: 
-The Debian GNU/Linux FAQ chapter on package management provides an over 
-view of package management on Debian systems : 
-https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html 
-The home page for the RPM project: 
-http://www.rpm.org 
-For a little background, the Wikipedia has an article on metadata: 
-http://en.wikipedia.org/wiki/Metadata 
-A good article comparing Snap, Flatpak, and AppImage formats: https:// 
-www.baeldung.com/linux/snaps-flatpak-appimage 
+
+- The Debian GNU/Linux FAQ chapter on package management provides an overview of package management on Debian systems :  https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html 
+- The home page for the RPM project:  http://www.rpm.org 
+- For a little background, the Wikipedia has an article on metadata:  http://en.wikipedia.org/wiki/Metadata 
+- A good article comparing Snap, Flatpak, and AppImage formats: https://www.baeldung.com/linux/snaps-flatpak-appimage 
+
+# Part 4 – Writing Shell Scripts 
+# 24 – Writing Your First Script 
+In the preceding chapters, we have assembled an arsenal of command line tools. While these tools can solve many kinds of computing problems, we are still limited to manually using them one by one on the command line. Wouldn’t it be great if we could get the shell to do more of the work? We can. By joining our tools together into programs of our own design, the shell can carry out complex sequences of tasks all by itself. We can enable it to do this by writing shell scripts. 
+
+## What are Shell Scripts? 
+In the simplest terms, a shell script is a file containing a series of commands. The shell reads this file and carries out the commands as though they have been entered directly on the command line. 
+
+The shell is somewhat unique, in that it is both a powerful command line interface to the system and a scripting language interpreter. As we will see, most of the things that can be done on the command line can be done in scripts, and most of the things that can be done in scripts can be done on the command line. 
+
+We have covered many shell features, but we have focused on those features most often used directly on the command line. The shell also provides a set of features usually (but not always) used when writing programs. 
+
+## How to Write a Shell Script 
+To successfully create and run a shell script, we need to do three things. 
+1. Write a script. Shell scripts are ordinary text files. So, we need a text editor to write them. The best text editors will provide syntax highlighting, allowing us to see a color-coded view of the elements of the script. Syntax highlighting will help us spot certain kinds of common errors. vim, gedit, kate, and many other editors are good candidates for writing scripts. 
+2. Make the script executable. The system is rather fussy about not letting any old text file be treated as a program, and for good reason! We need to set the script file’s permissions to allow execution. 
+3. Put the script somewhere the shell can find it. The shell automatically searches certain directories for executable files when no explicit pathname is specified. For maximum convenience, we will place our scripts in these directories. 
+
+## Script File Format 
+In keeping with programming tradition, we’ll create a “Hello World” program to demonstrate an extremely simple script. Let’s fire up our text editors and enter the following script: 
+#!/bin/bash # This is our first script. echo 'Hello World!' 
+The last line of our script is pretty familiar; it’s just an echo command with a string argument. The second line is also familiar. It looks like a comment that we have seen used in many of the configuration files we have examined and edited. One thing about comments in shell scripts is that they may also appear at the ends of lines, provided they are preceded with at least one whitespace character, like so: 
+echo 'Hello World!' # This is a comment too 
+Everything from the # symbol onward on the line is ignored. 
+Like many things, this works on the command line, too: 
+[me@linuxbox \~]\$ echo 'Hello World!' # This is a comment too Hello World! 
+Though comments are of little use on the command line, they will work. 
+The first line of our script is a little mysterious. It looks as if it should be a comment since it starts with #, but it looks too purposeful to be just that. The #! character sequence is, in fact, a special construct called a shebang. The shebang is used to tell the kernel the name of the interpreter that should be used to execute the script that follows. Every shell script should include this as its first line. 
+Let’s save our script file as hello_world. 
+# Executable Permissions 
+The next thing we have to do is make our script executable. This is easily done using chmod. 
+[me@linuxbox $-]\$1$ ls -l hello_world 
+$-r w-r--r-1$ me me 63 2009-03-07 10:10 hello_world 
+[me@linuxbox \~]\$ chmod 755 hello_world 
+$\mathsf{\Lambda}[\mathsf{m e}\ @\mathsf{l i n u}\times\mathsf{b o}\times\mathsf{\Lambda}\sim]\Phi$ ls -l hello_world 
+-rwxr-xr-x 1 me me 63 2009-03-07 10:10 hello_world 
+There are two common permission settings for scripts: 755 for scripts that everyone can execute, and 700 for scripts that only the owner can execute. Note that scripts must be readable to be executed. 
+
+# Script File Location 
+With the permissions set, we can now execute our script: 
+[me@linuxbox \~]\$ ./hello_world Hello World! 
+For the script to run, we must precede the script name with an explicit path. If we don’t, we get this: 
+[me@linuxbox \~]\$ hello_world bash: hello_world: command not found 
+Why is this? What makes our script different from other programs? As it turns out, nothing. Our script is fine. Its location is the problem. In Chapter 11, we discussed the PATH environment variable and its effect on how the system searches for executable programs. To recap, the system searches a list of directories each time it needs to find an executable program, if no explicit path is specified. This is how the system knows to execute / bin/ls when we type ls at the command line. The /bin directory is one of the directories that the system automatically searches. The list of directories is held within an environment variable named PATH. The PATH variable contains a colon-separated list of directories to be searched. We can view the contents of PATH. 
+[me@linuxbox \~]\$ echo \$PATH 
+/home/me/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin: 
+/bin:/usr/games 
+Here we see our list of directories. If our script iswere located in any of the directories in the list, our problem would be solved. Notice the first directory in the list, /home/me/ bin. Most Linux distributions configure the PATH variable to contain a bin directory in the user’s home directory to allow users to execute their own programs. So, if we create the bin directory and place our script within it, it should start to work like other programs. 
+[me@linuxbox \~]\$ mkdir bin [me@linuxbox \~]\$ mv hello_world bin [me@linuxbox \~]\$ hello_world Hello World! 
+And so it does. 
+If the PATH variable does not contain the directory, we can easily add it by including this line in our .bashrc file: 
+export PATH=\~/bin:"\$PATH" 
+After this change is made, it will take effect in each new terminal session. To apply the change to the current terminal session, we must have the shell re-read the .bashrc file. This can be done by “sourcing” it. 
+[me@linuxbox \~]\$ . .bashrc 
+The dot (.) command is a synonym for the source command, a shell builtin that reads a specified file of shell commands and treats it like input from the keyboard. 
+Note: Ubuntu (and most other Debian-based distributions) automatically adds the \~/bin directory to the PATH variable if the \~/bin directory exists when the user’s .bashrc file is executed. So, on Ubuntu systems, if we create the \~/bin directory and then log out and log in again, everything works. 
+# Good Locations for Scripts 
+The \~/bin directory is a good place to put scripts intended for personal use. If we write a script that everyone on a system is allowed to use, the traditional location is /usr/ local/bin. Scripts intended for use by the system administrator are often located in /usr/local/sbin. In most cases, locally supplied software, whether scripts or compiled programs, should be placed in the /usr/local hierarchy and not in /bin or / usr/bin. These directories are specified by the Linux Filesystem Hierarchy Standard to contain only files supplied and maintained by the Linux distributor. 
+# More Formatting Tricks 
+One of the key goals of serious script writing is ease of maintenance, that is, the ease with which a script may be modified by its author or others to adapt it to changing needs. Making a script easy to read and understand is one way to facilitate easy maintenance. 
+# Long Option Names 
+Many of the commands we have studied feature both short and long option names. For instance, the ls command has many options that can be expressed in either short or long form. For example, the following: 
+[me@linuxbox \~]\$ ls -ad 
+is equivalent to this: 
+<html><body><table><tr><td>[me@linuxbox ~]$ ls --all --directory</td></tr></table></body></html> 
+In the interests of reduced typing, short options are preferred when entering options on the command line, but when writing scripts, long options can provide improved readability. 
+# Indentation and Line-Continuation 
+When employing long commands, readability can be enhanced by spreading the command over several lines. In Chapter 17, we looked at a particularly long example of the find command. 
+[me@linuxbox \~]\$ find playground \( -type f -not -perm 0600 -exec chmod 0600 ‘{}’ ‘;’ \) -or \( -type d -not -perm 0700 -exec chmod 0700 ‘{}’ ‘;’ \) 
+Obviously, this command is a little hard to figure out at first glance. In a script, this com - mand might be easier to understand if written this way: 
+find playground \ \( \ -type f \ -not -perm 0600 \ -exec chmod 0600 ‘{}’ ‘;’ \ \) \ -or \ \( \ -type d \ -not -perm 0700 \ -exec chmod 0700 ‘{}’ ‘;’ \ \) 
+By using line continuations (backslash-linefeed sequences) and indentation, the logic of this complex command is more clearly described to the reader. This technique works on the command line, too, though it is seldom used, as it is awkward to type and edit. One difference between a script and a command line is that the script may employ tab characters to achieve indentation, whereas the command line cannot since tabs are used to activate completion. 
+# Configuring vim For Script Writing 
+The vim text editor has many, many configuration settings. There are several common options that can facilitate script writing. 
+The following turns on syntax highlighting: 
+# :syntax on 
+With this setting, different elements of shell syntax will be displayed in different colors when viewing a script. This is helpful for identifying certain kinds of programming errors. It looks cool, too. Note that for this feature to work, you must have a complete version of vim installed, and the file you are editing must have a shebang indicating the file is a shell script. If you have difficulty with the previous command, try :set syntax=sh instead. 
+The following turns on the option to highlight search results. 
+# :set hlsearch 
+Say we search for the word echo. With this option on, each instance of the word will be highlighted. 
+The following sets the number of columns occupied by a tab character.: 
+# :set tabstop=4 
+The default is eight columns. Setting the value to 4 (which is a common practice) allows long lines to fit more easily on the screen. 
+The following turns on the “auto indent” feature: 
+# :set autoindent 
+This causes vim to indent a new line the same amount as the line just typed. This speeds up typing on many kinds of programming constructs. To stop indentation, press Ctrl-d. 
+These changes can be made permanent by adding these commands (without the leading colon characters) in your ${\sim}/$ .vimrc file. 
+# Summing Up 
+In this first chapter of scripting, we looked at how scripts are written and made to easily execute on our system. We also saw how we can use various formatting techniques to improve the readability (and thus the maintainability) of our scripts. In future chapters, ease of maintenance will come up again and again as a central principle in good script writing. 
+# Further Reading 
+For “Hello World” programs and examples in various programming languages, 
+see: 
+http://en.wikipedia.org/wiki/Hello_world 
+This Wikipedia article talks more about the shebang mechanism: 
+http://en.wikipedia.org/wiki/Shebang_(Unix) 
