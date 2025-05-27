@@ -26,7 +26,7 @@ One approach to coordination is to develop services for each of the different co
 >  实现了更强大原语的服务可以用于实现较弱功能的服务，例如 Chubby 是一个具有强同步保证的锁服务，我们可以利用锁服务实现 leader election, group membership 等功能
 
 When designing our coordination service, we moved away from implementing specific primitives on the server side, and instead we opted for exposing an API that enables application developers to implement their own primitives. Such a choice led to the implementation of a coordination kernel that enables new primitives without requiring changes to the service core. This approach enables multiple forms of coordination adapted to the requirements of applications, instead of constraining developers to a fixed set of primitives. 
->  在设计我们的 coordination  service 时，我们放弃了在服务端实现特定原语的做法，而是选择提供一个 API，让应用开发者可以自行实现他们的原语
+>  在设计我们的 coordination service 时，我们放弃了在服务端实现特定原语的做法，而是选择提供一个 API，让应用开发者可以自行实现他们的原语
 >  这驱使我们实现一个 coordination kernel，基于该 kernel，能够在不更改服务核心的情况下实现新的原语，这使得我们可以基于其开发适应应用程序需求的多种形式的 coordination，而不是限制开发者使用一组固定的原语
 
 >  ZooKeeper 实现了 coordination kernel，并提供了 API，分布式应用可以基于 API，利用 kernel 实现特定的 coordination 服务

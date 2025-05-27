@@ -2087,7 +2087,7 @@ doSomethingForAWhile()
 ```
 
 Receivers always block until there is data to receive. If the channel is unbuffered, the sender blocks until the receiver has received the value. If the channel has a buffer, the sender blocks only until the value has been copied to the buffer; if the buffer is full, this means waiting until some receiver has retrieved a value.
->  通道的接收者总是会阻塞，知道有东西可以接收
+>  通道的接收者总是会阻塞，直到有东西可以接收
 >  如果通道是无缓冲的，发送者也会阻塞，直到接收者接收到值
 >  如果通道有缓冲，发送者只会阻塞到值被复制到缓冲区为止，如果缓冲区慢，则意味着需要等待某个接收者取走一个值为止
 
