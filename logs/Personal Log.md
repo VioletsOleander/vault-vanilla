@@ -2287,5 +2287,11 @@ Date: 2025.5.13-2025.5.20
 - Distributed Systems Lab
     Lab2 Raft: 2A, 2B, 2C
 
-### Week 4
+### Week 4 
 Date: 2025.5.20-2025.5.27
+
+\[Code\]
+- Distributed Systems Lab
+    Lab2 Raft: 2D
+    Lab3 Fault-tolerance Key-Value Service: 3A, 3B
+
