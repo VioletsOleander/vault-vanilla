@@ -261,27 +261,64 @@ We also store secondary information in the METADATA table, including a log of al
 
 ## 5.2 Tablet Assignment 
 Each tablet is assigned to one tablet server at a time. The master keeps track of the set of live tablet servers, and the current assignment of tablets to tablet servers, including which tablets are unassigned. When a tablet is unassigned, and a tablet server with sufficient room for the tablet is available, the master assigns the tablet by sending a tablet load request to the tablet server. 
+>  master server 追踪所有活跃的 tablet servers，以及当前对各个 tablet server 的 tablet 分配情况，以及还有哪些 tablet 尚未被分配
+>  如果存在尚未被分配的 tablet，且存在具有可用空间的 tablet server 时，master 就向该 tablet server 发送 tablet load requets，将该 tablet 分配给该 tablet server
 
-Bigtable uses Chubby to keep track of tablet servers. When a tablet server starts, it creates, and acquires an exclusive lock on, a uniquely-named file in a specific Chubby directory. The master monitors this directory (the servers directory) to discover tablet servers. A tablet server stops serving its tablets if it loses its exclusive lock: e.g., due to a network partition that caused the server to lose its Chubby session. (Chubby provides an efficient mechanism that allows a tablet server to check whether it still holds its lock without incurring network traffic.) A tablet server will attempt to reacquire an exclusive lock on its file as long as the file still exists. If the file no longer exists, then the tablet server will never be able to serve again, so it kills itself. Whenever a tablet server terminates (e.g., because the cluster management system is removing the tablet server’s machine from the cluster), it attempts to release its lock so that the master will reassign its tablets more quickly. 
+Bigtable uses Chubby to keep track of tablet servers. When a tablet server starts, it creates, and acquires an exclusive lock on, a uniquely-named file in a specific Chubby directory. The master monitors this directory (the servers directory) to discover tablet servers. A tablet server stops serving its tablets if it loses its exclusive lock: e.g., due to a network partition that caused the server to lose its Chubby session. (Chubby provides an efficient mechanism that allows a tablet server to check whether it still holds its lock without incurring network traffic.) 
+>  Bigtable 使用 Chubby 来追踪 tablet servers
+>  一个 tablet server 启动后，会在特定的 Chubby 目录 (`servers` 目录) 下对一个名称唯一的文件获取互斥锁
+>  master server 监控该目录，以判断哪些 tablet server 是活跃的
+>  tablet server 如果发现它自己失去了其互斥锁 (例如因为网络导致 Chubby 会话断开，Chubby 提供了一个高效的机制，使得 tablet server 在不需要产生网络流量的情况下可以检查它是否仍然持有锁)，则 tablet server 会停止服务
 
-The master is responsible for detecting when a tablet server is no longer serving its tablets, and for reassigning those tablets as soon as possible. To detect when a tablet server is no longer serving its tablets, the master periodically asks each tablet server for the status of its lock. If a tablet server reports that it has lost its lock, or if the master was unable to reach a server during its last several attempts, the master attempts to acquire an exclusive lock on the server’s file. If the master is able to acquire the lock, then Chubby is live and the tablet server is either dead or having trouble reaching Chubby, so the master ensures that the tablet server can never serve again by deleting its server file. Once a server’s file has been deleted, the master can move all the tablets that were previously assigned to that server into the set of unassigned tablets. To ensure that a Bigtable cluster is not vulnerable to networking issues between the master and Chubby, the master kills itself if its Chubby session expires. However, as described above, master failures do not change the assignment of tablets to tablet servers. 
+A tablet server will attempt to reacquire an exclusive lock on its file as long as the file still exists. If the file no longer exists, then the tablet server will never be able to serve again, so it kills itself. 
+>  如果对应的文件仍然存在，tablet server 会重新尝试获取互斥锁
+>  如果文件不存在，则 tablet server 需要自行终止，不再提供服务
+
+Whenever a tablet server terminates (e.g., because the cluster management system is removing the tablet server’s machine from the cluster), it attempts to release its lock so that the master will reassign its tablets more quickly. 
+>  当 tablet server 因为某些原因需要终止时 (例如集群管理系统将 tablet server 所在的机器移出集群)，它会尝试释放自己持有的锁，便于 master 迅速将其 tablets 重新分配
+
+The master is responsible for detecting when a tablet server is no longer serving its tablets, and for reassigning those tablets as soon as possible. To detect when a tablet server is no longer serving its tablets, the master periodically asks each tablet server for the status of its lock. If a tablet server reports that it has lost its lock, or if the master was unable to reach a server during its last several attempts, the master attempts to acquire an exclusive lock on the server’s file. If the master is able to acquire the lock, then Chubby is live and the tablet server is either dead or having trouble reaching Chubby, so the master ensures that the tablet server can never serve again by deleting its server file. Once a server’s file has been deleted, the master can move all the tablets that were previously assigned to that server into the set of unassigned tablets.
+>  master 需要定期检查某个 tablet server 是否已经停止服务，然后将其负责的 tablets 尽快重新分配
+>  故 master 会周期性检查各个 tablet server 的锁，如果发现该锁被释放，或者 master 在最近几次尝试中都无法联系 tablet server，则 master 会自己尝试获取该锁
+>  如果 master 获取了该锁，说明要么 tablet server 故障，要么由于网络问题无法联系 Chubby 服务，此时 master 会删除该文件，确保 tablet server 不会再提供服务，然后将之前分配的 tablets 记作未分配
+
+To ensure that a Bigtable cluster is not vulnerable to networking issues between the master and Chubby, the master kills itself if its Chubby session expires. However, as described above, master failures do not change the assignment of tablets to tablet servers. 
+>  为了确保 Bigtable 集群不会由于 master 和 Chubby 之间的网络问题而出现故障，master 会在其 Chubby 会话过期后终止自己
+>  master 的故障不会改变 tablets 的分配情况
 
 When a master is started by the cluster management system, it needs to discover the current tablet assignments before it can change them. The master executes the following steps at startup. (1) The master grabs a unique master lock in Chubby, which prevents concurrent master instantiations. (2) The master scans the servers directory in Chubby to find the live servers. (3) The master communicates with every live tablet server to discover what tablets are already assigned to each server. (4) The master scans the METADATA table to learn the set of tablets. Whenever this scan encounters a tablet that is not already assigned, the master adds the tablet to the set of unassigned tablets, which makes the tablet eligible for tablet assignment. 
+>  新的 master 被集群管理系统启动后，它需要先确认当前的 tablet 分配情况
+>  故它会在启动时执行:
+>  1. 在 Chubby 中获取唯一的 master lock，以避免其他 master 启动
+>  2. 扫描 Chubby 的 `serveres` 目录，确认活跃的 tablet servers
+>  3. 和活跃的 tablet server 通讯，确定 tablets 的分配情况
+>  4. 扫描 `METADATA` table，确定总的 tablets 集合，当发现没有被分配的 tablet 时，它将该 tablet 加入未分配集合，使得该 tablet 可以在未来被分配
 
 One complication is that the scan of the METADATA table cannot happen until the METADATA tablets have been assigned. Therefore, before starting this scan (step 4), the master adds the root tablet to the set of unassigned tablets if an assignment for the root tablet was not discovered during step 3. This addition ensures that the root tablet will be assigned. Because the root tablet contains the names of all METADATA tablets, the master knows about all of them after it has scanned the root tablet. 
+>  一个问题是 `METADATA` table 只有在 `METADATA` tablets 都被分配后，才能被扫描
+>  因此，在 step 4 之前，master 会先将 root tablet 加入未分配集合 (如果在 step 3 没有发现有 tablet server 当前被分配了 root tablet)
+>  这确保了 root tablet 将会被分配，而因为 root tablet 包含了所有 `METADATA` tablets 的名字，故在 root tablet 被分配之后，master 就可以获取所有 `METADATA` tablets 的名字和位置
+>  (此时，如果有未分配的 `METADATA` tablet，就先分配，然后再读，最终 master 可以知道总的 tablets 集合及其各自的位置情况，完成初始化)
 
-The set of existing tablets only changes when a table is created or deleted, two existing tablets are merged to form one larger tablet, or an existing tablet is split into two smaller tablets. The master is able to keep track of these changes because it initiates all but the last. Tablet splits are treated specially since they are initiated by a tablet server. The tablet server commits the split by recording information for the new tablet in the METADATA table. When the split has committed, it notifies the master. In case the split notification is lost (either because the tablet server or the master died), the master detects the new tablet when it asks a tablet server to load the tablet that has now split. The tablet server will notify the master of the split, because the tablet entry it finds in the METADATA table will specify only a portion of the tablet that the master asked it to load. 
+The set of existing tablets only changes when a table is created or deleted, two existing tablets are merged to form one larger tablet, or an existing tablet is split into two smaller tablets. The master is able to keep track of these changes because it initiates all but the last. Tablet splits are treated specially since they are initiated by a tablet server. The tablet server commits the split by recording information for the new tablet in the METADATA table. When the split has committed, it notifies the master. 
+>  现存的 tablets 集合仅在 table 被创建或被删除时才变化
+>  两个 tablets 可以被合并为一个更大的 tablet，一个 tablet 也可以被划分为两个更小的 tablets
+>  master 负责发起 table 创建、删除和 tablet 的合并
+>  tablet server 负责自行发起 tablet 划分，tablet server 通过再 `METADATA` table 记录新的 tablet 信息来提交该划分操作，操作提交后，tablet server 会通知 master
+
+In case the split notification is lost (either because the tablet server or the master died), the master detects the new tablet when it asks a tablet server to load the tablet that has now split. The tablet server will notify the master of the split, because the tablet entry it finds in the METADATA table will specify only a portion of the tablet that the master asked it to load. 
+>  如果通知丢失，master 会在向 tablet server 请求已经被划分的 tablet 时，知道划分操作已经被执行 (tablet server 会在按照 mater 的请求从 `METADATA` table 中寻找 tablet entry 时，发现该 tablet entry 仅匹配 master 请求的 tablet 的一部分，故发现 tablet 已经被划分，进而通知 master)
 
 ## 5.3 Tablet Serving 
 The persistent state of a tablet is stored in GFS, as illustrated in Figure 5. Updates are committed to a commit log that stores redo records. Of these updates, the recently committed ones are stored in memory in a sorted buffer called a memtable; the older updates are stored in a sequence of SSTables. To recover a tablet, a tablet server reads its metadata from the METADATA table. This metadata contains the list of SSTables that comprise a tablet and a set of a redo points, which are pointers into any commit logs that may contain data for the tablet. The server reads the indices of the SSTables into memory and reconstructs the memtable by applying all of the updates that have committed since the redo points. 
 
-![](https://cdn-mineru.openxlab.org.cn/extract/5cf648ed-fd33-4470-8985-1ac3b24bba26/aa142482ed413297b9b2601cbf61ab637a5d500f0cfe2687cf6df526c9eb68ef.jpg) 
-
-Figure 5: Tablet Representation 
 When a write operation arrives at a tablet server, the server checks that it is well-formed, and that the sender is authorized to perform the mutation. Authorization is performed by reading the list of permitted writers from a Chubby file (which is almost always a hit in the Chubby client cache). A valid mutation is written to the commit log. Group commit is used to improve the throughput of lots of small mutations [13, 16]. After the write has been committed, its contents are inserted into the memtable. 
+
 When a read operation arrives at a tablet server, it is similarly checked for well-formedness and proper authorization. A valid read operation is executed on a merged view of the sequence of SSTables and the memtable. Since the SSTables and the memtable are lexicographically sorted data structures, the merged view can be formed efficiently. 
+
 Incoming read and write operations can continue while tablets are split and merged. 
-# 5.4 Compactions 
+
+## 5.4 Compactions 
 As write operations execute, the size of the memtable increases. When the memtable size reaches a threshold, the memtable is frozen, a new memtable is created, and the frozen memtable is converted to an SSTable and written to GFS. This minor compaction process has two goals: it shrinks the memory usage of the tablet server, and it reduces the amount of data that has to be read from the commit log during recovery if this server dies. Incoming read and write operations can continue while compactions occur. 
 Every minor compaction creates a new SSTable. If this behavior continued unchecked, read operations might need to merge updates from an arbitrary number of SSTables. Instead, we bound the number of such files by periodically executing a merging compaction in the background. A merging compaction reads the contents of a few SSTables and the memtable, and writes out a new SSTable. The input SSTables and memtable can be discarded as soon as the compaction has finished. 
 A merging compaction that rewrites all SSTables into exactly one SSTable is called a major compaction. SSTables produced by non-major compactions can contain special deletion entries that suppress deleted data in older SSTables that are still live. A major compaction, on the other hand, produces an SSTable that contains no deletion information or deleted data. Bigtable cycles through all of its tablets and regularly applies major compactions to them. These major compactions allow Bigtable to reclaim resources used by deleted data, and also allow it to ensure that deleted data disappears from the system in a timely fashion, which is important for services that store sensitive data. 
