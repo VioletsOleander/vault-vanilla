@@ -1740,65 +1740,164 @@ In the preceding chapters, we have assembled an arsenal of command line tools. W
 
 ## What are Shell Scripts? 
 In the simplest terms, a shell script is a file containing a series of commands. The shell reads this file and carries out the commands as though they have been entered directly on the command line. 
+>  shell script 本质上就是包含了一系列命令的文件
+>  shell 读取该文件，并执行这些命令，就好像这些命令直接被输入到命令行一样
 
 The shell is somewhat unique, in that it is both a powerful command line interface to the system and a scripting language interpreter. As we will see, most of the things that can be done on the command line can be done in scripts, and most of the things that can be done in scripts can be done on the command line. 
+>  shell 即是系统的一个命令行接口，也是一个脚本语言解释器
+>  大多数在命令行上能完成的操作可以在脚本上实现，大多数可以在脚本上完成的操作也可以在命令行上完成
 
 We have covered many shell features, but we have focused on those features most often used directly on the command line. The shell also provides a set of features usually (but not always) used when writing programs. 
+>  shell 提供了直接在命令行使用的一些特性，也提供了在编写脚本时使用的一些特性
 
 ## How to Write a Shell Script 
 To successfully create and run a shell script, we need to do three things. 
+
 1. Write a script. Shell scripts are ordinary text files. So, we need a text editor to write them. The best text editors will provide syntax highlighting, allowing us to see a color-coded view of the elements of the script. Syntax highlighting will help us spot certain kinds of common errors. vim, gedit, kate, and many other editors are good candidates for writing scripts. 
+>  shell scripts 本质是文本文件
+
 2. Make the script executable. The system is rather fussy about not letting any old text file be treated as a program, and for good reason! We need to set the script file’s permissions to allow execution. 
+>  我们需要让系统将 shell scripts 视为可执行的 (文本) 文件，故需要修改文件的权限
+
 3. Put the script somewhere the shell can find it. The shell automatically searches certain directories for executable files when no explicit pathname is specified. For maximum convenience, we will place our scripts in these directories. 
 
 ## Script File Format 
 In keeping with programming tradition, we’ll create a “Hello World” program to demonstrate an extremely simple script. Let’s fire up our text editors and enter the following script: 
-#!/bin/bash # This is our first script. echo 'Hello World!' 
+
+```shell
+#!/bin/bash 
+
+# This is our first script. 
+
+echo 'Hello World!' 
+```
+
 The last line of our script is pretty familiar; it’s just an echo command with a string argument. The second line is also familiar. It looks like a comment that we have seen used in many of the configuration files we have examined and edited. One thing about comments in shell scripts is that they may also appear at the ends of lines, provided they are preceded with at least one whitespace character, like so: 
+
+```shell
 echo 'Hello World!' # This is a comment too 
-Everything from the # symbol onward on the line is ignored. 
+```
+
+Everything from the `#` symbol onward on the line is ignored. 
+
+>  shell 脚本中特定的行就是特定的命令，例如 `echo 'Hello World!'`
+>  shell 脚本支持 `#` 作为注释，在行内注释时，注意 `#` 前面要有至少一个空格
+
 Like many things, this works on the command line, too: 
-[me@linuxbox \~]\$ echo 'Hello World!' # This is a comment too Hello World! 
+
+```
+[me@linuxbox ~]$ echo 'Hello World!' # This is a comment too 
+Hello World! 
+```
+
 Though comments are of little use on the command line, they will work. 
-The first line of our script is a little mysterious. It looks as if it should be a comment since it starts with #, but it looks too purposeful to be just that. The #! character sequence is, in fact, a special construct called a shebang. The shebang is used to tell the kernel the name of the interpreter that should be used to execute the script that follows. Every shell script should include this as its first line. 
-Let’s save our script file as hello_world. 
-# Executable Permissions 
-The next thing we have to do is make our script executable. This is easily done using chmod. 
-[me@linuxbox $-]\$1$ ls -l hello_world 
-$-r w-r--r-1$ me me 63 2009-03-07 10:10 hello_world 
-[me@linuxbox \~]\$ chmod 755 hello_world 
-$\mathsf{\Lambda}[\mathsf{m e}\ @\mathsf{l i n u}\times\mathsf{b o}\times\mathsf{\Lambda}\sim]\Phi$ ls -l hello_world 
--rwxr-xr-x 1 me me 63 2009-03-07 10:10 hello_world 
+
+>  实际上，在命令行中也可以写行内注释
+
+The first line of our script is a little mysterious. It looks as if it should be a comment since it starts with #, but it looks too purposeful to be just that. The `#!` character sequence is, in fact, a special construct called a shebang. The shebang is used to tell the kernel the name of the interpreter that should be used to execute the script that follows. Every shell script should include this as its first line. 
+>  `#!` 被称为 shebang，它用于告诉 kernel 使用哪个解释器来执行该脚本
+>  所有的 shell 脚本的第一行都应该有 shebang
+
+Let’s save our script file as `hello_world`. 
+
+## Executable Permissions 
+The next thing we have to do is make our script executable. This is easily done using `chmod`. 
+
+```
+[me@linuxbox ~]$ ls -l hello_world
+-rw-r--r-- 1 me me 63 2009-03-07 10:10 hello_world 
+[me@linuxbox ~]$ chmod 755 hello_world
+[me@linuxbox ~]$ ls -l hello_world
+-rwxr-xr-x 1 me me 63 2009-03-07 10:10 hello_world
+```
+
 There are two common permission settings for scripts: 755 for scripts that everyone can execute, and 700 for scripts that only the owner can execute. Note that scripts must be readable to be executed. 
 
-# Script File Location 
+>  `chomd` 用于更改文件权限
+>  脚本常用的权限有 `755` (所有人可以执行), `700` 只有拥有者可以执行，注意，脚本在可以被执行之前，必须要可以被读 (因此不存在 `711` 这样的权限)
+
+## Script File Location 
 With the permissions set, we can now execute our script: 
-[me@linuxbox \~]\$ ./hello_world Hello World! 
+
+```
+[me@linuxbox ~]$ ./hello_world
+Hello World!
+```
+
 For the script to run, we must precede the script name with an explicit path. If we don’t, we get this: 
-[me@linuxbox \~]\$ hello_world bash: hello_world: command not found 
-Why is this? What makes our script different from other programs? As it turns out, nothing. Our script is fine. Its location is the problem. In Chapter 11, we discussed the PATH environment variable and its effect on how the system searches for executable programs. To recap, the system searches a list of directories each time it needs to find an executable program, if no explicit path is specified. This is how the system knows to execute / bin/ls when we type ls at the command line. The /bin directory is one of the directories that the system automatically searches. The list of directories is held within an environment variable named PATH. The PATH variable contains a colon-separated list of directories to be searched. We can view the contents of PATH. 
-[me@linuxbox \~]\$ echo \$PATH 
-/home/me/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin: 
-/bin:/usr/games 
+
+```
+[me@linuxbox ~]$ hello_world
+bash: hello_world: command not found
+```
+
+>  设定好权限后，在命令行，对 script 文件名之前添加显式的路径，就可以运行该脚本
+>  但直接输入文件名则不行
+
+Why is this? What makes our script different from other programs? As it turns out, nothing. Our script is fine. Its location is the problem. In Chapter 11, we discussed the PATH environment variable and its effect on how the system searches for executable programs. To recap, the system searches a list of directories each time it needs to find an executable program, if no explicit path is specified. This is how the system knows to execute /bin/ls when we type ls at the command line. The /bin directory is one of the directories that the system automatically searches. The list of directories is held within an environment variable named PATH. The PATH variable contains a colon-separated list of directories to be searched. We can view the contents of PATH. 
+>  原因在于，当系统需要找到一个可执行程序时，它会搜索由 `PATH` 环境变量指定的目录列表中的 (以 `:` 分隔的) 各个目录
+>  例如常见的 `/home/<user_name>/bin`
+>  而我们的 shell 脚本名不在 `PATH` 指定的目录中，故直接输入文件名，shell 是找不到它的，故我们需要显式写出它的路径
+
+```
+[me@linuxbox ~]$ echo $PATH /home/me/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin: /bin:/usr/games
+```
+
 Here we see our list of directories. If our script iswere located in any of the directories in the list, our problem would be solved. Notice the first directory in the list, /home/me/ bin. Most Linux distributions configure the PATH variable to contain a bin directory in the user’s home directory to allow users to execute their own programs. So, if we create the bin directory and place our script within it, it should start to work like other programs. 
-[me@linuxbox \~]\$ mkdir bin [me@linuxbox \~]\$ mv hello_world bin [me@linuxbox \~]\$ hello_world Hello World! 
+
+```
+[me@linuxbox ~]$ mkdir bin 
+[me@linuxbox ~]$ mv hello_world bin 
+[me@linuxbox ~]$ hello_world
+
+Hello World!
+```
+
 And so it does. 
-If the PATH variable does not contain the directory, we can easily add it by including this line in our .bashrc file: 
-export PATH=\~/bin:"\$PATH" 
-After this change is made, it will take effect in each new terminal session. To apply the change to the current terminal session, we must have the shell re-read the .bashrc file. This can be done by “sourcing” it. 
-[me@linuxbox \~]\$ . .bashrc 
+
+>  因此，如果 shell 脚本在 `PATH` 中的目录中，我们可以直接输入脚本名字运行它
+
+If the PATH variable does not contain the directory, we can easily add it by including this line in our `.bashrc` file: 
+
+```
+export PATH=~/bin:"$PATH"
+```
+
+After this change is made, it will take effect in each new terminal session. To apply the change to the current terminal session, we must have the shell re-read the `.bashrc` file. This can be done by “sourcing” it. 
+
+```
+[me@linuxbox ~]$ . .bashrc
+```
+
 The dot (.) command is a synonym for the source command, a shell builtin that reads a specified file of shell commands and treats it like input from the keyboard. 
-Note: Ubuntu (and most other Debian-based distributions) automatically adds the \~/bin directory to the PATH variable if the \~/bin directory exists when the user’s .bashrc file is executed. So, on Ubuntu systems, if we create the \~/bin directory and then log out and log in again, everything works. 
-# Good Locations for Scripts 
-The \~/bin directory is a good place to put scripts intended for personal use. If we write a script that everyone on a system is allowed to use, the traditional location is /usr/ local/bin. Scripts intended for use by the system administrator are often located in /usr/local/sbin. In most cases, locally supplied software, whether scripts or compiled programs, should be placed in the /usr/local hierarchy and not in /bin or / usr/bin. These directories are specified by the Linux Filesystem Hierarchy Standard to contain only files supplied and maintained by the Linux distributor. 
-# More Formatting Tricks 
+
+>  我们可以通过 `export` 将 `PATH` 的更新命令写入 `.bashrc` 文件
+>  之后的每个新终端会话就都会更新 `PATH`
+>  要在当前会话更新，则需要自行用 `source` (或 `.`) 重新执行 `.bashrc`
+>  `.` 是 `source` 的同义词，它是 shell 内建命令，读取指定的文件或 shell 命令，将其视作从键盘输入，然后执行它
+
+Note: Ubuntu (and most other Debian-based distributions) automatically adds the \~/bin directory to the PATH variable if the \~/bin directory exists when the user’s `.bashrc` file is executed. So, on Ubuntu systems, if we create the \~/bin directory and then log out and log in again, everything works. 
+
+### Good Locations for Scripts 
+The \~/bin directory is a good place to put scripts intended for personal use. If we write a script that everyone on a system is allowed to use, the traditional location is /usr/local/bin. Scripts intended for use by the system administrator are often located in /usr/local/sbin. In most cases, locally supplied software, whether scripts or compiled programs, should be placed in the /usr/local hierarchy and not in /bin or / usr/bin. These directories are specified by the Linux Filesystem Hierarchy Standard to contain only files supplied and maintained by the Linux distributor. 
+>  如果我们要编写供个人使用的脚本，`~/bin` 目录是存放脚本的好地方
+>  如果我们要编写供系统所有用户使用的脚本，则一般的位置是 `/usr/local/bin`，共系统管理员使用的脚本一般放在 `/usr/local/sbin`
+>  大多数情况下，本地提供的软件，无论是脚本还是编译后的程序，都应放在 `/usr/local` 内，而不是 `/bin` 或 `/usr/bin`
+>  根据 Linux 文件系统层次标准，`/bin, /usr/bin` 只应该包含由 Linux 发行商提供和维护的文件
+
+## More Formatting Tricks 
 One of the key goals of serious script writing is ease of maintenance, that is, the ease with which a script may be modified by its author or others to adapt it to changing needs. Making a script easy to read and understand is one way to facilitate easy maintenance. 
 # Long Option Names 
 Many of the commands we have studied feature both short and long option names. For instance, the ls command has many options that can be expressed in either short or long form. For example, the following: 
-[me@linuxbox \~]\$ ls -ad 
+
+[ me@linuxbox \~]\$ ls -ad 
+
 is equivalent to this: 
-<html><body><table><tr><td>[me@linuxbox ~]$ ls --all --directory</td></tr></table></body></html> 
+
+<html><body><table><tr><td>[ me@linuxbox ~]$ ls --all --directory</td></tr></table></body></html> 
+
 In the interests of reduced typing, short options are preferred when entering options on the command line, but when writing scripts, long options can provide improved readability. 
+
 # Indentation and Line-Continuation 
 When employing long commands, readability can be enhanced by spreading the command over several lines. In Chapter 17, we looked at a particularly long example of the find command. 
 [me@linuxbox \~]\$ find playground \( -type f -not -perm 0600 -exec chmod 0600 ‘{}’ ‘;’ \) -or \( -type d -not -perm 0700 -exec chmod 0700 ‘{}’ ‘;’ \) 
