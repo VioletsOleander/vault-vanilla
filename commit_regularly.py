@@ -15,14 +15,11 @@ class GitCommitRegularly:
                             help="specify 'daily' for a daily commit, 'weekly' for a weekly commit, or 'monthly' for a monthly commit.")
         parser.add_argument('-l', '--late', action="store_true",
                             help="for daily commit, if specified, generate headline for the previous day")
-        parser.add_argument('--allow-empty', action="store_true",
-                            help="allow empty commit")
         args = parser.parse_args()
 
         self.args = args
         self.status = args.status
         self.late = args.late
-        self.allow_empty = args.allow_empty
 
     def generate_headline(self) -> str:
         today = datetime.datetime.today()
@@ -64,11 +61,8 @@ class GitCommitRegularly:
     def execute(self):
         self.parse_args()
         self.generate_headline()
-        if self.allow_empty:
-            subprocess.run(['git', 'commit', '--allow-empty',
+        subprocess.run(['git', 'commit', '--allow-empty',
                            '-e', '-m', self.headline])
-        else:
-            subprocess.run(['git', 'commit', '-e', '-m', self.headline])
 
 
 if __name__ == "__main__":
