@@ -1,3 +1,6 @@
+---
+version: "12.9"
+---
 # 1. Introduction
 ## 1.1. The Benefits of Using GPUs
 The Graphics Processing Unit (GPU) [1](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#fn1) provides much higher instruction throughput and memory bandwidth than the CPU within a similar price and power envelope. Many applications leverage these higher capabilities to run faster on the GPU than on the CPU (see [GPU Applications](https://www.nvidia.com/object/gpu-applications.html)). Other computing devices, like FPGAs, are also very energy efficient, but offer much less programming flexibility than GPUs.
@@ -400,8 +403,20 @@ The _compute capability_ of a device is represented by a version number, also 
 The compute capability comprises a major revision number _X_ and a minor revision number _Y_ and is denoted by _X.Y_.
 > compute capability 包括主版本号和子版本号，记作 X.Y
 
-Devices with the same major revision number are of the same core architecture. The major revision number is 9 for devices based on the _NVIDIA Hopper GPU_ architecture, 8 for devices based on the _NVIDIA Ampere GPU_ architecture, 7 for devices based on the _Volta_ architecture, 6 for devices based on the _Pascal_ architecture, 5 for devices based on the _Maxwell_ architecture, and 3 for devices based on the _Kepler_ architecture.
-> 相同主版本号的设备有相同的核心架构
+The major revision number indicates the core GPU architecture of a device. Devices with the same major revision number share the same fundamental architecture. The table below lists the major revision numbers corresponding to each NVIDIA GPU architecture.
+>  主版本号表示设备的核心 GPU 架构，相同主版本号的设备有相同的核心架构
+
+Table 2 GPU Architecture and Major Revision Numbers
+
+| Major Revision Number | NVIDIA GPU Architecture         |
+| --------------------- | ------------------------------- |
+| 9                     | NVIDIA Hopper GPU Architecture  |
+| 8                     | NVIDIA Ampere GPU Architecture  |
+| 7                     | NVIDIA Volta GPU Architecture   |
+| 6                     | NVIDIA Pascal GPU Architecture  |
+| 5                     | NVIDIA Maxwell GPU Architecture |
+| 3                     | NVIDIA Kepler GPU Architecture  |
+
 > 各架构的主版本号如下：
 > Hopper - 9
 > Ampere - 8
@@ -413,10 +428,15 @@ Devices with the same major revision number are of the same core architecture. T
 The minor revision number corresponds to an incremental improvement to the core architecture, possibly including new features.
 > 子版本号对应于对核心架构的增量式提升，可能会带有新特性
 
-_Turing_ is the architecture for devices of compute capability 7.5, and is an incremental update based on the _Volta_ architecture.
+Table 3 Incremental Updates in GPU Architectures
+
+|Compute Capability|NVIDIA GPU Architecture|Based On|
+|---|---|---|
+|7.5|NVIDIA Turing GPU Architecture|NVIDIA Volta GPU Architecture|
+
 > 版本号为 7.5 的架构为 Turing 架构，该架构是 Volta 架构的增量更新
 
-[CUDA-Enabled GPUs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-enabled-gpus) lists of all CUDA-enabled devices along with their compute capability. [Compute Capabilities](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities) gives the technical specifications of each compute capability.
+[CUDA-Enabled GPUs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/#cuda-enabled-gpus) lists of all CUDA-enabled devices along with their compute capability. [Compute Capabilities](https://docs.nvidia.com/cuda/cuda-c-programming-guide/#compute-capabilities) gives the technical specifications of each compute capability.
 
 Note
 The compute capability version of a particular GPU should not be confused with the CUDA version (for example, CUDA 7.5, CUDA 8, CUDA 9), which is the version of the CUDA _software platform_. The CUDA platform is used by application developers to create applications that run on many generations of GPU architectures, including future GPU architectures yet to be invented. While new versions of the CUDA platform often add native support for a new GPU architecture by supporting the compute capability version of that architecture, new versions of the CUDA platform typically also include software features that are independent of hardware generation.
@@ -430,43 +450,57 @@ The _Tesla_ and _Fermi_ architectures are no longer supported starting with 
 
 # 3. Programming Interface
 CUDA C++ provides a simple path for users familiar with the C++ programming language to easily write programs for execution by the device.
+>  CUDA C++ 基于 C++ 提供了编程接口
 
 It consists of a minimal set of extensions to the C++ language and a runtime library.
+>  CUDA C++  由对 C++ 语言的拓展集和一个运行时库组成
 
 The core language extensions have been introduced in [Programming Model](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model). They allow programmers to define a kernel as a C++ function and use some new syntax to specify the grid and block dimension each time the function is called. A complete description of all extensions can be found in [C++ Language Extensions](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#c-language-extensions). Any source file that contains some of these extensions must be compiled with `nvcc` as outlined in [Compilation with NVCC](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compilation-with-nvcc).
+>  核心的语言拓展在上一节 Programming Model 已经介绍，它们用于将 kernel 定义为 C++ 函数，并指定函数被调用时使用的 grid, block dimension
+>  所有的语言拓展见 C++ Language Extensions 小节
+>  任意包含了 CUDA C++ 语言拓展的源文件都必须用 `nvcc` 编译
 
 The runtime is introduced in [CUDA Runtime](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-c-runtime). It provides C and C++ functions that execute on the host to allocate and deallocate device memory, transfer data between host memory and device memory, manage systems with multiple devices, etc. A complete description of the runtime can be found in the CUDA reference manual.
+>  CUDA Runtime 为 host 端提供了在设备分配和释放显存、在 host 和设备内存之间迁移数据、管理带有多个设备的系统等等功能的 C/C++ 函数
 
 The runtime is built on top of a lower-level C API, the CUDA driver API, which is also accessible by the application. The driver API provides an additional level of control by exposing lower-level concepts such as CUDA contexts - the analogue of host processes for the device - and CUDA modules - the analogue of dynamically loaded libraries for the device. Most applications do not use the driver API as they do not need this additional level of control and when using the runtime, context and module management are implicit, resulting in more concise code. As the runtime is interoperable with the driver API, most applications that need some driver API features can default to use the runtime API and only use the driver API where needed. The driver API is introduced in [Driver API](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#driver-api) and fully described in the reference manual.
+>  CUDA Runtime 基于 CUDA driver API 构建，应用可以访问 CUDA driver API
+>  CUDA driver API 将更低层次的概念例如 CUDA contexts (设备端对于主机进程的抽象), CUDA modules (设备端对于主机动态链接库的抽象)
+>  使用 CUDA Runtime 时，对 context, module 的管理是隐式的，大多数需要使用 driver API 的应用可以通过 Runtime API 进行控制，仅在必要时候使用 driver API
 
 ## 3.1. Compilation with NVCC
-
 Kernels can be written using the CUDA instruction set architecture, called _PTX_, which is described in the PTX reference manual. It is however usually more effective to use a high-level programming language such as C++. In both cases, kernels must be compiled into binary code by `nvcc` to execute on the device.
+>  kernel 可以用 CUDA C++ 编写，也可以用 CUDA 指令集架构 - PTX 编写
+>  无论如何，kernel 都被会被 `nvcc` 编译为二级制码以在设备执行
 
 `nvcc` is a compiler driver that simplifies the process of compiling _C++_ or _PTX_ code: It provides simple and familiar command line options and executes them by invoking the collection of tools that implement the different compilation stages. This section gives an overview of `nvcc` workflow and command options. A complete description can be found in the `nvcc` user manual.
+>  `nvcc` 是一个编译器驱动器，用于编译 CUDA C++ 或 PTX 代码
+>  `nvcc` 会自行调用对应编译各个阶段的一系列工具完成编译
 
 ### 3.1.1. Compilation Workflow
-
 #### 3.1.1.1. Offline Compilation
-
-Source files compiled with `nvcc` can include a mix of host code (i.e., code that executes on the host) and device code (i.e., code that executes on the device). `nvcc`’s basic workflow consists in separating device code from host code and then:
+Source files compiled with `nvcc` can include a mix of host code (i.e., code that executes on the host) and device code (i.e., code that executes on the device). `nvcc` ’s basic workflow consists in separating device code from host code and then:
 
 - compiling the device code into an assembly form (_PTX_ code) and/or binary form (_cubin_ object),
-    
 - and modifying the host code by replacing the `<<<...>>>` syntax introduced in [Kernels](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels) (and described in more details in [Execution Configuration](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#execution-configuration)) by the necessary CUDA runtime function calls to load and launch each compiled kernel from the _PTX_ code and/or _cubin_ object.
-    
+
+>  `nvcc` 会自行分离源码中的 host code 和 device code，然后
+>  - 将 device code 编译为 PTX 码或二进制码 (cubin 对象)
+>  - 将 host code 中的 `<<<...>>>` 语法替换为必要的 CUDA Runtime 函数调用，来执行将编译好的 kernel 加载并启动的工作
 
 The modified host code is output either as C++ code that is left to be compiled using another tool or as object code directly by letting `nvcc` invoke the host compiler during the last compilation stage.
+>  修改后的 host code 可以输出为 C++ 码，被其他工具继续编译，或者 `nvcc` 直接在最后的编译阶段调用 host 端编译器，输出对象码
 
 Applications can then:
 
 - Either link to the compiled host code (this is the most common case),
-    
 - Or ignore the modified host code (if any) and use the CUDA driver API (see [Driver API](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#driver-api)) to load and execute the _PTX_ code or _cubin_ object.
-    
+
+>  应用可以
+>  - 链接到编译好的 host code
+>  - 忽略编译好的 host code，直接使用 CUDA driver API 加载并执行 PTX 码或 cubin 对象
 
 #### 3.1.1.2. Just-in-Time Compilation
-
 Any _PTX_ code loaded by an application at runtime is compiled further to binary code by the device driver. This is called _just-in-time compilation_. Just-in-time compilation increases application load time, but allows the application to benefit from any new compiler improvements coming with each new device driver. It is also the only way for applications to run on devices that did not exist at the time the application was compiled, as detailed in [Application Compatibility](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#application-compatibility).
 
 When the device driver just-in-time compiles some _PTX_ code for some application, it automatically caches a copy of the generated binary code in order to avoid repeating the compilation in subsequent invocations of the application. The cache - referred to as _compute cache_ - is automatically invalidated when the device driver is upgraded, so that applications can benefit from the improvements in the new just-in-time compiler built into the device driver.
@@ -534,12 +568,19 @@ The front end of the compiler processes CUDA source files according to C++ synta
 The 64-bit version of `nvcc` compiles device code in 64-bit mode (i.e., pointers are 64-bit). Device code compiled in 64-bit mode is only supported with host code compiled in 64-bit mode.
 
 ## 3.2. CUDA Runtime
+The runtime is implemented in the `cudart` library, which is linked to the application, either statically via `cudart.lib` or `libcudart.a`, or dynamically via `cudart.dll` or `libcudart.so`. 
+>  CUDA Runtime 被实现为 `cudart` 库，该库需要链接到应用
+>  链接可以是静态链接，通过 `cudart.lib` (Windows) 或 `libcudart.a` (Unix-like: Linux, Mac)，也可以是动态链接，通过 `cudart.dll` (Windows) 或 `libcudart.so` (Unix-like: Linux, Mac)
 
-The runtime is implemented in the `cudart` library, which is linked to the application, either statically via `cudart.lib` or `libcudart.a`, or dynamically via `cudart.dll` or `libcudart.so`. Applications that require `cudart.dll` and/or `cudart.so` for dynamic linking typically include them as part of the application installation package. It is only safe to pass the address of CUDA runtime symbols between components that link to the same instance of the CUDA runtime.
+Applications that require `cudart.dll` and/or `cudart.so` for dynamic linking typically include them as part of the application installation package. It is only safe to pass the address of CUDA runtime symbols between components that link to the same instance of the CUDA runtime.
+>  使用 `cudart.dll` 或 `cudart.so` 进行动态链接的应用通常会将这两个文件作为应用自身安装包的一部分
+>  只有在链接到相同的 CUDA runtime 实例的组件之间传递 CUDA runtime 符号地址才是安全的
 
 All its entry points are prefixed with `cuda`.
+>  CUDA runtime 提供的所有函数都以 `cuda` 为前缀
 
 As mentioned in [Heterogeneous Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#heterogeneous-programming), the CUDA programming model assumes a system composed of a host and a device, each with their own separate memory. [Device Memory](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-memory) gives an overview of the runtime functions used to manage device memory.
+>  CUDA 编程模型假设了系统是一个异构系统，包含了一个 host 和一个 device，二者有自己独立的内存
 
 [Shared Memory](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory) illustrates the use of shared memory, introduced in [Thread Hierarchy](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#thread-hierarchy), to maximize performance.
 
@@ -558,15 +599,22 @@ As mentioned in [Heterogeneous Programming](https://docs.nvidia.com/cuda/cuda-c
 [Graphics Interoperability](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#graphics-interoperability) introduces the various functions the runtime provides to interoperate with the two main graphics APIs, OpenGL and Direct3D.
 
 ### 3.2.1. Initialization
+As of CUDA 12.0, the `cudaInitDevice()` and `cudaSetDevice()` calls initialize the runtime and the primary context associated with the specified device. Absent these calls, the runtime will implicitly use device 0 and self-initialize as needed to process other runtime API requests. One needs to keep this in mind when timing runtime function calls and when interpreting the error code from the first call into the runtime. 
+>  CUDA 12.0 之后，`cudaInitDevice()` 和 `cudaSetDevice()` 用于初始化特定设备关联的 runtime 和 primary context
+>  如果没有显式调用它们，runtime 会隐式地使用 device 0，并且在处理其他 runtime API 请求时，必要地自行初始化，在对 runtime 函数调用计时以及解释第一次 runtime 调用的错误码时，必须注意到这一点
 
-As of CUDA 12.0, the `cudaInitDevice()` and `cudaSetDevice()` calls initialize the runtime and the primary context associated with the specified device. Absent these calls, the runtime will implicitly use device 0 and self-initialize as needed to process other runtime API requests. One needs to keep this in mind when timing runtime function calls and when interpreting the error code from the first call into the runtime. Before 12.0, `cudaSetDevice()` would not initialize the runtime and applications would often use the no-op runtime call `cudaFree(0)` to isolate the runtime initialization from other api activity (both for the sake of timing and error handling).
+Before 12.0, `cudaSetDevice()` would not initialize the runtime and applications would often use the no-op runtime call `cudaFree(0)` to isolate the runtime initialization from other api activity (both for the sake of timing and error handling).
+>  CUDA 12.0 之前，`cudaSetDevice()` 不会初始化 runtime，一般会特意使用 no-op runtime call `cudaFree(0)` 来初始化 runtime
 
-The runtime creates a CUDA context for each device in the system (see [Context](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context) for more details on CUDA contexts). This context is the _primary context_ for this device and is initialized at the first runtime function which requires an active context on this device. It is shared among all the host threads of the application. As part of this context creation, the device code is just-in-time compiled if necessary (see [Just-in-Time Compilation](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#just-in-time-compilation)) and loaded into device memory. This all happens transparently. If needed, for example, for driver API interoperability, the primary context of a device can be accessed from the driver API as described in [Interoperability between Runtime and Driver APIs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#interoperability-between-runtime-and-driver-apis).
+The runtime creates a CUDA context for each device in the system (see [Context](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context) for more details on CUDA contexts). This context is the _primary context_ for this device and is initialized at the first runtime function which requires an active context on this device. It is shared among all the host threads of the application. 
+>  runtime 会为系统中每个设备都创建一个 CUDA context，该 context 就是该设备的 primary context，它会在第一个对需求该设备的 active context 的 runtime 函数被调用时被初始化
+>  设备的 primary context 由所有 device thread 共享
+
+As part of this context creation, the device code is just-in-time compiled if necessary (see [Just-in-Time Compilation](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#just-in-time-compilation)) and loaded into device memory. This all happens transparently. If needed, for example, for driver API interoperability, the primary context of a device can be accessed from the driver API as described in [Interoperability between Runtime and Driver APIs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#interoperability-between-runtime-and-driver-apis).
 
 When a host thread calls `cudaDeviceReset()`, this destroys the primary context of the device the host thread currently operates on (that is, the current device as defined in [Device Selection](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-selection)). The next runtime function call made by any host thread that has this device as current will create a new primary context for this device.
 
 Note
-
 The CUDA interfaces use global state that is initialized during host program initiation and destroyed during host program termination. The CUDA runtime and driver cannot detect if this state is invalid, so using any of these interfaces (implicitly or explicitly) during program initiation or termination after main) will result in undefined behavior.
 
 As of CUDA 12.0, `cudaSetDevice()` will now explicitly initialize the runtime after changing the current device for the host thread. Previous versions of CUDA delayed runtime initialization on the new device until the first runtime call was made after `cudaSetDevice()`. This change means that it is now very important to check the return value of `cudaSetDevice()` for initialization errors.
@@ -584,7 +632,8 @@ CUDA arrays are opaque memory layouts optimized for texture fetching. They are d
 Linear memory is allocated in a single unified address space, which means that separately allocated entities can reference one another via pointers, for example, in a binary tree or linked list. The size of the address space depends on the host system (CPU) and the compute capability of the used GPU:
 
 Table 1 Linear Memory Address Space
-||x86_64 (AMD64)|POWER (ppc64le)|ARM64|
+
+| |x86_64 (AMD64)|POWER (ppc64le)|ARM64|
 |---|---|---|---|
 |up to compute capability 5.3 (Maxwell)|40bit|40bit|40bit|
 |compute capability 6.0 (Pascal) or newer|up to 47bit|up to 49bit|up to 48bit|
@@ -2475,11 +2524,10 @@ cudaEventElapsedTime(&elapsedTime, start, stop);
 When a synchronous function is called, control is not returned to the host thread before the device has completed the requested task. Whether the host thread will then yield, block, or spin can be specified by calling `cudaSetDeviceFlags()`with some specific flags (see reference manual for details) before any other CUDA call is performed by the host thread.
 
 ### 3.2.9. Multi-Device System
-
 #### 3.2.9.1. Device Enumeration
-
 A host system can have multiple devices. The following code sample shows how to enumerate these devices, query their properties, and determine the number of CUDA-enabled devices.
 
+```
 int deviceCount;
 cudaGetDeviceCount(&deviceCount);
 int device;
@@ -2489,13 +2537,17 @@ for (device = 0; device < deviceCount; ++device) {
     printf("Device %d has compute capability %d.%d.\n",
            device, deviceProp.major, deviceProp.minor);
 }
+```
+
+>  `cudaGetDeviceCount(&deviceCount)` 获取设备数量
+>  `cudaGetDeviceProperties(&deviceProp, device)` 获取设备特性
 
 #### 3.2.9.2. Device Selection
-
 A host thread can set the device it operates on at any time by calling `cudaSetDevice()`. Device memory allocations and kernel launches are made on the currently set device; streams and events are created in association with the currently set device. If no call to `cudaSetDevice()` is made, the current device is device 0.
 
 The following code sample illustrates how setting the current device affects memory allocation and kernel execution.
 
+```
 size_t size = 1024 * sizeof(float);
 cudaSetDevice(0);            // Set device 0 as current
 float* p0;
@@ -2505,6 +2557,7 @@ cudaSetDevice(1);            // Set device 1 as current
 float* p1;
 cudaMalloc(&p1, size);       // Allocate memory on device 1
 MyKernel<<<1000, 128>>>(p1); // Launch kernel on device 1
+```
 
 #### 3.2.9.3. Stream and Event Behavior
 
