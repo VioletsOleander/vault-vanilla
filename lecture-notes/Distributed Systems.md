@@ -4,20 +4,33 @@
 ![](https://cdn-mineru.openxlab.org.cn/extract/f765e853-b5fe-414b-8968-60cd64a953d6/be7c872991258a89f7ed59f598247208102411013e49267dee8e43a518ba5e97.jpg)  
 
 Distributed system can also be considered as a subset of parallel system But, if we use the term parallel system, we typically focus on improving the performance of the system​. In contrast, a distributed system may not be faster than its single machine counterpart​ 
+>  分布式系统可以视作并行系统的子集
+>  但并行系统通常意在提高系统性能 (相对于单机)，而分布式系统则并不一定比单机快
 
 Why do we use a distributed system if it is even slower than a single machine system?  
 
-Different types of Distributed Systems -- Categorized by the Type of Interconnect Network  
+### Different types of Distributed Systems 
+Categorized by the Type of Interconnect Network  
+>  按照使用的互联网络分类，分布式系统可以分为四类
 
 (1) Single-machine Parallel System (Not distributed)   
 A single server Machine 
-Communication Latency: Shared Memory $==$ DRAM latency $(\sim100\mathsf{n s}){=}>$ Inter-process communication (IPC such as pipe and socket) $==$ Syscall latency $(1\sim5\upmu s)$  
+Communication Latency: Shared Memory $==$ DRAM latency $(\sim100\mathsf{n s}){=}>$ Inter-process communication (IPC such as pipe and socket) $==$ Syscall latency $(1\sim5u s)$  
+
+>  1. 单机并行系统 (不分布)
+>  通信延迟: 共享内存/DRAM (100ns) $\le$ 进程间通信 $=$ 系统调用 (1 ~ 5us)
 
 (2) Rack-scale Distributed Systems  
 Typically less than 20 server machines interconnected by a single Top-of-rack Switch 
-Communication Latency: CXL (ns-level) $=>$ RDMA $(\sim5\upmu v)$   $=>$ Ethernet TCP $(\sim50\upmu s)$ . 
+Communication Latency: CXL (ns-level) $=>$ RDMA $(\sim5\mu s)$   $=>$ Ethernet TCP $(\sim50\upmu s)$ . 
 Ethernet TCP will become a bottleneck that slows down the CPU (500x slower than DRAM latency). 
 It should not be a surprise your distributed system is slower than a single machine solution if its implementation highly relies on network communication  
+
+>  2. 机架级分布式系统
+>  通常少于 20 台及其，由一个机架顶端的交换机连接
+>  通信延迟: Compute Express Link (ns) $\le$ RDMA (5us) $\le$ 以太网 TCP (50us)
+>  以太网 TCP (50us) 500 倍慢于 DRAM 延迟 (100ns)，故会成为瓶颈
+>  如果分布式系统高度依赖网络，很可能分布式实现或慢于单机实现
 
 A picture of a rack of blade servers and top-of-rack switches connecting them 
 
@@ -26,6 +39,10 @@ A picture of a rack of blade servers and top-of-rack switches connecting them
 (3) (Inter Data Center) Distributed Systems -- the typical setting when we use "Distributed System"  
 Depending on the size of the data center. May contain hundreds of server machines 
 Communication Latency: RDMA $(\sim5\mathsf{u s}$ , higher than rack-scale when going through the aggregation switch, i.e., more hops, is needed) $=>$ Ethernet TCP $(\sim50\upmu s)$ 
+
+>  3. 数据中心内分布式系统
+>  通常包含数百台机器
+>  通信延迟: RDMA (5us) $\le$ 以太网 TCP (50us)
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/f765e853-b5fe-414b-8968-60cd64a953d6/f8d6523170bba694f18d582d8533727b56d396be6ea855569df301031673222b.jpg)  
 
@@ -37,6 +54,11 @@ Unlimited number of server machines (only limited by the budget)
 
 Communication Latency: $=>$ wide-area network (WAN) latency $==1{\sim}10\mathrm{m}s$ 
 It is hard to scale-out the performance if the work heavily relies on cross-data center communications  
+
+>  4. 地理分布式系统
+>  服务器数量不受限制
+>  通信延迟: 广域网延迟 (1~10ms)
+>  因为广泛依赖于跨数据中心的通信，故难以 scale-out performance
 
 ### Example Distributed Systems  
 Almost all the famous websites and apps are built on top of distributed systems   
@@ -58,6 +80,10 @@ Configuration that Outperforms a Single Thread (COST) -- How many cores a distri
 COST of typical JAVA/Kernel-TCP based systems are $10\sim1000$ in 2015, what a surprise!  
 This is the difficulty of building a distributed system! It would be very slow if it is not implemented cleverly.
 The COST of state-of-the-art systems (especially those built with code generation, vectorizations, and RDMA) are reduced to **4-10** nowadays​  
+
+>  COST: Configuration that Outperforms a Single Thread
+>  一个分布式系统需要多少个 cores 才可以让其性能优于优化好的 single thread 程序
+>  SOTA 的分布式系统的 COST 在 4~10
 
 Other problems: load imbalance, lack of scalability in certain parts of the program  
 
@@ -81,6 +107,11 @@ This is the art of trade-off. There is no silver bullet . It always changes with
 - (Inter data center) distributed systems can tolerate the failure of a whole rack​ (This is possible because of out of power or other problems​)
 - Geo-distributed systems can tolerate the failure of a whole data center, also called disaster recovery​ (Actually the most common kind of "disaster" is the breaking of optical cable)
 
+>  分布式系统通过 replication 容错
+>  Rack-scale 的系统可以容忍单机的故障
+>  数据中心级别的系统可以容忍单个机架的故障
+>  地理分布的系统可以容忍整个数据中心的故障，即容灾 (最常见的 “灾害” 是挖断光缆)
+
 ### Others 
 (also important reasons, but not fully covered in this course)  
 
@@ -97,13 +128,15 @@ Regulation -- required by law (GDRP, Law of network security)
 ## The Complexity of Distributed Systems  
 ### Fault Tolerance V.S. Consistency  
 **Fault Tolerance** 
-High availability: service continues despite failures, i.e, hide these failures from the application 
+High availability: service continues despite failures, i.e., hide these failures from the application 
 
 Related concept: SLA (can be translated to the maximum allowed outage/down time​):
 $99.99\%$ SLA $=$ 52m 9.8s down time per year  
 $99.999\%$ SLA $=$ 5m 13s down time per year  
 
-1000s of servers, big network ${->}$ always something broken:
+>  Service Level Objectives (服务级别指标) 的重要一部分就是可用性/正常运行时间 (Availability/Uptime)
+
+1000s of servers, big network -> always something broken:
 P: the possibility of a single server's failure   
 $1-(1-\mathsf{P})^{N}$ : the possibility of no failure in a cluster of N servers​   
 $\mathsf{P}=0.001$ (three 9 SLA for a single server), $\mathsf{N}=1000,\mathsf{1}-(\mathtt{1}\mathrm{-P})^{\wedge}\mathsf{N}=0.63$ (zero 9 SLA for the cluster)​   
@@ -112,7 +145,7 @@ Big idea: **replicated servers**.
 If one server crashes, the system can still proceed using the other(s). 
 However, replication leads to the problem of consistency​  
 
->  解决可用性的一个方法就是复制，但复制方法又会引出一致性的问题
+>  提高可用性的一个方法就是复制，但复制方法又会引出一致性的问题
 
 ### Consistency  
 Consistency is an abstract concept that is hard to understand:
@@ -126,17 +159,23 @@ There are always multiple levels of consistency, from weak to strong
 ![](https://cdn-mineru.openxlab.org.cn/extract/f765e853-b5fe-414b-8968-60cd64a953d6/ab7a7855ac7c0dae6899fac0155c328febc251c625007474012aa35e16927593.jpg)  
 
 Note that even Read-your-writes consistency is surprising hard to implement  
-
 Paper: FlightTracker: Consistency across Read-Optimized Online Stores at Facebook-2020-OSDI
 Everything becomes complex when related to achieving consistency in a distributed system!  
 
 Why not always the strongest level of consistency?  
 Not achievable if you also want to achieve the strongest level of availability: **we need replicas to achieve fault tolerance, but it is hard to make sure that all the content of these replicas are identical** (the strongest level of consistency for replication). In fact, it is **theoretically impossible** in many scenarios.  
 
+>  同时保证可用性和一致性在理论上一般不可能
+
 CAP theorem for replication system:
 - Consistency: all nodes see the same data at the same time   
 - Availability: every request receives a response about whether it succeeded or failed   
 - Partition tolerance: the system continues to operate despite arbitrary partitioning due to network failures  
+
+>  CAP: Consistency vs Availability vs Partition tolerance
+>  - Consistency: 所有节点在相同时刻看到相同数据
+>  - Availability: 无论成功与否，所有请求都收到回应
+>  - Partition tolerance: 无论网络故障导致什么样的划分，系统都持续运行
 
 CAP theorem: U can only Pick 2!  
 
@@ -148,7 +187,10 @@ Its availability is also not the same as the commonly used term "high availabili
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/f765e853-b5fe-414b-8968-60cd64a953d6/f70d5c15efe29fbd12f175bff0c67a84e7927210da675061046a5afa435a3fc2.jpg)  
 
-We can tolerate some replicas returning inconsistent content as long as the client can identify this inconsistent (e.g, by reading from a quorum). Thus, the existence of Paxos and RAFT does not violate CAP 
+We can tolerate some replicas returning inconsistent content as long as the client can identify this inconsistent (e.g., by reading from a quorum). Thus, the existence of Paxos and RAFT does not violate CAP 
+>  如果 client 可以识别出副本的不一致性 (例如通过从 quorum 读)，我们可以容忍一定的不一致
+>  故共识算法并没有违反 CAP (共识算法仅保证多数节点在相同时刻看到相同数据，不是所有节点)
+
 Check [CAP理论中的P到底是个什么意思?](https://www.zhihu.com/question/54105974/answer/2144019181) for more details.  
 
 FLP theorem for asynchronous application  
@@ -159,11 +201,13 @@ FLP theorem for asynchronous application
 Both Paxos/RAFT try to achieve agreement in a fault tolerant way, and hence their termination is not guaranteed   
 But it is fine because the **possibility** of termination is exponentially increasing through certain design (although it will never become 1)​  
 
+>  FLP: Fault Tolerance vs Agreement vs Termination
+
 ### Practical Problems  
-Tricky to realize performance potential $=>$ hard to be efficient $=>$ because of the slow network, load imbalance, etc   
+Tricky to realize performance potential $=>$ hard to be efficient $=>$ because of the slow network, load imbalance, etc.   
 
 Must cope with partial failure $=>$ hard to be correct​ 
-Typically, we rely on an assumption called "fail-stop", i.e., a failed node will stop its execution
+Typically, we **rely on an assumption called "fail-stop"**, i.e., a failed node will stop its execution
 Note that this is not the real case, in real, some node may disappear for a while and somehow come back $\mathrm{-}\mathrm{>}$ this can be a problem  
 
 Many concurrent parts, complex interactions $=>$ hard to model in a human's mind  
@@ -202,7 +246,93 @@ RPC is the first and also **one of the most basic/useful abstraction** taught in
 >  RPC 通过抽象掩盖了跨机器通讯的复杂性，使得远程过程调用的形式和本地过程调用类似
 
 ## An Example of Key-value RPC in Golang  
-(Code refer to the original pdf)
+
+```go
+type PutArgs struct {
+    Key string
+    Value string
+}
+
+type PutReply struct {}
+
+type GetArgs struct { Key string }
+
+type GetReply struct { Value string }
+
+//
+// Client
+//
+
+func connect() *rpc.Client {
+    client, err := rpc.Dial("tcp", ":1234")
+    if err != nil { log.Fatalf("dialing", err) }
+    return client
+}
+
+func get(key string) string {
+    client := connect()
+    args := GetArgs{"subject"}
+    reply := GetReply{}
+    err := client.Call("KV.Get", &args, &reply)
+    if err != nil { log.Fatalf("error:", err) }
+    client.Close()
+    return reply.Value
+}
+
+func put(key string, val string) {
+    client := connect()
+    args := PutArgs{"subject", "6.824"}
+    reply := PutReply{}
+    err := client.Call("KV.Put", &args, &reply)
+    if err != nil { log.Fatalf("error:", err) }
+    client.Close()
+}
+```
+
+```go
+type KV struct {
+    mu sync.Mutex
+    data map[string]string
+}
+
+func (kv *KV) Get(args *GetArgs, reply *GetReply) error {
+    kv.mu.Lock()
+    defer kv.mu.Unlock()
+    
+    reply.Value = data[args.Key] 
+    return nil
+}
+
+func (kv *KV) Put(args *PutArgs, reply *PutReply) error {
+    kv.mu.Lock()
+    defer kv.mu.Unlock()
+
+    data[args.Key] = args.Value
+    return nil
+}
+
+func server() {
+    kv := &KV{data: map[string]string{}}
+    rpcs := rpc.NewServer()
+    rpc.Register(kv)
+    
+    l, e := net.Listen("tcp", ":1234")
+    if e != nil { log.Fatalf("listen error:", e) }
+    
+    go func() {
+        for {
+            conn, err := l.Accept()
+            if err == nil {
+                go rpcs.ServerConn(conn)
+            } else {
+                break
+            }
+        }
+        l.Close()
+    } ()
+}
+```
+
 The code written by the user is very simple because the complexity of cross-process/machine communication is hidden by the abstraction of RPC.   
 The implementation of server part is also simplified, only two functions and the complexity of handling network request, etc. are hidden​  
 
@@ -212,6 +342,7 @@ The implementation of server part is also simplified, only two functions and the
 ![](https://cdn-mineru.openxlab.org.cn/extract/f2456e30-5d4e-4846-ba6c-507ffe57fbaf/63a238e1c9e43a5e5e4fdea6d2a7aeebda4b55f64511bb259c2e6cd36db38183.jpg)  
 
 Marshalling: convert an object (with type info) into a standardized byte stream (XML, JSON, protobuf, custom binary format) for transforming.  
+>  Marshalling: 将对象 (和类型信息) 转化为标准的字节流
 
 Problem: 97 is int 97 or char 'a'? Answer: Decided by the type information 
 Marshalling will embed the type info and structure of obj into byte array  
@@ -221,6 +352,7 @@ Marshalling will embed the type info and structure of obj into byte array
 Other issues: e.g., gathering and flattening the linked objects (例如链表)
 
 Unmarshalling: convert a byte stream to objects  
+>  Unmarshalling: 将字节流转化回对象
 
 **RPC Protocol/Server**  
 Basic functionality: Register and dispatch of remote call 
@@ -252,9 +384,9 @@ Please recall the Sliding Window Protocol implemented by TCP:
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/f2456e30-5d4e-4846-ba6c-507ffe57fbaf/64f6eb7ceca048fc4646195e7a17f709479a6d0601539900f081621270121079.jpg)  
 
-Add an unique ID for each RPC request at the sender side -- maybe (machine ID $^+$ thread ID $^+$ sequence number) to ensure uniqueness   
+Add **an unique ID for each RPC request** at the sender side -- maybe (machine ID $+$ thread ID $+$ sequence number) to ensure uniqueness   
 Remember all the received RPC ID and the corresponding response at the receiver side -- simply resend the response if a duplicate request is received (without re-executing the RPC)   
-Client includes "seen all replies $<=\mathsf{X}$ with every RPC -- so that the receiver side can safely forget seen responses to save space​ (Underlying assumption: the underlying network protocol should be ordered e.g., TCP)
+Client includes "seen all replies $\le X$ with every RPC -- so that the receiver side can safely forget seen responses to save space​ (Underlying assumption: the underlying network protocol should be **ordered** e.g., TCP)
 
 >  发送端为每个 RPC 请求添加一个唯一的 ID
 >  接收端存储所收到的 RPC 请求的 ID，数据结构可以使用 map，收到重复的 ID 时，直接用 ID 索引缓存的结果返回 (而不需要重新执行调用)  
@@ -263,6 +395,7 @@ Client includes "seen all replies $<=\mathsf{X}$ with every RPC -- so that the r
 **Many many corner cases** -- the complexity of distributed systems 
 How to handle duplicate requests while original is still executing? 
 -- pending flag
+>  如果在原来的请求正在执行时收到重复的请求，可以通过待处理标记，要么阻塞重复请求等待原来的完成，要么直接返回错误
 
 How to handle dead clients that leads to memory leaks? 
 -- heartbeat 
@@ -270,18 +403,17 @@ How to handle dead clients that leads to memory leaks?
 
 What if the client somehow comes back after a heartbeat timeout?  
 We assume a "fail-stop" model -- a node will not come back with the same machine ID and thread ID  
-This model can be achieved by incrementing the thread ID after a heartbeat timeout.
-
-What if the client crashed and hence did not remember the thread ID allocated?  
-What if the thread ID rolled back because of the maximum limit of an integer?  
+- This model can be achieved by **incrementing the thread ID** after a heartbeat timeout.
+- What if the client crashed and hence did not remember the thread ID allocated?  
+- What if the thread ID rolled back because of the maximum limit of an integer?  
 
 Crashed server -- a restarted server may process duplicate RPC if it stores the request ID in memory, which is lost after restarting (内存中信息丢失)
 Solution: 
-Store the information on disk -- may lead to performance problems
-High available server that uses replication -- discussed later in lecture 4  
+- Store the information on disk -- may lead to performance problems
+- High available server that uses replication -- discussed later in lecture 4  
 
 ## How to achieve exactly-once RPC?  
-unbounded retries $^+$ duplicate detection $^+$ fault-tolerant service 
+unbounded retries $+$ duplicate detection $+$ fault-tolerant service 
 Also discussed later in lecture 4  
 
 # 2 MapReduce
@@ -301,7 +433,7 @@ Assumption: All the computation nodes are somehow attached with the same distrib
 **Solve the Problem Via Directly Programming with Socket**  
 Set up a coordinator and multiple workers 
 At the beginning, the coordinator partitions the problem into worker-number of subtasks  (任务划分为 worker-number 数量的子任务)
-Then the coordinator sends the input of each subtask to a specific worker via the socket After the processing of each subtask, the coordinator gathers all the results and merges them into the final results.   
+Then the coordinator sends the input of each subtask to a specific worker via the socket. After the processing of each subtask, the coordinator gathers all the results and merges them into the final results.   
 This is actually the "master-slave" architecture where the coordinator is the master and the works are the salves​  
 
 **MPI**
@@ -309,6 +441,8 @@ Why do we need MPI instead of directly using sockets? -- Abstraction!!!
 Different underlying network implementations (UDP, TCP, RDMA, etc.) provide different programming interfaces, and the optimization techniques of different implementations are also very different​.   
 However, intentions of the upper layer application developers when processing data in a distributed environment are actually similar -- do message passing. 
 Thus, MPI provides two basic operations: `MPI_Send/MPI_Recv` 
+
+>  MPI 隐藏了底层实际网络的实现 (UDP, TCP, RDMA 等)，仅对上提供消息传递操作的抽象: 发送和接收消息
 
 What is the difference between `MPI_Send/MPI_Recv` and UDP send/recv? 
 The underlying connection may depend on other protocols (e.g., RDMA for faster speed), but the upper layer program does not need to change because this complexity is hidden by MPI's interface 
@@ -320,13 +454,19 @@ You can view MPI as a specialized form of RPC for distributed data processing​
 ![](https://cdn-mineru.openxlab.org.cn/extract/3c447368-9528-44dd-b6f1-601af98b7a01/5f9005e4d9903ded184761c67c1cc6633e56012e537c5c092d55c678e1b1905d.jpg)  
 
 **Further Abstraction**  -- there are some advanced but still common patterns of message passing  
-Asynchronous
-there is also an asynchronous version of `MPI_Send/MPI_Recv` called `MPI_Isend/MPI_Irecv/MPI_Wait` . With asynchronous interface, one can overlap the computation with communication for a better performance​  
 
-It would be very complex to implement an asynchronous interface directly based on socket: remembering all the sent messages, maintain the states, background threads, etc., many details and corner cases​  
+>  消息传递 (除阻塞式以外) 的一些常见模式
+>  - 异步
+>  - barrier
+>  - 组通信
+
+Asynchronous
+- there is also an asynchronous version of `MPI_Send/MPI_Recv` called `MPI_Isend/MPI_Irecv/MPI_Wait` . 
+- With asynchronous interface, one can overlap the computation with communication for a better performance​  
+- **It would be very complex to implement an asynchronous interface directly based on socket**: remembering all the sent messages, maintain the states, background threads, etc., many details and corner cases​  
 
 Barrier
-e.g., assuring the finishing of a former step before the executing of the next step  
+- e.g., assuring the finishing of a former step before the executing of the next step  
 
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/3c447368-9528-44dd-b6f1-601af98b7a01/ce219f2c62f1879327d8b8523c8c179191eac5d941a8617cde031af4ea43f41e.jpg)  
@@ -349,7 +489,7 @@ Even integrating some computation -- this can be further optimized, which is ver
 Reduce+broadcast V.S. Butterfly AllReduce -- optimizing the bandwidth bottleneck
 
 There are many different kinds of implementations of allreduce 
-For example: Two-rounds v.s. Butterfly.  What is the difference?   
+For example: Two-rounds vs. Butterfly.  What is the difference?   
 If the size of the message is large the communication will be bounded by the network bandwidth Bwd   
 In contrast, if the size of the message is small the communication will be bounded by the network latency i.e., the round trip time (RTT)   
 
@@ -382,12 +522,12 @@ Easy to understand and relatively easy to use (for system developers but not for
 Very efficient -- Implemented as only a thin layer (no complex, dynamic, nested objects need to be serialized) above network communication, almost the same speed as the underlying network​  
 
 Cons:
-Weak fault tolerance  
+Weak fault tolerance
 The whole computation task will fail even if only one computation node crashes.  
 A full re-computation is needed without any manual checkpoint. Checkpoint can be a bottleneck. The complexity of constructing a Checkpoint is not hidden by the MPI
 
 Manual cluster management 
-Hand write and fixed IP addr $^+$ No resource allocation / isolation​  
+Hand write and fixed IP addr $+$ No resource allocation / isolation​  
 Cluster management can be a hard problem in a multi-tenant environment and is also very important for achieving a better utilization of the cluster
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/3c447368-9528-44dd-b6f1-601af98b7a01/4f9775be18936a968c5613e939d69161a9f4ddc45df36180da7f6ef06ce6373f.jpg)  
@@ -416,7 +556,7 @@ The most important abstraction in computation framework is its programming model
 >  计算框架中最重要的抽象就是其编程模型，编程模型所提供的限制使得系统可以掩盖处理许多任务——例如容错、集群管理——的复杂性
 
 ### MapReduce's Programming Model  
-MapReduce's process: \[split\] $^+$ (parallel) **map** $^+$ \[shuffle\] $^+$ (parallel) **reduce** 
+MapReduce's process: \[split\] $+$ (parallel) **map** $+$ \[shuffle\] $+$ (parallel) **reduce** 
 The programmer just need to define Map and Reduce functions, which are often fairly simple **sequential** codes. Complexities of distributed processing are hidden by the system.  
 
 A "Word Count" example -- counting the number of occurrences for each word  
@@ -431,6 +571,9 @@ Reduce function: it is **guaranteed** by the system that all the (key, value) pa
 ### Scalability of Map/Reduce  
 Scalability of Map: N Map() worker computers (might) get you Nx throughput, since they do not interact with each other   
 Scalability of Reduce: The same as scale-out the number of Reduce() workers, but with a problem of load imbalance caused by data skewness (the size of some hot keys may be much much larger than the others)  
+
+>  Map 的可拓展性: N 个 Map worker 可以带来 N 倍的吞吐，因为 N 个 Map 任务互相完全不交互
+>  Reduce 的可拓展性: 和 Map 类似，但存在数据偏斜导致的负载不均衡问题 (涉及了 hot keys 的 Reduce 任务大小可能原大于其他 keys)
 
 ## Example of Using MapReduce -- Search Engine  
 **Problem:** Is it enough to use only map and reduce in real world scenarios? Is the restriction too strict?​  
@@ -466,7 +609,12 @@ Map: for each vertex, input contains the current value of this vertex and the ou
 
 Reduce: sum aggregation, whose result is the new value.  
 
-Exemplary  formula refers to the original pdf.
+>  MapReduce 下的 PageRank
+>  输入: 每个节点的输入包含节点当前值和它的出边列表
+>  Map: 得到 (目标节点, 当前节点的值/它的度) 的 key-value pair
+>  Reduce: 对 key-value pairs 求和，得到目标节点的新值
+
+Exemplary formula refers to the original pdf.
 
 **Limitations of MapReduce** 
 (most in the system part rather than the model part)
@@ -527,6 +675,11 @@ When can we do fine-grained re-execution？
     It is also possible that a map/reduce task will communicate with outside environment (e.g., a database), in that case the task is not idempotent and the original fault tolerance mechanism does not work in such scenario.  (How to tolerate this kind of scenario? -- we need transaction)
 - Otherwise, a global checkpoint and a whole re-execution is needed.  
 
+>  为什么 MapReduce 中，可以进行 fine-grained re-execution
+>  - 编程模型限制了任务种类，只有两类任务
+>  - 等幂性: Map/Reduce 等幂的原因主要在于它们是**无状态**计算任务，因此，只要它们不涉及不等幂的逻辑 (例如随机性)，它们就是等幂的；当 Map/Reduce 任务需要和外界环境通信时 (例如数据库)，它们就成为了有状态计算任务，进而失去等幂性，在这种情况下，我们需要实现事务
+>  无法进行 fine-grained re-execution 时，我们只能采用 global checkopint，执行 whole re-execution
+
 Recovery after Map/Reduce worker Crashes:
 Master notices a worker X no longer responds to pings (heartbeats)  
     Heartbeats are maintained between the application master (the user program in the above figure) and each of the worker  
@@ -536,9 +689,9 @@ Support required from the master and the underlying storage that enable the abov
 The master should assign a unique ID for every Map/Reduce task​  
 What if the coordinator gives two workers the same Map() task?  
     It is possible if the master incorrectly thinks one worker died (e.g., due to temporary network issues).  
-    The Reduce workers consumes data from only one of them (identify through ID) . The Reduce worker never reads the intermediate results from a map task that is still not Finished  
+    The Reduce workers **consumes data from only one of them** (identify through ID) . The Reduce worker never reads the intermediate results from a map task that is still not Finished  
 What if the coordinator gives two workers the same Reduce() task?  
-    They will both try to write the same output file on GFS! $_{->}$ may lead to inconsistent results due to concurrent appending the results $_{->}$ append is not idempotent 
+    They will both try to write the same output file on GFS! ${->}$ may lead to inconsistent results due to concurrent appending the results ${->}$ append is not idempotent 
     The underlying storage system needs to provide an **atomic commit** procedure​:
         Atomic: "All or nothing" 
         atomic rename by GFS in MapReduce; only one complete file will be visible. 
@@ -549,7 +702,7 @@ What if a worker computes incorrect output, due to broken h/w or s/w?
     Lead to silent failure!   
     MapReduce assumes "fail-stop" CPUs and software 
         Fail-stop: the cpu will stop execution once after a failure. This is not the real-world scenario, thus one can build custom solutions, such as "checksum", to detect silent failure. 
-        Such silent failure relates to the specific business logic of the program, thus ca not be automatically tolerated by a framework  
+        Such silent failure relates to the specific business logic of the program, thus can not be automatically tolerated by a framework  
 What if the master crashes?  
     The crashed workers are recovered by the master, what about the crashed master 
     The whole system will halt​
@@ -563,9 +716,12 @@ Wasteful and slow if N-1 servers have to wait for 1 slow server to finish.
 
 The problem can be mitigated if the whole task is split into many more subtasks than workers -- hopefully no task is so big it dominates completion time  
 
-The problem is still possible if the skewness of data is high -- salting $^+$ multi-layer reducing​ 
+The problem is still possible if the skewness of data is high -- salting $+$ multi-layer reducing​ 
     For each hot key K, it is first split into many sub keys K #1 , K #2 , K3, ....  
     After reducing each K \# x , a second layer reduce is used to reduce their results  
+
+>  数据偏斜的解决方法: hot key 被划分为多个 sub keys，在 reduce 了各个 sub keys 之后，再执行一次 reduce
+
 The problem is still possible if there is a straggler in the cluster 
     Workers that are unusually slow (e.g., due to some hardware problem) are called stragglers, which can become bottleneck of the whole system  The problem is that these stragglers are slow but NOT DEAD, thus they maintain their heartbeats and hence cannot be killed  
     The master can start a second copy of the last few tasks that run on stragglers
@@ -578,8 +734,8 @@ MapReduce was designed twenty years ago. Network was the main bottleneck at that
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/3c447368-9528-44dd-b6f1-601af98b7a01/e24a9a20a21bf90097140ecb7844e45afd3cfcbaf024c4f75cdc33e5f92976a9.jpg)  
 
-The aggregated bandwidth of core switches will become the bottleneck during the global shuffling​   
-It can be largely mitigated if most of the traffic only goes through the lower level switches -- locality  
+The aggregated bandwidth of core switches will become the bottleneck during the global shuffling​
+It can be largely mitigated if most of the traffic only goes through the lower level switches -- locality
 
 MapReduce paper's root switch: 100 to 200 gigabits/second, total 1800 machines, so 55 megabits/second/machine, which is much much less than disk or RAM speed.  
 
@@ -3296,9 +3452,11 @@ The most important (and expensive) contribution of Spanner.  
   
 Interval timestamp, thus it is possible that T1 is not before T2 and T1 is also not after T2 [2] 
 
-It has a guaranteed error bound, and this interval should be as small as possible
+It has a **guaranteed error bound**, and this interval should be as small as possible
 - Each time master has either a GPS receiver or an "atomic clock". 
 - Only $\mathsf { 1 } { \sim } \mathsf { 7 } \mathsf { m s }$ variance compared to the standard 100ms variance of NTP  
+
+>  Spanner 的 TSO 提供的时间仅有 1 ~ 7ms 的误差，网络时间协议 (Network Time Protocol) 的误差则在 100ms
 
 The physical implementation in Google [2]  
 - GPS Time Master: These nodes are equipped with GPS receivers which receive GPS signals , including time information directly from satellites.  
