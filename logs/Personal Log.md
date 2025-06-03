@@ -293,7 +293,7 @@ Date: 2024.10.28-2024.11.4
 - [[doc-notes/huggingface/hub/Repositories|huggingface/hub/Repositories]]: Sec1-Sec4
 - [[doc-notes/triton/Getting Started|triton/Getting Started]]:  Tutorials/Matrix Multiply
 - [[doc-notes/python/howto/general/Argparse Tutorial|python/howto/general/Argparse Tutorial]] 
-- [[doc-notes/nvidia/CUDA C++ Programming Guide v12.6|nvidia/CUDA C++ Programming Guide v12.6]]: CH1
+- [[doc-notes/nvidia/CUDA C++ Programming Guide|nvidia/CUDA C++ Programming Guide]]: CH1
 
 ### Week 2
 Date: 2024.11.4-2024.11.11
@@ -419,7 +419,7 @@ Date: 2024.11.11-2024.11.18
         Write characteristic polynomial directly from the recurrence relation, and solve the characteristic equation to get $\alpha_i$ s. Then write the general term in terms of $\alpha_i$ s and undermined coefficients. Finally use the initial values to solve the coefficients, and derive the general term formula.
 
 \[Doc\]
-- [[doc-notes/nvidia/CUDA C++ Programming Guide v12.6|nvidia/CUDA C++ Programming Guide v12.6]]: CH2
+- [[doc-notes/nvidia/CUDA C++ Programming Guide|nvidia/CUDA C++ Programming Guide]]: CH2
     CH2-Programming Model:
         Kernel is executed by each CUDA thread
         Thread hierarchy: thread -> thread block -> thread block cluster -> grid
@@ -2263,7 +2263,7 @@ Date: 2025.4.28-2025.5.5
 - [[doc-notes/github/collaborative-coding/pull-requests/Commit changes to your project|github/collaborative-coding/pull-requests/Commit changes to your project]]
 
 ### Week 2
-Date: 2025.5.5-2025.5.13
+Date: 2025.5.5-2025.5.12
 
 \[Doc\]
 - [[doc-notes/go/getting-started/tutorials/Create a Go module|go/getting-started/tutorials/Create a Go module]]: Add a Test
@@ -2278,7 +2278,7 @@ Date: 2025.5.5-2025.5.13
     Lab1 MapReduce
 
 ### Week 3
-Date: 2025.5.13-2025.5.20
+Date: 2025.5.12-2025.5.19
 
 \[Blog\]
 - [[blog-notes/Debugging by Pretty Printing|Debugging by Pretty Printing]]: All
@@ -2288,10 +2288,55 @@ Date: 2025.5.13-2025.5.20
     Lab2 Raft: 2A, 2B, 2C
 
 ### Week 4 
-Date: 2025.5.20-2025.5.27
+Date: 2025.5.19-2025.5.26
 
 \[Code\]
 - Distributed Systems Lab
     Lab2 Raft: 2D
     Lab3 Fault-tolerance Key-Value Service: 3A, 3B
+
+## June
+### Week 1
+Date: 2025.5.26-2025.6.2
+
+\[Paper\]
+- [[paper-notes/distributed-system/Bigtable A Distributed Storage System for Structured Data-2006-OSDI|2006-OSDI-Bigtable A Distributed Storage System for Structured Data]]
+    0-Abstract
+        Bigtable is designed to manage structured data which may scale to very large scale
+    1-Introduction
+        Applications based on Bigtable have a variety of workload characteristics and corresponding demands, from throughput-oriented batch-processing jobs to latency-sensitive data serving for end-users.
+        Bigtable resembles a database, but provides a simpler data model instead of a full relational data model. In this simpler data model, client can dynamically control the data layout and format, and analyze the locality property.
+    2-Data Model
+        Bigtable can be viewed as a multi-dimensional ordered map which maps the key `<row, column, timestamp>` to a uninterpreted string value.
+        Bigtable maintains data in a lexicographic order by row key. Row range is the unit of data distribution and load balancing, called tablet (similar to the concept of sharding).
+        Column keys are grouped into column families, which is the base of access control, disk and memory accounting.
+        Bigtable supports: single-row transactions, cells to be used as atomic integer counters, executing user-supported script in server address space.
+    3-API
+    4-Building Blocks
+        Bigtable relies on GFS to store log and data files. The data storage format is SSTable, which is an immutable map from keys to values.
+        SSTable consists of a sequence of 64KB blocks. A block index is stored at the end of SSTable.
+        Bigtable relies on highly-available distributed lock service: Chubby, to ensure 1. at most one master at any time 2. store the location of root tablet 3. check server liveness 3. store schema information 4. store access control list
+    5-Implementation
+        Master server assigns tablets to tablet servers. Tablet servers handle the read and write requests to its responsible tablets. (client directly transfer data with the tablet servers, without passing the master)
+        Each Bigtable cluster stores multiple tables. Each table starts with only one tablet, which will be split with its size growing large.
+        Tablet location information is stored in a three-layer hierarchical structure. Client will cache the tablet location, and will prefetch tablet location information.
+        Master is responsible for initiating tablet merging, table creation, table deletion. Tablet servers are responsible for initiating tablet split, and notify the mater when the split is committed.
+        Mutations to a tablets will be first committed to a redo log. Group commit is used to improve the throughput.
+    6-Refinements
+    7-Performance Evaluation
+        Load imbalance hurts the scalibility.
+    8-Real Applications
+    9-Lessons
+        The value of simple design is immense.
+    10-Related Work
+    11-Conclusions
+
+\[Doc\]
+- [[doc-notes/clangd/Getting Started|clangd/Getting Started]]: All
+- [[doc-notes/slurm/Quick Start User Guide|slurm/Quick Start User Guide]]
+- [[doc-notes/nvidia/CUDA C++ Programming Guide|nvidia/CUDA C++ Programming Guide]]
+
+\[Code\]
+- Distributed Systems Lab
+    Lab4 Sharded Key-Value Service: 4A, 4B (partial)
 
