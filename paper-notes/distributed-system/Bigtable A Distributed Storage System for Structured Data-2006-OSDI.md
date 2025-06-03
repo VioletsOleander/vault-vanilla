@@ -192,7 +192,7 @@ Bigtable relies on a highly-available and persistent distributed lock service ca
 Bigtable uses Chubby for a variety of tasks: to ensure that there is at most one active master at any time; to store the bootstrap location of Bigtable data (see Section 5.1); to discover tablet servers and finalize tablet server deaths (see Section 5.2); to store Bigtable schema information (the column family information for each table); and to store access control lists. If Chubby becomes unavailable for an extended period of time, Bigtable becomes unavailable. 
 >  Bigtable 使用 Chubby 执行许多任务: 
 >  - 确保每个时刻只有一个活跃的 master (master 在 Chubby 获取锁，如果 master 崩溃，其会话过期后，锁会被释放)
->  - 存储 Bigtable 数据的数据的引导位置 (即 Bigtable 的元数据表: root tablet，的位置，root tablet 被获取后，再根据它获取其他 tablet 的位置
+>  - 存储 Bigtable 数据的数据引导位置 (即 Bigtable 的元数据表: root tablet，的位置，root tablet 被获取后，再根据它获取其他 tablet 的位置
 >  - 发现 tablet 以及确认 tablet server 的死亡 (tablet server 在 Chubby 中注册自己)
 >  - 存储 Bigtable 模式信息 (每个 table 的 column family 信息)
 >  - 存储访问控制列表

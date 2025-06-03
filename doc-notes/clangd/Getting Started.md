@@ -1,3 +1,6 @@
+---
+completed: true
+---
 To use clangd, you need:
 
 - clangd installed
