@@ -1,6 +1,5 @@
->  https://sunfishcode.github.io/blog/2018/10/22/Canonicalization.html
-
----
+Site: https://sunfishcode.github.io/blog/2018/10/22/Canonicalization.html
+Date: 22 Nov 2018
 
 Canonicalization and canonical forms are one dimension of organizing the work of an optimizing compiler.
 > 本文讨论编译器优化中的 "规范化" 和 "规范形式""

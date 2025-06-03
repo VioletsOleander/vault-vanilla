@@ -1,11 +1,10 @@
 ---
 completed: true
 ---
->  https://blog.josejg.com/debugging-pretty/
+Site: https://blog.josejg.com/debugging-pretty/
+Date: 15 Mar 2021
 
 Debugging distributed systems is a hard task. We can make this task easier by making use of good logging practices and taking advantage of Terminal User Interface tools, making parsing distributed logs effortless.
-
-15 Mar 2021
 
 This semester I’m a Teaching Assistant for MIT’s [6.824 Distributed Systems](https://pdos.csail.mit.edu/6.824/) class. The class requires students to iteratively implement Raft, a distributed consensus protocol. This is a very challenging task, as despite Raft’s claim to fame as an _“easier to understand Paxos”_, Raft is a complex distributed system that is quite hard to get right, even after several (or many) attempts. When I took 6.824, I noticed that the bottleneck for finishing the labs never was doing the bulk of the required implementation for the corresponding lab. Overall, what consumed most of my time was getting the failed runs and parsing through the logs to understand how the system failed and what went wrong.
 

@@ -1,4 +1,5 @@
->  https://thesquareplanet.com/blog/instructors-guide-to-raft/
+Site: https://thesquareplanet.com/blog/instructors-guide-to-raft/
+Date: 16 Mar 2016
 
 For the past few months, I have been a Teaching Assistant for MIT’s [6.824 Distributed Systems](https://pdos.csail.mit.edu/6.824/) class. In the past, the class has had several labs building on the Paxos consensus algorithm. This year, we decided to make the move to [Raft](https://raft.github.io/). Raft was designed with the explicit goal of being easy to understand, in the hope that this would make the students’ lives easier.
 
