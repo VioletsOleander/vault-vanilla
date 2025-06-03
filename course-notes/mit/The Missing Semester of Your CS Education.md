@@ -414,14 +414,23 @@ Some differences between shell functions and scripts that you should keep in min
 ### Finding how to use commands
 At this point, you might be wondering how to find the flags for the commands in the aliasing section such as `ls -l`, `mv -i` and `mkdir -p`. More generally, given a command, how do you go about finding out what it does and its different options? You could always start googling, but since UNIX predates StackOverflow, there are built-in ways of getting this information.
 
-As we saw in the shell lecture, the first-order approach is to call said command with the `-h` or `--help` flags. A more detailed approach is to use the `man` command. Short for manual, [`man`](https://www.man7.org/linux/man-pages/man1/man.1.html) provides a manual page (called manpage) for a command you specify. For example, `man rm` will output the behavior of the `rm` command along with the flags that it takes, including the `-i` flag we showed earlier. In fact, what I have been linking so far for every command is the online version of the Linux manpages for the commands. Even non-native commands that you install will have manpage entries if the developer wrote them and included them as part of the installation process. For interactive tools such as the ones based on ncurses, help for the commands can often be accessed within the program using the `:help` command or typing `?`.
+As we saw in the shell lecture, the first-order approach is to call said command with the `-h` or `--help` flags. A more detailed approach is to use the `man` command. Short for manual, [`man`](https://www.man7.org/linux/man-pages/man1/man.1.html) provides a manual page (called manpage) for a command you specify. For example, `man rm` will output the behavior of the `rm` command along with the flags that it takes, including the `-i` flag we showed earlier. In fact, what I have been linking so far for every command is the online version of the Linux manpages for the commands. 
+
+Even non-native commands that you install will have manpage entries if the developer wrote them and included them as part of the installation process. 
+>  即便是 non-native 的命令，只要开发者在安装包中提供了其文档，通常也可以用 `man` 查看
+
+For interactive tools such as the ones based on ncurses, help for the commands can often be accessed within the program using the `:help` command or typing `?`.
+>  对于交互式的工具，通常 `:help` 或 `?` 可以获取帮助
+
 
 Sometimes manpages can provide overly detailed descriptions of the commands, making it hard to decipher what flags/syntax to use for common use cases. [TLDR pages](https://tldr.sh/) are a nifty complementary solution that focuses on giving example use cases of a command so you can quickly figure out which options to use. For instance, I find myself referring back to the tldr pages for [`tar`](https://tldr.inbrowser.app/pages/common/tar) and [`ffmpeg`](https://tldr.inbrowser.app/pages/common/ffmpeg) way more often than the manpages.
+>   TLDR pages 专注于提供命令的示例用法，而不像 man pages 那样详细
 
 ### Finding files
 One of the most common repetitive tasks that every programmer faces is finding files or directories. All UNIX-like systems come packaged with [`find`](https://www.man7.org/linux/man-pages/man1/find.1.html), a great shell tool to find files. `find` will recursively search for files matching some criteria. Some examples:
+>  `find` 会递归地搜索匹配特定条件的文件
 
-```
+```bash
 # Find all directories named src
 find . -name src -type d
 # Find all python files that have a folder named test in their path
@@ -432,27 +441,49 @@ find . -mtime -1
 find . -size +500k -size -10M -name '*.tar.gz'
 ```
 
-Beyond listing files, find can also perform actions over files that match your query. This property can be incredibly helpful to simplify what could be fairly monotonous tasks.
+>  例如: 
+>  - `find . -name src -type d` 
+>  - `find . -path '*/test/*.py -type f`
+>  - `find . -mtime -1`
+>  - `find . -size +500k -size -10M -name '*.tar.gz'`
 
-```
+Beyond listing files, find can also perform actions over files that match your query. This property can be incredibly helpful to simplify what could be fairly monotonous tasks.
+>  `find` 还可以对匹配的文件执行特定的操作
+
+```bash
 # Delete all files with .tmp extension
 find . -name '*.tmp' -exec rm {} \;
 # Find all PNG files and convert them to JPG
 find . -name '*.png' -exec convert {} {}.jpg \;
 ```
 
-Despite `find`’s ubiquitousness, its syntax can sometimes be tricky to remember. For instance, to simply find files that match some pattern `PATTERN` you have to execute `find -name '*PATTERN*'` (or `-iname` if you want the pattern matching to be case insensitive). You could start building aliases for those scenarios, but part of the shell philosophy is that it is good to explore alternatives. Remember, one of the best properties of the shell is that you are just calling programs, so you can find (or even write yourself) replacements for some. For instance, [`fd`](https://github.com/sharkdp/fd) is a simple, fast, and user-friendly alternative to `find`. It offers some nice defaults like colorized output, default regex matching, and Unicode support. It also has, in my opinion, a more intuitive syntax. For example, the syntax to find a pattern `PATTERN` is `fd PATTERN`.
+>  例如:
+>  -  `find . -name '*.tmp' -exec rm {} \;`
+>  -  `find . -name '*.png' -exec convert {} {}.jpg \`
+
+Despite `find` ’s ubiquitousness, its syntax can sometimes be tricky to remember. For instance, to simply find files that match some pattern `PATTERN` you have to execute `find -name '*PATTERN*'` (or `-iname` if you want the pattern matching to be case insensitive). You could start building aliases for those scenarios, but part of the shell philosophy is that it is good to explore alternatives. Remember, one of the best properties of the shell is that you are just calling programs, so you can find (or even write yourself) replacements for some. For instance, [`fd`](https://github.com/sharkdp/fd) is a simple, fast, and user-friendly alternative to `find`. It offers some nice defaults like colorized output, default regex matching, and Unicode support. It also has, in my opinion, a more intuitive syntax. For example, the syntax to find a pattern `PATTERN` is `fd PATTERN`.
+>  `find` 的语法有时可能难以记住
+>  例如，要找到匹配 `PATTERN` 的文件，需要执行 `find -name '*PATTERN*'`
+>  `fd` 是 `find` 的另一个用户友好的替代，具有更好的功能和更直观的语法
 
 Most would agree that `find` and `fd` are good, but some of you might be wondering about the efficiency of looking for files every time versus compiling some sort of index or database for quickly searching. That is what [`locate`](https://www.man7.org/linux/man-pages/man1/locate.1.html) is for. `locate` uses a database that is updated using [`updatedb`](https://www.man7.org/linux/man-pages/man1/updatedb.1.html). In most systems, `updatedb` is updated daily via [`cron`](https://www.man7.org/linux/man-pages/man8/cron.8.html). Therefore one trade-off between the two is speed vs freshness. Moreover `find` and similar tools can also find files using attributes such as file size, modification time, or file permissions, while `locate` just uses the file name. A more in-depth comparison can be found [here](https://unix.stackexchange.com/questions/60205/locate-vs-find-usage-pros-and-cons-of-each-other).
+>  相较于 `find, fd` 每次查找文件，`locate` 会构建数据库和索引以快速搜索
+>  `locate` 使用 `updatedb` 更新其数据库，在大多数系统中 `updatedb` 本身会被 `cron` 每天更新一次
+>  不过 `find, fd` 可以根据文件属性来搜索文件，`locate` 则仅使用文件名
 
 ### Finding code
 Finding files by name is useful, but quite often you want to search based on file _content_. A common scenario is wanting to search for all files that contain some pattern, along with where in those files said pattern occurs. To achieve this, most UNIX-like systems provide [`grep`](https://www.man7.org/linux/man-pages/man1/grep.1.html), a generic tool for matching patterns from the input text. `grep` is an incredibly valuable shell tool that we will cover in greater detail during the data wrangling lecture.
+>  `grep` 用于从任意的输入文本中搜索 pattern，我们可以利用它来搜索内容匹配特定 patter 的文件
 
 For now, know that `grep` has many flags that make it a very versatile tool. Some I frequently use are `-C` for getting **C**ontext around the matching line and `-v` for in**v**erting the match, i.e. print all lines that do **not** match the pattern. For example, `grep -C 5` will print 5 lines before and after the match. When it comes to quickly searching through many files, you want to use `-R` since it will **R**ecursively go into directories and look for files for the matching string.
+>  `grep` 常用的 flag 有: 
+>  -  `-C` 获取匹配行周围的 Context (例如 `grep -C 5`)
+>  - `-v` 进行 invert 匹配 (打印所有不匹配的行)
+>  - `-R` 会 Recursively 进入目录并查找匹配的文件
 
 But `grep -R` can be improved in many ways, such as ignoring `.git` folders, using multi CPU support, &c. Many `grep` alternatives have been developed, including [ack](https://github.com/beyondgrep/ack3), [ag](https://github.com/ggreer/the_silver_searcher) and [rg](https://github.com/BurntSushi/ripgrep). All of them are fantastic and pretty much provide the same functionality. For now I am sticking with ripgrep (`rg`), given how fast and intuitive it is. Some examples:
 
-```
+```bash
 # Find all python files where I used the requests library
 rg -t py 'import requests'
 # Find all files (including hidden files) without a shebang line
@@ -463,28 +494,43 @@ rg foo -A 5
 rg --stats PATTERN
 ```
 
+>  `grep` 也有很多替代，例如 `rg`
+>  - `rg -t py 'improt requests'`
+>  - `rg -u --files-without-math "^#\!"`
+>  - `rg foo -A 5`
+>  - `rg -stas PATTERN`
+
 Note that as with `find`/`fd`, it is important that you know that these problems can be quickly solved using one of these tools, while the specific tools you use are not as important.
 
 ### Finding shell commands
 So far we have seen how to find files and code, but as you start spending more time in the shell, you may want to find specific commands you typed at some point. The first thing to know is that typing the up arrow will give you back your last command, and if you keep pressing it you will slowly go through your shell history.
 
 The `history` command will let you access your shell history programmatically. It will print your shell history to the standard output. If we want to search there we can pipe that output to `grep` and search for patterns. `history | grep find` will print commands that contain the substring “find”.
+>  `history` 将 shell history 打印到标准输出
 
 In most shells, you can make use of `Ctrl+R` to perform backwards search through your history. After pressing `Ctrl+R`, you can type a substring you want to match for commands in your history. As you keep pressing it, you will cycle through the matches in your history. This can also be enabled with the UP/DOWN arrows in [zsh](https://github.com/zsh-users/zsh-history-substring-search). A nice addition on top of `Ctrl+R` comes with using [fzf](https://github.com/junegunn/fzf/wiki/Configuring-shell-key-bindings#ctrl-r) bindings. `fzf` is a general-purpose fuzzy finder that can be used with many commands. Here it is used to fuzzily match through your history and present results in a convenient and visually pleasing manner.
+>  `Ctrl+R` 可以执行 history 上的向后搜索
+>  `fzf` 则是一个通用的模糊查找工具，可以和许多命令一起使用
 
 Another cool history-related trick I really enjoy is **history-based autosuggestions**. First introduced by the [fish](https://fishshell.com/) shell, this feature dynamically autocompletes your current shell command with the most recent command that you typed that shares a common prefix with it. It can be enabled in [zsh](https://github.com/zsh-users/zsh-autosuggestions) and it is a great quality of life trick for your shell.
+>  基于历史的自动建议功能会根据最近输入的，和当前命令有共同前缀的命令、动态地补全当前 shell 命令
+>  在 `zsh` 中可以启动该功能
 
 You can modify your shell’s history behavior, like preventing commands with a leading space from being included. This comes in handy when you are typing commands with passwords or other bits of sensitive information. To do this, add `HISTCONTROL=ignorespace` to your `.bashrc` or `setopt HIST_IGNORE_SPACE` to your `.zshrc`. If you make the mistake of not adding the leading space, you can always manually remove the entry by editing your `.bash_history` or `.zsh_history`.
+>  shell 的历史记录行为也可以修改，例如防止以空格开头的命令被包含在内: `HISTCONTROL=ignorespace`
+>  历史记录也可以人为通过 `.bash_history` 修改
 
 ### Directory Navigation
 So far, we have assumed that you are already where you need to be to perform these actions. But how do you go about quickly navigating directories? There are many simple ways that you could do this, such as writing shell aliases or creating symlinks with [ln -s](https://www.man7.org/linux/man-pages/man1/ln.1.html), but the truth is that developers have figured out quite clever and sophisticated solutions by now.
 
 As with the theme of this course, you often want to optimize for the common case. Finding frequent and/or recent files and directories can be done through tools like [`fasd`](https://github.com/clvv/fasd) and [`autojump`](https://github.com/wting/autojump). Fasd ranks files and directories by [_frecency_](https://web.archive.org/web/20210421120120/https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Places/Frecency_algorithm), that is, by both _frequency_ and _recency_. By default, `fasd` adds a `z` command that you can use to quickly `cd` using a substring of a _frecent_ directory. For example, if you often go to `/home/user/files/cool_project` you can simply use `z cool` to jump there. Using autojump, this same change of directory could be accomplished using `j cool`.
+>  `fasd, autojump` 可以用于找到频繁使用的和最近访问的文件和目录
+>  `fasd` 提供了 `z` 命令，可以用于通过部分匹配来跳转到经常/最近访问的目录
+>  `autojump` 则提供了 `j` 命令
 
 More complex tools exist to quickly get an overview of a directory structure: [`tree`](https://linux.die.net/man/1/tree), [`broot`](https://github.com/Canop/broot) or even full fledged file managers like [`nnn`](https://github.com/jarun/nnn) or [`ranger`](https://github.com/ranger/ranger).
 
 ## Exercises
-
 1. Read [`man ls`](https://www.man7.org/linux/man-pages/man1/ls.1.html) and write an `ls` command that lists files in the following manner
     
     - Includes all files, including hidden files
@@ -503,7 +549,6 @@ More complex tools exist to quickly get an overview of a directory structure: [
     ```
     
 2. Write bash functions `marco` and `polo` that do the following. Whenever you execute `marco` the current working directory should be saved in some manner, then when you execute `polo`, no matter what directory you are in, `polo` should `cd` you back to the directory where you executed `marco`. For ease of debugging you can write the code in a file `marco.sh` and (re)load the definitions to your shell by executing `source marco.sh`.
-    
 3. Say you have a command that fails rarely. In order to debug it you need to capture its output but it can be time consuming to get a failure run. Write a bash script that runs the following script until it fails and captures its standard output and error streams to files and prints everything at the end. Bonus points if you can also report how many runs it took for the script to fail.
     
     ```
@@ -525,5 +570,282 @@ More complex tools exist to quickly get an overview of a directory structure: [
     Your task is to write a command that recursively finds all HTML files in the folder and makes a zip with them. Note that your command should work even if the files have spaces (hint: check `-d` flag for `xargs`).
     
     If you’re on macOS, note that the default BSD `find` is different from the one included in [GNU coreutils](https://en.wikipedia.org/wiki/List_of_GNU_Core_Utilities_commands). You can use `-print0` on `find` and the `-0` flag on `xargs`. As a macOS user, you should be aware that command-line utilities shipped with macOS may differ from the GNU counterparts; you can install the GNU versions if you like by [using brew](https://formulae.brew.sh/formula/coreutils).
-    
 5. (Advanced) Write a command or script to recursively find the most recently modified file in a directory. More generally, can you list all files by recency?
+
+# Editors (Vim)
+Writing English words and writing code are very different activities. When programming, you spend more time switching files, reading, navigating, and editing code compared to writing a long stream. It makes sense that there are different types of programs for writing English words versus code (e.g. Microsoft Word versus Visual Studio Code).
+
+As programmers, we spend most of our time editing code, so it’s worth investing time mastering an editor that fits your needs. Here’s how you learn a new editor:
+
+- Start with a tutorial (i.e. this lecture, plus resources that we point out)
+- Stick with using the editor for all your text editing needs (even if it slows you down initially)
+- Look things up as you go: if it seems like there should be a better way to do something, there probably is
+
+If you follow the above method, fully committing to using the new program for all text editing purposes, the timeline for learning a sophisticated text editor looks like this. In an hour or two, you’ll learn basic editor functions such as opening and editing files, save/quit, and navigating buffers. Once you’re 20 hours in, you should be as fast as you were with your old editor. After that, the benefits start: you will have enough knowledge and muscle memory that using the new editor saves you time. Modern text editors are fancy and powerful tools, so the learning never stops: you’ll get even faster as you learn more.
+
+## Which editor to learn?
+Programmers have [strong opinions](https://en.wikipedia.org/wiki/Editor_war) about their text editors.
+
+Which editors are popular today? See this [Stack Overflow survey](https://insights.stackoverflow.com/survey/2019/#development-environments-and-tools) (there may be some bias because Stack Overflow users may not be representative of programmers as a whole). [Visual Studio Code](https://code.visualstudio.com/) is the most popular editor. [Vim](https://www.vim.org/) is the most popular command-line-based editor.
+
+### Vim
+All the instructors of this class use Vim as their editor. Vim has a rich history; it originated from the Vi editor (1976), and it’s still being developed today. Vim has some really neat ideas behind it, and for this reason, lots of tools support a Vim emulation mode (for example, 1.4 million people have installed [Vim emulation for VS code](https://github.com/VSCodeVim/Vim)). Vim is probably worth learning even if you finally end up switching to some other text editor.
+
+It’s not possible to teach all of Vim’s functionality in 50 minutes, so we’re going to focus on explaining the philosophy of Vim, teaching you the basics, showing you some of the more advanced functionality, and giving you the resources to master the tool.
+
+## Philosophy of Vim
+When programming, you spend most of your time reading/editing, not writing. For this reason, Vim is a _modal_ editor: it has different modes for inserting text vs manipulating text. Vim is programmable (with Vimscript and also other languages like Python), and Vim’s interface itself is a programming language: keystrokes (with mnemonic names) are commands, and these commands are composable. Vim avoids the use of the mouse, because it’s too slow; Vim even avoids using the arrow keys because it requires too much movement.
+
+The end result is an editor that can match the speed at which you think.
+
+## Modal editing
+Vim’s design is based on the idea that a lot of programmer time is spent reading, navigating, and making small edits, as opposed to writing long streams of text. For this reason, Vim has multiple operating modes.
+
+- **Normal**: for moving around a file and making edits
+- **Insert**: for inserting text
+- **Replace**: for replacing text
+- **Visual** (plain, line, or block): for selecting blocks of text
+- **Command-line**: for running a command
+
+Keystrokes have different meanings in different operating modes. For example, the letter `x` in Insert mode will just insert a literal character ‘x’, but in Normal mode, it will delete the character under the cursor, and in Visual mode, it will delete the selection.
+
+In its default configuration, Vim shows the current mode in the bottom left. The initial/default mode is Normal mode. You’ll generally spend most of your time between Normal mode and Insert mode.
+
+You change modes by pressing `<ESC>` (the escape key) to switch from any mode back to Normal mode. From Normal mode, enter Insert mode with `i`, Replace mode with `R`, Visual mode with `v`, Visual Line mode with `V`, Visual Block mode with `<C-v>` (Ctrl-V, sometimes also written `^V`), and Command-line mode with `:`.
+
+You use the `<ESC>` key a lot when using Vim: consider remapping Caps Lock to Escape ([macOS instructions](https://vim.fandom.com/wiki/Map_caps_lock_to_escape_in_macOS)) or create an [alternative mapping](https://vim.fandom.com/wiki/Avoid_the_escape_key#Mappings) for `<ESC>` with a simple key sequence.
+
+## Basics
+### Inserting text
+From Normal mode, press `i` to enter Insert mode. Now, Vim behaves like any other text editor, until you press `<ESC>` to return to Normal mode. This, along with the basics explained above, are all you need to start editing files using Vim (though not particularly efficiently, if you’re spending all your time editing from Insert mode).
+
+### Buffers, tabs, and windows
+Vim maintains a set of open files, called “buffers”. A Vim session has a number of tabs, each of which has a number of windows (split panes). Each window shows a single buffer. Unlike other programs you are familiar with, like web browsers, there is not a 1-to-1 correspondence between buffers and windows; windows are merely views. A given buffer may be open in _multiple_ windows, even within the same tab. This can be quite handy, for example, to view two different parts of a file at the same time.
+
+By default, Vim opens with a single tab, which contains a single window.
+
+### Command-line
+Command mode can be entered by typing `:` in Normal mode. Your cursor will jump to the command line at the bottom of the screen upon pressing `:`. This mode has many functionalities, including opening, saving, and closing files, and [quitting Vim](https://twitter.com/iamdevloper/status/435555976687923200).
+
+- `:q` quit (close window)
+- `:w` save (“write”)
+- `:wq` save and quit
+- `:e {name of file}` open file for editing
+- `:ls` show open buffers
+- `:help {topic}` open help
+    - `:help :w` opens help for the `:w` command
+    - `:help w` opens help for the `w` movement
+
+## Vim’s interface is a programming language
+The most important idea in Vim is that Vim’s interface itself is a programming language. Keystrokes (with mnemonic names) are commands, and these commands _compose_. This enables efficient movement and edits, especially once the commands become muscle memory.
+
+### Movement
+You should spend most of your time in Normal mode, using movement commands to navigate the buffer. Movements in Vim are also called “nouns”, because they refer to chunks of text.
+
+- Basic movement: `hjkl` (left, down, up, right)
+- Words: `w` (next word), `b` (beginning of word), `e` (end of word)
+- Lines: `0` (beginning of line), `^` (first non-blank character), `$` (end of line)
+- Screen: `H` (top of screen), `M` (middle of screen), `L` (bottom of screen)
+- Scroll: `Ctrl-u` (up), `Ctrl-d` (down)
+- File: `gg` (beginning of file), `G` (end of file)
+- Line numbers: `:{number}<CR>` or `{number}G` (line {number})
+- Misc: `%` (corresponding item)
+- Find: `f{character}`, `t{character}`, `F{character}`, `T{character}`
+    - find/to forward/backward {character} on the current line
+    - `,` / `;` for navigating matches
+- Search: `/{regex}`, `n` / `N` for navigating matches
+
+## Selection
+
+Visual modes:
+
+- Visual: `v`
+- Visual Line: `V`
+- Visual Block: `Ctrl-v`
+
+Can use movement keys to make selection.
+
+## Edits
+
+Everything that you used to do with the mouse, you now do with the keyboard using editing commands that compose with movement commands. Here’s where Vim’s interface starts to look like a programming language. Vim’s editing commands are also called “verbs”, because verbs act on nouns.
+
+- `i` enter Insert mode
+    - but for manipulating/deleting text, want to use something more than backspace
+- `o` / `O` insert line below / above
+- `d{motion}` delete {motion}
+    - e.g. `dw` is delete word, `d$` is delete to end of line, `d0` is delete to beginning of line
+- `c{motion}` change {motion}
+    - e.g. `cw` is change word
+    - like `d{motion}` followed by `i`
+- `x` delete character (equal to `dl`)
+- `s` substitute character (equal to `cl`)
+- Visual mode + manipulation
+    - select text, `d` to delete it or `c` to change it
+- `u` to undo, `<C-r>` to redo
+- `y` to copy / “yank” (some other commands like `d` also copy)
+- `p` to paste
+- Lots more to learn: e.g. `~` flips the case of a character
+
+## Counts
+
+You can combine nouns and verbs with a count, which will perform a given action a number of times.
+
+- `3w` move 3 words forward
+- `5j` move 5 lines down
+- `7dw` delete 7 words
+
+## Modifiers
+
+You can use modifiers to change the meaning of a noun. Some modifiers are `i`, which means “inner” or “inside”, and `a`, which means “around”.
+
+- `ci(` change the contents inside the current pair of parentheses
+- `ci[` change the contents inside the current pair of square brackets
+- `da'` delete a single-quoted string, including the surrounding single quotes
+
+# Demo
+
+Here is a broken [fizz buzz](https://en.wikipedia.org/wiki/Fizz_buzz) implementation:
+
+```
+def fizz_buzz(limit):
+    for i in range(limit):
+        if i % 3 == 0:
+            print('fizz')
+        if i % 5 == 0:
+            print('fizz')
+        if i % 3 and i % 5:
+            print(i)
+
+def main():
+    fizz_buzz(10)
+```
+
+We will fix the following issues:
+
+- Main is never called
+- Starts at 0 instead of 1
+- Prints “fizz” and “buzz” on separate lines for multiples of 15
+- Prints “fizz” for multiples of 5
+- Uses a hard-coded argument of 10 instead of taking a command-line argument
+
+See the lecture video for the demonstration. Compare how the above changes are made using Vim to how you might make the same edits using another program. Notice how very few keystrokes are required in Vim, allowing you to edit at the speed you think.
+
+# Customizing Vim
+
+Vim is customized through a plain-text configuration file in `~/.vimrc` (containing Vimscript commands). There are probably lots of basic settings that you want to turn on.
+
+We are providing a well-documented basic config that you can use as a starting point. We recommend using this because it fixes some of Vim’s quirky default behavior. **Download our config [here](https://missing.csail.mit.edu/2020/files/vimrc) and save it to `~/.vimrc`.**
+
+Vim is heavily customizable, and it’s worth spending time exploring customization options. You can look at people’s dotfiles on GitHub for inspiration, for example, your instructors’ Vim configs ([Anish](https://github.com/anishathalye/dotfiles/blob/master/vimrc), [Jon](https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.lua) (uses [neovim](https://neovim.io/)), [Jose](https://github.com/JJGO/dotfiles/blob/master/vim/.vimrc)). There are lots of good blog posts on this topic too. Try not to copy-and-paste people’s full configuration, but read it, understand it, and take what you need.
+
+# Extending Vim
+
+There are tons of plugins for extending Vim. Contrary to outdated advice that you might find on the internet, you do _not_ need to use a plugin manager for Vim (since Vim 8.0). Instead, you can use the built-in package management system. Simply create the directory `~/.vim/pack/vendor/start/`, and put plugins in there (e.g. via `git clone`).
+
+Here are some of our favorite plugins:
+
+- [ctrlp.vim](https://github.com/ctrlpvim/ctrlp.vim): fuzzy file finder
+- [ack.vim](https://github.com/mileszs/ack.vim): code search
+- [nerdtree](https://github.com/scrooloose/nerdtree): file explorer
+- [vim-easymotion](https://github.com/easymotion/vim-easymotion): magic motions
+
+We’re trying to avoid giving an overwhelmingly long list of plugins here. You can check out the instructors’ dotfiles ([Anish](https://github.com/anishathalye/dotfiles), [Jon](https://github.com/jonhoo/configs), [Jose](https://github.com/JJGO/dotfiles)) to see what other plugins we use. Check out [Vim Awesome](https://vimawesome.com/) for more awesome Vim plugins. There are also tons of blog posts on this topic: just search for “best Vim plugins”.
+
+# Vim-mode in other programs
+
+Many tools support Vim emulation. The quality varies from good to great; depending on the tool, it may not support the fancier Vim features, but most cover the basics pretty well.
+
+## Shell
+
+If you’re a Bash user, use `set -o vi`. If you use Zsh, `bindkey -v`. For Fish, `fish_vi_key_bindings`. Additionally, no matter what shell you use, you can `export EDITOR=vim`. This is the environment variable used to decide which editor is launched when a program wants to start an editor. For example, `git` will use this editor for commit messages.
+
+## Readline
+
+Many programs use the [GNU Readline](https://tiswww.case.edu/php/chet/readline/rltop.html) library for their command-line interface. Readline supports (basic) Vim emulation too, which can be enabled by adding the following line to the `~/.inputrc` file:
+
+```
+set editing-mode vi
+```
+
+With this setting, for example, the Python REPL will support Vim bindings.
+
+## Others
+
+There are even vim keybinding extensions for web [browsers](http://vim.wikia.com/wiki/Vim_key_bindings_for_web_browsers) - some popular ones are [Vimium](https://chrome.google.com/webstore/detail/vimium/dbepggeogbaibhgnhhndojpepiihcmeb?hl=en) for Google Chrome and [Tridactyl](https://github.com/tridactyl/tridactyl) for Firefox. You can even get Vim bindings in [Jupyter notebooks](https://github.com/jupyterlab-contrib/jupyterlab-vim). Here is a [long list](https://reversed.top/2016-08-13/big-list-of-vim-like-software) of software with vim-like keybindings.
+
+# Advanced Vim
+
+Here are a few examples to show you the power of the editor. We can’t teach you all of these kinds of things, but you’ll learn them as you go. A good heuristic: whenever you’re using your editor and you think “there must be a better way of doing this”, there probably is: look it up online.
+
+## Search and replace
+
+`:s` (substitute) command ([documentation](http://vim.wikia.com/wiki/Search_and_replace)).
+
+- `%s/foo/bar/g`
+    - replace foo with bar globally in file
+- `%s/\[.*\](\(.*\))/\1/g`
+    - replace named Markdown links with plain URLs
+
+## Multiple windows
+
+- `:sp` / `:vsp` to split windows
+- Can have multiple views of the same buffer.
+
+## Macros
+
+- `q{character}` to start recording a macro in register `{character}`
+- `q` to stop recording
+- `@{character}` replays the macro
+- Macro execution stops on error
+- `{number}@{character}` executes a macro {number} times
+- Macros can be recursive
+    - first clear the macro with `q{character}q`
+    - record the macro, with `@{character}` to invoke the macro recursively (will be a no-op until recording is complete)
+- Example: convert xml to json ([file](https://missing.csail.mit.edu/2020/files/example-data.xml))
+    - Array of objects with keys “name” / “email”
+    - Use a Python program?
+    - Use sed / regexes
+        - `g/people/d`
+        - `%s/<person>/{/g`
+        - `%s/<name>\(.*\)<\/name>/"name": "\1",/g`
+        - …
+    - Vim commands / macros
+        - `Gdd`, `ggdd` delete first and last lines
+        - Macro to format a single element (register `e`)
+            - Go to line with `<name>`
+            - `qe^r"f>s": "<ESC>f<C"<ESC>q`
+        - Macro to format a person
+            - Go to line with `<person>`
+            - `qpS{<ESC>j@eA,<ESC>j@ejS},<ESC>q`
+        - Macro to format a person and go to the next person
+            - Go to line with `<person>`
+            - `qq@pjq`
+        - Execute macro until end of file
+            - `999@q`
+        - Manually remove last `,` and add `[` and `]` delimiters
+
+# Resources
+
+- `vimtutor` is a tutorial that comes installed with Vim - if Vim is installed, you should be able to run `vimtutor` from your shell
+- [Vim Adventures](https://vim-adventures.com/) is a game to learn Vim
+- [Vim Tips Wiki](http://vim.wikia.com/wiki/Vim_Tips_Wiki)
+- [Vim Advent Calendar](https://vimways.org/2019/) has various Vim tips
+- [Vim Golf](http://www.vimgolf.com/) is [code golf](https://en.wikipedia.org/wiki/Code_golf), but where the programming language is Vim’s UI
+- [Vi/Vim Stack Exchange](https://vi.stackexchange.com/)
+- [Vim Screencasts](http://vimcasts.org/)
+- [Practical Vim](https://pragprog.com/titles/dnvim2/) (book)
+
+# Exercises
+
+1. Complete `vimtutor`. Note: it looks best in a [80x24](https://en.wikipedia.org/wiki/VT100) (80 columns by 24 lines) terminal window.
+2. Download our [basic vimrc](https://missing.csail.mit.edu/2020/files/vimrc) and save it to `~/.vimrc`. Read through the well-commented file (using Vim!), and observe how Vim looks and behaves slightly differently with the new config.
+3. Install and configure a plugin: [ctrlp.vim](https://github.com/ctrlpvim/ctrlp.vim).
+    1. Create the plugins directory with `mkdir -p ~/.vim/pack/vendor/start`
+    2. Download the plugin: `cd ~/.vim/pack/vendor/start; git clone https://github.com/ctrlpvim/ctrlp.vim`
+    3. Read the [documentation](https://github.com/ctrlpvim/ctrlp.vim/blob/master/readme.md) for the plugin. Try using CtrlP to locate a file by navigating to a project directory, opening Vim, and using the Vim command-line to start `:CtrlP`.
+    4. Customize CtrlP by adding [configuration](https://github.com/ctrlpvim/ctrlp.vim/blob/master/readme.md#basic-options) to your `~/.vimrc` to open CtrlP by pressing Ctrl-P.
+4. To practice using Vim, re-do the [Demo](https://missing.csail.mit.edu/2020/editors/#demo) from lecture on your own machine.
+5. Use Vim for _all_ your text editing for the next month. Whenever something seems inefficient, or when you think “there must be a better way”, try Googling it, there probably is. If you get stuck, come to office hours or send us an email.
+6. Configure your other tools to use Vim bindings (see instructions above).
+7. Further customize your `~/.vimrc` and install more plugins.
+8. (Advanced) Convert XML to JSON ([example file](https://missing.csail.mit.edu/2020/files/example-data.xml)) using Vim macros. Try to do this on your own, but you can look at the [macros](https://missing.csail.mit.edu/2020/editors/#macros) section above if you get stuck.
