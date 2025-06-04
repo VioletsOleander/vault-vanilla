@@ -1,3 +1,14 @@
+import argparse
+
+
+def setup_parser():
+    parser = argparse.ArgumentParser(
+        description='Prepare commit message.')
+    parser.add_argument('source', type=str,
+                        help='Prespecified commit message source.', default='')
+    return parser
+
+
 def get_content_after_heading(path, heading):
     with open(path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
@@ -14,6 +25,12 @@ def get_content_after_heading(path, heading):
 
 
 if __name__ == "__main__":
+    parser = setup_parser()
+    args = parser.parse_args()
+
+    if args.source:
+        exit(0)
+
     path = 'casual-notes/Commit Message Guide.md'
     heading = '## Commit Message Guide for Obsidian Vault'
     content_lines = get_content_after_heading(path, heading)
