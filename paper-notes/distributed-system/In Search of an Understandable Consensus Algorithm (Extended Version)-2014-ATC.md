@@ -693,7 +693,7 @@ First, a leader must have the latest information on which entries are committed.
 Second, a leader must check whether it has been deposed before processing a read-only request (its information may be stale if a more recent leader has been elected). Raft handles this by having the leader exchange heartbeat messages with a majority of the cluster before responding to read-only requests. Alternatively, the leader could rely on the heartbeat mechanism to provide a form of lease [9], but this would rely on timing for safety (it assumes bounded clock skew). 
 >  其二，leader 必须在处理只读请求之前，检查它自己是否已被替代 (如果已经被替代，它的信息就可能是过时的)
 >  Raft 让 leader 在回应只读请求之前，和 cluster 的 majority **交换 heartbeat 消息** (这里应该理解为交换它们收到的最新的 heartbeat 消息，看看发送者是否有更高的任期，如果是，则自己就是过期的 leader)
->  或者，leader 可以依赖于 heartbeat 机制提供某种形式的租约 (也就是 leader 维护对自己的租约，如果它自己一段时间没有收到 heartbeat 的回应，就会在租约过期后自己退回 follower)，但这将依赖于时间来确保安全性
+>  或者，leader 可以依赖于 heartbeat 机制提供某种形式的租约 (也就是 leader 维护对自己的租约，如果它自己一段时间没有收到 heartbeat 的回应，就会在租约过期后自己退回 follower)，但这将依赖于时间来确保安全性 (故需要假设有限的时钟偏斜)
 
 # 9 Implementation and evaluation 
 We have implemented Raft as part of a replicated state machine that stores configuration information for RAMCloud [33] and assists in failover of the RAMCloud coordinator. The Raft implementation contains roughly 2000 lines of $\mathrm{C}{+}{+}$ code, not including tests, comments, or blank lines. The source code is freely available [23]. There are also about 25 independent third-party open source implementations [34] of Raft in various stages of development, based on drafts of this paper. Also, various companies are deploying Raft-based systems [34]. 

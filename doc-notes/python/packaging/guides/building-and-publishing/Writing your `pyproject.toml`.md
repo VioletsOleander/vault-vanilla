@@ -191,7 +191,7 @@ readme = {file = "README.txt", content-type = "text/markdown"}
 readme = {file = "README.txt", content-type = "text/x-rst"}
 ```
 
-## `license
+## `license`
 [**PEP 639**](https://peps.python.org/pep-0639/) (accepted in August 2024) has changed the way the `license` field is declared. Make sure your preferred build backend supports [**PEP 639**](https://peps.python.org/pep-0639/) before trying to apply the newer guidelines. As of February 2025, [setuptools](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html "(in setuptools v75.8.1.post20250225)") and [flit](https://flit.pypa.io/en/stable/pyproject_toml.html#pyproject-toml-project "(in Flit v3.11.0)") don’t support [**PEP 639**](https://peps.python.org/pep-0639/) yet.
 
 ## [**PEP 639**](https://peps.python.org/pep-0639/) license declaration
