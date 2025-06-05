@@ -790,7 +790,6 @@ This is the art of **decoupling**: computation is decoupled from storage via thi
 >  MapReduce 利用了分布式文件系统，通过 GFS 提供的全局命名空间，解耦了计算和存储
 >  因为 GFS 确保了已经完成的任务的数据仍然保存 (高可用性)，MapReduce 进而不需要再出现问题时重新执行所有任务，只需要细粒度执行特定任务
 
-
 ### Why GFS
 (1) An influential system whose main architecture is still widely used nowadays (e.g., Hadoop HDFS)​ 
 (2) Again, a good abstraction that balances complexity brought by the flexibility of POSIX file APIs   
@@ -828,14 +827,16 @@ Directory metadata that records the file/directory list contained in this direct
 
 Atomic: "all or nothing", all the writers are persisted in the storage or none of them is persisted.
 Atomicity is not provided by the file system, write takes time -- if there is a failure in middle, partial write is persisted​. However, it can be implemented in an upper layer with logs.
+>  文件系统本身并不提供写入的原子性 (在写入的过程中可能会出现故障，导致部分写入)，但可以借助 log 实现原子性
 
 Persistency Semantics: a write is only guaranteed to be persistent after an explicit flush -- enabling the optimization of buffering  
 >  写入操作不一定会直接写入磁盘，而是会暂时留在缓存，只有缓存的数据写入磁盘后，这次写入操作的数据才保证了持久性
 
 Atomic Semantics -- implement with undo log: 
-If a failure happens after the actual write, we have all the data persisted -- All If a failure happens before the actual write, we have none of the data persisted -- None   
-What if a failure happens just in between the actual write? -- uses undo log to revert the updates -- None​   
-Fsync is needed to flush the memory buffer and guarantee the write order -- the hard part of achieving atomicity in the real-world  
+- If a failure happens after the actual write, we have all the data persisted -- All 
+- If a failure happens before the actual write, we have none of the data persisted -- None   
+- What if a failure happens just in between the actual write? -- uses undo log to revert the updates -- None​   
+- Fsync is needed to flush the memory buffer and guarantee the write order -- the hard part of achieving atomicity in the real-world  
 
 >  文件系统本身没有提供原子性写入的语义，我们可以通过日志机制实现它
 >  如果在写入后才发生故障，认为数据已经持久化保存
@@ -848,7 +849,7 @@ Undo-logging Pseudocode that Works Correctly in Linux File Systems
 
 ## Main Ideas of Distributed File System  
 ### Main Ideas
-(1) Use the same master-slave architecture as MapReduce   
+(1) Use the same master-slave architecture as MapReduce
 
 (2) How to manage meta data?   
 master-slave architecture with a centralized namenode 
@@ -963,13 +964,13 @@ Fixed size: simplify the management of metadata
 64MB: only large chunk read/write to align with the characteristics of the underlying HDD for better performance​ 
 Why one same-rack replica $+$ one different-rack replica: tolerate the failure of a whole rack $+$ mitigate the bandwidth bottleneck of aggregated switch  
 
->  固定大小的 chunk 设计简化了元数据的管理，64 MB 的 chunk 大小则仅适合于大文件 (否则碎片问题较严重)
+>  固定大小的 chunk 设计简化了元数据的管理，64 MB 的 chunk 大小则**仅适合于大文件 (否则碎片问题较严重)**
 >  chunk 的多机器、多机架分布提高了容错性，同时也提高了负载均衡能力
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/233d33c6-a6b4-48d5-ab0a-a6a0f41fc8cf/7e74bc82560065fbb2adcc14692441fbed8f86ee38329b1c1d4efcf5291fe457.jpg)  
 
 (5) Master tracks the mapping from file names to the corresponding meta data
-Each file name is mapped to an array of chunk handles (nv), which contains {list of chunkservers that sore this chunk (v) and the corresponding offset, which chunkserver is the primary (v) , the remaining lease time, version \#(nv)}  
+Each file name is mapped to an array of chunk handles (nv), which contains {list of chunkservers that store this chunk (v) and the corresponding offset, which chunkserver is the primary (v) , the remaining lease time, version \#(nv)}  
 
 >  master 维护从文件名到对应元数据的映射
 >  每个文件的元数据是一个 chunk handle 数组，其中每个 chunk handle 包括的信息有：
@@ -984,7 +985,7 @@ Each file name is mapped to an array of chunk handles (nv), which contains {list
 Why do we need a primary of the replicas? 
 In order to solve the problem of network reordering that is possible when concurrently modifying multiple replicas, we select only one replica as the primary and any further modifications should first ordered on this primary​  
 >  primary 机制用于解决并发地修改多个 replicas 时，network reordering 导致的 replica 之间不一致的问题
->  我们选择一个 replica 为 primary, 连续的变更的执行顺序以 primary 收到的为准，其他 replica 基于 primary 定义的顺序进行变更
+>  我们选择一个 replica 为 primary, **连续的变更的执行顺序以 primary 收到的为准**，其他 replica 基于 primary 定义的顺序进行变更
 
 What if the primary is crashed?  
 To tolerate the failure of primary, a lease mechanism is used which requires the remaining lease time and the version. A primary that does not renew its lease is considered dead an a newer primary is selected.
@@ -994,6 +995,7 @@ The version is used to determine which primary is newer. Version is the version 
 
 ## Primary  
 Primary: one of the replicas will be assigned to be primary by the master. All concurrent writes will be redirected to this single primary for order decision.  
+>  所有的并发写入都会被重定向到该 primary 以决定顺序
 
 (1) Selected by the master, maintained by lease 
 If client wants to write, but no primary, or primary lease expired and dead. Then the master will query chunkserver about what chunks/versions they have. 
@@ -1017,7 +1019,7 @@ The **split brain** problem
 ![](https://cdn-mineru.openxlab.org.cn/extract/233d33c6-a6b4-48d5-ab0a-a6a0f41fc8cf/2c857b905857be757db4c59c437c0f95a6a8da1abfc879cb591edb8723820beb.jpg)  
 
 
-Leases help prevent split brain: the master won't designate a new primary until the current one is guaranteed to have stopped acting as primary (after the original lease is expired).  
+**Leases help prevent split brain**: the master won't designate a new primary until the current one is guaranteed to have stopped acting as primary (after the original lease is expired).  
 (Not A in CAP: during the waiting of lease experiment, this part of data is not available even though there is alive replica)
 >  租约机制帮助防止了 split brain 问题，master 只有通过租约过期，确定原来的 primary 不活跃之后，才会指定新的 primary
 >  但在原来的 primary 崩溃到它的租约到期的这段事件内，系统没有 primary，此时 availability 不能保证
@@ -1095,11 +1097,11 @@ As we can see, the master handles only meta data requests. The data stream, whic
 
 This can bring large aggregate throughput for read​.
 In old times (the evaluation setting of GFS), the sequential throughput of one HDD disk was about 30 MB/s​ , and the bandwidth of a Network interface controller (NIC) was only about 10 MB/s.
-For a single client, 6 MB/second per client is achieved by GFS, which is not very large​. However, for total 16 clients + 16 chunkservers, GFS achieved 94 MB/sec, which is close to saturating inter-switch link's 125 MB/sec​.  
+For a single client, 6 MB/second per client is achieved by GFS, which is not very large​. However, for total 16 clients + 16 chunkservers, GFS achieved 94 MB/sec, which is close to **saturating inter-switch link's 125 MB/sec**​.  
 
 Therefore, in GFS, the per-client performance is not huge, but multi-client scalability is good.
 
-However, the situation has changed nowadays. Nowadays, the bandwidth of a high-end NIC can be as large as 400Gbps. Parallelism is needed even for only saturating a single client's bandwidth.
+However, the situation has changed nowadays. Nowadays, the bandwidth of a high-end NIC can be as large as 400Gbps. **Parallelism is needed even for only saturating a single client's bandwidth.**
 
 ## Write Path of GFS  
 ### Append Record Operation
@@ -1134,7 +1136,7 @@ If it had failed at the primary, it would not have been assigned a serial number
 Too simple? What problems?​   
 
 (8) Two clients append at approximately the same time. Will they overwrite each others' records?​ 
-No. They append operations will be ordered at the primary chunk
+No. Their append operations will be ordered at the primary chunk
 
 But there are many other potential positions of inconsistency, especially when there is a failure​.
 Suppose one secondary replica doesn't hear the append command from the primary due to a temporary network failure.  What if reading client reads from that secondary replica? 
@@ -1147,7 +1149,11 @@ Writes that across the boundary of chunk (64MB) will be split to multiple write 
 ## Relaxed Consistency in GFS  
 File namespace mutations in GFS (e.g., file creation) are atomic, because they are handled exclusively by the centralized master.  
 
-(Table ref to original pdf)
+|                    | Write                        | Record Append                               |
+| ------------------ | ---------------------------- | ------------------------------------------- |
+| Serial success     | _defined_                    | _defined_, interspersed with _inconsistent_ |
+| Concurrent success | _consistent_ but _undefined_ | _defined_, interspersed with _inconsistent_ |
+| Failure            | _inconsistent_               | _inconsistent_                              |
 
 **The above table describes the relaxed consistency model provided in GFS**  
 
@@ -1349,7 +1355,8 @@ Nodes in the intersection can convey information about previous decisions -- but
 The majority is out of all servers, not just out of live ones​
 In a partitioned network, the split that contains a majority of nodes can still proceed  
 
-(6) More generally, $2\mathsf{f}{+}\mathsf{1}$ can tolerate f failed servers ◦ if more than f fail (or can't be contacted), no progress  
+(6) More generally, $2\mathsf{f}{+}\mathsf{1}$ can tolerate f failed servers
+If more than f fail (or can't be contacted), no progress  
 
 (7) Often called "quorum" systems  
 
@@ -1378,7 +1385,7 @@ Each node can paly multiple roles (e.g., it can be proposer and acceptor simulta
 
 Therefore, Paxos requires a minimum of 2 RTT latency for decision (if there is no split vote in the first round), and can be more if retry​   
 
-Two phase paradigm is common in distributed environment in order to achieve consensus/atomic/etc  
+Two phase paradigm is common in distributed environment in order to achieve consensus/atomic/etc.  
 
 Note that the proposer can notify the client its proposal has been accepted after receiving 2/3 Accepted messages  
 
@@ -1387,8 +1394,10 @@ Note that the proposer can notify the client its proposal has been accepted afte
 ![](https://cdn-mineru.openxlab.org.cn/extract/281591fa-67f7-4729-a01a-26dee8ec29b6/aaa4a716ec655d9b3f607d5da1443731517aff5eb79bc37de03b4d9aad7deff8.jpg)  
 
 Acceptors must record `minProposal`, `acceptedProposal`, and `acceptedValue` on stable storage (disk)  
+>  Acceptors 持久化存储 `minProposal, acceptedProposal, acceptedValue`
 
 What is promise? The acceptor **promises not accepting a smaller proposal ID** by maintaining a `minProposal` variable​   
+>  Acceptors 保证不再接收 ID 小于 `minProposal` 的 Proposal
 
 The proposal ID must be a **unique and monotonically increasing** which can be obtained by a <monotonically increasing counter, node ID> 
     The above setting actually only achieves: 1) global unique; and 2) per node monotonical​   
@@ -1398,6 +1407,8 @@ The proposal ID must be a **unique and monotonically increasing** which can be o
         Suffix of proposer ID can make the IDs global unique
         Prefix can be used to make sure that no single proposer will always triumph  
     How is global monotonical achieved? -- asynchronously communicated via the return message in the above step 3/6  
+
+>  Proposal ID 必须是唯一且单调递增的，故定义为 `<monotonically increasing counter, node ID>`
 
 The most critical step is in (3), the returning of accepted value if the acceptor has already accepted a value before  
     The proposer's original proposed value is **replaced** by the accepted value returned by the acceptor   
@@ -1532,7 +1543,7 @@ In Raft, time is divided into **terms**
     After a successful election, a single leader manages the cluster until the end of the term. $=>$ replicating and committing logs   
     Some elections fail, in which case the term ends without choosing a leader $=>$ re-election  
 
-Every server in the Raft cluster maintains a **monotonically increasing currentTerm** value 
+Every server in the Raft cluster maintains a **monotonically increasing `currentTerm`** value 
 This value should be persistent for recovering from a restart​  
 
 **Why Strong Leader?**  
@@ -1875,6 +1886,13 @@ Possible Solution: lease
 - a new leader cannot execute Put()s until previous lease period has expired result: faster read-only operations, still linearizable.  
 
 Another solution is also described in the paper  
+
+> (每次遇到可能的 split brain 导致的一致性问题，就能看到 lease 作为解决方案)
+>  Leader 收到 `AppendEntries` 的 majority 回应之后，它将获取一段 lease 时间，在此时间内，它可以回应 read-only 请求，无需将该请求 commit
+>  新的 leader 在被选举后，必须先等待 lease timeout，确保旧 leader 不可能再回应 read-only 请求时，它再执行 `Put` (这避免了: 新 leader 直接提交了新 entry，但旧 leader 不在 majority 内，同时旧 leader 仍然认为自己是 leader，旧 leader 回应 client，告诉 client 它提交的新 entry 找不到，导致线性化语义被违反)
+>  本质上，是为了确保 leader 在直接回应 client 时:
+>  1. leader 的 log 完全提交 
+>  2. leader 是当前 leader 而不是旧 leader
 
 >  为了确保 leader 对于只读请求的返回是 up-to-date 的, leader 需要知道哪些 entries 是已经提交的最新信息，并且需要在处理只读请求之前，检查它是否已被替代
 
@@ -3423,9 +3441,12 @@ A global TSO service is used in Percolator to assign strictly increasing timesta
 
 It can be a bottleneck because acquiring timestamp is one of the most frequently used operation in transaction processing​  
 
-A global centralized TSO service will definitely be a **bottleneck** in geo-distributed environments 
+**A global centralized TSO service** will definitely be a **bottleneck** in geo-distributed environments 
 - Two WAN RTT for every Paxos commit​
 - remote accesses for many data centers. We want local reading for better performance!  
+
+> 为了确保 Linearizability，我们必须获取每个 transaction 的相关 timestamp，在 geo-distributed 的系统中，要确保全局的 timestamp 一致，就必须采用一个 globally centralized TSO service
+> 显然，这个 globally centralized TSO service 必然会成为瓶颈
 
 **Why it is hard?**  
 UTC (Universal Coordinated Time) 
@@ -3456,7 +3477,8 @@ It has a **guaranteed error bound**, and this interval should be as small as pos
 - Each time master has either a GPS receiver or an "atomic clock". 
 - Only $\mathsf { 1 } { \sim } \mathsf { 7 } \mathsf { m s }$ variance compared to the standard 100ms variance of NTP  
 
->  Spanner 的 TSO 提供的时间仅有 1 ~ 7ms 的误差，网络时间协议 (Network Time Protocol) 的误差则在 100ms
+>  Spanner 的 TrueTime API 提供的时间戳不是确切的时间点，而是一个 interval
+>  该 interval 具有保证的误差界，仅有 1 ~ 7ms 的误差，网络时间协议 (Network Time Protocol) 的误差则在 100ms
 
 The physical implementation in Google [2]  
 - GPS Time Master: These nodes are equipped with GPS receivers which receive GPS signals , including time information directly from satellites.  
@@ -3473,12 +3495,16 @@ Why do we need this expensive solution?  
     We want to shorten the below uncertainty interval as much as possible [2]  
     As discussed later, the client must wait until the happens-before relationship becomes clear if a conflict happens  
 
+>  Spanner 的 time master 方案下，不会存在 globally centralized TSO server, client 只需要向最近的 time master 请求时间戳即可
+
 ![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/708c81f996b9cd1c4c0f357858c7f44e2b38a3583c57bf21f9462402f2d235f6.jpg)  
 
 ## Optimization in Spanner  
 Goal: How to improve the latency of **read-only** transactions?  
 - This is the most important problem when implementing geo-distributed databases.  
 - We must avoid not only all kinds of read locks but also all kinds of cross data center communications  
+
+>  对 read-only 事务的优化方向: 避免所有类型的读锁，避免所有类型的跨数据中心通信
 
 Optimization I: No locks, no two-phase commit, no transaction manager for read-only transaction.  
 - Read lock is needed in S2PL to achieve serializability  
@@ -3494,12 +3520,15 @@ Lock-free timestamp based MVCC read for read-only transaction  
 1         x@10=9     x@20=8  
 2         y@10=11    y@20=12  
 3     T1 @ 10: Wx Wy C  
-4     T2 @ 20:         Wx Wy C  
-5     T3 @ 15:     Rx         Ry  
+4     T2 @ 20:             Wx Wy C  
+5     T3 @ 15:         Rx             Ry  
 6 "@ 10" indicates the time-stamp.  
 7 Now T3's reads will both be served from the @10 versions.  
 8 T3 won't see T2's write even though T3's read of y occurs after T2. 
 ```
+
+>  优化 1: 避免读锁 -> Lock-free timestamp based MVCC
+>  Lock-free timestamp based MVCC 中，read-only 事务完全根据它获取的时间戳来读取数据的具体版本，所读取到的数据和读操作具体发生的时间无关
 
 Actually, spanner provides specialized optimizations for four kinds of transactions  
 
@@ -3516,10 +3545,14 @@ Optimization II: Read from local replicas, to avoid Paxos and cross-datacenter m
 - It will contain stale data! 
 - Main Idea: use the TrueTime API  
 
+>  优化 2: 从本地副本读，避免跨数据中心消息
+
 10x tail latency improvement as a result!  
 
 ## Read-write Transaction  
 Pessimistic S2PL + 2PC  
+
+>  Spanner 的 read-write 事务采用悲观的 S2PL + 2PC 机制
 
 Execution Part  
 - Acquire read lock and read the **newest** version of each read record 
@@ -3539,206 +3572,109 @@ Execution Part  
     But, more importantly, these are read locks that do not block concurrent read 
         Percolator uses exclusive locks and hence block concurrent reads 
         Where are the write locks in Spanner? Is there a similar lazy cleaning mechanism? - - simple answer: write locks are possessed by Paxos RSM and hence is high available​  
+- Acquire a `commit_t` timestamp after acquiring all the locks, which is the beginning of committing of this transaction.  
+    Can we use the client's timestamp as the `commit_t`? -- No  
+    There are actually many different timestamp for different machines in Spanner -- how to achieve true external consistency?  
 
-  
-
-◦ Acquire a commit_t timestamp after acquiring all the locks, which is the beginning of committing of this transaction.  
-
-  
-
-Can we use the client's timestamp as the commit_t? -- No  
-
-There are actually many different timestamp for different machines in Spanner -- how to achieve true external consistency?  
-
-  
+>  执行阶段:
+>  - 获取最新记录的读锁
+>  - 将写入在本地缓存，直到提交时间
+>  - 在获取所有锁之后，获取提交时间戳 `commit_t`
 
 Commit part  
-
-  
-
-◦ How to avoid blocking due to failures? -- Paxos for high available coordinator and participant [fig 1]  
-
-  
+- How to avoid blocking due to failures? -- Paxos for high available coordinator and participant [fig 1]  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/24810be682bbbdcdad5d9029478fc5d45e387c0ec93daf33a3e7436081611fe0.jpg)  
 
-  
 
 Note, all the above coordinator and participant are Paxos groups that contain multiple machines in it and appear to the outside as a logical centralized high available service  
 
-  
-
-Client will choose one participant Paxos group as the coordinator and the other Paxos  
-
-groups as participants​  
-
-◦ The prepare/commit decision is replicated by Paxos for high availability  
-
-◦ The commit timestamp commit_t is also assigned by the leader of this chosen coordinator Paxos group Spanner assigns timestamps to Paxos writes in monotonically increasing order, even across leaders​ i.e., even after the original leader is dead and a new leader is elected in the same Paxos group.​ Do we need to replicate the operation of assigning timestamp as a Paxos agreement? -- No, lease protection is enough for monotonically increasing timestamp across leader A leader must only assign timestamps within the interval of its leader lease​  
-
-  
-
-But there will still be multiple different timestamps because there are multiple Paxos groups, which are needed for scalability  
-
-  
-
-How to tolerate this problem?  
-
-  
-
-Use the time interval guarantee of TrueTime!  
-
-  
+Client will choose **one participant Paxos group** as the coordinator and the other Paxos groups as participants​  
+- The prepare/commit decision is replicated by Paxos for high availability  
+- The commit timestamp `commit_t` is also assigned by **the leader of** this chosen coordinator Paxos group 
+    Spanner assigns timestamps to Paxos writes in monotonically increasing order, **even across leaders**​ 
+        i.e., even after the original leader is dead and a new leader is elected in the same Paxos group.​ 
+        Do we need to replicate the operation of assigning timestamp as a Paxos agreement? -- No, lease protection is enough for monotonically increasing timestamp across leader 
+        A leader must only assign timestamps within the interval of its leader lease​  
+- But there will still be multiple different timestamps because there are multiple Paxos groups, which are needed for scalability  
+    How to tolerate this problem?  
+    Use the time interval guarantee of TrueTime!  
 
 The first round of preparation is broadcast directly by the client, not the coordinator for a smaller latency  
 
-  
-
 All the non-coordinator participants should  
-
-  
-
-◦ first acquires write locks  
-
-◦ chooses a prepare timestamp that must be larger than any timestamps it has assigned to previous transactions -- also protected by the leader lease of this participant group  
-
-◦ logs a prepared record through Paxos​  
-
-◦ then notifies the coordinator of its prepare timestamp  
-
-  
+- first acquires write locks  
+- chooses a prepare timestamp that must be larger than any timestamps it has assigned to previous transactions -- also protected by the leader lease of this participant group  
+- logs a prepared record through Paxos​  
+- then notifies the coordinator of its prepare timestamp  
 
 Coordinator  
+- first acquires write locks  
+- chooses a timestamp for the entire transaction after hearing from all other participant leaders​  
+    The commit timestamp `commit_s` must be  
+        greater than `TT.now().latest` at the time the coordinator received the client's prepare message 
+        greater or equal to all prepare timestamps  
+        and greater than any timestamps the leader has assigned to previous transactions  
+        All the above "greater" are compared by `TT.before()` function that tolerate variance without direct synchronization between these Paxos groups
+            This is also the reason why we want the variance interval to be as small as possible​ 
+            It is proportional to commit latency  
 
-  
+logs a commit record through Paxos <- this is the **commit point** of the whole transaction
 
-◦ first acquires write locks  
+Before allowing any coordinator replica to apply the commit record, the coordinator leader waits until `TT.after(commit_s)`
+    This is the crux of achieving external consistency in Spanner [fig 1]  
+    External consistency invariant: if the start of a transaction T2 occurs after the commit of a transaction T1, then the commit timestamp of T2 must be greater than the commit timestamp of T1.  
+        s1 and s2 in the above figure means the commit timestamp of T1 and T2, respectively​ 
+        t_abs means physical time that is used in linearizability  
 
-◦ chooses a timestamp for the entire transaction after hearing from all other participant leaders​  
+$$
+\begin{align}
+s_1 &< t_{abs}(e_1^{commit})&\text{(commit wait)}\\
+t_{abs}(e_1^{commit}) &< t_{abs}(e_w^{start})&\text{(assumption)}\\
+t_{abs}(e_2^{start}) &\le t_{abs}(e_2^{server})&\text{(causality)}\\
+t_{abs}(e_2^{start}) &\le s_2&\text{(start)}\\
+s_1 &< s_2&\text{(transivity)}
+\end{align}
+$$
 
-  
-
-The commit timestamp commit_s must be  
-
-  
-
-greater than TT.now().latest at the time the coordinator received the client's prepare message greater or equal to all prepare timestamps  
-
-and greater than any timestamps the leader has assigned to previous transactions  
-
-All the above "greater" are compared by TT.before() function that tolerate variance without direct synchronization between these Paxos groups ◦ This is also the reason why we want the variance interval to be as small as possible​ ◦ It is proportional to commit latency  
-
-  
-
-logs a commit record through Paxos $\llcorner$ this is the commit point of the whole transaction ◦ Before allowing any coordinator replica to apply the commit record, the coordinator leader waits until TT.after(commit_s)  
-
-  
-
-This is the crux of achieving external consistency in Spanner [fig 1]  
-
-  
 
 ![](https://cdn-mineru.openxlab.org.cn/extract/49bc1795-7d15-4184-8475-b5cb25d260a8/9f7a0eb5e8f1de45c4f13c815835f4a4c1ba0ce4f34d724b2ac55a17cca94e34.jpg)  
 
   
 
-External consistency invariant: if the start of a transaction T2 occurs after the commit of a transaction T1, then the commit timestamp of T2 must be greater than the commit timestamp of T1.  
-
-  
-
-$\begin{array} { c } { s _ { 1 } < t _ { a b s } ( e _ { 1 } ^ { c o m m i t } ) } \\ { t _ { a b s } ( e _ { 1 } ^ { c o m m i t } ) < t _ { a b s } ( e _ { 2 } ^ { s t a r t } ) } \\ { t _ { a b s } ( e _ { 2 } ^ { s t a r t } ) \leq t _ { a b s } ( e _ { 2 } ^ { s e r v e r } ) } \\ { t _ { a b s } ( e _ { 2 } ^ { s e r v e r } ) \leq s _ { 2 } } \\ { s _ { 1 } < s _ { 2 } } \end{array}$ (commit wait) (assumption) (causality) (start) (transitivity)  
-
-  
-
-s1 and s2 in the above figure means the commit timestamp of T1 and T2, respectivly​ t_abs means physical time that is used in linearizability  
-
-  
-
 After commit wait, the coordinator sends the commit timestamp to the client and all other participant leaders.  
-
-  
-
-Each participant leader logs the transaction’s outcome through Paxos.  
-
-◦ All participants apply at the same timestamp and then release locks.  
-
-  
+- Each participant leader logs the transaction’s outcome through Paxos.  
+- All participants apply at the same timestamp and then release locks.  
 
 1PC optimization: only 1 round is needed if only one Paxos group is involved  
 
-  
+## Read-only Transaction  
+The monotonicity invariant described above allows Spanner to correctly determine whether a replica's state is sufficiently up-to-date to satisfy a read.  
 
-# Read-only Transaction  
+Every replica tracks a value called safe time t_safe 
+    maximum timestamp at which a replica is up-to-date -- so that the client does not need to communicate with the leader of this Paxos group that may not be in the same data center 
+    A replica can satisfy a read at a timestamp `t_read` if `t_read <= t_safe`  
+Assigning the safe timestamp `t_safe` 
+    The oldest timestamp that preserves external consistency
+    $Define\quad t_{safe} = \min(t_{safe}^{Paxos}, t_{safe}^{TM})$
+    $T^{Paxos}_{safe}$ is the timestamp of highest-applied Paxos write
+        writes will no longer occur at or below $T^{Paxos}_{safe}$ with respect to Paxos. 
+    $T^{TM}_{safe}$
+        It is infinite at a replica if there are zero prepared (but not committed) transactions — no transactions in between the two phases of two-phase commit.  
+        In contrast, if there are any such prepared transactions, a participant replica does not know yet whether such transactions will commit.  
+            What do we know? For each prepared transaction i  
+                We know the minimum possible commit timestamp `commit_t_i` of this prepared transaction i if it is eventually committed  
+                `commit_t_i` must larger than the $s^{prepare}_{i, g}$ which is the prepare timestamp assigned by the leader of this Paxos group  
+                This is guaranteed by the commit wait described above  $T_{safe}^{TM} = \min s^{prepare}_{i, g}$ for each prepared transaction i - 1  
 
-  
-
-• The monotonicity invariant described above allows Spanner to correctly determine whether a replica's state is sufficiently up-to-date to satisfy a read.  
-
-  
-
-Every replica tracks a value called safe time t_safe maximum timestamp at which a replica is up-to-date -- so that the client does not need to communicate with the leader of this Paxos group that may not be in the same data center ◦ A replica can satisfy a read at a timestamp t_read if t_read $\displaystyle < = \mathbf { t }$ _safe  
-
-  
-
-Assigning the safe timestamp t_safe ◦ The oldest timestamp that preserves external consistency ◦ T^{Paxos}_{safe} is the timestamp of the highest-applied Paxos write.  
-
-  
-
-writes will no longer occur at or below T^{Paxos}_{safe} with respect to Paxos.  
-
-  
-
-◦ T^{TM}_{safe}  
-
-  
-
-It is infinite at a replica if there are zero prepared (but not committed) transactions — no transactions in between the two phases of two-phase commit.  
-
-  
-
-In contrast, if there are any such prepared transactions, a participant replica does not know yet whether such transactions will commit.  
-
-  
-
-What do we know? For each prepared transaction i  
-
-  
-
-◦ We know the minimum possible commit timestamp commit_t_i of this prepared transaction i if it is eventually committed  
-
-◦ commit_t_i must larger than the $\mathsf { s } ^ { \wedge }$ {prepare}_{i,g}, which is the prepare timestamp assigned by the leader of this Paxos group  
-
-◦ This is guaranteed by the commit wait described above  
-
-  
-
-$T ^ { \wedge } \{ \mathsf { T M } \} \_ { \mathsf { S } } \{ \mathsf { s a f e } \} = [ \mathsf { m i n } ( \mathsf { s } ^ { \wedge } \{ \mathsf { p r e p a r e } \} \_ { - } \{ \mathsf { i } , \mathsf { g } \} )$ for each prepared transaction i] - 1  
-
-  
-
-Assigning the read timestamp t_read ◦ Simple way: t_ $\mathsf { c e a d } = \mathsf { T } \mathsf { 7 }$ T.now().latest  
-
-  
-
-However, such a timestamp may require the execution of the data reads at t_read to block if t_safe has not advanced sufficiently.  
-
-  
-
-Better way:  
-
-  
-
-If the read-only transaction reads only one Paxos group: t_read can be assigned by that Paxos group’s leader to be the timestamp of the last committed write at a Paxos group.​  
-
-  
-
-▪ If the read-only transaction reads only more than one Paxos group:  
-
-  
-
-Use TT.now().latest It is possible to communicate with all these leaders, but it will be too complex  
-
-  
+Assigning the read timestamp `t_read`
+    Simple way: `t_read = TT.now().latest`  
+        However, such a timestamp may require the execution of the data reads at `t_read` to block if `t_safe` has not advanced sufficiently.  
+    Better way:  
+        If the read-only transaction reads only one Paxos group: `t_read` can be assigned by that Paxos group’s leader to be the timestamp of the last committed write at a Paxos group.​  
+        If the read-only transaction reads only more than one Paxos group:  
+            Use `TT.now().latest` 
+            It is possible to communicate with all these leaders, but it will be too complex  
 
 ## Hybrid Logical Clocks  
 Atomic clock based true clock is too expensive and hence it is only used internally in Google.  
@@ -3761,16 +3697,214 @@ Open-source versions of Spanner such as CockroachDB use HLC instead.  
 
 CockroachDB combines HLC and serializable snapshot isolation (SSI) to provide externally consistent, lock-free reads and writes -- too complex to be summarized here. You can see this link for more information.​  
 
+# 12 Distributed Key-value Store
+## BigTable
+Actually, We Have Already Learned Key-Value Store - BigTable  
+
+Percolator is based on BigTable. 
+
+Interface of BigTable  
+- Wide-Column Database: mimic a table  
+    (row: string, column: string, time:int64) -> string 
+    Multi-version storage (as used in percolator)  
+- Internally implemented as key-value not row/column-based table  
+- Benefit: sparse tables, different rows have different columns  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/3933a34a89c98adb91b6cc127b1a821e522fe0dcd0d0e17b5ea3de4bfe2f64a7.jpg)  
+## HBase  
+Hbase is an open-source version of BigTable.  
+
+### Architecture of HBase  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/4b0712b851561a910bacf4b88f513f63b3b1e4bcfca14e1113a16cc30d8dd4da.jpg)  
+
   
 
-# Figure Reference  
+Master-slave architecture  
+
+Hbase is based on ZooKeeper and HDFS (the open-source version of GFS)  
+
+### Data Partition  
+HBase partitions each table into row ranges called region  
+- Each region has a start and an end key​  
+- Regions are assigned to the nodes in the cluster, called “Region Servers”  
+- A region server can serve about 1,000 regions. -- **much more regions than region servers** for load balance  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/c43cb5ffe9efea17e60b489835968e50e40eed67933f67ffb4b12caaa59f6161.jpg)  
+
+
+- Region assignment, DDL (create, delete tables) operations are handled by the HBase Master. 
+    Master will create/delete (new) regions  
+    HBase Master High Availability: Primary-backup, with Zookeeper for the leader selection  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/6d771d7f4d1784cf3c0e22beb5d9ee141afa6e2166150387a8d15064c628d714.jpg)  
+
+## Storage Engine: Log-structured merge-tree 
+### Read-write Path
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/4eb3912bae486f38b81a03b1ab16228960cf234d1fc05dc418ffe0f5bd37d36b.jpg)  
+
+  
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/21096b5d4371781b1e400a4847007b96c069266b29bed58e865f0d85bd573488.jpg)  
+
+FIGURE 1. An overview of LSM-tree in LevelDB  
+
+- Write log first for persistence -- but append only  
+- Randomly write to memtable, asynchronous flush/merge to on-disk data -- avoid random disk read/write  
+
+### Log-structured merge-tree
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/4ad5c0762c9070719e4d68ad46899c714e65b2977df82428dfbe4d4cccc7c492.jpg)  
 
   
 
-[fig 1] https://zhuanlan.zhihu.com/p/47870235  
+New data is first inserted into MemTable  
+- MemTable is an in-memory structure that buffers incoming data from clients
+- Can be implemented with a concurrent skip List or other concurrent data structures.
+- After the size of current MemTable reaches a certain limit (e.g., 64MB), an atomic instruction is used to swap the current MemTable with a new empty MemTable
+- The swapped out MemTable becomes immutable memtable, which will be flush to disk as L0 SSTable  
 
-[fig 2] https://sookocheff.com/post/time/truetime/  
+L0 SSTable (Static Sorted Table) 
+- Each is essentially a sorted array of <key, value> pairs [3]  
+- There are multiple L0 SStable files that have overlapping key ranges  
+- Read only!!  
+- Asynchronous merge to L1 SSTable  
 
-[fig 3] https://lass.cs.umass.edu/\~shenoy/courses/spring22/lectures/Lec13_notes.pdf​  
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/96c14cc2e2ddaf7224e7ef52a47c0edda980c24270eff4d34b02ba365d9b94e5.jpg)  
 
-[...] https://zhuanlan.zhihu.com/p/44254954
+L1\~LN SSTable 
+- Multiple files in each layer, but each contains a disjoint range of <key, value> pairs [4]  
+
+What about read?  
+- Read from memtable, if found, return  
+- Read from immutable memtables in order, if found, return  
+- Read from L0 SSTables in order, if found, return Read only one SSTable from L1, if found, return  
+- Read only one SSTable from $L 2 \sim \lfloor N$ , if found, return  
+- LSM is optimized for write, but may lead to problems in read performance  
+
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/baca0505bc3c3c818ffa8b62a7ba04fb52b5a922bcf07a1795f557125a51343f.jpg)  
+
+  
+
+## HBase's Read/Write Path  
+### Tablet location hierarchy  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/866ef6e17a7379f4fc7d33d3a0dbf4f60729c550b21865458138d2cbe7aa70fe.jpg)  
+
+In Hbase, Root Tablet whose partition and location information is maintained in the HMaster​  
+- called HBase META Table 
+- HBase META Table is also partitioned into regions 
+- HMaster maintains a mapping that points to the exact region server that maintains the real data For each region of the META table, its structure is as follows
+- Key: region start key, region id 
+- Values: RegionServer  
+
+### Write/Read Path
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/ea6405375a2e01c4b8c281968e083f55eda2b05eeab4acb72dc4c5c1d7275d7a.jpg)  
+
+  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/c7d84cf82e83106ed940d8bfb42fbb4345547c03f2bfcbcc78d8acb39b97b3c9.jpg)  
+
+The availability of flushed data is protected by HDFS. 
+Region Server itself is essentially a stateless service  
+  
+
+Load imbalance? 
+- Repartitioning and rebalancing  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/e04552adb423290d1d6e7e3cbec22cc5bf01e938a6bc6e279bca751ac7edae33.jpg)  
+
+## Why always master-slave?  
+Pro: Simple for design and understand  
+Con: master can become a bottleneck  
+
+Can we develop a master-less architecture?  
+- Who/How to maintain the liveness of nodes (i.e., cluster membership)?  
+- How to identify the location of a region?  
+- How to rebalance the cluster upon a failure?  
+
+## Peer to Peer (P2P) Architecture  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/e0529241aa134e0111f86523d6afe965b2ea47d9edb0be96e33208c457d8cfc6.jpg)  
+
+BitTorrent is one of the most popular p2p protocol 
+But BitTorrent does not need to guarantee the availability of data, it is a best-effort network  
+
+## Dynamo/Cassandra  
+
+<html><body><table><tr><td>Problem</td><td>Technique</td><td>Advantage</td></tr><tr><td>Partitioning</td><td>Consistent Hashing</td><td>Incremental Scalability</td></tr><tr><td>High Availability for writes</td><td>Vector clocks with reconciliation during reads</td><td>Version size is decoupled from update rates.</td></tr><tr><td>Handling temporary failures</td><td>Sloppy Quorum and hinted handoff</td><td>Provides high availability and durability guarantee when some of the replicas are not available.</td></tr><tr><td>Recovering from permanent failures</td><td>Anti-entropy using Merkle trees</td><td>Synchronizes divergent replicas in the background.</td></tr><tr><td>Membership and failure detection</td><td>Gossip-based membership protocol and failure detection.</td><td>Preserves symmetry and avoids having a centralized registry for storing membership and node liveness information.</td></tr></table></body></html>  
+
+### Consistent Hashing  
+Problem 1: exact data partition and location assignment without a master​  
+
+  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/61d8547ed499d749828970853f6e5dd84e97988dbce81a0e5a2f31b0427e24ba.jpg)  
+
+  
+
+Not only each object key has a hash, but also each node also has a hash [7] 
+Each object key will belong in the server whose key is closest, in a counter clockwise direction (or clockwise, depending on the conventions used).  
+
+What if a node fails?  
+- the same rule 
+- e.g., if B fails, Bill belongs to C 
+- Repartition without a master  
+
+Problem 2: how to avoid load imbalance?  
+- Load imbalance is possible, especially when there are node failures and join 
+- Each node is mapped to multiple virtual nodes, each has a different random hash  
+
+  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/1b01f8d980260a0038c152305221d86b21263ca565b9603e60a6e860b810e4be.jpg)  
+
+### Gossip Protocol  
+Problem: how to identify a change of cluster membership and hence the current partition/location  
+
+Gossip propagation where $k = 3$ [8]  
+each node periodically gossips to K random targets.  
+Problem  
+- no guarantee when a node will notice the current state  
+- Actually, no one will notice the current state (there is no guarantee of consensus at all?!)  
+- Eventually consistency  
+    Eventually consistency means the system will eventually reach to a consistent state
+    But it needs a quiescent period for reaching this eventually consistent state​ 
+    Thus, in a continuously updating system, it actually never reach to consistent 
+    Then, how to read the newest data?  
+- Why?: High availability $>$ consistency in certain scenario
+    This is also the reason why many materials said that Dynamo choose "AP" from "CAP"​ 
+    But it can be mitigated with certain solutions  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/f480eea25b80b8f6525521d83d36c0c136e250c4e87a442305527f85b98bb5ff.jpg)  
+
+### Data Replication  
+Replication factor N: each data object is replicated to N nodes 
+- Which N nodes?  
+- The following N virtual server node in consistency hash
+- Need to skip a virtual node if it is actually a repeated physical node 
+
+Read set R, each read must read at least R different nodes 
+Write set W, each write must write at least W different nodes  
+
+  
+
+![](https://cdn-mineru.openxlab.org.cn/extract/a1e2205d-3cc2-425d-8c2a-a69deac0aabc/92142f38557cefb4fc6669c1c61a37cfd16b959367545b70a688a17e8ad2f587.jpg)  
+
+  
+
+How to assure reading the newest data?  
+- Maintaining a version for the data  
+-  $R + W > N$ 
+- Comparing the version and returning the data with largest version  
+
+How to assign the version?  
+- Dynamo has neither have TSO as Percolator nor atomic clock in Spanner  
+- Vector clock maintained by Gossip  
+- But actually, dynamo in Amazon has replaced this method with a Paxos/Raft based implementation 
+    Why Cassandra Doesn’t Need Vector Clocks | Datastax 
+    Vector clock does not scale with the number of writers  
+- More：https://zhuanlan.zhihu.com/p/27853552
+ 
