@@ -1,33 +1,81 @@
+---
+version: "12.9"
+---
 # 1 Introduction
+This document introduces CUDA-GDB, the NVIDIA® CUDA® debugger for Linux and QNX targets.
+
 ## 1.1 What is CUDA-GDB
-CUDA-GDB is the NVIDIA tool for debugging CUDA applications running on Linux and QNX. CUDA-GDB is an extension to GDB, ( 对GDB的拓展 ) the GNU Project debugger. The tool provides developers with a mechanism for debugging CUDA applications running on actual hardware. This enables developers to debug applications without the potential variations introduced by simulation and emulation environments.
+CUDA-GDB is the NVIDIA tool for debugging CUDA applications running on Linux and QNX. CUDA-GDB is an extension to GDB, the GNU Project debugger. The tool provides developers with a mechanism for debugging CUDA applications running on actual hardware. This enables developers to debug applications without the potential variations introduced by simulation and emulation environments.
+
 ## 2.1 Supported Features
 CUDA-GDB is designed to present the user with a seamless debugging environment that allows simultaneous debugging of both GPU and CPU code within the same application. Just as programming in CUDA C is an extension to C programming, debugging with CUDA-GDB is a natural extension to debugging with GDB. The existing GDB debugging features are inherently present for debugging the host code, and additional features have been provided to support debugging CUDA device code.
+>  CUDA-GDB 中，GDB 的 debugging feature 完全适用于 host code 的调试，CUDA device code 的调试则具有额外的功能
 
 CUDA-GDB supports debugging C/C++ and Fortran CUDA applications. Fortran debugging support is limited to 64-bit Linux operating system.
 
-CUDA-GDB allows the user to set breakpoints, to single-step CUDA applications, and also to inspect and modify the memory and variables of any given thread running on the hardware. ( 审查和修改硬件中任意给定线程的存储和变量 )
+CUDA-GDB allows the user to set breakpoints, to single-step CUDA applications, and also to inspect and modify the memory and variables of any given thread running on the hardware.
+> CUDA-GDB 允许为 CUDA 应用设置断点、单步调试，以及审查和修改硬件中任意给定线程的存储和变量 
 
 CUDA-GDB supports debugging all CUDA applications, whether they use the CUDA driver API, the CUDA runtime API, or both.
+>  无论是使用 CUDA driver API 还是 CUDA runtime API 的 CUDA 应用都可以用 CUDA-GDB 调试
 
 CUDA-GDB supports debugging kernels that have been compiled for specific CUDA architectures, such as `sm_75` or `sm_80`, but also supports debugging kernels compiled at runtime, referred to as just-in-time compilation, or JIT compilation for short.
+>  CUDA-GDB 即支持针对特定 CUDA 架构编译的 kernel，也支持在运行时 JIT 编译的 kernel
+
+## 1.3. About This Document
+This document is the main documentation for CUDA-GDB and is organized more as a user manual than a reference manual. The rest of the document will describe how to install and use CUDA-GDB to debug CUDA kernels and how to use the new CUDA commands that have been added to GDB. Some walk-through examples are also provided. It is assumed that the user already knows the basic GDB commands used to debug host applications.
+
+# 2. Release Notes
+
 # 3 Getting Started
+The CUDA toolkit can be installed by following instructions in the [Quick Start Guide](https://docs.nvidia.com/cuda/cuda-quick-start-guide/).
+
+Further steps should be taken to set up the debugger environment, build the application, and run the debugger.
+
 ## 3.1 Setting Up the Debugger Environment
 ### 3.1.1 Temporary Directory
 By default, CUDA-GDB uses `/tmp` as the directory to store temporary files. To select a different directory, set the `$TMPDIR` environment variable.
+
+Note
+The user must have write and execute permission to the temporary directory used by CUDA-GDB. Otherwise, the debugger will fail with an internal error.
+
+Note
+The value of `$TMPDIR` must be the same in the environment of the application and CUDA-GDB. If they do not match, CUDA-GDB will fail to attach onto the application process.
+
+Note
+Since `/tmp` folder does not exist on Android device, the `$TMPDIR` environment variable must be set and point to a user-writeable folder before launching cuda-gdb.
+
 ## 3.2 Compiling the Application
 ### 3.2.1 Debug Compilation
-NVCC, the NVIDIA CUDA compiler driver, provides a mechanism for generating the debugging information necessary for CUDA-GDB to work properly. The `-g -G` option pair must be passed to NVCC when an application is compiled for ease of debugging with CUDA-GDB; for example, ( 必须向 NVCC 传递 `-g -G` )
-```
-nvcc -g -G foo.cu -o foo
-```
 Using this line to compile the CUDA application `foo.cu`
 - forces `-O0` compilation, with the exception of very limited dead-code eliminations and register-spilling optimizations. ( 强制使用 `-O0` 编译，仅在dead code消除和register spill方面有一点优化  )
 - makes the compiler include debug information in the executable ( 在可执行文件中包含debug信息 )
+
+NVCC, the NVIDIA CUDA compiler driver, provides a mechanism for generating the debugging information necessary for CUDA-GDB to work properly. The `-g -G` option pair must be passed to NVCC when an application is compiled for ease of debugging with CUDA-GDB; for example,
+>  要进行 debug，必须在编译时向 NVCC 传递 `-g -G`
+
+```
+nvcc -g -G foo.cu -o foo
+```
+
+Using this line to compile the CUDA application `foo.cu`
+
+- forces `-O0` compilation, with the exception of very limited dead-code eliminations and register-spilling optimizations.
+- makes the compiler include debug information in the executable
+
+>  传递 `-g -G` 编译时
+>  - NVCC 将使用 `-O0` 编译，仅执行有限的死代码消除和寄存器溢出优化
+>  - NVCC 会将 debug 信息包含到可执行文件中
+
+Note
+Enabling the `-G` option increases the binary size by including debug information and reduces performance due to the absence of compiler optimizations.
+
 ### 3.2.2 Compilation With Linenumber Information
 Several enhancements were made to cuda-gdb’s support for debugging programs compiled with `-lineinfo` but not with `-G`. This is intended primarily for debugging programs built with OptiX/RTCore.
 
-Note that `-lineinfo` can be used when trying to debug optimized code. ( `-lineinfo` 可以用于debug优化的代码 ) In this case, debugger stepping and breakpoint behavior may appear somewhat erratic.
+Note that `-lineinfo` can be used when trying to debug optimized code.  In this case, debugger stepping and breakpoint behavior may appear somewhat erratic.
+>  `-lineinfo` 可以用于debug优化的代码
+
 - The PC may jump forward and backward unexpectedly while stepping. ( 在步入的时候 PC 可能会胡乱跳跃 )
 - The user may step into code that has no linenumber information, leading to an inability to determine which source-file/linenumber the code at the PC belongs to.
 - Breakpoints may break on a different line than they were originally set on.
@@ -36,6 +84,7 @@ When debugging OptiX/RTCore code, the following should be kept in mind:
 - NVIDIA internal code cannot be debugged or examined by the user.
 - OptiX/RTCode debugging is limited to `-lineinfo`, and building this code with full debug infomation (`-G`) is not supported.
 - OptiX/RTCode code is highly optimized, and as such the notes above about debugging optimized code apply.
+
 ### 3.2.3 Compiling For Specific GPU architectures
 By default, the compiler will only generate code for the compute_52 PTX and sm_52 cubins. ( 编译器的默认目标是 compute_52的PTX和 sm_52的 cubin ) For later GPUs, the kernels are recompiled at runtime from the PTX for the architecture of the target GPU(s). Compiling for a specific virtual architecture guarantees that the application will work for any GPU architecture after that, for a trade-off in performance. This is done for forward-compatibility.
 
