@@ -611,39 +611,59 @@ The runtime creates a CUDA context for each device in the system (see [Context]
 >  设备的 primary context 由所有 device thread 共享
 
 As part of this context creation, the device code is just-in-time compiled if necessary (see [Just-in-Time Compilation](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#just-in-time-compilation)) and loaded into device memory. This all happens transparently. If needed, for example, for driver API interoperability, the primary context of a device can be accessed from the driver API as described in [Interoperability between Runtime and Driver APIs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#interoperability-between-runtime-and-driver-apis).
+>  设备的 context 被创建时，device code 会在必要情况下被 just-in-time 编译，然后被加载到设备内存 
+>  这些事情的发生都是透明的 (程序员不可见)
+>  设备的 primary context 可以通过 driver API 访问
 
 When a host thread calls `cudaDeviceReset()`, this destroys the primary context of the device the host thread currently operates on (that is, the current device as defined in [Device Selection](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-selection)). The next runtime function call made by any host thread that has this device as current will create a new primary context for this device.
+>  host thread 调用 `cudaDeviceReset()` 会销毁 host 当前正在操作的设备 (current device) 的 primary context
+>  之后，如果有 host thread 再选择该设备为 current device，然后调用 runtime 函数时，该调用会被该设备创建新的 primary context
 
-Note
-The CUDA interfaces use global state that is initialized during host program initiation and destroyed during host program termination. The CUDA runtime and driver cannot detect if this state is invalid, so using any of these interfaces (implicitly or explicitly) during program initiation or termination after main) will result in undefined behavior.
-
-As of CUDA 12.0, `cudaSetDevice()` will now explicitly initialize the runtime after changing the current device for the host thread. Previous versions of CUDA delayed runtime initialization on the new device until the first runtime call was made after `cudaSetDevice()`. This change means that it is now very important to check the return value of `cudaSetDevice()` for initialization errors.
-
-The runtime functions from the error handling and version management sections of the reference manual do not initialize the runtime.
+> [!Note]
+> The CUDA interfaces use global state that is initialized during host program initiation and destroyed during host program termination. The CUDA runtime and driver cannot detect if this state is invalid, so using any of these interfaces (implicitly or explicitly) during program initiation or termination after main) will result in undefined behavior.
+>> CUDA 接口使用的是全局状态，全局状态在 host program 启动时创建，在 host program 终止时销毁
+>> 但 CUDA 接口不会检测状态是否有效，故如果在 host program 启动之前或 host program 终止之后调用 runtime 或 driver API，会出现未定义的行为
+> 
+> As of CUDA 12.0, `cudaSetDevice()` will now explicitly initialize the runtime after changing the current device for the host thread. Previous versions of CUDA delayed runtime initialization on the new device until the first runtime call was made after `cudaSetDevice()`. This change means that it is now very important to check the return value of `cudaSetDevice()` for initialization errors.
+>> CUDA 12.0 后，`cudaSetDevice()` 会在为 host thread 切换 current device 之后，显式地初始化 runtime，之前的版本则将 runtime 初始化推迟到 `cudaSetDevice()` 之后的第一次 runtime 调用
+>> 因此，CUDA 12.0 后，需要检查 `cudaSetDevice()` 的返回值，确定初始化是否成功
+> 
+> The runtime functions from the error handling and version management sections of the reference manual do not initialize the runtime.
+>> 用于错误处理和版本管理的 runtime 函数不会初始化 runtime
 
 ### 3.2.2. Device Memory
-
 As mentioned in [Heterogeneous Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#heterogeneous-programming), the CUDA programming model assumes a system composed of a host and a device, each with their own separate memory. Kernels operate out of device memory, so the runtime provides functions to allocate, deallocate, and copy device memory, as well as transfer data between host memory and device memory.
+>  CUDA kernel 基于 device memory 运行，故 runtime 提供了分配、释放、拷贝 device memory 的函数，以及在 host memory 和 device memory 之间传输数据的函数
 
 Device memory can be allocated either as _linear memory_ or as _CUDA arrays_.
+>  device memory 可以以 linear memory 的形式分配，也可以以 CUDA arrays 的形式分配
 
 CUDA arrays are opaque memory layouts optimized for texture fetching. They are described in [Texture and Surface Memory](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#texture-and-surface-memory).
+>  CUDA arrays 主要是针对 texture fetching 优化的不透明内存布局 (程序员不可知, opaque = transparent)
 
 Linear memory is allocated in a single unified address space, which means that separately allocated entities can reference one another via pointers, for example, in a binary tree or linked list. The size of the address space depends on the host system (CPU) and the compute capability of the used GPU:
 
 Table 1 Linear Memory Address Space
 
-| |x86_64 (AMD64)|POWER (ppc64le)|ARM64|
-|---|---|---|---|
-|up to compute capability 5.3 (Maxwell)|40bit|40bit|40bit|
-|compute capability 6.0 (Pascal) or newer|up to 47bit|up to 49bit|up to 48bit|
+|                                          | x86_64 (AMD64) | POWER (ppc64le) | ARM64       |
+| ---------------------------------------- | -------------- | --------------- | ----------- |
+| up to compute capability 5.3 (Maxwell)   | 40bit          | 40bit           | 40bit       |
+| compute capability 6.0 (Pascal) or newer | up to 47bit    | up to 49bit     | up to 48bit |
 
-Note
+>  Linear memory 都在单个统一的地址空间分配
+>  地址空间的大小取决于 host system 的 CPU 和 GPU 的 compute capability
+>  x86_64 (AMD64) 的 CPU + Pascal 以后的 GPU 的地址空间大小为 47 bit
 
-On devices of compute capability 5.3 (Maxwell) and earlier, the CUDA driver creates an uncommitted 40bit virtual address reservation to ensure that memory allocations (pointers) fall into the supported range. This reservation appears as reserved virtual memory, but does not occupy any physical memory until the program actually allocates memory.
+> [!Note]
+> On devices of compute capability 5.3 (Maxwell) and earlier, the CUDA driver creates an uncommitted 40bit virtual address reservation to ensure that memory allocations (pointers) fall into the supported range. This reservation appears as reserved virtual memory, but does not occupy any physical memory until the program actually allocates memory.
 
 Linear memory is typically allocated using `cudaMalloc()` and freed using `cudaFree()` and data transfer between host memory and device memory are typically done using `cudaMemcpy()`. In the vector addition code sample of [Kernels](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels), the vectors need to be copied from host memory to device memory:
+>  Linear Memoery:
+>  - `cudaMalloc()` 分配
+>  - `cudaFree()` 释放
+>  - `cudaMemcpy()` 拷贝 (与 host memory)
 
+```cpp
 // Device code
 __global__ void VecAdd(float* A, float* B, float* C, int N)
 {
@@ -696,9 +716,11 @@ int main()
     // Free host memory
     ...
 }
+```
 
 Linear memory can also be allocated through `cudaMallocPitch()` and `cudaMalloc3D()`. These functions are recommended for allocations of 2D or 3D arrays as it makes sure that the allocation is appropriately padded to meet the alignment requirements described in [Device Memory Accesses](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-memory-accesses), therefore ensuring best performance when accessing the row addresses or performing copies between 2D arrays and other regions of device memory (using the `cudaMemcpy2D()` and `cudaMemcpy3D()` functions). The returned pitch (or stride) must be used to access array elements. The following code sample allocates a `width` x `height` 2D array of floating-point values and shows how to loop over the array elements in device code:
 
+```cpp
 // Host code
 int width = 64, height = 64;
 float* devPtr;
@@ -718,9 +740,11 @@ __global__ void MyKernel(float* devPtr,
         }
     }
 }
+```
 
 The following code sample allocates a `width` x `height` x `depth` 3D array of floating-point values and shows how to loop over the array elements in device code:
 
+```cpp
 // Host code
 int width = 64, height = 64, depth = 64;
 cudaExtent extent = make_cudaExtent(width * sizeof(float),
@@ -746,6 +770,7 @@ __global__ void MyKernel(cudaPitchedPtr devPitchedPtr,
         }
     }
 }
+```
 
 Note
 
@@ -755,6 +780,7 @@ The reference manual lists all the various functions used to copy memory between
 
 The following code sample illustrates various ways of accessing global variables via the runtime API:
 
+```cpp
 __constant__ float constData[256];
 float data[256];
 cudaMemcpyToSymbol(constData, data, sizeof(data));
@@ -768,11 +794,11 @@ __device__ float* devPointer;
 float* ptr;
 cudaMalloc(&ptr, 256 * sizeof(float));
 cudaMemcpyToSymbol(devPointer, &ptr, sizeof(ptr));
+```
 
 `cudaGetSymbolAddress()` is used to retrieve the address pointing to the memory allocated for a variable declared in global memory space. The size of the allocated memory is obtained through `cudaGetSymbolSize()`.
 
 ### 3.2.3. Device Memory L2 Access Management
-
 When a CUDA kernel accesses a data region in the global memory repeatedly, such data accesses can be considered to be _persisting_. On the other hand, if the data is only accessed once, such data accesses can be considered to be _streaming_.
 
 Starting with CUDA 11.0, devices of compute capability 8.0 and above have the capability to influence persistence of data in the L2 cache, potentially providing higher bandwidth and lower latency accesses to global memory.
