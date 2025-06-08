@@ -1,3 +1,6 @@
+---
+completed: true
+---
 ## Introduction
 TableGen’s purpose is to help a human develop and maintain records of domain-specific information. Because there may be a large number of these records, it is specifically designed to allow writing flexible descriptions and for common features of these records to be factored out. This reduces the amount of duplication in the description, reduces the chance of error, and makes it easier to structure domain specific information.
 >  TableGen 的目的是帮助人类开发和维护领域特定的信息记录
@@ -13,12 +16,14 @@ Note that if you work with TableGen frequently and use emacs or vim, you can fin
 ## The TableGen program
 TableGen files are interpreted by the TableGen program: `llvm-tblgen` available on your build directory under bin. It is not installed in the system (or where your sysroot is set to), since it has no use beyond LLVM’s build process.
 >  TableGen 源文件由 `llvm-tblgen` 程序解析
+>  `llvm-tblgen` 可以在 `build/bin` 下找到，该程序的使用范围不会超过 LLVM 的构建过程
 
 ### Running TableGen
 TableGen runs just like any other LLVM tool. The first (optional) argument specifies the file to read. If a filename is not specified, `llvm-tblgen` reads from standard input.
 >  和其他 LLVM 工具一样，`llvm-tblgen` 的第一个参数指定需要读取的文件，如果没有指定，则从标准输入中读取
 
-To be useful, one of the [backends](https://llvm.org/docs/TableGen/index.html#backends) must be used. These backends are selectable on the command line (type ‘`llvm-tblgen -help`’ for a list). For example, to get a list of all of the definitions that subclass a particular type (which can be useful for building up an enum list of these records), use the `-print-enums` option:
+To be useful, one of the [backends](https://llvm.org/docs/TableGen/index.html#backends) must be used. These backends are selectable on the command line (type ‘ `llvm-tblgen -help` ’ for a list). For example, to get a list of all of the definitions that subclass a particular type (which can be useful for building up an enum list of these records), use the `-print-enums` option:
+>  要获取继承特定类型的所有定义和子类，可以使用 `-print-enums` 选项
 
 ```
 $ llvm-tblgen X86.td -print-enums -class=Register
@@ -42,8 +47,8 @@ ADD64mi32, ADD64mi8, ADD64mr, ADD64ri32, ...
 ```
 
 The default backend prints out all of the records. There is also a general backend which outputs all the records as a JSON data structure, enabled using the -dump-json option.
->  TableGen 的默认后端打印出所有的记录
->  TableGen 的一个通用后端以 JSON 格式输出所有记录 (`-dump-json` option)
+>  TableGen 的默认后端会打印出所有的 records
+>  TableGen 的一个通用后端以 JSON 格式输出所有 records (`-dump-json` option)
 
 If you plan to use TableGen, you will most likely have to write a [backend](https://llvm.org/docs/TableGen/index.html#backend) that extracts the information specific to what you need and formats it in the appropriate way. You can do this by extending TableGen itself in C++, or by writing a script in any language that can consume the JSON output.
 >  要使用 TableGen，一般需要自己实现后端，该后端负责从源码提取所需的信息，并以相应的方式对其格式化
@@ -107,11 +112,13 @@ def ADD32rr {   // Instruction X86Inst I
 ...
 ```
 
-This definition corresponds to the 32-bit register-register `add` instruction of the x86 architecture. `def ADD32rr` defines a record named `ADD32rr`, and the comment at the end of the line indicates the superclasses of the definition. The body of the record contains all of the data that TableGen assembled for the record, indicating that the instruction is part of the “X86” namespace, the pattern indicating how the instruction is selected by the code generator, that it is a two-address instruction, has a particular encoding, etc. The contents and semantics of the information in the record are specific to the needs of the X86 backend, and are only shown as an example.
+This definition corresponds to the 32-bit register-register `add` instruction of the x86 architecture. `def ADD32rr` defines a record named `ADD32rr`, and the comment at the end of the line indicates the superclasses of the definition. 
 >  上例的定义对应了 x86 架构中的 32 位寄存器-寄存器 `add` 指令
 >  其中 `def ADD32rr` 定义了一个名为 `ADD32rr` 的记录，行末的注释指出了该定义的超类
->  记录的主体包含了 TableGen 为该记录收集的所有数据: 表明了该指令属于 "X86" 命名空间，包含了指示代码生成器如何选择指令的模式，表明了该指令是双地址指令，表明了该指令具有特定的编码，等等
->  记录中的内容和语义是针对 X86 后端的需求设计的
+
+The body of the record contains all of the data that TableGen assembled for the record, indicating that the instruction is part of the “X86” namespace, the pattern indicating how the instruction is selected by the code generator, that it is a two-address instruction, has a particular encoding, etc. The contents and semantics of the information in the record are specific to the needs of the X86 backend, and are only shown as an example.
+>  record 的主体包含了 TableGen 为该 record 收集的所有数据: 表明了该指令属于 "X86" 命名空间，包含了指示代码生成器如何选择指令的模式，表明了该指令是双地址指令，表明了该指令具有特定的编码，等等
+>  record 中的内容和语义是针对 X86 后端的需求设计的
 
 As you can see, a lot of information is needed for every instruction supported by the code generator, and specifying it all manually would be unmaintainable, prone to bugs, and tiring to do in the first place. Because we are using TableGen, all of the information was derived from the following definition:
 >  可以看到，代码生成器支持的每一条指令都需要大量信息，如果手动指定这些信息，将难以维护
@@ -138,16 +145,16 @@ TableGen has a syntax that is loosely based on C++ templates, with built-in type
 
 ### Basic concepts
 TableGen files consist of two key parts: ‘classes’ and ‘definitions’, both of which are considered ‘records’.
->  TableGen 文件由两个关键部分组成：类和定义，二者都被视作 "记录"
+>  TableGen 文件由两个关键部分组成：类和定义，二者都被视作 "record"
 
 **TableGen records** have a unique name, a list of values, and a list of superclasses. The list of values is the main data that TableGen builds for each record; it is this that holds the domain specific information for the application. The interpretation of this data is left to a specific [backend](https://llvm.org/docs/TableGen/index.html#backend), but the structure and format rules are taken care of and are fixed by TableGen.
 >  TableGen records
->  记录具有一个唯一的名称、一组值和一组超类
->  这组值是 TableGen 为该记录构建的主要数据，它承载了应用的领域特定信息，对这组值的解释由特定的后端复杂，但其结构和格式狗则由 TableGen 确定并固定下来
+>  record 具有一个唯一的名称、一组值和一组超类
+>  这组值是 TableGen 为该 record 构建的主要数据，它承载了应用的领域特定信息，对这组值的解释由特定的后端负责，但其结构和格式狗则由 TableGen 确定并固定下来
 
 **TableGen definitions** are the concrete form of ‘records’. These generally do not have any undefined values, and are marked with the ‘ `def` ’ keyword.
 >  TableGen definitions
->  TableGen definitions 是 “记录” 的具体形式
+>  TableGen definitions 是 “record” 的具体形式
 >  这些定义中通常不会有未定义的值，定义以 `def` 关键字标记
 
 ```
@@ -162,7 +169,7 @@ The names of the classes are defined via the keyword class either on the same 
 
 **TableGen classes** are abstract records that are used to build and describe other records. These classes allow the end-user to build abstractions for either the domain they are targeting (such as “Register”, “RegisterClass”, and “Instruction” in the LLVM code generator) or for the implementor to help factor out common properties of records (such as “FPInst”, which is used to represent floating point instructions in the X86 backend). 
 >  TableGen classes
->  TableGen 类是抽象的记录，用于构建和描述其他距离
+>  TableGen 类是抽象的 record，用于构建和描述其他 records
 >  类可以用于为目标领域 (例如 LLVM 代码生成器中的 “寄存器”，“寄存器类”，“指令”) 构建抽象，或者用于帮助实现者提取记录的通用属性 (例如 “FPInst”，用于表示 X86 后端中的浮点指令)
 
 TableGen keeps track of all of the classes that are used to build up a definition, so the backend can find all definitions of a particular class, such as “Instruction”.
@@ -211,9 +218,12 @@ The power in TableGen is, however, to interpret the source files into an interna
 Current usage of TableGen is to create huge include files with tables that you can either include directly (if the output is in the language you’re coding), or be used in pre-processing via macros surrounding the include of the file.
 >  目前 TableGen 的主要用途是创建包含大量表格的大型头文件，这些表格可以直接 include (如果输出的语言是我们正在使用的语言)，或者通过围绕文件的 include 的宏在预处理阶段使用
 
-Direct output can be used if the backend already prints a table in C format or if the output is just a list of strings (for error and warning messages). Pre-processed output should be used if the same information needs to be used in different contexts (like Instruction names), so your backend should print a meta-information list that can be shaped into different compile-time formats.
+Direct output can be used if the backend already prints a table in C format or if the output is just a list of strings (for error and warning messages). 
 >  如果后端已经以 C 形式打印了表格，或者输出只是一个字符串列表 (用于错误和警告消息)，则可以使用直接输出
->  
+
+Pre-processed output should be used if the same information needs to be used in different contexts (like Instruction names), so your backend should print a meta-information list that can be shaped into different compile-time formats.
+>  如果相同的信息需要在不同的上下文使用 (如指令名称)，则应使用预处理输出
+>  因此，我们实现的后端应该打印一个元信息列表，该列表可以通过不同的编译时格式进行调整
 
 See [TableGen BackEnds](https://llvm.org/docs/TableGen/BackEnds.html) for a list of available backends, and see the [TableGen Backend Developer’s Guide](https://llvm.org/docs/TableGen/BackGuide.html) for information on how to write and debug a new backend.
 
@@ -222,7 +232,10 @@ In addition to this documentation, a list of tools and resources for TableGen ca
 
 ## TableGen Deficiencies
 Despite being very generic, TableGen has some deficiencies that have been pointed out numerous times. The common theme is that, while TableGen allows you to build domain specific languages, the final languages that you create lack the power of other DSLs, which in turn increase considerably the size and complexity of TableGen files.
+>  TableGen 非常通用，但也存在缺陷
+>  TableGen 允许我们创建领域特定的语言，但最终创造出的语言缺乏其他 DSL 强大的功能，反过来增加了 TableGen 文件的规模和复杂性
 
 At the same time, TableGen allows you to create virtually any meaning of the basic concepts via custom-made backends, which can pervert the original design and make it very hard for newcomers to understand the evil TableGen file.
+>  TableGen 允许通过定制后端为基本概念赋予几乎任何含义，但这可能会扭曲原始设计，并使新用户难以理解那些复杂的 TableGen 文件
 
 There are some in favor of extending the semantics even more, but making sure backends adhere to strict rules. Others are suggesting we should move to less, more powerful DSLs designed with specific purposes, or even reusing existing DSLs
