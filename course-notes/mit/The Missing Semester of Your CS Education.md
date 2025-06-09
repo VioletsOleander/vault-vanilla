@@ -551,7 +551,7 @@ More complex tools exist to quickly get an overview of a directory structure: [
 2. Write bash functions `marco` and `polo` that do the following. Whenever you execute `marco` the current working directory should be saved in some manner, then when you execute `polo`, no matter what directory you are in, `polo` should `cd` you back to the directory where you executed `marco`. For ease of debugging you can write the code in a file `marco.sh` and (re)load the definitions to your shell by executing `source marco.sh`.
 3. Say you have a command that fails rarely. In order to debug it you need to capture its output but it can be time consuming to get a failure run. Write a bash script that runs the following script until it fails and captures its standard output and error streams to files and prints everything at the end. Bonus points if you can also report how many runs it took for the script to fail.
     
-    ```
+    ```bash
      #!/usr/bin/env bash
     
      n=$(( RANDOM % 100 ))
@@ -600,6 +600,8 @@ The end result is an editor that can match the speed at which you think.
 
 ## Modal editing
 Vim’s design is based on the idea that a lot of programmer time is spent reading, navigating, and making small edits, as opposed to writing long streams of text. For this reason, Vim has multiple operating modes.
+>  Vim 的设计思想基于程序员的编程实际上大部分时间是在读、跳转、进行微小的修改，而不是写大段的文字
+>  为此，Vim 有许多操作模式
 
 - **Normal**: for moving around a file and making edits
 - **Insert**: for inserting text
@@ -608,10 +610,13 @@ Vim’s design is based on the idea that a lot of programmer time is spent readi
 - **Command-line**: for running a command
 
 Keystrokes have different meanings in different operating modes. For example, the letter `x` in Insert mode will just insert a literal character ‘x’, but in Normal mode, it will delete the character under the cursor, and in Visual mode, it will delete the selection.
+>  不同操作模式下，按键具有不同的含义
 
 In its default configuration, Vim shows the current mode in the bottom left. The initial/default mode is Normal mode. You’ll generally spend most of your time between Normal mode and Insert mode.
 
 You change modes by pressing `<ESC>` (the escape key) to switch from any mode back to Normal mode. From Normal mode, enter Insert mode with `i`, Replace mode with `R`, Visual mode with `v`, Visual Line mode with `V`, Visual Block mode with `<C-v>` (Ctrl-V, sometimes also written `^V`), and Command-line mode with `:`.
+>  `<ESC>` 从任何模式回到 Normal 模式
+>  Normal 模式下，`i` 进入 Insert 模式，`R` 进入 Replace 模式，`v` 进入 Visual 模式，`V` 进入 Visual Line 模式，`<C-v>` 进入 Visual Block 模式，`:` 进入 Command-line 模式
 
 You use the `<ESC>` key a lot when using Vim: consider remapping Caps Lock to Escape ([macOS instructions](https://vim.fandom.com/wiki/Map_caps_lock_to_escape_in_macOS)) or create an [alternative mapping](https://vim.fandom.com/wiki/Avoid_the_escape_key#Mappings) for `<ESC>` with a simple key sequence.
 
@@ -621,8 +626,12 @@ From Normal mode, press `i` to enter Insert mode. Now, Vim behaves like any ot
 
 ### Buffers, tabs, and windows
 Vim maintains a set of open files, called “buffers”. A Vim session has a number of tabs, each of which has a number of windows (split panes). Each window shows a single buffer. Unlike other programs you are familiar with, like web browsers, there is not a 1-to-1 correspondence between buffers and windows; windows are merely views. A given buffer may be open in _multiple_ windows, even within the same tab. This can be quite handy, for example, to view two different parts of a file at the same time.
+>  Vim 维护一组打开的文件，称为 buffers
+>  一个 Vim 会话包含一组标签页，每个标签页包含一组窗口 (split panes) ，每个窗口展示一个 buffer 的内容
+>  窗口和 buffer 不必要一对一映射，窗口仅仅作为视图，一个 buffer 可以在多个窗口展示
 
 By default, Vim opens with a single tab, which contains a single window.
+>  Vim 默认打开一个 tab，包含一个 window
 
 ### Command-line
 Command mode can be entered by typing `:` in Normal mode. Your cursor will jump to the command line at the bottom of the screen upon pressing `:`. This mode has many functionalities, including opening, saving, and closing files, and [quitting Vim](https://twitter.com/iamdevloper/status/435555976687923200).
@@ -636,11 +645,18 @@ Command mode can be entered by typing `:` in Normal mode. Your cursor will jum
     - `:help :w` opens help for the `:w` command
     - `:help w` opens help for the `w` movement
 
+>  `:e {name of file}` 打开文件
+>  `:ls` 展示打开的 buffers
+>  `:help {topic}` 打开 help，例如 `:help :w`, `:help w`
+
 ## Vim’s interface is a programming language
 The most important idea in Vim is that Vim’s interface itself is a programming language. Keystrokes (with mnemonic names) are commands, and these commands _compose_. This enables efficient movement and edits, especially once the commands become muscle memory.
+>  Vim 最重要的思想是 Vim 的接口本身是一门编程语言
+>  按键即为命令，且这些命令可以组合
 
 ### Movement
 You should spend most of your time in Normal mode, using movement commands to navigate the buffer. Movements in Vim are also called “nouns”, because they refer to chunks of text.
+>  Movement 在 Vim 中称为 “名词”，因为它们指向文本块
 
 - Basic movement: `hjkl` (left, down, up, right)
 - Words: `w` (next word), `b` (beginning of word), `e` (end of word)
@@ -655,19 +671,31 @@ You should spend most of your time in Normal mode, using movement commands to na
     - `,` / `;` for navigating matches
 - Search: `/{regex}`, `n` / `N` for navigating matches
 
-## Selection
+>  基本移动 `hijk`
+>  单词移动 `w, b, e`
+>  行移动 `0 ^ $`
+>  屏幕移动 `H` `M` `L` (high, middle, low)
+>  滑动 `Ctrl-u` `Ctrl-d` (up, down)
+>  文件 `gg, G`
+>  行号 `:{number}G`
+>  `%` : 对应的项
+>  查找: `f{character}, t{character}, F{character}, T{character}` (`,/;`)
+>  搜索: `/{regex}` (`n, N`)
 
+### Selection
 Visual modes:
 
 - Visual: `v`
 - Visual Line: `V`
 - Visual Block: `Ctrl-v`
 
+>  视觉模式: `v, V, Ctrl-v`
+
 Can use movement keys to make selection.
 
-## Edits
-
+### Edits
 Everything that you used to do with the mouse, you now do with the keyboard using editing commands that compose with movement commands. Here’s where Vim’s interface starts to look like a programming language. Vim’s editing commands are also called “verbs”, because verbs act on nouns.
+>  Editing 命令在 Vim 中称为 “动词”，因为动词在名词上执行
 
 - `i` enter Insert mode
     - but for manipulating/deleting text, want to use something more than backspace
@@ -686,27 +714,38 @@ Everything that you used to do with the mouse, you now do with the keyboard usin
 - `p` to paste
 - Lots more to learn: e.g. `~` flips the case of a character
 
-## Counts
+>  `d{motion}` : delete {motion}
+>  `c{motion}`: change {motion} (= `d{motion}` + `i`)
+>  `x` = `dl`  
+>  `s` = `cl`
+>  `~` : 改变大小写
 
+### Counts
 You can combine nouns and verbs with a count, which will perform a given action a number of times.
 
 - `3w` move 3 words forward
 - `5j` move 5 lines down
 - `7dw` delete 7 words
 
-## Modifiers
+>  名词和动词可以和数字结合，表示执行次数
 
+### Modifiers
 You can use modifiers to change the meaning of a noun. Some modifiers are `i`, which means “inner” or “inside”, and `a`, which means “around”.
 
 - `ci(` change the contents inside the current pair of parentheses
 - `ci[` change the contents inside the current pair of square brackets
 - `da'` delete a single-quoted string, including the surrounding single quotes
 
-# Demo
+>  名词的含义可以通过修饰符改变
+>  `i` 意为 inner, inside，`a` 意为 around
+>  `ci(` 修改当前 `()` 中的内容
+>  `ci[` 修改当前 `[]` 中的内容
+>  `da'` 删除 `''` 括起的字符串
 
+## Demo
 Here is a broken [fizz buzz](https://en.wikipedia.org/wiki/Fizz_buzz) implementation:
 
-```
+```python
 def fizz_buzz(limit):
     for i in range(limit):
         if i % 3 == 0:
@@ -730,17 +769,17 @@ We will fix the following issues:
 
 See the lecture video for the demonstration. Compare how the above changes are made using Vim to how you might make the same edits using another program. Notice how very few keystrokes are required in Vim, allowing you to edit at the speed you think.
 
-# Customizing Vim
-
+## Customizing Vim
 Vim is customized through a plain-text configuration file in `~/.vimrc` (containing Vimscript commands). There are probably lots of basic settings that you want to turn on.
+>  Vim 可以通过纯文本配置文件 `~/.vimrc` 配置 (`~/.vimrc` 中包含的是 Vimscript 命令)
 
 We are providing a well-documented basic config that you can use as a starting point. We recommend using this because it fixes some of Vim’s quirky default behavior. **Download our config [here](https://missing.csail.mit.edu/2020/files/vimrc) and save it to `~/.vimrc`.**
 
 Vim is heavily customizable, and it’s worth spending time exploring customization options. You can look at people’s dotfiles on GitHub for inspiration, for example, your instructors’ Vim configs ([Anish](https://github.com/anishathalye/dotfiles/blob/master/vimrc), [Jon](https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.lua) (uses [neovim](https://neovim.io/)), [Jose](https://github.com/JJGO/dotfiles/blob/master/vim/.vimrc)). There are lots of good blog posts on this topic too. Try not to copy-and-paste people’s full configuration, but read it, understand it, and take what you need.
 
-# Extending Vim
-
+## Extending Vim
 There are tons of plugins for extending Vim. Contrary to outdated advice that you might find on the internet, you do _not_ need to use a plugin manager for Vim (since Vim 8.0). Instead, you can use the built-in package management system. Simply create the directory `~/.vim/pack/vendor/start/`, and put plugins in there (e.g. via `git clone`).
+>  Vim 8.0 之后就内建了插件管理系统，我们只需要在 `~/.vim/pack/vendor/start/` 通过 `git clone` 放入插件即可
 
 Here are some of our favorite plugins:
 
@@ -751,16 +790,16 @@ Here are some of our favorite plugins:
 
 We’re trying to avoid giving an overwhelmingly long list of plugins here. You can check out the instructors’ dotfiles ([Anish](https://github.com/anishathalye/dotfiles), [Jon](https://github.com/jonhoo/configs), [Jose](https://github.com/JJGO/dotfiles)) to see what other plugins we use. Check out [Vim Awesome](https://vimawesome.com/) for more awesome Vim plugins. There are also tons of blog posts on this topic: just search for “best Vim plugins”.
 
-# Vim-mode in other programs
-
+## Vim-mode in other programs
 Many tools support Vim emulation. The quality varies from good to great; depending on the tool, it may not support the fancier Vim features, but most cover the basics pretty well.
+>  许多工具都支持 Vim 模拟，基本上都会覆盖基础的 Vim 特性
 
-## Shell
-
+### Shell
 If you’re a Bash user, use `set -o vi`. If you use Zsh, `bindkey -v`. For Fish, `fish_vi_key_bindings`. Additionally, no matter what shell you use, you can `export EDITOR=vim`. This is the environment variable used to decide which editor is launched when a program wants to start an editor. For example, `git` will use this editor for commit messages.
+>  Bash 中，`set -o vi` 启用 Vi 模拟模式
+>  `export EDITOR=vim` 将环境变量 `EDITOR` 设置为 vim，该环境变量决定了当一个程序需要启动一个编辑器时所选择的编辑器
 
-## Readline
-
+### Readline
 Many programs use the [GNU Readline](https://tiswww.case.edu/php/chet/readline/rltop.html) library for their command-line interface. Readline supports (basic) Vim emulation too, which can be enabled by adding the following line to the `~/.inputrc` file:
 
 ```
@@ -769,38 +808,47 @@ set editing-mode vi
 
 With this setting, for example, the Python REPL will support Vim bindings.
 
-## Others
+>  许多程序使用 [GNU Readline](https://tiswww.case.edu/php/chet/readline/rltop.html) 库来实现命令行界面，Readline 也支持（基础的）Vim 模拟功能，可以通过在 `~/.inputrc` 文件中添加 `set editing-mode vi` 来启用它
+>  启用此设置后，例如，Python 的 REPL 将支持 Vim 绑定
 
+### Others
 There are even vim keybinding extensions for web [browsers](http://vim.wikia.com/wiki/Vim_key_bindings_for_web_browsers) - some popular ones are [Vimium](https://chrome.google.com/webstore/detail/vimium/dbepggeogbaibhgnhhndojpepiihcmeb?hl=en) for Google Chrome and [Tridactyl](https://github.com/tridactyl/tridactyl) for Firefox. You can even get Vim bindings in [Jupyter notebooks](https://github.com/jupyterlab-contrib/jupyterlab-vim). Here is a [long list](https://reversed.top/2016-08-13/big-list-of-vim-like-software) of software with vim-like keybindings.
+>  还有许多软件支持 Vim 模拟
 
-# Advanced Vim
-
+## Advanced Vim
 Here are a few examples to show you the power of the editor. We can’t teach you all of these kinds of things, but you’ll learn them as you go. A good heuristic: whenever you’re using your editor and you think “there must be a better way of doing this”, there probably is: look it up online.
 
-## Search and replace
-
+### Search and replace
 `:s` (substitute) command ([documentation](http://vim.wikia.com/wiki/Search_and_replace)).
-
 - `%s/foo/bar/g`
     - replace foo with bar globally in file
 - `%s/\[.*\](\(.*\))/\1/g`
     - replace named Markdown links with plain URLs
 
-## Multiple windows
+>  `:s` 执行替换
 
+### Multiple windows
 - `:sp` / `:vsp` to split windows
 - Can have multiple views of the same buffer.
 
-## Macros
+>  `:sp` 划分窗口
 
+### Macros
 - `q{character}` to start recording a macro in register `{character}`
 - `q` to stop recording
 - `@{character}` replays the macro
 - Macro execution stops on error
 - `{number}@{character}` executes a macro {number} times
+
+>  `q{character}` 开始记录宏
+>  `q` 停止记录
+>  `@{character}` 执行宏，宏的执行在遇到错误时会停止
+>  `{number}@{character}` 多次执行宏
+
 - Macros can be recursive
     - first clear the macro with `q{character}q`
     - record the macro, with `@{character}` to invoke the macro recursively (will be a no-op until recording is complete)
+
 - Example: convert xml to json ([file](https://missing.csail.mit.edu/2020/files/example-data.xml))
     - Array of objects with keys “name” / “email”
     - Use a Python program?
@@ -824,8 +872,7 @@ Here are a few examples to show you the power of the editor. We can’t teach yo
             - `999@q`
         - Manually remove last `,` and add `[` and `]` delimiters
 
-# Resources
-
+## Resources
 - `vimtutor` is a tutorial that comes installed with Vim - if Vim is installed, you should be able to run `vimtutor` from your shell
 - [Vim Adventures](https://vim-adventures.com/) is a game to learn Vim
 - [Vim Tips Wiki](http://vim.wikia.com/wiki/Vim_Tips_Wiki)
@@ -835,8 +882,7 @@ Here are a few examples to show you the power of the editor. We can’t teach yo
 - [Vim Screencasts](http://vimcasts.org/)
 - [Practical Vim](https://pragprog.com/titles/dnvim2/) (book)
 
-# Exercises
-
+## Exercises
 1. Complete `vimtutor`. Note: it looks best in a [80x24](https://en.wikipedia.org/wiki/VT100) (80 columns by 24 lines) terminal window.
 2. Download our [basic vimrc](https://missing.csail.mit.edu/2020/files/vimrc) and save it to `~/.vimrc`. Read through the well-commented file (using Vim!), and observe how Vim looks and behaves slightly differently with the new config.
 3. Install and configure a plugin: [ctrlp.vim](https://github.com/ctrlpvim/ctrlp.vim).
@@ -849,3 +895,271 @@ Here are a few examples to show you the power of the editor. We can’t teach yo
 6. Configure your other tools to use Vim bindings (see instructions above).
 7. Further customize your `~/.vimrc` and install more plugins.
 8. (Advanced) Convert XML to JSON ([example file](https://missing.csail.mit.edu/2020/files/example-data.xml)) using Vim macros. Try to do this on your own, but you can look at the [macros](https://missing.csail.mit.edu/2020/editors/#macros) section above if you get stuck.
+
+# Data Wrangling
+Have you ever wanted to take data in one format and turn it into a different format? Of course you have! That, in very general terms, is what this lecture is all about. Specifically, massaging data, whether in text or binary format, until you end up with exactly what you wanted.
+
+We’ve already seen some basic data wrangling in past lectures. Pretty much any time you use the `|` operator, you are performing some kind of data wrangling. Consider a command like `journalctl | grep -i intel`. It finds all system log entries that mention Intel (case insensitive). You may not think of it as wrangling data, but it is going from one format (your entire system log) to a format that is more useful to you (just the intel log entries). Most data wrangling is about knowing what tools you have at your disposal, and how to combine them.
+
+Let’s start from the beginning. To wrangle data, we need two things: data to wrangle, and something to do with it. Logs often make for a good use-case, because you often want to investigate things about them, and reading the whole thing isn’t feasible. Let’s figure out who’s trying to log into my server by looking at my server’s log:
+
+```
+ssh myserver journalctl
+```
+
+That’s far too much stuff. Let’s limit it to ssh stuff:
+
+```
+ssh myserver journalctl | grep sshd
+```
+
+Notice that we’re using a pipe to stream a _remote_ file through `grep` on our local computer! `ssh` is magical, and we will talk more about it in the next lecture on the command-line environment. This is still way more stuff than we wanted though. And pretty hard to read. Let’s do better:
+
+```
+ssh myserver 'journalctl | grep sshd | grep "Disconnected from"' | less
+```
+
+Why the additional quoting? Well, our logs may be quite large, and it’s wasteful to stream it all to our computer and then do the filtering. Instead, we can do the filtering on the remote server, and then massage the data locally. `less` gives us a “pager” that allows us to scroll up and down through the long output. To save some additional traffic while we debug our command-line, we can even stick the current filtered logs into a file so that we don’t have to access the network while developing:
+
+```
+$ ssh myserver 'journalctl | grep sshd | grep "Disconnected from"' > ssh.log
+$ less ssh.log
+```
+
+There’s still a lot of noise here. There are _a lot_ of ways to get rid of that, but let’s look at one of the most powerful tools in your toolkit: `sed`.
+
+`sed` is a “stream editor” that builds on top of the old `ed` editor. In it, you basically give short commands for how to modify the file, rather than manipulate its contents directly (although you can do that too). There are tons of commands, but one of the most common ones is `s`: substitution. For example, we can write:
+
+```
+ssh myserver journalctl
+ | grep sshd
+ | grep "Disconnected from"
+ | sed 's/.*Disconnected from //'
+```
+
+What we just wrote was a simple _regular expression_; a powerful construct that lets you match text against patterns. The `s` command is written in the form: `s/REGEX/SUBSTITUTION/`, where `REGEX` is the regular expression you want to search for, and `SUBSTITUTION` is the text you want to substitute matching text with.
+
+(You may recognize this syntax from the “Search and replace” section of our Vim [lecture notes](https://missing.csail.mit.edu/2020/editors/#advanced-vim)! Indeed, Vim uses a syntax for searching and replacing that is similar to `sed`’s substitution command. Learning one tool often helps you become more proficient with others.)
+
+## Regular expressions
+Regular expressions are common and useful enough that it’s worthwhile to take some time to understand how they work. Let’s start by looking at the one we used above: `/.*Disconnected from /`. Regular expressions are usually (though not always) surrounded by `/`. Most ASCII characters just carry their normal meaning, but some characters have “special” matching behavior. Exactly which characters do what vary somewhat between different implementations of regular expressions, which is a source of great frustration. Very common patterns are:
+
+- `.` means “any single character” except newline
+- `*` zero or more of the preceding match
+- `+` one or more of the preceding match
+- `[abc]` any one character of `a`, `b`, and `c`
+- `(RX1|RX2)` either something that matches `RX1` or `RX2`
+- `^` the start of the line
+- `$` the end of the line
+
+`sed`’s regular expressions are somewhat weird, and will require you to put a `\` before most of these to give them their special meaning. Or you can pass `-E`.
+
+So, looking back at `/.*Disconnected from /`, we see that it matches any text that starts with any number of characters, followed by the literal string “Disconnected from ”. Which is what we wanted. But beware, regular expressions are tricky. What if someone tried to log in with the username “Disconnected from”? We’d have:
+
+```
+Jan 17 03:13:00 thesquareplanet.com sshd[2631]: Disconnected from invalid user Disconnected from 46.97.239.16 port 55920 [preauth]
+```
+
+What would we end up with? Well, `*` and `+` are, by default, “greedy”. They will match as much text as they can. So, in the above, we’d end up with just
+
+```
+46.97.239.16 port 55920 [preauth]
+```
+
+Which may not be what we wanted. In some regular expression implementations, you can just suffix `*` or `+` with a `?` to make them non-greedy, but sadly `sed` doesn’t support that. We _could_ switch to perl’s command-line mode though, which _does_ support that construct:
+
+```
+perl -pe 's/.*?Disconnected from //'
+```
+
+We’ll stick to `sed` for the rest of this, because it’s by far the more common tool for these kinds of jobs. `sed` can also do other handy things like print lines following a given match, do multiple substitutions per invocation, search for things, etc. But we won’t cover that too much here. `sed` is basically an entire topic in and of itself, but there are often better tools.
+
+Okay, so we also have a suffix we’d like to get rid of. How might we do that? It’s a little tricky to match just the text that follows the username, especially if the username can have spaces and such! What we need to do is match the _whole_ line:
+
+```
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user .* [^ ]+ port [0-9]+( \[preauth\])?$//'
+```
+
+Let’s look at what’s going on with a [regex debugger](https://regex101.com/r/qqbZqh/2). Okay, so the start is still as before. Then, we’re matching any of the “user” variants (there are two prefixes in the logs). Then we’re matching on any string of characters where the username is. Then we’re matching on any single word (`[^ ]+`; any non-empty sequence of non-space characters). Then the word “port” followed by a sequence of digits. Then possibly the suffix `[preauth]`, and then the end of the line.
+
+Notice that with this technique, a username of “Disconnected from” won’t confuse us any more. Can you see why?
+
+There is one problem with this though, and that is that the entire log becomes empty. We want to _keep_ the username after all. For this, we can use “capture groups”. Any text matched by a regex surrounded by parentheses is stored in a numbered capture group. These are available in the substitution (and in some engines, even in the pattern itself!) as `\1`, `\2`, `\3`, etc. So:
+
+```
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user (.*) [^ ]+ port [0-9]+( \[preauth\])?$/\2/'
+```
+
+As you can probably imagine, you can come up with _really_ complicated regular expressions. For example, here’s an article on how you might match an [e-mail address](https://www.regular-expressions.info/email.html). It’s [not easy](https://web.archive.org/web/20221223174323/http://emailregex.com/). And there’s [lots of discussion](https://stackoverflow.com/questions/201323/how-to-validate-an-email-address-using-a-regular-expression/1917982). And people have [written tests](https://fightingforalostcause.net/content/misc/2006/compare-email-regex.php). And [test matrices](https://mathiasbynens.be/demo/url-regex). You can even write a regex for determining if a given number [is a prime number](https://www.noulakaz.net/2007/03/18/a-regular-expression-to-check-for-prime-numbers/).
+
+Regular expressions are notoriously hard to get right, but they are also very handy to have in your toolbox!
+
+## Back to data wrangling
+
+Okay, so we now have
+
+```
+ssh myserver journalctl
+ | grep sshd
+ | grep "Disconnected from"
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user (.*) [^ ]+ port [0-9]+( \[preauth\])?$/\2/'
+```
+
+`sed` can do all sorts of other interesting things, like injecting text (with the `i` command), explicitly printing lines (with the `p` command), selecting lines by index, and lots of other things. Check `man sed`!
+
+Anyway. What we have now gives us a list of all the usernames that have attempted to log in. But this is pretty unhelpful. Let’s look for common ones:
+
+```
+ssh myserver journalctl
+ | grep sshd
+ | grep "Disconnected from"
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user (.*) [^ ]+ port [0-9]+( \[preauth\])?$/\2/'
+ | sort | uniq -c
+```
+
+`sort` will, well, sort its input. `uniq -c` will collapse consecutive lines that are the same into a single line, prefixed with a count of the number of occurrences. We probably want to sort that too and only keep the most common usernames:
+
+```
+ssh myserver journalctl
+ | grep sshd
+ | grep "Disconnected from"
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user (.*) [^ ]+ port [0-9]+( \[preauth\])?$/\2/'
+ | sort | uniq -c
+ | sort -nk1,1 | tail -n10
+```
+
+`sort -n` will sort in numeric (instead of lexicographic) order. `-k1,1` means “sort by only the first whitespace-separated column”. The `,n` part says “sort until the `n`th field, where the default is the end of the line. In this _particular_ example, sorting by the whole line wouldn’t matter, but we’re here to learn!
+
+If we wanted the _least_ common ones, we could use `head` instead of `tail`. There’s also `sort -r`, which sorts in reverse order.
+
+Okay, so that’s pretty cool, but what if we’d like these extract only the usernames as a comma-separated list instead of one per line, perhaps for a config file?
+
+```
+ssh myserver journalctl
+ | grep sshd
+ | grep "Disconnected from"
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user (.*) [^ ]+ port [0-9]+( \[preauth\])?$/\2/'
+ | sort | uniq -c
+ | sort -nk1,1 | tail -n10
+ | awk '{print $2}' | paste -sd,
+```
+
+If you’re using macOS: note that the command as shown won’t work with the BSD `paste` shipped with macOS. See [exercise 4 from the shell tools lecture](https://missing.csail.mit.edu/2020/shell-tools/#exercises) for more on the difference between BSD and GNU coreutils and instructions for how to install GNU coreutils on macOS.
+
+Let’s start with `paste`: it lets you combine lines (`-s`) by a given single-character delimiter (`-d`; `,` in this case). But what’s this `awk` business?
+
+## awk – another editor
+
+`awk` is a programming language that just happens to be really good at processing text streams. There is _a lot_ to say about `awk` if you were to learn it properly, but as with many other things here, we’ll just go through the basics.
+
+First, what does `{print $2}` do? Well, `awk` programs take the form of an optional pattern plus a block saying what to do if the pattern matches a given line. The default pattern (which we used above) matches all lines. Inside the block, `$0` is set to the entire line’s contents, and `$1` through `$n` are set to the `n`th _field_ of that line, when separated by the `awk` field separator (whitespace by default, change with `-F`). In this case, we’re saying that, for every line, print the contents of the second field, which happens to be the username!
+
+Let’s see if we can do something fancier. Let’s compute the number of single-use usernames that start with `c` and end with `e`:
+
+```
+ | awk '$1 == 1 && $2 ~ /^c[^ ]*e$/ { print $2 }' | wc -l
+```
+
+There’s a lot to unpack here. First, notice that we now have a pattern (the stuff that goes before `{...}`). The pattern says that the first field of the line should be equal to 1 (that’s the count from `uniq -c`), and that the second field should match the given regular expression. And the block just says to print the username. We then count the number of lines in the output with `wc -l`.
+
+However, `awk` is a programming language, remember?
+
+```
+BEGIN { rows = 0 }
+$1 == 1 && $2 ~ /^c[^ ]*e$/ { rows += $1 }
+END { print rows }
+```
+
+`BEGIN` is a pattern that matches the start of the input (and `END` matches the end). Now, the per-line block just adds the count from the first field (although it’ll always be 1 in this case), and then we print it out at the end. In fact, we _could_ get rid of `grep` and `sed` entirely, because `awk` [can do it all](https://backreference.org/2010/02/10/idiomatic-awk/), but we’ll leave that as an exercise to the reader.
+
+## Analyzing data
+
+You can do math directly in your shell using `bc`, a calculator that can read from STDIN! For example, add the numbers on each line together by concatenating them together, delimited by `+`:
+
+```
+ | paste -sd+ | bc -l
+```
+
+Or produce more elaborate expressions:
+
+```
+echo "2*($(data | paste -sd+))" | bc -l
+```
+
+You can get stats in a variety of ways. [`st`](https://github.com/nferraz/st) is pretty neat, but if you already have [R](https://www.r-project.org/):
+
+```
+ssh myserver journalctl
+ | grep sshd
+ | grep "Disconnected from"
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user (.*) [^ ]+ port [0-9]+( \[preauth\])?$/\2/'
+ | sort | uniq -c
+ | awk '{print $1}' | R --no-echo -e 'x <- scan(file="stdin", quiet=TRUE); summary(x)'
+```
+
+R is another (weird) programming language that’s great at data analysis and [plotting](https://ggplot2.tidyverse.org/). We won’t go into too much detail, but suffice to say that `summary` prints summary statistics for a vector, and we created a vector containing the input stream of numbers, so R gives us the statistics we wanted!
+
+If you just want some simple plotting, `gnuplot` is your friend:
+
+```
+ssh myserver journalctl
+ | grep sshd
+ | grep "Disconnected from"
+ | sed -E 's/.*Disconnected from (invalid |authenticating )?user (.*) [^ ]+ port [0-9]+( \[preauth\])?$/\2/'
+ | sort | uniq -c
+ | sort -nk1,1 | tail -n10
+ | gnuplot -p -e 'set boxwidth 0.5; plot "-" using 1:xtic(2) with boxes'
+```
+
+## Data wrangling to make arguments
+
+Sometimes you want to do data wrangling to find things to install or remove based on some longer list. The data wrangling we’ve talked about so far + `xargs` can be a powerful combo.
+
+For example, as seen in lecture, I can use the following command to uninstall old nightly builds of Rust from my system by extracting the old build names using data wrangling tools and then passing them via `xargs` to the uninstaller:
+
+```
+rustup toolchain list | grep nightly | grep -vE "nightly-x86" | sed 's/-x86.*//' | xargs rustup toolchain uninstall
+```
+
+## Wrangling binary data
+
+So far, we have mostly talked about wrangling textual data, but pipes are just as useful for binary data. For example, we can use ffmpeg to capture an image from our camera, convert it to grayscale, compress it, send it to a remote machine over SSH, decompress it there, make a copy, and then display it.
+
+```
+ffmpeg -loglevel panic -i /dev/video0 -frames 1 -f image2 -
+ | convert - -colorspace gray -
+ | gzip
+ | ssh mymachine 'gzip -d | tee copy.jpg | env DISPLAY=:0 feh -'
+```
+
+## Exercises
+
+1. Take this [short interactive regex tutorial](https://regexone.com/).
+2. Find the number of words (in `/usr/share/dict/words`) that contain at least three `a`s and don’t have a `'s` ending. What are the three most common last two letters of those words? `sed`’s `y` command, or the `tr` program, may help you with case insensitivity. How many of those two-letter combinations are there? And for a challenge: which combinations do not occur?
+3. To do in-place substitution it is quite tempting to do something like `sed s/REGEX/SUBSTITUTION/ input.txt > input.txt`. However this is a bad idea, why? Is this particular to `sed`? Use `man sed` to find out how to accomplish this.
+4. Find your average, median, and max system boot time over the last ten boots. Use `journalctl` on Linux and `log show` on macOS, and look for log timestamps near the beginning and end of each boot. On Linux, they may look something like:
+    
+    ```
+    Logs begin at ...
+    ```
+    
+    and
+    
+    ```
+    systemd[577]: Startup finished in ...
+    ```
+    
+    On macOS, [look for](https://eclecticlight.co/2018/03/21/macos-unified-log-3-finding-your-way/):
+    
+    ```
+    === system boot:
+    ```
+    
+    and
+    
+    ```
+    Previous shutdown cause: 5
+    ```
+    
+5. Look for boot messages that are _not_ shared between your past three reboots (see `journalctl`’s `-b` flag). Break this task down into multiple steps. First, find a way to get just the logs from the past three boots. There may be an applicable flag on the tool you use to extract the boot logs, or you can use `sed '0,/STRING/d'` to remove all lines previous to one that matches `STRING`. Next, remove any parts of the line that _always_ varies (like the timestamp). Then, de-duplicate the input lines and keep a count of each one (`uniq` is your friend). And finally, eliminate any line whose count is 3 (since it _was_ shared among all the boots).
+6. Find an online data set like [this one](https://stats.wikimedia.org/EN/TablesWikipediaZZ.htm), [this one](https://ucr.fbi.gov/crime-in-the-u.s/2016/crime-in-the-u.s.-2016/topic-pages/tables/table-1), or maybe one [from here](https://www.springboard.com/blog/data-science/free-public-data-sets-data-science-project/). Fetch it using `curl` and extract out just two columns of numerical data. If you’re fetching HTML data, [`pup`](https://github.com/EricChiang/pup) might be helpful. For JSON data, try [`jq`](https://stedolan.github.io/jq/). Find the min and max of one column in a single command, and the difference of the sum of each column in another.
