@@ -33,7 +33,7 @@ Date: 2024.8.5-2024.8.12
 - [[Parallel Thread Execution ISA v8.5-2024|PTX ISA v8.5]]: All
 
 \[Doc\]
-- [[doc-notes/nvidia/CUDA-GDB v12.6|nvidia/CUDA-GDB v12.6]]: CH1-CH8
+- [[doc-notes/nvidia/CUDA-GDB|nvidia/CUDA-GDB]]: CH1-CH8
 
 \[Blog\] 
 - [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
@@ -2324,7 +2324,7 @@ Date: 2025.5.26-2025.6.2
         Mutations to a tablets will be first committed to a redo log. Group commit is used to improve the throughput.
     6-Refinements
     7-Performance Evaluation
-        Load imbalance hurts the scalibility.
+        Load imbalance hurts the scalability.
     8-Real Applications
     9-Lessons
         The value of simple design is immense.
@@ -2339,4 +2339,18 @@ Date: 2025.5.26-2025.6.2
 \[Code\]
 - Distributed Systems Lab
     Lab4 Sharded Key-Value Service: 4A, 4B (partial)
+
+### Week 2
+Date: 2025.6.2-2025.6.9
+
+\[Doc\]
+- [[doc-notes/llvm/documentation/user-guides/code-generation/tablegen/TableGen Overview|llvm/documentation/user-guides/code-generation/tablegen/TableGen Overview]]: All
+- [[doc-notes/llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference|llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference]]
+- [[doc-notes/nvidia/CUDA-GDB|nvidia/CUDA-GDB]]
+- [[doc-notes/nvidia/CUDA C++ Programming Guide|nvidia/CUDA C++ Programming Guide]]
+- [[doc-notes/conda/developer-guide/deep-dives/conda init and conda activate|conda/developer-guide/deep-dives/conda init and conda activate]]
+- [[doc-notes/conda/user-guide/concepts/Commands|conda/user-guide/concepts/Commands]]: All
+- [[doc-notes/conda/user-guide/concepts/Packages|conda/user-guide/concepts/Packages]]
+- [[doc-notes/conda/anaconda/getting-started/Getting started with Anaconda|conda/anaconda/getting-started/Getting started with Anaconda]]: All
+- [[doc-notes/conda/anaconda/tools/Working with conda|conda/anaconda/tools/Working with conda]]: All
 
