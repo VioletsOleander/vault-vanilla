@@ -309,12 +309,16 @@ where $\lambda(i) \in \mathbb R > 0$ is a positive weighting function, often c
 >  权重函数通常选为 $\lambda(i) = \sigma^2$ (对于越高扰动的分布，权重越大)
 >  该目标函数仍然可以用 score-matching 优化
 
-After training our noise-conditional score-based model $\mathbf s_\theta(\mathbf x, i)$, we can produce samples from it by running Langevin dynamics for $i = L, L-1, \cdots, 1$ in sequence. This method is called **annealed Langevin dynamics** (defined by Algorithm 1 in  [18] , and improved by  [19, 34] ), since the noise scale $\sigma_i$ decreases (anneals) gradually over time.
+After training our noise-conditional score-based model $\mathbf s_\theta(\mathbf x, i)$, we can produce samples from it by running Langevin dynamics for $i = L, L-1, \cdots, 1$ in sequence. This method is called **annealed Langevin dynamics** (defined by Algorithm 1 in [18] , and improved by  [19, 34] ), since the noise scale $\sigma_i$ decreases (anneals) gradually over time.
 >  训练好 noise-conditional score-based model $\mathbf s_\theta(\mathbf x, i)$ 之后，我们可以通过 annealed Langevin dynamics 来从中抽样
+
+>  Q: 如果 $\mathbf s_\theta(\mathbf x, i)$ 训练得好的话，直接用 Langevin dynamics，直接根据 $\mathbf s_\theta(\mathbf x, 0)$ 采样理论上应该也能收敛？
+>  A: 理论上可以，但现实就是随机采样的样本不一定落在 $\mathbf s_\theta(\mathbf x, 0)$ 准确估计的区间内，也就是 $\mathbf s_\theta(\mathbf x, 0)$ 总是训练不好的，因此，需要依赖 annealed Langevin dynamics，一步步得到能够落在 $\mathbf s_\theta(\mathbf x, 0)$ 准确估计的区间内的起始样本，再进行最后的 Langevin dynamics 转化，才能确保得到准确服从目标分布样本
 
 ![](https://yang-song.net/assets/img/score/ald.gif)
 
 Annealed Langevin dynamics combine a sequence of Langevin chains with gradually decreasing noise scales.
+>  annealed Langevin dynamics 结合了一系列噪声尺度逐渐下降的 Langevin chains
 
 ![](https://yang-song.net/assets/img/score/celeba_large.gif)
 
@@ -357,7 +361,7 @@ In addition to this introduction, we have tutorials written in [Google Colab](h
 
 ### Perturbing data with an SDE
 When the number of noise scales approaches infinity, we essentially perturb the data distribution with continuously growing levels of noise. In this case, the noise perturbation procedure is a continuous-time [stochastic process](https://en.wikipedia.org/wiki/Stochastic_process#:~:text=A%20stochastic%20process%20is%20defined,measurable%20with%20respect%20to%20some), as demonstrated below
->  当噪声尺度的数量 $L$ 趋近于无限，我们实际上是以不断增长的噪声水平扰动数据分布
+>  当噪声尺度的数量 $L$ 趋近于**无限**，我们实际上是以不断 (连续) 增长的噪声水平扰动数据分布
 >  在这种情况下，噪声扰动过程是一个连续时间的随机过程
 
 ![](https://yang-song.net/assets/img/score/perturb_vp.gif)
@@ -373,82 +377,123 @@ $$
 where $\mathbf f(\cdot, t): \mathbb R^d \mapsto \mathbb R^d$ is a vector-valued function called the drift coefficient, $g(t)\in \mathbb R$ is a real-valued function called the diffusion coefficient, $\mathbf w$ denotes a standard [Brownian motion](https://en.wikipedia.org/wiki/Brownian_motion), and $\mathrm d\mathbf w$ can be viewed as infinitesimal white noise.
 
 >  一个随机过程可以用随机微分方程 (SDE) 进行表示
->  该方程包含了两个驱动随机变量随着时间变化的因素: 一个可预测的、确定性的趋势和一个不可预测的、随机性的波动
+>  该方程包含了两个驱动随机变量随着时间变化的因素: 一个可预测的、确定性的趋势 (漂移) 和一个不可预测的、随机性的波动 (扩散)
+>  方程中:
+>  - $\mathrm d\mathbf x$ 表示随机变量 $\mathbf x$ 在一个无穷小实现步长 $\mathrm dt$ 内的微小变化
+>  - $\mathbf f(\mathbf x, t)\mathrm d t$ 是确定性漂移项，其中向量值函数 $\mathbf f(\cdot, t): \mathbb R^d \mapsto \mathbb R^d$ 称为漂移系数，漂移系数取决于当前的 $\mathbf x$ 和时间 $t$，乘以 $\mathrm dt$ 得到了由这种确定性趋势引发的无穷小变化
+>  - $g(t)\mathrm d\mathbf w$ 是随机扩散项，其中实值函数 $g(t)\in \mathbb R$ 称为扩散系数，$\mathbf w$ 表示一个标准的布朗运动，$\mathrm d\mathbf w$ 可以视作一个无穷小的白噪声
 
-The solution of a stochastic differential equation is a continuous collection of random variables $\{x(t)\}_{t\in [0, T]}$. These random variables trace stochastic trajectories as the time index t grows from the start time 0 to the end time T. Let pt (x) denote the (marginal) probability density function of x (t). Here t∈[0, T] is analogous to i=1,2,⋯, L when we had a finite number of noise scales, and pt (x) is analogous to pσi (x). Clearly, p0 (x)=p (x) is the data distribution since no perturbation is applied to data at t=0. After perturbing p (x) with the stochastic process for a sufficiently long time T, pT (x) becomes close to a tractable noise distribution π(x), called a **prior distribution**. We note that pT (x) is analogous to pσL (x) in the case of finite noise scales, which corresponds to applying the largest noise perturbation σL to the data.
+>  因为 (无限的) 噪声扰动过程可以视作一个连续时间的随机过程，故可以用 SDE 描述该过程
+>  也就是说将尺度为 $\sigma_t$ 的噪声扰动视作了从 $0$ 到 $t$ 的逐步连续小扰动的结果
 
-The SDE in [](https://yang-song.net/blog/2021/score/#mjx-eqn%3Asde)(8) is **hand designed**, similarly to how we hand-designed σ1<σ2<⋯<σL in the case of finite noise scales. There are numerous ways to add noise perturbations, and the choice of SDEs is not unique. For example, the following SDE
+> [!info] 布朗运动
+> 布朗运动指的是微小粒子在流体（液体或气体）中进行的**永不停息、无规则的折线运动**，本质是由于液体或气体中的**大量分子（原子）在不停地做无规则的、剧烈的热运动**，这些分子不断地、不平衡地撞击着悬浮在其中的微小粒子所造成的
+> 
+> 在数学上，布朗运动被抽象为一个**连续时间、连续状态的随机过程**，通常被称为**维纳过程（Wiener Process）**，并用 $W(t)$ 或 $B(t)$ 表示
+> 它具有以下几个核心数学性质：
+> - **连续性：** 粒子路径是连续的，没有突然的跳跃。
+> - **独立增量：** 在不重叠的时间区间内，粒子的位置变化是相互独立的。例如，$W(t_2​)−W(t_1​)$（在时间 $[t_1​,t_2​]$ 内的变化）与 $W(t_4​)−W(t_3​)$（在时间 $[t_3​,t_4​]$ 内的变化，如果 $[t_1​,t_2​]$ 和 $[t_3​,t_4​]$ 不重叠）是独立的。
+> - **平稳增量：** 增量（即位置变化）的统计性质只取决于时间间隔的长度，而不取决于起始时间点。
+> - **正态分布的增量：** 对于任意 $t>s$，增量 $W(t)−W(s)$ 服从均值为 0、方差为 $t−s$ 的正态分布。也就是说，$W(t)−W(s)\sim \mathcal N(0,t−s)$。
+> - **起点通常设为零：** 通常假设 $W(0)=0$。
+> - **几乎处处不可微：** 尽管布朗运动的路径是连续的，但它在任何点都是不可微的，这意味着它的速度是无限的、无法定义的。这是一个非常反直觉但重要的数学性质，反映了其高度的随机性和不规则性。
 
-(9) dx=etdw
+The solution of a stochastic differential equation is a continuous collection of random variables $\{\mathbf x(t)\}_{t\in [0, T]}$. These random variables trace stochastic trajectories as the time index $t$ grows from the start time $0$ to the end time $T$. Let $p_t(\mathbf x)$ denote the (marginal) probability density function of $\mathbf x (t)$. 
+>  随机微分方程的解是一组连续随机变量，每个时刻都对应一个随机变量 $\mathbf x(t)$
+>  随机变量 $\mathbf x(t)$ 的概率密度函数记作 $p_t(\mathbf x)$
 
-perturbs data with a Gaussian noise of mean zero and exponentially growing variance, which is analogous to perturbing data with N (0,σ12I), N (0,σ22I),⋯, N (0,σL2I) when σ1<σ2<⋯<σL is a [geometric progression](https://en.wikipedia.org/wiki/Geometric_progression#:~:text=In%20mathematics%2C%20a%20geometric%20progression,number%20called%20the%20common%20ratio.). Therefore, the SDE should be viewed as part of the model, much like {σ1,σ2,⋯,σL}. In 
+Here $t\in[0, T]$ is analogous to $i=1,2,\cdots, L$ when we had a finite number of noise scales, and $p_t(\mathbf x)$ is analogous to $p_{\sigma_i}(\mathbf x)$. Clearly, $p_0(\mathbf x) = p(\mathbf x)$ is the data distribution since no perturbation is applied to data at $t=0$. After perturbing $p (\mathbf x)$ with the stochastic process for a sufficiently long time $T$, $p_T (\mathbf x)$ becomes close to a tractable noise distribution $\pi(\mathbf x)$, called a **prior distribution**. 
+>  这里不同的时间步 $t$ 可以对应不同的噪声尺度 $\sigma_i$，故时间步 $t$ 下的概率密度函数 $p_t(\mathbf x)$ 可以对应噪声尺度 $\sigma_i$ 下的概率密度函数 $p_{\sigma_i}(\mathbf x)$
+>  $t=0$ 时，随机过程没有开始 (对应于没有对数据进行扰动)，故 $p_0(\mathbf x) = p(\mathbf x)$
+>  在时间步 $T$ 足够大 (扰动尺度足够大) 的情况下，$p_T(\mathbf x)$ 将接近一个可解的噪声分布 $\pi(\mathbf x)$，称为先验分布
 
-[21]
+We note that $p_T (\mathbf x)$ is analogous to $p_{\sigma_L} (\mathbf x)$ in the case of finite noise scales, which corresponds to applying the largest noise perturbation $\sigma_L$ to the data.
+>  在有限的噪声尺度下，$p_T(\mathbf x)$ 类似于 $p_{\sigma_L}(\mathbf x)$，对应于直接对数据应用尺度为 $\sigma_L$ 的噪声扰动
 
-, we provide three SDEs that generally work well for images: the Variance Exploding SDE (VE SDE), the Variance Preserving SDE (VP SDE), and the sub-VP SDE.
+The SDE in (8) is **hand designed**, similarly to how we hand-designed $\sigma_1 < \sigma_2 < \cdots < \sigma_L$ in the case of finite noise scales. 
+>  Eq 8 的 SDE 同样需要人为设计，类似于我们人为设计不同的噪声尺度 $\sigma_1, \dots, \sigma_L$
+
+There are numerous ways to add noise perturbations, and the choice of SDEs is not unique. For example, the following SDE
+
+$$
+\mathrm d\mathbf x = e^t\mathrm d\mathbf w\tag{9}
+$$
+
+perturbs data with a Gaussian noise of mean zero and exponentially growing variance, which is analogous to perturbing data with $\mathcal N(0, \sigma_1^2 I), \mathcal N(0, \sigma_2^2 I),\cdots, \mathcal N(0, \sigma_L^2I)$ when $\sigma_1 < \sigma_2 < \cdots < \sigma_L$ is a [geometric progression](https://en.wikipedia.org/wiki/Geometric_progression#:~:text=In%20mathematics%2C%20a%20geometric%20progression,number%20called%20the%20common%20ratio.). 
+
+>  添加噪声尺度的方法不同，对应的 SDE 自然也不同
+>  例如 Eq 9 的 SDE 没有漂移项，仅以扩散项扰动数据，扩散项是一个方差指数增长的均值为零的高斯噪声，这对应于使用以几何级数增长的噪声尺度序列来扰动数据 (几何级数的通项公式形式为 $a_n = a r^{n-1}$)
+
+Therefore, the SDE should be viewed as part of the model, much like $\{\sigma_1, \sigma_2, \dots, \sigma_L\}$. In [21] , we provide three SDEs that generally work well for images: the Variance Exploding SDE (VE SDE), the Variance Preserving SDE (VP SDE), and the sub-VP SDE.
+>  因此，使用 SDE 时，SDE 也应视作模型的设计组成的一部分，就像我们在设计时选择噪声尺度序列一样
+>  对于图像处理的效果较好的 SDE 包括: 方差爆炸 (VE) SDE (确保数据最终变为纯噪声)，方差保持 SDE (VP SDE) (保持数据的整体方差，缓慢将其转换为噪声)、sub-VP SDE
 
 ### Reversing the SDE for sample generation
+Recall that with a finite number of noise scales, we can generate samples by reversing the perturbation process with **annealed Langevin dynamics**, i.e., sequentially sampling from each noise-perturbed distribution using Langevin dynamics. 
+>  对于有限数量的噪声尺度，我们可以通过 annealed Langevin dynamics，即顺序地用 Langevin dynamics 从各个扰动分布中采样，来逆转扰动过程
 
-Recall that with a finite number of noise scales, we can generate samples by reversing the perturbation process with **annealed Langevin dynamics**, i.e., sequentially sampling from each noise-perturbed distribution using Langevin dynamics. For infinite noise scales, we can analogously reverse the perturbation process for sample generation by using the reverse SDE.
+For infinite noise scales, we can analogously reverse the perturbation process for sample generation by using the reverse SDE.
+>  类似地，对于有限的噪声尺度，我们可以用逆向 SDE 来逆转 SDE 的扰动过程，从而生成样本
 
 ![](https://yang-song.net/assets/img/score/denoise_vp.gif)
 
 Generate data from noise by reversing the perturbation procedure.
 
-Importantly, any SDE has a corresponding reverse SDE 
+Importantly, any SDE has a corresponding reverse SDE [35] , whose closed form is given by
 
-[35]
+$$
+\mathrm d\mathbf x = [\mathbf f(\mathbf x, t) - g^2(t)\nabla_{\mathbf x}\log p_t(\mathbf x)]\mathrm dt + g(t)\mathrm d\mathbf w\tag{10}
+$$
 
-, whose closed form is given by
+Here $\mathrm dt$ represents a negative infinitesimal time step, since the SDE (10) needs to be solved backwards in time (from $t=T$ to $t=0$). In order to compute the reverse SDE, we need to estimate $\nabla_{\mathbf x}\log p_t(\mathbf x)$, which is exactly the **score function** of $p_t(\mathbf x)$.
 
-(10) dx=[f (x, t)−g2 (t)∇xlog⁡pt (x)]dt+g (t) dw.
+>  任意的 SDE 都有一个对应的逆 SDE，其形式如上 
+>  其中 $\mathrm d t$ 表示一个负的无穷小时间步，因为逆 SDE 需要从 $t=T$ 到 $t=0$ 逆时间求解
+>  要求解逆 SDE，需要估计 $\nabla_{\mathbf x}\log p_t(\mathbf x)$，即每个时间步下，概率密度函数 $p_t(\mathbf x)$ 的得分函数
 
-Here dt represents a negative infinitesimal time step, since the SDE [](https://yang-song.net/blog/2021/score/#mjx-eqn%3Arsde)(10) needs to be solved backwards in time (from t=T to t=0). In order to compute the reverse SDE, we need to estimate ∇xlog⁡pt (x), which is exactly the **score function** of pt (x).
+>  逆 SDE 的概念类似于描述了从最终的变换结果再逐步变换回去的随机过程，即从 A 到 B 的随机过程总是存在一个从 B 到 A 的随机过程，两个方向的随机过程都有各自的 SDE 表示
 
 ![](https://yang-song.net/assets/img/score/sde_schematic.jpg)
 
 Solving a reverse SDE yields a score-based generative model. Transforming data to a simple noise distribution can be accomplished with an SDE. It can be reversed to generate samples from noise if we know the score of the distribution at each intermediate time step.
+>  使用 SDE 将数据转换为噪声后，如果我们知道每一个中间时间步中分布的得分，我们就可以求解逆 SDE，从噪声生成样本
 
 ### Estimating the reverse SDE with score-based models and score matching
+Solving the reverse SDE requires us to know the terminal distribution $p_T(\mathbf x)$, and the score function $\nabla_{\mathbf x}\log p_t(\mathbf x)$. By design, the former is close to the prior distribution $\pi(\mathbf x)$ which is fully tractable. 
+>  求解 reverser SDE 要求知道终止分布 $p_T(\mathbf x)$ 和得分函数 $\nabla_{\mathbf x}\log p_t(\mathbf x)$
 
-Solving the reverse SDE requires us to know the terminal distribution pT (x), and the score function ∇xlog⁡pt (x). By design, the former is close to the prior distribution π(x) which is fully tractable. In order to estimate ∇xlog⁡pt (x), we train a **Time-Dependent Score-Based Model** sθ(x, t), such that sθ(x, t)≈∇xlog⁡pt (x). This is analogous to the noise-conditional score-based model sθ(x, i) used for finite noise scales, trained such that sθ(x, i)≈∇xlog⁡pσi (x).
+In order to estimate $\nabla_{\mathbf x}\log p_t(\mathbf x)$, we train a **Time-Dependent Score-Based Model** $\mathbf s_\theta(\mathbf x, t)$, such that $\mathbf s_\theta(\mathbf x, t) \approx \nabla_{\mathbf x}\log p_t(\mathbf x)$. This is analogous to the noise-conditional score-based model $\mathbf s_\theta(\mathbf x, i)$ used for finite noise scales, trained such that $\mathbf s_\theta(\mathbf x, i) \approx \nabla_{\mathbf x} \log p_{\sigma_i}(\mathbf x)$.
+>  为了估计得分函数 $\nabla_{\mathbf x}\log p_t(\mathbf x)$，我们训练 Time-Dependent Score-Based Model $\mathbf s_\theta(\mathbf x ,t)$，类似于 noise-conditional score-based model $\mathbf s_\theta(\mathbf x, i)$
 
-Our training objective for sθ(x, t) is a continuous weighted combination of Fisher divergences, given by
+Our training objective for $\mathbf s_\theta(\mathbf x, t)$ is a continuous weighted combination of Fisher divergences, given by
 
-(11) Et∈U (0, T) Ept (x)[λ(t)‖∇xlog⁡pt (x)−sθ(x, t)‖22],
+$$
+\mathbb E_{t\in \mathcal U(0, T)}\mathbb E_{p_t(\mathbf x)}[\lambda(t)\|\nabla_{\mathbf x}\log p_t(\mathbf x) - \mathbf s_\theta(\mathbf x, t)\|_2^2]\tag{11}
+$$
 
-where U (0, T) denotes a uniform distribution over the time interval [0, T], and λ:R→R>0 is a positive weighting function. Typically we use λ(t)∝1/E[‖∇x (t) log⁡p (x (t)∣x (0))‖22] to balance the magnitude of different score matching losses across time.
+where $\mathcal U(0, T)$ denotes a uniform distribution over the time interval $[0, T]$, and $\lambda: \mathbb R \mapsto \mathbb R^+$ is a positive weighting function. 
 
-As before, our weighted combination of Fisher divergences can be efficiently optimized with score matching methods, such as denoising score matching 
+>  time-dependent score-based model $\mathbf s_\theta(\mathbf x, t)$ 的训练目标是 Fisher 散度的连续加权
+>  其中 $\mathcal U(0, T)$ 表示 $[0, T]$ 上的连续分布，$\lambda: \mathbb R \mapsto \mathbb R^+$ 为正加权函数
+>  (外层的期望在实际的离散时间步下应该可以替换为简单的求平均，内层就和 naive score matching 的散度项几乎一致，差异仅在多了一个权重项 $\lambda(t)$)
 
-[17]
+Typically we use $\lambda(t) \propto 1/\mathbb E[\|\nabla_{\mathbf x(t)}\log p(\mathbf x(t)| \mathbf x(0))\|_2^2]$  to balance the magnitude of different score matching losses across time.
+> $\lambda(t)$ 通常定义为 $\lambda(t) \propto 1/\mathbb E[\|\nabla_{\mathbf x(t)}\log p(\mathbf x(t)| \mathbf x(0))\|_2^2]$ ，在该定义下，$t$ 越大，$\nabla_{\mathbf x(t)}\log p(\mathbf x(t))$ 的范数一般越小 (这里忽略了条件项 $\mathbf x(0)$)，因为数据已经高度随机化，故改变它的梯度一般较小，故 $\lambda(t)$ 在 $t$ 更大时更大 
+> 这样的设计平衡了不同时间步下的 score matching 损失的程度
 
- and sliced score matching 
-
-[31]
-
-. Once our score-based model sθ(x, t) is trained to optimality, we can plug it into the expression of the reverse SDE in [](https://yang-song.net/blog/2021/score/#mjx-eqn%3Arsde)(10) to obtain an estimated reverse SDE.
+As before, our weighted combination of Fisher divergences can be efficiently optimized with score matching methods, such as denoising score matching [17] and sliced score matching [31] . Once our score-based model $\mathbf s_\theta(\mathbf x, t)$ is trained to optimality, we can plug it into the expression of the reverse SDE in (10) to obtain an estimated reverse SDE.
 
 (12) dx=[f (x, t)−g2 (t) sθ(x, t)]dt+g (t) dw.
 
 We can start with x (T)∼π, and solve the above reverse SDE to obtain a sample x (0). Let us denote the distribution of x (0) obtained in such way as pθ. When the score-based model sθ(x, t) is well-trained, we have pθ≈p0, in which case x (0) is an approximate sample from the data distribution p0.
 
-When λ(t)=g2 (t), we have an important connection between our weighted combination of Fisher divergences and the KL divergence from p0 to pθ under some regularity conditions 
-
-[36]
-
-:
+When λ(t)=g2 (t), we have an important connection between our weighted combination of Fisher divergences and the KL divergence from p0 to pθ under some regularity conditions [36] :
 
 KL⁡(p0 (x)‖   $p_\theta(\mathbf x)$)≤T2Et∈U (0, T) Ept (x) [λ(t)‖∇xlog⁡pt(x)−sθ(x,t)‖22](13)+KL⁡(pT‖π).
 
-Due to this special connection to the KL divergence and the equivalence between minimizing KL divergences and maximizing likelihood for model training, we call λ(t)=g (t) 2 the **likelihood weighting function**. Using this likelihood weighting function, we can train score-based generative models to achieve very high likelihoods, comparable or even superior to state-of-the-art autoregressive models
-
-[36]
-
-.
+Due to this special connection to the KL divergence and the equivalence between minimizing KL divergences and maximizing likelihood for model training, we call λ(t)=g (t) 2 the **likelihood weighting function**. Using this likelihood weighting function, we can train score-based generative models to achieve very high likelihoods, comparable or even superior to state-of-the-art autoregressive models [36] .
 
 ### How to solve the reverse SDE
-
 By solving the estimated reverse SDE with numerical SDE solvers, we can simulate the reverse stochastic process for sample generation. Perhaps the simplest numerical SDE solver is the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method). When applied to our estimated reverse SDE, it discretizes the SDE using finite time steps and small Gaussian noise. Specifically, it chooses a small negative time step Δt≈0, initializes t←T, and iterates the following procedure until t≈0:
 
 Δx←[f (x, t)−g2 (t) sθ(x, t)]Δt+g (t)|Δt|ztx←x+Δxt←t+Δt,
