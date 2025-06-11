@@ -1202,12 +1202,16 @@ In some cases you will need to interrupt a job while it is executing, for instan
 
 ### Killing a process
 Your shell is using a UNIX communication mechanism called a _signal_ to communicate information to the process. When a process receives a signal it stops its execution, deals with the signal and potentially changes the flow of execution based on the information that the signal delivered. For this reason, signals are _software interrupts_.
+>  shell 使用称为 signal 的 UNIX 通信机制来向进程传递信息，当一个进程收到 signal 时，它会停止执行，处理该 signal，并可能根据该 signal 传递的信息改变执行流程
+>  因此，signal 也被称为软件中断
 
 In our case, when typing `Ctrl-C` this prompts the shell to deliver a `SIGINT` signal to the process.
+>  `Ctrl-C` 会让 shell 向进程传递 `SIGINT` 信号
 
 Here’s a minimal example of a Python program that captures `SIGINT` and ignores it, no longer stopping. To kill this program we can now use the `SIGQUIT` signal instead, by typing `Ctrl-\`.
+>  示例的 Python 程序会捕获 `SIGINT` 而不停止，要停止该程序，需要使用 `SIGQUIT` (`Ctrl-\`)
 
-```
+```python
 #!/usr/bin/env python
 import signal, time
 
@@ -1234,17 +1238,29 @@ I got a SIGINT, but I am not stopping
 ```
 
 While `SIGINT` and `SIGQUIT` are both usually associated with terminal related requests, a more generic signal for asking a process to exit gracefully is the `SIGTERM` signal. To send this signal we can use the [`kill`](https://www.man7.org/linux/man-pages/man1/kill.1.html) command, with the syntax `kill -TERM <PID>`.
+>  除了 `SIGINT, SIGQUIT` 之外，另一个用于停止进程的信号是 `SIGTERM`，它由 `kill` 命令发出，语法为 `kill -TERM <PID>`
 
 ### Pausing and backgrounding processes
 Signals can do other things beyond killing a process. For instance, `SIGSTOP` pauses a process. In the terminal, typing `Ctrl-Z` will prompt the shell to send a `SIGTSTP` signal, short for Terminal Stop (i.e. the terminal’s version of `SIGSTOP`).
+>  signal 不止可以用于杀死进程
+>  `SIGSTOP` 会暂停进程
+>  在 terminal 按下 `Ctrl-Z`，shell 会向进程发送 `SIGTSTP`，它是终端版本的 `SIGSTOP`
 
 We can then continue the paused job in the foreground or in the background using [`fg`](https://www.man7.org/linux/man-pages/man1/fg.1p.html) or [`bg`](http://man7.org/linux/man-pages/man1/bg.1p.html), respectively.
+>  使用 `fg, bg` 命令可以在前台或后台继续暂停的进程
 
 The [`jobs`](https://www.man7.org/linux/man-pages/man1/jobs.1p.html) command lists the unfinished jobs associated with the current terminal session. You can refer to those jobs using their pid (you can use [`pgrep`](https://www.man7.org/linux/man-pages/man1/pgrep.1.html) to find that out). More intuitively, you can also refer to a process using the percent symbol followed by its job number (displayed by `jobs`). To refer to the last backgrounded job you can use the `$!` special parameter.
+>  `jobs` 命令列出当前 terminal 会话下相关的未完成 jobs
+>  我们可以用 PID 引用这些任务 (使用 `pgrep` 查找 PID)，也可以使用 `%` + 任务编号 (`jobs` 会显示) 引用这些任务
+>  `$!` 会引用最后一个**后台任务**
 
 One more thing to know is that the `&` suffix in a command will run the command in the background, giving you the prompt back, although it will still use the shell’s STDOUT which can be annoying (use shell redirections in that case).
+>  在命令后添加 `&` 后缀会在后台运行命令，但它仍然会使用 shell 的 STDOUT
 
 To background an already running program you can do `Ctrl-Z` followed by `bg`. Note that backgrounded processes are still children processes of your terminal and will die if you close the terminal (this will send yet another signal, `SIGHUP`). To prevent that from happening you can run the program with [`nohup`](https://www.man7.org/linux/man-pages/man1/nohup.1.html) (a wrapper to ignore `SIGHUP`), or use `disown` if the process has already been started. Alternatively, you can use a terminal multiplexer as we will see in the next section.
+>  要让已经运行的程序到后台，可以通过 `Ctrl-Z` + `bg`
+>  注意，后台进程仍然是终端的子进程，故终端停止，它们也停止 (终端会发送 `SIGHUP` 给它们)
+>  为此，可以用 `nohup` 运行命令，这会让进程无视 `SIGHUP`，如果进程已经启动，可以用 `disown`
 
 Below is a sample session to showcase some of these concepts.
 
@@ -1294,6 +1310,7 @@ $ jobs
 ```
 
 A special signal is `SIGKILL` since it cannot be captured by the process and it will always terminate it immediately. However, it can have bad side effects such as leaving orphaned children processes.
+>  `SIGKILL` 不会被进程捕获，而是直接杀死进程，但它可能导致副作用，例如孤儿子进程
 
 You can learn more about these and other signals [here](https://en.wikipedia.org/wiki/Signal_\(IPC\)) or typing [`man signal`](https://www.man7.org/linux/man-pages/man7/signal.7.html) or `kill -l`.
 
