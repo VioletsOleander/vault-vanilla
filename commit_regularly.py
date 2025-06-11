@@ -15,6 +15,8 @@ class GitCommitRegularly:
                             help="specify 'daily' for a daily commit, 'weekly' for a weekly commit, or 'monthly' for a monthly commit.")
         parser.add_argument('-l', '--late', action="store_true",
                             help="for daily commit, if specified, generate headline for the previous day")
+        parser.add_argument('-e', '--edit', action="store_true",
+                            help="if specified, open the commit message in an editor for editing before committing")
         args = parser.parse_args()
 
         self.args = args
@@ -61,9 +63,13 @@ class GitCommitRegularly:
     def execute(self):
         self.parse_args()
         self.generate_headline()
-        subprocess.run(['git', 'commit', '--allow-empty',
-                           '-e', '-m', self.headline])
 
+        if self.args.edit:
+            subprocess.run(['git', 'commit', '--allow-empty',
+                            '-e', '-m', self.headline])
+        else:
+            subprocess.run(['git', 'commit', '--allow-empty',
+                           '-m', self.headline])
 
 if __name__ == "__main__":
     command=GitCommitRegularly()
