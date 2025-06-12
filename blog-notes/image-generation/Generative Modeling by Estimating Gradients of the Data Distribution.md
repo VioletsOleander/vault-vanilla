@@ -479,66 +479,105 @@ where $\mathcal U(0, T)$ denotes a uniform distribution over the time interval�
 
 Typically we use $\lambda(t) \propto 1/\mathbb E[\|\nabla_{\mathbf x(t)}\log p(\mathbf x(t)| \mathbf x(0))\|_2^2]$  to balance the magnitude of different score matching losses across time.
 > $\lambda(t)$ 通常定义为 $\lambda(t) \propto 1/\mathbb E[\|\nabla_{\mathbf x(t)}\log p(\mathbf x(t)| \mathbf x(0))\|_2^2]$ ，在该定义下，$t$ 越大，$\nabla_{\mathbf x(t)}\log p(\mathbf x(t))$ 的范数一般越小 (这里忽略了条件项 $\mathbf x(0)$)，因为数据已经高度随机化，故改变它的梯度一般较小，故 $\lambda(t)$ 在 $t$ 更大时更大 
-> 这样的设计平衡了不同时间步下的 score matching 损失的程度
+> 这样的设计平衡了不同时间步下的 score matching 损失的程度 (或许是因为再 $t$ 比较大的时候，扰动分布的得分函数比较容易学习，故损失的绝对值比较小，因此需要增大权重来平衡)
 
-As before, our weighted combination of Fisher divergences can be efficiently optimized with score matching methods, such as denoising score matching [17] and sliced score matching [31] . Once our score-based model $\mathbf s_\theta(\mathbf x, t)$ is trained to optimality, we can plug it into the expression of the reverse SDE in (10) to obtain an estimated reverse SDE.
+As before, our weighted combination of Fisher divergences can be efficiently optimized with score matching methods, such as denoising score matching [17] and sliced score matching [31] . 
+>  上述的加权 Fisher 散度目标仍然可以通过 score matching 方法优化，例如 denoising score matching 和 sliced score matching
 
-(12) dx=[f (x, t)−g2 (t) sθ(x, t)]dt+g (t) dw.
+Once our score-based model $\mathbf s_\theta(\mathbf x, t)$ is trained to optimality, we can plug it into the expression of the reverse SDE in (10) to obtain an estimated reverse SDE.
 
-We can start with x (T)∼π, and solve the above reverse SDE to obtain a sample x (0). Let us denote the distribution of x (0) obtained in such way as pθ. When the score-based model sθ(x, t) is well-trained, we have pθ≈p0, in which case x (0) is an approximate sample from the data distribution p0.
+$$
+\mathrm d\mathbf x = [\mathbf f(\mathbf x, t) - g^2(t)\mathbf s_\theta(\mathbf x, t)]\mathrm dt + g(t)\mathrm d\mathbf w\tag{12}
+$$
 
-When λ(t)=g2 (t), we have an important connection between our weighted combination of Fisher divergences and the KL divergence from p0 to pθ under some regularity conditions [36] :
+We can start with $\mathbf x(T)\sim \pi$, and solve the above reverse SDE to obtain a sample $\mathbf x(0)$. 
 
-KL⁡(p0 (x)‖   $p_\theta(\mathbf x)$)≤T2Et∈U (0, T) Ept (x) [λ(t)‖∇xlog⁡pt(x)−sθ(x,t)‖22](13)+KL⁡(pT‖π).
+>  训练好 score-based model $\mathbf s_\theta(\mathbf x, t)$ 之后，就可以将其替换掉 Eq 10 的 reverse SDE 中的 $\nabla_{\mathbf x}\log p_t(\mathbf x)$，得到 Eq 12
+>  根据 Eq 12，我们可以从 $\mathbf x(T)\sim \pi$ 开始，求解 reverse SDE，获得样本 $\mathbf x(0)$
 
-Due to this special connection to the KL divergence and the equivalence between minimizing KL divergences and maximizing likelihood for model training, we call λ(t)=g (t) 2 the **likelihood weighting function**. Using this likelihood weighting function, we can train score-based generative models to achieve very high likelihoods, comparable or even superior to state-of-the-art autoregressive models [36] .
+Let us denote the distribution of $\mathbf x(0)$ obtained in such way as $p_\theta$. When the score-based model $\mathbf s_\theta(\mathbf x, t)$ is well-trained, we have $p_\theta \approx p_0$, in which case $\mathbf x (0)$ is an approximate sample from the data distribution $p_0$.
+>  我们将 $\mathbf x(0)$ 从属的分布记作 $p_\theta$，如果模型训练得好，则 $p_\theta \approx p_0$，$\mathbf x(0)$ 就近似是从数据分布 $p_0$ 中获取的样本
+
+When $\lambda(t) = g^2(t)$, we have an important connection between our weighted combination of Fisher divergences and the KL divergence from $p_0$ to $p_\theta$ under some regularity conditions [36] :
+
+$$
+\begin{align}
+\mathrm {KL}(p_0(\mathbf x)\| p_\theta(\mathbf x)) \le \frac T 2\mathbb E_{t\in \mathcal U(0,T)}\mathbb E_{p_t(\mathbf x)}[\lambda(t)\|\nabla_{\mathbf x}\log p_t(\mathbf x) - \mathbf s_\theta(\mathbf x, t)\|_2^2] \\+ \mathrm {KL}(p_T\|\pi)\tag{13}
+\end{align}
+$$
+
+>  如果令 $\lambda(t) = g^2(t)$，则加权的 Fisher 散度和 $p_0, p_\theta$ 之间的 KL 散度在某些正则化条件下具有以上的关系
+
+Due to this special connection to the KL divergence and the equivalence between minimizing KL divergences and maximizing likelihood for model training, we call $\lambda(t) = g(t)^2$ the **likelihood weighting function**. 
+>  因为这一层关系，且考虑到优化 KL 散度等价于极大似然训练，我们称 $\lambda(t) = g(t)^2$ 为似然加权函数
+
+Using this likelihood weighting function, we can train score-based generative models to achieve very high likelihoods, comparable or even superior to state-of-the-art autoregressive models [36] .
+>  使用 $\lambda(t) = g(t)^2$ 时，训练出的 score-based generative 可以达到很高的似然，与 SOTA 的自回归模型相比拟
 
 ### How to solve the reverse SDE
-By solving the estimated reverse SDE with numerical SDE solvers, we can simulate the reverse stochastic process for sample generation. Perhaps the simplest numerical SDE solver is the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method). When applied to our estimated reverse SDE, it discretizes the SDE using finite time steps and small Gaussian noise. Specifically, it chooses a small negative time step Δt≈0, initializes t←T, and iterates the following procedure until t≈0:
+By solving the estimated reverse SDE with numerical SDE solvers, we can simulate the reverse stochastic process for sample generation. Perhaps the simplest numerical SDE solver is the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method). When applied to our estimated reverse SDE, it discretizes the SDE using finite time steps and small Gaussian noise. 
+>  生成样本需要求解 reverse SDE 过程，我们可以通过数值 SDE 求解器来求解
+>  最简单的 SDE 求解器是 Euler-Maruyama 方法，该方法将用有限的时间步和小的高斯噪声离散化 SDE
 
-Δx←[f (x, t)−g2 (t) sθ(x, t)]Δt+g (t)|Δt|ztx←x+Δxt←t+Δt,
+Specifically, it chooses a small negative time step $\Delta t \approx 0$, initializes $t\leftarrow T$, and iterates the following procedure until $t\approx 0$:
 
-Here zt∼N (0, I). The Euler-Maruyama method is qualitatively similar to Langevin dynamics—both update x by following score functions perturbed with Gaussian noise.
+$$
+\begin{align}
+\Delta \mathbf x &\leftarrow [\mathbf f(\mathbf x, t) - g^2(t)\mathbf s_\theta(\mathbf x, t)]\Delta t + g(t)\sqrt {|\Delta t|}\mathbf z_t\\
+\mathbf x & \leftarrow \mathbf x + \Delta \mathbf x\\
+t & \leftarrow  t + \Delta t
+\end{align}
+$$
 
-Aside from the Euler-Maruyama method, other numerical SDE solvers can be directly employed to solve the reverse SDE for sample generation, including, for example, [Milstein method](https://en.wikipedia.org/wiki/Milstein_method), and [stochastic Runge-Kutta methods](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_method_\(SDE\)). In 
+Here $\mathbf z_t \sim \mathcal N(0, I)$. 
 
-[21]
+>  具体地说，它会选择一个小的离散时间步 $\Delta t \approx 0$，初始化 $t \leftarrow T$ (从扩散过程的末尾开始)，迭代以下过程直到 $t \approx 0$:
+>  1. 计算 $\Delta \mathbf x$ ，公式中的 $[\mathbf f(\mathbf x, t) - g^2(t)\mathbf s_\theta(\mathbf x, t)]\Delta t$ 是漂移项，其中 $\mathbf f(\mathbf x, t)$ 是逆向 SDE 的漂移系数；公式中的 $g(t)\sqrt {|\Delta t|}\mathbf z_t$ 是噪声/扩散项，其中 $g(t)$ 为扩散系数，$\sqrt {|\Delta t|}$ 表示在 SDE 中，噪声尺度和时间步长的平方根成比例，$\mathbf z_t \sim \mathcal N(0, I)$ 表示小的噪声向量
+>  2. 更新 $\mathbf x$ (加上 $\Delta \mathbf x$，获得新的，稍微去噪后的数据点)
+>  3. 更新 $t$ (向 $t=0$ 迈进)
 
-, we provided a reverse diffusion solver similar to Euler-Maruyama, but more tailored for solving reverse-time SDEs. More recently, authors in 
+The Euler-Maruyama method is qualitatively similar to Langevin dynamics—both update $\mathbf x$ by following score functions perturbed with Gaussian noise.
+>  Euler-Maruyama 方法在性质上和 Langevin dynamics 相似
+>  Langevin dynamics 通过沿着得分函数的方向移动样本，并用高斯噪声进行扰动以更新样本
+>  Euler-Maruyama 方法中，涉及得分函数的项作为扩散项引导样本，且同样用高斯噪声进行了扰动
 
-[37]
+Aside from the Euler-Maruyama method, other numerical SDE solvers can be directly employed to solve the reverse SDE for sample generation, including, for example, [Milstein method](https://en.wikipedia.org/wiki/Milstein_method), and [stochastic Runge-Kutta methods](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_method_\(SDE\)). 
+>  除了 Euler-Maruyama，其他的数值 SDE solver 也可以直接被用于求解 reverse SDE，例如 Milstein method, stochastic Runge-Kutta methods
 
- introduced adaptive step-size SDE solvers that can generate samples faster with better quality.
+In  [21] , we provided a reverse diffusion solver similar to Euler-Maruyama, but more tailored for solving reverse-time SDEs. More recently, authors in [37] introduced adaptive step-size SDE solvers that can generate samples faster with better quality.
+>  我们在 [21] 提出了类似 Euler-Maruyama 的 solver，更适用于求解  reverse-time SDE
+>  [37] 引入了自适应步长 SDE solver，可以以更高质量更快地生成样本
 
 In addition, there are two special properties of our reverse SDE that allow for even more flexible sampling methods:
 
-- We have an estimate of ∇xlog⁡pt (x) via our time-dependent score-based model sθ(x, t).
-- We only care about sampling from each marginal distribution pt (x). Samples obtained at different time steps can have arbitrary correlations and do not have to form a particular trajectory sampled from the reverse SDE.
+- We have an estimate of $\nabla_{\mathbf x}\log p(\mathbf x)$ via our time-dependent score-based model $\mathbf s_\theta(\mathbf x, t)$.
+- We only care about sampling from each marginal distribution $p_t(\mathbf x)$. Samples obtained at different time steps can have arbitrary correlations and do not have to form a particular trajectory sampled from the reverse SDE.
 
-As a consequence of these two properties, we can apply MCMC approaches to fine-tune the trajectories obtained from numerical SDE solvers. Specifically, we propose **Predictor-Corrector samplers**. The **predictor** can be any numerical SDE solver that predicts x (t+Δt)∼pt+Δt (x) from an existing sample x (t)∼pt (x). The **corrector** can be any MCMC procedure that solely relies on the score function, such as Langevin dynamics and Hamiltonian Monte Carlo.
+>  我们的 reverse SDE 具有两个特殊性质，允许更灵活的采样方法
+>  - 我们有对 $\nabla_{\mathbf x}\log p(\mathbf x)$ 的估计
+>  - 我们仅关心从每个边际分布 $p_t(\mathbf x)$ 的采样，在不同时间步获取的样本可以有任意的相关性，并不需要形成从反向 SDE 中采样的特定轨迹
 
-At each step of the Predictor-Corrector sampler, we first use the predictor to choose a proper step size Δt<0, and then predict x (t+Δt) based on the current sample x (t). Next, we run several corrector steps to improve the sample x (t+Δt) according to our score-based model sθ(x, t+Δt), so that x (t+Δt) becomes a higher-quality sample from pt+Δt (x).
+As a consequence of these two properties, we can apply MCMC approaches to fine-tune the trajectories obtained from numerical SDE solvers. Specifically, we propose **Predictor-Corrector samplers**. The **predictor** can be any numerical SDE solver that predicts $\mathbf x(t + \Delta t) \sim p_{t + \Delta t}(\mathbf x)$ from an existing sample $\mathbf x(t) \sim p_t(\mathbf x)$. The **corrector** can be any MCMC procedure that solely relies on the score function, such as Langevin dynamics and Hamiltonian Monte Carlo.
+>  因此，我们可以对从数值 SDE solvers 中获得的轨迹用 MCMC 方法微调
+>  具体地说，我们提出了 Predictor-Corrector samplers
+>  predictor 可以是任意的数值 SDE solver，从现有的样本 $\mathbf x(t) \sim p_t(\mathbf x)$ 预测下一个时刻的样本 $\mathbf x(t + \Delta t) \sim p_{t+\Delta t}(\mathbf x)$
+>  corrector 可以是任意 MCMC 仅依赖于 score function 的 MCMC 过程，例如 Langevin dynamics 和 Hamiltonian MC
 
-With Predictor-Corrector methods and better architectures of score-based models, we can achieve **state-of-the-art** sample quality on CIFAR-10 (measured in FID 
+At each step of the Predictor-Corrector sampler, we first use the predictor to choose a proper step size $\Delta t < 0$, and then predict $\mathbf x(t + \Delta t)$ based on the current sample $\mathbf x(t)$. Next, we run several corrector steps to improve the sample $\mathbf x(t + \Delta t)$ according to our score-based model $\mathbf s_\theta(\mathbf x, t + \Delta t)$, so that $\mathbf x(t + \Delta t)$ becomes a higher-quality sample from $p_{t+\Delta t}(\mathbf x)$.
+>  Predictor-Corrector sampler 的每一步中:
+>  predictor 首先选择一个合适的步长 $\Delta t < 0$，然后基于当前样本 $\mathbf x(t)$ 预测 $\mathbf x(t + \Delta t)$
+>  运行多次的 corrector steps ，基于 $\mathbf s_\theta(\mathbf x, t + \Delta t)$ 来提升样本 $\mathbf x(t + \Delta t)$，使得 $\mathbf x(t + \Delta t)$ 接近从 $p_{t + \Delta t}(\mathbf x)$ 采样的高质量样本
 
-[38]
+With Predictor-Corrector methods and better architectures of score-based models, we can achieve **state-of-the-art** sample quality on CIFAR-10 (measured in FID [38] and Inception scores [12] ), outperforming the best GAN model to date (StyleGAN2 + ADA [39] ).
+>  Predictor-Corrector methods + 更好架构的 score-based model，可以在 CIFAR-10 上取得 SOTA 的样本质量
 
- and Inception scores 
-
-[12]
-
-), outperforming the best GAN model to date (StyleGAN2 + ADA 
-
-[39]
-
-).
-
-|Method|FID ↓|Inception score ↑|
-|---|---|---|
-|StyleGAN2 + ADA <br><br>[39]|2.92|9.83|
-|Ours <br><br>[21]|**2.20**|**9.89**|
+|        Method         |  FID ↓   | Inception score ↑ |
+| :-------------------: | :------: | :---------------: |
+| StyleGAN2 + ADA  [39] |   2.92   |       9.83        |
+|      Ours  [21]       | **2.20** |     **9.89**      |
 
 The sampling methods are also scalable for extremely high dimensional data. For example, it can successfully generate high fidelity images of resolution 1024×1024.
+>  这一采样方法也可以拓展到非常高维的数据
 
 ![](https://yang-song.net/assets/img/score/ffhq_1024.jpeg)
 
@@ -555,97 +594,126 @@ Some additional (uncurated) samples for other datasets (taken from this [GitHub
 256 x 256 samples on CelebA-HQ.
 
 ### Probability flow ODE
+Despite capable of generating high-quality samples, samplers based on Langevin MCMC and SDE solvers do not provide a way to compute the exact log-likelihood of score-based generative models. 
+>  虽然基于 Langevin MCMC 和 SDE solver 的采样器可以生成高质量样本，但它们无法计算样本的精确对数似然
 
-Despite capable of generating high-quality samples, samplers based on Langevin MCMC and SDE solvers do not provide a way to compute the exact log-likelihood of score-based generative models. Below, we introduce a sampler based on ordinary differential equations (ODEs) that allow for exact likelihood computation.
+Below, we introduce a sampler based on ordinary differential equations (ODEs) that allow for exact likelihood computation. In [21] , we show $t$ is possible to convert any SDE into an ordinary differential equation (ODE) without changing its marginal distributions $\{p_t(\mathbf x)\}_{t\in [0, T]}$. Thus by solving this ODE, we can sample from the same distributions as the reverse SDE. 
+>  我们提出一个基于常微分方程 (ODE) 的采样器，以实现精确似然计算
+>  我们可以将任意的 SDE 都转化为 ODE，转化后的 ODE 和 SDE 在任意时间步都具有相同的边际分布 $\{p_t(\mathbf x)\}_{t\in [0, T]}$
+>  因此，通过求解 ODE，从 $t = T$ 开始，通过 ODE 演化到 $t = 0$ 时获得的样本和我们通过求解 reverse SDE 得到的样本从属于相同的分布
 
-In 
+The corresponding ODE of an SDE is named **probability flow ODE** [21] , given by
 
-[21]
+$$
+\mathrm d\mathbf x = \left[\mathbf f(\mathbf x, t) - \frac 1 2g^2(t)\nabla_{\mathbf x}\log p_t(\mathbf x)\right]\mathrm dt\tag{14}
+$$
 
-, we show t is possible to convert any SDE into an ordinary differential equation (ODE) without changing its marginal distributions {pt (x)}t∈[0, T]. Thus by solving this ODE, we can sample from the same distributions as the reverse SDE. The corresponding ODE of an SDE is named **probability flow ODE** 
+>  SDE 对应的这个 ODE 称为概率流 ODE，形式如 Eq 14，其中
+>  - $\mathrm d \mathbf x$ 表示数据点 $\mathbf x$ 的微小变化
+>  - $\mathbf f(\mathbf x, t)$ 是原始 SDE 中的漂移系数，它决定了数据在没有噪声情况下的趋势或方向
+>  - $g^2(t)$ 是原始 SDE 中的扩散系数的平方，在原始 SDE 中控制噪声项的强度
+>  - $\nabla_{\mathbf x}\log p_t(\mathbf x)$ 为得分函数
+>  - $\mathrm d t$ 表示微小的时间步长
+>  可以看到，概率流 ODE 中没有显式的随机噪声项
 
-[21]
+The following figure depicts trajectories of both SDEs and probability flow ODEs. Although ODE trajectories are noticeably smoother than SDE trajectories, they convert the same data distribution to the same prior distribution and vice versa, sharing the same set of marginal distributions $\{p_t(\mathbf x)\}_{t\in [0, T]}$. 
+>  图中展示了 SDE 和 probability flow ODE 的轨迹
+>  ODE 的轨迹比 SDE 的轨迹显著地更平滑，但即便轨迹不同，probability flow ODE 和 SDE 都将相同的数据分布转换为相同的先验分布，反之亦然，二者具有相同的一组边际分布 $\{p_t(\mathbf x)\}_{t\in [0, T]}$ 
 
-, given by
-
-(14) dx=[f (x, t)−12g2 (t)∇xlog⁡pt (x)]dt.
-
-The following figure depicts trajectories of both SDEs and probability flow ODEs. Although ODE trajectories are noticeably smoother than SDE trajectories, they convert the same data distribution to the same prior distribution and vice versa, sharing the same set of marginal distributions {pt (x)}t∈[0, T]. In other words, trajectories obtained by solving the probability flow ODE have the same marginal distributions as the SDE trajectories.
+In other words, trajectories obtained by solving the probability flow ODE have the same marginal distributions as the SDE trajectories.
+>  换句话说，通过求解 probability flow ODE 获得的轨迹和求解 SDE 获得的轨迹具有相同的边际分布
 
 ![](https://yang-song.net/assets/img/score/teaser.jpg)
 
 We can map data to a noise distribution (the prior) with an SDE, and reverse this SDE for generative modeling. We can also reverse the associated probability flow ODE, which yields a deterministic process that samples from the same distribution as the SDE. Both the reverse-time SDE and probability flow ODE can be obtained by estimating score functions.
 
 This probability flow ODE formulation has several unique advantages.
+>  相较于 SDE, probability flow ODE 的形式具有几个独特优势
 
-When ∇xlog⁡pt (x) is replaced by its approximation sθ(x, t), the probability flow ODE becomes a special case of a neural ODE
+When $\nabla_{\mathbf x}\log p_t(\mathbf x)$ is replaced by its approximation $\mathbf s_\theta(\mathbf x, t)$, the probability flow ODE becomes a special case of a neural ODE [40] . 
+>  当我们用 score-based model 替换 probability ODE 中的 $\nabla_t \log p_t(\mathbf x)$ 时，probability flow ODE 就成为 neural ODE 的特例 (用神经网络来参数化微分方程的右侧)
 
-[40]
+> [! info] Neural ODE
+> Neural ODE 是一类新的神经网络架构，它将深度学习的层堆叠概念推广到了连续深度
+> Neural ODE 的核心思想是不将网络看作离散层的堆叠，而是一个连续的动力学系统，即隐藏状态 $\mathbf h(t)$ 随着一个连续的时间变量 $t$ 变化 (而不是随着离散的层数变化)
+> 
+> Neural ODE 中，神经网络用于建模隐藏状态 $\mathbf h(t)$ 随着时间 $t$ 变化的变化率，公式为
+> $$ \frac {\mathrm d \mathbf h(t)}{\mathrm d t} = f(\mathbf h(t), t, \theta) $$
+>  这个方程就是一个常微分方程 (ODE)
 
-. In particular, it is an example of continuous normalizing flows
+In particular, it is an example of continuous normalizing flows [41] , since the probability flow ODE converts a data distribution $p_0(\mathbf x)$ to a prior noise distribution $p_T(\mathbf x)$ (since it shares the same marginal distributions as the SDE) and is fully invertible.
+>  进一步地，probability flow ODE 也是连续归一化流的特例，因为 probability flow ODE 也是将数据分布 $p_0(\mathbf x)$ 转化为一个先验噪声分布 $p_T(\mathbf x)$，且这个过程是完全可逆的
 
-[41]
+> [!info] Continuous Normalizing Flows
+> 归一化流是一类生成模型，其思想是将一个简单的基础分布 (例如正态分布) (中的样本 $z_0$) 通过一系列**可逆且可微分**的映射 $f_1, f_2, \dots, f_k$ 转换为目标分布 (中的样本 $z_t$)
+> 只要每个映射都是可逆且可微分的，其雅可比行列式就能计算，进而被转换后的数据点在目标分布下的概率密度/似然就是可计算的
+> 
+> 连续归一化流将离散的、堆叠的变换推广到连续，它不通过一系列离散的函数映射来转换分布，而是通过 ODE 来转换分布 (或者说定义分布变换)
+> 其核心思想是将基础分布/样本 $z_0$ 到目标分布/样本 $z_t$ 的转换看作一个连续的时间演化过程，该过程由向量场 $v(z(t), t)$ 定义，$v(z(t), t)$ 描述了 $z(t)$ 在 $t$ 时刻的变化率
+> 
+> 用神经网络建模该向量场，就得到了 Neural ODE 模型
+> $$ \frac {\mathrm d z(t)}{ \mathrm d t} = v(z(t), t) $$
+> 
+> 连续归一化流在变化下的概率密度是可计算的
+> 根据瞬时变量变换定理，连续随机变量的对数概率密度的变化等于其变化率的雅可比矩阵的迹的负值
+> $$\frac {\mathrm d \log p(z(t))}{\mathrm d t} = - \mathrm {tr}\left(\frac {\partial v(z(t), t)}{\partial z(t)}\right) $$
+> 因此，为了计算最终数据 $z_T$ 的概率密度，我们根据上式，对时间 $0$ 到 $T$ 进行积分即可
+> $$ \log p(z_T) = \log p_0(z_0) - \int_0^T \mathrm{tr}\left( \frac {\partial v(z(t), t)}{\partial z(t)}\right)  $$
+> 实践中，这一积分可以由数值 ODE solver 计算
 
-, since the probability flow ODE converts a data distribution p0 (x) to a prior noise distribution pT (x) (since it shares the same marginal distributions as the SDE) and is fully invertible.
+As such, the probability flow ODE inherits all properties of neural ODEs or continuous normalizing flows, including exact log-likelihood computation. Specifically, we can leverage the instantaneous change-of-variable formula (Theorem 1 in [40] , Equation (4) in [41] ) to compute the unknown data density $p_0$ from the known prior density $p_T$ with numerical ODE solvers.
+>  因此，probability flow ODE 继承了 neural ODE 和连续规范化流的所有性质，包括了精确的对数似然计算
+>  故我们可以利用瞬时变量变换定理计算，从先验密度 $p_T$ 计算未知数据密度 $p_0$
 
-As such, the probability flow ODE inherits all properties of neural ODEs or continuous normalizing flows, including exact log-likelihood computation. Specifically, we can leverage the instantaneous change-of-variable formula (Theorem 1 in 
+In fact, our model achieves the **state-of-the-art** log-likelihoods on uniformly dequantized $^4$ CIFAR-10 images [21] , **even without maximum likelihood training**.
 
-[40]
+| Method  | Negative log-likelihood (bits/dim) ↓ |
+| :-----: | :----------------------------------: |
+| RealNVP |                 3.49                 |
+| iResNet |                 3.45                 |
+|  Glow   |                 3.35                 |
+| FFJORD  |                 3.40                 |
+| Flow++  |                 3.29                 |
+|  Ours   |               **2.99**               |
 
-, Equation (4) in 
+When training score-based models with the **likelihood weighting** we discussed before, and using **variational dequantization** to obtain likelihoods on discrete images, we can achieve comparable or even superior likelihood to the state-of-the-art autoregressive models (all without any data augmentation) [36] .
 
-[41]
+> [!info] Variational Dequantization
+> 许多生成模型都基于连续概率分布来建模数据，目标是学习到真实的高维概率密度函数 $p(\mathbf x)$
+> 但连续模型无法直接用于离散数据，原因包括:
+> - 概率密度峰值问题，模型将倾向于在离散值上放置无限高的概率尖峰，例如一个像素值是 128，模型会给 128 非常高的密度，但 127.9，128.1 这些 “不存在” 的值概率密度则接近 0，分布会非常不自然
+> - 梯度问题，离散值之间没有平滑的变化，无法计算梯度
+> - 似然计算问题，概率质量函数不等同于概率密度函数，无法直接迁移似然计算方法
+> 
+>  去量化方法将离散的数据转化为连续的数据，便于模型处理
+>  最简单的方法是均匀去量化，对每个离散数据点添加 $[0, 1)$ 内的均匀噪声，将每个离散值 “扩展为” 一个连续的区间，模型学习在这个连续的区间上分配概率密度
+>  变分去量化的思想是不采用固定的均匀分布噪声，而是让模型学习一个最优的噪声分布来量化数据，它将添加到离散数据上的噪声视作一个隐变量 $u$，模型学习一个变分分布 $q(u\mid x)$ 来近似真实的条件分布 $p(u\mid x)$
 
-) to compute the unknown data density p0 from the known prior density pT with numerical ODE solvers.
-
-In fact, our model achieves the **state-of-the-art** log-likelihoods on uniformly dequantized 4 CIFAR-10 images 
-
-[21]
-
-, **even without maximum likelihood training**.
-
-|Method|Negative log-likelihood (bits/dim) ↓|
-|---|---|
-|RealNVP|3.49|
-|iResNet|3.45|
-|Glow|3.35|
-|FFJORD|3.40|
-|Flow++|3.29|
-|Ours|**2.99**|
-
-When training score-based models with the **likelihood weighting** we discussed before, and using **variational dequantization** to obtain likelihoods on discrete images, we can achieve comparable or even superior likelihood to the state-of-the-art autoregressive models (all without any data augmentation) 
-
-[36]
-
-.
-
-|Method|Negative log-likelihood (bits/dim) ↓ on CIFAR-10|Negative log-likelihood (bits/dim) ↓ on ImageNet 32x32|
-|---|---|---|
-|Sparse Transformer|**2.80**|-|
-|Image Transformer|2.90|3.77|
-|Ours|2.83|**3.76**|
+|       Method       | Negative log-likelihood (bits/dim) ↓ on CIFAR-10 | Negative log-likelihood (bits/dim) ↓ on ImageNet 32x32 |
+| :----------------: | :----------------------------------------------: | :----------------------------------------------------: |
+| Sparse Transformer |                     **2.80**                     |                           -                            |
+| Image Transformer  |                       2.90                       |                          3.77                          |
+|        Ours        |                       2.83                       |                        **3.76**                        |
 
 ### Controllable generation for inverse problem solving
+Score-based generative models are particularly suitable for solving inverse problems. At its core, inverse problems are same as Bayesian inference problems. Let $\mathbf x$ and $\mathbf y$ be two random variables, and suppose we know the forward process of generating $\mathbf y$ from $\mathbf x$, represented by the transition probability distribution $p(\mathbf y\mid \mathbf x)$. The inverse problem is to compute $p (\mathbf x \mid \mathbf y)$. From Bayes’ rule, we have $p (\mathbf x\mid \mathbf y)=p (\mathbf x) p (\mathbf y\mid \mathbf x)/\int p (\mathbf x) p (\mathbf y\mid \mathbf x) d\mathbf x$. 
+>  score-based 模型很适合求解逆问题
+>  逆问题的实质和贝叶斯推理问题相同，假设我们知道从随机变量 $\mathbf x$ 生成随机变量 $\mathbf y$ 的前向过程，用转移分布 $p(\mathbf y\mid \mathbf x)$ 来表示 (例如加噪，但不限于加噪)，对应的逆问题就是条件分布 $p(\mathbf x \mid\mathbf y)$
+>  根据贝叶斯规则，有 $p(\mathbf x \mid \mathbf y) = p(\mathbf x) p(\mathbf y \mid \mathbf x) / \int p(\mathbf x)p(\mathbf y\mid \mathbf x) d\mathbf x$
 
-Score-based generative models are particularly suitable for solving inverse problems. At its core, inverse problems are same as Bayesian inference problems. Let x and y be two random variables, and suppose we know the forward process of generating y from x, represented by the transition probability distribution p (y∣x). The inverse problem is to compute p (x∣y). From Bayes’ rule, we have p (x∣y)=p (x) p (y∣x)/∫p (x) p (y∣x) dx. This expression can be greatly simplified by taking gradients with respect to x on both sides, leading to the following Bayes’ rule for score functions:
+This expression can be greatly simplified by taking gradients with respect to $\mathbf x$ on both sides, leading to the following Bayes’ rule for score functions:
 
-(15)∇xlog⁡p (x∣y)=∇xlog⁡p (x)+∇xlog⁡p (y∣x).
+$$
+\nabla_{\mathbf x} \log p(\mathbf x\mid \mathbf y) = \nabla_{\mathbf x}\log p(\mathbf x) + \nabla_{\mathbf x}\log p(\mathbf y\mid \mathbf x)\tag{15}
+$$
 
-Through score matching, we can train a model to estimate the score function of the unconditional data distribution, i.e., sθ(x)≈∇xlog⁡p (x). This will allow us to easily compute the posterior score function ∇xlog⁡p (x∣y) from the known forward process p (y∣x) via equation [](https://yang-song.net/blog/2021/score/#mjx-eqn%3Ainverse_problem)(15), and sample from it with Langevin-type sampling 
+>  对贝叶斯公式两边取对数，然后求梯度，可以得到 Eq 15
+>  Eq 15 描述了前向分布和逆向分布的得分函数之间的关系
 
-[21]
+Through score matching, we can train a model to estimate the score function of the unconditional data distribution, i.e., $\mathbf s_\theta \approx \nabla_{\mathbf x}\log p(\mathbf x)$. This will allow us to easily compute the posterior score function $\nabla_{\mathbf x}\log p(\mathbf x \mid \mathbf y)$ from the known forward process $p(\mathbf y \mid \mathbf x)$ via equation (15), and sample from it with Langevin-type sampling [21] . 
+>  通过 score mathcing，我们可以训练近似数据分布得分函数的模型 $\mathbf s_\theta \approx \nabla_{\mathbf x}\log p(\mathbf x)$，进而可以轻易计算后验分布的得分函数 $\nabla_{\mathbf x}\log p(\mathbf x \mid \mathbf y)$，然后根据它进行 Langevin 采样
 
-.
-
-A recent work from UT Austin 
-
-[29]
-
- has demonstrated that score-based generative models can be applied to solving inverse problems in medical imaging, such as accelerating magnetic resonance imaging (MRI). Concurrently in 
-
-[42]
-
-, we demonstrated superior performance of score-based generative models not only on accelerated MRI, but also sparse-view computed tomography (CT). We were able to achieve comparable or even better performance than supervised or unrolled deep learning approaches, while being more robust to different measurement processes at test time.
+A recent work from UT Austin  [29] has demonstrated that score-based generative models can be applied to solving inverse problems in medical imaging, such as accelerating magnetic resonance imaging (MRI). Concurrently in [42] , we demonstrated superior performance of score-based generative models not only on accelerated MRI, but also sparse-view computed tomography (CT). We were able to achieve comparable or even better performance than supervised or unrolled deep learning approaches, while being more robust to different measurement processes at test time.
 
 Below we show some examples on solving inverse problems for computer vision.
 
@@ -666,112 +734,48 @@ Image colorization with a time-dependent score-based model trained on LSUN churc
 We can even colorize gray-scale portrays of famous people in history (Abraham Lincoln) with a time-dependent score-based model trained on FFHQ. The image resolution is 1024 x 1024.
 
 ## Connection to diffusion models and others
+I started working on score-based generative modeling since 2019, when I was trying hard to make score matching scalable for training deep energy-based models on high-dimensional datasets. My first attempt at this led to the method sliced score matching [31] . Despite the scalability of sliced score matching for training energy-based models, I found to my surprise that Langevin sampling from those models fails to produce reasonable samples even on the MNIST dataset. I started investigating this issue and discovered three crucial improvements that can lead to extremely good samples: (1) perturbing data with multiple scales of noise, and training score-based models for each noise scale; (2) using a U-Net architecture (we used RefineNet since it is a modern version of U-Nets) for the score-based model; (3) applying Langevin MCMC to each noise scale and chaining them together. With those methods, I was able to obtain the state-of-the-art Inception Score on CIFAR-10 in [18] (even better than the best GANs!), and generate high-fidelity image samples of resolution up to 256×256 in [19] .
+>  高质量样本生成的三个关键改进:
+>  1. 对数据进行多尺度噪声扰动，为各个噪声尺度训练 score-based model
+>  2. U-Net 架构
+>  3. 对每个噪声尺度都应用 Langevin MCMC，然后将它们结合为一条链
 
-I started working on score-based generative modeling since 2019, when I was trying hard to make score matching scalable for training deep energy-based models on high-dimensional datasets. My first attempt at this led to the method sliced score matching
+The idea of perturbing data with multiple scales of noise is by no means unique to score-based generative models though. It has been previously used in, for example, [simulated annealing](https://en.wikipedia.org/wiki/Simulated_annealing), annealed importance sampling [43] , diffusion probabilistic models [44] , infusion training [45] , and variational walkback [46] for generative stochastic networks [47] . Out of all these works, diffusion probabilistic modeling is perhaps the closest to score-based generative modeling. Diffusion probabilistic models are hierarchical latent variable models first proposed by [Jascha](http://www.sohldickstein.com/) and his colleagues [44] in 2015, which generate samples by learning a variational decoder to reverse a discrete diffusion process that perturbs data to noise. Without awareness of this work, score-based generative modeling was proposed and motivated independently from a very different perspective. Despite both perturbing data with multiple scales of noise, the connection between score-based generative modeling and diffusion probabilistic modeling seemed superficial at that time, since the former is trained by score matching and sampled by Langevin dynamics, while the latter is trained by the evidence lower bound (ELBO) and sampled with a learned decoder.
 
-[31]
+In 2020, [Jonathan Ho](http://www.jonathanho.me/) and colleagues  [20] significantly improved the empirical performance of diffusion probabilistic models and first unveiled a deeper connection to score-based generative modeling. They showed that the ELBO used for training diffusion probabilistic models is essentially equivalent to the weighted combination of score matching objectives used in score-based generative modeling. Moreover, by parameterizing the decoder as a sequence of score-based models with a U-Net architecture, they demonstrated for the first time that diffusion probabilistic models can also generate high quality image samples comparable or superior to GANs.
+>  训练 diffusion 的 ELBO 本质上等价于训练 score-based model 的 score matching objective 的加权求和
 
-. Despite the scalability of sliced score matching for training energy-based models, I found to my surprise that Langevin sampling from those models fails to produce reasonable samples even on the MNIST dataset. I started investigating this issue and discovered three crucial improvements that can lead to extremely good samples: (1) perturbing data with multiple scales of noise, and training score-based models for each noise scale; (2) using a U-Net architecture (we used RefineNet since it is a modern version of U-Nets) for the score-based model; (3) applying Langevin MCMC to each noise scale and chaining them together. With those methods, I was able to obtain the state-of-the-art Inception Score on CIFAR-10 in 
+Inspired by their work, we further investigated the relationship between diffusion models and score-based generative models in an ICLR 2021 paper  [21] . We found that the sampling method of diffusion probabilistic models can be integrated with annealed Langevin dynamics of score-based models to create a unified and more powerful sampler (the Predictor-Corrector sampler). By generalizing the number of noise scales to infinity, we further proved that score-based generative models and diffusion probabilistic models can both be viewed as discretizations to stochastic differential equations determined by score functions. This work bridges both score-based generative modeling and diffusion probabilistic modeling into a unified framework.
+>  diffusion model 的采样方法可以与 annealed Langevin dynamics 结合，得到更统一的采样器: Predictor-Corrector sampler
+>  将噪声尺度泛化到无限，score-based model 和 diffusion model 都可以视作由 score functions 决定的 SDE 的离散化，因此两类模型是统一的
 
-[18]
-
- (even better than the best GANs!), and generate high-fidelity image samples of resolution up to 256×256256×256 in 
-
-[19]
-
-.
-
-The idea of perturbing data with multiple scales of noise is by no means unique to score-based generative models though. It has been previously used in, for example, [simulated annealing](https://en.wikipedia.org/wiki/Simulated_annealing), annealed importance sampling
-
-[43]
-
-, diffusion probabilistic models
-
-[44]
-
-, infusion training
-
-[45]
-
-, and variational walkback
-
-[46]
-
- for generative stochastic networks
-
-[47]
-
-. Out of all these works, diffusion probabilistic modeling is perhaps the closest to score-based generative modeling. Diffusion probabilistic models are hierachical latent variable models first proposed by [Jascha](http://www.sohldickstein.com/) and his colleagues 
-
-[44]
-
- in 2015, which generate samples by learning a variational decoder to reverse a discrete diffusion process that perturbs data to noise. Without awareness of this work, score-based generative modeling was proposed and motivated independently from a very different perspective. Despite both perturbing data with multiple scales of noise, the connection between score-based generative modeling and diffusion probabilistic modeling seemed superficial at that time, since the former is trained by score matching and sampled by Langevin dynamics, while the latter is trained by the evidence lower bound (ELBO) and sampled with a learned decoder.
-
-In 2020, [Jonathan Ho](http://www.jonathanho.me/) and colleagues 
-
-[20]
-
- significantly improved the empirical performance of diffusion probabilistic models and first unveiled a deeper connection to score-based generative modeling. They showed that the ELBO used for training diffusion probabilistic models is essentially equivalent to the weighted combination of score matching objectives used in score-based generative modeling. Moreover, by parameterizing the decoder as a sequence of score-based models with a U-Net architecture, they demonstrated for the first time that diffusion probabilistic models can also generate high quality image samples comparable or superior to GANs.
-
-Inspired by their work, we further investigated the relationship between diffusion models and score-based generative models in an ICLR 2021 paper 
-
-[21]
-
-. We found that the sampling method of diffusion probabilistic models can be integrated with annealed Langevin dynamics of score-based models to create a unified and more powerful sampler (the Predictor-Corrector sampler). By generalizing the number of noise scales to infinity, we further proved that score-based generative models and diffusion probabilistic models can both be viewed as discretizations to stochastic differential equations determined by score functions. This work bridges both score-based generative modeling and diffusion probabilistic modeling into a unified framework.
-
-Collectively, these latest developments seem to indicate that both score-based generative modeling with multiple noise perturbations and diffusion probabilistic models are different perspectives of the same model family, much like how [wave mechanics](https://en.wikipedia.org/wiki/Wave_mechanics) and [matrix mechanics](https://en.wikipedia.org/wiki/Matrix_mechanics) are equivalent formulations of quantum mechanics in the history of physics 5 . The perspective of score matching and score-based models allows one to calculate log-likelihoods exactly, solve inverse problems naturally, and is directly connected to energy-based models, Schrödinger bridges and optimal transport
-
-[48]
-
-. The perspective of diffusion models is naturally connected to VAEs, lossy compression, and can be directly incorporated with variational probabilistic inference. This blog post focuses on the first perspective, but I highly recommend interested readers to learn about the alternative perspective of diffusion models as well (see [a great blog by Lilian Weng](https://lilianweng.github.io/lil-log/2021/07/11/diffusion-models.html)).
+Collectively, these latest developments seem to indicate that both score-based generative modeling with multiple noise perturbations and diffusion probabilistic models are different perspectives of the same model family, much like how [wave mechanics](https://en.wikipedia.org/wiki/Wave_mechanics) and [matrix mechanics](https://en.wikipedia.org/wiki/Matrix_mechanics) are equivalent formulations of quantum mechanics in the history of physics $^5$ . The perspective of score matching and score-based models allows one to calculate log-likelihoods exactly, solve inverse problems naturally, and is directly connected to energy-based models, Schrödinger bridges and optimal transport [48] . The perspective of diffusion models is naturally connected to VAEs, lossy compression, and can be directly incorporated with variational probabilistic inference. This blog post focuses on the first perspective, but I highly recommend interested readers to learn about the alternative perspective of diffusion models as well (see [a great blog by Lilian Weng](https://lilianweng.github.io/lil-log/2021/07/11/diffusion-models.html)).
+>  从 score function 的角度出发，可以精确计算对数似然，自然地求解逆问题
 
 Many recent works on score-based generative models or diffusion probabilistic models have been deeply influenced by knowledge from both sides of research (see a [website](https://scorebasedgenerativemodeling.github.io/) curated by researchers at the University of Oxford). Despite this deep connection between score-based generative models and diffusion models, it is hard to come up with an umbrella term for the model family that they both belong to. Some colleagues in DeepMind propose to call them “Generative Diffusion Processes”. It remains to be seen if this will be adopted by the community in the future.
 
 ## Concluding remarks
-
 This blog post gives a detailed introduction to score-based generative models. We demonstrate that this new paradigm of generative modeling is able to produce high quality samples, compute exact log-likelihoods, and perform controllable generation for inverse problem solving. It is a compilation of several papers we published in the past few years. Please visit them if you are interested in more details:
 
 - [Yang Song*, Sahaj Garg*, Jiaxin Shi, and Stefano Ermon. _Sliced Score Matching: A Scalable Approach to Density and Score Estimation_. UAI 2019 (Oral)](https://arxiv.org/abs/1905.07088)
-   
 - [Yang Song, and Stefano Ermon. _Generative Modeling by Estimating Gradients of the Data Distribution_. NeurIPS 2019 (Oral)](https://arxiv.org/abs/1907.05600)
-   
 - [Yang Song, and Stefano Ermon. _Improved Techniques for Training Score-Based Generative Models_. NeurIPS 2020](https://arxiv.org/abs/2006.09011)
-   
 - [Yang Song, Jascha Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. _Score-Based Generative Modeling through Stochastic Differential Equations_. ICLR 2021 (Outstanding Paper Award)](https://arxiv.org/abs/2011.13456)
-   
 - [Yang Song*, Conor Durkan*, Iain Murray, and Stefano Ermon. _Maximum Likelihood Training of Score-Based Diffusion Models_. NeurIPS 2021 (Spotlight)](https://arxiv.org/abs/2101.09258)
-   
 - [Yang Song*, Liyue Shen*, Lei Xing, and Stefano Ermon. _Solving Inverse Problems in Medical Imaging with Score-Based Generative Models_. ICLR 2022](https://arxiv.org/abs/2111.08005)
-   
 
 For a list of works that have been influenced by score-based generative modeling, researchers at the University of Oxford have built a very useful (but necessarily incomplete) website: [https://scorebasedgenerativemodeling.github.io/](https://scorebasedgenerativemodeling.github.io/).
 
 There are two major challenges of score-based generative models. First, the sampling speed is slow since it involves a large number of Langevin-type iterations. Second, it is inconvenient to work with discrete data distributions since scores are only defined on continuous distributions.
+>  score-based model 的两个缺点: 采样太慢，仅适用于连续分布
 
-The first challenge can be partially solved by using numerical ODE solvers for the probability flow ODE with lower precision (a similar method, denoising diffusion implicit modeling, has been proposed in 
+The first challenge can be partially solved by using numerical ODE solvers for the probability flow ODE with lower precision (a similar method, denoising diffusion implicit modeling, has been proposed in [49] ). It is also possible to learn a direct mapping from the latent space of probability flow ODEs to the image space, as shown in [50] . However, all such methods to date result in worse sample quality.
 
-[49]
-
-). It is also possible to learn a direct mapping from the latent space of probability flow ODEs to the image space, as shown in 
-
-[50]
-
-. However, all such methods to date result in worse sample quality.
-
-The second challenge can be addressed by learning an autoencoder on discrete data and performing score-based generative modeling on its continuous latent space 
-
-[28, 51]
-
-. Jascha’s original work on diffusion models 
-
-[44]
-
- also provides a discrete diffusion process for discrete data distributions, but its potential for large scale applications remains yet to be proven.
+The second challenge can be addressed by learning an autoencoder on discrete data and performing score-based generative modeling on its continuous latent space [28, 51] . Jascha’s original work on diffusion models  [44] also provides a discrete diffusion process for discrete data distributions, but its potential for large scale applications remains yet to be proven.
 
 It is my conviction that these challenges will soon be solved with the joint efforts of the research community, and score-based generative models/ diffusion-based models will become one of the most useful tools for data generation, density estimation, inverse problem solving, and many other downstream tasks in machine learning.
 
 ### Footnotes
-
 1. Hereafter we only consider probability density functions. Probability mass functions are similar. [↩](https://yang-song.net/blog/2021/score/#d-footnote-1)
 2. Fisher divergence is typically between two distributions $p$ and $q$, defined as $\mathbb E_{p (\mathbf x)}[ \|\nabla_{\mathbf x}\log p (\mathbf x) - \nabla_{\mathbf x}\log q(\mathbf x)\|^2_2]$ . Here we slightly abuse the term as the name of a closely related expression for score-based models. [↩](https://yang-song.net/blog/2021/score/#d-footnote-2)
 >  Fisher 散度衡量了两个分布 $p, q$ 之间的距离，定义为 $\mathbb E_{p (\mathbf x)}[ \|\nabla_{\mathbf x}\log p (\mathbf x) - \nabla_{\mathbf x}\log q(\mathbf x)\|^2_2]$，类似于 $p$ 和 $q$ 的得分函数之间的 (加权) 欧式距离 (将函数视作无限长的向量，将 $p(\mathbf x)$ 视作权重)
@@ -885,3 +889,142 @@ It is my conviction that these challenges will soon be solved with the joint eff
    Luhman, E. and Luhman, T., 2021. arXiv e-prints, pp. arXiv--2101.
 51. Score-based Generative Modeling in Latent Space 
    Vahdat, A., Kreis, K. and Kautz, J., 2021. Advances in Neural Information Processing Systems (NeurIPS).
+
+# Supplementary
+## 瞬时变量变换定理
+考虑一个随机变量 $\mathbf z$ 在时间上的演化，由常微分方程 $\frac {\mathrm d \mathbf z(t)}{\mathrm t} = \mathbf v(\mathbf z(t), t)$ 定义，其中 $\mathbf v(\mathbf z(t), t)$ 为向量场，表示 $\mathbf z$ 在 $t$ 时刻的瞬时速度
+
+记 $t$ 时刻，$\mathbf z(t)$ 服从的概率密度函数为 $p(\mathbf z, t)$，概率密度函数也是时间的函数，它随着时间的变化可以用连续性方程描述，形式为
+
+$$
+\frac {\partial p(\mathbf z, t)}{\partial t} + \nabla\cdot (p(\mathbf z, t)\mathbf v(\mathbf z, t)) = 0
+$$
+
+其中，$\frac {\partial p(\mathbf z, t)}{\partial t}$ 是概率密度函数对时间的偏导数，它表示在某个固定空间点 $\mathbf z$，概率密度函数随时间的变化率，如果为正，说明这个点上的概率密度在增加 (有更多 "概率粒子" 堆积起来)，如果为负，说明这个点上的概率密度在减少 (“概率粒子” 正在离开)
+
+$\mathbf v(\mathbf z, t)$ 为速度场，表示在空间位置 $\mathbf z$ 和时间 $t$ 时，“概率粒子” 的瞬时速度 (就好像水流中每个位置的水都有流速)
+
+$p(\mathbf z, t)\mathbf v(\mathbf z, t)$ 称为概率流密度 (通量密度=密度 x 速度，概率密度就类似 “概率粒子” 的密度，速度场表征了 “概率粒子” 的流速，通量密度是一个向量，表示每单位时间、每单位面积通过的物理量，且具有方向)，它表示单位时间内穿过单位面积的 “概率量” 
+
+$\nabla$ 为散度运算符，散度的直观理解就是源和汇，其核心的物理意义就是衡量一个向量场在空间某一点的 “发散” 或 “汇聚” 程度
+三维直角坐标系中，散度算子 $\nabla \cdot$ 作用于一个向量场 $\mathbf F = F_x \vec i + F_y \vec j + F_z \vec k$ ，得到散度场 (标量场)，散度的数学定义是: $\mathrm {div} \mathbf F = \nabla \cdot \mathbf F = \frac {\partial F_x}{\partial x} + \frac {\partial F_y}{\partial y} + \frac {\partial F_z}{\partial z}$ 
+直观上看，定义中的每个加数都是向量场中某一点在特定方向上的偏导数，表示了场在这个方向的变化率
+例如考虑 $x$ 方向，如果 $\frac {\partial F_x}{\partial x}$ 为正，说明分量 $F_x$ 沿着 $x$ 轴增加，意味着有更多 $x$ 方向的流量向正 $x$ 方向 “流出”，如果为 $\frac {\partial F_x}{\partial x}$ 为负，说明分量 $F_x$ 沿着 $x$ 轴减少，意味着有更多来自正 $x$ 方向的流量向负 $x$ 方向 “流入”，把这些变化率加起来，就是这个点的 “净流入” 或 “净流出” 量 (注意流入和流出都是针对 “正方向“ 定义的)
+如果向量场中某一点的散度为正 ($\mathrm {div} > 0$)，说明这一点为源，它在向外发散，如果某一点的散度为负 ($\mathrm {div} < 0$)，说明这一点为汇，它在向内汇聚
+
+散度描述了局部的性质，衡量了一个点 (单位体积) 上向量场的发散和汇聚，散度实质是通量的 “体密度”，即单位体积内的通量净流出量 (把散度看作源汇的密度，就像质量密度是单位体积内的质量一样)
+净通量描述了整体的性质，衡量了整个封闭表面上有多少向量场穿过，是净流入还是净流出
+因为一个封闭区域的净通量，一定是由这个区域内所有点的局部发散或汇聚行为累积而成的，故散度和净通量显然存在关系，它们的关系由高斯散度定理描述:
+
+$$
+\int \int_S \mathbf F\cdot d\mathbf S = \int\int\int_V (\nabla\cdot \mathbf F)dV
+$$
+
+其中，$\int\int_S \mathbf F\cdot d\mathbf S$ 表示向量场穿过封闭曲面 $\mathbf S$ 的净通量，$d\mathbf S$ 是一个向量面积元，其方向是曲面的外法线方向
+$\int\int\int_V (\nabla\cdot \mathbf F) dV$ 表示向量场 $\mathbf F$ 的散度 $\nabla \cdot \mathbf F$ 在曲面所包围体积 $V$ 上的体积分
+
+一个直观的例子: 在房间里点一只香烟，香烟这个 (房间内) 的点就是一个源，房间里其他的空气点不是源也不是汇 (流入和流出量平衡)，房间里的排气扇这个点就是一个汇
+净通量将房间视作一个整体，考虑多少烟雾/空气净地穿过这个房间
+
+回到连续性方程，在方程中，散度算子作用于速度场 (向量场) $\mathbf v(\mathbf z, t)$，也可以视作作用于通量密度场 (向量场) $p(\mathbf z, t)\mathbf v(\mathbf z, t)$
+$\nabla \cdot (p(\mathbf z, t)\mathbf v(\mathbf z, t))$ 就计算了该点处通量密度 (概率流密度) 的散度，表征了在 $\mathbf z$ 这一点处，概率流密度的源/汇情况 (或者直接说成概率密度函数在这一个时刻下的瞬时变化情况)
+
+连续性方程
+
+$$\frac {\partial p (\mathbf z, t)}{\partial t}  =-  \nabla\cdot (p (\mathbf z, t)\mathbf v (\mathbf z, t))$$
+
+告诉我们: 在固定点 $\mathbf z$ 上，概率密度函数的变化率严格等于概率流密度在该点处散度的负值 (源的概率密度减小，汇的概率密度增大，非源非汇，不变化)
+
+连续性方程是对 “局部守恒” 的数学表达: 任何一个固定点上**守恒量**密度的变化，都必须通过该点的 “流” (通量) 的净流入和净流出表示，散度是 “流” 的净流入或流出的局部强度
+
+回到瞬时变量变换定理，我们展开连续性方程中的散度项，得到:
+
+$$
+\frac {\partial p(\mathbf z, t)}{\partial t} + (\nabla p(\mathbf z, t))\cdot\mathbf v(\mathbf z, t)+ p(\mathbf z, t)\cdot(\nabla\cdot  \mathbf v(\mathbf z, t))= 0
+$$
+
+我们开始考虑对数概率密度函数 $\log p(\mathbf z(t), t)$ 对 $t$ 的全导数，根据链式法则:
+
+$$
+\frac {d}{dt}\log p(\mathbf z(t), t) = \frac {\partial \log p(\mathbf z(t), t)}{\partial t} + \sum_i\frac {\partial \log p(\mathbf z, t)}{\partial z_i}\frac {d z_i}{d t}
+$$
+
+其中 $\frac {dz_i}{dt} = v_i(\mathbf z, t)$，故
+
+$$
+\frac {d}{dt}\log p(\mathbf z(t), t) = \frac {\partial \log p(\mathbf z(t), t)}{\partial t} + \nabla_{\mathbf z}{\log p(\mathbf z, t)}\cdot \mathbf v(\mathbf z, t)
+$$
+
+因为 $\frac {\partial \log p}{\partial t} = \frac 1 p \frac {\partial p}{\partial t}$，以及 $\nabla \log p = \frac 1 p \nabla p$，故
+
+$$
+\begin{align}
+\frac {d}{dt}\log p(\mathbf z(t), t) &= \frac 1 {p(\mathbf z, t)}\frac {\partial p(\mathbf z, t)}{\partial t} + \frac 1 {p(\mathbf z, t)}\nabla p(\mathbf z , t) \cdot\mathbf v(\mathbf z, t)\\
+p(\mathbf z, t)\frac {d}{dt}\log p(\mathbf z(t), t)&=\frac {\partial p(\mathbf z, t)}{\partial t} + \nabla p(\mathbf z, t)\cdot \mathbf v(\mathbf z, t)
+\end{align}
+$$
+
+根据连续性方程，等式右边可以替换为 $- p(\mathbf z, t)\cdot (\nabla \cdot \mathbf v(\mathbf z, t))$，故
+
+$$
+p (\mathbf z, t)\frac {d}{dt}\log p (\mathbf z (t), t) =-p(\mathbf z, t)\cdot (\nabla \cdot \mathbf v(\mathbf z, t))
+$$
+
+假设 $p(\mathbf z, t) \ne 0$，两边除以 $p(\mathbf z, t)$，得到
+
+$$
+\frac {d}{dt}\log p(\mathbf z(t), t) = -(\nabla \cdot \mathbf v (\mathbf z, t))
+$$
+
+其中等式右侧速度场的散度 $\nabla\cdot \mathbf v(\mathbf z, t)$ 定义为所有分量的偏导数之和
+
+$$
+\nabla \cdot\mathbf v(\mathbf z, t) = \sum_{i} \frac {\partial v_i(\mathbf z, t)}{\partial z_i}
+$$
+
+这对应于雅可比矩阵 $J = \frac {\partial \mathbf v(\mathbf z, t))}{\partial \mathbf z}$ 的迹
+
+$$
+\mathrm{tr}\left(\frac {\partial \mathbf v(\mathbf z, t)}{\partial \mathbf z}\right) = \mathrm tr(J) = \sum_{ii}J_{ii}=\sum_i \frac {\partial v_i(\mathbf z, t)}{\partial z_i} = \nabla\cdot \mathbf v(\mathbf z, t)
+$$
+
+因此最终有
+
+$$
+\frac {d}{dt}\log p(\mathbf z, t) = -\mathrm {tr}\left(\frac {\partial \mathbf v(\mathbf z, t)}{\partial \mathbf z}\right)
+$$
+
+这一公式将对数概率流场的变化率和速度场的散度联系了起来
+
+得到了对数概率密度随时间的变化率，那么要得到某个时间点 $T$ 处的对数概率密度 $\log p(\mathbf z(T), T)$，我们可以对左右两边进行积分
+
+$$
+\int_0^T \frac {d}{dt}\log p(\mathbf z(t), t)dt = -\int_{0}^T \mathrm {tr}\left(\frac {\partial \mathbf v(\mathbf z(t), t)}{\partial \mathbf z(t)}\right)dt
+$$
+
+回忆一下微积分基本定理，一个关于 $t$ 的导函数的积分满足
+
+$$
+\int_0^T \frac {d}{dt}F(t)dt = F(T) - F(0)
+$$
+
+因此，我们得到
+
+$$
+\begin{align}
+\log p(\mathbf z(T), T) - \log p(\mathbf z(0), 0) &= -\int_{0}^T \mathrm {tr}\left(\frac {\partial \mathbf v(\mathbf z(t), t)}{\partial \mathbf z(t)}\right)dt\\
+\log p(\mathbf z(T), T) &= \log p(\mathbf z(0), 0)  - \int_0^T \mathrm {tr} \left(\frac {\partial \mathbf v(\mathbf z(t), t)}{\partial \mathbf z(t)}\right)
+\end{align}
+$$
+
+因此，我们将目标样本在目标分布下的对数概率密度和初始样本在初始分布下的对数概率密度以及流动路径上速度场 $\mathbf v$ 的散度的积分联系了起来
+
+
+
+
+
+
+
+
+
+
