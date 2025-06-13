@@ -154,24 +154,24 @@ start with the ResNet-50 architecture and increase depth or width in the third s
 		$K\frac{1}{n}11^{T}$ 中，每一列都相同，每一列都等于 $K$ 的所有列的均值
 		
 		the similarity matrices with their column and row means subtracted
-	- $HSIC(K, L) = vec(K )·vec(L )/(m−1)^2$
+	- $HSIC (K, L) = vec (K )·vec (L )/(m−1)^2$
 		HSIC measures the similarity of these centered similarity matrices by reshaping them to vectors and taking the dot product between these vectors
 		
-		$HSIC(K,L) = \frac{1}{(m-1)^{2}}\sum_{i=1}^{m}K_{i.}\cdot L_{i.}$
+		$HSIC (K, L) = \frac{1}{(m-1)^{2}}\sum_{i=1}^{m}K_{i.}\cdot L_{i.}$
 		HSIC is invariant to orthogonal transformations of the representations and, by extension, to permutation of neurons
 		
 		not invariant to scaling of the original representations
-		$HSIC(aK,L) \ne HSIC(K,L)$
-		$HSIC(aK,L) \ne HSIC(aK,aL)$
-	- $CKA(K,L) = \frac{HSIC(K,L)}{\sqrt{HSIC(K,K)HSIC(L,L)}}$
+		$HSIC (aK, L) \ne HSIC (K, L)$
+		$HSIC (aK, L) \ne HSIC (aK, aL)$
+	- $CKA (K, L) = \frac{HSIC (K, L)}{\sqrt{HSIC (K, K) HSIC (L, L)}}$
 		CKA further normalizes HSIC to produce a similarity index between 0 and 1 that is invariant to isotropic scaling
 		
-		$CKA(aK,L) = CKA(K,L)$
-		$CKA(aK,aL) = CKA(aK,aL)$
+		$CKA (aK, L) = CKA (K, L)$
+		$CKA (aK, aL) = CKA (aK, aL)$
 	实际实验中计算的是 $CKA_{minibatch}$
 	Ref to formula (2)
 	在实验中，batch_size = 256, k = 10, 无放回抽样
-	也就是每次从测试集中抽 256 个样本，每次抽完不放回，抽十次，计算十次 $HSIC(K,L)$，取平均，再计算 $CKA$，得到两个隐藏层之间的相似度指标
+	也就是每次从测试集中抽 256 个样本，每次抽完不放回，抽十次，计算十次 $HSIC (K, L)$，取平均，再计算 $CKA$，得到两个隐藏层之间的相似度指标
 - CKA representation similarity measure 回答的问题
 	We begin our study by investigating how the depth and width of a model architecture affects its internal representation structure
 	不同结构对内部特征是否有不同的影响
@@ -271,7 +271,7 @@ what is happening to the neural network representations as they propagate throug
 特征在经过块结构 (表现出块结构的连续的隐藏层) 前向传播的时候发生了什么变化？
 
 至少我们现在知道：特征在经过块结构的时候，从 CKA 衡量的相似度指标来看，它们是保持几乎不变的 (层与层之间的相似度都极高)
-很显然，如果特征保持数值上的完全不变，即 $f(x) = x$，或者是仅仅乘以一个常数，即 $f(x) = kx$，用 CKA 衡量二者之间的相似度，一定得到 1
+很显然，如果特征保持数值上的完全不变，即 $f (x) = x$，或者是仅仅乘以一个常数，即 $f (x) = kx$，用 CKA 衡量二者之间的相似度，一定得到 1
 
 块结构 -> 模型中连续的一段隐藏层之间的**CKA 的值都很大/接近 1** -> CKA 的值接近 1 说明了什么？ 相似？ 哪些地方相似？ 哪种程度上的相似？ 网络对特征做了什么变化，使得它们经过传播后仍相似？
 
@@ -279,14 +279,14 @@ what is happening to the neural network representations as they propagate throug
 - Linear CKA 的另一种计算方式/解释方式
 	Ref to formula 4
 	对 formula 4 的解释：
-	formula 4 说明了 CKA (X, Y) 的值是由一个和式决定的，这个和式由主成分向量的内积乘上样本点映射到这个主成分方向上的方差构成 ($\lambda_{X}^{i}\lambda_{Y}^{j} {\langle {u_{X}^{i},u_{Y}^{j}}\rangle}^2$)
+	formula 4 说明了 CKA (X, Y) 的值是由一个和式决定的，这个和式由主成分向量的内积乘上样本点映射到这个主成分方向上的方差构成 ($\lambda_{X}^{i}\lambda_{Y}^{j} {\langle {u_{X}^{i}, u_{Y}^{j}}\rangle}^2$)
 	
-	第一主成分解释的方差 ($\lambda_{X}^1,\lambda_{Y}^1$) 最多 (即将样本都投影到第一主成分方向上后，计算得到的方差是最大的)，即这个和式中，最大的一个项是 $\lambda_{X}^{1}\lambda_{Y}^{1} {\langle {u_{X}^{1},u_{Y}^{1}}\rangle}^2$
+	第一主成分解释的方差 ($\lambda_{X}^1,\lambda_{Y}^1$) 最多 (即将样本都投影到第一主成分方向上后，计算得到的方差是最大的)，即这个和式中，最大的一个项是 $\lambda_{X}^{1}\lambda_{Y}^{1} {\langle {u_{X}^{1}, u_{Y}^{1}}\rangle}^2$
 	
-	即 CKA 中，最大的一个项是 $\frac{\lambda_{X}^{1}}{\sqrt{\sum{\lambda_i}^2}}\frac{\lambda_{Y}^{1}}{\sqrt{\sum{\lambda_j}^2}}{\langle u_{X}^{1},u_{Y}^{1}\rangle}^2$
+	即 CKA 中，最大的一个项是 $\frac{\lambda_{X}^{1}}{\sqrt{\sum{\lambda_i}^2}}\frac{\lambda_{Y}^{1}}{\sqrt{\sum{\lambda_j}^2}}{\langle u_{X}^{1}, u_{Y}^{1}\rangle}^2$
 	
-	As the fraction of the variance explained by the first principal components approaches 1, CKA reflects the squared alignment between these components ${\langle u_{X}^{1},u_{Y}^{1}\rangle}^2$
-	随着第一主成分解释的方差比例的增大 ($\lambda_{1}$ 在 $\sum\lambda_i$ 中占的比例增大，$\frac{\lambda_1}{\sum\lambda_i}$ 逐渐接近 1)，CKA 越能反映 X 和 Y 的两个第一主成分向量 ($u_{X}^{1},u_{Y}^{1}$) 的方向的关系 (CKA 的值主要由 ${\langle u_{X}^{1},u_{Y}^{1}\rangle}^2$ 决定)
+	As the fraction of the variance explained by the first principal components approaches 1, CKA reflects the squared alignment between these components ${\langle u_{X}^{1}, u_{Y}^{1}\rangle}^2$
+	随着第一主成分解释的方差比例的增大 ($\lambda_{1}$ 在 $\sum\lambda_i$ 中占的比例增大，$\frac{\lambda_1}{\sum\lambda_i}$ 逐渐接近 1)，CKA 越能反映 X 和 Y 的两个第一主成分向量 ($u_{X}^{1}, u_{Y}^{1}$) 的方向的关系 (CKA 的值主要由 ${\langle u_{X}^{1}, u_{Y}^{1}\rangle}^2$ 决定)
 	
 	**在第一主成分解释的方差比例很大的情况下**，X 和 Y 的 CKA 的值接近 1 可以说明 X 和 Y 的第一主成分方向非常相近
 
@@ -333,12 +333,12 @@ how these preserved representations impact task performance throughout the netwo
 	
 	Comparing the accuracies of probes for layers pre- and post-residual connections, we find that these connections play an important role in preserving representations in the block structure
 	而若将残差连接之前的特征去除，发现准确率显著降低，说明残差块内的函数对于有用特征的提取没有起到太大作用，模型只是利用了残差连接对于特征进行了保持
-	$y = f(x) + x$ 中，$f(x)$ 没有提取到对任务较为有用的特征，$y$ 主要还是保持了 $x$ 的有效性
+	$y = f (x) + x$ 中，$f (x)$ 没有提取到对任务较为有用的特征，$y$ 主要还是保持了 $x$ 的有效性
 
-- 实验方法：删除特定的残差块，保持残差连接，观察整个模型的效果表现，即确认 $y = f(x) + x$ 中，$f(x)$ 是否提取到了对于任务有用的特征
+- 实验方法：删除特定的残差块，保持残差连接，观察整个模型的效果表现，即确认 $y = f (x) + x$ 中，$f (x)$ 是否提取到了对于任务有用的特征
 - 实验发现：
 	the magnitude of the drop in accuracy appears to be connected to the size and the clarity of the block structure present
-	块结构越大，去除 $f(x)$ 后，对模型准确率的影响越小
+	块结构越大，去除 $f (x)$ 后，对模型准确率的影响越小
 	
 	This result suggests that block structure could be an indication of redundant modules in model design
 	过大的块结构说明了模型冗余
@@ -401,16 +401,16 @@ As the architecture becomes wider or deeper, accuracy on many examples increases
 4. Left nullspace N ($A^T$)
 	矩阵的左零空间，即 $A^{T}x = 0$ 的所有解向量张成的空间，是 $\mathbb R^m$ 的子空间，容易知道，N ($A^T$) 中的所有向量都与 A 的列空间的所有向量正交，即 N ($A^T$) 与 C (A) 正交，之所以叫左零空间，是因为 $A^{T}x = 0$ 可以写成 $x^{T}A = 0$，即一个矩阵 $A$ 左乘一个向量得零，说明这个向量和矩阵的列空间正交
 关于四个子空间的维度 (正交基的个数)：
-1. dim (C (A)) = r (A)
-2. dim (C ($A^T$)) = r ($A^T$)= r (A)
+5. dim (C (A)) = r (A)
+6. dim (C ($A^T$)) = r ($A^T$)= r (A)
 	参考三秩相等定理，容易得到 r ($A^T$) = r (A)
 	证明思路：矩阵的秩是由最大非奇异子阵 (非奇异：行列式不为 0) 的大小决定的，而矩阵转置，行列式不变，则容易得到 r ($A^T$) = r (A)
 	要完整证明三秩相等，之后要再证明矩阵的秩等于其列秩 (利用行列式和极大无关组的性质来证)，即可得到三秩相等定理：A 的列秩 = r (A) = r ($A^T$) = $A^T$ 的列秩 = A 的行秩
 	即：A 的列秩 = A 的行秩 = r (A)
-3. dim (N (A)) = n - r (A) = n - dim (C ($A^T$))
+7. dim (N (A)) = n - r (A) = n - dim (C ($A^T$))
 	A 的零空间和 A 的行空间正交，容易知道二者的交集是空集，并集是全集，
 	即 N (A) $\cup$ C ($A^T$) = $\mathbb R^n$，两个空间的正交基的并集就是 $\mathbb R^n$ 的一组正交基
-4. dim (N ($A^T$)) = m - r (A) = m - dim (C (A))
+8. dim (N ($A^T$)) = m - r (A) = m - dim (C (A))
 	A 的左零空间和 A 的列空间正交，容易知道二者的交集是空集，并集是全集，
 	即 N ($A^T$) $\cup$ C (A) = $\mathbb R^m$，两个空间的正交基的并集就是 $\mathbb R^m$ 的一组正交基
 
@@ -419,9 +419,9 @@ As the architecture becomes wider or deeper, accuracy on many examples increases
 
 ### $A^TA$
 容易知道 $A^TA$ 是一个大小为 $n\times n$，秩为 $r$ 的矩阵
-(可以证明对于实矩阵 $A$，$r(A) = r(A^{T}) = r(AA^{T})= r(A^{T}A)$，
+(可以证明对于实矩阵 $A$，$r (A) = r (A^{T}) = r (AA^{T})= r (A^{T}A)$，
 证明思路是证明 $Ax = 0$ 和 $A^{T}Ax = 0$ 同解，即 $A$ 和 $A^TA$ 零空间相同，
-则 $n-r(A^{T}A) = n-r(A)\rightarrow r(A) = r(A^{T}A)$)
+则 $n-r (A^{T}A) = n-r (A)\rightarrow r (A) = r (A^{T}A)$)
 
 (利用 $Ax = 0$ 和 $A^{T}Ax = 0$ 同解可以进一步推出的结论：
 因为 $Ax = 0$ 和 $A^{T}Ax = 0$ 同解，即 N (A) = N ($A^TA$)
@@ -444,14 +444,14 @@ $A^{T}A$ 的性质：
 
 $$A^{T}A = V\Lambda V^T$$
 
-而因为 $r(A^{T}A) = r(V\Lambda V^{T}) = r(\Lambda) = r$，可知 $A^{T}A$ 的特征值中，$r$ 个大于 0，$n-r$ 个为 0
-($r(V\Lambda V^{T}) = r(\Lambda)$ 是因为 $V$ 是正交阵，满秩，可逆)
+而因为 $r (A^{T}A) = r (V\Lambda V^{T}) = r (\Lambda) = r$，可知 $A^{T}A$ 的特征值中，$r$ 个大于 0，$n-r$ 个为 0
+($r (V\Lambda V^{T}) = r (\Lambda)$ 是因为 $V$ 是正交阵，满秩，可逆)
 
 对于 $A^TA$ 的特征值大于 0 的特征向量：
-令它们为：$v_1,v_2,\cdots,v_r$，且令 $V_{1}=[v_1,v_2,\cdots,v_r]$
+令它们为：$v_1, v_2,\cdots, v_r$，且令 $V_{1}=[v_1, v_2,\cdots, v_r]$
 $V_1$ 的形状为 $n\times r$，$V_1$ 是正交阵
 对于 $A^TA$ 的特征值等于 0 的特征向量：
-令它们为：$v_{r+1},v_{r+2},\cdots,v_n$，且令 $V_{2}=[v_{r+1},v_{r+2},\cdots,v_n]$
+令它们为：$v_{r+1}, v_{r+2},\cdots, v_n$，且令 $V_{2}=[v_{r+1}, v_{r+2},\cdots, v_n]$
 $V_2$ 的形状为 $n\times (n-r)$，$V_2$ 是正交阵
 $V = [V_1,V_2]$
 
@@ -462,14 +462,14 @@ $V = [V_1,V_2]$
 ### $AA^T$
 同样的，对于矩阵 $AA^T$，容易知道它是一个 $m\times m$，秩为 $r$ 的半正定矩阵
 对 $AA^T$ 也可以相似对角化：$$AA^T=U\Lambda' U^T$$
-而由于 $r(AA^T)=r(U\Lambda'U^T)=r(\Lambda')=r$，可以知道 $\Lambda'$ 中有 $r$ 个特征值大于 0，$n-r$ 个特征值为 0
+而由于 $r (AA^T)=r (U\Lambda'U^T)=r (\Lambda')=r$，可以知道 $\Lambda'$ 中有 $r$ 个特征值大于 0，$n-r$ 个特征值为 0
 
 对于特征值大于 0 的特征向量：
-令它们为：$[u_1,u_2,u_3,\cdots,u_r]$，且令 $U_1=[u_1,u_2,u_3,\cdots,u_r]$
+令它们为：$[u_1, u_2, u_3,\cdots, u_r]$，且令 $U_1=[u_1, u_2, u_3,\cdots, u_r]$
 $U_1$ 的形状为 $m\times r$，$U_1$ 是正交阵
 对于特征值等于 0 的特征向量：
-令它们为：$[u_{r+1},u_{r+2},\cdots,u_m]$，且令 $U_2=[u_{r+1},u_{r+2},\cdots,u_m]$
-$U_2$ 的形状为 $m\times(m-r)$，$U_2$ 是正交阵
+令它们为：$[u_{r+1}, u_{r+2},\cdots, u_m]$，且令 $U_2=[u_{r+1}, u_{r+2},\cdots, u_m]$
+$U_2$ 的形状为 $m\times (m-r)$，$U_2$ 是正交阵
 $U=[U_1,U_2]$
 
 可知 $U_2$ 是 $AA^{T}$ 的零空间的一组标准正交基，也同时是 $A^T$ 的零空间的一组标准正交基，也就是 $A$ 的左零空间的一组标准正交基
@@ -477,12 +477,12 @@ $U=[U_1,U_2]$
 可知 $U_1$ 是 $AA^{T}$ 的行空间的一组标准正交基，也同时是 $A^T$ 的行空间的一组标准正交基，也就是 $A$ 的列空间的一组标准正交基
 
 ### 奇异值
-而 $V_1,U_1$ 之间，也就是 $A$ 的行空间的标准正交基和 $A$ 的列空间的标准正交基有什么关系？
-$V_2,U_2$ 之间，也就是 $A$ 的零空间的标准正交基和 $A$ 的左零空间的标准正交基有什么关系？
-$V,U$ 之间，也就是 $A^TA$ 的特征向量和 $AA^T$ 的特征向量之间有什么关系？
+而 $V_1, U_1$ 之间，也就是 $A$ 的行空间的标准正交基和 $A$ 的列空间的标准正交基有什么关系？
+$V_2, U_2$ 之间，也就是 $A$ 的零空间的标准正交基和 $A$ 的左零空间的标准正交基有什么关系？
+$V, U$ 之间，也就是 $A^TA$ 的特征向量和 $AA^T$ 的特征向量之间有什么关系？
 
 我们已经知道 $A^TA$ 的秩是 $r$，
-对于其大于零的特征值，有对应的特征向量 $v_1,v_2,\cdots,v_r$
+对于其大于零的特征值，有对应的特征向量 $v_1, v_2,\cdots, v_r$
 并且有：$$A^TAv_i=\lambda_iv_i\quad\lambda_i\ne0$$
 将等式两边都左乘 $A$：
 $$\begin{aligned}AA^TAv_i&=\lambda_iAv_i\quad(\lambda_i\ne0)\\(AA^T)(Av_i)&=\lambda_i(Av_i)\quad(\lambda_i\ne0)\end{aligned}$$
@@ -491,7 +491,7 @@ $$\begin{aligned}AA^TAv_i&=\lambda_iAv_i\quad(\lambda_i\ne0)\\(AA^T)(Av_i)&=\lam
 且对于 $v_i$，$A^TA$ 的特征值是 $\lambda_i$
 对于 $Av_i$，$A^TA$ 的特征值也是 $\lambda_i$
 
-对于其等于零的特征值，有对应的特征向量 $v_{r+1},v_{r+2},\cdots,v_n$
+对于其等于零的特征值，有对应的特征向量 $v_{r+1}, v_{r+2},\cdots, v_n$
 并且有：$$A^TAv_i=0$$
 将等式两边都左乘 $A$：
 $$\begin{aligned}AA^TAv_i&=0\\(AA^T)(Av_i)&=0\end{aligned}$$
@@ -499,17 +499,17 @@ $$\begin{aligned}AA^TAv_i&=0\\(AA^T)(Av_i)&=0\end{aligned}$$
 $$A^{T}Av_{i}=0\ {\rightarrow}\ Av_i=0$$
 因此 $\lambda_i=0$ 时，$Av_i=0$ 显然是 $AA^T$ 的零空间中的向量之一，因为 $(AA^T)(Av_i)=0$ 是成立的
 
-不论特征值是不是为 0，等式 $(AA^T)(Av_i)=\lambda_i(Av_i)$ 都是成立的
+不论特征值是不是为 0，等式 $(AA^T)(Av_i)=\lambda_i (Av_i)$ 都是成立的
 综合两种情况，就是对于 $A^TA$：
 $$A^{T}A=V\Lambda V^{T}$$
 $$A^{T}AV=\Lambda V$$
 $$AA^{T}AV=\Lambda AV$$
 $$(AA^{T})(AV)=\Lambda (AV)$$
-其中 $V=[V_1,V_2]=[v_1,\cdots,v_r,v_{r+1},\cdots,v_n]$
+其中 $V=[V_1, V_2]=[v_1,\cdots, v_r, v_{r+1},\cdots, v_n]$
 
 
 同理，对于 $AA^T$，我们已经知道 $AA^T$ 的秩也是 r
-对于其大于零的特征值，有对应的特征向量 $u_1,u_2,\cdots,u_r$
+对于其大于零的特征值，有对应的特征向量 $u_1, u_2,\cdots, u_r$
 并且有：$$AA^Tu_i=\lambda'_iu_i\quad\lambda'_i\ne0$$
 将等式两边都左乘 $A^T$：
 $$\begin{aligned}A^TAA^Tu_i&=\lambda'_iA^Tu_i\quad(\lambda'_i\ne0)\\(A^TA)(A^Tu_i)&=\lambda'_i(A^Tu_i)\quad(\lambda'_i\ne0)\end{aligned}$$
@@ -518,7 +518,7 @@ $$\begin{aligned}A^TAA^Tu_i&=\lambda'_iA^Tu_i\quad(\lambda'_i\ne0)\\(A^TA)(A^Tu_
 且对于 $u_i$，$AA^T$ 的特征值是 $\lambda'_i$
 对于 $A^Tu_i$，$AA^T$ 的特征值也是 $\lambda'_i$
 
-对于其等于零的特征值，有对应的特征向量 $u_{r+1},u_{r+2},\cdots,v_m$
+对于其等于零的特征值，有对应的特征向量 $u_{r+1}, u_{r+2},\cdots, v_m$
 并且有：$$AA^Tu_i=0$$
 将等式两边都左乘 $A^T$：
 $$\begin{aligned}A^TAA^Tu_i&=0\\(A^TA)(A^Tu_i)&=0\end{aligned}$$
@@ -526,21 +526,21 @@ $$\begin{aligned}A^TAA^Tu_i&=0\\(A^TA)(A^Tu_i)&=0\end{aligned}$$
 $$AA^{T}u_{i}=0\ {\rightarrow}\ A^Tu_i=0$$
 因此 $\lambda'_i=0$ 时，$A^Tu_i=0$ 显然是 $AA^T$ 的零空间中的向量之一，因为 $(A^TA)(A^Tu_i)=0$ 是成立的
 
-不论特征值是不是为 0，等式 $(A^TA)(A^Tu_i)=\lambda'_i(A^Tu_i)$ 都是成立的
+不论特征值是不是为 0，等式 $(A^TA)(A^Tu_i)=\lambda'_i (A^Tu_i)$ 都是成立的
 综合两种情况，就是对于 $AA^T$：
 $$AA^{T}=U\Lambda' U^T$$
 $$AA^{T}U = \Lambda' U$$
 $$A^{T}AA^{T}U = \Lambda' A^{T}U$$
 $$(A^{T}A)(A^{T}U)=\Lambda'(A^{T}U)$$
 
-其中 $U=[U_1,U_2]=[u_1,\cdots,u_r,u_{r+1},\cdots,u_m]$
+其中 $U=[U_1, U_2]=[u_1,\cdots, u_r, u_{r+1},\cdots, u_m]$
 
 
 
 
 从上述式子我们可以看出：
 **当特征值 $\lambda_i\ne0$，对于一个 $A^TA$ 的特征向量 $v_i$，一定有一个 $AA^T$ 的特征向量 $Av_i$ 与其对应，相应的特征值相等：$\lambda'_i=\lambda_i$**
-将其归一化，写为 $\sigma_iu_i(Av_i=\sigma_iu_i)$，其中 $\sigma_i$ 是 $Av_i$ 的长度，$\sigma_i\geqslant0$，$u_i$ 是单位向量
+将其归一化，写为 $\sigma_iu_i (Av_i=\sigma_iu_i)$，其中 $\sigma_i$ 是 $Av_i$ 的长度，$\sigma_i\geqslant0$，$u_i$ 是单位向量
 即：
 $$v_{i}\ \rightarrow u_{i}\quad \lambda_i=\lambda'_i\ne0$$
 
