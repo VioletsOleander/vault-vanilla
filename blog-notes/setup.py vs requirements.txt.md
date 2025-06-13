@@ -1,3 +1,6 @@
+---
+completed: true
+---
 Site: https://caremad.io/posts/2013/07/setup-vs-requirement/
 Date: 22 July 2013
 

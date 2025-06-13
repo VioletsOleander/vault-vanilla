@@ -1,3 +1,6 @@
+---
+completed: true
+---
 Site: https://yang-song.net/blog/2021/score/
 Date: 5 May 2021
 

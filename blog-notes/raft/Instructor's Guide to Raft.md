@@ -1,3 +1,6 @@
+---
+completed: true
+---
 Site: https://thesquareplanet.com/blog/instructors-guide-to-raft/
 Date: 16 Mar 2016
 

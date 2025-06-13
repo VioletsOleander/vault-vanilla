@@ -1,3 +1,6 @@
+---
+completed: true
+---
 Site: https://sunfishcode.github.io/blog/2018/10/22/Canonicalization.html
 Date: 22 Nov 2018
 
