@@ -1321,7 +1321,10 @@ Terminal multiplexers like [`tmux`](https://www.man7.org/linux/man-pages/man1/t
 
 The most popular terminal multiplexer these days is [`tmux`](https://www.man7.org/linux/man-pages/man1/tmux.1.html). `tmux` is highly configurable and by using the associated keybindings you can create multiple tabs and panes and quickly navigate through them.
 
-`tmux` expects you to know its keybindings, and they all have the form `<C-b> x` where that means (1) press `Ctrl+b`, (2) release `Ctrl+b`, and then (3) press `x`. `tmux` has the following hierarchy of objects:
+`tmux` expects you to know its keybindings, and they all have the form `<C-b> x` where that means (1) press `Ctrl+b`, (2) release `Ctrl+b`, and then (3) press `x`. 
+>  `tmux` 的快捷键的形式都是 `<C-b> + x`
+
+`tmux` has the following hierarchy of objects:
 
 - **Sessions** - a session is an independent workspace with one or more windows
     - `tmux` starts a new session.
@@ -1343,6 +1346,28 @@ The most popular terminal multiplexer these days is [`tmux`](https://www.man7.o
     - `<C-b> z` Toggle zoom for the current pane
     - `<C-b> [` Start scrollback. You can then press `<space>` to start a selection and `<enter>` to copy that selection.
     - `<C-b> <space>` Cycle through pane arrangements.
+
+>  `tmux` 的对象层次结构为:
+>  会话: 包含一个或多个窗口
+>  - `tmux` 启动新会话
+>  - `tmux new -s NAME` 指定会话名
+>  - `tmux ls` 列出会话
+>  - `<C-b> d` 分离当前会话
+>  - `tmux a` 附加到上一个会话，`-t` 指定目标
+>  窗口: 类似于编辑器或浏览器中的标签页，它们是同一个会话视觉上分开的部分
+>  - `<C-b> c` 创建窗口，`<C-d>` 关闭窗口
+>  - `<C-b> N` 跳到第 `N` 个窗口
+>  - `<C-b> p` 跳到上一个窗口
+>  - `<C-b> n` 跳到下一个窗口
+>  - `<C-b> ,` 重命名当前窗口
+>  - `<C-b> w` 列出当前窗口
+>  窗格: 允许我们在同一个视觉显示中运行多个 shell
+>  - `<C-b> "` 水平分离当前窗格
+>  - `<C-b> %` 竖直分离当前窗格
+>  - `<C-b> <direction>` 在窗格之间移动
+>  - `<C-b> z` 调节当前窗格的缩放状态
+>  - `<C-b> [` 开始回滚模式，按 `<space>` 开始选择，按 `<enter>` 复制所选内容
+>  - `<C-b> <space>` 循环切换窗格布局
 
 For further reading, [here](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/) is a quick tutorial on `tmux` and [this](http://linuxcommand.org/lc3_adv_termmux.php) has a more detailed explanation that covers the original `screen` command. You might also want to familiarize yourself with [`screen`](https://www.man7.org/linux/man-pages/man1/screen.1.html), since it comes installed in most UNIX systems.
 
@@ -1390,8 +1415,7 @@ alias ll
 
 Note that aliases do not persist shell sessions by default. To make an alias persistent you need to include it in shell startup files, like `.bashrc` or `.zshrc`, which we are going to introduce in the next section.
 
-# Dotfiles
-
+## Dotfiles
 Many programs are configured using plain-text files known as _dotfiles_ (because the file names begin with a `.`, e.g. `~/.vimrc`, so that they are hidden in the directory listing `ls` by default).
 
 Shells are one example of programs configured with such files. On startup, your shell will read many files to load its configuration. Depending on the shell, whether you are starting a login and/or interactive the entire process can be quite complex. [Here](https://blog.flowblok.id.au/2013-02/shell-startup-scripts.html) is an excellent resource on the topic.
