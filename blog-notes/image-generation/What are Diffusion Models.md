@@ -644,7 +644,7 @@ $$
 >  将重写的 $q_\sigma(\mathbf x_{t-1}\mid \mathbf x_t, \mathbf x_0)$ 和之前推导的形式 $q (\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t-1}; \tilde{\boldsymbol{\mu}}(\mathbf{x}_t, \mathbf{x}_0), \tilde{\beta}_t \mathbf{I})$ 比较，可以确定 $\tilde \beta_t$ 和 $\sigma_t$ 的关系如上
 
 Let $\sigma_t^2 = \eta \cdot \tilde{\beta}_t$ such that we can adjust $\eta \in \mathbb R^+$ as a hyperparameter to control the sampling stochasticity. The special case of $\eta = 0$ makes the sampling process _deterministic_. Such a model is named the _denoising diffusion implicit model_ (**DDIM**; [Song et al., 2020](https://arxiv.org/abs/2010.02502)). DDIM has the same marginal noise distribution but deterministically maps noise back to the original data samples.
->  我们令 $\sigma_t^2 = \eta\cdot \tilde \beta_t$，进而通过调节超参数 $\eta$ 来调节方差，进而调节采样随机性 \
+>  我们令 $\sigma_t^2 = \eta\cdot \tilde \beta_t$，进而通过调节超参数 $\eta$ 来调节方差，进而调节采样随机性
 >  (因此这里实际上就是改了一下逆扩散过程在定义上的方差，在之前，我们定义它直接等于前扩散过程的方差，在这里，我们将它定义为前扩散过程的方差乘上一个常数)
 >  当 $\eta = 0$，采样就是确定性的，这样的模型称为 DDIM, DDIM 具有相同的边际噪声分布，但确定性地将噪声映射会原始数据样本
 

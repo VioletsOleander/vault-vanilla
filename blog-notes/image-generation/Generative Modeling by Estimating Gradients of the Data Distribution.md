@@ -7,7 +7,7 @@ Date: 5 May 2021
 This blog post focuses on a promising new direction for generative modeling. We can learn score functions (gradients of log probability density functions) on a large number of noise-perturbed data distributions, then generate samples with Langevin-type sampling. The resulting generative models, often called _score-based generative models_, has several important advantages over existing model families: GAN-level sample quality without adversarial training, flexible model architectures, exact log-likelihood computation, and inverse problem solving without re-training models. In this blog post, we will show you in more detail the intuition, basic concepts, and potential applications of score-based generative models.
 > 本文为生成式建模提出新的思路
 > 我们可以在大量的添加噪声的数据分布上学习得分函数 (对数概率密度函数的梯度)，然后使用 Langevin 型采样来生成样本
-> 基于该范式得到的生成时模型称为 score-based 生成式模型，其优势包括:
+> 基于该范式得到的生成式模型称为 score-based 生成式模型，其优势包括:
 > - 无需对抗训练就获得 GAN 相当的样本质量
 > - 灵活的模型架构
 > - 精确的对数似然计算
@@ -213,7 +213,7 @@ Score-based generative modeling with score matching + Langevin dynamics.
 >  该图假设了原始样本属于一个类似混合高斯的分布，我们通过数据集，学习到的 score-based $s_\theta(\mathbf x)$ 很好地拟合了各个数据点 $\mathbf x$ 的真实 score $\nabla_{\mathbf x}\log p(\mathbf x)$，这样，我们就可以从任意的随机数据点 $\mathbf x$ 开始，通过 Langevin dynamics，逐渐将 $\mathbf x$ 从属的分布收敛到 $p(\mathbf x)$
 
 The key challenge is the fact that the estimated score functions are inaccurate in low density regions, where few data points are available for computing the score matching objective. 
->  使用 score matching 的关键挑战在于所估计的 score function 在低密度区域是不准确的 (从这句话来看，score matching 应该是用数据集的经验分布替代真实分布，因此数据集没有过多覆盖到的样本区域的估计就是不准确的)
+> 使用 score matching 的关键挑战在于所估计的 score function 在低密度区域是不准确的 (从这句话来看，score matching 应该是用数据集的经验分布替代真实分布，因此数据集没有过多覆盖到的样本区域的估计就是不准确的)
 >  低密度区域就是数据点很少的区域
 
 This is expected as score matching minimizes the Fisher divergence 
