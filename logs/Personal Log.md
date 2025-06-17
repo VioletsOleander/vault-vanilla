@@ -1058,29 +1058,28 @@ Date: 2025.1.13-2025.1.20
 Date: 2025.1.20-2025.1.27
 
 \[Doc\]
-- [[doc-notes/onnx/Introduction to ONNX|onnx/Introduction to ONNX]]: All
-    ONNX Concepts
-        A ML model implemented with ONNX is referred as an ONNX graph.
-        `onnx` implements a python runtime to evaluate ONNX models and ONNX ops.
-        In ONNX graph, each node has its type, which is one of the ONNX operators.
-        Inputs that never change can be stored in the graph as initializers.
-        Operators' attributes refer to its fixed parameters. They can not be changed once the ONNX graph is loaded.
-        ONNX uses protobuf to serialize the graph into one single block.
-        The main list of ONNX operators is within the `ai.onnx` domain. Another domain `ai.onnx.ml` includes more machine learning related operators. ONNX only officially define these two domains.
-        An ONNX tensor is defined by its element type, shape and contiguous array. The array should be a full dense array with no stride.
-        ONNX is strongly typed and dost not support implicit cast. Therefore, to add two tensors with different types, an explicit cast must be inserted in a graph.
-        The version of the opset is incremented with the minor version of `onnx` package. An opset is attached to every ONNX graphs. It defines the versions of all operators in the graph.
-        If the graph contains operators from several domains, the graph should define a global opset for each domain.
-        Tests and loops are implemented by operator `If`, `Scan`, and `Loop`. They all take another ONNX graph as an attribute. 
-        `If` executes one of the two graphs depending on the condition evaluation. These two graphs should product the same number of outputs.
-        `Scan` implements a loop with a fixed number of iterations. It loops over an axis of the input and concatenates the outputs along this axis.
-        `Loop` can do a fixed number of iterations or depending on a condition. Outputs can be concatenates along an axis as `Scan` does or be concatenates into a sequence of tensors.
-        Function is defined with existing operators. Once defined, functions can behave like operators.
-    ONNX with Python
-        Every object in onnx can be serialized to byte stream with method `SerializeToSting` 
-        ONNX essentially treats initializer as default values for the corresponding inputs.
-        Operator `Constant` is the only operator changing an attribute into an input.
-    Converters
+- [[doc-notes/onnx/introduction-to-onnx/ONNX Concepts|onnx/introduction-to-onnx/ONNX Concepts]]: All
+    A ML model implemented with ONNX is referred as an ONNX graph.
+    `onnx` implements a python runtime to evaluate ONNX models and ONNX ops.
+    In ONNX graph, each node has its type, which is one of the ONNX operators.
+    Inputs that never change can be stored in the graph as initializers.
+    Operators' attributes refer to its fixed parameters. They can not be changed once the ONNX graph is loaded.
+    ONNX uses protobuf to serialize the graph into one single block.
+    The main list of ONNX operators is within the `ai.onnx` domain. Another domain `ai.onnx.ml` includes more machine learning related operators. ONNX only officially define these two domains.
+    An ONNX tensor is defined by its element type, shape and contiguous array. The array should be a full dense array with no stride.
+    ONNX is strongly typed and dost not support implicit cast. Therefore, to add two tensors with different types, an explicit cast must be inserted in a graph.
+    The version of the opset is incremented with the minor version of `onnx` package. An opset is attached to every ONNX graphs. It defines the versions of all operators in the graph.
+    If the graph contains operators from several domains, the graph should define a global opset for each domain.
+    Tests and loops are implemented by operator `If`, `Scan`, and `Loop`. They all take another ONNX graph as an attribute. 
+    `If` executes one of the two graphs depending on the condition evaluation. These two graphs should product the same number of outputs.
+    `Scan` implements a loop with a fixed number of iterations. It loops over an axis of the input and concatenates the outputs along this axis.
+    `Loop` can do a fixed number of iterations or depending on a condition. Outputs can be concatenates along an axis as `Scan` does or be concatenates into a sequence of tensors.
+    Function is defined with existing operators. Once defined, functions can behave like operators.
+- [[doc-notes/onnx/introduction-to-onnx/ONNX with Python|onnx/introduction-to-onnx/ONNX with Python]]: All
+    Every object in onnx can be serialized to byte stream with method `SerializeToSting` 
+    ONNX essentially treats initializer as default values for the corresponding inputs.
+    Operator `Constant` is the only operator changing an attribute into an input.
+- [[doc-notes/onnx/introduction-to-onnx/Converters|onnx/introduction-to-onnx/Converters]]: All
 - [[doc-notes/pytorch/tutorials/beginner/ONNX|pytorch/tutorials/beginner/ONNX]]: Introduction to ONNX, Export a PyTorch model to ONNX
     Introduction to ONNX
         `torch.onnx.dynamo_export` use TorchDynamo to hook into Python's frame evaluation API and dynamically rewrites its bytecode into an FX graph. The FX graph is polished and converted into an ONNX graph.  
@@ -2270,8 +2269,8 @@ Date: 2025.5.5-2025.5.12
 - [[doc-notes/go/references/package-documentation/sync/sync|go/references/package-documentation/sync/sync]]
 
 \[Blog\]
-- [[blog-notes/Students' Guide to Raft|Students' Guide to Raft]]: All
-- [[blog-notes/Instructor's Guide to Raft|Instructor's Guide to Raft]]: All
+- [[blog-notes/raft/Students' Guide to Raft|Students' Guide to Raft]]: All
+- [[blog-notes/raft/Instructor's Guide to Raft|Instructor's Guide to Raft]]: All
 
 \[Code\]
 - Distributed Systems Lab
@@ -2281,7 +2280,7 @@ Date: 2025.5.5-2025.5.12
 Date: 2025.5.12-2025.5.19
 
 \[Blog\]
-- [[blog-notes/Debugging by Pretty Printing|Debugging by Pretty Printing]]: All
+- [[blog-notes/raft/Debugging by Pretty Printing|Debugging by Pretty Printing]]: All
 
 \[Code\]
 - Distributed Systems Lab
@@ -2354,3 +2353,86 @@ Date: 2025.6.2-2025.6.9
 - [[doc-notes/conda/anaconda/getting-started/Getting started with Anaconda|conda/anaconda/getting-started/Getting started with Anaconda]]: All
 - [[doc-notes/conda/anaconda/tools/Working with conda|conda/anaconda/tools/Working with conda]]: All
 
+### Week 3
+Date: 2025.6.9-2025.6.13
+
+\[Blog\]
+- [[blog-notes/image-generation/Generative Modeling by Estimating Gradients of the Data Distribution|Generative Modeling by Estimating Gradients of the Data Distribution]]
+    Introduction
+        Existing generative modeling can be classified into two types: likelihood-based models directly learn the target distribution density function via (approximate) maximum likelihood, for example, VAE; implicit generative models implicitly represent the target distribution with the sampling process, for example, GAN.
+        Likelihood-based models require restricting model architecture to make the normalizing constant tractable. Implicit generative models require adversarial training, which is unstable and may lead to model collapse.
+        Another way to represent the target distribution is to learn its score functions, which circumvents calculating the partition function.
+    The score function, score-based models, and score matching
+        Score-based model approximates the score function of the target distribution, instead of directly approximating the target density function, so as to avoid calculating the partition function.
+        Score-based model need not consider any constraint (if directly modeling target density, area under the curve integrating to 1 must be guaranteed)
+        The optimization target of score-based model is to minimize the Fisher divergence between the model and the (empirical) data distribution. Intuitively, the Fisher divergence compares the $\ell_2$ distance between the ground-true data score and the score-based model.
+    Langevin dynamics
+        With trained score-based model, we can use Langevin dynamics to sample from it.
+    Naive score-based generative modeling and its pitfalls
+        The key challenge of naive score-based model is that the estimated score function in the low density area will likely be inaccurate.
+        If data is high-dimensional, when sampling by Langevin dynamics, the initial data point is highly possible in the low density area, then the inaccurate score function will derail the Langevin dynamics from the very beginning.
+    Score-based generative modeling with multiple noise perturbations
+        To improve the accuracy of score estimation in low density area, a solution is to perturb the data with noise, and estimate the score function of the perturbed data.
+        Larger scale of noise will corrupt the data distribution more, but cover more low density region. Smaller scale of noise will corrupt the data distribution less, but cover less density region.
+        The achieve best of both worlds, one method is to use multiple scales of noise to perturb the data simultaneously.
+        The score-based model trained on the perturbed data is called noise conditional score-based model $\mathbf s_\theta(\mathbf x, i)$.
+        The optimization target of the noise conditional score-model $\mathbf s_\theta(\mathbf x, i)$ is the weight sum of Fisher divergence for all noise scales. The weighting function is normally chosen as $\lambda(i) = \sigma^2$, which means the more the perturbation is, the more the weight will be.
+        The sampling method for noise conditional score-based model $\mathbf s_\theta(\mathbf x, i)$ is annealed Langevin dynamics, which combines a sequence of Langevin chains with decreasing noise scales.
+        Practical recommendations for tuning score-based generative model:
+        - choose variance sequence $\{\sigma_1, \dots, \sigma_L\}$ , as a geometric progression. 
+        - parameterize the noise conditional score-based model with U-Net skip connections.
+        - apply exponential moving average on the weights of the score-based model at test time.
+    Score-based generative modeling with stochastic differential equations (SDEs) 
+        When generalizing the number of noise scales to **infinity**, we are essentially perturbing the data with continuously growing levels of noise. In this case, the continuous noise perturbing process is a continuous time stochastic process.
+        We can represent a stochastic process by a stochastic differential equation (SDE). A SDE contains two elements driving the variable changes over time: 
+        - a predictable, deterministic drift term, with the drift coefficient $\mathbf f(\cdot, t)$
+        - an unpredictable, stochastic diffusion term, with the diffusion coefficient $g(t)$
+        The solution of a SDE is a collection of random variables over the time steps $\{\mathbf x(t)\}_{t\in [0, T]}$. Each of them subjects to a marginal distribution $p_t(\mathbf x)$.
+        Every SDE corresponds to a reverse SDE, whose form contains the score function of the density at each time step. Therefore, likewise, if we know the score function of each intermediate density, we can reverse the SDE to generate samples from noise.
+        In order to estimate the score functions at each intermediate time step, we should train a time-dependent score-based model, which is just like noise conditional score-based model in finite situation.
+        Likewise, the optimization target of time-dependent score-based model is the continuous weighted sum of Fisher divergences.
+        Finally, we rely on numerical SDE solvers to solve the reverse SDE.
+        Despite the capability of generating high quality samples, samplers like Langevin MCMC and SDE solvers do not provide a way to compute exact log-likelihood.
+        A sampler based on ODE can allow exact log-likelihood computation. We can convert any SDE to an ODE, which may the same marginal distribution at any time step.
+        The corresponding ODE of a SDE is called the probability flow ODE.
+    Connection to diffusion models and others
+        Key improvements for high quality sample generation:
+        - perturb the data with multiple scales of noise
+        - U-Net architecture
+        - apply Langevin MCMC to each noise scale and chaining them together.
+        The ELBO used for training diffusion model is essentially equivalent to the weight combination of score matching objective used for training score-based models
+    Concluding remarks
+- [[blog-notes/image-generation/What are Diffusion Models|What are Diffusion Models]]
+    What are Diffusion Models?
+        With reparameterization trick, each sample $\mathbf x_t$ at the forward diffusion process can be sampled in closed form.
+        The parameterization of diffusion model is essentially parametrizing the mean and variance of the reverse Gaussian distributions.
+        To optimize the diffusion model, we can adopt maximum likelihood objective and optimize its variational lower bound (derived by replacing $p_\theta(\mathbf x_{1: T}\mid \mathbf x_0)$ with $q(\mathbf x_{1: T}\mid \mathbf x_0)$)
+        This variational approximate objective can be further rewritten as a combination of several KL-divergence and entropy terms, with most of them being the KL divergence between two Gaussians, therefore can be analytically computed.
+    Parametrization of $L_t$ for Training Loss
+        Diffusion models are essentially predicting the noise term based on the posterior result.
+    Parametrization of $\beta_t$
+        Compared to linearly increasing constants, a cosine-based variance schedule can improve the likelihood of generated samples.
+    Parametrization of reverse process variance $\Sigma_\theta$
+        DDPM finds that learning the diagonal variance $\Sigma_\theta$ leads to unstable training and poorer sample quality.
+    Conditioned Generation
+        To guide the sample generation, we should first model the joint distribution of the data and the condition information. After that, we should guide the dynamics with the gradient of the joint distribution with respect to the data. This will lead to a modified noise term as the target for the score function.
+    Speed up Diffusion Models
+        One simple way is to run strided sampling process.
+        DDIM modifies the defined variance of the reverse process, and tune the variance by tuning the multiplied constant.
+        Consistency models learn to map any intermediate data points in the diffusion process to the original data point.
+    Latent Variable Space
+        LDM runs diffusion process in the latent space instead of the pixel space, which makes the training cost lower and inference faster.
+    Scale up Generation Resolution and Quality
+        A simple way: a pipeline with multiple different diffusion models with different scales, chained with super-resolution model.
+    Model Architecture
+    Quick Summary
+        Pro: achieve flexibility and tractability simultaneously
+        Con: relies on long Markov chain, sampling is much slower than GAN
+- [[blog-notes/天气预报的进化史 —— 从经验预测迈向理论指引和科学计算，再到拥抱人工智能|天气预报的进化史 —— 从经验预测迈向理论指引和科学计算，再到拥抱人工智能]]
+
+\[Doc\]
+- [[doc-notes/pytorch/docs/python-api/torch.export|pytorch/docs/python-api/torch.export]]
+- [[doc-notes/pytorch/docs/python-api/torch.fx|pytorch/docs/python-api/torch.fx]]
+
+\[Code-Analysis\]
+- [[codeflow-analysis/pytorch/onnx|onnx]]
