@@ -1374,15 +1374,18 @@ For further reading, [here](https://www.hamvocke.com/blog/a-quick-and-easy-guid
 ## Aliases
 It can become tiresome typing long commands that involve many flags or verbose options. For this reason, most shells support _aliasing_. A shell alias is a short form for another command that your shell will replace automatically for you. For instance, an alias in bash has the following structure:
 
-```
+```bash
 alias alias_name="command_to_alias arg1 arg2"
 ```
 
+>  bash 中的 alias 遵循以上结构
+
 Note that there is no space around the equal sign `=`, because [`alias`](https://www.man7.org/linux/man-pages/man1/alias.1p.html) is a shell command that takes a single argument.
+>  注意 `=` 周围没有空格，因为 `alias` 是接收单个参数的 shell 命令
 
 Aliases have many convenient features:
 
-```
+```bash
 # Make shorthands for common flags
 alias ll="ls -lh"
 
@@ -1413,12 +1416,17 @@ alias ll
 # Will print ll='ls -lh'
 ```
 
+>  `\<command>` 忽略 alias
+>  `unalias` 取消 alias
+>  `alias + <command>` 获取 alias 命令的本意
+
 Note that aliases do not persist shell sessions by default. To make an alias persistent you need to include it in shell startup files, like `.bashrc` or `.zshrc`, which we are going to introduce in the next section.
 
 ## Dotfiles
 Many programs are configured using plain-text files known as _dotfiles_ (because the file names begin with a `.`, e.g. `~/.vimrc`, so that they are hidden in the directory listing `ls` by default).
 
 Shells are one example of programs configured with such files. On startup, your shell will read many files to load its configuration. Depending on the shell, whether you are starting a login and/or interactive the entire process can be quite complex. [Here](https://blog.flowblok.id.au/2013-02/shell-startup-scripts.html) is an excellent resource on the topic.
+>  shell 在启动时会读取许多文件来加载配置
 
 For `bash`, editing your `.bashrc` or `.bash_profile` will work in most systems. Here you can include commands that you want to run on startup, like the alias we just described or modifications to your `PATH` environment variable. In fact, many programs will ask you to include a line like `export PATH="$PATH:/path/to/program/bin"` in your shell configuration file so their binaries can be found.
 
@@ -1430,6 +1438,13 @@ Some other examples of tools that can be configured through dotfiles are:
 - `ssh` - `~/.ssh/config`
 - `tmux` - `~/.tmux.conf`
 
+>  一些常见工具的配置文件位置:
+>  - bash: `~/.bashrc, ~/.bash_profile`
+>  - git: `~/.gitconfig`
+>  - vim: `~/.vimrc, ~/.vim`
+>  - ssh: `~/.ssh/config`
+>  - tmux: `~/.tmux.conf`
+
 How should you organize your dotfiles? They should be in their own folder, under version control, and **symlinked** into place using a script. This has the benefits of:
 
 - **Easy installation**: if you log in to a new machine, applying your customizations will only take a minute.
@@ -1437,17 +1452,19 @@ How should you organize your dotfiles? They should be in their own folder, under
 - **Synchronization**: you can update your dotfiles anywhere and keep them all in sync.
 - **Change tracking**: you’re probably going to be maintaining your dotfiles for your entire programming career, and version history is nice to have for long-lived projects.
 
+>  如何管理这些配置文件:
+>  应该将它们放置在同一个目录，进行版本控制，然后用脚本软链接到特定位置
+
 What should you put in your dotfiles? You can learn about your tool’s settings by reading online documentation or [man pages](https://en.wikipedia.org/wiki/Man_page). Another great way is to search the internet for blog posts about specific programs, where authors will tell you about their preferred customizations. Yet another way to learn about customizations is to look through other people’s dotfiles: you can find tons of [dotfiles repositories](https://github.com/search?o=desc&q=dotfiles&s=stars&type=Repositories) on GitHub — see the most popular one [here](https://github.com/mathiasbynens/dotfiles) (we advise you not to blindly copy configurations though). [Here](https://dotfiles.github.io/) is another good resource on the topic.
 
 All of the class instructors have their dotfiles publicly accessible on GitHub: [Anish](https://github.com/anishathalye/dotfiles), [Jon](https://github.com/jonhoo/configs), [Jose](https://github.com/jjgo/dotfiles).
 
-## Portability
-
+### Portability
 A common pain with dotfiles is that the configurations might not work when working with several machines, e.g. if they have different operating systems or shells. Sometimes you also want some configuration to be applied only in a given machine.
 
 There are some tricks for making this easier. If the configuration file supports it, use the equivalent of if-statements to apply machine specific customizations. For example, your shell could have something like:
 
-```
+```bash
 if [[ "$(uname)" == "Linux" ]]; then {do_something}; fi
 
 # Check before using shell-specific features
@@ -1459,7 +1476,7 @@ if [[ "$(hostname)" == "myServer" ]]; then {do_something}; fi
 
 If the configuration file supports it, make use of includes. For example, a `~/.gitconfig` can have a setting:
 
-```
+```bash
 [include]
     path = ~/.gitconfig_local
 ```
@@ -1468,35 +1485,38 @@ And then on each machine, `~/.gitconfig_local` can contain machine-specific se
 
 This idea is also useful if you want different programs to share some configurations. For instance, if you want both `bash` and `zsh` to share the same set of aliases you can write them under `.aliases` and have the following block in both:
 
-```
+```bash
 # Test if ~/.aliases exists and source it
 if [ -f ~/.aliases ]; then
     source ~/.aliases
 fi
 ```
 
-# Remote Machines
-
-It has become more and more common for programmers to use remote servers in their everyday work. If you need to use remote servers in order to deploy backend software or you need a server with higher computational capabilities, you will end up using a Secure Shell (SSH). As with most tools covered, SSH is highly configurable so it is worth learning about it.
+## Remote Machines
+It has become more and more common for programmers to use remote servers in their everyday work. If you need to use remote servers in order to deploy backend software or you need a server with higher computational capabilities, you will end up using a **Secure Shell** (SSH). As with most tools covered, SSH is highly configurable so it is worth learning about it.
 
 To `ssh` into a server you execute a command as follows
 
-```
+```bash
 ssh foo@bar.mit.edu
 ```
 
 Here we are trying to ssh as user `foo` in server `bar.mit.edu`. The server can be specified with a URL (like `bar.mit.edu`) or an IP (something like `foobar@192.168.1.42`). Later we will see that if we modify ssh config file you can access just using something like `ssh bar`.
 
-## Executing commands
+>  ssh 的命令格式如下:
+>  `ssh <user_name>@<server_url|server_ip|server_alias>`
 
+### Executing commands
 An often overlooked feature of `ssh` is the ability to run commands directly. `ssh foobar@server ls` will execute `ls` in the home folder of foobar. It works with pipes, so `ssh foobar@server ls | grep PATTERN` will grep locally the remote output of `ls` and `ls | ssh foobar@server grep PATTERN` will grep remotely the local output of `ls`.
+>  `ssh` 可以直接运行命令，形式为:
+>  `ssh <user>@<server> <command>`，这将在 `<user>` 的家目录执行 `<command>`
+>   也可以使用管道
 
-## SSH Keys
-
+### SSH Keys
 Key-based authentication exploits public-key cryptography to prove to the server that the client owns the secret private key without revealing the key. This way you do not need to reenter your password every time. Nevertheless, the private key (often `~/.ssh/id_rsa` and more recently `~/.ssh/id_ed25519`) is effectively your password, so treat it like so.
+>  Key-based 验证采用公钥加密法，向 server 证明 client 拥有秘密的私钥
 
-### Key generation
-
+#### Key generation
 To generate a pair you can run [`ssh-keygen`](https://www.man7.org/linux/man-pages/man1/ssh-keygen.1.html).
 
 ```
@@ -1507,30 +1527,32 @@ You should choose a passphrase, to avoid someone who gets hold of your private k
 
 If you have ever configured pushing to GitHub using SSH keys, then you have probably done the steps outlined [here](https://help.github.com/articles/connecting-to-github-with-ssh/) and have a valid key pair already. To check if you have a passphrase and validate it you can run `ssh-keygen -y -f /path/to/key`.
 
-### Key based authentication
-
+#### Key based authentication
 `ssh` will look into `.ssh/authorized_keys` to determine which clients it should let in. To copy a public key over you can use:
 
-```
+```bash
 cat .ssh/id_ed25519.pub | ssh foobar@remote 'cat >> ~/.ssh/authorized_keys'
 ```
 
+>  `ssh` 会查看 `.ssh/autohrized_keys` 来确定是否可以让 client 访问
+>  为此我们需要将公钥 copy 到这里
+
 A simpler solution can be achieved with `ssh-copy-id` where available:
 
-```
+```bash
 ssh-copy-id -i .ssh/id_ed25519 foobar@remote
 ```
 
-## Copying files over SSH
+>  `ssh-copy-id` 可以方便完成该任务
 
+### Copying files over SSH
 There are many ways to copy files over ssh:
 
 - `ssh+tee`, the simplest is to use `ssh` command execution and STDIN input by doing `cat localfile | ssh remote_server tee serverfile`. Recall that [`tee`](https://www.man7.org/linux/man-pages/man1/tee.1.html) writes the output from STDIN into a file.
 - [`scp`](https://www.man7.org/linux/man-pages/man1/scp.1.html) when copying large amounts of files/directories, the secure copy `scp` command is more convenient since it can easily recurse over paths. The syntax is `scp path/to/local_file remote_host:path/to/remote_file`
 - [`rsync`](https://www.man7.org/linux/man-pages/man1/rsync.1.html) improves upon `scp` by detecting identical files in local and remote, and preventing copying them again. It also provides more fine grained control over symlinks, permissions and has extra features like the `--partial` flag that can resume from a previously interrupted copy. `rsync` has a similar syntax to `scp`.
 
-## Port Forwarding
-
+### Port Forwarding
 In many scenarios you will run into software that listens to specific ports in the machine. When this happens in your local machine you can type `localhost:PORT` or `127.0.0.1:PORT`, but what do you do with a remote server that does not have its ports directly available through the network/internet?.
 
 This is called _port forwarding_ and it comes in two flavors: Local Port Forwarding and Remote Port Forwarding (see the pictures for more details, credit of the pictures from [this StackOverflow post](https://unix.stackexchange.com/questions/115897/whats-ssh-port-forwarding-and-whats-the-difference-between-ssh-local-and-remot)).
@@ -1541,8 +1563,7 @@ This is called _port forwarding_ and it comes in two flavors: Local Port Forwa
 
 The most common scenario is local port forwarding, where a service in the remote machine listens in a port and you want to link a port in your local machine to forward to the remote port. For example, if we execute `jupyter notebook` in the remote server that listens to the port `8888`. Thus, to forward that to the local port `9999`, we would do `ssh -L 9999:localhost:8888 foobar@remote_server` and then navigate to `localhost:9999` in our local machine.
 
-## SSH Configuration
-
+### SSH Configuration
 We have covered many many arguments that we can pass. A tempting alternative is to create shell aliases that look like
 
 ```
