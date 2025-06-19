@@ -1,3 +1,6 @@
+---
+completed: true
+---
 # Working with Gerrit: An Example
 >  version v3.11.2
 
@@ -16,9 +19,8 @@ In this walkthrough, we’ll follow two developers, Max and Hannah, as they make
 5. Verifying the change.
 6. Submitting the change.
 
-|   |   |
-|---|---|
-|Note|The project and commands used in this section are for demonstration purposes only.|
+Note
+The project and commands used in this section are for demonstration purposes only.
 
 ## Making the Change
 Our first developer, Max, has decided to make a change to the RecipeBook project he works on. His first step is to get the source code that he wants to modify. To get this code, he runs the following `git clone` command:
@@ -123,9 +125,8 @@ These two lines indicate what checks must be completed before the change is acce
 In general, the **Code-Review** check requires an individual to look at the code, while the **Verified** check is done by an automated build server, through a mechanism such as the [Gerrit Trigger](https://plugins.jenkins.io/gerrit-trigger/).
 >  Code Review 检查要求人审查代码，Verified 检查由构建服务器自动执行，一般会通过 Gerrit Trigger 机制实现
 
-|   |   |
-|---|---|
-|Important|The Code-Review and Verified checks require different permissions in Gerrit. This requirement allows teams to separate these tasks. For example, an automated process can have the rights to verify a change, but not perform a code review.|
+Important
+The Code-Review and Verified checks require different permissions in Gerrit. This requirement allows teams to separate these tasks. For example, an automated process can have the rights to verify a change, but not perform a code review.
 
 With the code review screen open, Hannah can begin to review Max’s change. She can choose one of two ways to review the change: unified or side-by-side. Both views allow her to perform tasks such as add [inline](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/user-review-ui.html#inline-comments) or [summary](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/user-review-ui.html#reply) comments.
 
@@ -151,9 +152,11 @@ For Hannah and Max’s team, a code review vote is a numerical score between -2 
 
 In addition, a change must have at least one `+2` vote and no `-2` votes before it can be submitted. These numerical values do not accumulate. Two `+1` votes do not equate to a `+2`.
 
-|   |   |
-|---|---|
-|Note|These settings are enabled by default. To learn about how to customize them for your own workflow, see the [Project Configuration File Format](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/config-project-config.html) topic.|
+>  默认情况下，Code Review 会要求打分
+>  一个更改至少需要一个 +2 vote，且没有 -2 vote 才可以被提交
+
+Note
+These settings are enabled by default. To learn about how to customize them for your own workflow, see the [Project Configuration File Format](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/config-project-config.html) topic.
 
 Hannah notices a possible issue with Max’s change, so she selects a `-1` vote. She uses the **Cover Message** text box to provide Max with some additional feedback. When she is satisfied with her review, Hannah clicks the **SEND** button. At this point, her vote and cover message become visible to to all users.
 
@@ -161,28 +164,35 @@ Hannah notices a possible issue with Max’s change, so she selects a `-1` vot
 Later in the day, Max decides to check on his change and notices Hannah’s feedback. He opens up the source file and incorporates her feedback. Because Max’s change includes a change-id, all he has to do is follow the typical git workflow for updating a commit:
 
 - Check out the commit
-    
 - Amend the commit
-    
 - Rebase the commit if needed
-    
 - Push the commit to Gerrit
-    
 
+>  Review 之后，对更改的进一步工作遵循典型的 git 工作流:
+>  - check out 该 commit
+>  - commit amend
+>  - 如果必要，rebase
+>  - push
+
+```
 $ <checkout first commit>
 $ <rework>
 $ git commit --amend
 [master 30a6f44] Change to a proper, yeast based pizza dough.
  Date: Fri Jun 8 16:28:23 2018 +0200
  1 file changed, 10 insertions(+), 5 deletions(-)
+```
 
 At this point Max wants to make sure that his change is on top of the branch.
 
+```
 $ git fetch
 $
+```
 
 Max got no output from the fetch command, which is good news. This means that the master branch has not progressed and there is no need for [**rebase**](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/intro-user.html#rebase). Max is now ready to push his change:
 
+```
 $ git push origin HEAD:refs/for/master
 Counting objects: 3, done.
 Delta compression using up to 8 threads.
@@ -196,28 +206,31 @@ remote:   http://gerrithost/#/c/RecipeBook/+/702 Change to a proper, yeast based
 remote:
 To ssh://gerrithost:29418/RecipeBook
  * [new branch]      HEAD -> refs/for/master
+```
 
 Notice that the output of this command is slightly different from Max’s first commit. This time, the output verifies that the change was updated.
 
 Having uploaded the reworked commit, Max can go back to the Gerrit web interface, look at his change and diff the first patch set with his rework in the second one. Once he has verified that the rework follows Hannahs recommendation he presses the **DONE** button to let Hannah know that she can review the changes.
+>  push 之后，还要在网页上自行验证，然后按下 DONE 按钮，通知 reviewer
 
 When Hannah next looks at Max’s change, she sees that he incorporated her feedback. The change looks good to her, so she changes her vote to a `+2`.
 
 ## Verifying the Change
-
 Hannah’s `+2` vote means that Max’s change satisfies the **Needs Review** check. It has to pass one more check before it can be accepted: the **Needs Verified** check.
+>  Needs Review check 通过后，还需要进行 Needs Verified check
 
 The Verified check means that the change was confirmed to work. This type of check typically involves tasks such as checking that the code compiles, unit tests pass, and other actions. You can configure a Verified check to consist of as many or as few tasks as needed.
+>  Verified check 通常包括编译、单元测试等，确保代码可以正常运行
 
-|   |   |
-|---|---|
-|Note|Remember that this walkthrough uses Gerrit’s default workflow. Projects can add custom checks or even remove the Verified check entirely.|
+Note
+Remember that this walkthrough uses Gerrit’s default workflow. Projects can add custom checks or even remove the Verified check entirely.
 
 Verification is typically an automated process using the [Gerrit Trigger Jenkins Plugin](https://plugins.jenkins.io/gerrit-trigger/) or a similar mechanism. However, there are still times when a change requires manual verification, or a reviewer needs to check how or if a change works. To accommodate these and other similar circumstances, Gerrit exposes each change as a git branch. The Gerrit UI includes a [**download**](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/user-review-us.html#download) link in the Gerrit Code Review Screen to make it easy for reviewers to fetch a branch for a specific change. To manually verify a change, a reviewer must have the [Verified](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/config-labels.html#label_Verified) permission. Then, the reviewer can fetch and checkout that branch from Gerrit. Hannah has this permission, so she is authorized to manually verify Max’s change.
+>  Verification 通常使用 Gerrit Trigger Jenkins Plugin 自动执行
+>  也可以自定义，加入人工 verification
 
-|   |   |
-|---|---|
-|Note|The Verifier can be the same person as the code reviewer or a different person entirely.|
+Note
+The Verifier can be the same person as the code reviewer or a different person entirely.
 
 ![Verifying the Change](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/images/intro-quick-verifying.png)
 
@@ -228,21 +241,18 @@ Unlike the code review check, the verify check is pass/fail. Hannah can provide 
 Hannah selects a `+1` for her verified check. Max’s change is now ready to be submitted.
 
 ## Submitting the Change
-
 Max is now ready to submit his change. He opens up the change in the Code Review screen and clicks the **SUBMIT** button.
+>  可以提交后，需要按下 SUBMIT 按钮
 
 At this point, Max’s change is merged into the repository’s master branch and becomes an accepted part of the project.
+>  之后，更改就被 merge 到 master
 
 ## Next Steps
-
 This walkthrough provided a quick overview of how a change moves through the default Gerrit workflow. At this point, you can:
 
 - Read the [Users guide](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/intro-user.html) to get a better sense of how to make changes using Gerrit
-    
 - Review the [Project Owners guide](https://gerrit-documentation.storage.googleapis.com/Documentation/3.11.2/intro-project-owner.html) to learn more about configuring projects in Gerrit, including setting user permissions and configuring verification checks
-    
 - Read through the Git and Gerrit training slides that explain concepts and workflows in detail. They are meant for self-studying how Git and Gerrit work:
-    
     - [Git explained: Git Concepts and Workflows](https://docs.google.com/presentation/d/1IQCRPHEIX-qKo7QFxsD3V62yhyGA9_5YsYXFOiBpgkk/edit?usp=sharing)
-        
     - [Gerrit explained: Gerrit Concepts and Workflows](https://docs.google.com/presentation/d/1C73UgQdzZDw0gzpaEqIC6SPujZJhqamyqO1XOHjH-uk/edit?usp=sharing)
+
