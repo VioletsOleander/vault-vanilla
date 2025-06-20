@@ -714,14 +714,11 @@ Once the mouse is enabled:
     
 
 ### Configuring tmux
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#configuring-tmux)
-
 #### The configuration file
-
-[](https://github.com/tmux/tmux/wiki/Getting-Started#the-configuration-file)
-
 When the tmux server is started, tmux runs a file called `.tmux.conf` in the user's home directory. This file contains a list of tmux commands which are executed in order. It is important to note that `.tmux.conf` is _only_ run when the server is started, not when a new session is created.
+>  tmux server 被启动时，tmux 会运行用户家目录下的 `.tmux.conf` 文件
+>  该文件包含了一系列 tmux 命令，它们会被顺序执行
+>  注意 `.tmux.conf` 只会在 tmux server 启动时被运行，在新的会话被创建时不会运行
 
 A different configuration file may be run from `.tmux.conf` or from a running tmux server using the `source-file` command, for example to run `.tmux.conf` again from a running server using the command prompt:
 
