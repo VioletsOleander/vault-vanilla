@@ -3,7 +3,8 @@ A central problem in machine learning involves modeling complex data-sets using 
 >  机器学习的一个中心问题设计使用高度灵活的概率分布族 (highly flexible families of probability distributions) 对复杂的数据集进行建模，且要求这些概率分布在学习 (learning)、采样 (sampling)、推理 (inference) 和评估 (evaluation) 上仍然是解析上或计算上可行的 (analytically or computationally tractable)
 
 The essential idea, inspired by non-equilibrium statistical physics, is to systematically and slowly destroy structure in a data distribution through an iterative forward diffusion process. We then learn a reverse diffusion process that restores structure in data, yielding a highly flexible and tractable generative model of the data. 
->  在本文中，我们开发来了一种可以同时具有灵活性 (flexibility) 和可解性 (tractability) 的方法，其中心思想，受非平衡统计物理的启发，是通过一个迭代式地前向扩散过程 (iterative forward diffusion process) 系统地且缓慢地破坏数据分布中的结构 (destroy structure in a data distribution)，之后，我们学习一个逆向扩散过程 (reverse diffusion process) 以恢复 (restore) 数据中的结构，这便是一个高度灵活且可解 (highly flexible and tractable) 的数据生成式模型
+>  在本文中，我们开发来了一种可以同时具有灵活性 (flexibility) 和可解性 (tractability) 的方法，其中心思想，受非平衡统计物理的启发，是通过一个迭代式地前向扩散过程系统地且缓慢地破坏数据分布中的结构
+>  之后，我们学习一个逆向扩散过程 (reverse diffusion process) 以恢复 (restore) 数据中的结构，这便是一个高度灵活且可解 (highly flexible and tractable) 的数据生成式模型
 
 This approach allows us to rapidly learn, sample from, and evaluate probabilities in deep generative models with thousands of layers or time steps, as well as to compute conditional and posterior probabilities under the learned model. We additionally release an open source reference implementation of the algorithm.
 >  该方法允许我们在快速地从具有数千个层或时间步 (time steps) 的深度生成式模型中采样、评估概率以对其进行学习，以及在学习到的模型下计算条件或后验概率
