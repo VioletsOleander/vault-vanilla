@@ -599,7 +599,7 @@ def ConstantOp : Toy_Op<"constant"> {
 
 By providing a name to the arguments or results, e.g. `$value`, ODS will automatically generate a matching accessor: `DenseElementsAttr ConstantOp::value()`.
 
->  我们为输入属性指定了名字 `$value` ，则 ODS 会自动为我们的操作生成一个匹配的访问该属性的访问器方法 `DenseElementsAttr ConstantOp::value()`
+>  我们为输入属性指定了 (访问器方法的) 名字 `$value` ，则 ODS 会自动为我们的操作生成一个匹配的访问该属性的访问器方法 `DenseElementsAttr ConstantOp::value()`
 
 #### Adding Documentation 
 The next step after defining the operation is to document it. Operations may provide [`summary` and `description`](https://mlir.llvm.org/docs/DefiningDialects/Operations/#operation-documentation) fields to describe the semantics of the operation. This information is useful for users of the dialect and can even be used to auto-generate Markdown documents.
@@ -681,7 +681,7 @@ The final missing component here from our original C++ example are the `build`�
 
 For the rest, we define the [`builders`](https://mlir.llvm.org/docs/DefiningDialects/Operations/#custom-builder-methods) field. This field takes a list of `OpBuilder` objects that take a string corresponding to a list of C++ parameters, as well as an optional code block that can be used to specify the implementation inline.
 >  如果需要其他的 `build` 方法，我们需要定义 `builders` 字段
->  该字段接受一个 `OpBuilder` 对象列表，这些对象接受一个于 C++ 参数列表对应的字符串，以及一个可选的代码块，来指定内联实现
+>  该字段接受一个 `OpBuilder` 对象列表，这些对象接受一个与 C++ 参数列表对应的字符串，以及一个可选的代码块，来指定内联实现
 
 ```tablegen
 def ConstantOp : Toy_Op<"constant"> {
@@ -1593,9 +1593,11 @@ In the [next chapter](https://mlir.llvm.org/docs/Tutorials/Toy/Ch-5/), we will 
 # 5 Partial Lowering to Lower-Level Dialects for Optimization
 At this point, we are eager to generate actual code and see our Toy language take life. We will use LLVM to generate code, but just showing the LLVM builder interface here wouldn’t be very exciting. Instead, we will show how to perform progressive lowering through a mix of dialects coexisting in the same function.
 
-To make it more interesting, in this chapter we will consider that we want to reuse existing optimizations implemented in a dialect optimizing affine transformations: `Affine`. This dialect is tailored to the computation-heavy part of the program and is limited: it doesn’t support representing our `toy.print` builtin, for instance, neither should it! Instead, we can target `Affine` for the computation heavy part of Toy, and in the [next chapter](https://mlir.llvm.org/docs/Tutorials/Toy/Ch-6/) directly target the `LLVM IR` dialect for lowering `print`. As part of this lowering, we will be lowering from the [TensorType](https://mlir.llvm.org/docs/Dialects/Builtin/#rankedtensortype) that `Toy` operates on to the [MemRefType](https://mlir.llvm.org/docs/Dialects/Builtin/#memreftype) that is indexed via an affine loop-nest. Tensors represent an abstract value-typed sequence of data, meaning that they don’t live in any memory. MemRefs, on the other hand, represent lower level buffer access, as they are concrete references to a region of memory.
->  我们将考虑复用 `Affine` 方言中的现存优化，以优化仿射变换，该方言专门为程序中的计算密集部分而设计，我们希望将 `Affine` 用于 Toy 中的计算密集部分
->  并且，我们会直接将 `print` lower to `LLVM IR` 方言，我们会将 `Toy` 所操作的 `TensorType` lower to 通过仿射嵌套循环索引的 `MemRefType` ，Tensor 表示抽象的值类型数据序列，它们并不驻留在任何内存中，而 MemRef 表示较低级别的缓存区访问，它们是对内存区域的具体引用 `
+To make it more interesting, in this chapter we will consider that we want to reuse existing optimizations implemented in a dialect optimizing affine transformations: `Affine`. This dialect is tailored to the computation-heavy part of the program and is limited: it doesn’t support representing our `toy.print` builtin, for instance, neither should it!
+>  我们将考虑复用 `Affine` 方言中的现存优化，以优化仿射变换，该方言专门为程序中的计算密集部分而设计
+
+ Instead, we can target `Affine` for the computation heavy part of Toy, and in the [next chapter](https://mlir.llvm.org/docs/Tutorials/Toy/Ch-6/) directly target the `LLVM IR` dialect for lowering `print`. As part of this lowering, we will be lowering from the [TensorType](https://mlir.llvm.org/docs/Dialects/Builtin/#rankedtensortype) that `Toy` operates on to the [MemRefType](https://mlir.llvm.org/docs/Dialects/Builtin/#memreftype) that is indexed via an affine loop-nest. Tensors represent an abstract value-typed sequence of data, meaning that they don’t live in any memory. MemRefs, on the other hand, represent lower level buffer access, as they are concrete references to a region of memory.
+ >  我们希望将 `Affine` 用于 Toy 中的计算密集部分，并且，我们会直接将 `print` lower 到 `LLVM IR` 方言，在这个 lower 过程中，我们会将 `Toy` 所操作的 `TensorType` lower 到通过仿射嵌套循环索引的 `MemRefType` ，Tensor 表示抽象的值类型数据序列，它们并不驻留在任何内存中，而 MemRef 表示较低级别的缓存区访问，它们是对内存区域的具体引用 `
 
 ## Dialect Conversions
 MLIR has many different dialects, so it is important to have a unified framework for [converting](https://mlir.llvm.org/getting_started/Glossary/#conversion) between them. This is where the `DialectConversion` framework comes into play. This framework allows for transforming a set of _illegal_ operations to a set of _legal_ ones. To use this framework, we need to provide two things (and an optional third):
@@ -1608,7 +1610,7 @@ MLIR has many different dialects, so it is important to have a unified framework
     - If provided, this is used to convert the types of block arguments. We won’t be needing this for our conversion.
 
 >  `DialectConversion` 框架用于将一组不合法的操作转化为一组合法的操作，该框架要求我们提供
->  - 一个转换目标：指定对于该转换来说，什么操作或方言是合法的，不合法的操作将会请求重写模式执行合法化
+>  - 一个转换目标：这个目标正式地规定对于该转换来说，什么操作或方言是合法的，不合法的操作将会请求重写模式执行合法化
 >  - 一组重写模式：用于将不合法的操作转化为一组零个或多个的合法操作
 >  - 类型转换器 (Optional)：用于转换 block arguments 的类型
 
@@ -1618,8 +1620,8 @@ For our purposes, we want to convert the compute-intensive `Toy` operations in
 
 To start off the lowering, we first define our conversion target:
 >  我们定义 `ToyToAffineLoweringPass` 类，并定义 `runOnOperation()` 方法
->  方法中，我们为 lowering target 添加具体的合法方言或操作
->  同时，我们将不希望被 lower 的 Toy 操作设定为 legal，将希望被 lower 的 Toy 操作设定为 illegal
+>  方法中，我们为 lowering target 添加具体的合法方言或操作，我们将不希望被下降的 Toy 操作设定为 legal，将希望被下降的 Toy 操作设定为 illegal
+>  如果任意被定义为 illegal 的方言和操作在转换后存在，转换就会失败
 
 ```c++
 void ToyToAffineLoweringPass::runOnOperation() {
@@ -1649,6 +1651,7 @@ void ToyToAffineLoweringPass::runOnOperation() {
 ```
 
 Above, we first set the toy dialect to illegal, and then the print operation as legal. We could have done this the other way around. Individual operations always take precedence over the (more generic) dialect definitions, so the order doesn’t matter. See `ConversionTarget::getOpInfo` for the details.
+>  上例中，我们显式将 `ToyDialect` 添加为 illegal，并且显式将 `toy::PrintOp` 添加为 legal，顺序不影响，因为为单独操作定义的规则的优先级总是高于为整个方言定义的规则
 
 ### Conversion Patterns 
 After the conversion target has been defined, we can define how to convert the _illegal_ operations into _legal_ ones. Similarly to the canonicalization framework introduced in [chapter 3](https://mlir.llvm.org/docs/Tutorials/Toy/Ch-3/), the [`DialectConversion` framework](https://mlir.llvm.org/docs/DialectConversion/) also uses [RewritePatterns](https://mlir.llvm.org/docs/Tutorials/QuickstartRewrites/) to perform the conversion logic. These patterns may be the `RewritePatterns` seen before or a new type of pattern specific to the conversion framework `ConversionPattern`. `ConversionPatterns` are different from traditional `RewritePatterns` in that they accept an additional `operands` parameter containing operands that have been remapped/replaced. This is used when dealing with type conversions, as the pattern will want to operate on values of the new type but match against the old. For our lowering, this invariant will be useful as it translates from the [TensorType](https://mlir.llvm.org/docs/Dialects/Builtin/#rankedtensortype) currently being operated on to the [MemRefType](https://mlir.llvm.org/docs/Dialects/Builtin/#memreftype). Let’s look at a snippet of lowering the `toy.transpose` operation:
@@ -1694,7 +1697,7 @@ struct TransposeOpLowering : public mlir::ConversionPattern {
 };
 ```
 
->  我们为 `TransposeOp` 专门定义了一个类 `TransposeOpLowering` ，它继承 `mlir::ConversionPattern`
+>  我们为 `TransposeOp` 专门定义了一个类 `TransposeOpLowering` ，它继承 `mlir::ConversionPattern` (意味着这个类就是一个具体的 `ConversionPattern`)
 >  其中 `matchAndRewrite` 方法负责重写该操作，该方法会调用 `lowerOpToLoops` 函数，将当前操作 lower 到一组仿射循环
 
 Now we can prepare the list of patterns to use during the lowering process:
@@ -1711,6 +1714,20 @@ void ToyToAffineLoweringPass::runOnOperation() {
   ...
 ```
 
+>  定义好各个 `ConversionPattern` (以及 `RewritePattern`) 之后，我们在 `ToyToAffineLoweringPass` 中的 `runOnOperation` 初始化 `RewirtePatterSet`，然后为其添加各个定义好的 patterns
+
+>  小结:
+>  Dialect 到 Dialect 的转换在 MLIR 中都抽象为一个 pass，形式上就是一个 C++ 类
+>  转换的主要操作都定义在这个 pass 类的 `runOnOperation` 方法中，从名字就可以看出，这个方法会对转换前 Dialect 的每个 operation 都调用一次
+>  用户需要在 `runOnOperation` 方法中:
+>  1. 定义好转换目标，转换目标声明了对于这个转换 pass，哪个Dialect 是合法的，哪个 Dialect 是不合法的。通常，不合法的就是原 Dialect，合法的就是目标 Dialect，用户也可以细粒度地定义具体哪个 operation 是合法的和不合法的
+>  2. 定义好一个转换模式集合，并将这个集合填充定义好的转换模式。
+>  3. 调用 `applyPartialConversion`，传入 operation 本身、转换模式集合和转换目标
+>  显然，`runOnOperation` 最终会调用 `applyPartialConverion`，而 `applyPartialConversion` 会根据 operation 信息，找到转换模式集合中匹配的转换模式，对 operation 进行转换，在转换后，检查结果是否匹配转换目标的要求
+>  因此，实际的各个 operation 映射到 operation 的转换逻辑应该定义在各个转换模式中
+
+>  在 MLIR 中，各个转换模式都抽象为一个类，
+
 ### Partial Lowering 
 Once the patterns have been defined, we can perform the actual lowering. The `DialectConversion` framework provides several different modes of lowering, but, for our purposes, we will perform a partial lowering, as we will not convert `toy.print` at this time.
 
@@ -1725,6 +1742,9 @@ void ToyToAffineLoweringPass::runOnOperation() {
     signalPassFailure();
 }
 ```
+
+>  之后，依然在 `runOnOperation` 中，为该 operation 调用 `applyPartialConvertion`，传入之前定义好的 target 和 patterns
+>  示例代码还会判断转换是否成功，如果失败，会调用 `signalPassFailure`
 
 #### Design Considerations With Partial Lowering
 Before diving into the result of our lowering, this is a good time to discuss potential design considerations when it comes to partial lowering. In our lowering, we transform from a value-type, TensorType, to an allocated (buffer-like) type, MemRefType. However, given that we do not lower the `toy.print` operation, we need to temporarily bridge these two worlds. There are many ways to go about this, each with their own tradeoffs:
