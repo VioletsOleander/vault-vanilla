@@ -320,10 +320,8 @@ Processing operation : 'cf.cond_br'(0x60f000001120) {
 
 This output is describing the processing of a `cf.cond_br` operation. We first try to apply the `SimplifyConstCondBranchPred`, which fails. From there, another pattern (`SimplifyCondBranchIdenticalSuccessors`) is applied that matches the `cf.cond_br` and replaces it with a `cf.br`.
 
-## Debugging [¶](https://mlir.llvm.org/docs/PatternRewriter/#debugging-2)
-
-### Pattern Filtering [¶](https://mlir.llvm.org/docs/PatternRewriter/#pattern-filtering)
-
+## Debugging 
+### Pattern Filtering 
 To simplify test case definition and reduction, the `FrozenRewritePatternSet` class provides built-in support for filtering which patterns should be provided to the pattern driver for application. Filtering behavior is specified by providing a `disabledPatterns` and `enabledPatterns` list when constructing the `FrozenRewritePatternSet`. The `disabledPatterns` list should contain a set of debug names or labels for patterns that are disabled during pattern application, i.e. which patterns should be filtered out. The `enabledPatterns` list should contain a set of debug names or labels for patterns that are enabled during pattern application, patterns that do not satisfy this constraint are filtered out. Note that patterns specified by the `disabledPatterns` list will be filtered out even if they match criteria in the `enabledPatterns` list. An example is shown below:
 
 ```c++
@@ -341,7 +339,6 @@ void MyPass::initialize(MLIRContext *context) {
 ```
 
 ### Common Pass Utilities [¶](https://mlir.llvm.org/docs/PatternRewriter/#common-pass-utilities)
-
 Passes that utilize rewrite patterns should aim to provide a common set of options and toggles to simplify the debugging experience when switching between different passes/projects/etc. To aid in this endeavor, MLIR provides a common set of utilities that can be easily included when defining a custom pass. These are defined in `mlir/Rewrite/PassUtil.td`; an example usage is shown below:
 
 ```tablegen

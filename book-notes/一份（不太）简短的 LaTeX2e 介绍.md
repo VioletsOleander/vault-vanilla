@@ -1068,7 +1068,7 @@ LaTeX 提供了基本的有序和无序列表环境 enumerate 和 itemize，两�
 ```latex
 \begin{description}
     \item[Enumerate] Numbered list.
-    \teim[Itemize] Non-numbered list.
+    \item[Itemize] Non-numbered list.
 \end{description}
 ```
 

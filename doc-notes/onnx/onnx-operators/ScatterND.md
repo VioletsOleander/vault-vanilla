@@ -14,7 +14,7 @@ ScatterND takes three inputs `data` tensor of rank r >= 1, `indices` tensor 
 >  ScatterND 接收三个 tensor 输入，前两个 tensor 输入: `data` 和 `indices` 都要求 `rank >= 1`，最后一个 tensor 输入 `updates` 要求 `rank = q + r - indices.shape[-1] - 1`
 
 The output of the operation is produced by creating a copy of the input ` data `, and then updating its value to values specified by ` updates ` at specific index positions specified by ` indices `. Its output shape is the same as the shape of ` data `.
->  该算子的计算过程说先将 `data` 拷贝，然后根据 `indices` 中指定的索引，将对应的值更新为 `updates` 中指定的值
+>  该算子的计算过程是先将 `data` 拷贝，然后根据 `indices` 中指定的索引，将对应的值更新为 `updates` 中指定的值
 >  故输出的形状和 `data` 的形状是相同的
 
 `indices` is an integer tensor. Let k denote `indices.shape[-1]`, the last dimension in the shape of ` indices `. ` indices ` is treated as a (q-1)-dimensional tensor of k-tuples, where each k-tuple is a partial-index into ` data `. 

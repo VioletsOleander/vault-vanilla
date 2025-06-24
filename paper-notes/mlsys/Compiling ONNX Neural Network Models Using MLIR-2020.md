@@ -149,7 +149,7 @@ That being said, nested regions becomes a firstclass concept in MLIR, which is e
 >  可以看到，MLIR 的所有一切概念都基于 operation 定义，无论是 Function，Module，本质都视作一个特殊的 operation
 
 To develop a compiler using MLIR, users often need to define dialects and optimization passes. A dialect serves as an abstraction level or intermediate representation, and an optimization pass is to enable optimization at an abstraction level or transformation among abstraction levels.
->  MLIR 的用于通常需要定义: dialects, optimization passes
+>  MLIR 的用户通常需要定义: dialects, optimization passes
 >  dialect 表示了一个抽象的层次，例如 `tf` 抽象了 tensorflow 的计算操作，`linalg` 抽象了线性代数的计算操作，`arith` 抽象了基本的整数和浮点运算操作，`llvm` 抽象了 LLVM IR
 >  optimization pass 用于在抽象层次上的优化和抽象层次上的转换 (即 dialect 上的优化和转换)
 
@@ -192,14 +192,14 @@ There are five main dialects in onnx-mlir, i.e., onnx, krnl, affine, std and llv
 >  onnx-mlir 涉及五个 dialect: `onnx, krnl, affine, std, llvm`，其中 `onnx, krnl` 为新加入的 dialect
 >  这五个 dialects 组织为四个抽象层次:
 >  - ONNX 层: 包含 `onnx, std` dialect 中的 operation
->  - Krnl 层: 包含 `krnl, affine, std` dialect 中的 operation，这一层开始将高层的 ONNX operation 分解为更细粒度的、基于循环的计算，其中 `krnl` dialect 的设计目的是为循环优化提供合适的表示，它引入了显式的循环结构、内存访问模式，便于编译器执行放射变换，包括 tile (将大循环分解为更小的嵌套循环，改善 cache locality), skew (改变循环迭代的顺序，以避免数据依赖，暴露并行性), permutation (交换嵌套循环的顺序), `krnl` dialect 的作用是作为 `onnx` dialect lower 到低层 dialect 如 `affind, std, llvm` 的中间层
+>  - Krnl 层: 包含 `krnl, affine, std` dialect 中的 operation，这一层开始将高层的 ONNX operation 分解为更细粒度的、基于循环的计算，其中 `krnl` dialect 的设计目的是为循环优化提供合适的表示，它引入了显式的循环结构、内存访问模式，便于编译器执行仿射变换，包括 tile (将大循环分解为更小的嵌套循环，改善 cache locality), skew (改变循环迭代的顺序，以避免数据依赖，暴露并行性), permutation (交换嵌套循环的顺序), `krnl` dialect 的作用是作为 `onnx` dialect lower 到低层 dialect 如 `affine, std, llvm` 的中间层
 >   - Affine & Std 层: 包含 `affine, std` dialect
 >   - LLVM 层: 包含 `llvm` dialect，用于 bit code generation
 
 There are MLIR passes for converting one dialect to another, and for doing optimizations at a specific dialect. onnx dialect is converted to krnl dialect via pass --convert-onnx-to-krnl. Then krnl dialect (except some of its operations) is converted into affine and std dialects via pass --convert-krnl-to-affine. The remaining operations in krnl dialect and operations in affine and std dialects are directly converted into instructions in llvm via pass --convert-krnl-to-llvm. The right side of Fig. 2 shows optimization passes that can be carried out at each abstraction level.
 >  `onnx` dialect 通过 `--convert-onnx-to-krnl` pass 转化为 `krnl` dialect
 >  `krnl` dialect 的大部分 operations 通过 `--convert-kerl-to-affine` pass 转化为 `affine` 和 `std` dialect
->  `krnl` dialect 的少部分 operations 和 `affind, std` 中的 operations 通过 `--convert-krnl-to-llvm` 转换为 `llvm` dialect
+>  `krnl` dialect 的少部分 operations 和 `affine, std` 中的 operations 通过 `--convert-krnl-to-llvm` 转换为 `llvm` dialect
 
 We only enumerate the important optimizations here, and the list of optimization passes is not exhaustive.
 
@@ -227,7 +227,7 @@ onnx dialect is the first abstraction level in onnx-mlir and represents an ONNX 
 
 We wrote a python script to automatically import ONNX operations into the tablegen-based operation definitions in MLIR. These imported operations are organized into the onnx dialect. Thanks to tablegen, the operation definition in the onnx dialect is quite similar to the operation description in ONNX, where we are able to represent all necessary information, such as inputs, outputs, attributes, and description, into a single tablegen-based definition in human-readable textual form.
 >  ONNX operations 到 MLIR 中 tablegen-based operation definition 由一个 python 脚本完成
->  `onnx` dialect 中对各个 operation 的定义和 ONNX 对各个 operation 的描述非常相似，故所有的必要信息，例如输入、输出、属性、描述都可以写在单个 tablegetn 文件中
+>  `onnx` dialect 中对各个 operation 的定义和 ONNX 对各个 operation 的描述非常相似，故所有的必要信息，例如输入、输出、属性、描述都可以写在单个 tablegen 文件中
 
 We also created a new operation in the onnx dialect, i.e., onnx.EntryPoint to keep information related to the dynamic list of inputs in an ONNX model. This operation will be lowered to generate the entry function ‘ dyn entry point main graph’ of the generated library.
 >  除了转译 ONNX 中的 operation 定义以外，`onnx` dialect 中还引入了一个新的 operation: `onnx.EntryPoint` 
