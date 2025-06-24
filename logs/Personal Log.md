@@ -2354,7 +2354,7 @@ Date: 2025.6.2-2025.6.9
 - [[doc-notes/conda/anaconda/tools/Working with conda|conda/anaconda/tools/Working with conda]]: All
 
 ### Week 3
-Date: 2025.6.9-2025.6.13
+Date: 2025.6.9-2025.6.16
 
 \[Blog\]
 - [[blog-notes/image-generation/Generative Modeling by Estimating Gradients of the Data Distribution|Generative Modeling by Estimating Gradients of the Data Distribution]]
@@ -2436,3 +2436,77 @@ Date: 2025.6.9-2025.6.13
 
 \[Code-Analysis\]
 - [[codeflow-analysis/pytorch/onnx|onnx]]
+
+### Week 4
+Date: 2025.6.16-2025.6.23
+
+\[Paper\]
+- [[paper-notes/mlsys/Compiling ONNX Neural Network Models Using MLIR-2020|2020-Compiling ONNX Neural Network Models Using MLIR]]
+    Abstract
+        ONNX aims to improve the portability of machine learning models.
+        onnx-mlir is a compiler for generating native code with ONNX models as input.
+        onnx-mlir relies on MLIR and propose two new dialects: 1. `onnx` to represent the semantics of ONNX standard 2. `krnl`, which is a loop-based dialect providing a lowering point for `onnx` dialect.
+    Introduction
+    Background
+        ONNX standard defines its computational graph model, operators and data types. ONNX standards has two variants: neural network only and classic machine learning. The neural network only variant only recognizes tensor input and output.
+        In ONNX, the top level structure is Model, which contains the graph and associated metadata. 
+        A graph contains a list of node, arranged in a topological order. 
+        A node contains a operator with its attributes, and its inputs and outputs.
+        An operator could be a primitive operator or a function, which is essentially a subgraph but treated as an operator.
+        All inputs are classified into Tensor, Sequence or Map in ONNX.
+        ONNX Models are descripted using the protobuf language.
+        MLIR is three address single-static assignment IR. Each operator itself is an SSA value with a type in MLIR. Built-in types in MLIR includes primitive types like integers as well as aggregate types like Tensor and Memref.
+        Tensor is an abstract type which only represents a concept. Memref is a more concrete type which contains the data layout information.
+        Operation is the code unit in MLIR, just like an instruction in assembly code.
+        In MLIR, an operation has its attributes, SSA operands, regions and successors. Region = a list of blocks, Block = a list of operations.
+        Function = operation with single region with (maybe) multiple block.
+        Module = operation with single region with single block.
+        Users of MLIR defines its own dialect and optimization passes. (general transformation: like canonicalization; conversion; dialect-specific)
+    Compiling ONNX Models
+        onnx-mlir consume ONNX model and output binary library or executable. The entry function of its output is called `_dyn_entry_point_main_graph` , which consumes the input and produce the output like the ONNX model.
+        `krnl` dialect serves as an intermediate layer between `onnx` dialect and `affine, std, llvm` dialect. Its design purpose is to provide a representation suitable for loop optimizations.
+        Common loop optimization techniques includes tile (break large loop into smaller nested loops for better cache locality), skew (change the order of loop iterations), permutation (change the order of loop nesting)
+        onnx-mlir will convert the whole ONNX graph into a function (operator with single region) named `main_graph` in `onnx` dialect.
+        Definitions in `onnx` dialect are very similar to the ONNX standard.
+        Computation kernel with simple loop nests structure is suitable to optimize with polyhedral model. 
+        The design of `krnl` aims to separate program semantics and program schedule. Program semantics means what to execute, i.e., the algorithm logic. Program schedule means how and when to execute, i.e., the loop sequence, parallelization, memory access pattern.
+        Polyhedral model is an optimization method for loop. It treats a loop as a polyhedral in the space, and derive the constraint from the access relationship in the loop. Then, it represent the loop optimizations as linear transformation to the loop, and deduce the optimal transformation for the loop under the constraint.
+        Constant propagation identifies the constant in each expression and substitute it with constants in compile time.
+    Preliminary Experiments
+    Conclusion
+
+\[Blog\]
+- [[blog-notes/Annealed Importance Sampling|Annealed Importance Sampling]]
+    Problem Statement
+        The problem to solve: estimate the normalization constant for an unnormalized distribution and estimate a expectation with respect to the normalized distribution.
+        Importance sampling is a simple way, but it is hard to calibration, which means choosing a appropriate sampling distribution is hard.
+        MCMC can help solve estimating the expectation. Classic MCMC methods like Langevin dynamics do not care about the normalization constant. However, MCMC can not help estimate the normalizing constant.
+        AIS combines IS and MCMC. AIS converts a sample to a more calibrated target distribution while keep track of its importance weight.
+    Annealing the Importance Distribution
+        AIS starts with a simple distribution, and transitions between a lots of intermediate distribution between the start and the end (the target distribution). 
+        AIS calculates the importance weight for the whole sample trajectory.
+        The sampling process of AIS is a non-homogeneous Markov chain defined by multiple transition operators. We define forward joint probability and backward joint probability for the Markov chain. Therefore, AIS can essentially view as an IS using forward joint probability as sampling distribution and using backward joint probability as target distribution. The sample is the whole trajectory.
+        The importance weight for the sampled trajectory can thus be calculated.
+        We can prove the the expectation of the importance weight of the trajectory with respect to the forward joint probability is the normalization constant of the end distribution.
+        Therefore, the essential core of AIS is just the form of target and proposal distribution. With multiple steps, the difference between target and proposal can be smaller compared to normal IS.
+    Importance Weights
+        To ensure the precision in computer calculation. When calculating the importance weight of the trajectory, we are essentially calculating in the log space.
+    Practical Application of AIS
+    Conclusion 
+
+\[Doc\]
+- [[doc-notes/onnx/onnx-operators/ScatterND|onnx/onnx-operators/ScatterND]]: All
+- [[doc-notes/mlir/code-documentation/Dialect Conversion|mlir/code-documentation/Dialect Conversion]]: All
+    Dialect conversion framework in MLIR is a pattern based operation rewriting framework, which transforms illegal operation to legal ones.
+    The conversion framework mainly consists of a conversion target and a set of rewriting patterns.
+    Modes of Conversion
+        The framework walks all operations in pre-order, i.e. , examining an op before the ops in any region it has.
+    Conversion Target
+        Conversion Target defines the legality of the operation instances
+    Rewrite Pattern Specification
+        `RewritePattern` class or `ConversionPattern` class. `ConversionPattern` 's `matchAndRewrite` requires an additional argument: the operand list that the operation should use after the conversion.
+    Type Conversion
+- [[doc-notes/mlir/code-documentation/tutorials/Quickstart tutorial to adding MLIR graph rewrite|mlir/code-documentation/tutorials/Quickstart tutorial to adding MLIR graph rewrite]]: All
+- [[doc-notes/mlir/code-documentation/Pattern Rewriting Generic DAG-to-DAG Rewriting|mlir/code-documentation/Pattern Rewriting Generic DAG-to-DAG Rewriting]]
+- [[doc-notes/llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference|llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference]]
+- [[doc-notes/nvidia/CUDA C++ Programming Guide|nvidia/CUDA C++ Programming Guide]]
