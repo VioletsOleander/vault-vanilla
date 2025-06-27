@@ -30,7 +30,12 @@ requires = ["setuptools"]
 
 Build tools are expected to use the example configuration file above as their default semantics when a `pyproject.toml` file is not present.
 
+>  如果项目中没有 `pyproject.toml` 文件，构建工具应该使用上面的示例配置文件作为其默认语义 (即没有 `pyproject.toml` 时，构建工具应该默认基于 `setuptools` 执行构建)
+
 Tools should not require the existence of the `[build-system]` table. A `pyproject.toml` file may be used to store configuration details other than build-related data and thus lack a `[build-system]` table legitimately. If the file exists but is lacking the `[build-system]` table then the default values as specified above should be used. If the table is specified but is missing required fields then the tool should consider it an error.
+>  构建工具不应该强制要求 `pyproject.toml` 必须指定 `[build-system]` table
+>  `pyproject.toml` 可以用来仅存储配置细节，没有 `[build-system]` 是合法的，如果没有 `[build-system]`，构建工具应该默认使用 `setuptools` 作为构建基础
+>  如果既没有 `[build-system]`，也找不到 `setuptools`，构建工具应该报错
 
 To provide a type-specific representation of the resulting data from the TOML file for illustrative purposes only, the following [JSON Schema](https://json-schema.org/) would match the data format:
 
@@ -66,20 +71,30 @@ To provide a type-specific representation of the resulting data from the TOML fi
 
 ## Declaring project metadata: the `[project]` table
 The `[project]` table specifies the project’s [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata).
+>  `[project]` table 指定项目的核心元数据
 
 There are two kinds of metadata: _static_ and _dynamic_. Static metadata is specified in the `pyproject.toml` file directly and cannot be specified or changed by a tool (this includes data _referred_ to by the metadata, e.g. the contents of files referenced by the metadata). Dynamic metadata is listed via the `dynamic` key (defined later in this specification) and represents metadata that a tool will later provide.
+>  元数据分为两类: 静态和动态
+>  静态元数据直接在 `pyproject.toml` 中指定·，不能被工具修改 (这包括了元数据引用的文件，即元数据引用的文件中的内容)
+>  动态元数据在 `dynamic` 中列出，动态元数据的值应该有工具提供
 
 The lack of a `[project]` table implicitly means the [build backend](https://packaging.python.org/en/latest/glossary/#term-Build-Backend) will dynamically provide all keys.
+>  如果没有 `[project]` table，则构建后端需要动态地提供所有的 keys
 
 The only keys required to be statically defined are:
 
 - `name`
 
+>  唯一一个要求被静态定义的 key 是 `name`
+
 The keys which are required but may be specified _either_ statically or listed as dynamic are:
 
 - `version`
 
+>  `version` 同样是必须指定的 key，但它可以是动态的
+
 All other keys are considered optional and may be specified statically, listed as dynamic, or left unspecified.
+>  所有的其他 keys 都是可选的，且都可以是动态的
 
 The complete list of keys allowed in the `[project]` table are:
 
@@ -103,42 +118,30 @@ The complete list of keys allowed in the `[project]` table are:
 - `version`
 
 ### `name`
-
 - [TOML](https://toml.io/) type: string
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Name](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-name)
-    
 
 The name of the project.
 
 Tools SHOULD [normalize](https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization) this name, as soon as it is read for internal consistency.
 
-### `version`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#version "Link to this heading")
-
+### `version
 - [TOML](https://toml.io/) type: string
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Version](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-version)
-    
 
 The version of the project, as defined in the [Version specifier specification](https://packaging.python.org/en/latest/specifications/version-specifiers/#version-specifiers).
 
 Users SHOULD prefer to specify already-normalized versions.
 
-### `description`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#description "Link to this heading")
-
+### `description
 - [TOML](https://toml.io/) type: string
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Summary](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-summary)
-    
 
 The summary description of the project in one line. Tools MAY error if this includes multiple lines.
 
-### `readme`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#readme "Link to this heading")
-
+### `readme`
 - [TOML](https://toml.io/) type: string or table
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Description](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-description) and [Description-Content-Type](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-description-content-type)
-    
 
 The full description of the project (i.e. the README).
 
@@ -148,41 +151,29 @@ The `readme` key may also take a table. The `file` key has a string value re
 
 A table specified in the `readme` key also has a `content-type` key which takes a string specifying the content-type of the full description. A tool MUST raise an error if the metadata does not specify this key in the table. If the metadata does not specify the `charset` parameter, then it is assumed to be UTF-8. Tools MAY support other encodings if they choose to. Tools MAY support alternative content-types which they can transform to a content-type as supported by the [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata). Otherwise tools MUST raise an error for unsupported content-types.
 
-### `requires-python`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#requires-python "Link to this heading")
-
+### `requires-python`
 - [TOML](https://toml.io/) type: string
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Requires-Python](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-requires-python)
-    
 
 The Python version requirements of the project.
 
-### `license`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#license "Link to this heading")
-
+### `license`
 - [TOML](https://toml.io/) type: string
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [License-Expression](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-license-expression)
-    
 
 Text string that is a valid SPDX [license expression](https://packaging.python.org/en/latest/glossary/#term-License-Expression), as specified in [License Expression](https://packaging.python.org/en/latest/specifications/license-expression/). Tools SHOULD validate and perform case normalization of the expression.
 
-#### Legacy specification[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#legacy-specification "Link to this heading")
-
+#### Legacy specification
 - [TOML](https://toml.io/) type: table
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [License](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-license)
-    
 
 The table may have one of two keys. The `file` key has a string value that is a file path relative to `pyproject.toml` to the file which contains the license for the project. Tools MUST assume the file’s encoding is UTF-8. The `text` key has a string value which is the license of the project. These keys are mutually exclusive, so a tool MUST raise an error if the metadata specifies both keys.
 
 The table subkeys were deprecated by [**PEP 639**](https://peps.python.org/pep-0639/) in favor of the string value.
 
-### `license-files`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#license-files "Link to this heading")
-
+### `license-files`
 - [TOML](https://toml.io/) type: array of strings
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [License-File](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-license-file)
-    
 
 An array specifying paths in the project source tree relative to the project root directory (i.e. directory containing `pyproject.toml` or legacy project configuration files, e.g. `setup.py`, `setup.cfg`, etc.) to file(s) containing licenses and other legal notices to be distributed with the package.
 
@@ -195,18 +186,13 @@ Tools MUST assume that license file content is valid UTF-8 encoded text, and SHO
 Build tools:
 
 - MUST include all files matched by a listed pattern in all distribution archives.
-    
 - MUST list each matched file path under a License-File field in the Core Metadata.
-    
 
 If the `license-files` key is present and is set to a value of an empty array, then tools MUST NOT include any license files and MUST NOT raise an error. If the `license-files` key is not defined, tools can decide how to handle license files. For example they can choose not to include any files or use their own logic to discover the appropriate files in the distribution.
 
-### `authors`/`maintainers`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#authors-maintainers "Link to this heading")
-
+### `authors` / `maintainers`
 - [TOML](https://toml.io/) type: Array of inline tables with string keys and values
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Author](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-author), [Author-email](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-author-email), [Maintainer](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-maintainer), and [Maintainer-email](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-maintainer-email)
-    
 
 The people or organizations considered to be the “authors” of the project. The exact meaning is open to interpretation — it may list the original or primary authors, current maintainers, or owners of the package.
 
@@ -217,49 +203,33 @@ These keys accept an array of tables with 2 keys: `name` and `email`. Both va
 Using the data to fill in [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) is as follows:
 
 1. If only `name` is provided, the value goes in [Author](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-author) or [Maintainer](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-maintainer) as appropriate.
-    
 2. If only `email` is provided, the value goes in [Author-email](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-author-email) or [Maintainer-email](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-maintainer-email) as appropriate.
-    
 3. If both `email` and `name` are provided, the value goes in [Author-email](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-author-email) or [Maintainer-email](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-maintainer-email) as appropriate, with the format `{name} <{email}>`.
-    
 4. Multiple values should be separated by commas.
-    
 
-### `keywords`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#keywords "Link to this heading")
-
+### `keywords`
 - [TOML](https://toml.io/) type: array of strings
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Keywords](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-keywords)
-    
 
 The keywords for the project.
 
-### `classifiers`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#classifiers "Link to this heading")
-
+### `classifiers`
 - [TOML](https://toml.io/) type: array of strings
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Classifier](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-classifier)
-    
 
 Trove classifiers which apply to the project.
 
 The use of `License ::` classifiers is deprecated and tools MAY issue a warning informing users about that. Build tools MAY raise an error if both the `license` string value (translating to `License-Expression` metadata field) and the `License ::` classifiers are used.
 
-### `urls`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#urls "Link to this heading")
-
+### `urls`
 - [TOML](https://toml.io/) type: table with keys and values of strings
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Project-URL](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-project-url)
-    
 
 A table of URLs where the key is the URL label and the value is the URL itself. See [Well-known Project URLs in Metadata](https://packaging.python.org/en/latest/specifications/well-known-project-urls/#well-known-project-urls) for normalization rules and well-known rules when processing metadata for presentation.
 
-### Entry points[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#entry-points "Link to this heading")
-
+### Entry points
 - [TOML](https://toml.io/) type: table (`[project.scripts]`, `[project.gui-scripts]`, and `[project.entry-points]`)
-    
 - [Entry points specification](https://packaging.python.org/en/latest/specifications/entry-points/#entry-points)
-    
 
 There are three tables related to entry points. The `[project.scripts]` table corresponds to the `console_scripts` group in the [entry points specification](https://packaging.python.org/en/latest/specifications/entry-points/#entry-points). The key of the table is the name of the entry point and the value is the object reference.
 
@@ -269,63 +239,35 @@ The `[project.entry-points]` table is a collection of tables. Each sub-table�
 
 Build back-ends MUST raise an error if the metadata defines a `[project.entry-points.console_scripts]` or `[project.entry-points.gui_scripts]` table, as they would be ambiguous in the face of `[project.scripts]` and `[project.gui-scripts]`, respectively.
 
-### `dependencies`/`optional-dependencies`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#dependencies-optional-dependencies "Link to this heading")
-
+### `dependencies` / `optional-dependencies`
 - [TOML](https://toml.io/) type: Array of [**PEP 508**](https://peps.python.org/pep-0508/) strings (`dependencies`), and a table with values of arrays of [**PEP 508**](https://peps.python.org/pep-0508/) strings (`optional-dependencies`)
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Requires-Dist](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-requires-dist) and [Provides-Extra](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-provides-extra)
-    
-
 The (optional) dependencies of the project.
 
 For `dependencies`, it is a key whose value is an array of strings. Each string represents a dependency of the project and MUST be formatted as a valid [**PEP 508**](https://peps.python.org/pep-0508/) string. Each string maps directly to a [Requires-Dist](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-requires-dist) entry.
 
 For `optional-dependencies`, it is a table where each key specifies an extra and whose value is an array of strings. The strings of the arrays must be valid [**PEP 508**](https://peps.python.org/pep-0508/) strings. The keys MUST be valid values for [Provides-Extra](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-provides-extra). Each value in the array thus becomes a corresponding [Requires-Dist](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-requires-dist) entry for the matching [Provides-Extra](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-provides-extra) metadata.
 
-### `dynamic`[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#dynamic "Link to this heading")
-
+### `dynamic`
 - [TOML](https://toml.io/) type: array of string
-    
 - Corresponding [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) field: [Dynamic](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-dynamic)
-    
 
 Specifies which keys listed by this PEP were intentionally unspecified so another tool can/will provide such metadata dynamically. This clearly delineates which metadata is purposefully unspecified and expected to stay unspecified compared to being provided via tooling later on.
 
 - A build back-end MUST honour statically-specified metadata (which means the metadata did not list the key in `dynamic`).
-    
 - A build back-end MUST raise an error if the metadata specifies `name` in `dynamic`.
-    
 - If the [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) specification lists a field as “Required”, then the metadata MUST specify the key statically or list it in `dynamic` (build back-ends MUST raise an error otherwise, i.e. it should not be possible for a required key to not be listed somehow in the `[project]` table).
-    
 - If the [core metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata) specification lists a field as “Optional”, the metadata MAY list it in `dynamic` if the expectation is a build back-end will provide the data for the key later.
-    
 - Build back-ends MUST raise an error if the metadata specifies a key statically as well as being listed in `dynamic`.
-    
 - If the metadata does not list a key in `dynamic`, then a build back-end CANNOT fill in the requisite metadata on behalf of the user (i.e. `dynamic` is the only way to allow a tool to fill in metadata and the user must opt into the filling in).
-    
 - Build back-ends MUST raise an error if the metadata specifies a key in `dynamic` but the build back-end was unable to determine the data for it (omitting the data, if determined to be the accurate value, is acceptable).
-    
 
-## Arbitrary tool configuration: the `[tool]` table[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#arbitrary-tool-configuration-the-tool-table "Link to this heading")
-
+## Arbitrary tool configuration: the `[tool]` table
 The `[tool]` table is where any tool related to your Python project, not just build tools, can have users specify configuration data as long as they use a sub-table within `[tool]`, e.g. the [flit](https://pypi.python.org/pypi/flit) tool would store its configuration in `[tool.flit]`.
 
 A mechanism is needed to allocate names within the `tool.*` namespace, to make sure that different projects do not attempt to use the same sub-table and collide. Our rule is that a project can use the subtable `tool.$NAME` if, and only if, they own the entry for `$NAME` in the Cheeseshop/PyPI.
 
-## History[](https://packaging.python.org/en/latest/specifications/pyproject-toml/#history "Link to this heading")
-
+## History
 - May 2016: The initial specification of the `pyproject.toml` file, with just a `[build-system]` containing a `requires` key and a `[tool]` table, was approved through [**PEP 518**](https://peps.python.org/pep-0518/).
-    
 - November 2020: The specification of the `[project]` table was approved through [**PEP 621**](https://peps.python.org/pep-0621/).
-    
 - December 2024: The `license` key was redefined, the `license-files` key was added and `License::` classifiers were deprecated through [**PEP 639**](https://peps.python.org/pep-0639/).
-    
-
-[
-
-  
-
-
-
-
-](https://packaging.python.org/en/latest/specifications/dependency-groups/)
