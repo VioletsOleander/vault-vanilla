@@ -152,7 +152,7 @@ MLIR is designed to be a completely extensible infrastructure; there is no close
 
 In MLIR, [`Operations`](https://mlir.llvm.org/docs/LangRef/#operations) are the core unit of abstraction and computation, similar in many ways to LLVM instructions. Operations can have application-specific semantics and can be used to represent all of the core IR structures in LLVM: instructions, globals (like functions), modules, etc.
 >  MLIR 中，操作是核心的抽象和计算单元，它类似于 LLVM 的指令
->  操作可以有特定于应用程序的语义
+>  操作可以有**特定于应用程序的语义**
 >  操作可以用于表示 LLVM 的所有核心 IR 结构，包括指令、全局变量 (如函数)、模块等
 
 Here is the MLIR assembly for the Toy `transpose` operations:
@@ -201,7 +201,7 @@ Let’s break down the anatomy of this MLIR operation:
 
 - `{ inplace = true }`
     - A dictionary of zero or more attributes, which are special operands that are always constant. Here we define a boolean attribute named ‘inplace’ that has a constant value of true.
->  `{ ...=... }` 表示包含一个或者多个属性的字典，这些属性都是特殊的操作数，并且它们都是常量
+>  `{ ...=... }` 表示包含一个或者多个属性的字典，这些**属性都是特殊的操作数，并且它们都是常量**
 >  本例中，我们定义了名为 `inplace` 的布尔属性，其值为常量值 `true`
 
 - `(tensor<2x3xf64>) -> tensor<3x2xf64>`
@@ -246,7 +246,7 @@ It’s worth noting that the mlir-opt tool - a tool for testing compiler passes 
 
 ### Opaque API 
 MLIR is designed to allow all IR elements, such as attributes, operations, and types, to be customized. At the same time, IR elements can always be reduced to the above fundamental concepts. This allows MLIR to parse, represent, and [round-trip](https://mlir.llvm.org/getting_started/Glossary/#round-trip) IR for _any_ operation. 
->  MLIR 在设计上允许自定义所有的 IR 元素，例如属性、操作、类型
+>  MLIR 在设计上允许**自定义所有的 IR 元素**，例如属性、操作、类型
 >  注意所有的 IR 元素都可以归结为之前的基本概念
 >  通过自定义，MLIR 可以解析、表示、往返任何操作的 IR
 
@@ -483,8 +483,8 @@ class ConstantOp : public mlir::Op<
 >  `mlir::DenseElementsAttr getValue();` 用于从属性取出常数值并返回
 >  `LogicalResult verifyInvariants();` 用于提供对操作的验证，保证操作符合特定的不变式，例如返回类型必须是 `TensorType`
 >  `static void build(mlir::OpBuilder &builder, mlir::OperationState &state, ...)` 用于从一组输入值构建该操作
->  `build` 方法会被 `builder` 类使用，用于生成该操作的实例，例如 `mlir::OpBuilder::create<ConstantOp>(...)`
->  这些 `build` 方法会填充其 `state` 参数，MLIR 会利用这些 `state` 来创建操作，该 `state` 实际上是一个操作可能包含的所有离散元素的集合
+>  `build` 方法会被 `builder` 类使用，用于生成该操作的实例，例如 `mlir::OpBuilder::create<ConstantOp>(...)` 会调用合适的 `build` 方法
+>  这些 `build` 方法应该填充其 `OperationState &state` 参数，MLIR 会利用这些 `state` 来创建操作，该 `state` 实际上是一个操作可能包含的所有离散元素的集合
 
 and we can register this operation in the `ToyDialect` initializer:
 
@@ -505,9 +505,8 @@ Now that we have defined an operation, we will want to access and transform it. 
 >  所有特定类型的操作都是 `Op` 的衍生类，例如 `ConstantOp` 表示了一个没有输入、有一个始终是相同值的输出的操作
 
 `Op` derived classes act as smart pointer wrapper around a `Operation*`, provide operation-specific accessor methods, and type-safe properties of operations. This means that when we define our Toy operations, we are simply defining a clean, semantically useful interface for building and interfacing with the `Operation` class. This is why our `ConstantOp` defines no class fields; all of the data for this operation is stored in the referenced `Operation`. A side effect of this design is that we always pass around `Op` derived classes “by-value”, instead of by reference or pointer (_passing by value_ is a common idiom in MLIR and applies similarly to attributes, types, etc). 
->  `Op` 派生类作为 `Operation*` 的智能指针包装器，提供操作特定的访问方法、类型安全的操作属性
->  即我们定义 Toy 操作时，实际上是定义一个清晰且语义上有用的接口，该接口用于构建以及与 `Operation` 类交互
->  因此我们在 `Op` 派生类中不定义类字段 (仅声明)，该操作的所有数据都存储在其引用的 `Operation` 中
+>  `Op` 及其衍生类作为 `Operation*` 的智能指针包装器，提供操作特定的访问方法、类型安全的操作属性 (`Op` 包装了 `Operation`)
+>  即我们定义 Toy 操作时，实际上是定义一个清晰且语义上有用的接口，该接口用于构建以及与 `Operation` 类交互，因此我们在 `Op` 派生类中不定义类字段 (只重载方法)，该操作的所有数据都存储在其引用的 `Operation` 中
 >  因为 `Op` 派生类仅是轻量的包装器，MLIR 习惯按值传递它，而不是通过引用或指针
 
 Given a generic `Operation*` instance, we can always get a specific `Op` instance using LLVM’s casting infrastructure:
@@ -882,12 +881,12 @@ At this point, MLIR knows about our Toy dialect and operations. In the [next ch
 
 # 3 High-level Language-Specific Analysis and Transformation
 Creating a dialect that closely represents the semantics of an input language enables analyses, transformations and optimizations in MLIR that require high-level language information and are generally performed on the language AST. For example, `clang` has a fairly [heavy mechanism](https://clang.llvm.org/doxygen/classclang_1_1TreeTransform.html) for performing template instantiation in C++.
->  创建一个和输入语言语义紧密匹配的方言，可以实现在 MLIR 中进行需要高级语言信息且通常需要在语言 AST 上执行的分析、转化和优化
+>  创建一个和输入语言语义紧密匹配的方言，可以实现**在 MLIR 中进行**需要高级语言信息且通常需要在语言 AST 上执行的分析、转化和优化
 >  例如，`clang` 为了在 C++ 中实现模板实例化，有相当复杂的机制
 
 We divide compiler transformations into two categories: local and global. In this chapter, we focus on how to leverage the Toy Dialect and its high-level semantics to perform local pattern-match transformations that would be difficult in LLVM. For this, we use MLIR’s [Generic DAG Rewriter](https://mlir.llvm.org/docs/PatternRewriter/).
 >  我们将编译器分为两类：局部和全局
->  本章中，我们关注如何利用 Toy Dialect 和其高级语义来执行 LLVM 中难以实现的局部模式匹配，我们将使用 MLIR 的通用 DAG 重写器
+>  本章中，我们关注如何利用 Toy Dialect 和其高级语义来执行 LLVM 中难以实现的局部模式匹配，我们将使用 MLIR 的通用 DAG 重写器 (Pattern Rewrite 框架)
 
 There are two methods that can be used to implement pattern-match transformations: 1. Imperative, C++ pattern-match and rewrite 2. Declarative, rule-based pattern-match and rewrite using table-driven [Declarative Rewrite Rules](https://mlir.llvm.org/docs/DeclarativeRewrites/) (DRR). Note that the use of DRR requires that the operations be defined using ODS, as described in [Chapter 2](https://mlir.llvm.org/docs/Tutorials/Toy/Ch-2/).
 >  实现模式匹配转换有两种方法：
@@ -940,9 +939,12 @@ void double_transpose(int A[N][M]) {
 }
 ```
 
+>  直接从 C++ 代码来看，确实看不出优化的空间
+>  如果将 C++ 代码中的二重循环都抽象为一个 `transpose` 运算，就容易看出是 `double_transpose` 是两个连续的 `transpose` 运算，进而容易看出优化空间
+
 For a simple C++ approach to rewrite, involving matching a tree-like pattern in the IR and replacing it with a different set of operations, we can plug into the MLIR `Canonicalizer` pass by implementing a `RewritePattern`:
->  使用 C++ 方法进行重写涉及到在 IR 中匹配树状模式，并将其替换为一组不同的操作
->  我们通过实现 `RewritePatter` 来接入 MLIR 的 `Caonicalizer` 过程
+>  在 MLIR 中使用 C++ 方法进行对 IR 进行重写涉及到在 IR 中匹配树状模式，并将其替换为一组不同的操作
+>  我们通过实现 `RewritePattern` 来接入 MLIR 的 `Caonicalizer` 过程
 
 ```c++
 /// Fold transpose(transpose(x)) -> x
@@ -978,13 +980,13 @@ struct SimplifyRedundantTranspose : public mlir::OpRewritePattern<TransposeOp> {
 >  -  `SimplifyRedundantTranspose` 继承自 `mlir::OpRewritePattern<TransposeOp>` ，表示这是一个专门用于 `TransposeOp` 操作的重写模式
 >  -  `SimplifyRedundantTranspose` 的构造函数调用了基类的构造函数，传入 `context` 和 `benefit` 参数，`benefit` 用于指示该重写模式的优先级，数值越高越有可能被优先处理
 >  -  `matchAndRewrite` 方法接受一个 `Transpose` 操作和一个 `mlir::PatternRewriter` 对象作为参数，`PatternRewriter` 是 MLIR 提供的工具，用于执行 IR 的修改
-> - 该方法首先获取当前转置操作的输入 `transposeInput` ，然后检查这个输入是否是由另一个转置操作生成的。如果不是，模式不匹配，返回。如果是，模式匹配成功，使用 `rewriter.replaceOp` 方法将当前转置操作替换为原始输入，然后返回 `successs()`
+>  - 该方法首先获取当前转置操作的输入 `transposeInput` ，然后检查这个输入是否是由另一个转置操作生成的。如果不是，模式不匹配，返回。如果是，模式匹配成功，使用 `rewriter.replaceOp` 方法将当前转置操作替换为原始输入，然后返回 `successs()`
 
 The implementation of this rewriter is in `ToyCombine.cpp`. The [canonicalization pass](https://mlir.llvm.org/docs/Canonicalization/) applies transformations defined by operations in a greedy, iterative manner. To ensure that the canonicalization pass applies our new transform, we set [hasCanonicalizer = 1](https://mlir.llvm.org/docs/DefiningDialects/Operations/#hascanonicalizer) and register the pattern with the canonicalization framework.
->  MLIR 的标准化过程会贪心且迭代地应用操作所定义的转换
->  为了确保标准化过程会应用我们定义的新转换，我们设定 `hasCanonicalizer=1`，然后将模式注册到标准化框架中：
+>  MLIR 的规范化过程会贪心且迭代地应用操作所定义的转换
+>  为了确保规范化过程会应用我们定义的新转换，我们设定 `hasCanonicalizer=1`，然后将模式注册到标准化框架中：
 
->  MLIR 中，标准化过程会将 IR 转化为更规范的形式，标准化框架使用预定义的模式 `RewrittenPattern` 对 IR 进行优化
+>  MLIR 中，规范化过程会将 IR 转化为更规范的形式，标准化框架使用预定义的模式 `RewrittenPattern` 对 IR 进行优化
 
 ```c++
 // Register our patterns for rewrite by the Canonicalization framework.
@@ -1023,7 +1025,7 @@ toy.func @transpose_transpose(%arg0: tensor<*xf64>) -> tensor<*xf64> {
 ```
 
 As expected, we now directly return the function argument, bypassing any transpose operation. However, one of the transposes still hasn’t been eliminated. That is not ideal! What happened is that our pattern replaced the last transform with the function input and left behind the now dead transpose input. 
->  优化后，有一个转置操作没有被消除，我们的模式将后一个转置替换为了函数输入，上一个转置被留下，且是多余的
+>  优化后，有一个转置操作没有被消除，我们的模式将后一个转置替换为了函数输入，上一个转置被留下，且是多余的 (它的结果完全没有被用到，因此是多余的)
 
 The Canonicalizer knows to clean up dead operations; however, MLIR conservatively assumes that operations may have side-effects. We can fix this by adding a new trait, `Pure`, to our `TransposeOp`:
 
@@ -1031,7 +1033,7 @@ The Canonicalizer knows to clean up dead operations; however, MLIR conservativel
 def TransposeOp : Toy_Op<"transpose", [Pure]> {...}
 ```
 
->  标准化程序知道清除无用的操作，但 MLIR 假设了操作可能有副作用
+>  规范化程序知道清除无用的操作，但 MLIR 保守地假设了操作可能有副作用 (故有副作用的操作就不会被规范化过程清除)
 >  我们可以为 `Transpose` 操作添加特性 `Pure` 表示没有副作用
 
 Let’s retry now `toyc-ch3 test/transpose_transpose.toy -emit=mlir -opt`:
@@ -1147,26 +1149,36 @@ Therefore, a more generic solution was designed, in the form of [interfaces](ht
 
 ## Shape Inference: Preparing for Code Generation
 Our Toy IR currently operates on generic tensors, meaning that we don’t know the shape of tensors other than during the initialization of constants. This complicates optimizations, as well as code generation. Fortunately, we can simply propagate the shapes through the computation until they are all known. 
->  Toy IR 目前在通用的张量上运算，意味着除了在初始化常量时，我们不知道张量的形状，而这会让优化和代码生成变得复杂
->  幸运的是，我们可以在计算过程中将张量的形状传播，直到所有参与计算的张量已知
+>  Toy IR 目前在通用的张量上运算，意味着除了在初始化常量时，我们不知道张量的形状，这会让优化和代码生成变得复杂 (大多数编译优化都依赖于张量的形状信息，如果没有形状信息，只能执行非常保守的优化)
+>  推导张量形状的常见方法就是在计算过程中将张量的形状传播，直到所有参与计算的张量已知
 
-The issue is how to handle calls to user-defined generic functions: every call site could deduce different shapes. One possibility would be to perform symbolic inference based on the argument types, but this would be hard to generalize if we were to introduce more control flow in the language. Another approach would be function specialization, where every call site with new argument shapes duplicates the called function and specializes it. 
->  此时，问题在于如何处理对用户定义的泛型函数的定义：泛型函数在每个调用点都可能推导出不同的形状
+The issue is how to handle calls to user-defined generic functions: every call site could deduce different shapes. 
+>  形状传播在处理基本操作时没有问题，问题在于如何处理对用户定义的泛型函数的定义：泛型函数在每个调用点都可能推导出不同的形状
+>  ( 泛型函数在设计意图上就是要能够处理不同形状的输入，例如一个矩阵乘函数需要接收各种形状的矩阵输入 )
+
+One possibility would be to perform symbolic inference based on the argument types, but this would be hard to generalize if we were to introduce more control flow in the language. Another approach would be function specialization, where every call site with new argument shapes duplicates the called function and specializes it. 
 >  一种可能性是基于参数类型执行符号推理，但如果我们在语言中引入过多控制流，将难以 generalize
->  另一种方法是函数专用化，在每个具有新参数形状的调用点复制被调用的函数代码，并对其进行专用化
+>  另一种方法是函数实例化，在每个具有新参数形状的调用点复制被调用的函数代码，并对其进行实例化
 
-The approach we take for Toy is to inline all of the function calls, then perform intraprocedural shape propagation.
->  在 Toy 中，我们要采用的方法是内联所有的函数调用，然后执行过程内的形状传播
+>  符号推理即编译器为泛型函数生成一个通用版本，其输入输出的形状都用符号表示，例如 `M x N x K`
+>  控制流会让符号推理变得复杂，例如 `if(condition)` 中的内部逻辑导致了张量形状变化，且 `condition` 依赖于运行时才确定的值，那么编译时就无法确定走向哪条分支，只能根据需要生成多条路径的代码，又例如循环语句的循环次数依赖于运行时输入...
+
+>  函数实例化就是为具体输入形状实例化函数的特化版本，编译器对这些版本执行最大限度的优化
+>  其缺点就是代码膨胀
+
+The approach we take for Toy is to inline all of the function calls, then perform intraprocedural shape propagation. 
+>  在 Toy 中，我们要采用的方法是内联所有的函数调用，然后执行过程内的形状传播 
+>  (内联的所有的函数调用后，整个程序就是单独的一个函数/过程，然后我们就在这个单独的过程内执行形状传播)
 
 ### Inlining 
 Here we could write an inlining algorithm specifically designed for the Toy dialect, but that can become quite complicated depending on the level of complexity that we want. Disregarding cost modeling, the pure structural transformation is already complex to implement from scratch. 
 
 Thankfully, MLIR provides a generic inliner algorithm that dialects can plug into. All we need to do in Toy is to provide the [interfaces](https://mlir.llvm.org/docs/Interfaces/) for the inliner to hook into.
->  MLIR 提供了一个通用的 inliner 算法，方言可以向 inliner 提供接口，使得它可以通过该接口接入方言
+>  MLIR 提供了一个通用的 inliner 算法，方言可以向 inliner 提供接口，使得 inliner 可以通过该接口接入方言
 
 The first thing we need to do is to define the constraints on inlining operations in the Toy dialect. This information is provided through a [dialect interface](https://mlir.llvm.org/docs/Interfaces/#dialect-interfaces). This is essentially a class containing a set of virtual hooks which the dialect can override. In this case, the interface is `DialectInlinerInterface`.
 >  我们首先要定义 Toy 方言中内联操作的约束条件，要定义这些约束条件，方言需要使用方言接口
->  方言接口本质是一个类，包含了一组虚钩子 (虚函数)，方言可以覆盖这些钩子，本例中，我们需要使用的方言接口是 ``
+>  方言接口本质是一个类，包含了一组虚钩子 (虚函数)，方言可以覆盖这些钩子，本例中，我们需要使用的方言接口是 `DialectInlinerInterface`
 
 ```c++
 /// This class defines the interface for handling inlining with Toy operations.
@@ -1654,9 +1666,20 @@ Above, we first set the toy dialect to illegal, and then the print operation as 
 >  上例中，我们显式将 `ToyDialect` 添加为 illegal，并且显式将 `toy::PrintOp` 添加为 legal，顺序不影响，因为为单独操作定义的规则的优先级总是高于为整个方言定义的规则
 
 ### Conversion Patterns 
-After the conversion target has been defined, we can define how to convert the _illegal_ operations into _legal_ ones. Similarly to the canonicalization framework introduced in [chapter 3](https://mlir.llvm.org/docs/Tutorials/Toy/Ch-3/), the [`DialectConversion` framework](https://mlir.llvm.org/docs/DialectConversion/) also uses [RewritePatterns](https://mlir.llvm.org/docs/Tutorials/QuickstartRewrites/) to perform the conversion logic. These patterns may be the `RewritePatterns` seen before or a new type of pattern specific to the conversion framework `ConversionPattern`. `ConversionPatterns` are different from traditional `RewritePatterns` in that they accept an additional `operands` parameter containing operands that have been remapped/replaced. This is used when dealing with type conversions, as the pattern will want to operate on values of the new type but match against the old. For our lowering, this invariant will be useful as it translates from the [TensorType](https://mlir.llvm.org/docs/Dialects/Builtin/#rankedtensortype) currently being operated on to the [MemRefType](https://mlir.llvm.org/docs/Dialects/Builtin/#memreftype). Let’s look at a snippet of lowering the `toy.transpose` operation:
+After the conversion target has been defined, we can define how to convert the _illegal_ operations into _legal_ ones. Similarly to the canonicalization framework introduced in [chapter 3](https://mlir.llvm.org/docs/Tutorials/Toy/Ch-3/), the [`DialectConversion` framework](https://mlir.llvm.org/docs/DialectConversion/) also uses [RewritePatterns](https://mlir.llvm.org/docs/Tutorials/QuickstartRewrites/) to perform the conversion logic. These patterns may be the `RewritePatterns` seen before or a new type of pattern specific to the conversion framework `ConversionPattern`. 
 >  定义完转化目标，我们继而需要定义转换模式
->  和 canonicalization 框架一样，`DialectConversion` 框架也使用 RewritePatterns 来执行转换逻辑，包括 `RewritePattern, ConversionPattern` `ConversionPattern` 和 `RewritePattern` 的差异在于它接受一个额外的 `operand` 参数，表示被重映射/重放置的参数，这会在类型转换时被使用，因为新操作的会有不同的值类型，但需要和旧的类型匹配
+>  和 canonicalization 框架一样，`DialectConversion` 框架也使用 RewritePatterns 来执行转换逻辑，包括 `RewritePattern, ConversionPattern`
+
+`ConversionPatterns` are different from traditional `RewritePatterns` in that they accept an additional `operands` parameter containing operands that have been remapped/replaced. This is used when dealing with type conversions, as the pattern will want to operate on values of the new type but match against the old. For our lowering, this invariant will be useful as it translates from the [TensorType](https://mlir.llvm.org/docs/Dialects/Builtin/#rankedtensortype) currently being operated on to the [MemRefType](https://mlir.llvm.org/docs/Dialects/Builtin/#memreftype). 
+ > `ConversionPattern` 和 `RewritePattern` 的差异在于它接受一个额外的 `operand` 参数，表示被重映射/重放置的参数，这会在类型转换时被使用，因为新操作的会有不同的值类型，但需要和旧的类型匹配
+
+>  传统的 `RewritePattern` 的 `matchAndRewrite` 通常接收一个 `Operation* op` 参数即可，直接通过 `op` 获取操作的操作数和结果
+>  `ConversionPattern` 的 `matchAndRewrite` 方法会接收两个参数 `OpType op` (匹配到的原始操作) 和 `OpAdaptor adaptor` (或者直接的 `ValueRange operands`)
+>  其中的 `operands` 参数 (或者通过 `OpAdaptor` 访问) 包含的不是原始操作的直接操作数，而是经过重映射/替换后的操作数
+
+>  在 Dialect Conversion 框架中，转换是分阶段进行的，当一个操作的某个操作数 (`Value`) 在之前已经被转换框架处理过，并且它的类型也可能发生改变 (例如从 `TensorType` 变为 `MemRefType`)，那么这个 `operands` 参数就会提供这个新的、已经转换的 `Value`
+
+Let’s look at a snippet of lowering the `toy.transpose` operation:
 
 ```c++
 /// Lower the `toy.transpose` operation to an affine loop nest.
@@ -1725,8 +1748,6 @@ void ToyToAffineLoweringPass::runOnOperation() {
 >  3. 调用 `applyPartialConversion`，传入 operation 本身、转换模式集合和转换目标
 >  显然，`runOnOperation` 最终会调用 `applyPartialConverion`，而 `applyPartialConversion` 会根据 operation 信息，找到转换模式集合中匹配的转换模式，对 operation 进行转换，在转换后，检查结果是否匹配转换目标的要求
 >  因此，实际的各个 operation 映射到 operation 的转换逻辑应该定义在各个转换模式中
-
->  在 MLIR 中，各个转换模式都抽象为一个类，
 
 ### Partial Lowering 
 Once the patterns have been defined, we can perform the actual lowering. The `DialectConversion` framework provides several different modes of lowering, but, for our purposes, we will perform a partial lowering, as we will not convert `toy.print` at this time.
