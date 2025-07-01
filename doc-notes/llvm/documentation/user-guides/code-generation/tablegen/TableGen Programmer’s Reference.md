@@ -269,3 +269,29 @@ let isCall = true in
 ```
 
 Note that a top-level `let` will not override fields defined in the classes or records themselves.
+
+## 1.7 Additional Details
+### 1.7.1 Directed acyclic graphs (DAGs)
+A directed acyclic graph can be represented directly in TableGen using the `dag` datatype. A DAG node consists of an operator and zero or more arguments (or operands). Each argument can be of any desired type. By using another DAG node as an argument, an arbitrary graph of DAG nodes can be built.
+>  TableGen 中使用 `dag` 数据类型表示有向无环图
+>  一个 DAG 节点由一个 operator 以及零个或多个 arguments 组成，arguements 可以是任意类型，包括 `dag`
+
+The syntax of a `dag` instance is:
+
+> `(` _operator_ _argument1_`,` _argument2_`,` … `)`
+
+The operator must be present and must be a record. There can be zero or more arguments, separated by commas. The operator and arguments can have three formats.
+
+>  `dag` 实例通过上述语法定义
+>  operator 必须是已经定义的 record
+>  operator, arguments 可以以以下三种语法定义
+
+| Format           | Meaning                                        |
+| :--------------- | :--------------------------------------------- |
+| _value_          | argument value                                 |
+| _value_`:`_name_ | argument value and associated name             |
+| _name_           | argument name with unset (uninitialized) value |
+
+The _value_ can be any TableGen value. The _name_, if present, must be a [`TokVarName`](https://llvm.org/docs/TableGen/ProgRef.html#grammar-token-TokVarName), which starts with a dollar sign (`$`). The purpose of a name is to tag an operator or argument in a DAG with a particular meaning, or to associate an argument in one DAG with a like-named argument in another DAG.
+
+The following bang operators are useful for working with DAGs: `!con`, `!dag`, `!empty`, `!foreach`, `!getdagarg`, `!getdagname`, `!getdagop`, `!setdagarg`, `!setdagname`, `!setdagop`, `!size`.
