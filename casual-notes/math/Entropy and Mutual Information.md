@@ -258,7 +258,7 @@ Remark：
 $$\begin{align}
 D(p(x)||q(x))&= \sum_x p(x)\log \frac {p(x)}{q(x)}\\
 &=-\sum_x p(x)\log q(x)+\sum_xp(x)\log p(x)\\
-&=-\sum_x p(x)\log q(x) - H(p)
+&=\underbrace{-\sum_x p(x)\log q(x)}_{\text{ cross entropy:}\  H(p, q)} - \underbrace{H(p)}_{\text{entropy} }
 \end{align}$$
 
 相对熵和互信息的关联是：
