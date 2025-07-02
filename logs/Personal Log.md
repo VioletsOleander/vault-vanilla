@@ -2510,3 +2510,17 @@ Date: 2025.6.16-2025.6.23
 - [[doc-notes/mlir/code-documentation/Pattern Rewriting Generic DAG-to-DAG Rewriting|mlir/code-documentation/Pattern Rewriting Generic DAG-to-DAG Rewriting]]
 - [[doc-notes/llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference|llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference]]
 - [[doc-notes/nvidia/CUDA C++ Programming Guide|nvidia/CUDA C++ Programming Guide]]
+
+### Week 5
+Date: 2025.6.23-2025.6.30
+
+\[Paper\]
+- [[paper-notes/rl/Direct Preference Optimization Your Language Model is Secretly a Reward Model-2023-NeurIPS|2023-NeurIPS-Direct Preference Optimization Your Language Model is Secretly a Reward Model]]
+
+\[Doc\]
+- [[doc-notes/onnx/onnx-operators/Gather|onnx/onnx-operators/Gather]]: All
+- [[doc-notes/onnx/onnx-operators/GatherElements|onnx/onnx-operators/GatherElements]]: All
+- [[doc-notes/onnx/onnx-operators/ScatterElements|onnx/onnx-operators/ScatterElements]]: All
+- [[doc-notes/onnx/onnx-operators/GridSample|onnx/onnx-operators/GridSample]]: All
+- [[doc-notes/mlir/code-documentation/defining-dialects/Defining Dialect Attributes and Types|mlir/code-documentation/defining-dialects/Defining Dialect Attributes and Types]]
+- [[doc-notes/mlir/code-documentation/defining-dialects/Operation Definition Specification (ODS)|mlir/code-documentation/defining-dialects/Operation Definition Specification (ODS)]]
