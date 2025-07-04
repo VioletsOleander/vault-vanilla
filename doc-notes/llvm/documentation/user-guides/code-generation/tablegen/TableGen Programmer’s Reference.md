@@ -113,6 +113,33 @@ The following are the basic punctuation tokens:
 - + [ ] { } ( ) < > : ; . ... = ? #
 ```
 
+### 1.3.1 Literals
+Numeric literals take one of the following forms:
+
+```
+TokInteger     ::=  DecimalInteger | HexInteger | BinInteger
+DecimalInteger ::=  ["+" | "-"] ("0"..."9")+
+HexInteger     ::=  "0x" ("0"..."9" | "a"..."f" | "A"..."F")+
+BinInteger     ::=  "0b" ("0" | "1")+
+```
+
+Observe that the [`DecimalInteger`](https://llvm.org/docs/TableGen/ProgRef.html#grammar-token-DecimalInteger) token includes the optional `+` or `-` sign, unlike most languages where the sign would be treated as a unary operator.
+
+TableGen has two kinds of string literals:
+
+```
+TokString ::=  '"' (non-'"' characters and escapes) '"'
+TokCode   ::=  "[{" (text not containing "}]") "}]"
+```
+
+A [`TokCode`](https://llvm.org/docs/TableGen/ProgRef.html#grammar-token-TokCode) is nothing more than a multi-line string literal delimited by `[{` and `}]`. It can break across lines and the line breaks are retained in the string.
+
+The current implementation accepts the following escape sequences:
+
+```
+\\ \' \" \t \n
+```
+
 ## 1.4 Types
 The TableGen language is statically typed, using a simple but complete type system. Types are used to check for errors, to perform implicit conversions, and to help interface designers constrain the allowed input. Every value is required to have an associated type.
 >  TableGen 语言为静态类型，所有值都要求有类型
