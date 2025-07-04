@@ -159,12 +159,10 @@ LogicalResult circt::MulOp::canonicalize(MulOp op, PatternRewriter &rewriter) {
   // mul(x, c) -> shl(x, log2(c)), where c is a power of two.
   if (inputs.size() == 2 && matchPattern(inputs.back(), m_RConstant(value)) &&
       value.isPowerOf2()) {
-    auto shift = rewriter.create<rtl::ConstantOp>(op.getLoc(), op.getType(),
-                                                  value.exactLogBase2());
+    auto shift = rewriter.create<rtl::ConstantOp>(op.getLoc(), op.getType(), value.exactLogBase2());
     auto shlOp =
         rewriter.create<comb::ShlOp>(op.getLoc(), inputs[0], shift);
-    rewriter.replaceOpWithNewOp<MulOp>(op, op.getType(),
-                                       ArrayRef<Value>(shlOp));
+    rewriter.replaceOpWithNewOp<MulOp>(op, op.getType(), ArrayRef<Value>(shlOp));
     return success();
   }
 
