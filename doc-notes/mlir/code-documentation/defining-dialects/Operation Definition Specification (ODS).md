@@ -1,3 +1,6 @@
+---
+completed:
+---
 In addition to specializing the `mlir::Op` C++ template, MLIR also supports defining operations and data types in a table-driven manner. This is achieved via [TableGen](https://llvm.org/docs/TableGen/index.html), which is both a generic language and its tooling to maintain records of domain-specific information. Facts regarding an operation are specified concisely into a TableGen record, which will be expanded into an equivalent `mlir::Op` C++ template specialization at compiler build time.
 >  MLIR 支持在 C++ 中，定义 `mlir::Op` 的衍生类来定义 operation，也支持在 TableGen 中定义 operation
 >  TableGen 中 operation 的定义在一个 record 中指定，该 record 会在编译时被生成为继承了 `mlir::Op` 的 C++ 类
@@ -318,17 +321,117 @@ static void build(OpBuilder &odsBuilder, OperationState &odsState,
 ```
 
 The first two forms provide basic uniformity so that we can create ops using the same form regardless of the exact op. This is particularly useful for implementing declarative pattern rewrites.
+>  第一个构建方法将所有的结果类型、操作数、特性和可丢弃属性分别打包成一个参数: `TypeRange, ValueRange, ArrayRef<NamedAttribute>`，这种形式提供了一种统一的方式来构建操作，无论操作的具体参数有多少
+>  第二个构建方法类似，且将所有的属性 (包括固有属性和可丢弃属性) 都合并到一个 `ArrayRef<NamedAttribute>`
+>  前两种形式的构建方法提供了基本的一致性，使得无论 operation 的具体细节如何，都可以使用相同形式的构建方法创造 operation，这对于实现声明式模式重写特别有用
 
 The third and fourth forms are good for use in manually written code, given that they provide better guarantee via signatures.
+>  第三种形式为 operation 的每个结果类型、属性和操作数都提供了单独的形参，其中属性的类型都是相应的 MLIR `Attribute` 类型 (例如 `IntegerAttr`, `FloatAttr`)，这种形式在手写代码时更有用，因为通过签名提供了强类型保证
 
-The fourth form will be generated if any of the op’s attribute has different `Attr.returnType` from `Attr.storageType` and we know how to build an attribute from an unwrapped value (i.e., `Attr.constBuilderCall` is defined.) Additionally, for the third form, if an attribute appearing later in the `arguments` list has a default value, the default value will be supplied in the declaration. This works for `BoolAttr`, `StrAttr`, `EnumAttr` for now and the list can grow in the future. So if possible, the default-valued attribute should be placed at the end of the `arguments` list to leverage this feature. (This behavior is essentially due to C++ function parameter default value placement restrictions.) Otherwise, the builder of the third form will still be generated but default values for the attributes not at the end of the `arguments` list will not be supplied in the builder’s signature.
+The fourth form will be generated if any of the op’s attribute has different `Attr.returnType` from `Attr.storageType` and we know how to build an attribute from an unwrapped value (i.e., `Attr.constBuilderCall` is defined.) 
+>  第四种类型也为每个结果类型、属性和操作数提供了单独的参数，但属性使用的类型是原始的类型 (例如 `APInt, StringRef`)
+>  当 operation 的某个属性的 `Attr.returnType` 和 `Attr.storageType` 不同时，并且 MLIR 知道如何从原始值构建属性时 (即 `Attr.constBuilderCall` 已定义)，这种形式的构建函数才会生成
+
+Additionally, for the third form, if an attribute appearing later in the `arguments` list has a default value, the default value will be supplied in the declaration. This works for `BoolAttr`, `StrAttr`, `EnumAttr` for now and the list can grow in the future. So if possible, the default-valued attribute should be placed at the end of the `arguments` list to leverage this feature. (This behavior is essentially due to C++ function parameter default value placement restrictions.) Otherwise, the builder of the third form will still be generated but default values for the attributes not at the end of the `arguments` list will not be supplied in the builder’s signature.
+>  此外，如果 `arguments` 列表中后面的属性有默认值，则在第三种形式的构建函数声明中也会提供这些默认值，目前支持 `BoolAttr, StrAttr, EnumAtr`
+>  因此，建议将有默认值的属性放在 `arguments` 的末尾以利用该特性，如果不放在末尾，则不会生成带默认值的构建函数
 
 ODS will generate a builder that doesn’t require the return type specified if
 
 - Op implements InferTypeOpInterface interface;
 - All return types are either buildable types or are the same as a given operand (e.g., `AllTypesMatch` constraint between operand and result);
 
+>  如果 1. Op 实现了 `InferTypeOpInteface` 接口 2. 所有返回类型要么是可构建的类型，要么与给定的操作数类型相同 (例如操作数和结果之间存在 `AllTypesMatch` 约束)
+>  则 ODS 会生成不需要显式指定返回类型的构建器
+
 And there may potentially exist other builders depending on the specific op; please refer to the [generated C++ file](https://mlir.llvm.org/docs/DefiningDialects/Operations/#run-mlir-tblgen-to-see-the-generated-content) for the complete list.
+
+#### Custom builder methods 
+However, if the above cases cannot satisfy all needs, you can define additional convenience build methods in the `builders` field as follows.
+
+```tablegen
+def MyOp : Op<"my_op", []> {
+  let arguments = (ins F32Attr:$attr);
+
+  let builders = [
+    OpBuilder<(ins "float":$val)>
+  ];
+}
+```
+
+The `builders` field is **a list of** custom builders that are added to the Op class.
+
+>  `builders` 用于指定一系列 Op 的自定义构建方法
+
+In this example, we provide a convenience builder that takes a floating point value instead of an attribute. The `ins` prefix is common to many function declarations in ODS, which use a TableGen [`dag`](https://mlir.llvm.org/docs/DefiningDialects/Operations/#tablegen-syntax). What follows is a comma-separated list of types (quoted string) and names prefixed with the `$` sign. 
+>  每个自定义构建方法都需要是一个 `OpBuilder` 模板类的实例
+>  第一个模板参数是 TableGen `dag` 类型，形式为 `(ins arg:$name ...)`，在这里，`"float":val` 为自动生成的构建方法指定了形参 `float var`
+
+This will generate the declaration of a builder method that looks like:
+
+```c++
+class MyOp : /*...*/ {
+  /*...*/
+  static void build(::mlir::OpBuilder &builder, ::mlir::OperationState &state, float val);
+};
+```
+
+Note that the method has two additional leading arguments. These arguments are useful to construct the operation. In particular, the method must populate `state` with attributes, operands, regions and result types of the operation to be constructed. 
+>  从 `builders` 中生成的构建方法都会有两个额外形参: `OpBuilder, OperationState`
+>  自定义方法在定义上需要用 attributes, operands, regions, result types 填充 `OperationState`，以构造 operation
+
+`builder` can be used to construct any IR objects that belong to the Op, such as types or nested operations. Since the type and name are generated as is in the C++ code, they should be valid C++ constructs for a type (in the namespace of the Op) and an identifier (e.g., `class` is not a valid identifier).
+
+Implementations of the builder can be provided directly in ODS, using TableGen code block as follows.
+
+```tablegen
+def MyOp : Op<"my_op", []> {
+  let arguments = (ins F32Attr:$attr);
+
+  let builders = [
+    OpBuilder<(ins "float":$val), [{
+      $_state.addAttribute("attr", $_builder.getF32FloatAttr(val));
+    }]>
+  ];
+}
+```
+
+>  构建方法的实现通过 TableGen code block (形式为 `[{ ... }]`) 提供，作为 `OpBuilder` 的第二个模板参数
+
+The equivalents of `builder` and `state` arguments are available as `$_builder` and `$_state` special variables. The named arguments listed in the `ins` part are available directly, e.g. `val`. The body of the builder will be generated by substituting special variables and should otherwise be valid C++. 
+
+While there is no limitation on the code size, we encourage one to define only short builders inline in ODS and put definitions of longer builders in C++ files.
+>  如果代码短，可以内联在 TableGen 中，否则应该放在另外的 C++ 文件中 (声明和实现分离)
+
+Finally, if some arguments need a default value, they can be defined using `CArg` to wrap the type and this value as follows.
+
+```tablegen
+def MyOp : Op<"my_op", []> {
+  let arguments = (ins F32Attr:$attr);
+
+  let builders = [
+    OpBuilder<(ins CArg<"float", "0.5f">:$val), [{
+      $_state.addAttribute("attr", $_builder.getF32FloatAttr(val));
+    }]>
+  ];
+}
+```
+
+The generated code will use default value in the declaration, but not in the definition, as required by C++.
+>  生成的 C++ 代码中在声明中有默认值，在定义中没有默认值
+
+```c++
+/// Header file.
+class MyOp : /*...*/ {
+  /*...*/
+  static void build(::mlir::OpBuilder &builder, ::mlir::OperationState &state, float val = 0.5f);
+};
+
+/// Source file.
+MyOp::build(::mlir::OpBuilder &builder, ::mlir::OperationState &state, float val) {
+  state.addAttribute("attr", builder.getF32FloatAttr(val));
+}
+```
 
 ### Generated C++ code 
 [OpDefinitionsGen](https://github.com/llvm/llvm-project/blob/main/mlir/tools/mlir-tblgen/OpDefinitionsGen.cpp) processes the op definition spec file and generates two files containing the corresponding C++ code: one for declarations, the other for definitions. The former is generated via the `-gen-op-decls` command-line option, while the latter is via the `-gen-op-defs` option.
