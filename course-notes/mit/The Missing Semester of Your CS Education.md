@@ -1550,18 +1550,89 @@ There are many ways to copy files over ssh:
 
 - `ssh+tee`, the simplest is to use `ssh` command execution and STDIN input by doing `cat localfile | ssh remote_server tee serverfile`. Recall that [`tee`](https://www.man7.org/linux/man-pages/man1/tee.1.html) writes the output from STDIN into a file.
 - [`scp`](https://www.man7.org/linux/man-pages/man1/scp.1.html) when copying large amounts of files/directories, the secure copy `scp` command is more convenient since it can easily recurse over paths. The syntax is `scp path/to/local_file remote_host:path/to/remote_file`
-- [`rsync`](https://www.man7.org/linux/man-pages/man1/rsync.1.html) improves upon `scp` by detecting identical files in local and remote, and preventing copying them again. It also provides more fine grained control over symlinks, permissions and has extra features like the `--partial` flag that can resume from a previously interrupted copy. `rsync` has a similar syntax to `scp`.
+- [`rsync`](https://www.man7.org/linux/man-pages/man1/rsync.1.html) improves upon `scp` by detecting identical files in local and remote, and preventing copying them again. It also provides more fine grained control over symlinks, permissions and has extra features like the `--partial` flag that can resume from a previously interrupted copy. `rsync` has a similar syntax to `scp`. 
+
+>  通过 ssh 拷贝文件的方式:
+>  `ssh + tee`: `cat localflie | ssh remote_server tee serverfile` 
+>  `scp` (secure copy): `scp local_file remote_host: remote_file `
+>  `rsync`: 在 `scp` 的基础上，还会删除 local 和 remote 中相同的文件，并且不会重复拷贝，其语法和 `scp` 类似
 
 ### Port Forwarding
 In many scenarios you will run into software that listens to specific ports in the machine. When this happens in your local machine you can type `localhost:PORT` or `127.0.0.1:PORT`, but what do you do with a remote server that does not have its ports directly available through the network/internet?.
+>  许多情况下，软件会监听特定机器上的特定端口
+>  例如，监听本地机器的某个端口: `localhost:PORT, 127.0.0.1:PORT`
+
+> [!info] Loopback Address
+> 环回地址即被保留的特殊 IP 地址，它们指向本机，当我们向环回地址发送数据包时，数据不会离开本机，而是会 “环回” 到本地网络接口
+> 
+> 环回地址主要用于测试目的，例如测试一个本地运行的网络服务器时，可以在一个浏览器中输入 `http://127.0.0.1` 或 `http://localhost`，以尝试连接并显示本机上运行的 Web 服务器提供的网页
+> 
+> 环回地址不依赖物理网络，即使计算机没有连接到任何物理网络，127.0.0.1 仍然是可用的，因为它是由操作系统在内部实现的
+> 
+> 127.0.0.1 是 IPv4 的环回地址。在 IPv6 中，对应的环回地址是 `::1`
+> 实际上，IPv4 中，整个 127.0.0.0 到 127.255.255.255 的 IP 地址范围 (可以记作 127.0.0.0/8 网段，其中 /8 表示子网掩码的前 8 位是网络位，后面的 16 位可以任意变化) 都被保留为环回地址，尽管最常用的是 127.0.0.1。
 
 This is called _port forwarding_ and it comes in two flavors: Local Port Forwarding and Remote Port Forwarding (see the pictures for more details, credit of the pictures from [this StackOverflow post](https://unix.stackexchange.com/questions/115897/whats-ssh-port-forwarding-and-whats-the-difference-between-ssh-local-and-remot)).
 
+>  如果远程服务器没有一个直接通过网络可用的端口，可以考虑端口转发
+>  端口转发分为两类:
+>  - 本地端口转发
+>  - 远程端口转发
+
 **Local Port Forwarding**![Local Port Forwarding](https://missing.csail.mit.edu/static/media/images/local-port-forwarding.png)
+
+>  采用本地端口转发时，其基本语法是
+>  `ssh -L [本地监听端口]:[目标主机]:[目标端口] [远程ssh服务器用户@远程ssh服务器地址]`
+>  当我们连接到本地监听端口后，流量会通过 ssh 连接/隧道转发到远程 ssh 服务器，然后从远程 ssh 服务器发送到目标主机的目标端口
+
+>  第一张图中，发往 `localhost:123` 的流量会先被 ssh 转发到 `remotehost`，然后 `remotehost` 将流量再发送到 `localhost:456`
+>  这样，就可以在本地端口 `123` 访问 `remotehost` 上运行在 `456` 端口的服务
+>  第二张图中，类似地，流量会先发送到 `remotehost`，然后 `remotehost` 会将流量再发送到 `farwayhost:456`，在这里，`remotehost` 充当了跳板机 (jump host) 的角色
+
+>  无论如何，本地端口转发都非常适合于在无法直接访问 `[目标主机]:[目标端口]` 的情况下，通过中间的 ssh 服务器来安全访问目标机器上的服务
 
 **Remote Port Forwarding**![Remote Port Forwarding](https://missing.csail.mit.edu/static/media/images/remote-port-forwarding.png)
 
+>  采用远程端口转发时，其基本语法是  `ssh -R [远程监听端口]:[目标主机]:[目标端口] [远程ssh服务器用户@远程ssh服务器地址]`
+>  当任何机器连接到在远程 SSH 服务器的远程监听端口后，流量会通过 ssh 连接/隧道转发到本地 your host，然后从本地 your host 发送到目标主机的目标端口
+
+> 第一张图中，发往 ` remotehost:123 ` 的流量会先被 ssh 转发到 your host，然后 your host 将流量再发送到它自己的 `localhost: 456`
+> 这样，就可以通过访问 `remotehost:123` 来访问 your host 上运行在 456 端口的服务
+> 第二张图中，发往 `remotehost: 123` 的流量会先被 ssh 转发到 your host，然后 your host 会将流量再发送到 `nearhost: 456 `
+> 在这里，your host 充当了访问 nearhost 的跳板机的角色，因为它将 remotehost 的请求转发到了本地网络中的 nearhost
+
+> 无论如何，**远程端口转发**都非常适合于将本地网络中的服务暴露给无法直接访问本地网络的远程服务器，通过安全的 SSH 隧道来访问这些服务
+
+>  docker 容器的端口转发将宿主机上的特定端口映射到 docker 容器内部正在监听的端口，方便外部网络通过宿主机上的特定端口访问容器内的服务
+>  基础的端口转发命令格式为 `docker run -p [宿主机端口]:[容器端口] [镜像名称]`
+>  例如，假设容器内在端口 88 运行了 nginx 服务器，如果运行容器时指定了 `-p 8080:88`，就可以在浏览器中访问 `http://宿主机IP:8080` 访问容器内的 nginx 服务器
+
+>  docker 端口转发的原理时: 执行端口映射时，docker deamon 会在宿主机上创建一个 iptables 防火墙规则，这些规则会将到达宿主机的指定流量重定向到 docker 内部的网络接口 (即内部 IP)，然后路由到相应的容器端口
+
+> `0.0.0.0` 是特殊的 IP 地址，表示 “所有可用的网络接口”，如果 docker 端口映射绑定到 `0.0.0.0:8080:88`，意味着宿主机上所有的网络接口 (网络接口即网卡，每个网卡都会有一个实际的 IP 地址，环回接口是一个虚拟的网络接口，用于内部通信) 都会监听发送给它的，端口号指定为 `8080` 的请求，然后转发给容器的 `88` 端口
+
 The most common scenario is local port forwarding, where a service in the remote machine listens in a port and you want to link a port in your local machine to forward to the remote port. For example, if we execute `jupyter notebook` in the remote server that listens to the port `8888`. Thus, to forward that to the local port `9999`, we would do `ssh -L 9999:localhost:8888 foobar@remote_server` and then navigate to `localhost:9999` in our local machine.
+>  最常见的情况还是使用本地端口转发，即远程服务器在某个端口上运行服务，我们将某个本地端口和其连接，进而可以通过本地端口访问这个服务
+>  例如，在远程服务器的 `8888` 端口上运行了 ` jupyter notebook ` 服务，我们想把这个服务转发到本地端口 ` 9999 `, 就可以使用 `ssh -L 9999:localhost:8888 foobar@remote_server`，然后访问本地的 `9999` 端口即可 (`localhost:9999`)
+
+>  关于 `iptables -L` 的输出
+>  `iptables` 是 Linux 内核中的防火墙，它通过一系列的链和规则来过滤和处理网络数据包
+>  链是指数据包经过的路径，主要有:
+>  - INPUT，表示所有进入本机的数据包
+>  - OUTPUT，表示所有从本机发出的数据包
+>  - FORWARD，表示所有不进入本机，也不从本机发出，而是穿过本机的数据包 (例如作为路由器转发的数据包)
+>  - 自定义链
+>  策略是在数据包遍历完链中的所有规则，没有找到匹配规则的情况下的处理逻辑，即根据链的策略进行处理，常见的策略有:
+>  - ACCEPT，表示接收数据包
+>  - DROP，表示直接丢弃数据包，不通知发送方
+>  - REJECT，表示丢弃数据包，并通知发送方
+>  规则定义了如何处理每个数据包，每条规则都有:
+>  - target，表示如果数据包匹配了规则，应该如何处理它 (ACCEPT, DROP, JUMP 到另一个链, RETURN 到调用它的链等)
+>  - prot，表示匹配的协议
+>  - opt，表示额外的选项，`--` 表示没有
+>  - source，表示匹配的 IP 源地址，`anywhere` 表示任何地址
+>  - destination，表示匹配的 IP 目的地址，`anywhere` 表示任何地址
+>  - 其他匹配条件，例如 `tcp dpt:端口号` 表示匹配的目标端口
 
 ### SSH Configuration
 We have covered many many arguments that we can pass. A tempting alternative is to create shell aliases that look like
@@ -1586,19 +1657,20 @@ Host *.mit.edu
 ```
 
 An additional advantage of using the `~/.ssh/config` file over aliases is that other programs like `scp`, `rsync`, `mosh`, &c are able to read it as well and convert the settings into the corresponding flags.
+>  `~/.ssh/config` 会被许多程序阅读，例如 `scp, rsync, mosh`
 
 Note that the `~/.ssh/config` file can be considered a dotfile, and in general it is fine for it to be included with the rest of your dotfiles. However, if you make it public, think about the information that you are potentially providing strangers on the internet: addresses of your servers, users, open ports, &c. This may facilitate some types of attacks so be thoughtful about sharing your SSH configuration.
 
 Server side configuration is usually specified in `/etc/ssh/sshd_config`. Here you can make changes like disabling password authentication, changing ssh ports, enabling X11 forwarding, &c. You can specify config settings on a per user basis.
+>  服务端的 ssh 配置一般写在 `/etc/ssh/sshd_config`
+>  也可以为每个用户执行不同的配置
 
-## Miscellaneous
-
+### Miscellaneous
 A common pain when connecting to a remote server are disconnections due to your computer shutting down, going to sleep, or changing networks. Moreover if one has a connection with significant lag using ssh can become quite frustrating. [Mosh](https://mosh.org/), the mobile shell, improves upon ssh, allowing roaming connections, intermittent connectivity and providing intelligent local echo.
 
 Sometimes it is convenient to mount a remote folder. [sshfs](https://github.com/libfuse/sshfs) can mount a folder on a remote server locally, and then you can use a local editor.
 
-# Shells & Frameworks
-
+## Shells & Frameworks
 During shell tool and scripting we covered the `bash` shell because it is by far the most ubiquitous shell and most systems have it as the default option. Nevertheless, it is not the only option.
 
 For example, the `zsh` shell is a superset of `bash` and provides many convenient features out of the box such as:
@@ -1620,8 +1692,7 @@ For example, the `zsh` shell is a superset of `bash` and provides many conve
 
 One thing to note when using these frameworks is that they may slow down your shell, especially if the code they run is not properly optimized or it is too much code. You can always profile it and disable the features that you do not use often or value over speed.
 
-# Terminal Emulators
-
+## Terminal Emulators
 Along with customizing your shell, it is worth spending some time figuring out your choice of **terminal emulator** and its settings. There are many many terminal emulators out there (here is a [comparison](https://anarc.at/blog/2018-04-12-terminal-emulators-1/)).
 
 Since you might be spending hundreds to thousands of hours in your terminal it pays off to look into its settings. Some of the aspects that you may want to modify in your terminal include:
@@ -1633,30 +1704,21 @@ Since you might be spending hundreds to thousands of hours in your terminal it p
 - Scrollback configuration
 - Performance (some newer terminals like [Alacritty](https://github.com/jwilm/alacritty) or [kitty](https://sw.kovidgoyal.net/kitty/) offer GPU acceleration).
 
-# Exercises
-
-## Job control
-
+## Exercises
+### Job control
 1. From what we have seen, we can use some `ps aux | grep` commands to get our jobs’ pids and then kill them, but there are better ways to do it. Start a `sleep 10000` job in a terminal, background it with `Ctrl-Z` and continue its execution with `bg`. Now use [`pgrep`](https://www.man7.org/linux/man-pages/man1/pgrep.1.html) to find its pid and [`pkill`](http://man7.org/linux/man-pages/man1/pgrep.1.html) to kill it without ever typing the pid itself. (Hint: use the `-af` flags).
-    
 2. Say you don’t want to start a process until another completes. How would you go about it? In this exercise, our limiting process will always be `sleep 60 &`. One way to achieve this is to use the [`wait`](https://www.man7.org/linux/man-pages/man1/wait.1p.html) command. Try launching the sleep command and having an `ls` wait until the background process finishes.
     
     However, this strategy will fail if we start in a different bash session, since `wait` only works for child processes. One feature we did not discuss in the notes is that the `kill` command’s exit status will be zero on success and nonzero otherwise. `kill -0` does not send a signal but will give a nonzero exit status if the process does not exist. Write a bash function called `pidwait` that takes a pid and waits until the given process completes. You should use `sleep` to avoid wasting CPU unnecessarily.
     
-
-## Terminal multiplexer
-
+### Terminal multiplexer
 1. Follow this `tmux` [tutorial](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/) and then learn how to do some basic customizations following [these steps](https://www.hamvocke.com/blog/a-guide-to-customizing-your-tmux-conf/).
 
-## Aliases
-
+### Aliases
 1. Create an alias `dc` that resolves to `cd` for when you type it wrongly.
-    
 2. Run `history | awk '{$1="";print substr($0,2)}' | sort | uniq -c | sort -n | tail -n 10` to get your top 10 most used commands and consider writing shorter aliases for them. Note: this works for Bash; if you’re using ZSH, use `history 1` instead of just `history`.
-    
 
-## Dotfiles
-
+### Dotfiles
 Let’s get you up to speed with dotfiles.
 
 1. Create a folder for your dotfiles and set up version control.
@@ -1666,8 +1728,7 @@ Let’s get you up to speed with dotfiles.
 5. Migrate all of your current tool configurations to your dotfiles repository.
 6. Publish your dotfiles on GitHub.
 
-## Remote Machines
-
+### Remote Machines
 Install a Linux virtual machine (or use an already existing one) for this exercise. If you are not familiar with virtual machines check out [this](https://hibbard.eu/install-ubuntu-virtual-box/) tutorial for installing one.
 
 1. Go to `~/.ssh/` and check if you have a pair of SSH keys there. If not, generate them with `ssh-keygen -o -a 100 -t ed25519`. It is recommended that you use a password and use `ssh-agent` , more info [here](https://www.ssh.com/ssh/agent).
@@ -1687,4 +1748,711 @@ Install a Linux virtual machine (or use an already existing one) for this exerci
 6. (Challenge) Install [`mosh`](https://mosh.org/) in the VM and establish a connection. Then disconnect the network adapter of the server/VM. Can mosh properly recover from it?
 7. (Challenge) Look into what the `-N` and `-f` flags do in `ssh` and figure out a command to achieve background port forwarding.
 
----
+# Version Control (Git)
+Version control systems (VCSs) are tools used to track changes to source code (or other collections of files and folders). As the name implies, these tools help maintain a history of changes; furthermore, they facilitate collaboration. VCSs track changes to a folder and its contents in a series of snapshots, where each snapshot encapsulates the entire state of files/folders within a top-level directory. VCSs also maintain metadata like who created each snapshot, messages associated with each snapshot, and so on.
+>  版本控制系统通过一系列快照来追踪版本
+
+Why is version control useful? Even when you’re working by yourself, it can let you look at old snapshots of a project, keep a log of why certain changes were made, work on parallel branches of development, and much more. When working with others, it’s an invaluable tool for seeing what other people have changed, as well as resolving conflicts in concurrent development.
+
+Modern VCSs also let you easily (and often automatically) answer questions like:
+
+- Who wrote this module?
+- When was this particular line of this particular file edited? By whom? Why was it edited?
+- Over the last 1000 revisions, when/why did a particular unit test stop working?
+
+While other VCSs exist, **Git** is the de facto standard for version control. This [XKCD comic](https://xkcd.com/1597/) captures Git’s reputation:
+
+![xkcd 1597](https://imgs.xkcd.com/comics/git.png)
+
+Because Git’s interface is a leaky abstraction, learning Git top-down (starting with its interface / command-line interface) can lead to a lot of confusion. It’s possible to memorize a handful of commands and think of them as magic inctiantaons, and follow the approach in the comic above whenever anything goes wrong.
+
+While Git admittedly has an ugly interface, its underlying design and ideas are beautiful. While an ugly interface has to be _memorized_, a beautiful design can be _understood_. For this reason, we give a bottom-up explanation of Git, starting with its data model and later covering the command-line interface. Once the data model is understood, the commands can be better understood in terms of how they manipulate the underlying data model.
+
+## Git’s data model
+There are many ad-hoc approaches you could take to version control. Git has a well-thought-out model that enables all the nice features of version control, like maintaining history, supporting branches, and enabling collaboration.
+
+### Snapshots
+Git models the history of a collection of files and folders within some top-level directory as a series of snapshots. In Git terminology, a file is called a “blob”, and it’s just a bunch of bytes. A directory is called a “tree”, and it maps names to blobs or trees (so directories can contain other directories). A snapshot is the top-level tree that is being tracked. 
+>  Git 将顶级目录下的一系列文件、目录的历史按照一系列快照组织
+>  Git 术语中，文件称为 blob (binary large object)，目录称为 tree, tree 将名称映射到对应的 blob, tree
+>  Git 中，a snapshot 就是一个被追踪的顶级 tree
+
+For example, we might have a tree as follows:
+
+```
+<root> (tree)
+|
++- foo (tree)
+|  |
+|  + bar.txt (blob, contents = "hello world")
+|
++- baz.txt (blob, contents = "git is wonderful")
+```
+
+The top-level tree contains two elements, a tree “foo” (that itself contains one element, a blob “bar.txt”), and a blob “baz.txt”.
+
+### Modeling history: relating snapshots
+How should a version control system relate snapshots? One simple model would be to have a linear history. A history would be a list of snapshots in time-order. For many reasons, Git doesn’t use a simple model like this.
+>  了解了 snapshot，我们考虑如何组织 snapshots 历史
+>  最简单的模型就是按照时间顺序，线性组织 snapshots，但 Git 没有使用该模型
+
+In Git, a history is a directed acyclic graph (DAG) of snapshots. That may sound like a fancy math word, but don’t be intimidated. All this means is that each snapshot in Git refers to a set of “parents”, the snapshots that preceded it. It’s a set of parents rather than a single parent (as would be the case in a linear history) because a snapshot might descend from multiple parents, for example, due to combining (merging) two parallel branches of development.
+>  Git 中，历史是一个 snapshots 的有向无环图，这意味着 Git 中的每个 snapshot 都有一组 parent snapshots
+>  例如，执行 merge 之后，就会得到一个有两个 parent snapshots 的 snapshot
+
+Git calls these snapshots “commit”s. Visualizing a commit history might look something like this:
+
+```
+o <-- o <-- o <-- o
+            ^
+             \
+              --- o <-- o
+```
+
+In the ASCII art above, the `o`s correspond to individual commits (snapshots). The arrows point to the parent of each commit (it’s a “comes before” relation, not “comes after”). After the third commit, the history branches into two separate branches. This might correspond to, for example, two separate features being developed in parallel, independently from each other. In the future, these branches may be merged to create a new snapshot that incorporates both of the features, producing a new history that looks like this, with the newly created merge commit shown in bold:
+
+```
+
+o <-- o <-- o <-- o <---- o
+            ^            /
+             \          v
+              --- o <-- o
+```
+
+Commits in Git are immutable. This doesn’t mean that mistakes can’t be corrected, however; it’s just that “edits” to the commit history are actually creating entirely new commits, and references (see below) are updated to point to the new ones.
+>  Git 也将 snapshots 称为 commits
+>  commits 是不可变的，Git 在遇到问题时，会重新创造新的 commits，然后修改 commit 历史，引用新的 commits
+
+### Data model, as pseudocode
+It may be instructive to see Git’s data model written down in pseudocode:
+
+```
+// a file is a bunch of bytes
+type blob = array<byte>
+
+// a directory contains named files and directories
+type tree = map<string, tree | blob>
+
+// a commit has parents, metadata, and the top-level tree
+type commit = struct {
+    parents: array<commit>
+    author: string
+    message: string
+    snapshot: tree
+}
+```
+
+It’s a clean, simple model of history.
+
+### Objects and content-addressing 
+An “object” is a blob, tree, or commit:
+
+```
+type object = blob | tree | commit
+```
+
+In Git data store, all objects are content-addressed by their [SHA-1 hash](https://en.wikipedia.org/wiki/SHA-1).
+
+```
+objects = map<string, object>
+
+def store(object):
+    id = sha1(object)
+    objects[id] = object
+
+def load(id):
+    return objects[id]
+```
+
+Blobs, trees, and commits are unified in this way: they are all objects. When they reference other objects, they don’t actually _contain_ them in their on-disk representation, but have a reference to them by their hash.
+
+>  Git 中，blobs, trees, commits 都统称为 objects, Git 通过 SHA-1 hash 索引所有的 objects
+>  objects 引用其他 objects，就存储对应的 hash 值
+
+For example, the tree for the example directory structure [above](https://missing.csail.mit.edu/2020/version-control/#snapshots) (visualized using `git cat-file -p 698281bc680d1995c5f4caaf3359721a5a58d48d`), looks like this:
+
+```
+100644 blob 4448adbf7ecd394f42ae135bbeed9676e894af85    baz.txt
+040000 tree c68d233a33c5c06e0340e4c224f0afca87c8ce87    foo
+```
+
+The tree itself contains pointers to its contents, `baz.txt` (a blob) and `foo` (a tree). If we look at the contents addressed by the hash corresponding to baz.txt with `git cat-file -p 4448adbf7ecd394f42ae135bbeed9676e894af85`, we get the following:
+
+```
+git is wonderful
+```
+
+### References
+Now, all snapshots can be identified by their SHA-1 hashes. That’s inconvenient, because humans aren’t good at remembering strings of 40 hexadecimal characters.
+
+Git’s solution to this problem is human-readable names for SHA-1 hashes, called “references”. References are pointers to commits. Unlike objects, which are immutable, references are mutable (can be updated to point to a new commit). For example, the `master` reference usually points to the latest commit in the main branch of development.
+
+>  我们通常不会手动用 hash 来引用 objects
+>  Git 提供了 references 作为对 commits 的指针
+>  references 是可变的 (在有新 commit 时就会更新)，例如 `master` 总是指向最新的 commit
+
+```
+references = map<string, string>
+
+def update_reference(name, id):
+    references[name] = id
+
+def read_reference(name):
+    return references[name]
+
+def load_reference(name_or_id):
+    if name_or_id in references:
+        return load(references[name_or_id])
+    else:
+        return load(name_or_id)
+```
+
+With this, Git can use human-readable names like “master” to refer to a particular snapshot in the history, instead of a long hexadecimal string.
+
+One detail is that we often want a notion of “where we currently are” in the history, so that when we take a new snapshot, we know what it is relative to (how we set the `parents` field of the commit). In Git, that “where we currently are” is a special reference called “HEAD”.
+
+>  Git 中，`HEAD` 指向当前所处的 commit
+
+### Repositories
+Finally, we can define what (roughly) is a Git _repository_: it is the data `objects` and `references`.
+>  Git 仓库本质上就是 Git 所存储的 `objects, references`
+
+On disk, all Git stores are objects and references: that’s all there is to Git’s data model. All `git` commands map to some manipulation of the commit DAG by adding objects and adding/updating references.
+>  Git 在磁盘上存储的所有数据都是 `object, references`，所有的 Git 命令都本质通过添加 `objects` 或添加/更新 `references` 来操作 commit DAG
+
+Whenever you’re typing in any command, think about what manipulation the command is making to the underlying graph data structure. Conversely, if you’re trying to make a particular kind of change to the commit DAG, e.g. “discard uncommitted changes and make the ‘master’ ref point to commit `5d83f9e`”, there’s probably a command to do it (e.g. in this case, `git checkout master; git reset --hard 5d83f9e`).
+
+## Staging area
+This is another concept that’s orthogonal to the data model, but it’s a part of the interface to create commits.
+
+One way you might imagine implementing snapshotting as described above is to have a “create snapshot” command that creates a new snapshot based on the _current state_ of the working directory. Some version control tools work like this, but not Git. We want clean snapshots, and it might not always be ideal to make a snapshot from the current state. For example, imagine a scenario where you’ve implemented two separate features, and you want to create two separate commits, where the first introduces the first feature, and the next introduces the second feature. Or imagine a scenario where you have debugging print statements added all over your code, along with a bugfix; you want to commit the bugfix while discarding all the print statements.
+
+Git accommodates such scenarios by allowing you to specify which modifications should be included in the next snapshot through a mechanism called the “staging area”.
+
+>  暂存区是和 Git 数据模型正交的概念，但也是用于创建 commit 的接口的一部分
+>  暂存区允许我们不用指定所有的修改，而是指定特定的修改用于提交 (被包括在下一个 commit/snapshot 中)
+
+## Git command-line interface
+To avoid duplicating information, we’re not going to explain the commands below in detail. See the highly recommended [Pro Git](https://git-scm.com/book/en/v2) for more information, or watch the lecture video.
+
+### Basics
+- `git help <command>`: get help for a git command
+- `git init`: creates a new git repo, with data stored in the `.git` directory
+- `git status`: tells you what’s going on
+- `git add <filename>`: adds files to staging area
+- `git commit`: creates a new commit
+    - Write [good commit messages](https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)!
+    - Even more reasons to write [good commit messages](https://chris.beams.io/posts/git-commit/)!
+- `git log`: shows a flattened log of history
+- `git log --all --graph --decorate`: visualizes history as a DAG
+- `git diff <filename>`: show changes you made relative to the staging area
+- `git diff <revision> <filename>`: shows differences in a file between snapshots
+- `git checkout <revision>`: updates HEAD (and current branch if checking out a branch)
+
+### Branching and merging
+- `git branch`: shows branches
+- `git branch <name>`: creates a branch
+- `git checkout -b <name>`: creates a branch and switches to it
+    - same as `git branch <name>; git checkout <name>`
+- `git merge <revision>`: merges into current branch
+- `git mergetool`: use a fancy tool to help resolve merge conflicts
+- `git rebase`: rebase set of patches onto a new base
+
+### Remotes
+- `git remote`: list remotes
+- `git remote add <name> <url>`: add a remote
+- `git push <remote> <local branch>:<remote branch>`: send objects to remote, and update remote reference
+- `git branch --set-upstream-to=<remote>/<remote branch>`: set up correspondence between local and remote branch
+- `git fetch`: retrieve objects/references from a remote
+- `git pull`: same as `git fetch; git merge`
+- `git clone`: download repository from remote
+
+### Undo
+- `git commit --amend`: edit a commit’s contents/message
+- `git reset HEAD <file>`: unstage a file
+- `git checkout -- <file>`: discard changes
+
+## Advanced Git
+- `git config`: Git is [highly customizable](https://git-scm.com/docs/git-config)
+- `git clone --depth=1`: shallow clone, without entire version history
+- `git add -p`: interactive staging
+- `git rebase -i`: interactive rebasing
+- `git blame`: show who last edited which line
+- `git stash`: temporarily remove modifications to working directory
+- `git bisect`: binary search history (e.g. for regressions)
+- `.gitignore`: [specify](https://git-scm.com/docs/gitignore) intentionally untracked files to ignore
+
+## Miscellaneous
+- **GUIs**: there are many [GUI clients](https://git-scm.com/downloads/guis) out there for Git. We personally don’t use them and use the command-line interface instead.
+- **Shell integration**: it’s super handy to have a Git status as part of your shell prompt ([zsh](https://github.com/olivierverdier/zsh-git-prompt), [bash](https://github.com/magicmonty/bash-git-prompt)). Often included in frameworks like [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh).
+- **Editor integration**: similarly to the above, handy integrations with many features. [fugitive.vim](https://github.com/tpope/vim-fugitive) is the standard one for Vim.
+- **Workflows**: we taught you the data model, plus some basic commands; we didn’t tell you what practices to follow when working on big projects (and there are [many](https://nvie.com/posts/a-successful-git-branching-model/) [different](https://www.endoflineblog.com/gitflow-considered-harmful) [approaches](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)).
+- **GitHub**: Git is not GitHub. GitHub has a specific way of contributing code to other projects, called [pull requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests).
+- **Other Git providers**: GitHub is not special: there are many Git repository hosts, like [GitLab](https://about.gitlab.com/) and [BitBucket](https://bitbucket.org/).
+
+## Resources
+- [Pro Git](https://git-scm.com/book/en/v2) is **highly recommended reading**. Going through Chapters 1–5 should teach you most of what you need to use Git proficiently, now that you understand the data model. The later chapters have some interesting, advanced material.
+- [Oh Shit, Git!?!](https://ohshitgit.com/) is a short guide on how to recover from some common Git mistakes.
+- [Git for Computer Scientists](https://eagain.net/articles/git-for-computer-scientists/) is a short explanation of Git’s data model, with less pseudocode and more fancy diagrams than these lecture notes.
+- [Git from the Bottom Up](https://jwiegley.github.io/git-from-the-bottom-up/) is a detailed explanation of Git’s implementation details beyond just the data model, for the curious.
+- [How to explain git in simple words](https://smusamashah.github.io/blog/2017/10/14/explain-git-in-simple-words)
+- [Learn Git Branching](https://learngitbranching.js.org/) is a browser-based game that teaches you Git.
+
+## Exercises
+1. If you don’t have any past experience with Git, either try reading the first couple chapters of [Pro Git](https://git-scm.com/book/en/v2) or go through a tutorial like [Learn Git Branching](https://learngitbranching.js.org/). As you’re working through it, relate Git commands to the data model.
+2. Clone the [repository for the class website](https://github.com/missing-semester/missing-semester).
+    1. Explore the version history by visualizing it as a graph.
+    2. Who was the last person to modify `README.md`? (Hint: use `git log` with an argument).
+    3. What was the commit message associated with the last modification to the `collections:` line of `_config.yml`? (Hint: use `git blame` and `git show`).
+3. One common mistake when learning Git is to commit large files that should not be managed by Git or adding sensitive information. Try adding a file to a repository, making some commits and then deleting that file from history (you may want to look at [this](https://help.github.com/articles/removing-sensitive-data-from-a-repository/)).
+4. Clone some repository from GitHub, and modify one of its existing files. What happens when you do `git stash`? What do you see when running `git log --all --oneline`? Run `git stash pop` to undo what you did with `git stash`. In what scenario might this be useful?
+5. Like many command line tools, Git provides a configuration file (or dotfile) called `~/.gitconfig`. Create an alias in `~/.gitconfig` so that when you run `git graph`, you get the output of `git log --all --graph --decorate --oneline`. You can do this by directly [editing](https://git-scm.com/docs/git-config#Documentation/git-config.txt-alias) the `~/.gitconfig` file, or you can use the `git config` command to add the alias. Information about git aliases can be found [here](https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases).
+6. You can define global ignore patterns in `~/.gitignore_global` after running `git config --global core.excludesfile ~/.gitignore_global`. This sets the location of the global ignore file that Git will use, but you still need to manually create the file at that path. Set up your global gitignore file to ignore OS-specific or editor-specific temporary files, like `.DS_Store`.
+7. Fork the [repository for the class website](https://github.com/missing-semester/missing-semester), find a typo or some other improvement you can make, and submit a pull request on GitHub (you may want to look at [this](https://github.com/firstcontributions/first-contributions)). Please only submit PRs that are useful (don’t spam us, please!). If you can’t find an improvement to make, you can skip this exercise.
+
+# Debugging and Profiling
+A golden rule in programming is that code does not do what you expect it to do, but what you tell it to do. Bridging that gap can sometimes be a quite difficult feat. In this lecture we are going to cover useful techniques for dealing with buggy and resource hungry code: debugging and profiling.
+
+## Debugging
+### Printf debugging and Logging
+“The most effective debugging tool is still careful thought, coupled with judiciously placed print statements” — Brian Kernighan, _Unix for Beginners_.
+
+A first approach to debug a program is to add print statements around where you have detected the problem, and keep iterating until you have extracted enough information to understand what is responsible for the issue.
+
+A second approach is to use logging in your program, instead of ad hoc print statements. Logging is better than regular print statements for several reasons:
+
+- You can log to files, sockets or even remote servers instead of standard output.
+- Logging supports severity levels (such as INFO, DEBUG, WARN, ERROR, &c), that allow you to filter the output accordingly.
+- For new issues, there’s a fair chance that your logs will contain enough information to detect what is going wrong.
+
+[Here](https://missing.csail.mit.edu/static/files/logger.py) is an example code that logs messages:
+
+```
+$ python logger.py
+# Raw output as with just prints
+$ python logger.py log
+# Log formatted output
+$ python logger.py log ERROR
+# Print only ERROR levels and above
+$ python logger.py color
+# Color formatted output
+```
+
+One of my favorite tips for making logs more readable is to color code them. By now you probably have realized that your terminal uses colors to make things more readable. But how does it do it? Programs like `ls` or `grep` are using [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code), which are special sequences of characters to indicate your shell to change the color of the output. For example, executing `echo -e "\e[38;2;255;0;0mThis is red\e[0m"` prints the message `This is red` in red on your terminal, as long as it supports [true color](https://github.com/termstandard/colors#truecolor-support-in-output-devices). If your terminal doesn’t support this (e.g. macOS’s Terminal.app), you can use the more universally supported escape codes for 16 color choices, for example `echo -e "\e[31;1mThis is red\e[0m"`.
+
+The following script shows how to print many RGB colors into your terminal (again, as long as it supports true color).
+
+```
+#!/usr/bin/env bash
+for R in $(seq 0 20 255); do
+    for G in $(seq 0 20 255); do
+        for B in $(seq 0 20 255); do
+            printf "\e[38;2;${R};${G};${B}m█\e[0m";
+        done
+    done
+done
+```
+
+## Third party logs
+
+As you start building larger software systems you will most probably run into dependencies that run as separate programs. Web servers, databases or message brokers are common examples of this kind of dependencies. When interacting with these systems it is often necessary to read their logs, since client side error messages might not suffice.
+
+Luckily, most programs write their own logs somewhere in your system. In UNIX systems, it is commonplace for programs to write their logs under `/var/log`. For instance, the [NGINX](https://www.nginx.com/) webserver places its logs under `/var/log/nginx`. More recently, systems have started using a **system log**, which is increasingly where all of your log messages go. Most (but not all) Linux systems use `systemd`, a system daemon that controls many things in your system such as which services are enabled and running. `systemd` places the logs under `/var/log/journal` in a specialized format and you can use the [`journalctl`](https://www.man7.org/linux/man-pages/man1/journalctl.1.html) command to display the messages. Similarly, on macOS there is still `/var/log/system.log` but an increasing number of tools use the system log, that can be displayed with [`log show`](https://www.manpagez.com/man/1/log/). On most UNIX systems you can also use the [`dmesg`](https://www.man7.org/linux/man-pages/man1/dmesg.1.html) command to access the kernel log.
+
+For logging under the system logs you can use the [`logger`](https://www.man7.org/linux/man-pages/man1/logger.1.html) shell program. Here’s an example of using `logger` and how to check that the entry made it to the system logs. Moreover, most programming languages have bindings logging to the system log.
+
+```
+logger "Hello Logs"
+# On macOS
+log show --last 1m | grep Hello
+# On Linux
+journalctl --since "1m ago" | grep Hello
+```
+
+As we saw in the data wrangling lecture, logs can be quite verbose and they require some level of processing and filtering to get the information you want. If you find yourself heavily filtering through `journalctl` and `log show` you can consider using their flags, which can perform a first pass of filtering of their output. There are also some tools like [`lnav`](http://lnav.org/), that provide an improved presentation and navigation for log files.
+
+## Debuggers
+
+When printf debugging is not enough you should use a debugger. Debuggers are programs that let you interact with the execution of a program, allowing the following:
+
+- Halt execution of the program when it reaches a certain line.
+- Step through the program one instruction at a time.
+- Inspect values of variables after the program crashed.
+- Conditionally halt the execution when a given condition is met.
+- And many more advanced features
+
+Many programming languages come with some form of debugger. In Python this is the Python Debugger [`pdb`](https://docs.python.org/3/library/pdb.html).
+
+Here is a brief description of some of the commands `pdb` supports:
+
+- **l**(ist) - Displays 11 lines around the current line or continue the previous listing.
+- **s**(tep) - Execute the current line, stop at the first possible occasion.
+- **n**(ext) - Continue execution until the next line in the current function is reached or it returns.
+- **b**(reak) - Set a breakpoint (depending on the argument provided).
+- **p**(rint) - Evaluate the expression in the current context and print its value. There’s also **pp** to display using [`pprint`](https://docs.python.org/3/library/pprint.html) instead.
+- **r**(eturn) - Continue execution until the current function returns.
+- **q**(uit) - Quit the debugger.
+
+Let’s go through an example of using `pdb` to fix the following buggy python code. (See the lecture video).
+
+```
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        for j in range(n):
+            if arr[j] > arr[j+1]:
+                arr[j] = arr[j+1]
+                arr[j+1] = arr[j]
+    return arr
+
+print(bubble_sort([4, 2, 1, 8, 7, 6]))
+```
+
+Note that since Python is an interpreted language we can use the `pdb` shell to execute commands and to execute instructions. [`ipdb`](https://pypi.org/project/ipdb/) is an improved `pdb` that uses the [`IPython`](https://ipython.org/) REPL enabling tab completion, syntax highlighting, better tracebacks, and better introspection while retaining the same interface as the `pdb` module.
+
+For more low level programming you will probably want to look into [`gdb`](https://www.gnu.org/software/gdb/) (and its quality of life modification [`pwndbg`](https://github.com/pwndbg/pwndbg)) and [`lldb`](https://lldb.llvm.org/). They are optimized for C-like language debugging but will let you probe pretty much any process and get its current machine state: registers, stack, program counter, &c.
+
+## Specialized Tools
+
+Even if what you are trying to debug is a black box binary there are tools that can help you with that. Whenever programs need to perform actions that only the kernel can, they use [System Calls](https://en.wikipedia.org/wiki/System_call). There are commands that let you trace the syscalls your program makes. In Linux there’s [`strace`](https://www.man7.org/linux/man-pages/man1/strace.1.html) and macOS and BSD have [`dtrace`](http://dtrace.org/blogs/about/). `dtrace` can be tricky to use because it uses its own `D` language, but there is a wrapper called [`dtruss`](https://www.manpagez.com/man/1/dtruss/) that provides an interface more similar to `strace` (more details [here](https://8thlight.com/blog/colin-jones/2015/11/06/dtrace-even-better-than-strace-for-osx.html)).
+
+Below are some examples of using `strace` or `dtruss` to show [`stat`](https://www.man7.org/linux/man-pages/man2/stat.2.html) syscall traces for an execution of `ls`. For a deeper dive into `strace`, [this article](https://blogs.oracle.com/linux/strace-the-sysadmins-microscope-v2) and [this zine](https://jvns.ca/strace-zine-unfolded.pdf) are good reads.
+
+```
+# On Linux
+sudo strace -e lstat ls -l > /dev/null
+# On macOS
+sudo dtruss -t lstat64_extended ls -l > /dev/null
+```
+
+Under some circumstances, you may need to look at the network packets to figure out the issue in your program. Tools like [`tcpdump`](https://www.man7.org/linux/man-pages/man1/tcpdump.1.html) and [Wireshark](https://www.wireshark.org/) are network packet analyzers that let you read the contents of network packets and filter them based on different criteria.
+
+For web development, the Chrome/Firefox developer tools are quite handy. They feature a large number of tools, including:
+
+- Source code - Inspect the HTML/CSS/JS source code of any website.
+- Live HTML, CSS, JS modification - Change the website content, styles and behavior to test (you can see for yourself that website screenshots are not valid proofs).
+- Javascript shell - Execute commands in the JS REPL.
+- Network - Analyze the requests timeline.
+- Storage - Look into the Cookies and local application storage.
+
+## Static Analysis
+
+For some issues you do not need to run any code. For example, just by carefully looking at a piece of code you could realize that your loop variable is shadowing an already existing variable or function name; or that a program reads a variable before defining it. Here is where [static analysis](https://en.wikipedia.org/wiki/Static_program_analysis) tools come into play. Static analysis programs take source code as input and analyze it using coding rules to reason about its correctness.
+
+In the following Python snippet there are several mistakes. First, our loop variable `foo` shadows the previous definition of the function `foo`. We also wrote `baz` instead of `bar` in the last line, so the program will crash after completing the `sleep` call (which will take one minute).
+
+```
+import time
+
+def foo():
+    return 42
+
+for foo in range(5):
+    print(foo)
+bar = 1
+bar *= 0.2
+time.sleep(60)
+print(baz)
+```
+
+Static analysis tools can identify these kinds of issues. When we run [`pyflakes`](https://pypi.org/project/pyflakes) on the code we get the errors related to both bugs. [`mypy`](http://mypy-lang.org/) is another tool that can detect type checking issues. Here, `mypy` will warn us that `bar` is initially an `int` and is then casted to a `float`. Again, note that all these issues were detected without having to run the code.
+
+```
+$ pyflakes foobar.py
+foobar.py:6: redefinition of unused 'foo' from line 3
+foobar.py:11: undefined name 'baz'
+
+$ mypy foobar.py
+foobar.py:6: error: Incompatible types in assignment (expression has type "int", variable has type "Callable[[], Any]")
+foobar.py:9: error: Incompatible types in assignment (expression has type "float", variable has type "int")
+foobar.py:11: error: Name 'baz' is not defined
+Found 3 errors in 1 file (checked 1 source file)
+```
+
+In the shell tools lecture we covered [`shellcheck`](https://www.shellcheck.net/), which is a similar tool for shell scripts.
+
+Most editors and IDEs support displaying the output of these tools within the editor itself, highlighting the locations of warnings and errors. This is often called **code linting** and it can also be used to display other types of issues such as stylistic violations or insecure constructs.
+
+In vim, the plugins [`ale`](https://vimawesome.com/plugin/ale) or [`syntastic`](https://vimawesome.com/plugin/syntastic) will let you do that. For Python, [`pylint`](https://github.com/PyCQA/pylint) and [`pep8`](https://pypi.org/project/pep8/) are examples of stylistic linters and [`bandit`](https://pypi.org/project/bandit/) is a tool designed to find common security issues. For other languages people have compiled comprehensive lists of useful static analysis tools, such as [Awesome Static Analysis](https://github.com/mre/awesome-static-analysis) (you may want to take a look at the _Writing_ section) and for linters there is [Awesome Linters](https://github.com/caramelomartins/awesome-linters).
+
+A complementary tool to stylistic linting are code formatters such as [`black`](https://github.com/psf/black) for Python, `gofmt` for Go, `rustfmt` for Rust or [`prettier`](https://prettier.io/) for JavaScript, HTML and CSS. These tools autoformat your code so that it’s consistent with common stylistic patterns for the given programming language. Although you might be unwilling to give stylistic control about your code, standardizing code format will help other people read your code and will make you better at reading other people’s (stylistically standardized) code.
+
+# Profiling
+
+Even if your code functionally behaves as you would expect, that might not be good enough if it takes all your CPU or memory in the process. Algorithms classes often teach big _O_ notation but not how to find hot spots in your programs. Since [premature optimization is the root of all evil](http://wiki.c2.com/?PrematureOptimization), you should learn about profilers and monitoring tools. They will help you understand which parts of your program are taking most of the time and/or resources so you can focus on optimizing those parts.
+
+## Timing
+
+Similarly to the debugging case, in many scenarios it can be enough to just print the time it took your code between two points. Here is an example in Python using the [`time`](https://docs.python.org/3/library/time.html) module.
+
+```
+import time, random
+n = random.randint(1, 10) * 100
+
+# Get current time
+start = time.time()
+
+# Do some work
+print("Sleeping for {} ms".format(n))
+time.sleep(n/1000)
+
+# Compute time between start and now
+print(time.time() - start)
+
+# Output
+# Sleeping for 500 ms
+# 0.5713930130004883
+```
+
+However, wall clock time can be misleading since your computer might be running other processes at the same time or waiting for events to happen. It is common for tools to make a distinction between _Real_, _User_ and _Sys_ time. In general, _User_ + _Sys_ tells you how much time your process actually spent in the CPU (more detailed explanation [here](https://stackoverflow.com/questions/556405/what-do-real-user-and-sys-mean-in-the-output-of-time1)).
+
+- _Real_ - Wall clock elapsed time from start to finish of the program, including the time taken by other processes and time taken while blocked (e.g. waiting for I/O or network)
+- _User_ - Amount of time spent in the CPU running user code
+- _Sys_ - Amount of time spent in the CPU running kernel code
+
+For example, try running a command that performs an HTTP request and prefixing it with [`time`](https://www.man7.org/linux/man-pages/man1/time.1.html). Under a slow connection you might get an output like the one below. Here it took over 2 seconds for the request to complete but the process only took 15ms of CPU user time and 12ms of kernel CPU time.
+
+```
+$ time curl https://missing.csail.mit.edu &> /dev/null
+real    0m2.561s
+user    0m0.015s
+sys     0m0.012s
+```
+
+## Profilers
+
+### CPU
+
+Most of the time when people refer to _profilers_ they actually mean _CPU profilers_, which are the most common. There are two main types of CPU profilers: _tracing_ and _sampling_ profilers. Tracing profilers keep a record of every function call your program makes whereas sampling profilers probe your program periodically (commonly every millisecond) and record the program’s stack. They use these records to present aggregate statistics of what your program spent the most time doing. [Here](https://jvns.ca/blog/2017/12/17/how-do-ruby---python-profilers-work-) is a good intro article if you want more detail on this topic.
+
+Most programming languages have some sort of command line profiler that you can use to analyze your code. They often integrate with full fledged IDEs but for this lecture we are going to focus on the command line tools themselves.
+
+In Python we can use the `cProfile` module to profile time per function call. Here is a simple example that implements a rudimentary grep in Python:
+
+```
+#!/usr/bin/env python
+
+import sys, re
+
+def grep(pattern, file):
+    with open(file, 'r') as f:
+        print(file)
+        for i, line in enumerate(f.readlines()):
+            pattern = re.compile(pattern)
+            match = pattern.search(line)
+            if match is not None:
+                print("{}: {}".format(i, line), end="")
+
+if __name__ == '__main__':
+    times = int(sys.argv[1])
+    pattern = sys.argv[2]
+    for i in range(times):
+        for file in sys.argv[3:]:
+            grep(pattern, file)
+```
+
+We can profile this code using the following command. Analyzing the output we can see that IO is taking most of the time and that compiling the regex takes a fair amount of time as well. Since the regex only needs to be compiled once, we can factor it out of the for.
+
+```
+$ python -m cProfile -s tottime grep.py 1000 '^(import|\s*def)[^,]*$' *.py
+
+[omitted program output]
+
+ ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     8000    0.266    0.000    0.292    0.000 {built-in method io.open}
+     8000    0.153    0.000    0.894    0.000 grep.py:5(grep)
+    17000    0.101    0.000    0.101    0.000 {built-in method builtins.print}
+     8000    0.100    0.000    0.129    0.000 {method 'readlines' of '_io._IOBase' objects}
+    93000    0.097    0.000    0.111    0.000 re.py:286(_compile)
+    93000    0.069    0.000    0.069    0.000 {method 'search' of '_sre.SRE_Pattern' objects}
+    93000    0.030    0.000    0.141    0.000 re.py:231(compile)
+    17000    0.019    0.000    0.029    0.000 codecs.py:318(decode)
+        1    0.017    0.017    0.911    0.911 grep.py:3(<module>)
+
+[omitted lines]
+```
+
+A caveat of Python’s `cProfile` profiler (and many profilers for that matter) is that they display time per function call. That can become unintuitive really fast, especially if you are using third party libraries in your code since internal function calls are also accounted for. A more intuitive way of displaying profiling information is to include the time taken per line of code, which is what _line profilers_ do.
+
+For instance, the following piece of Python code performs a request to the class website and parses the response to get all URLs in the page:
+
+```
+#!/usr/bin/env python
+import requests
+from bs4 import BeautifulSoup
+
+# This is a decorator that tells line_profiler
+# that we want to analyze this function
+@profile
+def get_urls():
+    response = requests.get('https://missing.csail.mit.edu')
+    s = BeautifulSoup(response.content, 'lxml')
+    urls = []
+    for url in s.find_all('a'):
+        urls.append(url['href'])
+
+if __name__ == '__main__':
+    get_urls()
+```
+
+If we used Python’s `cProfile` profiler we’d get over 2500 lines of output, and even with sorting it’d be hard to understand where the time is being spent. A quick run with [`line_profiler`](https://github.com/pyutils/line_profiler) shows the time taken per line:
+
+```
+$ kernprof -l -v a.py
+Wrote profile results to urls.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.636188 s
+File: a.py
+Function: get_urls at line 5
+
+Line #  Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+ 5                                           @profile
+ 6                                           def get_urls():
+ 7         1     613909.0 613909.0     96.5      response = requests.get('https://missing.csail.mit.edu')
+ 8         1      21559.0  21559.0      3.4      s = BeautifulSoup(response.content, 'lxml')
+ 9         1          2.0      2.0      0.0      urls = []
+10        25        685.0     27.4      0.1      for url in s.find_all('a'):
+11        24         33.0      1.4      0.0          urls.append(url['href'])
+```
+
+### Memory
+
+In languages like C or C++ memory leaks can cause your program to never release memory that it doesn’t need anymore. To help in the process of memory debugging you can use tools like [Valgrind](https://valgrind.org/) that will help you identify memory leaks.
+
+In garbage collected languages like Python it is still useful to use a memory profiler because as long as you have pointers to objects in memory they won’t be garbage collected. Here’s an example program and its associated output when running it with [memory-profiler](https://pypi.org/project/memory-profiler/) (note the decorator like in `line-profiler`).
+
+```
+@profile
+def my_func():
+    a = [1] * (10 ** 6)
+    b = [2] * (2 * 10 ** 7)
+    del b
+    return a
+
+if __name__ == '__main__':
+    my_func()
+```
+
+```
+$ python -m memory_profiler example.py
+Line #    Mem usage  Increment   Line Contents
+==============================================
+     3                           @profile
+     4      5.97 MB    0.00 MB   def my_func():
+     5     13.61 MB    7.64 MB       a = [1] * (10 ** 6)
+     6    166.20 MB  152.59 MB       b = [2] * (2 * 10 ** 7)
+     7     13.61 MB -152.59 MB       del b
+     8     13.61 MB    0.00 MB       return a
+```
+
+### Event Profiling
+
+As it was the case for `strace` for debugging, you might want to ignore the specifics of the code that you are running and treat it like a black box when profiling. The [`perf`](https://www.man7.org/linux/man-pages/man1/perf.1.html) command abstracts CPU differences away and does not report time or memory, but instead it reports system events related to your programs. For example, `perf` can easily report poor cache locality, high amounts of page faults or livelocks. Here is an overview of the command:
+
+- `perf list` - List the events that can be traced with perf
+- `perf stat COMMAND ARG1 ARG2` - Gets counts of different events related to a process or command
+- `perf record COMMAND ARG1 ARG2` - Records the run of a command and saves the statistical data into a file called `perf.data`
+- `perf report` - Formats and prints the data collected in `perf.data`
+
+### Visualization
+
+Profiler output for real world programs will contain large amounts of information because of the inherent complexity of software projects. Humans are visual creatures and are quite terrible at reading large amounts of numbers and making sense of them. Thus there are many tools for displaying profiler’s output in an easier to parse way.
+
+One common way to display CPU profiling information for sampling profilers is to use a [Flame Graph](http://www.brendangregg.com/flamegraphs.html), which will display a hierarchy of function calls across the Y axis and time taken proportional to the X axis. They are also interactive, letting you zoom into specific parts of the program and get their stack traces (try clicking in the image below).
+
+[![FlameGraph](http://www.brendangregg.com/FlameGraphs/cpu-bash-flamegraph.svg)](http://www.brendangregg.com/FlameGraphs/cpu-bash-flamegraph.svg)
+
+Call graphs or control flow graphs display the relationships between subroutines within a program by including functions as nodes and functions calls between them as directed edges. When coupled with profiling information such as the number of calls and time taken, call graphs can be quite useful for interpreting the flow of a program. In Python you can use the [`pycallgraph`](https://pycallgraph.readthedocs.io/) library to generate them.
+
+![Call Graph](https://upload.wikimedia.org/wikipedia/commons/2/2f/A_Call_Graph_generated_by_pycallgraph.png)
+
+## Resource Monitoring
+
+Sometimes, the first step towards analyzing the performance of your program is to understand what its actual resource consumption is. Programs often run slowly when they are resource constrained, e.g. without enough memory or on a slow network connection. There are a myriad of command line tools for probing and displaying different system resources like CPU usage, memory usage, network, disk usage and so on.
+
+- **General Monitoring** - Probably the most popular is [`htop`](https://htop.dev/), which is an improved version of [`top`](https://www.man7.org/linux/man-pages/man1/top.1.html). `htop` presents various statistics for the currently running processes on the system. `htop` has a myriad of options and keybinds, some useful ones are: `<F6>` to sort processes, `t` to show tree hierarchy and `h` to toggle threads. See also [`glances`](https://nicolargo.github.io/glances/) for similar implementation with a great UI. For getting aggregate measures across all processes, [`dstat`](http://dag.wiee.rs/home-made/dstat/) is another nifty tool that computes real-time resource metrics for lots of different subsystems like I/O, networking, CPU utilization, context switches, &c.
+- **I/O operations** - [`iotop`](https://www.man7.org/linux/man-pages/man8/iotop.8.html) displays live I/O usage information and is handy to check if a process is doing heavy I/O disk operations
+- **Disk Usage** - [`df`](https://www.man7.org/linux/man-pages/man1/df.1.html) displays metrics per partitions and [`du`](http://man7.org/linux/man-pages/man1/du.1.html) displays **d**isk **u**sage per file for the current directory. In these tools the `-h` flag tells the program to print with **h**uman readable format. A more interactive version of `du` is [`ncdu`](https://dev.yorhel.nl/ncdu) which lets you navigate folders and delete files and folders as you navigate.
+- **Memory Usage** - [`free`](https://www.man7.org/linux/man-pages/man1/free.1.html) displays the total amount of free and used memory in the system. Memory is also displayed in tools like `htop`.
+- **Open Files** - [`lsof`](https://www.man7.org/linux/man-pages/man8/lsof.8.html) lists file information about files opened by processes. It can be quite useful for checking which process has opened a specific file.
+- **Network Connections and Config** - [`ss`](https://www.man7.org/linux/man-pages/man8/ss.8.html) lets you monitor incoming and outgoing network packets statistics as well as interface statistics. A common use case of `ss` is figuring out what process is using a given port in a machine. For displaying routing, network devices and interfaces you can use [`ip`](http://man7.org/linux/man-pages/man8/ip.8.html). Note that `netstat` and `ifconfig` have been deprecated in favor of the former tools respectively.
+- **Network Usage** - [`nethogs`](https://github.com/raboof/nethogs) and [`iftop`](https://pdw.ex-parrot.com/iftop/) are good interactive CLI tools for monitoring network usage.
+
+If you want to test these tools you can also artificially impose loads on the machine using the [`stress`](https://linux.die.net/man/1/stress) command.
+
+### Specialized tools
+
+Sometimes, black box benchmarking is all you need to determine what software to use. Tools like [`hyperfine`](https://github.com/sharkdp/hyperfine) let you quickly benchmark command line programs. For instance, in the shell tools and scripting lecture we recommended `fd` over `find`. We can use `hyperfine` to compare them in tasks we run often. E.g. in the example below `fd` was 20x faster than `find` in my machine.
+
+```
+$ hyperfine --warmup 3 'fd -e jpg' 'find . -iname "*.jpg"'
+Benchmark #1: fd -e jpg
+  Time (mean ± σ):      51.4 ms ±   2.9 ms    [User: 121.0 ms, System: 160.5 ms]
+  Range (min … max):    44.2 ms …  60.1 ms    56 runs
+
+Benchmark #2: find . -iname "*.jpg"
+  Time (mean ± σ):      1.126 s ±  0.101 s    [User: 141.1 ms, System: 956.1 ms]
+  Range (min … max):    0.975 s …  1.287 s    10 runs
+
+Summary
+  'fd -e jpg' ran
+   21.89 ± 2.33 times faster than 'find . -iname "*.jpg"'
+```
+
+As it was the case for debugging, browsers also come with a fantastic set of tools for profiling webpage loading, letting you figure out where time is being spent (loading, rendering, scripting, &c). More info for [Firefox](https://profiler.firefox.com/docs/) and [Chrome](https://developers.google.com/web/tools/chrome-devtools/rendering-tools).
+
+# Exercises
+
+## Debugging
+
+1. Use `journalctl` on Linux or `log show` on macOS to get the super user accesses and commands in the last day. If there aren’t any you can execute some harmless commands such as `sudo ls` and check again.
+    
+2. Do [this](https://github.com/spiside/pdb-tutorial) hands on `pdb` tutorial to familiarize yourself with the commands. For a more in depth tutorial read [this](https://realpython.com/python-debugging-pdb).
+    
+3. Install [`shellcheck`](https://www.shellcheck.net/) and try checking the following script. What is wrong with the code? Fix it. Install a linter plugin in your editor so you can get your warnings automatically.
+    
+    ```
+    #!/bin/sh
+    ## Example: a typical script with several problems
+    for f in $(ls *.m3u)
+    do
+      grep -qi hq.*mp3 $f \
+        && echo -e 'Playlist $f contains a HQ file in mp3 format'
+    done
+    ```
+    
+4. (Advanced) Read about [reversible debugging](https://undo.io/resources/reverse-debugging-whitepaper/) and get a simple example working using [`rr`](https://rr-project.org/) or [`RevPDB`](https://morepypy.blogspot.com/2016/07/reverse-debugging-for-python.html).
+    
+    ## Profiling
+    
+5. [Here](https://missing.csail.mit.edu/static/files/sorts.py) are some sorting algorithm implementations. Use [`cProfile`](https://docs.python.org/3/library/profile.html) and [`line_profiler`](https://github.com/pyutils/line_profiler) to compare the runtime of insertion sort and quicksort. What is the bottleneck of each algorithm? Use then `memory_profiler` to check the memory consumption, why is insertion sort better? Check now the inplace version of quicksort. Challenge: Use `perf` to look at the cycle counts and cache hits and misses of each algorithm.
+    
+6. Here’s some (arguably convoluted) Python code for computing Fibonacci numbers using a function for each number.
+    
+    ```
+    #!/usr/bin/env python
+    def fib0(): return 0
+    
+    def fib1(): return 1
+    
+    s = """def fib{}(): return fib{}() + fib{}()"""
+    
+    if __name__ == '__main__':
+    
+        for n in range(2, 10):
+            exec(s.format(n, n-1, n-2))
+        # from functools import lru_cache
+        # for n in range(10):
+        #     exec("fib{} = lru_cache(1)(fib{})".format(n, n))
+        print(eval("fib9()"))
+    ```
+    
+    Put the code into a file and make it executable. Install prerequisites: [`pycallgraph`](https://lewiscowles1986.github.io/py-call-graph/) and [`graphviz`](http://graphviz.org/). (If you can run `dot`, you already have GraphViz.) Run the code as is with `pycallgraph graphviz -- ./fib.py` and check the `pycallgraph.png` file. How many times is `fib0` called?. We can do better than that by memoizing the functions. Uncomment the commented lines and regenerate the images. How many times are we calling each `fibN` function now?
+    
+7. A common issue is that a port you want to listen on is already taken by another process. Let’s learn how to discover that process pid. First execute `python -m http.server 4444` to start a minimal web server listening on port `4444`. On a separate terminal run `lsof | grep LISTEN` to print all listening processes and ports. Find that process pid and terminate it by running `kill <PID>`.
+    
+8. Limiting a process’s resources can be another handy tool in your toolbox. Try running `stress -c 3` and visualize the CPU consumption with `htop`. Now, execute `taskset --cpu-list 0,2 stress -c 3` and visualize it. Is `stress` taking three CPUs? Why not? Read [`man taskset`](https://www.man7.org/linux/man-pages/man1/taskset.1.html). Challenge: achieve the same using [`cgroups`](https://www.man7.org/linux/man-pages/man7/cgroups.7.html). Try limiting the memory consumption of `stress -m`.
+    
+9. (Advanced) The command `curl ipinfo.io` performs a HTTP request and fetches information about your public IP. Open [Wireshark](https://www.wireshark.org/) and try to sniff the request and reply packets that `curl` sent and received. (Hint: Use the `http` filter to just watch HTTP packets).
