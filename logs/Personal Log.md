@@ -2511,11 +2511,38 @@ Date: 2025.6.16-2025.6.23
 - [[doc-notes/llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference|llvm/documentation/user-guides/code-generation/tablegen/TableGen Programmer’s Reference]]
 - [[doc-notes/nvidia/CUDA C++ Programming Guide|nvidia/CUDA C++ Programming Guide]]
 
-### Week 5
 Date: 2025.6.23-2025.6.30
 
 \[Paper\]
+- [[paper-notes/rl/Policy Gradient Method for Reinforcement Learning with Function Approximation-1999-NeurIPS|1999-NeurIPS-Policy Gradient Method for Reinforcement Learning with Function Approximation]]
+    Abstract
+        The main contribution of this paper is providing the formula of policy gradient, which is suitable for estimation from experience with the aid of an approximate action-value or advantage function.
+    Introduction
+        The dominant methods for the last decades has been value-function approach, which approximate the value function, and thereby define the optimal policy as the greedy policy with respect to the value function.
+        The downside of value-function based methods includes: 1. the optimal policy is defined deterministic, but usually the actual optimal one is stochastic 2. a small perturbation to the estimated value might cause the policy change a lot
+        This paper explores directly approximating the policy. Unlike value-function based approach, in policy gradient method, small changes to the policy parameter $\theta$ will only cause small changes in the policy and state-visitation distribution.
+        This paper proves that using an approximate value function that satisfies some properties can lead to an unbiased estimation to the policy gradient.
+    Policy Gradient Theorem
+        In policy gradient theorem, $Q^\pi(s, a)$ is usually unknown. We should either estimate it with function approximator or with Monte Carlo method.
+    Policy Gradient with Approximation
+        Note that when using a function approximator $f_w$ to approximate the value function, to guarantee the estimated policy gradient is unbiased, $f_w$ should be compatible with the policy $\pi_\theta$.
+    Applications to Deriving Algorithms and Advantages
+    Convergence of Policy Iteration with Function Approximation
 - [[paper-notes/rl/Direct Preference Optimization Your Language Model is Secretly a Reward Model-2023-NeurIPS|2023-NeurIPS-Direct Preference Optimization Your Language Model is Secretly a Reward Model]]
+    Abstract
+        RLHF first fitting a reward model, then fine-tuning LLM using RL to maximize the estimated reward.
+        This paper introduces a new parameterization of the reward model in RLHF, which enables extracting corresponding optimal policy in closed form and optimize the policy directly with simple classification loss.
+    Introduction
+        DPO implicitly optimize the same objective with RLHF: reward maximization with KL-divergence constraint.
+        DPO directly optimize a simple binary cross entropy objective, producing optimal policy to an implicit reward function fit to the data.
+    Related Work
+    Preliminaries
+        KL-divergence regularization term in RL fine-tuning phase is crucial, which is responsible for maintaining the generation diversity and preventing mode-collapse to single high-reward answers.
+    Direct Preference Optimization
+        The key insight it to utilize the analytical mapping from reward functions to optimal policies, which enables transforming a loss function over reward functions to a loss function over optimal policies. In this idea, the policy network represents both the language model and the (implicit) reward function.
+    Theoretical Analysis of DPO
+    Experiments
+    Discussion
 
 \[Doc\]
 - [[doc-notes/onnx/onnx-operators/Gather|onnx/onnx-operators/Gather]]: All
@@ -2524,3 +2551,22 @@ Date: 2025.6.23-2025.6.30
 - [[doc-notes/onnx/onnx-operators/GridSample|onnx/onnx-operators/GridSample]]: All
 - [[doc-notes/mlir/code-documentation/defining-dialects/Defining Dialect Attributes and Types|mlir/code-documentation/defining-dialects/Defining Dialect Attributes and Types]]
 - [[doc-notes/mlir/code-documentation/defining-dialects/Operation Definition Specification (ODS)|mlir/code-documentation/defining-dialects/Operation Definition Specification (ODS)]]
+
+## July
+### Week 1
+Date: 2025.6.30-2025.7.7
+
+\[Paper\]
+- [[paper-notes/rl/Reinforcement Learning with Deep Energy-Based Policies-2017-ICML|2017-ICML-Reinforcement Learning with Deep Energy-Based Policies]]
+    Abstract
+        This paper propose a method for learning energy-based expressive maximum entropy policies for continuous states and actions. The algorithm is called soft Q-learning, whose benefits includes: 1. better exploration 2. better composability
+    Introduction
+        Deterministic policy is known to be the optimal policy under full observability condition. However, full observability condition in real scenario is usually not realizable.
+        Therefore, in certain conditions, we would prefer learning stochastic behaviors, for reasons like: 1. better exploration for multimodal objectives 2. compositionality with pretraining.
+    Preliminaries
+        By derivation, the optimal policy for maximum entropy objective can be expressed in a EBM form, where the energy function is related to the optimal Q function.
+    Training Expressive Energy-Based Models via Soft Q-Learning
+        Soft Q-iteration iteratively update Q function and value function.
+        Soft Q-learning formulate soft Q-iteration as stochastic gradient update problem, and use SVGD to approximate the sampler.
+    Related Work
+    Experiments 
