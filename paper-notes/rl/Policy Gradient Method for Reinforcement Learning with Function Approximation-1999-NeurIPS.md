@@ -22,7 +22,7 @@ The value-function approach has worked well in many applications, but has severa
 
 For example, Q-learning, Sarsa, and dynamic programming methods have all been shown unable to converge to any policy for simple MDPs and simple function approximators (Gordon, 1995, 1996; Baird, 1995; Tsitsiklis and van Roy, 1996; Bertsekas and Tsitsiklis, 1996). This can occur even if the best approximation is found at each step before changing the policy, and whether the notion of "best" is in the mean-squared-error sense or the slightly different senses of residual-gradient, temporal-difference, and dynamic-programming methods.
 >  例如 Q-learning, Sarsa 和动态规划方法都被证明了无法在简单的 MDP 和简单的函数近似器收敛到任何策略
->  即便在每一步都找到最佳的 (价值) 近似，再改变策略，这种情况也可能会发生，无论 “最佳” 的定义均方误差意义上、还是残差梯度、时间差分、动态规划方法
+>  即便在每一步都找到最佳的 (价值) 近似，再改变策略，这种情况也可能会发生，无论 “最佳” 的定义是在均方误差意义上、还是残差梯度、时间差分、动态规划方法
 
 In this paper we explore an alternative approach to function approximation in RL.
 >  本文讨论 RL 中的另一种函数近似方法
@@ -185,8 +185,6 @@ $$
 
 which tells us that the error in $f_{w}(s, a)$ is orthogonal to the gradient of the policy parameterization. Because the expression above is zero, we can subtract it from the policy gradient theorem (2) to yield
 
-以下是使用 `align` 环境重新排版后的公式：
-
 $$
 \begin{align}
 \frac{\partial\rho}{\partial\theta} 
@@ -225,7 +223,7 @@ The careful reader will have noticed that the form given above for $f_w$ require
 >  可以发现上述的对 $f_w$ 的近似形式要求它在每个状态上的均值为零，从这个角度来看，将 $f_w$ 看作是对优势函数 $A^\pi(s,  a)  = Q^\pi(s, a) - V^\pi(s)$ 的近似更加合适
 
 Our convergence requirement (3) is really that $f_w$ gets the relative value of the actions correct in each state, not the absolute value, nor the variation from state to state. Our results can be viewed as a justification for the special status of advantages as the target for value function approximation in RL. 
->  实际上，Eq 3 的收敛条件值要求 $f_w$ 在每个状态下正确地反映动作之间的相对价值，而不是绝对价值，也不是状态之间的变化
+>  实际上，Eq 3 的收敛条件只要求 $f_w$ 在每个状态下正确地反映动作之间的相对价值，而不是绝对价值，也不是状态之间的变化
 >  我们的结果可以看作是对 RL 中优势函数作为价值函数的近似目标的特殊地位的一种理论依据
 
 In fact, our (2), (3), and (5), can all be generalized to include an arbitrary function of state added to the value function or its approximation. For example, (5) can be generalized to $\frac{\partial\rho}{\partial\theta} = \sum_{s}d^{\pi}(s)\sum_{a}\frac{\partial\pi(s,a)}{\partial\theta}\left[f_{w}(s,a) + v(s)\right]$ , where $v:S\to \mathbb{R}$ is an arbitrary function. (This follows immediately because $\sum_{a}\frac{\partial\pi(s,a)}{\partial\theta} = 0$ , $\forall s\in S$ .) 
