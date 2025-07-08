@@ -246,7 +246,7 @@ converges to $Q_{\mathrm{soft}}^{*}$ and $V_{\mathrm{soft}}^{*}$ respectively.
 Proof. See Appendix A.2 as well as (Fox et al., 2016).
 
 We refer to the updates in (8) and (9) as the soft Bellman backup operator that acts on the soft value function, and denote it by $\mathcal{T}$ . 
->  我们称 Eq8, 9 中的更新作用与软价值函数 soft Bellman 回溯更新算子，记作 $\mathcal T$
+>  我们称 Eq8, 9 中的更新为作用于软价值函数的 soft Bellman 回溯更新算子，记作 $\mathcal T$
 >  (回溯更新/backup 即根据当前状态的奖励和未来状态的预期价值更新当前状态的价值的过程，Q-value 同理)
 
 The maximum entropy policy in (6) can then be recovered by iteratively applying this operator until convergence. However, there are several practicalities that need to be considered in order to make use of the algorithm. First, the soft Bellman backup cannot be performed exactly in continuous or large state and action spaces, and second, sampling from the energy-based model in (6) is intractable in general. 
@@ -671,7 +671,8 @@ Q_{\mathrm{soft}}^\pi(s,a) &= \mathbb E_{s_1}[r_0 + \gamma(\mathcal H(\pi(\cdot\
 \end{align}
 $$
 
->  证明过程就是将 $Q_{\mathrm{soft}}^\pi$ 展开，然后不断应用 Eq 18 构造不等式即可\
+>  证明过程就是将 $Q_{\mathrm{soft}}^\pi$ 展开，然后不断应用 Eq 18 构造不等式即可
+
 With Theorem 4, we start from an arbitrary policy $\pi_{0}$ and define the policy iteration as
 
 $$

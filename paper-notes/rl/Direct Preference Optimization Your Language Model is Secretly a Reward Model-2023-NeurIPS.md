@@ -35,7 +35,7 @@ At a high level, existing methods instill the desired behaviors into a language 
 
 In this paper, we show how to directly optimize a language model to adhere to human preferences, without explicit reward modeling or reinforcement learning. We propose Direct Preference Optimization (DPO), an algorithm that implicitly optimizes the same objective as existing RLHF algorithms (reward maximization with a KL-divergence constraint) but is simple to implement and straightforward to train. 
 >  我们将在偏好学习阶段直接优化 LLM，不需要隐式的奖励建模或强化学习
->  直接偏好优化算法优化和现存 RLHF 算法相同的目标: 带有 KL 散度约束的奖励最大化目标，但训练和实现都更简单
+>  直接偏好优化算法优化和现存 RLHF 算法优化相同的目标: 带有 KL 散度约束的奖励最大化目标，但训练和实现都更简单
 
 Intuitively, the DPO update increases the relative log probability of preferred to dispreferred responses, but it incorporates a dynamic, per-example importance weight that prevents the model degeneration that we find occurs with a naive probability ratio objective. 
 >  DPO 的更新步会增加偏好的回应和不被偏好的回应的相对对数概率，但 DPO 为每个样本引入了动态权重，避免了在使用简单的概率比目标时的模型退化问题
