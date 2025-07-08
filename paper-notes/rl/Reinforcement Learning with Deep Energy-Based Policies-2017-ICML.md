@@ -135,72 +135,139 @@ If we wish to extend either the conventional or the maximum entropy RL objective
 > 我们将带有折扣因子的推导放在附录，我们的最终算法后后续推导都会使用折扣因子
 
 ## 2.2. Soft Value Functions and Energy-Based Models
-Optimizing the maximum entropy objective in (2) provides us with a framework for training stochastic policies, but we must still choose a representation for these policies. The choices in prior work include discrete multinomial distributions (O'Donoghue et al., 2016) and Gaussian distributions (Rawlik et al., 2012). However, if we want to use a very general class of distributions that can represent complex, multimodal behaviors, we can instead opt for using general energy-based policies of the form
+Optimizing the maximum entropy objective in (2) provides us with a framework for training stochastic policies, but we must still choose a representation for these policies. 
+>  Eq 2 为我们提供了优化的目标函数，我们进而要选择策略的表示方式，以供优化
+
+The choices in prior work include discrete multinomial distributions (O'Donoghue et al., 2016) and Gaussian distributions (Rawlik et al., 2012). However, if we want to use a very general class of distributions that can represent complex, multimodal behaviors, we can instead opt for using general energy-based policies of the form
 
 $$
 \pi (\mathbf{a}_t|\mathbf{s}_t)\propto \exp \left(-\mathcal{E}(\mathbf{s}_t,\mathbf{a}_t)\right), \tag{3}
 $$
 
-where $\mathcal{E}$ is an energy function that could be represented, for example, by a deep neural network. If we use a universal function approximator for $\mathcal{E}$ we can represent any distribution $\pi (\mathbf{a}_t|\mathbf{s}_t)$ . There is a close connection between such energy-based models and soft versions of value functions and Q-functions, where we set $\mathcal{E}(\mathbf{s}_t,\mathbf{a}_t) = -\frac{1}{\alpha} Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}_t)$ and use the following theorem:
+where $\mathcal{E}$ is an energy function that could be represented, for example, by a deep neural network. If we use a universal function approximator for $\mathcal{E}$ we can represent any distribution $\pi (\mathbf{a}_t|\mathbf{s}_t)$ . 
 
-Theorem 1. Let the soft $Q$ -function be defined by
+>  之前的工作中，策略的表示形式包括: 离散多项式分布、高斯分布等
+>  如果我们不想限制策略的表示能力，我们可以选择基于能量的表示形式，如 Eq 3
+>  其中 $\mathcal E$ 是某个能量函数
+
+There is a close connection between such energy-based models and soft versions of value functions and Q-functions, where we set $\mathcal{E}(\mathbf{s}_t,\mathbf{a}_t) = -\frac{1}{\alpha} Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}_t)$ and use the following theorem:
+>  根据 Appendix A.1 的推导，我们知道最优策略一定满足玻尔兹曼分布的形式，且其能量函数的形式为 $\mathcal E(s, a) = -\frac 1 \alpha Q_{\mathrm{soft}}(s, a)$  (因此我们可以参数化并学习 $Q_{\mathrm{soft}}$，然后用它表示最优策略)
+>  我们进而有 Theorem 1，它定义了最优的 Q-function 和最优的 value-function，并给出了用 Q-function 和 value-function 表示最优策略的形式
+
+**Theorem 1.** Let the soft $Q$ -function be defined by
 
 $$
-\begin{array}{rl} & Q_{\mathrm{soft}}^{*}(\mathbf{s}_t,\mathbf{a}_t) = r_t + \\ & \mathbb{E}_{(\mathbf{s}_{t + 1},\dots)\sim \rho_\pi}\left[\sum_{l = 1}^{\infty}\gamma^l\left(r_{t + l} + \alpha \mathcal{H}\left(\pi_{\mathrm{MaxEnt}}^* (\cdot |\mathbf{s}_{t + l})\right)\right)\right], \end{array} \tag{4}
+\begin{align} & Q_{\mathrm{soft}}^{*}(\mathbf{s}_t,\mathbf{a}_t) = r_t + \\ & \mathbb{E}_{(\mathbf{s}_{t + 1},\dots)\sim \rho_\pi}\left[\sum_{l = 1}^{\infty}\gamma^l\left(r_{t + l} + \alpha \mathcal{H}\left(\pi_{\mathrm{MaxEnt}}^* (\cdot |\mathbf{s}_{t + l})\right)\right)\right], \end{align} \tag{4}
 $$
 
 and soft value function by
 
 $$
-V_{\mathrm{soft}}^{*}(\mathbf{s}_{t}) = \alpha \log \int_{A}\exp \left(\frac{1}{\alpha} Q_{\mathrm{soft}}^{*}(\mathbf{s}_{t},\mathbf{a}^{\prime})\right)d\mathbf{a}^{\prime}. \tag{5}
+V_{\mathrm{soft}}^{*}(\mathbf{s}_{t}) = \alpha \log \int_{\mathcal A}\exp \left(\frac{1}{\alpha} Q_{\mathrm{soft}}^{*}(\mathbf{s}_{t},\mathbf{a}^{\prime})\right)d\mathbf{a}^{\prime}. \tag{5}
 $$
 
 Then the optimal policy for (2) is given by
 
 $$
-\begin{array}{r}V_{\mathrm{MaxEnt}}^{*}(\mathbf{a}_{t}|\mathbf{s}_{t}) = \exp \big(\frac{1}{\alpha} (Q_{\mathrm{soft}}^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) -V_{\mathrm{soft}}^{*}(\mathbf{s}_{t}))\big). \end{array} \tag{6}
+\pi_{\mathrm{MaxEnt}}^{*}(\mathbf{a}_{t}|\mathbf{s}_{t}) = \exp \big(\frac{1}{\alpha} (Q_{\mathrm{soft}}^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) -V_{\mathrm{soft}}^{*}(\mathbf{s}_{t}))\big). \tag{6}
 $$
 
 Proof. See Appendix A.1 as well as (Ziebart, 2010).
 
-Theorem 1 connects the maximum entropy objective in (2) and energy-based models, where $\frac{1}{\alpha} Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}_t)$ acts as the negative energy, and $\frac{1}{\alpha} V_{\mathrm{soft}}(\mathbf{s}_t)$ serves as the log-partition function. As with the standard Q-function and value function, we can relate the Q-function to the value function at a future state via a soft Bellman equation:
+>  **Theorem 1**: Optimal policy
+>  将最优 soft Q-function 的形式定义为 Eq 4，将最优 soft value-function 的形式定义为 Eq 5，则最优策略 $\pi^*$ 可以按照 Eq 6 表示
 
-Theorem 2. The soft $Q$ -function in (4) satisfies the soft Bellman equation
+>  推导
+>  根据 Appendix A.1 中的推导，最优策略一定满足
 
 $$
-Q_{\mathrm{soft}}^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) = r_{t} + \gamma \mathbb{E}_{\mathbf{s}_{t + 1}\sim \rho_{\pi}}\left[V_{\mathrm{soft}}^{*}(\mathbf{s}_{t + 1})\right], \tag{7}
+\pi^*(a\mid s) \propto \exp(\frac 1 \alpha Q_{\text{soft}}^*(s,a))
+$$
+
+>  因此，最优策略可以表示为
+
+$$
+\begin{align}
+\pi^*(a\mid s) &= \frac {\exp(\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))}{\int \exp(\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))da}\\
+&= \exp\left(\log \left(\frac {\exp(\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))}{\int \exp (\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))da}\right)\right)\\
+&= \exp\left(\log  {\exp(\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))}- \log{\int \exp (\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))da}\right)\\
+&= \exp\left(\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a)- \log{\int \exp (\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))da}\right)\\
+&= \exp\left(\frac 1 \alpha (Q_{\mathrm{soft}}^*(s,a)- \alpha\log{\int \exp (\frac 1 \alpha Q_{\mathrm{soft}}^*(s,a))da})\right)\\
+&= \exp\left(\frac 1 \alpha (Q_{\mathrm{soft}}^*(s,a)- V_{\mathrm{soft}}^*(s))\right)\\
+\end{align}
+$$
+
+>  推导完毕
+
+Theorem 1 connects the maximum entropy objective in (2) and energy-based models, where $\frac{1}{\alpha} Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}_t)$ acts as the negative energy, and $\frac{1}{\alpha} V_{\mathrm{soft}}(\mathbf{s}_t)$ serves as the log-partition function. 
+>  Theorem 1 对最优策略的表示中，$\frac 1 \alpha Q_{\mathrm{soft}}(s, a)$ 作为了负能量项，$\frac 1 \alpha V_{\mathrm{soft}}(s)$ 作为了对数配分函数
+
+As with the standard Q-function and value function, we can relate the Q-function to the value function at a future state via a soft Bellman equation:
+
+**Theorem 2.** The soft $Q$ -function in (4) satisfies the soft Bellman equation
+
+$$
+Q_{\mathrm{soft}}^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) = r_{t} + \gamma \mathbb{E}_{\mathbf{s}_{t + 1}\sim p_s}\left[V_{\mathrm{soft}}^{*}(\mathbf{s}_{t + 1})\right], \tag{7}
 $$
 
 where the soft value function $V_{\mathrm{soft}}^{*}$ is given by (5).
 
 Proof. See Appendix A.2, as well as (Ziebart, 2010).
 
-The soft Bellman equation is a generalization of the conventional (hard) equation, where we can recover the more standard equation as $\alpha \rightarrow 0$ , which causes (5) to approach a hard maximum over the actions. In the next section, we will discuss how we can use these identities to derive a Q-learning style algorithm for learning maximum entropy policies, and how we can make this practical for arbitrary Q-function representations via an approximate inference procedure.
+>  **Theorem 2**: soft Bellman equation
+>  Theorem 1 中定义的 soft value function 和 soft Q function 满足 Theorem 2 中定义的 soft Bellman equation: Eq 7
+>  证明见 Appendix A.2
+
+The soft Bellman equation is a generalization of the conventional (hard) equation, where we can recover the more standard equation as $\alpha \rightarrow 0$ , which causes (5) to approach a hard maximum over the actions. 
+>  soft Bellman equation 是对标准的 (hard) Bellman equation 的泛化，当熵项的系数 $\alpha \to 0$ 时，Eq 5 中对 $V_{\mathrm{soft}}^*(s)$ 的计算也会趋向于 $\max_a Q_{\mathrm{soft}}^*(s,a)$ ，soft Bellman equation 可以退回到传统的 Bellman equation
+
+In the next section, we will discuss how we can use these identities to derive a Q-learning style algorithm for learning maximum entropy policies, and how we can make this practical for arbitrary Q-function representations via an approximate inference procedure.
+>  我们在之后将利用 Theorem 1 给出的最优策略的表示形式，以及 Theorem 2 给出的 soft Bellman optimality equation 推导 Q-learning style 算法，来学习最大化 soft 奖励的策略
 
 # 3. Training Expressive Energy-Based Models via Soft Q-Learning
 In this section, we will present our proposed reinforcement learning algorithm, which is based on the soft Q-function described in the previous section, but can be implemented via a tractable stochastic gradient descent procedure with approximate sampling. We will first describe the general case of soft Q-learning, and then present the inference procedure that makes it tractable to use with deep neural network representations in high-dimensional continuous state and action spaces. In the process, we will relate this Q-learning procedure to inference in energy-based models and actor-critic algorithms.
 
-# 3.1. Soft Q-Iteration
-
+## 3.1. Soft Q-Iteration
 We can obtain a solution to (7) by iteratively updating estimates of $V_{\mathrm{soft}}^{*}$ and $Q_{\mathrm{soft}}^{*}$ . This leads to a fixed-point iteration that resembles Q-iteration:
 
-Theorem 3. Soft $Q$ -iteration. Let $Q_{\mathrm{soft}}(\cdot ,\cdot)$ and $V_{\mathrm{soft}}(\cdot)$ be bounded and assume that $\int_{A}\exp \left(\frac{1}{\alpha} Q_{\mathrm{soft}}(\cdot ,\mathbf{a}^{\prime})\right)d\mathbf{a}^{\prime}< \infty$
-
-and that $Q_{\mathrm{soft}}^{*}< \infty$ exists. Then the fixed-point iteration
+**Theorem 3.** Soft $Q$ -iteration. Let $Q_{\mathrm{soft}}(\cdot ,\cdot)$ and $V_{\mathrm{soft}}(\cdot)$ be bounded and assume that $\int_{A}\exp \left(\frac{1}{\alpha} Q_{\mathrm{soft}}(\cdot ,\mathbf{a}^{\prime})\right)d\mathbf{a}^{\prime}< \infty$ and that $Q_{\mathrm{soft}}^{*}< \infty$ exists. Then the fixed-point iteration
 
 $$
-\begin{array}{r}Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}_t)\leftarrow r_t + \gamma \mathbb{E}_{\mathbf{s}_{t + 1}\sim p_{\mathbf{s}}}\left[V_{\mathrm{soft}}(\mathbf{s}_{t + 1})\right],\forall \mathbf{s}_t,\mathbf{a}_t\\ V_{\mathrm{soft}}(\mathbf{s}_t)\leftarrow \alpha \log \int_{\mathcal{A}}\exp \left(\frac{1}{\alpha} Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}')\right)d\mathbf{a}',\forall \mathbf{s}_t \end{array} \tag{8}
+\begin{align}
+Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}_t)&\leftarrow r_t + \gamma \mathbb{E}_{\mathbf{s}_{t + 1}\sim p_{\mathbf{s}}}\left[V_{\mathrm{soft}}(\mathbf{s}_{t + 1})\right],\forall \mathbf{s}_t,\mathbf{a}_t\tag{8}\\
+V_{\mathrm{soft}}(\mathbf{s}_t)&\leftarrow \alpha \log \int_{\mathcal{A}}\exp \left(\frac{1}{\alpha} Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}')\right)d\mathbf{a}',\forall \mathbf{s}_t \tag{9}\end{align} 
 $$
 
 converges to $Q_{\mathrm{soft}}^{*}$ and $V_{\mathrm{soft}}^{*}$ respectively.
 
+>  **Theorem 3**: Soft Q-iteration
+>  Eq 8,9 定义的迭代更新 (即先按照 soft Bellman equation，根据 $V_{\mathrm{soft}}$ 和奖励 $r$ 更新 $Q_{\mathrm{soft}}$，然后按照 $V_{\mathrm{soft}}$ 的定义更新 $V_{\mathrm{soft}}$) 将最终收敛到 $Q^*_{\mathrm{soft}}, V_{\mathrm{soft}}^*$
+
 Proof. See Appendix A.2 as well as (Fox et al., 2016).
 
-We refer to the updates in (8) and (9) as the soft Bellman backup operator that acts on the soft value function, and denote it by $\mathcal{T}$ . The maximum entropy policy in (6) can then be recovered by iteratively applying this operator until convergence. However, there are several practicalities that need to be considered in order to make use of the algorithm. First, the soft Bellman backup cannot be performed exactly in continuous or large state and action spaces, and second, sampling from the energy-based model in (6) is intractable in general. We will address these challenges in the following sections.
+We refer to the updates in (8) and (9) as the soft Bellman backup operator that acts on the soft value function, and denote it by $\mathcal{T}$ . 
+>  我们称 Eq8, 9 中的更新作用与软价值函数 soft Bellman 回溯更新算子，记作 $\mathcal T$
+>  (回溯更新/backup 即根据当前状态的奖励和未来状态的预期价值更新当前状态的价值的过程，Q-value 同理)
 
-# 3.2. Soft Q-Learning
+The maximum entropy policy in (6) can then be recovered by iteratively applying this operator until convergence. However, there are several practicalities that need to be considered in order to make use of the algorithm. First, the soft Bellman backup cannot be performed exactly in continuous or large state and action spaces, and second, sampling from the energy-based model in (6) is intractable in general. 
+>  我们只需要反复执行算子 $\mathcal T$ 直到收敛，理论上就可以获得 Eq 6 定义的最优策略实际应用中有几个实际问题需要考虑:
+>  - soft Bellman backup 不能精确地在连续或非常大的状态或动作空间上执行 (Eq8 和 Eq9 都需要遍历状态/动作空间的所有可能性)
+>  - 从 Eq 6 定义的基于能量的模型采样通常是不可计算的 (同样的，配分函数的计算要求完整积分)
 
-This section discusses how the Bellman backup in Theorem 3 can be implemented in a practical algorithm that uses a finite set of samples from the environment, resulting in a method similar to Q-learning. Since the soft Bellman backup is a contraction (see Appendix A.2), the optimal value function is the fixed point of the Bellman backup, and we can find it by optimizing for a Q-function for which the soft Bellman error $\left|\mathcal{T}Q -Q\right|$ is minimized at all states and actions. While this procedure is still intractable due to the integral in (9) and the infinite set of all states and actions, we can express it as a stochastic optimization, which leads to a stochastic gradient descent update procedure. We will model the soft Q-function with a function approximator with parameters $\theta$ and denote it as $Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)$ .
+We will address these challenges in the following sections.
+
+## 3.2. Soft Q-Learning
+This section discusses how the Bellman backup in Theorem 3 can be implemented in a practical algorithm that uses a finite set of samples from the environment, resulting in a method similar to Q-learning. 
+>  本节讨论如何在实践中 (即使用一组环境中有限的样本) 实现 Theorem 3 描述的 Bellman backup
+
+Since the soft Bellman backup is a contraction (see Appendix A.2), the optimal value function is the fixed point of the Bellman backup, and we can find it by optimizing for a Q-function for which the soft Bellman error $\left|\mathcal{T}Q -Q\right|$ is minimized at all states and actions. 
+>  因为 soft Bellman backup $\mathcal T$ 是收缩映射，故最优的 value function 就是 Bellman backup 的固定点
+>  我们可以通过优化 Q-function，直到 soft Bellman error $|\mathcal TQ - Q|$ 在所有的状态-动作对上最小化来找到这个固定点
+
+While this procedure is still intractable due to the integral in (9) and the infinite set of all states and actions, we can express it as a stochastic optimization, which leads to a stochastic gradient descent update procedure. 
+>  因为 Eq 9 中的积分以及所有状态-动作对的无限可能性，这个迭代过程是不可解的，但我们可以将该迭代过程表示为随机优化，使用随机梯度下降更新 (这样，就把对确切 $Q$ 值的更新转移到对参数的更新，消除了遍历所有状态-动作对的麻烦，以及通过积分计算确切 $V$ 值的麻烦)
+
+We will model the soft Q-function with a function approximator with parameters $\theta$ and denote it as $Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)$ .
 
 To convert Theorem 3 into a stochastic optimization problem, we first express the soft value function in terms of an expectation via importance sampling:
 
@@ -208,7 +275,12 @@ $$
 V_{\mathrm{soft}}^{\theta}(\mathbf{s}_t) = \alpha \log \mathbb{E}_{q_{\mathbf{a}'}}\left[\frac{\exp\left(\frac{1}{\alpha}Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}')\right)}{q_{\mathbf{a}'}(\mathbf{a}')}\right], \tag{10}
 $$
 
-where $q_{\mathbf{a}'}$ can be an arbitrary distribution over the action space. Second, by noting the identity $g_{1}(x) = g_{2}(x)$ $\forall x\in$ $\mathbb{X}\Leftrightarrow \mathbb{E}_{x\sim q}\left[(g_1 (x) -g_2 (x))^2\right] = 0$ , where $q$ can be any strictly positive density function on $\mathbb{X}$ , we can express the soft Q-iteration in an equivalent form as minimizing
+where $q_{\mathbf{a}'}$ can be an arbitrary distribution over the action space. 
+
+>  为了将 Theorem 3 转化为一个随机优化问题，我们先用 IS 表示 soft value function
+>  Eq 10 中 $q_{a'}$ 可以是任意在动作空间上的分布
+
+Second, by noting the identity $g_{1}(x) = g_{2}(x)$ $\forall x\in$ $\mathbb{X}\Leftrightarrow \mathbb{E}_{x\sim q}\left[(g_1 (x) -g_2 (x))^2\right] = 0$ , where $q$ can be any strictly positive density function on $\mathbb{X}$ , we can express the soft Q-iteration in an equivalent form as minimizing
 
 $$
 J_{Q}(\theta) = \mathbb{E}_{\mathbf{s}_{t}\sim q_{\mathbf{a}_{t}},\mathbf{a}_{t}\sim q_{\mathbf{a}_{t}}}\left[\frac{1}{2}\left(\hat{Q}_{\mathrm{soft}}^{\bar{\theta}}(\mathbf{s}_{t},\mathbf{a}_{t}) -Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_{t},\mathbf{a}_{t})\right)^{2}\right], \tag{11}
@@ -216,119 +288,190 @@ $$
 
 where $q_{\mathbf{s}_t}, q_{\mathbf{a}_t}$ are positive over $S$ and $\mathcal{A}$ respectively, $\hat{Q}_{\mathrm{soft}}^{\bar{\theta}}(\mathbf{s}_t,\mathbf{a}_t) = r_t + \gamma \mathbb{E}_{\mathbf{s}_{t + 1}\sim p_{\mathbf{s}}}\left[V_{\mathrm{soft}}^{\bar{\theta}}(\mathbf{s}_{t + 1})\right]$ is a target Q-value, with $V_{\mathrm{soft}}^{\bar{\theta}}(\mathbf{s}_{t + 1})$ given by (10) and $\theta$ being replaced by the target parameters, $\bar{\theta}$
 
-This stochastic optimization problem can be solved approximately using stochastic gradient descent using sampled states and actions. While the sampling distributions $q_{\mathbf{s}_t}$ and $q_{\mathbf{a}_t}$ can be arbitrary, we typically use real samples from rollouts of the current policy $\pi (\mathbf{a}_t|\mathbf{s}_t)\propto \exp \left (\frac{1}{\alpha} Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)\right)$ . For $q_{\mathbf{a}'}$ we have more options. A convenient choice is a uniform distribution. However, this choice can scale poorly to high dimensions. A better choice is to use the current policy, which produces an unbiased estimate of the soft value as can be confirmed by substitution. This overall procedure yields an iterative approach that optimizes over the Q-values, which we summarize in Section 3.4.
+>  然后，因为有恒等式 $g_{1}(x) = g_{2}(x)$ $\forall x\in$ $\mathbb{X}\Leftrightarrow \mathbb{E}_{x\sim q}\left[(g_1 (x) -g_2 (x))^2\right] = 0$ 对于任意 $\mathbb X$ 上的正密度函数成立，因此我们可以将 soft Q-iteration 等价地表示为最小化 Eq 10 给出的目标函数 (均方误差形式)
+>  Eq 10 中 $Q_{\mathrm{soft}}^{\bar \theta}(s_t,a_t)$ 为 target Q value, target Q value 通过 $r_t + \gamma \mathbb E_{s_{t+1}\sim p_s}[V_{\mathrm{soft}}^{\theta}(s_{t+1})]$ 近似
+
+>  这一部分的内容，相当于对 Eq 8, 9 分别执行了转化
+>  对于 Eq 8 ，作者将它转化为了 Eq 11 的随机优化问题，并引入了两个采样分布
+>  对于 Eq 9，作者将它转化为了 Eq 10 的 IS 形式，也引入了一个采样分布
+>  在完全求期望的情况下，转换是等价的
+>  在执行 MC 的情况下，就是对 Bellman backup 的近似计算，这样的一套过程的近似点在于:
+>  - 对 $Q$ 的参数化避免了迭代所有状态-动作对计算精确 $Q$ 值的麻烦
+>  - 对 Eq 10 的 MC 近似缓解了遍历动作空间的计算开销
+>  - 对 Eq 11 的 MC 近似缓解了遍历状态和动作空间的计算开销
+
+>  推导: 恒等式 $g_1(x) = g_2(x)\ \forall x \in \mathbb X \iff \mathbb E_{x\sim q}[(g_1(x) - g_2(x))^2] = 0$ (其中 $q$ 是在 $\mathbb X$ 上的任意正密度函数)
+>  从左到右: 因为 $g_1(x) = g_2(x) \quad \forall x\in \mathbb X$，故 $g_1(x) - g_2(x) = 0 \quad \forall x \in \mathbb X$，故容易得到右边
+>  从右到左: 因为 $q$ 是 $\mathbb X$ 上严格为正的密度函数，且平方项 $(g_1(x)- g_2(x))^2 \ge 0$，因此如果 $\mathbb E_{x\sim q}[(g_1(x) - g_2(x))^2] = 0$，必然有 $g_1(x) - g_2(x) = 0 \ \forall x \in \mathbb X$，故容易得到左边
+
+This stochastic optimization problem can be solved approximately using stochastic gradient descent using sampled states and actions. While the sampling distributions $q_{\mathbf{s}_t}$ and $q_{\mathbf{a}_t}$ can be arbitrary, we typically use real samples from rollouts of the current policy $\pi (\mathbf{a}_t|\mathbf{s}_t)\propto \exp \left (\frac{1}{\alpha} Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)\right)$ . 
+>  以 Eq 11 为目标函数的随机优化问题可以使用采样得到的状态和动作来近似求解
+>  采样分布 $q_{s_t}, q_{a_t}$ 可以任意，我们使用当前策略 $\pi(a\mid s) \propto \exp(\frac 1 \alpha Q_{\mathrm{soft}}^\theta(s, a))$ 的 rollout 中的样本
+
+For $q_{\mathbf{a}'}$ we have more options. A convenient choice is a uniform distribution. However, this choice can scale poorly to high dimensions. A better choice is to use the current policy, which produces an unbiased estimate of the soft value as can be confirmed by substitution. 
+>  $q_{a'}$ 的选择更多，一个方便的选择是均匀分布，但它不容易拓展到高维，更好的选择是当前策略
+
+This overall procedure yields an iterative approach that optimizes over the Q-values, which we summarize in Section 3.4.
+>  结合起来，整个过程就是对 Q-values 的近似迭代优化方法
 
 However, in continuous spaces, we still need a tractable way to sample from the policy $\pi (\mathbf{a}_t|\mathbf{s}_t)\propto \exp \left (\frac{1}{\alpha} Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)\right)$ , both to take on-policy actions and, if so desired, to generate action samples for estimating the soft value function. Since the form of the policy is so general, sampling from it is intractable. We will therefore use an approximate sampling procedure, as discussed in the following section.
+>  目前为止的近似用参数化和采样省去了很多麻烦，但我们还没有考虑具体如何采样
+>  我们仍需要一个从策略 $\pi(a\mid s) \propto \exp(\frac 1 \alpha Q_{\mathrm{soft}}^\theta(s, a))$ 采样的可计算的方法，为此，我们将使用一个近似的采样过程
 
-# 3.3. Approximate Sampling and Stein Variational Gradient Descent (SVGD)
+## 3.3. Approximate Sampling and Stein Variational Gradient Descent (SVGD)
+In this section we describe how we can approximately sample from the soft Q-function. Existing approaches that sample from energy-based distributions generally fall into two categories: methods that use Markov chain Monte Carlo (MCMC) based sampling (Sallans & Hinton, 2004), and methods that learn a stochastic sampling network trained to output approximate samples from the target distribution (Zhao et al., 2016; Kim & Bengio, 2016). 
+>  本节讨论如何对策略进行近似采样
+>  现存的对基于能量的分布进行采样的方法 (回避配分函数) 分为两类:
+>  - MCMC 采样
+>  - 变分法 (学习一个对真实分布进行近似的随机采样网络，从该网络中采样)
 
-In this section we describe how we can approximately sample from the soft Q-function. Existing approaches that sample from energy-based distributions generally fall into two categories: methods that use Markov chain Monte Carlo (MCMC) based sampling (Sallans & Hinton, 2004), and methods that learn a stochastic sampling network trained to output approximate samples from the target distribution (Zhao et al., 2016; Kim & Bengio, 2016). Since sampling via MCMC is not tractable when the inference must be performed online (e.g. when executing a policy), we will use a sampling network based on Stein variational gradient descent (SVGD) (Liu & Wang, 2016) and amortized SVGD (Wang & Liu, 2016). Amortized SVGD has several intriguing properties: First, it provides us with a stochastic sampling network that we can query for extremely fast sample generation. Second, it can be shown to converge to an accurate estimate of the posterior distribution of an EBM. Third, the resulting algorithm, as we will show later, strongly resembles actor-critic algorithm, which provides for a simple and computationally efficient implementation and sheds light on the connection between our algorithm and prior actor-critic methods.
+Since sampling via MCMC is not tractable when the inference must be performed online (e.g. when executing a policy), we will use a sampling network based on Stein variational gradient descent (SVGD) (Liu & Wang, 2016) and amortized SVGD (Wang & Liu, 2016). Amortized SVGD has several intriguing properties: First, it provides us with a stochastic sampling network that we can query for extremely fast sample generation. Second, it can be shown to converge to an accurate estimate of the posterior distribution of an EBM. Third, the resulting algorithm, as we will show later, strongly resembles actor-critic algorithm, which provides for a simple and computationally efficient implementation and sheds light on the connection between our algorithm and prior actor-critic methods.
+>  在需要 online inference (例如执行策略) 的情况下，MCMC 是不可解的 (MCMC 的时间太长了，不可能每次策略进行决策都需要等待那么久)，因此我们考虑使用基于 SVGD 的采样网络，这样的好处在于:
+>  - 随机采样网络可以以非常块的速度生成样本
+>  - 可以证明采样网络可以收敛到真实分布
+>  - 最后得到的算法非常类似 actor-critic
 
-Formally, we want to learn a state-conditioned stochastic neural network $\mathbf{a}_t = f^{\phi}(\xi ;\mathbf{s}_t)$ , parametrized by $\phi$ , that maps noise samples $\xi$ drawn from a normal Gaussian, or other arbitrary distribution, into unbiased action samples from the target EBM corresponding to $Q_{\mathrm{soft}}^{\theta}$ . We denote the induced distribution of the actions as $\pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)$ , and we want to find parameters $\phi$ so that the induced distribution
+Formally, we want to learn a state-conditioned stochastic neural network $\mathbf{a}_t = f^{\phi}(\xi ;\mathbf{s}_t)$ , parametrized by $\phi$ , that maps noise samples $\xi$ drawn from a normal Gaussian, or other arbitrary distribution, into unbiased action samples from the target EBM corresponding to $Q_{\mathrm{soft}}^{\theta}$ . 
+>  我们的目标是学习一个条件于状态的随机神经网络 $a_t = f^\phi(\xi; s_t)$，将高斯噪声 $\xi$ 映射为目标分布 (策略) 中的无偏样本
 
-approximates the energy-based distribution in terms of the KL divergence
+We denote the induced distribution of the actions as $\pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)$ , and we want to find parameters $\phi$ so that the induced distribution approximates the energy-based distribution in terms of the KL divergence
 
 $$
 \begin{array}{rl} & J_{\pi}(\phi ;\mathbf{s}_t) = \\ & \mathrm{D}_{\mathrm{KL}}\left(\pi^{\phi}(\cdot |\mathbf{s}_t)\right)\left\| \exp \left(\frac{1}{\alpha}\left(Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\cdot) -V_{\mathrm{soft}}^{\theta}\right)\right)\right\} . \end{array} \tag{12}
 $$
 
+>  我们记近似分布为 $\pi^\phi(a\mid s)$，则参数 $\phi$ 的优化目标很显然是最小化和目标策略的 KL 散度
+
 Suppose we "perturb" a set of independent samples $\mathbf{a}_t^{(i)} = f^{\phi}(\xi^{(i)};\mathbf{s}_t)$ in appropriate directions $\Delta f^{\phi}(\xi^{(i)};\mathbf{s}_t)$ , the induced KL divergence can be reduced. Stein variational gradient descent (Liu & Wang, 2016) provides the most greedy directions as a functional
 
 $$
-\begin{array}{r}\Delta f^{\phi}(\cdot ;\mathbf{s}_t) = \mathbb{E}_{\mathbf{a}_t\sim \pi^{\phi}}[\kappa (\mathbf{a}_t,f^{\phi}(\cdot ;\mathbf{s}_t))\nabla_{\mathbf{a}'}Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}')|_{\mathbf{a}' = \mathbf{a}_t}\\ +\alpha \nabla_{\mathbf{a}'}\kappa (\mathbf{a}',f^{\phi}(\cdot ;\mathbf{s}_t))\big|_{\mathbf{a}' = \mathbf{a}_t}],\qquad (13 \end{array} \tag{13}
+\begin{align}\Delta f^{\phi}(\cdot ;\mathbf{s}_t) &= \mathbb{E}_{\mathbf{a}_t\sim \pi^{\phi}}[\kappa (\mathbf{a}_t,f^{\phi}(\cdot ;\mathbf{s}_t))\nabla_{\mathbf{a}'}Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}')|_{\mathbf{a}' = \mathbf{a}_t}\\ 
+&+\alpha \nabla_{\mathbf{a}'}\kappa (\mathbf{a}',f^{\phi}(\cdot ;\mathbf{s}_t))\big|_{\mathbf{a}' = \mathbf{a}_t}]\end{align} \tag{13}
 $$
 
-where $\kappa$ is a kernel function (typically Gaussian, see details in Appendix D.1). To be precise, $\Delta f^{\phi}$ is the optimal direction in the reproducing kernel Hilbert space of $\kappa$ , and is thus not strictly speaking the gradient of (12), but it turns out that we can set $\frac{\partial J_{\pi}}{\partial\mathbf{a}_t}\propto \Delta f^{\phi}$ as explained in (Wang & Liu, 2016). With this assumption, we can use the chain rule and backpropagate the Stein variational gradient into the policy network according to
+where $\kappa$ is a kernel function (typically Gaussian, see details in Appendix D.1). 
+
+>  SVGD 的核心思想是不直接计算 KL 散度的梯度，而是采用 "扰动从当前策略 $f^\phi$ 生成的样本，使得这些样本能够更好地匹配目标分布，进而减少 KL 散度" 的思路，直接计算 $f^\phi$ 的变化值 $\Delta f^\phi$
+>  扰动方向/大小使用 Eq 13 计算，其中 $\kappa$ 为核函数
+
+To be precise, $\Delta f^{\phi}$ is the optimal direction in the reproducing kernel Hilbert space of $\kappa$ , and is thus not strictly speaking the gradient of (12), but it turns out that we can set $\frac{\partial J_{\pi}}{\partial\mathbf{a}_t}\propto \Delta f^{\phi}$ as explained in (Wang & Liu, 2016). 
+>  Eq 13 的扰动 $\Delta f^\phi$ 是在 $\kappa$ 的 RKHS 中最优的方向 (即最快减少 KL 散度的方向)，故 $\Delta f^\phi$ 虽然不严格是 Eq 12 的梯度，但它实际上与梯度成比例，即 $\frac {\partial J_\pi}{\partial a_t} \propto \Delta f^\phi$ 
+
+With this assumption, we can use the chain rule and backpropagate the Stein variational gradient into the policy network according to
 
 $$
 \frac{\partial J_{\pi}(\phi;\mathbf{s}_t)}{\partial\phi}\propto \mathbb{E}_{\xi}\left[\Delta f^{\phi}(\xi ;\mathbf{s}_t)\frac{\partial f^{\phi}(\xi;\mathbf{s}_t)}{\partial\phi}\right], \tag{14}
 $$
 
-and use any gradient-based optimization method to learn the optimal sampling network parameters. The sampling network $f^{\phi}$ can be viewed as an actor in an actor-critic algorithm. We will discuss this connection in Section 4, but first we will summarize our complete maximum entropy policy learning algorithm.
+and use any gradient-based optimization method to learn the optimal sampling network parameters. 
 
-# 3.4. Algorithm Summary
+>  在这一假设下，我们采用链式法则 Eq 14，就可以得到 $J_\pi$ 相对于近似网络参数 $\phi$ 的 “梯度” 形式
+>  之后就可以使用任意基于梯度的优化方法对参数进行更新
 
-To summarize, we propose the soft Q-learning algorithm for learning maximum entropy policies in continuous domains. The algorithm proceeds by alternating between collecting new experience from the environment, and updating the soft Q-function and sampling network parameters. The experience is stored in a replay memory buffer $\mathcal{D}$ as standard in deep Q-learning (Mnih et al., 2013), and the parameters are updated using random minibatches from this memory. The soft Q-function updates use a delayed version of the target values (Mnih et al., 2015). For optimization, we use the ADAM (Kingma & Ba, 2015) optimizer and empirical estimates of the gradients, which we denote by $\hat{\nabla}$ . The exact formulae used to compute the gradient estimates is deferred to Appendix C, which also discusses other implementation details, but we summarize an overview of soft Q-learning in Algorithm 1.
+The sampling network $f^{\phi}$ can be viewed as an actor in an actor-critic algorithm. We will discuss this connection in Section 4, but first we will summarize our complete maximum entropy policy learning algorithm.
+>  最终学习到的采样网络 $f^\phi$ 可以视作 actor-critic 中的 actor (很合理，毕竟 policy 就是 actor)
+
+## 3.4. Algorithm Summary
+To summarize, we propose the soft Q-learning algorithm for learning maximum entropy policies in continuous domains. The algorithm proceeds by alternating between collecting new experience from the environment, and updating the soft Q-function and sampling network parameters. 
+>  我们提出了用于在连续空间学习最大熵策略的 soft Q-learning 算法
+>  算法在收集新经验和更新 soft Q-function 以及采样网络参数中迭代
+
+>  和经典的 Q-learning 类似，soft Q-iteration 在理论上也是完全 off-policy 的，进行了近似以后，soft Q-learning 也仍然是 off-policy 的 (回忆一下上面的推导中，采样分布实际上都可以是任意的，因为在期望情况下，等号对于任意分布都成立)
+>  但在实践中作者使用当前的近似 policy 来做采样，故实际上是半 on-policy 的
+
+The experience is stored in a replay memory buffer $\mathcal{D}$ as standard in deep Q-learning (Mnih et al., 2013), and the parameters are updated using random minibatches from this memory. 
+>  和标准的 deep Q-learning 类似，经验存放在 replay buffer $\mathcal D$ 中，参数的更新通过从 replay buffer 中随机抽取小批量样本来计算梯度以执行
+
+>  经验回放的好处有:
+>  - 打破数据相关性: 连续收集的数据一般高度相关，从 replay buffer 中采样可以打破样本间的相关性，让训练更稳定 (让 batch 中样本更接近于 i.i.d.)
+>  - 提高数据利用效率: 经验可以反复用于训练
+
+The soft Q-function updates use a delayed version of the target values (Mnih et al., 2015). 
+>  soft Q-learning 同样采用了标准 Q-learning 中的目标网络来计算目标 $Q$ 值的计算，以稳定更新
+
+For optimization, we use the ADAM (Kingma & Ba, 2015) optimizer and empirical estimates of the gradients, which we denote by $\hat{\nabla}$ . The exact formulae used to compute the gradient estimates is deferred to Appendix C, which also discusses other implementation details, but we summarize an overview of soft Q-learning in Algorithm 1.
+
+![[pics/Reinforcement Learning with Deep Enerty-Based Policies-Algorithm1.png]]
 
 # 4. Related Work
+Maximum entropy policies emerge as the solution when we cast optimal control as probabilistic inference. In the case of linear-quadratic systems, the mean of the maximum entropy policy is exactly the optimal deterministic policy (Todorov, 2008), which has been exploited to construct practical path planning methods based on iterative linearization and probabilistic inference techniques (Tous Saint, 2009). In discrete state spaces, the maximum entropy policy can be obtained exactly. This has been explored in the context of linearly solvable MDPs (Todorov, 2007) and, in the case of inverse reinforcement learning, MaxEnt IRL (Ziebart et al., 2008). In continuous systems and continuous time, path integral control studies maximum entropy policies and maximum entropy planning (Kappen, 2005). 
+>  最大熵策略起源于将最优控制问题视作概率推断问题
 
-Maximum entropy policies emerge as the solution when we cast optimal control as probabilistic inference. In the $\theta ,\phi \sim$ some initialization distributions. Assign target parameters: $\theta \gets \theta$ $\phi \gets \phi$ $\mathcal{D}\gets$ empty replay memory.
+In contrast to these prior methods, our work is focused on extending the maximum entropy policy search framework to high-dimensional continuous spaces and highly multimodal objectives, via expressive general-purpose energy functions represented by deep neural networks. 
+>  我们的工作聚焦于将最大熵策略搜索框架拓展到高维连续空间，其中策略可以用 EBM 表示
 
-# Algorithm 1 Soft Q-learning
+A number of related methods have also used maximum entropy policy optimization as an intermediate step for optimizing policies under a standard expected reward objective (Peters et al., 2010; Neumann, 2011; Rawlik et al., 2012; Fox et al., 2016). Among these, the work of Rawlik et al. (2012) resembles ours in that it also makes use of a temporal difference style update to a soft Q-function. However, unlike this prior work, we focus on general-purpose energy functions with approximate sampling, rather than analytically normalizable distributions. A recent work (Liu et al., 2017) also considers an entropy regularized objective, though the entropy is on policy parameters, not on sampled actions. Thus the resulting policy may not represent an arbitrarily complex multi-modal distribution with a single parameter. The form of our sampler resembles the stochastic networks proposed in recent work on hierarchical learning (Florensa et al., 2017). However this prior work uses a task-specific reward bonus system to encourage stochastic behavior, while our approach is derived from optimizing a general maximum entropy objective.
 
-# for each epoch do
+A closely related concept to maximum entropy policies is Boltzmann exploration, which uses the exponential of the standard Q-function as the probability of an action (Kaellbling et al., 1996). A number of prior works have also explored representing policies as energy-based models, with the Q-value obtained from an energy model such as a restricted Boltzmann machine (RBM) (Sallans & Hinton, 2004; Elfwing et al., 2010; Otsuka et al., 2010; Heess et al., 2012). 
 
-# for each $t$ do
+Although these methods are closely related, they have not, to our knowledge, been extended to the case of deep network models, have not made extensive use of approximate inference techniques, and have not been demonstrated on the complex continuous tasks. 
 
-# Collect experience
+More recently, O'Donoghue et al. (2016) drew a connection between Boltzmann exploration and entropy-regularized policy gradient, though in a theoretical framework that differs from maximum entropy policy search: unlike the full maximum entropy framework, the approach of O'Donoghue et al. (2016) only optimizes for maximizing entropy at the current time step, rather than planning for visiting future states where entropy will be further maximized. This prior method also does not demonstrate learning complex multimodal policies in continuous action spaces.
 
-Sample an action for $\mathbf{s}_t$ using $f^{\phi}$ $\mathbf{a}_t\gets f^{\phi}(\xi ;\mathbf{s}_t)$ where $\xi \sim \mathcal{N}(\mathbf{0},\mathbf{I})$ Sample next state from the environment: $\mathbf{s}_{t + 1}\sim p_{\mathbf{s}}(s_{t + 1}^{\dagger}|\mathbf{s}_t,\mathbf{a}_t)$ Save the new experience in the replay memory: $\mathcal{D}\gets \mathcal{D}\cup \{\{s_t,\mathbf{a}_t,r (\mathbf{s}_t,\mathbf{a}_t),\mathbf{s}_{t + 1}\} \}$
+Although we motivate our method as Q-learning, its structure resembles an actor-critic algorithm. It is particularly instructive to observe the connection between our approach and the deep deterministic policy gradient method (DDPG) (Lillicrap et al., 2015), which updates a Q-function critic according to (hard) Bellman updates, and then backpropagates the Q-value gradient into the actor, similarly to NFQCA (Hafner & Riedmiller, 2011). Our actor update differs only in the addition of the $\kappa$ term. Indeed, without this term, our actor would estimate a maximum a posteriori (MAP) action, rather than capturing the entire EBM distribution. 
+>  我们的动机是 Q-learning，但最后的算法结构实际上类似于 actor-critic (因为多了一步用 Q-function 优化近似的策略采样器的步骤)
+>   soft Q-learning 的 actor 更新和 DDPG 近乎完全相同，差异仅在额外的 $\kappa$ 项，如果没有这一项，actor 将仅仅学会最大化 $Q$ 值的单一最佳动作，无法捕获整个 EBM 分布 ($\kappa$ 项的作用就像在生成的样本之间施加一个“排斥力”，鼓励 actor 更广泛地探索动作空间)
 
-Sample a minibatch from the replay memory
+This suggests an intriguing connection between our method and DDPG: if we simply modify the DDPG critic updates to estimate soft Q-values, we recover the MAP variant of our method. Furthermore, this connection allows us to cast DDPG as simply an approximate Q-learning method, where the actor serves the role of an approximate maximizer. This helps explain the good performance of DDPG on off-policy data. We can also make a connection between our method and policy gradients. 
+>  这也揭示了本方法和 DDPG 的联系: 如果修改 DDPG 对 critic 的更新，将其更新目标定义为 soft Q-values，我们就得到了我们方法的 MAP 变体
+>  这也使我们可以将 DDPG 看作近似的 Q-learning 方法，其中 actor 扮演者 Q-function 的近似最大器的角色，这也解释了 DDPG 在 off-policy 数据上的优秀表现
 
-$$
-\{(\mathbf{s}_t^{(i)},\mathbf{a}_t^{(i)},r_t^{(i)},\mathbf{s}_{t + 1}^{(i)})\}_{i = 0}^N\sim \mathcal{D}.
-$$
-
-# Update the soft Q-function parameters
-
-Sample $\{\mathbf{a}^{(i, j)}\}_{j = 0}^{M}\sim q_{\mathbf{a}'}$ for each $\mathbf{s}_{t + 1}^{(i)}$ Compute empirical soft value $\hat{V}_{\theta}^{\bar{\theta}}(\mathbf{s}_{t + 1}^{(i)})$ in (10). Compute empirical gradient $\hat{\nabla}_{\theta}J_{Q}$ of (11). Update $\theta$ according to $\hat{\nabla}_{\theta}J_{Q}$ using ADAM.
-
-# Update policy
-
-Sample $\{\xi^{(i, j)}\}_{j = 0}^{M}\sim \mathcal{N}(\mathbf{0},\mathbf{I})$ for each $\mathbf{s}_t^{(i)}$ Compute actions $\mathbf{a}_t^{(i, j)} = f^{\phi}(\xi^{(i, j)},\mathbf{s}_t^{(i)})$ Compute $\Delta f^{\phi}$ using empirical estimate of (13). Compute empirical estimate of (14): $\hat{\nabla}_{\phi}J_{\pi}$ Update $\phi$ according to $\hat{\nabla}_{\phi}J_{\pi}$ using ADAM.
-
-# end for
-
-if epoch mod update interval $= 0$ then
-
-Update target parameters: $\bar{\theta}\gets \theta ,\bar{\phi}\gets \phi$ end if end for
-
-case of linear-quadratic systems, the mean of the maximum entropy policy is exactly the optimal deterministic policy (Todorov, 2008), which has been exploited to construct practical path planning methods based on iterative linearization and probabilistic inference techniques (Tous Saint, 2009). In discrete state spaces, the maximum entropy policy can be obtained exactly. This has been explored in the context of linearly solvable MDPs (Todorov, 2007) and, in the case of inverse reinforcement learning, MaxEnt IRL (Ziebart et al., 2008). In continuous systems and continuous time, path integral control studies maximum entropy policies and maximum entropy planning (Kappen, 2005). In contrast to these prior methods, our work is focused on extending the maximum entropy policy search framework to high-dimensional continuous spaces and highly multimodal objectives, via expressive general-purpose energy functions represented by deep neural networks. A number of related methods have also used maximum entropy policy optimization as an intermediate step for optimizing policies under a standard expected reward objective (Pe
-
-ters et al., 2010; Neumann, 2011; Rawlik et al., 2012; Fox et al., 2016). Among these, the work of Rawlik et al. (2012) resembles ours in that it also makes use of a temporal difference style update to a soft Q-function. However, unlike this prior work, we focus on general-purpose energy functions with approximate sampling, rather than analytically normalizable distributions. A recent work (Liu et al., 2017) also considers an entropy regularized objective, though the entropy is on policy parameters, not on sampled actions. Thus the resulting policy may not represent an arbitrarily complex multi-modal distribution with a single parameter. The form of our sampler resembles the stochastic networks proposed in recent work on hierarchical learning (Florensa et al., 2017). However this prior work uses a task-specific reward bonus system to encourage stochastic behavior, while our approach is derived from optimizing a general maximum entropy objective.
-
-A closely related concept to maximum entropy policies is Boltzmann exploration, which uses the exponential of the standard Q-function as the probability of an action (Kaellbling et al., 1996). A number of prior works have also explored representing policies as energy-based models, with the Q-value obtained from an energy model such as a restricted Boltzmann machine (RBM) (Sallans & Hinton, 2004; Elfwing et al., 2010; Otsuka et al., 2010; Heess et al., 2012). Although these methods are closely related, they have not, to our knowledge, been extended to the case of deep network models, have not made extensive use of approximate inference techniques, and have not been demonstrated on the complex continuous tasks. More recently, O'Donoghue et al. (2016) drew a connection between Boltzmann exploration and entropy-regularized policy gradient, though in a theoretical framework that differs from maximum entropy policy search: unlike the full maximum entropy framework, the approach of O'Donoghue et al. (2016) only optimizes for maximizing entropy at the current time step, rather than planning for visiting future states where entropy will be further maximized. This prior method also does not demonstrate learning complex multimodal policies in continuous action spaces.
-
-Although we motivate our method as Q-learning, its structure resembles an actor-critic algorithm. It is particularly instructive to observe the connection between our approach and the deep deterministic policy gradient method (DDPG) (Lillicrap et al., 2015), which updates a Q-function critic according to (hard) Bellman updates, and then backpropagates the Q-value gradient into the actor, similarly to NFQCA (Hafner & Riedmiller, 2011). Our actor update differs only in the addition of the $\kappa$ term. Indeed, without this term, our actor would estimate a maximum a posteriori (MAP) action, rather than capturing the entire EBM distribution. This suggests an intriguing connection between our method and DDPG: if we simply modify the
-
-DDPG critic updates to estimate soft Q-values, we recover the MAP variant of our method. Furthermore, this connection allows us to cast DDPG as simply an approximate Q-learning method, where the actor serves the role of an approximate maximizer. This helps explain the good performance of DDPG on off-policy data. We can also make a connection between our method and policy gradients. In Appendix B, we show that the policy gradient for a policy represented as an energy-based model closely corresponds to the update in soft Q-learning. Similar derivation is presented in a concurrent work (Schulman et al., 2017).
+In Appendix B, we show that the policy gradient for a policy represented as an energy-based model closely corresponds to the update in soft Q-learning. Similar derivation is presented in a concurrent work (Schulman et al., 2017).
 
 # 5. Experiments
+Our experiments aim to answer the following questions: (1) Does our soft Q-learning method accurately capture a multi-modal policy distribution? (2) Can soft Q-learning with energy-based policies aid exploration for complex tasks that require tracking multiple modes? (3) Can a maximum entropy policy serve as a good initialization for finetuning on different tasks, when compared to pretraining with a standard deterministic objective? 
 
-Our experiments aim to answer the following questions: (1) Does our soft Q-learning method accurately capture a multi-modal policy distribution? (2) Can soft Q-learning with energy-based policies aid exploration for complex tasks that require tracking multiple modes? (3) Can a maximum entropy policy serve as a good initialization for finetuning on different tasks, when compared to pretraining with a standard deterministic objective? We compare our algorithm to DDPG (Lillicrap et al., 2015), which has been shown to achieve better sample efficiency on the continuous control problems that we consider than other recent techniques such as REINFORCE (Williams, 1992), TRPO (Schulman et al., 2015a), and A3C (Minih et al., 2016). This comparison is particularly interesting since, as discussed in Section 4, DDPG closely corresponds to a deterministic maximum a posteriori variant of our method. The detailed experimental setup can be found in Appendix D. Videos of all experiments and example source code are available online.
+We compare our algorithm to DDPG (Lillicrap et al., 2015), which has been shown to achieve better sample efficiency on the continuous control problems that we consider than other recent techniques such as REINFORCE (Williams, 1992), TRPO (Schulman et al., 2015a), and A3C (Minih et al., 2016). 
 
-# 5.1. Didactic Example: Multi-Goal Environment
+This comparison is particularly interesting since, as discussed in Section 4, **DDPG closely corresponds to a deterministic maximum a posteriori variant of our method.** The detailed experimental setup can be found in Appendix D. Videos of all experiments and example source code are available online.
+>  DDPG 非常类似于我们的方法的确定性最大后验变体 (如果让 DDPG 也优化 soft Q-function 的话)，差异仅在于:
+>  - soft Q learning 优化 soft Q-function, DDPG 优化普通的 Q-function
+>  - soft Q learning 不是确定性地通过 soft Q-function 定义最后的策略，DDPG 确定性地通过 Q-function 定义最后的策略
 
-In order to verify that amortized SVGD can correctly draw samples from energy-based policies of the form $\exp \left (Q_{\text{soft}}^{\theta}(s, a)\right)$ , and that our complete algorithm can successful learn to represent multi-modal behavior, we designed a simple "multi-goal" environment, in which the agent is a 2D point mass trying to reach one of four symmetrically placed goals. The reward is defined as a mixture of Gaussians, with means placed at the goal positions. An optimal strategy is to go to an arbitrary goal, and the optimal maximum entropy policy should be able to choose each of the four goals at random. The final policy obtained with our method is illustrated in Figure 1. The Q-values indeed have complex shapes, being unimodal at $s = (-2, 0)$ , convex at $s = (0, 0)$ , and bimodal at $s = (2.5, 2.5)$ . The stochastic policy samples actions closely following the energy landscape, hence learning diverse trajectories that lead to all four goals. In comparison, a policy trained with DDPG randomly commits to a single goal.
+## 5.1. Didactic Example: Multi-Goal Environment
+In order to verify that amortized SVGD can correctly draw samples from energy-based policies of the form $\exp \left (Q_{\text{soft}}^{\theta}(s, a)\right)$ , and that our complete algorithm can successful learn to represent multi-modal behavior, we designed a simple **"multi-goal" environment**, in which the agent is a 2D point mass trying to reach one of four symmetrically placed goals. 
+>  作者设计了一个 "multi-goal" 环境
 
-https://sites.google.com/view/softqlearning/home 3https://github.com/haarnoja/softqlearning
+The reward is defined as a mixture of Gaussians, with means placed at the goal positions. An optimal strategy is to go to an arbitrary goal, and the optimal maximum entropy policy should be able to choose each of the four goals at random. 
+>  奖励定义为混合高斯分布
+>  在这个问题下，最优策略只需要走任意一个方向，最大熵最优策略需要以同等概率选择四个方向
+
+The final policy obtained with our method is illustrated in Figure 1. The Q-values indeed have complex shapes, being unimodal at $s = (-2, 0)$ , convex at $s = (0, 0)$ , and bimodal at $s = (2.5, 2.5)$ . The stochastic policy samples actions closely following the energy landscape, hence learning diverse trajectories that lead to all four goals. In comparison, a policy trained with DDPG randomly commits to a single goal.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-05/9458f4c4-a71c-4ffc-8bbe-18e774e93b4d/093e814ef6158da0bddec49fafa3ab9dc06bb2d289836a76bf1be9e1a51e2de5.jpg) 
 Figure 1. Illustration of the 2D multi-goal environment. Left: trajectories from a policy learned with our method (solid blue lines). The $x$ and $y$ axes correspond to 2D positions (states). The agent is initialized at the origin. The goals are depicted as red dots, and the level curves show the reward. Right: Q-values at three selected states, depicted by level curves (red: high values, blue: low values). The $x$ and $y$ axes correspond to 2D velocity (actions) bounded between -1 and 1. Actions sampled from the policy are shown as blue stars. Note that, in regions (e.g. (2.5, 2.5)) between the goals, the method chooses multimodal actions.
 
-# 5.2. Learning Multi-Modal Policies for Exploration
-
+## 5.2. Learning Multi-Modal Policies for Exploration
 Though not all environments have a clear multi-modal reward landscape as in the "multi-goal" example, multimodality is prevalent in a variety of tasks. For example, a chess player might try various strategies before settling on one that seems most effective, and an agent navigating a maze may need to try various paths before finding the exit. During the learning process, it is often best to keep trying multiple available options until the agent is confident that one of them is the best (similar to a bandit problem (Lai & Robbins, 1985)). However, deep RL algorithms for continuous control typically use unimodal action distributions, which are not well suited to capture such multi-modality. As a consequence, such algorithms may prematurely commit to one mode and converge to suboptimal behavior.
+>  虽然并非所有环境都像“多目标”示例中那样具有清晰的多模态奖励结构，但多模态在各种任务中都很常见
+>  例如，国际象棋选手可能在选择最有效的策略之前尝试多种策略，而一个在迷宫中导航的智能体可能需要尝试多种路径才能找到出口
+>  在学习过程中，通常最好继续尝试多种可用选项，直到智能体确信其中有一个是最优的
+>  然而，传统的深度强化学习算法在连续控制中通常使用单模态动作分布，这并不适合捕捉这种多模态性
+>  因此，这些算法可能会过早地选择一个模式，并收敛到次优行为。
 
 To evaluate how maximum entropy policies might aid exploration, we constructed simulated continuous control environments where tracking multiple modes is important for success. The first experiment uses a simulated swimming snake (see Figure 2), which receives a reward equal to its speed along the $x$ -axis, either forward or backward. However, once the swimmer swims far enough forward, it crosses a "finish line" and receives a larger reward. Therefore, the best learning strategy is to explore in both directions until the bonus reward is discovered, and then commit to swimming forward. As illustrated in Figure 6 in Appendix D.3, our method is able to recover this strategy, keeping track of both modes until the finish line is discovered. All stochastic policies eventually commit to swimming forward. The deterministic DDPG method shown in the comparison commits to a mode prematurely, with only $80\%$ of the policies converging on a forward motion, and $20\%$ choosing the suboptimal backward mode.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-05/9458f4c4-a71c-4ffc-8bbe-18e774e93b4d/9fee30a8eaccc54d663fc2747c14e02698182090b602342285730e2637605610.jpg) 
+
 Figure 2. Simulated robots used in our experiments.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-05/9458f4c4-a71c-4ffc-8bbe-18e774e93b4d/524d5774d218f08fb7e535bb48f4e5fe3cd4d025d599ec2b0904d0ac2414eb1b.jpg) 
-Figure 3. Comparison of soft Q-learning and DDPG on the swimmer snake task and the quadrupedal robot maze task. (a) Shows the maximum traveled forward distance since the beginning of training for several runs of each algorithm; there is a large reward after crossing the finish line. (b) Shows our method was able to reach a low distance to the goal faster and more consistently. The different lines show the minimum distance to the goal since the beginning of training. For both domains, all runs of our method cross the threshold line, acquiring the more optimal strategy, while some runs of DDPG do not.
 
-ming forward. The deterministic DDPG method shown in the comparison commits to a mode prematurely, with only $80\%$ of the policies converging on a forward motion, and $20\%$ choosing the suboptimal backward mode.
+Figure 3. Comparison of soft Q-learning and DDPG on the swimmer snake task and the quadrupedal robot maze task. (a) Shows the maximum traveled forward distance since the beginning of training for several runs of each algorithm; there is a large reward after crossing the finish line. (b) Shows our method was able to reach a low distance to the goal faster and more consistently. The different lines show the minimum distance to the goal since the beginning of training. For both domains, all runs of our method cross the threshold line, acquiring the more optimal strategy, while some runs of DDPG do not.
 
 The second experiment studies a more complex task with a continuous range of equally good options prior to discovery of a sparse reward goal. In this task, a quadrupedal 3D robot (adapted from Schulman et al. (2015b)) needs to find a path through a maze to a target position (see Figure 2). The reward function is a Gaussian centered at the target. The agent may choose either the upper or lower passage, which appear identical at first, but the upper passage is blocked by a barrier. Similar to the swimmer experiment, the optimal strategy requires exploring both directions and choosing the better one. Figure 3 (b) compares the performance of DDPG and our method. The curves show the minimum distance to the target achieved so far and the threshold equals the minimum possible distance if the robot chooses the upper passage. Therefore, successful exploration means reaching below the threshold. All policies trained with our method manage to succeed, while only $60\%$ policies trained with DDPG converge to choosing the lower passage.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-05/9458f4c4-a71c-4ffc-8bbe-18e774e93b4d/c060673750edae2efec9da435fce8a2a22065a9ee30e4681784798241032840a.jpg) 
+
 Figure 4. Quadrupedal robot (a) was trained to walk in random directions in an empty pretraining environment (details in Figure 7, see Appendix D.3), and then finetuned on a variety of tasks, including a wide (b), narrow (c), and U-shaped hallway (d).
 
-# 5.3. Accelerating Training on Complex Tasks with Pretrained Maximum Entropy Policies
+## 5.3. Accelerating Training on Complex Tasks with Pretrained Maximum Entropy Policies
+A standard way to accelerate deep neural network training is task-specific initialization (Goodfellow et al., 2016), where a network trained for one task is used as initialization for another task. The first task might be something highly general, such as classifying a large image dataset, while the second task might be more specific, such as fine-grained classification with a small dataset. 
 
-A standard way to accelerate deep neural network training is task-specific initialization (Goodfellow et al., 2016), where a network trained for one task is used as initialization for another task. The first task might be something highly general, such as classifying a large image dataset, while the second task might be more specific, such as fine-grained classification with a small dataset. Pretraining has also been explored in the context of RL (Shelhamer et al., 2016). However, in RL, near-optimal policies are often near-deterministic, which makes them poor initializers for new tasks. In this section, we explore how our energy-based policies can be trained with fairly broad objectives to produce an initializer for more quickly learning more specific tasks.
+Pretraining has also been explored in the context of RL (Shelhamer et al., 2016). However, in RL, near-optimal policies are often near-deterministic, which makes them poor initializers for new tasks. 
+>  有工作在 RL 背景下也探索了预训练+微调范式，但是在 RL 中，接近最优的策略通常也是接近确定性的，因此作为其他任务的初始化点往往效果不好
+
+In this section, we explore how our energy-based policies can be trained with fairly broad objectives to produce an initializer for more quickly learning more specific tasks.
 
 We demonstrate this on a variant of the quadrupedal robot task. The pretraining phase involves learning to locomote in an arbitrary direction, with a reward that simply equals the speed of the center of mass. The resulting policy moves the agent quickly to an randomly chosen direction. An overhead plot of the center of mass traces is shown above to illustrate this. This pretraining is similar in some ways to recent work on modulated controllers (Heess et al., 2016) and hierarchical models (Florensa et al., 2017). However, in contrast to these prior works, we do not require any task-specific high-level goal generator or reward.
 
@@ -336,52 +479,26 @@ We demonstrate this on a variant of the quadrupedal robot task. The pretraining 
 
 Figure 4 also shows a variety of test environments that we used to fine tune the running policy for a specific task. In the hallway environments, the agent receives the same reward, but the walls block sideways motion, so the optimal solution requires learning to run in a particular direction. Narrow hallways require choosing a more specific direction, but also allow the agent to use the walls to funnel itself. The U-shaped maze requires the agent to learn a curved trajectory in order to arrive at the target, with the reward given by a Gaussian bump at the target location.
 
-As illustrated in Figure 7 in Appendix D.3, the pretrained policy explores the space extensively and in all directions. This gives a good initialization for the policy, allowing it to learn the behaviors in the test environments more quickly than training a policy with DDPG from a random initialization, as shown in Figure 5. We also evaluated an alternative pretraining method based on deterministic policies learned with DDPG. However, deterministic pretraining chooses an arbitrary but consistent direction in the training environment, providing a poor initialization for finetuning to a specific task, as shown in the results plots.
+As illustrated in Figure 7 in Appendix D.3, the pretrained policy explores the space extensively and in all directions. This gives a good initialization for the policy, allowing it to learn the behaviors in the test environments more quickly than training a policy with DDPG from a random initialization, as shown in Figure 5. 
+>  预训练的最大熵策略可以在空间中进行广泛且全方位的探索，因此是一个良好的初始化起点
+
+We also evaluated an alternative pretraining method based on deterministic policies learned with DDPG. However, deterministic pretraining chooses an arbitrary but consistent direction in the training environment, providing a poor initialization for finetuning to a specific task, as shown in the results plots.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-05/9458f4c4-a71c-4ffc-8bbe-18e774e93b4d/b5cec3376ffcfc418b9631650a74d9741c2f62517470215d6b70b9d2bcf29d56.jpg) 
+
 Figure 5. Performance in the downstream task with fine-tuning (MaxEnt) or training from scratch (DDPG). The $x$ -axis shows the training iterations. The $y$ -axis shows the average discounted return. Solid lines are average values over 10 random seeds. Shaded regions correspond to one standard deviation.
 
 # 6. Discussion and Future Work
+We presented a method for learning stochastic energy-based policies with approximate inference via Stein variational gradient descent (SVGD). Our approach can be viewed as a type of soft Q-learning method, with the additional contribution of using approximate inference to obtain complex multimodal policies. The sampling network trained as part of SVGD can also be viewed as taking the role of an actor in an actor-critic algorithm.
+>  我们提出了通过 SVGD 近似推理来学习基于能量的随机策略的方法
+>  我们的方法可以视为一类 soft Q-learning 方法，并采用了近似推理以获取更复杂的多模态策略
+>  SVGD 同时训练的采样网络可以视为扮演了 actor-critic 算法中 actor 的角色
 
-We presented a method for learning stochastic energy-based policies with approximate inference via Stein variational gradient descent (SVGD). Our approach can be viewed as a type of soft Q-learning method, with the additional contribution of using approximate inference to obtain complex multimodal policies. The sampling network trained as part of SVGD can also be viewed as taking the role of an actor in an actor-critic algorithm. Our experimental results show that our method can effectively capture complex multi-modal behavior on problems ranging from toy point mass tasks to complex torque control of simulated walking and swimming robots. The applications of training such stochastic policies include improved exploration in the case of multimodal objectives and compositionality via pretraining general-purpose stochastic policies that can then be efficiently finetuned into task-specific behaviors.
+Our experimental results show that our method can effectively capture complex multi-modal behavior on problems ranging from toy point mass tasks to complex torque control of simulated walking and swimming robots. The applications of training such stochastic policies include improved exploration in the case of multimodal objectives and compositionality via pretraining general-purpose stochastic policies that can then be efficiently finetuned into task-specific behaviors.
+>  实验结果表明了该方法可以有效的捕获问题中复杂的多模态行为
+>  这类随机性策略的应用包括了提高面对多模态目标的探索性、通过预训练通用目的的随机性策略，以高效微调到特定任务的可组合性
 
 While our work explores some potential applications of energy-based policies with approximate inference, an exciting avenue for future work would be to further study their capability to represent complex behavioral repertoires and their potential for composability. In the context of linearly solvable MDPs, several prior works have shown that policies trained for different tasks can be composed to create new optimal policies (Da Silva et al., 2009; Todorov, 2009). While these prior works have only explored simple, tractable representations, our method could be used to extend these results to complex and highly multi-modal deep neural network models, making them suitable for composable control of complex high-dimensional systems, such as humanoid robots. This composability could be used in future work to create a huge variety of near-optimal skills from a collection of energy-based policy building blocks.
-
-# 7. Acknowledgements
-
-7. AcknowledgementsWe thank Qiang Liu for insightful discussion of SVGD, and thank Vitchyr Pong and Shane Gu for help with implementing DDPG. Haoran Tang and Tuomas Haarnoja are supported by Berkeley Deep Drive.
-
-# References
-
-ReferencesDa Silva, M., Durand, F., and Popović, J. Linear Bellman combination for control of character animation. ACM Trans. on Graphs, 28 (3): 82, 2009. Daniel, C., Neumann, G., and Peters, J. Hierarchical relative entropy policy search. In AISTATS, pp. 273-281, 2012. Elfwing, S., Otsuka, M., Uchibe, E., and Doya, K. Free-energy based reinforcement learning for vision-based navigation with high-dimensional sensory inputs. In Int. Conf. on Neural Information Processing, pp. 215-222. Springer, 2010. Florensa, C., Duan, Y., and P., Abbeel. Stochastic neural networks for hierarchical reinforcement learning. In Int. Conf. on Learning Representations, 2017. Fox, R., Pakman, A., and Tishby, N. Taming the noise in reinforcement learning via soft updates. In Conf. on Uncertainty in Artificial Intelligence, 2016. Goodfellow, Ian, Bengio, Yoshua, and Courville, Aaron. Deep learning. chapter 8.7.4. MIT Press, 2016. http://www.deeplearningbook.org.Gu, S., Lillicrap, T., Ghahramani, Z., Turner, R. E., and Levine, S. Q-prop: Sample-efficient policy gradient with an off-policy critic. arXiv preprint arXiv: 1611.02247, 2016a. Gu, S., Lillicrap, T., Sutskever, I., and Levine, S. Continuous deep Q-learning with model-based acceleration. In Int. Conf. on Machine Learning, pp. 2829-2838, 2016b. Hafner, R. and Riedmiller, M. Reinforcement learning in feedback control. Machine Learning, 84 (1-2): 137-169, 2011. Heess, N., Silver, D., and Teh, Y. W. Actor-critic reinforcement learning with energy-based policies. In Workshop on Reinforcement Learning, pp. 43. Citeseer, 2012. Heess, N., Wayne, G., Tassa, Y., Lillicrap, T., Riedmiller, M., and Silver, D. Learning and transfer of modulated locomotor controllers. arXiv preprint arXiv: 1610.05182, 2016.
-
-Jaderberg, M., Mnih, V., Czarnecki, W. M., Schaul, T., Leibo, J. Z., Silver, D., and Kavukcuoglu, K. Reinforcement learning with unsupervised auxiliary tasks. arXiv preprint arXiv: 1611.05397, 2016. Kaelbling, L. P., Littman, M. L., and Moore, A. W. Reinforcement learning: A survey. Journal of artificial intelligence research, 4:237-285, 1996. Kakade, S. A natural policy gradient. Advances in Neural Information Processing Systems, 2:1531-1538, 2002. Kappen, H. J. Path integrals and symmetry breaking for optimal control theory. Journal of Statistical Mechanics: Theory And Experiment, 2005 (11): P11011, 2005. Kim, T. and Bengio, Y. Deep directed generative models with energy-based probability estimation. arXiv preprint arXiv: 1606.03439, 2016. Kingma, D. and Ba, J. Adam: A method for stochastic optimization. 2015. Lai, T. L. and Robbins, H. Asymptotically efficient adaptive allocation rules. Advances in Applied Mathematics, 6 (1): 4-22, 1985. Levine, S. and Abbeel, P. Learning neural network policies with guided policy search under unknown dynamics. In Advances in Neural Information Processing Systems, pp. 1071-1079, 2014. Levine, S., Finn, C., Darrell, T., and Abbeel, P. End-to-end training of deep visuomotor policies. Journal of Machine Learning Research, 17 (39): 1-40, 2016. Lillicrap, T. P., Hunt, J. J., Pritzel, A., Heess, N., Erez, T., Tassa, Y., Silver, D., and Wierstra, D. Continuous control with deep reinforcement learning. arXiv preprint arXiv: 1509.02971, 2015. Liu, Q. and Wang, D. Stein variational gradient descent: A general purpose bayesian inference algorithm. In Advances In Neural Information Processing Systems, pp. 2370-2378, 2016. Liu, Y., Ramachandran, P., Liu, Q., and Peng, J. Stein variational policy gradient. arXiv preprint arXiv: 1704.02399, 2017. Mnih, V., Kavukcuoglu, K., Silver, D., Graves, A., Antonoglou, I., Wierstra, D., and Riedmiller, M. Playing atari with deep reinforcement learning. arXiv preprint arXiv: 1312.5602, 2013. Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A, Veness, J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K., Ostrovski, G., et al. Human-level control through deep reinforcement learning. Nature, 518 (7540): 529-533, 2015.
-
-Mnih, V., Badia, A. P., Mirza, M., Graves, A., Lillicrap, T. P., Harley, T., Silver, D., and Kavukcuoglu, K. Asynchronous methods for deep reinforcement learning. In Int. Conf. on Machine Learning, 2016. Neumann, G. Variational inference for policy search in changing situations. In Int. Conf. on Machine Learning, pp. 817-824, 2011. O'Donoghue, B., Munos, R., Kavukcuoglu, K., and Mnih, V. PGQ: Combining policy gradient and Q-learning. arXiv preprint arXiv: 1611.01626, 2016. Otsuka, M., Yoshimoto, J., and Doya, K. Free-energy-based reinforcement learning in a partially observable environment. In ESAANV, 2010. Peters, J., Mulling, K., and Altun, Y. Relative entropy policy search. In AAAI Conf. on Artificial Intelligence, pp. 1607-1612, 2010. Rawlik, K., Toussaint, M., and Vijayakumar, S. On stochastic optimal control and reinforcement learning by approximate inference. Proceedings of Robotics: Science and Systems VIII, 2012. Sallans, B. and Hinton, G. E. Reinforcement learning with factored states and actions. Journal of Machine Learning Research, 5 (Aug): 1063-1088, 2004. Schulman, J., Levine, S., Abbeel, P., Jordan, M. I., and Moritz, P. Trust region policy optimization. In Int. Conf on Machine Learning, pp. 1889-1897, 2015a. Schulman, J., Moritz, P., Levine, S., Jordan, M., and Abbeel, P. High-dimensional continuous control using generalized advantage estimation. arXiv preprint arXiv: 1506.02438, 2015b. Schulman, J., Abbeel, P., and Chen, X. Equivalence between policy gradients and soft Q-learning. arXiv preprint arXiv: 1704.06440, 2017. Shelhamer, E., Mahmoudieh, P., Argus, M., and Darrell, T. Loss is its own reward. Self-supervision for reinforcement learning. arXiv preprint arXiv: 1612.07307, 2016. Silver, D., Lever, G., Heess, N., Degris, T., Wierstra, D., and Riedmiller, M. Deterministic policy gradient algorithms. In Int. Conf on Machine Learning, 2014. Silver, D., Huang, A., Maddison, C. J., Guez, A., Sifre, L., van den Driessche, G., Schrittwieser, J., Antonoglou, I., Panneershelvam, V., Lanctot, M., Dieleman, S., Grewe, D., Nham, J., Kalchbrenner, N., Sutskever, I., Lillicrap, T., Leach, M., Kavukcuoglu, K., Graepel, T., and Hassabis, D. Mastering the game of go with deep neural networks and tree search. Nature, 529 (7587): 484-489, Jan 2016. ISSN 0028-0836. Article.
-
-Sutton, R. S. and Barto, A. G. Reinforcement learning: An introduction, volume 1. MIT press Cambridge, 1998.
-
-Thomas, P. Bias in natural actor-critic algorithms. In Int. Conf. on Machine Learning, pp. 441-448, 2014.
-
-Todorov, E. Linearly-solvable Markov decision problems. In Advances in Neural Information Processing Systems, pp. 1369-1376. MIT Press, 2007.
-
-Todorov, E. General duality between optimal control and estimation. In IEEE Conf. on Decision and Control, pp. 4286-4292. IEEE, 2008.
-
-Todorov, E. Compositionality of optimal control laws. In Advances in Neural Information Processing Systems, pp. 1856-1864, 2009.
-
-Toussaint, M. Robot trajectory optimization using approximate inference. In Int. Conf. on Machine Learning, pp. 1049-1056. ACM, 2009.
-
-Uhlenbeck, G. E. and Ornstein, L. S. On the theory of the brownian motion. Physical review, 36 (5): 823, 1930.
-
-Wang, D. and Liu, Q. Learning to draw samples: With application to amortized mle for generative adversarial learning. arXiv preprint arXiv: 1611.01722, 2016.
-
-Williams, Ronald J. Simple statistical gradient-following algorithms for connectionist reinforcement learning. Machine learning, 8 (3-4): 229-256, 1992.
-
-Zhao, J., Mathieu, M., and LeCun, Y. Energy-based generative adversarial network. arXiv preprint arXiv: 1609.03126, 2016.
-
-Ziebart, B. D. Modeling purposeful adaptive behavior with the principle of maximum causal entropy. PhD thesis, 2010.
-
-Ziebart, B. D., Maas, A. L., Bagnell, J. A., and Dey, A. K. Maximum entropy inverse reinforcement learning. In AAAI Conference on Artificial Intelligence, pp. 1433-1438, 2008.
 
 # Appendices
 # A. Policy Improvement Proofs
@@ -442,6 +559,8 @@ Here, $\tau = (\mathbf{s}_0,\mathbf{a}_0,\mathbf{s}_1,\mathbf{a}_1,\dots)$ denot
 > 我们为策略 $\pi$ 下的动作状态对定义 soft Q-value
 > soft Q-value $Q^\pi_{\text{soft}}(s, a)$ 定义为从状态 $s$ 开始，执行动作 $a$ 之后，再遵循策略 $\pi$ 所能得到的期望折扣奖励和熵
 
+> 之后的都使用 Eq 15 的形式，即假设了 $\alpha = 1$，要泛化到任意的 $\alpha$，可以将实际的 $Q_{\mathrm{soft}}$ 除以 $\alpha$，就得到了 Eq 15 的形式
+
 The discounted maximum entropy policy objective can now be defined as
 
 $$
@@ -476,11 +595,28 @@ Assume that throughout our computation, $Q$ is bounded and $\int \exp (Q (\mathb
 The proof relies on the following observation: if one greedily maximize the sum of entropy and value with one-step look-ahead, then one obtains $\tilde{\pi}$ from $\pi$ .
 
 $$
-\mathcal{H}(\pi (\cdot |\mathbf{s})) + \mathbb{E}_{\mathbf{a}\sim \pi}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})]\leq \mathcal{H}(\tilde{\pi} (\cdot |\mathbf{s})) + \mathbb{E}_{\mathbf{a}\sim \tilde{\pi}}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})]. \tag{18}
+\mathcal{H}(\pi (\cdot |\mathbf{s})) + \mathbb{E}_{\mathbf{a}\sim \pi}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})]\leq \mathcal{H}({\color{red}\tilde{\pi}} (\cdot |\mathbf{s})) + \mathbb{E}_{\mathbf{a}\sim {\color{red}\tilde{\pi}}}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})]. \tag{18}
 $$
 
 >  证明依赖于这样的观察: 如果我们通过一步展望来贪心地优化熵和价值的和，就能从 $\pi$ 中获得 $\tilde \pi$
 
+>  推导 Eq 18
+>  对 Eq 18 的推导需要用到 Eq 19，我们用 Eq 19 将 Eq 18 的 LHS 进行代换
+
+$$
+\mathrm{LHS} = -\mathrm{D}_{\mathrm{KL}}(\pi (\cdot |\mathbf{s})\parallel \tilde{\pi} (\cdot |\mathbf{s})) + \log \int \exp (Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})) d\mathbf{a} 
+$$
+
+>  同样，我们可以对 Eq 18 的 RHS 应用 Eq 19，也就是用 $\tilde \pi$ 表示 $\pi$
+
+$$
+\begin{align}
+\mathrm{RHS} &= -\mathrm{D}_{\mathrm{KL}}(\tilde\pi (\cdot |\mathbf{s})\parallel \tilde{\pi} (\cdot |\mathbf{s})) + \log \int \exp (Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})) d\mathbf{a} \\
+&=\log \int \exp (Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})) d\mathbf{a}
+\end{align}
+$$
+
+>  因为 KL 散度总是非负，故 $-\mathrm{D_KL}$ 总是不大于零，因此容易得到 $\mathrm{LHS} \le \mathrm{RHS}$
 
 The proof is straight-forward by noticing that
 
@@ -488,12 +624,54 @@ $$
 \mathcal{H}(\pi (\cdot |\mathbf{s})) + \mathbb{E}_{\mathbf{a}\sim \pi}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})] = -\mathrm{D}_{\mathrm{KL}}(\pi (\cdot |\mathbf{s})\parallel \tilde{\pi} (\cdot |\mathbf{s})) + \log \int \exp (Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a})) d\mathbf{a} \tag{19}
 $$
 
+>  推导 Eq 19
+>  Eq 17 定义了策略 $\tilde \pi$ 的未规范化形式，则其规范化形式为
+
+$$
+\begin{align}
+\tilde \pi(a \mid s) &= \frac {\exp(Q_{\mathrm{soft}}^\pi(s,a))}{\int \exp(Q_{\mathrm{soft}}^\pi(s,a))da}\\
+&= \frac {\exp(Q_{\mathrm{soft}}^\pi(s,a))}{Z(s)}
+\end{align}
+$$
+
+>  我们进而可以用 $\tilde \pi$ 表示 $Q_{\mathrm{soft}}^\pi$
+
+$$
+Q_{\mathrm{soft}}^\pi(s,a) = \log Z(s) + \log\tilde \pi(a\mid s)
+$$
+
+>  我们从左侧推导右侧
+
+$$
+\begin{align}
+&\mathcal H(\pi(\cdot \mid s)) + \mathbb E_{a\sim \pi}[Q_{\mathrm{soft}}^\pi(s,a)]\\
+=&-\mathbb E_{a\sim\pi}[\log \pi(a \mid s)] + \mathbb E_{a\sim \pi}[Q_{\mathrm{soft}}^\pi(s,a)]\\
+=&\mathbb E_{a\sim \pi}[Q_{\mathrm{soft}}^\pi(s,a) - \log \pi(a\mid s)]\\
+=&\mathbb E_{a\sim \pi}[\log Z(s) + \log \tilde \pi(a\mid s) - \log \pi(a\mid s)]\\
+=&-\mathrm D_{\mathrm{KL}}(\pi(\cdot \mid s)\| \tilde \pi(\cdot \mid s)) + \mathbb E_{a\sim \pi}[\log Z(s)]\\
+=&-\mathrm D_{\mathrm{KL}}(\pi(\cdot \mid s)\| \tilde \pi(\cdot \mid s)) + \log Z(s)\\
+=&-\mathrm D_{\mathrm{KL}}(\pi(\cdot \mid s)\| \tilde \pi(\cdot \mid s)) + \log\int \exp(Q_{\mathrm{soft}}^\pi(s,a))da\\
+\end{align}
+$$
+
+> 推导完毕
+
 Then we can show that
 
 $$
-\begin{array}{r l} & {\mathbf{\Phi}_{\mathrm{soft}}(\mathbf{s},\mathbf{a}) = \mathbb{E}_{\mathbf{s}_{1}}\left[r_{0} + \gamma (\mathcal{H}(\pi (\cdot |\mathbf{s}_{1})) + \mathbb{E}_{\mathbf{a}_{1}\sim \pi}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s}_{1},\mathbf{a}_{1})])\right]}\\ & {\leq \mathbb{E}_{\mathbf{s}_{1}}\left[r_{0} + \gamma (\mathcal{H}(\pi (\cdot |\mathbf{s}_{1})) + \mathbb{E}_{\mathbf{a}_{1}\sim \pi}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s}_{1},\mathbf{a}_{1})])\right]}\\ & {= \mathbb{E}_{\mathbf{s}_{1}}\left[r_{0} + \gamma (\mathcal{H}(\pi (\cdot |\mathbf{s}_{1})) + r_{1})\right] + \gamma^{2}\mathbb{E}_{\mathbf{s}_{2}}[\mathcal{H}(\pi (\cdot |\mathbf{s}_{2})) + \mathbb{E}_{\mathbf{a}_{2}\sim \pi}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s}_{2},\mathbf{a}_{2})]]}\\ & {\leq \mathbb{E}_{\mathbf{s}_{1}}\left[r_{0} + \gamma (\mathcal{H}(\pi (\cdot |\mathbf{s}_{1})) + r_{1})\right] + \gamma^{2}\mathbb{E}_{\mathbf{s}_{2}}[\mathcal{H}(\pi (\cdot |\mathbf{s}_{2})) + \mathbb{E}_{\mathbf{a}_{2}\sim \tilde{\pi}}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s}_{2},\mathbf{a}_{2})]]}\\ & {= \mathbb{E}_{\mathbf{s}_{1}}\mathbf{a}_{2}\sim \pi ,\mathbf{s}_{2}\left[r_{0} + \gamma (\mathcal{H}(\pi (\cdot |\mathbf{s}_{1})) + r_{1}) + \gamma^{2}(\mathcal{H}(\pi (\cdot |\mathbf{s}_{2})) + r_{2})\right] + \gamma^{3}\mathbb{E}_{\mathbf{s}_{3}}[\mathcal{H}(\pi (\cdot |\mathbf{s}_{3})) + \mathbb{E}_{\mathbf{a}_{3}\sim \tilde{\pi}}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s}_{3},\mathbf{a}_{3})]]}\\ & {\leq \mathbb{E}_{\mathbf{s}_{1}}\gamma \sim \pi ,\mathbf{s}_{2}\left[r_{0} + \gamma (\mathcal{H}(\pi (\cdot |\mathbf{s}_{1})) + r_{1}) + \gamma^{2}(\mathcal{H}(\pi (\cdot |\mathbf{s}_{2})) + r_{2})\right] + \gamma^{3}\mathbb{E}_{\mathbf{s}_{3}}[\mathcal{H}(\pi (\mathbf{s}_{3}) + \mathbb{E}_{\mathbf{a}_{3}\sim \tilde{\pi}}[Q_{\mathrm{soft}}^{\pi}(\mathbf{s}_{3},\mathbf{a}_{3})]]}\\ & {\leq \mathbb{E}_{\mathbf{s}_{1}}\gamma \sim \pi ,\mathbf{s}_{2}\left[r_{0} + \gamma (\mathcal{H}(\pi (\mathbf{s}_{1})) + r_{1}) + \gamma^{2}(\mathcal{H}(\pi (\mathbf{s}_{1})) + r_{2})\right]}\\ & {= Q_{\mathrm{soft}}^{\tilde{\pi}}(\mathbf{s},\mathbf{a}).} \end{array} \tag{20}
+\begin{align}
+Q_{\mathrm{soft}}^\pi(s,a) &= \mathbb E_{s_1}[r_0 + \gamma(\mathcal H(\pi(\cdot\mid s_1)) + \mathbb E_{a_1\sim \pi}[Q_{\mathrm{soft}}^\pi(s_1,a_1)])]\\
+&\le \mathbb E_{s_1} [r_0 + \gamma (\mathcal H({\color{red}\tilde \pi}(\cdot \mid s_1))+ \mathbb E_{a_1\sim {\color{red}\tilde \pi}}[Q_{\mathrm{soft}}^\pi(s_1,a_1)])]\\
+&= \mathbb E_{s_1,a_1\sim {\color{red}\tilde \pi}} [r_0 + \gamma (\mathcal H({\color{red} \tilde\pi}(\cdot \mid s_1) + r_1)]+ \gamma^2\mathbb E_{s_2}[\mathcal H(\pi(\cdot\mid s_2)) + \mathbb E_{a_2\sim {\pi}}[Q_{\mathrm{soft}}^\pi(s_2,a_2)]]\\
+&\le \mathbb E_{s_1,a_1\sim {\color{red}\tilde \pi}} [r_0 + \gamma (\mathcal H({\color{red} \tilde\pi}(\cdot \mid s_1) + r_1)]+ \gamma^2\mathbb E_{s_2}[\mathcal H({\color{red}\tilde \pi}(\cdot\mid s_2)) + \mathbb E_{a_2\sim {\color{red} \tilde\pi}}[Q_{\mathrm{soft}}^\pi(s_2,a_2)]]\\
+&= \mathbb E_{s_1,a_1,a_2\sim {\color{red}\tilde \pi},s_2} [r_0 + \gamma (\mathcal H({\color{red} \tilde\pi}(\cdot \mid s_1) + r_1) + \gamma^2(\mathcal H({\color{red}\tilde \pi}(\cdot \mid s_2)) + r_2)]+ \gamma^3\mathbb E_{s_3}[\mathcal H({ \pi}(\cdot\mid s_3)) + \mathbb E_{a_3\sim {\pi}}[Q_{\mathrm{soft}}^\pi(s_3,a_3)]]\\
+&\quad\vdots\\
+& \le \mathbb E_{\tau \sim {\color{red}\tilde \pi}}\left[r_0 + \sum_{t=1}^\infty \gamma^t(\mathcal H({\color{red}\tilde \pi}(\cdot\mid s_t) + r_t)\right]\\
+&= Q_{\mathrm{soft}}^{\color {red}\tilde \pi}(s,a)
+\end{align}
 $$
 
+>  证明过程就是将 $Q_{\mathrm{soft}}^\pi$ 展开，然后不断应用 Eq 18 构造不等式即可\
 With Theorem 4, we start from an arbitrary policy $\pi_{0}$ and define the policy iteration as
 
 $$
@@ -501,6 +679,11 @@ $$
 $$
 
 Then $Q_{\mathrm{soft}}^{\pi_{i}}(\mathbf{s},\mathbf{a})$ improves monotonically. Under certain regularity conditions, $\pi_{i}$ converges to $\pi_{\infty}$ . Obviously, we have $\pi_{\infty}(\mathbf{a}|\mathbf{s})\propto_{\mathbf{a}}\exp \left (Q^{\pi_{\infty}}(\mathbf{s},\mathbf{a})\right)$ . Since any non-optimal policy can be improved this way, the optimal policy must satisfy this energy-based form. Therefore we have proven Theorem 1.
+
+>  根据 Theorem 4，我们只需要从任意策略 $\pi_0$ 开始，然后按照 Eq 21 定义下一个策略，就可以保证策略是单调提升的
+>  在特定的规范化条件下，这样的策略提升过程能够最终收敛到最优策略
+>  显然，在收敛之后，最优策略 $\pi_\infty$ 满足 $\pi_\infty(a\mid s) \propto \exp(Q_{\text{soft}}^{\pi_\infty}(s,\cdot))$，即策略本身会是它的 soft Q function 的指数形式
+>  这样的形式称为基于能量的形式，或者玻尔兹曼分布形式，其中 soft Q value 就是 “能量”，动作被选择的概率正比于能量的指数值
 
 ## A.2. Soft Bellman Equation and Soft Value Iteration
 Recall the definition of the soft value function:
@@ -512,10 +695,39 @@ $$
 Suppose $\pi (\mathbf{a}|\mathbf{s}) = \exp \left (Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a}) -V_{\mathrm{soft}}^{\pi}(\mathbf{s})\right)$ . Then we can show that
 
 $$
-\begin{array}{rl} & Q_{\mathrm{soft}}^{\pi}(\mathbf{s},\mathbf{a}) = r(\mathbf{s},\mathbf{a}) + \gamma \mathbb{E}_{\mathbf{s}^{\prime}\sim p_{\mathbf{s}}}\left[\mathcal{H}(\pi (\cdot |\mathbf{s}^{\prime})) + \mathbb{E}_{\mathbf{a}^{\prime}\sim \pi (\cdot |\mathbf{s}^{\prime})}\left[Q_{\mathrm{soft}}^{\pi}(\mathbf{s}^{\prime},\mathbf{a}^{\prime})\right]\right]\\ & \qquad = r(\mathbf{s},\mathbf{a}) + \gamma \mathbb{E}_{\mathbf{s}^{\prime}\sim p_{\mathbf{s}}}\left[V_{\mathrm{soft}}^{\pi}(\mathbf{s}^{\prime})\right]. \end{array} \tag{23}
+\begin{align}
+Q_{\mathrm{soft}}^\pi(s,a) &= r(s,a) + \gamma \mathbb E_{s'\sim p_s}[\mathcal H(\pi(\cdot \mid s')) + \mathbb E_{a'\sim \pi(\cdot \mid s')}[Q_{\mathrm{soft}}^\pi(s',a')]]\\
+&=r(s,a) + \gamma \mathbb E_{s'\sim p_s}[V_{\mathrm{soft}}^\pi(s')]\tag{23}
+\end{align}
 $$
 
 This completes the proof of Theorem 2.
+
+>  推导
+>  $\alpha = 1$ 时，soft value function 定义如 Eq 22
+>  如果策略是最优策略，则根据 Theorem 1
+
+$$
+\begin{align}
+\pi(a\mid s) &= \exp(Q_{\mathrm{soft}}^\pi(s, a) - V_{\mathrm{soft}}^\pi(s))\\
+\log \pi(a\mid s) &= Q_{\mathrm{soft}}^\pi(s,a) - V_{\mathrm{soft}}^\pi(s)\\
+V_{\mathrm{soft}}^\pi(s) &= Q_{\mathrm{soft}}^\pi(s,a) - \log \pi(a\mid s)
+\end{align}
+$$
+
+>  我们将 Q-function 的定义展开
+
+$$
+\begin{align}
+Q_{\mathrm{soft}}^\pi(s,a) &= r(s,a) + \gamma \mathbb E_{s'\sim p_s}[\mathcal H(\pi(\cdot \mid s')) + \mathbb E_{a'\sim \pi(\cdot \mid s')}[Q_{\mathrm{soft}}^\pi(s',a')]]  \\
+&= r(s,a) + \gamma \mathbb E_{s'\sim p_s}[\mathbb E_{a'\sim \pi(\cdot \mid s')}[-\log \pi(\cdot\mid s') ] + \mathbb E_{a'\sim \pi(\cdot \mid s')}[Q_{\mathrm{soft}}^\pi(s',a')]\\
+&= r(s,a) + \gamma \mathbb E_{s'\sim p_s}[\mathbb E_{a'\sim \pi(\cdot\mid s')}[-\log \pi(\cdot \mid s') + Q_{\mathrm{soft}}^\pi(s',a')]]\\
+&= r(s,a) + \gamma \mathbb E_{s'\sim p_s}[\mathbb E_{a'\sim \pi(\cdot\mid s')}[V_{\mathrm{soft}}^\pi(s)]]\\
+&= r(s,a) + \gamma \mathbb E_{s'\sim p_s}[V_{\mathrm{soft}}^\pi(s)]\\
+\end{align}
+$$
+
+>  推导完毕
 
 Finally, we show that the soft value iteration operator $\mathcal{T}$ , defined as
 
@@ -525,33 +737,120 @@ $$
 
 is a contraction. Then Theorem 3 follows immediately.
 
+>  我们接着证明 soft value iterator 算子 $\mathcal T$ 是收缩映射
+
+> [!info] Constraction
+> 一个映射/算子 $\mathcal T$ 如果满足: 对于其定义于的任意两个元素 $Q_1, Q_2$，应用 $\mathcal T$ 之后，它们会更加 “接近”，即:
+> 
+> $$\|\mathcal T Q_1 - \mathcal T Q_2 \| \le k\|Q_1 - Q_2\| $$
+> 
+> 其中 $k$ 称为收缩因子常数，满足 $0\le k < 1$
+> 如果一个算子是收缩映射，根据巴拿赫不动点定理，它将有唯一的不动点，其不动点就是满足方程 $\mathcal T Q = Q$ 的解
+
 The following proof has also been presented by Fox et al. (2016). Define a norm on Q-values as $\| Q_{1} -Q_{2}\| \triangleq \max_{\mathbf{s},\mathbf{a}}|Q_{1}(\mathbf{s},\mathbf{a}) -Q_{2}(\mathbf{s},\mathbf{a})|$ . Suppose $\epsilon = \| Q_{1} -Q_{2}\|$ . Then
 
 $$
-\begin{array}{rl} & {\log \int \exp (Q_1(\mathbf{s}',\mathbf{a}'))d\mathbf{a}'\leq \log \int \exp (Q_2(\mathbf{s}',\mathbf{a}') + \epsilon)d\mathbf{a}'}\\ & {\qquad = \log \left(\exp (\epsilon)\int \exp Q_2(\mathbf{s}',\mathbf{a}')d\mathbf{a}'\right)}\\ & {\qquad = \epsilon +\log \int \exp Q_2(\mathbf{a}',\mathbf{a}')d\mathbf{a}'.} \end{array} \tag{25}
+\begin{align}
+\log \int \exp(Q_1(s',a'))da' &\le \log \int \exp(Q_2(s',a') + \epsilon) da'\\
+&=\log (\exp(\epsilon)\int \exp Q_2(s',a')da')\\
+&= \epsilon + \log \int \exp Q_2(s',a')da'\tag{25}
+\end{align}
 $$
 
-Similarly, $\log \int \exp Q_{1}(\mathbf{s}^{\prime},\mathbf{a}^{\prime}) d\mathbf{a}^{\prime}\geq -\epsilon +\log \int \exp Q_{2}(\mathbf{s}^{\prime},\mathbf{a}^{\prime}) d\mathbf{a}^{\prime}$ . Therefore $\| \mathcal{T}Q_{1} -\mathcal{T}Q_{2}\| \leq \gamma \epsilon = \gamma \| Q_{1} -Q_{2}\|$ . So $\mathcal{T}$ is a contraction. As a consequence, only one Q-value satisfies the soft Bellman equation, and thus the optimal policy presented in Theorem 1 is unique.
+Similarly, $\log \int \exp Q_{1}(\mathbf{s}^{\prime},\mathbf{a}^{\prime}) d\mathbf{a}^{\prime}\geq -\epsilon +\log \int \exp Q_{2}(\mathbf{s}^{\prime},\mathbf{a}^{\prime}) d\mathbf{a}^{\prime}$ . Therefore $\| \mathcal{T}Q_{1} -\mathcal{T}Q_{2}\| \leq \gamma \epsilon = \gamma \| Q_{1} -Q_{2}\|$ . So $\mathcal{T}$ is a contraction. As a consequence, only one Q-value satisfies the soft Bellman equation, and thus the optimal policy presented in Theorem 1 is unique. 
+
+>  推导
+>  我们为 Q-functions 定义范数 $\| Q_{1} -Q_{2}\| \triangleq \max_{\mathbf{s},\mathbf{a}}|Q_{1}(\mathbf{s},\mathbf{a}) -Q_{2}(\mathbf{s},\mathbf{a})|$ 作为两个 Q-value 之间的距离度量
+> (可以看到，这个范数是标准的上确界范数，或称为最大范数，它衡量了两个 Q-function 在所有可能动作-状态对之间的最大可能差异)
+>  我们令 $\epsilon = \|Q_1 - Q_2\|$，那么我们有
+
+$$
+|Q_1(s,a) - Q_2(s,a)| \le \epsilon\quad\forall s,a
+$$
+
+>  进而有
+
+$$
+Q_2(s,a) - \epsilon \le Q_1(s,a) \le Q_2(s,a) + \epsilon\quad \forall s,a
+$$
+
+>  利用这个不等式，可以容易得到 Eq 25 中的推导，进而有
+
+$$
+\log \int \exp Q_2(s,a)da - \epsilon \le \log \int \exp Q_1(s,a)da \le \epsilon + \log \int \exp Q_2(s,a)da
+$$
+
+>  对所有 $s, a$ 成立，即
+
+$$
+\begin{align}
+\left|\log \int \exp Q_1(s,a)da - \log \int \exp Q_2(s,a)da\right| &\le \epsilon\quad \forall s,a\\
+\end{align}
+$$
+
+> 因此有
+
+$$
+\|\mathcal T Q_1 - \mathcal T Q_2 \| \le \gamma\epsilon = \gamma \|Q_1 - Q_2\|
+$$
+
+>  因此 $\mathcal T$ 是一个收缩映射
+>  因此，只有一个 soft Q-function 满足 soft Bellman equation，因此 Theorem 1 中根据 optimal soft Q-function, optimal soft value-function 给出的最优策略是唯一的
 
 # B. Connection between Policy Gradient and Q-Learning
+We show that entropy-regularized policy gradient can be viewed as performing soft Q-learning on the maximum-entropy objective.
+>  我们证明熵正则的策略梯度可以被视为针对最大熵目标执行 soft Q-learning
 
-We show that entropy-regularized policy gradient can be viewed as performing soft Q-learning on the maximum-entropy objective. First, suppose that we parametrize a stochastic policy as
+First, suppose that we parametrize a stochastic policy as
 
 $$
 \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\triangleq \exp \left(\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t) -\bar{\mathcal{E}}^{\bar{\phi}}(\mathbf{s}_t)\right), \tag{26}
 $$
 
-where $\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t)$ is an energy function with parameters $\phi$ , and $\begin{array}{r}\bar{\mathcal{E}}^{\phi}(\mathbf{s}_t) = \log \int_{\mathcal{A}}\exp \mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t) d\mathbf{a}_t \end{array}$ is the corresponding partition function. This is the most general class of policies, as we can trivially transform any given distribution $p$ into exponential form by defining the energy as $\log p$ . We can write an entropy-regularized policy gradient as follows:
+where $\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t)$ is an energy function with parameters $\phi$ , and $\begin{array}{r}\bar{\mathcal{E}}^{\phi}(\mathbf{s}_t) = \log \int_{\mathcal{A}}\exp \mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t) d\mathbf{a}_t \end{array}$ is the corresponding partition function. This is the most general class of policies, as we can trivially transform any given distribution $p$ into exponential form by defining the energy as $\log p$ . 
+
+>  我们将策略参数化为 Eq 26 的形式
+>  这是最为通用的策略形式，对于任意给定的分布 $p$，我们只需要定义能量函数为 $\log p$，就可以将策略表示为 Eq 26 的形式
+
+We can write an entropy-regularized policy gradient as follows:
 
 $$
-J_{\mathcal{E}^{\phi}}(\phi) = \mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{s}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) + b^{\phi}(\mathbf{s}_t)\right)\right] + \nabla_{\phi}\mathbb{E}_{\mathbf{s}_t\sim \rho_{\pi^{\phi}}}\left[\mathcal{H}(\pi^{\phi}(\mathbf{s}_t|\mathbf{s}_t))\right], \tag{27}
+\begin{align}
+J_{\mathcal{E}^{\phi}}(\phi) &= \mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) + b^{\phi}(\mathbf{s}_t)\right)\right]\\
+&+ \nabla_{\phi}\mathbb{E}_{\mathbf{s}_t\sim \rho_{\pi^{\phi}}}\left[\mathcal{H}(\pi^{\phi}(\mathbf{s}_t|\mathbf{s}_t))\right], \tag{27}
+\end{align}
 $$
 
-where $\rho_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t)$ is the distribution induced by the policy, $\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t)$ is an empirical estimate of the Q-value of the policy, and $b^{\phi}(\mathbf{s}_t)$ is a state-dependent baseline that we get to choose. The gradient of the entropy term is given by
+where $\rho_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t)$ is the distribution induced by the policy, $\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t)$ is an empirical estimate of the Q-value of the policy, and $b^{\phi}(\mathbf{s}_t)$ is a state-dependent baseline that we get to choose. 
+
+>  熵正则的策略梯度形式如 Eq 27
+
+The gradient of the entropy term is given by
 
 $$
-\begin{array}{rl} & {\nabla_{\phi}\mathcal{H}(\pi^{\phi}) = -\nabla_{\phi}\mathbb{E}_{\mathbf{s}_t\sim \rho_{\pi^{\phi}}}\left[\mathbb{E}_{\mathbf{a}_t\sim \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)}\left[\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right]\right]}\\ & {\qquad = -\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t) + \nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right]}\\ & {\qquad = -\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(1 + \log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right)\right],} \end{array} \tag{28}
+\begin{align} \nabla_{\phi}\mathcal{H}(\pi^{\phi}) &= -\nabla_{\phi}\mathbb{E}_{\mathbf{s}_t\sim \rho_{\pi^{\phi}}}\left[\mathbb{E}_{\mathbf{a}_t\sim \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)}\left[\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right]\right]\\ 
+\qquad &= -\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t) + \nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right]\\
+\qquad &= -\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(1 + \log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right)\right], \end{align} \tag{28}
 $$
+
+>  熵的梯度如 Eq 28
+
+>  这里的推导用到了一个恒等式
+>  假设 $f(a) = \pi^\phi(a\mid s)$，则
+
+$$
+\begin{align}
+&\nabla_\phi \mathbb E_{a\sim f(a)}[\log f(a)]\\
+=&\nabla_\phi\int f(a)\log f(a)da\\
+=&\int\nabla_\phi (f(a)\log f(a))da\\
+=&\int (\nabla_\phi f(a)\log f(a) + f(a)\nabla_\phi \log f(a) )da\\
+=&\int f(a) \left(\frac {\nabla_\phi f(a)}{f(a)}\log f(a) + \nabla_\phi \log f(a)\right)da\\
+=&\int f(a) (\nabla_\phi \log f(a)\log f(a) + \nabla_\phi \log f(a))da\\
+=&\mathbb E_{a\sim f(a)}[\nabla_\phi \log f(a)(\log f(a) + 1)]
+\end{align}
+$$
+
+>  推导完毕
 
 and after substituting this back into (27), noting (26), and choosing $b^{\phi}(\mathbf{s}_t) = \bar{\mathcal{E}}^{\phi}(\mathbf{s}_t) + 1$ , we arrive at a simple form for the policy gradient:
 
@@ -559,10 +858,28 @@ $$
 = \mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\left(\nabla_{\phi}\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t) -\nabla_{\phi}\bar{\mathcal{E}}^{\bar{\phi}}(\mathbf{s}_t)\right)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) -\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t)\right)\right]. \tag{29}
 $$
 
-To show that (29) indeed correponds to soft Q-learning update, we consider the Bellman error
+>  推导
+>  将 Eq 28 代入 Eq 27
 
 $$
-\hat{J}_{Q}(\theta) = \mathbb{E}_{\mathbf{s}_t\sim q_{\mathbf{s}_t},\mathbf{a}_t\sim q_{\mathbf{a}_t}}\left[\frac{1}{2}\left(Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t) -Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)\right)^2\right], \tag{30}
+\begin{align}
+J(\phi) &= \mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) + b^{\phi}(\mathbf{s}_t)\right)\right]
++ \nabla_{\phi}\mathbb{E}_{\mathbf{s}_t\sim \rho_{\pi^{\phi}}}\left[\mathcal{H}(\pi^{\phi}(\mathbf{s}_t|\mathbf{s}_t))\right]\\
+&=\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) + b^{\phi}(\mathbf{s}_t)\right)\right] -\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(1 + \log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right)\right]\\
+&=\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) + b^{\phi}(\mathbf{s}_t)\right) - \nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(1 + \log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right)\right]\\
+&=\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) + b^{\phi}(\mathbf{s}_t) -1 - \log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\right)\right]\\
+&=\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) + \bar {\mathcal E}^{\bar \phi}(\mathbf s_t) - \left(\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t) -\bar{\mathcal{E}}^{\bar{\phi}}(\mathbf{s}_t)\right) \right)\right]\\
+&=\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_{\phi}\log \pi^{\phi}(\mathbf{a}_t|\mathbf{s}_t)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) - \mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t)  + 2\bar {\mathcal E}^{\bar \phi}(\mathbf s_t)\right)\right]\\
+&=\mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim \rho_{\pi^{\phi}}}\left[\nabla_\phi\left(\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t) -\bar{\mathcal{E}}^{\bar{\phi}}(\mathbf{s}_t)\right)\left(\hat{Q}_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t) - \mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t)  + 2\bar {\mathcal E}^{\bar \phi}(\mathbf s_t)\right)\right]\\
+\end{align} 
+$$
+
+>  作者应该是要把 baseline 选择为 $b^{\phi}(\mathbf{s}_t) = -  \bar{\mathcal{E}}^{\phi}(\mathbf{s}_t) + 1$，这里应该是笔误
+
+To show that (29) indeed corresponds to soft Q-learning update, we consider the Bellman error
+
+$$
+{J}_{Q}(\theta) = \mathbb{E}_{\mathbf{s}_t\sim q_{\mathbf{s}_t},\mathbf{a}_t\sim q_{\mathbf{a}_t}}\left[\frac{1}{2}\left(\hat Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t) -Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)\right)^2\right], \tag{30}
 $$
 
 where $\hat{Q}_{\mathrm{soft}}^{\theta}$ is an empirical estimate of the soft Q-function. There are several valid alternatives for this estimate, but in order to show a connection to policy gradient, we choose a specific form
@@ -571,18 +888,26 @@ $$
 \hat{Q}_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t) = \hat{A}_{\mathrm{soft}}^{\bar{\theta}}(\mathbf{s}_t,\mathbf{a}_t) + V_{\mathrm{soft}}^{\theta}(\mathbf{s}_t), \tag{31}
 $$
 
-where $\hat{A}_{\mathrm{soft}}^{\bar{\theta}}$ is an empirical soft advantage function that is assumed not to contribute the gradient computation. With this choice, the gradient of the Bellman error becomes
+where $\hat{A}_{\mathrm{soft}}^{\bar{\theta}}$ is an empirical soft advantage function that is assumed not to contribute the gradient computation. 
+
+>  我们接着考虑 soft Q-learning 用于更新 Q-function 的 Bellman error 目标 Eq 30
+>  我们将 Q-function 的经验估计 $\hat Q_{\mathrm{soft}}^\theta$ 的形式选择为 Eq 31，其中 $\hat A_{\mathrm{soft}}^{\bar \theta}$ 为经验的 soft 优势函数，在优化时，假设它不对梯度做贡献
+
+With this choice, the gradient of the Bellman error becomes
 
 $$
-\begin{array}{rl} & {\mathcal{Q}(\theta) = \mathbb{E}_{\mathbf{s}_t\sim q_{\mathbf{s}_t},\mathbf{a}_t\sim q_{\mathbf{a}_t}}[(\nabla_\theta Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -\nabla_\theta V_{\mathrm{soft}}^\theta (\mathbf{s}_t))(\hat{A}_{\mathrm{soft}}^\bar{\theta} (\mathbf{s}_t,\mathbf{a}_t) + V_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t))]}\\ & {\quad \quad = \mathbb{E}_{\mathbf{s}_t\sim q_{\mathbf{s}_t},\mathbf{a}_t\sim q_{\mathbf{a}_t}}[(\nabla_\theta Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -\nabla_\theta V_{\mathrm{soft}}^\theta (\mathbf{s}_t)(\hat{Q}_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t))].} \end{array} \tag{32}
+\begin{align} \nabla_\theta J_Q(\theta) &= \mathbb{E}_{\mathbf{s}_t\sim q_{\mathbf{s}_t},\mathbf{a}_t\sim q_{\mathbf{a}_t}}[(\nabla_\theta Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -\nabla_\theta V_{\mathrm{soft}}^\theta (\mathbf{s}_t))\cdot\\&\qquad \qquad\qquad\qquad\qquad(\hat{A}_{\mathrm{soft}}^\bar{\theta} (\mathbf{s}_t,\mathbf{a}_t) + V_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t))]\\
+& = \mathbb{E}_{\mathbf{s}_t\sim q_{\mathbf{s}_t},\mathbf{a}_t\sim q_{\mathbf{a}_t}}[(\nabla_\theta Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -\nabla_\theta V_{\mathrm{soft}}^\theta (\mathbf{s}_t)(\hat{Q}_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t) -Q_{\mathrm{soft}}^\theta (\mathbf{s}_t,\mathbf{a}_t))]. \end{align} \tag{32}
 $$
 
-Now, if we choose $\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t)\triangleq Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)$ and $q_{\mathbf{s}_t}(\mathbf{s}_t) q_{\mathbf{a}_t}(\mathbf{a}_t)\triangleq \rho_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t)$ , we recover the policy gradient in (29). Note that the choice of using an empirical estimate of the soft advantage rather than soft Q-value makes the target independent of the soft value, and at convergence, $Q_{\mathrm{soft}}^{\theta}$ approximates the soft Q-value up to an additive constant. The resulting policy is still correct, since the Boltzmann distribution in (26) is independent of constant shift in the energy function.
+Now, if we choose $\mathcal{E}^{\phi}(\mathbf{s}_t,\mathbf{a}_t)\triangleq Q_{\mathrm{soft}}^{\theta}(\mathbf{s}_t,\mathbf{a}_t)$ and $q_{\mathbf{s}_t}(\mathbf{s}_t) q_{\mathbf{a}_t}(\mathbf{a}_t)\triangleq \rho_{\pi^{\phi}}(\mathbf{s}_t,\mathbf{a}_t)$ , we recover the policy gradient in (29). 
+
+>  在该假设下，Bellman error 的梯度形式如上 (实际上感觉差了一个负号)，如果我们令能量函数为 soft Q-function，且令采样分布为策略分布，就得到了策略梯度
+
+Note that the choice of using an empirical estimate of the soft advantage rather than soft Q-value makes the target independent of the soft value, and at convergence, $Q_{\mathrm{soft}}^{\theta}$ approximates the soft Q-value up to an additive constant. The resulting policy is still correct, since the Boltzmann distribution in (26) is independent of constant shift in the energy function.
 
 # C. Implementation
-
-# C.1. Computing the Policy Update
-
+## C.1. Computing the Policy Update
 Here we explain in full detail how the policy update direction $\hat{\nabla}_{\phi}J_{\pi}$ in Algorithm 1 is computed. We reuse the indices $i, j$ in this section with a different meaning than in the body of the paper for the sake of providing a clearer presentation.
 
 Expectations appear in amortized SVGD in two places. First, SVGD approximates the optimal descent direction $\phi (\cdot)$ in Equation (13) with an empirical average over the samples $\mathbf{a}_t^{(i)} = f^{\phi}(\xi^{(i)})$ . Similarly, SVGD approximates the expectation
@@ -590,14 +915,13 @@ Expectations appear in amortized SVGD in two places. First, SVGD approximates th
 in Equation (14) with samples $\hat{\mathbf{a}}_t^{(j)} = f^\phi (\tilde{\xi}^{(j)})$ , which can be the same or different from $\mathbf{a}_t^{(i)}$ . Substituting (13) into (14) and taking the gradient gives the empirical estimate
 
 $$
-\mathbf{\Psi}_{\pi}(\phi ;\mathbf{s}_t) = \frac{1}{KM}\sum_{j = 1}^{K}\sum_{i = 1}^{M}\left(\kappa (\mathbf{a}_t^{(i)},\hat{\mathbf{a}}_t^{(j)})\nabla_{\mathbf{a}'}Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}')\big|_{\mathbf{a}' = \mathbf{a}_t^{(i)}} + \nabla_{\mathbf{a}'}\kappa (\mathbf{a}',\tilde{\mathbf{a}}_t^{(j)})\big|_{\mathbf{a}' = \mathbf{a}_t^{(i)}}\right)\nabla_{\phi}f^{\phi}(\tilde{\xi}^{(j)};\mathbf{s}_t).
+\nabla_\phi J_{\pi}(\phi ;\mathbf{s}_t) = \frac{1}{KM}\sum_{j = 1}^{K}\sum_{i = 1}^{M}\left(\kappa (\mathbf{a}_t^{(i)},\hat{\mathbf{a}}_t^{(j)})\nabla_{\mathbf{a}'}Q_{\mathrm{soft}}(\mathbf{s}_t,\mathbf{a}')\big|_{\mathbf{a}' = \mathbf{a}_t^{(i)}} + \nabla_{\mathbf{a}'}\kappa (\mathbf{a}',\tilde{\mathbf{a}}_t^{(j)})\big|_{\mathbf{a}' = \mathbf{a}_t^{(i)}}\right)\nabla_{\phi}f^{\phi}(\tilde{\xi}^{(j)};\mathbf{s}_t).
 $$
 
 Finally, the update direction $\hat{\nabla}_{\phi}J_{\pi}$ is the average of $\hat{\nabla}_{\phi}J_{\pi}(\phi ;\mathbf{s}_t)$ , where $\mathbf{s}_t$ is drawn from a mini-batch.
 
-# C.2. Computing the Density of Sampled Actions
-
-Equation (10) states that the soft value can be computed by sampling from a distribution $q_{\mathbf{a}'}$ and that $q_{\mathbf{a}'}(\cdot)\propto \exp \left (\frac{1}{\alpha} Q_{\mathrm{soft}}^{\phi}(\mathbf{s},\cdot)\right)$ is optimal. A direct solution is to obtain actions from the sampling network: $\mathbf{a}' = f^{\phi}(\xi ';\mathbf{s})$ . If the samples $\xi '$ and actions $\mathbf{a}'$ have the same dimension, and if the jacobian matrix $\frac{\partial\mathbf{a}'}{\partial\xi'}$ is non-singular, then the probability density is
+## C.2. Computing the Density of Sampled Actions
+Equation (10) states that the soft value can be computed by sampling from a distribution $q_{\mathbf{a}'}$ and that $q_{\mathbf{a}'}(\cdot)\propto \exp \left (\frac{1}{\alpha} Q_{\mathrm{soft}}^{\phi}(\mathbf{s},\cdot)\right)$ is optimal. A direct solution is to obtain actions from the sampling network: $\mathbf{a}' = f^{\phi}(\xi ';\mathbf{s})$ . If the samples $\xi '$ and actions $\mathbf{a}'$ have the same dimension, and if the Jacobian matrix $\frac{\partial\mathbf{a}'}{\partial\xi'}$ is non-singular, then the probability density is
 
 $$
 q_{\mathbf{a}'}(\mathbf{a}') = p_{\xi}(\xi ') \frac{1}{\left|\operatorname*{det}\left(\frac{\partial\mathbf{a}'}{\partial\xi'}\right)\right|}. \tag{33}
@@ -606,9 +930,7 @@ $$
 In practice, the Jacobian is usually singular at the beginning of training, when the sampler $f^{\phi}$ is not fully trained. A simple solution is to begin with uniform action sampling and then switch to $f^{\phi}$ later, which is reasonable, since an untrained sampler is unlikely to produce better samples for estimating the partition function anyway.
 
 # D. Experiments
-
-# D.1. Hyperparameters
-
+## D.1. Hyperparameters
 Throughout all experiments, we use the following parameters for both DDPG and soft Q-learning. The Q-values are updated using ADAM with learning rate 0.001. The DDPG policy and soft Q-learning sampling network use ADAM with a learning rate of 0.0001. The algorithm uses a replay pool of size one million. Training does not start until the replay pool has at least 10,000 samples. Every mini-batch has size 64. Each training iteration consists of 10000 time steps, and both the Q-values and policy / sampling network are trained at every time step. All experiments are run for 500 epochs, except that the multi-goal task uses 100 epochs and the fine-tuning tasks are trained for 200 epochs. Both the Q-value and policy / sampling network are neural networks comprised of two hidden layers, with 200 hidden units at each layer and ReLU nonlinearity. Both DDPG and soft Q-learning use additional OU Noise (Uhlenbeck & Ornstein, 1930; Lillicrap et al., 2015) to improve exploration. The parameters are $\theta = 0.15$ and $\sigma = 0.3$ . In addition, we found that updating the target parameters too frequently can destabilize training. Therefore we freeze target parameters for every 1000 time steps (except for the swimming snake experiment, which freezes for 5000 epochs), and then copy the current network parameters to the target networks directly $(\tau = 1)$ .
 
 Soft Q-learning uses $K = M = 32$ action samples (see Appendix C.1) to compute the policy update, except that the multi-goal experiment uses $K = M = 100$ . The number of additional action samples to compute the soft value is $K_{V} = 50$ . The kernel $\kappa$ is a radial basis function, written as $\kappa (\mathbf{a},\mathbf{a}') = \exp (-\frac{1}{h}\| \mathbf{a} -\mathbf{a}'\| _2^2)$ , where $h = \frac{d}{2\log (\bar{M} + 1)}$ , with $d$ equal to the median of pairwise distance of sampled actions $\mathbf{a}_t^{(i)}$ . Note that the step size $h$ changes dynamically depending on the state $\mathbf{s}$ , as suggested in (Liu & Wang, 2016).
@@ -617,14 +939,15 @@ The entropy coefficient $\alpha$ is 10 for multi-goal environment, and 0.1 for t
 
 All fine-tuning tasks anneal the entropy coefficient $\alpha$ quickly in order to improve performance, since the goal during fine-tuning is to recover a near-deterministic policy on the fine-tuning task. In particular, $\alpha$ is annealed log-linearly to 0.001 within 20 epochs of fine-tuning. Moreover, the samples $\xi$ are fixed to a set $\{\xi_i\}_{i = 1}^{K_{\xi}}$ and $K_{\xi}$ is reduced linearly to 1 within 20 epochs.
 
-# D.2. Task description
-
+## D.2. Task description
 All tasks have a horizon of $T = 500$ , except the multi-goal task, which uses $T = 20$ . We add an additional termination condition to the quadrupedal 3D robot to discourage it from flipping over.
 
-# D.3. Additional Results
+## D.3. Additional Results
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-05/9458f4c4-a71c-4ffc-8bbe-18e774e93b4d/e1598dd62fe484e9bd7641705d514678805e0baacf4473bd8b9f255abbac71bf.jpg) 
+
 Figure 6. Forward swimming distance achieved by each policy. Each row is a policy with a unique random seed. $\mathbf{x}$ training iteration, y: distance (positive: forward, negative: backward). Red line: the "finish line." The blue shaded region is bounded by the maximum and minimum distance (which are equal for DDPG). The plot shows that our method is able to explore equally well in both directions before it commits to the better one.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-05/9458f4c4-a71c-4ffc-8bbe-18e774e93b4d/77270b5dda8f311bab71763912d957f2d7a4081a0dbf5e7a689be96c4de0a947.jpg) 
+
 Figure 7. The plot shows trajectories of the quadrupedal robot during maximum entropy pretraining. The robot has diverse behavior and explores multiple directions. The four columns correspond to entropy coefficients $\alpha = 10, 1, 0.1, 0.01$ respectively. Different rows correspond to policies trained with different random seeds. The $x$ and $y$ axes show the $x$ and $y$ coordinates of the center-of-mass. As $\alpha$ decreases, the training process focuses more on high rewards, therefore exploring the training ground more extensively. However, low $\alpha$ also tends to produce less diverse behavior. Therefore the trajectories are more concentrated in the fourth column.
