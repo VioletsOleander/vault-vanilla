@@ -100,12 +100,32 @@ Now that we have defined the token level MDP, we can show how it relates to both
 Most classical RLHF approaches (Ziegler et al., 2020; Bai et al., 2022b; Ouyang et al., 2022) first learn a reward function from human feedback on prompt and response pairs $(\mathbf{x},\mathbf{y}^w,\mathbf{y}^l)$ , then optimize it with a policy gradient-based method like PPO (Schulman et al., 2017) with an entropy-bonus using the following KL-constrained RL objective
 
 $$
-\max_{\pi_{\theta}}\mathbb{E}_{a_t\sim \pi_{\theta}(\cdot |s_t)}\left[\sum_{t = 0}^T (r(s_t,\mathbf{a}_t) + \underbrace{\beta\log\pi_{\mathrm{ref}}(\mathbf{a}_t|s_t)}_{\mathrm{KL~penalty}}) + \beta \mathcal{H}(\pi_{\theta})|s_0\sim \rho (s_0)\right] \tag{2}
+\max_{\pi_{\theta}}\mathbb{E}_{a_t\sim \pi_{\theta}(\cdot |s_t)}\left[\sum_{t = 0}^T (r(s_t,{a}_t) + \underbrace{\beta\log\pi_{\mathrm{ref}}({a}_t|s_t)}_{\mathrm{KL~penalty}}) + \beta \mathcal{H}(\pi_{\theta}){\Large\mid} s_0\sim \rho (s_0)\right] \tag{2}
 $$
 
 where $\pi_{\mathrm{ref}}$ is a reference policy, often resulting from supervised finetuning, from which the learned policy should not significantly deviate. 
 
 >  经典的 RLHF 先从人类对 prompt, response pair $(\mathbf x, \mathbf y^w, \mathbf y^l)$ 的反馈学习奖励函数，然后使用基于策略梯度的方法，优化一个带有 KL 约束的 RL 目标函数 Eq2
+>  Eq 2 中，外部应该是对整条轨迹 $\tau$ 求期望，或者说对 $a_0, a_1,\dots, a_T$ 的所有动作求期望，对 $a_t$ 求期望是简化写法
+
+>  标准的 RLHF 目标，根据 DPO 中给出的形式，应该是
+
+$$
+\max_{\pi_{\theta}}\mathbb{E}_{x\sim \mathcal{D},y\sim \pi_{\theta}(y|x)}\big[r_{\phi}(x,y)\big] -\beta \mathbb{D}_{\mathrm{KL}}\big[\pi_{\theta}(y\mid x)\mid \pi_{\mathrm{ref}}(y\mid x)\big]
+$$
+
+>  这个形式的等价形式为
+
+$$
+\begin{align}
+&\max_{\pi_\theta} \mathbb E_{\tau \sim \pi_\theta}[\sum_{t}r(s_t,a_t)  + \beta \log\pi_{\text{ref}}(a_t\mid s_t) - \beta \log\pi(a_t\mid s_t))]\\
+=&\max_{\pi_\theta} \mathbb E_{\tau \sim \pi_\theta}[\sum_{t}r(s_t,a_t)  + \beta \log\pi_{\text{ref}}(a_t\mid s_t) - \beta\mathcal H(\pi(\cdot\mid s_t))]\\
+\end{align}
+$$
+
+>  其中的等号是因为对轨迹求期望拆开来就是对 $\forall s_t, \forall a_t$ 求期望，故每个 $s_t$ 实际上都会遍历所有的 $\log \pi(a_t\mid s_t)$，进而可以写为 $\mathcal H(\pi(\cdot\mid s_t))$
+>  这也符合标准的最大熵 RL 的目标形式 (将 $r(s_t, a_t) + \beta \log \pi_{\text{ref}}(a_t\mid s_t)$ 视为新的奖励函数)，即每一个时间步都会有熵惩罚项
+>  而 Eq 2 中将熵放在了求和项后面，也就是只在轨迹末尾在具有熵惩罚项，这不符合标准的 RLHF 目标以及最大熵 RL 的目标，在这里姑且认为是作者的笔误
 
 However, in classic RLHF methods the reward function is learned as a contextual bandit with the preference model
 
@@ -174,7 +194,10 @@ In this section we explore how DPO can theoretically be cast into the token-leve
 >  最优动作价值函数 $Q^*(\mathbf x, \mathbf y)$ 是指在最优策略下，从状态 $\mathbf x$ 采取动作 $\mathbf y$ 之后，未来所有步骤的总折扣奖励
 >  但原始的 DPO 的背景是一个赌博机，不存在后续的步骤，也没有未来的奖励可言，此时，选择一个动作获得的 “总未来奖励” 就是当下获得的即时奖励，且不仅仅是 $Q^*$，其他的 $Q$ 也是如此，因为动作 $\mathbf y$ 已经给出，故 $r(\mathbf x, \mathbf y)$ 是固定的，$Q$ 值的计算与具体的策略无关
 
-To resolve this, we need to develop new mathematical results that will allow us to relate the reward function in the Token-level Bradley Terry model eq. (1) to the corresponding optimal policy $\pi^{*}$ . In the general maximum entropy RL setting, the fixed point solution of eq. (2) is given by (Ziebart, 2010) as
+To resolve this, we need to develop new mathematical results that will allow us to relate the reward function in the Token-level Bradley Terry model eq. (1) to the corresponding optimal policy $\pi^{*}$ . 
+>  为此，我们需要推导出一个将 Eq 1 中 token-level BT 模型中的奖励函数和对应的最优策略 $\pi^*$ 关联的形式
+
+In the general maximum entropy RL setting, the fixed point solution of eq. (2) is given by (Ziebart, 2010) as
 
 $$
 \pi^{*}(\mathbf{a}_{t}|\mathbf{s}_{t}) = e^{(Q^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) -V^{*}(\mathbf{s}_{t})) / \beta} \tag{5}
@@ -182,25 +205,42 @@ $$
 
 where $\pi^{*}(\mathbf{a}|\mathbf{s})$ is the optimal policy and $Q^{*}(\mathbf{s},\mathbf{a})$ is the optimal Q-function which models the total future reward from $(\mathbf{s},\mathbf{a})$ under $\pi^{*}$ .
 
+>  在通用的最大熵 RL 设定下，对 Eq 2 的 fix point solution 形式为 Eq 5，其中 $\pi^*$ 为最优策略，$Q^*$ 为最优 Q-function
+
 The optimal value function $V^{*}$ is a function of $Q^{*}$ ,
 
 $$
 V^{*}(\mathbf{s}_{t}) = \beta \log \sum_{\mathbf{a}\in \mathcal{A}}e^{Q^{*}(\mathbf{s}_{t},\mathbf{a}) / \beta} \tag{6}
 $$
 
-such that the policy $\pi^{*}$ integrates to one. Unfortunately unlike in the bandits setting this relationship gives us no specific information about the reward function $r$ at a single state action pair since the optimal policy optimizes for total future returns as estimated by $Q$ . To do so, we will need to consider the relationship between $Q^{*}$ and $r$ .
+such that the policy $\pi^{*}$ integrates to one. 
 
-**From $r$ to $Q^{*}$ .** The relationship between future returns and the current timestep is captured by the bellman equaitons which are satisfied by any valid Q-function. We write this below for the optimal policy $\pi^{*}$ under the reward $r$ with a KL divergence penalty:
+>  Eq 5 中的最优价值函数 $V^*$ 则是 $Q^*$ 的函数，如 Eq 6
+
+Unfortunately unlike in the bandits setting this relationship gives us no specific information about the reward function $r$ at a single state action pair since the optimal policy optimizes for total future returns as estimated by $Q$ . To do so, we will need to consider the relationship between $Q^{*}$ and $r$ .
+
+>  Eq 5 给出的最优策略的形式和奖励函数 $r$ 无关，为了将最优策略和奖励函数联系起来，我们需要考虑 $Q^*$ 和 $r$ 的关系
+
+**From $r$ to $Q^{*}$ .** The relationship between future returns and the current timestep is captured by the bellman equations which are satisfied by any valid Q-function. We write this below for the optimal policy $\pi^{*}$ under the reward $r$ with a KL divergence penalty:
 
 $$
 Q^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) = \left\{ \begin{array}{ll}r(\mathbf{s}_{t},\mathbf{a}_{t}) + \beta \log \pi_{\mathrm{ref}}(\mathbf{a}_{t}|\mathbf{s}_{t}) + V^{*}(\mathbf{s}_{t + 1}), & \mathrm{if~}\mathbf{s}_{t + 1}\mathrm{~is~not~terminal}\\ r(\mathbf{s}_{t},\mathbf{a}_{t}) + \beta \log \pi_{\mathrm{ref}}(\mathbf{a}_{t}|\mathbf{s}_{t}), & \mathrm{if~}\mathbf{s}_{t + 1}\mathrm{~is~terminal} \end{array} \right. \tag{7}
 $$
 
-We can then rearrange the bellman equation for the optimal $Q$ -function in terms of the reward. This style of relationship was first explored by Garg et al. (2022) in imitation learning and later in Hejna & Sadigh (2024) for preference-based RL. However, these works require the use of a discount factor $\gamma < 1$ which is typically not used in RLHF. In the appendix we prove the following Lemma which shows that this relationship is indeed one-to-one in the token MDP as well.
+We can then rearrange the bellman equation for the optimal $Q$ -function in terms of the reward. This style of relationship was first explored by Garg et al. (2022) in imitation learning and later in Hejna & Sadigh (2024) for preference-based RL. However, these works require the use of a discount factor $\gamma < 1$ which is typically not used in RLHF. 
+
+>  Eq 7 给出了经典的 Bellman 方程的形式，其中奖励函数被定义为 $r'(s_t, a_t) = r(s_t , a_t) + \beta \log \pi_{\text{ref}}(a_t\mid s_t)$
+>  根据 Eq 7，我们可以将 $Q^*$ 写为由 $r$ 表示的形式，反之亦然，其他的一些工作也有类似的探索，但它们都使用了折扣因子 $\gamma < 1$，而通常在 RLHF 中不会使用 $\gamma$
+
+In the appendix we prove the following Lemma which shows that this relationship is indeed one-to-one in the token MDP as well.
 
 **Lemma 1.** Under mild assumptions, there is a bijection between reward functions $r(\mathbf{s}_t, \mathbf{a}_t)$ and corresponding optimal $Q$ -functions $Q^{*}(\mathbf{s}_t, \mathbf{a}_t)$ in the token MDP.
 
+>  **Lemma 1**
+>  在 token MDP 中，奖励函数 $r(s_t, a_t)$ 和对应的最优 Q-function 存在一一对应关系
+
 This leads us to a rather interesting conclusion -that an LLM is always the optimal soft Q-functions for some reward function in the token MDP. Consider any LLM which outputs logits $l_{\theta}$ and temperature parameter $\beta$ . As is common practice, we take the sampling policy $\pi$ to be the softmax over tokens modulated by temperature parameter $\beta$ -which is precisely eq. (5) where $Q^{*} = l_{\theta}$ because the value optimal function $V^{*}$ is precisely $\beta \log Z(\mathbf{s}_t)$ , normalizing the distribution. The corresponding reward function may not be smooth or well-behaved. Notably, the logits have a free parameter due to the softmax. While this free-parameter results in the same optimal policy per later arguments, it means the sequence of values may not be smooth. The question then becomes how to finetune the LLM such that it is the optimal Q-function for a reward function $r$ that aligns with human preferences. To do so, we will complete our derivation of DPO in the token MDP.
+>  在 DPO 中，我们知道 (在 token MDP 中) LLM (策略) 总是可以视作隐式地对应了一个奖励函数，在这里结合 Lemma 1，我们可以推导出 LLM (策略) 还总是对应于某个奖励函数的最优 Q-function
 
 DPO learns our best estimate of $Q^{*}$ . Now that we have established a bijection between $r$ and $Q^{*}$ , we can derive a token-level version of DPO to align the implicit reward, induced by the $Q$ function represented by the language model, with that of the best estimate of reward, according to Bradley-Terry model in eq. (1). To do so, we need to represent the sum of rewards first in terms of the $Q$ -function $Q^{*}$ , and then in terms of the policy $\pi^{*}$ . We complete the first step by inverting the Bellman equation in eq. (7) and substituting it into the sum of rewards over a trajectory $\tau = \{\mathbf{s}_1, \mathbf{a}_1, \ldots , \mathbf{a}_{T -1}, \mathbf{s}_T\}$ .
 
@@ -345,29 +385,64 @@ Joe Watson, Sandy Huang, and Nicolas Heess. Coherent soft imitation learning. In
 Aaron Wilson, Alan Fern, and Prasad Tadepalli. A bayesian approach for policy learning from trajectory preference queries. In Advances in Neural Information Processing Systems, 2012.
 Zhiheng Xi, Yiwen Ding, Wenxiang Chen, Boyang Hong, Honglin Guo, Junzhe Wang, Dingwen Yang, Chenyang Liao, Xin Guo, Wei He, Songyang Gao, Lu Chen, Rui Zheng, Yicheng Zou, Tao Gui, Qi Zhang, Xipeng Qiu, Xuanjing Huang, Zuxuan Wu, and Yu-Gang Jiang. Agentgym: Evolving large language model-based agents across diverse environments, 2024. URL https://arxiv.org/abs/2406.04151. Kevin Yang and Dan Klein. Fudge: Controlled text generation with future discriminators. arXiv preprint arXiv:2104.05218, 2021. Zishun Yu, Yunzhe Tao, Liyu Chen, Tao Sun, and Hongxia Yang. $\mathcal{B}$ -coder: Value-based deep reinforcement learning for program synthesis, 2024. Eric Zelikman, Yuhuai Wu, Jesse Mu, and Noah Goodman. Star: Bootstrapping reasoning with reasoning. Advances in Neural Information Processing Systems, 35:15476-15488, 2022. Yao Zhao, Rishabh Joshi, Tianqi Liu, Misha Khalman, Mohammad Saleh, and Peter J Liu. Silic-hf: Sequence likelihood calibration with human feedback. arXiv preprint arXiv:2305.10425, 2023a. Zhiyuan Zhao, Bin Wang, Linke Ouyang, Xiaoyi Dong, Jiaqi Wang, and Conghui He. Beyond hallucinations: Enhancing lvms through hallucination-aware direct preference optimization. arXiv preprint arXiv:2311.16839, 2023b.Brian D Liebart. Modeling purposeful adaptive behavior with the principle of maximum causal entropy. Carnegie Mellon University, 2010. Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, Anind K Dey, et al. Maximum entropy inverse reinforcement learning. In Aaai, volume 8, pp. 1433-1438. Chicago, IL, USA, 2008. Daniel M. Ziegler, Nisan Stiennon, Jeffrey Wu, Tom B. Brown, Alec Radford, Dario Amodei, Paul Christiano, and Geoffrey Irving. Fine-tuning language models from human preferences, 2020.
 # A Proof of Lemma 1
-Lemma 1. For a fixed policy $\pi$ , there is a bijection between reward functions $r$ and corresponding optimal $Q$ -functions $(Q^{*})$ in the deterministic tree-structured LLM MDP.
-Proof. Let $Q^{*}$ denote the optimal $Q$ -function for reward $r$ . We prove the statement directly, starting with the injective case.
+**Lemma 1.** For a fixed policy $\pi$ , there is a bijection between reward functions $r$ and corresponding optimal $Q$ -functions $(Q^{*})$ in the deterministic tree-structured LLM MDP.
+>  **Lemma 1**
+>  在确定性树状结构的 LLM MDP 中，给定一个固定的策略，奖励函数和对应的最优 Q-function 之间存在双射关系
+
+>  确定性树状结构的 LLM MDP 指表示 LLM 生成过程的 Markov 决策过程，这个过程中，环境的转移是确定性的，也就是给定状态 (当前序列) 和动作 (新 token)，下一个状态是确定性的 (新序列 = 当前序列 + 新 token)，这个 MDP 过程是树状的，意味着从初始状态开始，每执行一个动作都会导向一个唯一的后续状态，并且没有循环
+>  树状结构保证了 MDP 是有限时间步的，并且可以通过反向归纳法 (从终止状态向前) 求解
+
+**Proof.** Let $Q^{*}$ denote the optimal $Q$ -function for reward $r$ . We prove the statement directly, starting with the injective case.
+
 Assume there exists a reward function $r^{\prime}\neq r$ such that $Q_{r^{\prime}}^{*} = Q_{r}^{*}$ .Then, there must exist a state action pair such that $r^{\prime}(\mathbf{s}_t,\mathbf{a}_t)\neq r(\mathbf{s}_t,\mathbf{a}_t)$ .In fact, proceeding backwards from a leaf node (terminal state), there must be a first state action pair $(\mathbf{s}_t,\mathbf{a}_t)$ where $r^{\prime}(\mathbf{s}_t,\mathbf{a}_t)\neq r(\mathbf{s}_t,\mathbf{a}_t)$ . The $Q$ functions at this location are
+
 $$
 Q_{r^{\prime}}^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) = r^{\prime}(\mathbf{s}_{t},\mathbf{a}_{t}) + V_{r^{\prime}}^{*}(\mathbf{s}_{t + 1}),\quad Q_{r}^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) = r(\mathbf{s}_{t},\mathbf{a}_{t}) + V_{r}^{*}(\mathbf{s}_{t + 1})
 $$
-By the fact that this was the first location where the reward functions differed starting from a leaf node, we must have that $V_{r^{\prime}}^{*}(\mathbf{s}_{t + 1}) = V_{r}^{*}(\mathbf{s}_{t + 1})$ . This is because we can recursively. solve for the optimal policy, value, and $Q$ function using eq. (5) eq. (7), and eq. (6) from Ziebart et al. (2008). The rewards in all possible future states from $s,a$ are equal by virtue of this being the location of the first difference and thus the dynamic programming solution up to this point is the same. Thus, we can see that $Q_{r^{\prime}}^{*}(\mathbf{s}_t,\mathbf{a}_t)\neq Q_{r}^{*}(\mathbf{s}_t,\mathbf{a}_t)$ , completing this direction. Note that this proof does not hold in general MDPs, only the token MDP where it is impossible to return to the same state after taking any number of actions.
+
+By the fact that this was the first location where the reward functions differed starting from a leaf node, we must have that $V_{r^{\prime}}^{*}(\mathbf{s}_{t + 1}) = V_{r}^{*}(\mathbf{s}_{t + 1})$ . This is because we can recursively. solve for the optimal policy, value, and $Q$ function using eq. (5) eq. (7), and eq. (6) from Ziebart et al. (2008). The rewards in all possible future states from $s,a$ are equal by virtue of this being the location of the first difference and thus the dynamic programming solution up to this point is the same. Thus, we can see that $Q_{r^{\prime}}^{*}(\mathbf{s}_t,\mathbf{a}_t)\neq Q_{r}^{*}(\mathbf{s}_t,\mathbf{a}_t)$ , completing this direction. 
+
+>  先证明内射: 如果存在两个不同的奖励函数，则它们对应的最优 Q-function 也必然不同，即不同的奖励必然导致不同的最优 Q-function
+>  证明方法为反证法，假设存在两个奖励函数 $r'\ne r$，它们具有相同的最优 Q-function $Q^*_{r'} = Q^*_r$
+>  该假设成立的前提下，那么必然存在一个状态动作对 $(s_t, a_t)$，使得 $r'(s_t, a_t) \ne r(s_t, a_t)$，我们假设这个状态动作对是从一个叶节点 (终止状态) 开始向前回溯，第一次遇到的 $r'(s_t, a_t) \ne r(s_t, a_t)$ 的状态动作对
+>  那么 $Q^*_{r'}$ 和 $Q_r^*$ 为状态动作对 $(s_t, a_t)$ 给出的 Q-value 分别为
+
+$$
+Q_{r'}^*(s_t, a_t) = r'(s_t, a_t) + V_{r'}^*(s_{t+1}), \qquad Q_r^*(s_t, a_t) = r(s_t, a_t) + V_r^*(s_{t+1})
+$$
+
+>  因为 $(s_t, a_t)$ 是从后往前回溯，$Q_{r'}^*$ 和 $Q_r^*$ 第一次出现分歧的节点，那么在这一点上，$V_{r'}^*(s_{t+1}) = V_{r}^*(s_{t+1})$ 仍然成立
+>  那么将 $V_{r'}^*(s_{t+1}) = V_r^*(s_{t+1})$ 代入上面的式子，很容易得到 $Q_{r'}^*(s_t, a_t) \ne Q_r^*(s_t, a_t)$，进而和最初的假设矛盾，证明完毕
+
+Note that this proof does not hold in general MDPs, only the token MDP where it is impossible to return to the same state after taking any number of actions.
+>  注意，这个证明仅适用于特定的 MDP，即无环 MDP，因为我们在证明时使用了 “从叶子节点回溯” ，这利用了无环 MDP 中没有循环的特性，即无论再执行多少次动作，都永远不会回到相同的状态
+
 The surjective direction is easier. For all $Q^{*}$ , we can compute a reward function $r(\mathbf{s}_t,\mathbf{a}_t) =$ $Q^{*}(\mathbf{s}_{t},\mathbf{a}_{t}) -V^{*}(\mathbf{s}_{t + 1})$ under deterministic dynamics. Thus, we can see that the mapping is surjective.
+>  再证明满射: 任何最优的 $Q^*$ 函数都可以由某个奖励函数生成
+>  证明: 在确定性动态下，方程 $r(s_t, a_t) = Q^*(s_t, a_t) - V^*(s_{t+1})$ 始终满足，故无论是何种的 $Q^*$ ，显然都存在到奖励函数 $r$ 的映射关系
+
 # B Treatment of Diffusion Models
 B Treatment of Diffusion ModelsConditional diffusion image generation models, such as Stable Diffusion 3 Esser et al. (2024) have also used a form of the DPO algorithm as outlined in Wallace et al. (2023). Our analysis can no longer be directly applied in that setting, since the generations are continuous. However, we could translate many of our results to that setting, if we consider a certain diffusion MDP. We outline our results below.
+
 ## B.1 Diffusion MDP
 We borrow the denoising MDP formulation from Black et al. (2023b); Fan et al. (2023). We again have the tuple $(S,A,f,r,\rho_0)$ , with the same formulation as in Section 3.1. At the same time consider a diffusion process with time index $t$ and $T$ total steps, conditioned on context $\mathbb{C}$ and image denoted by $\mathbf{x}_t$ . Then we can map the diffusion generation process to an MDP in the following way
+
 $$
 \mathbf{s}_t = \left\{ \begin{array}{ll}(\pmb {c},T) & \mathrm{if~}t = 0\\ (\pmb {c},\pmb{x}_{T -t},T -t) & \mathrm{otherwise} \end{array} \right.
 $$
+
 That is the initial state consists of the prompt $\mathbb{C}$ and afterwards each state consists of the current denoised image $\mathbf{x}_t$ and time step $T -t$ .Notice that the time-steps in the MDP are inverse to the direction of the diffusion process (i.e. we start at noise and end at the final image). The action is just the next image iteration, from where the dynamics is also straightforward:
+
 $$
 \begin{array}{c}{\mathbf{a}_t\triangleq \mathbf{x}_{T -t + 1}}\\ {f(\mathbf{s}_t = (\mathbf{c},\mathbf{x}_{T -t},T -t),\mathbf{a}_t) = (\mathbf{c},\mathbf{a}_t,T -t -1)} \end{array}
 $$
+
 Notice that in this case the policy is stochastic, but the dynamics of the MDP is still deterministic. Finally, the initial distribution, is just the distribution of prompts:
+
 $$
 \rho (\mathbf{s}_0)\triangleq (p(\pmb {c}),0)
 $$
+
 ## B.2 Theoretical Results for the Diffusion MDP
 Given the above formulation, we can also prove that Lemma 1 also holds in the diffusion MDP.
 Lemma 2. Under mild assumptions, there is a bijection between reward functions $r(\mathbf{s}_t,\mathbf{a}_t)$ and corresponding optimal $Q$ -functions $Q^{*}(\mathbf{s}_t,\mathbf{a}_t)$ in the diffusion MDP.
@@ -492,71 +567,4 @@ FIRST provide a one-sentence comparison of the two summaries, explaining which y
 ```
 Comparison: <one-sentence comparison and explanation> Preferred: <"A" or "B">
 ```
-
-# Complementary
-## Maximum Entropy RL / Soft RL
-在标准的无熵项 RL 中，我们有标准的 bellman 最优方程
-
-$$
-\begin{align}
-Q^*(s, a) &= r(s, a) + \gamma \mathbb E_{s'\sim \pi^*(\cdot \mid a)}[V^*(s')]\\
-V^*(s) &= \max_a Q^*(s,a)
-\end{align}
-$$
-
-在最大熵 RL 中，我们期望的策略不仅仅能够多收集奖励，还希望具有高熵，即具有更多的随机性/不确定性
-
-我们可以将最大熵 RL 理解为修改了常规的奖励函数定义: agent 除了获取环境给出的奖励，还会获取关于熵的奖励，修正后的奖励定义为
-
-$$
-r'(s_t, a_t) = r(s_t, a_t) - \beta\log \pi(a_t\mid s_t)
-$$
-
-其中的 $-\beta \log \pi(a_t\mid s_t)$ 衡量了 agent 在 $s_t$ 下选择 $a_t$ 的概率奖励:
-- 如果 $a_t$ 在 $s_t$ 下很少被选择，则 $-\log\pi(a_t\mid s_t)$ 将很大，以引导智能体探索
-- 如果 $a_t$ 在 $s_t$ 下经常被选择，则 $-\log \pi(a_t\mid s_t)$ 将很小，以避免过于确定性的选择
-
-依照传统 RL，最大熵 RL 的目标函数同样定义为最大化 (修正) 奖励下的累积回报:
-
-$$
-\begin{align}
-J(\pi) &= \mathbb E_{\tau \sim \pi}\left[\sum_{t=0}^T r'(s_t,a_t)\right]\\
-&=\mathbb E_{\tau \sim\pi}\left[\sum_{t=0}^T(r(s_t, a_t) -\beta \log \pi(a_t\mid s_t))\right]\\
-&=\sum_{t=0}^T\mathbb E_{\tau\sim \pi}[r(s_t, a_t) - \beta\log \pi(a_t\mid s_t)]\\
-&=\sum_{t=0}^T \mathbb E_{s_t\sim \rho_\pi(s_t)}[\mathbb E_{a_t\sim \pi(\cdot \mid s_t)}[r(s_t, a_t) - \beta \log \pi(a_t\mid s_t)]]\\
-&=\sum_{t=0}^T \mathbb E_{s_t\sim \rho_\pi(s_t)}[\mathbb E_{a_t\sim \pi(\cdot \mid s_t)}[r(s_t, a_t)] + \beta\mathbb E_{a_t\sim \pi(\cdot \mid s_t)}[-\log \pi(a_t\mid s_t)]]\\
-&=\sum_{t=0}^T \mathbb E_{s_t\sim \rho_\pi(s_t)}[\mathbb E_{a_t\sim \pi(\cdot \mid s_t)}[r(s_t, a_t)] + \beta \mathcal H(\cdot\mid s_t)]\\
-&=\sum_{t=0}^T \mathbb E_{s_t\sim \rho_\pi(s_t)}[\mathbb E_{a_t\sim \pi(\cdot \mid s_t)}[r(s_t, a_t) + \beta \mathcal H(\cdot\mid s_t)]\\
-&=\mathbb E_{s_t\sim \rho_\pi(s_t)}[\mathbb E_{a_t\sim \pi(\cdot \mid s_t)}[\sum_{t=0}^T (r(s_t, a_t) + \beta \mathcal H(\cdot\mid s_t)]\\
-&=\mathbb E_{\tau\sim \pi}\left[\sum_{t=0}^T (r(s_t, a_t) + \beta \mathcal H(\cdot\mid s_t))\right]\\
-\end{align}
-$$
-
-其中
-- 第四个等号中的 $\rho_\pi$ 是在策略 $\pi$ 下，在时间步 $t$ 访问状态 $s_t$ 的概率分布
-- 第七个等号中的是因为给定状态 $s_t$ 的情况下，$\mathcal H(\cdot \mid s_t)$ 和 $a_t$ 无关，故再对 $a_t$ 求期望也保持不变，因此可以合并到对 $r(s_t, a_t)$ 的期望中
-
-可以看到，最大熵 RL 中的目标函数除了常规的奖励项，还包括熵项，它衡量了策略选择动作的随机性，熵越大，动作越随机， $\beta$ 为温度参数，控制了熵项的权重
-
-Soft RL 也有对应的 bellman 最优方程，其最简单的形式就是将修正后的奖励 $r'(s_t, a_t)$ 代入常规的 bellman 方程得到
-- 定义 soft Q-function $Q^\pi(s_t, a_t)$，它表示在状态 $s_t$ 采取动作 $a_t$ 后，遵循策略 $\pi$ 能够获得的累积修正回报的期望
- - 定义 soft value-function $V^\pi(s_t)$，它表示了在状态 $s_t$ 下，遵循策略 $\pi$ 能够获得的累积修正回报的期望
- 
-根据 bellman 方程，二者存在以下的关系:
-
-$$
-\begin{align}
-Q^\pi(s_t,a_t) &= r'(s_t, a_t) + \gamma \mathbb E_{s_{t+1}\sim P(\cdot \mid s_t, a_t)}[V^\pi(s_{t+1})]\\
-V^\pi(s_t) &= \mathbb E_{a_t\sim \pi(\cdot \mid s_t)}[Q^\pi(s_t, a_t)]
-\end{align}
-$$
-
-最优策略 $\pi^*$ 的定义就是能够对于任意给定的状态 $s$，都最大化其状态价值，即
-
-$$
-\pi^* = \arg\max_\pi V^\pi(s) \quad \forall s \in \mathcal S
-$$
-
-
-
 
