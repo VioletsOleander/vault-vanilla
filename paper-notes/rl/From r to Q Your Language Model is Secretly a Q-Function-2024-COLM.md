@@ -239,151 +239,347 @@ In the appendix we prove the following Lemma which shows that this relationship 
 >  **Lemma 1**
 >  在 token MDP 中，奖励函数 $r(s_t, a_t)$ 和对应的最优 Q-function 存在一一对应关系
 
-This leads us to a rather interesting conclusion -that an LLM is always the optimal soft Q-functions for some reward function in the token MDP. Consider any LLM which outputs logits $l_{\theta}$ and temperature parameter $\beta$ . As is common practice, we take the sampling policy $\pi$ to be the softmax over tokens modulated by temperature parameter $\beta$ -which is precisely eq. (5) where $Q^{*} = l_{\theta}$ because the value optimal function $V^{*}$ is precisely $\beta \log Z(\mathbf{s}_t)$ , normalizing the distribution. The corresponding reward function may not be smooth or well-behaved. Notably, the logits have a free parameter due to the softmax. While this free-parameter results in the same optimal policy per later arguments, it means the sequence of values may not be smooth. The question then becomes how to finetune the LLM such that it is the optimal Q-function for a reward function $r$ that aligns with human preferences. To do so, we will complete our derivation of DPO in the token MDP.
+This leads us to a rather interesting conclusion - that an LLM is always the optimal soft Q-functions for some reward function in the token MDP. 
 >  在 DPO 中，我们知道 (在 token MDP 中) LLM (策略) 总是可以视作隐式地对应了一个奖励函数，在这里结合 Lemma 1，我们可以推导出 LLM (策略) 还总是对应于某个奖励函数的最优 Q-function
 
-DPO learns our best estimate of $Q^{*}$ . Now that we have established a bijection between $r$ and $Q^{*}$ , we can derive a token-level version of DPO to align the implicit reward, induced by the $Q$ function represented by the language model, with that of the best estimate of reward, according to Bradley-Terry model in eq. (1). To do so, we need to represent the sum of rewards first in terms of the $Q$ -function $Q^{*}$ , and then in terms of the policy $\pi^{*}$ . We complete the first step by inverting the Bellman equation in eq. (7) and substituting it into the sum of rewards over a trajectory $\tau = \{\mathbf{s}_1, \mathbf{a}_1, \ldots , \mathbf{a}_{T -1}, \mathbf{s}_T\}$ .
+Consider any LLM which outputs logits $l_{\theta}$ and temperature parameter $\beta$ . As is common practice, we take the sampling policy $\pi$ to be the softmax over tokens modulated by temperature parameter $\beta$ -which is precisely eq. (5) where $Q^{*} = l_{\theta}$ because the value optimal function $V^{*}$ is precisely $\beta \log Z(\mathbf{s}_t)$ , normalizing the distribution. 
+>  考虑任意一个输出 logits $l_\theta$，温度参数为 $\beta$ 的 LLM，我们通常会将模型的策略 (token 上的分布) 定义为 logits 除以温度参数 $\beta$ 的 softmax，而这个形式正好匹配 Eq 5，其中 $Q^*=l_\theta$，$V^* = \beta \log Z(s_t)$ 作为分布的规范化因子
+
+The corresponding reward function may not be smooth or well-behaved. Notably, the logits have a free parameter due to the softmax. While this free-parameter results in the same optimal policy per later arguments, it means the sequence of values may not be smooth. 
+>  但如果我们简单将原始 logits $l_\theta$ 视作 $Q^*$，那么隐含的，驱动这些 logits 的奖励函数可能不会那么平滑和明确定义
+>  注意到这些 logits 实际上都有一个自由参数 (也就是对 logits 都加上或减去一个常数，softmax 的结果不会变)，logits 的自由参数不会改变策略，但会改变 $Q^*, V^*$ 函数的绝对值 (导致价值序列不平滑)，进而改变奖励函数
+
+>  这里的不平滑是指 $Q, V$ 函数的决定值在训练或时间上的轨迹的不平滑，因此如果没有明确的约束，在训练的时候，因为输出的概率分布都相同，故这些 logits 可能会整体随意地上下浮动，这会给优化策略带来挑战
+
+The question then becomes how to finetune the LLM such that it is the optimal Q-function for a reward function $r$ that aligns with human preferences. To do so, we will complete our derivation of DPO in the token MDP.
+>  因此问题的核心在于如何微调 LLM 使得其最优 Q-function 对应的奖励函数 $r$ 和人类偏好对齐
+
+**DPO learns our best estimate of $Q^{*}$** . Now that we have established a bijection between $r$ and $Q^{*}$ , we can derive a token-level version of DPO to align the implicit reward, induced by the $Q$ function represented by the language model, with that of the best estimate of reward, according to Bradley-Terry model in eq. (1). 
+>  确立了奖励函数和最优 $Q$ 函数之间的双射关系后，我们推导 token-level 版本的 DPO
+
+To do so, we need to represent the sum of rewards first in terms of the $Q$ -function $Q^{*}$ , and then in terms of the policy $\pi^{*}$ . We complete the first step by inverting the Bellman equation in eq. (7) and substituting it into the sum of rewards over a trajectory $\tau = \{\mathbf{s}_1, \mathbf{a}_1, \ldots , \mathbf{a}_{T -1}, \mathbf{s}_T\}$ .
 
 $$
-\begin{array}{rl} & {\sum_{t = 0}^{T -1}r(\mathbf{s}_t,\mathbf{a}_t) = \sum_{t = 0}^{T -1}\left(Q^* (\mathbf{s}_t,\mathbf{a}_t) -\beta \log \pi_{\mathrm{ref}}(\mathbf{a}_t|\mathbf{s}_t) -V^* (\mathbf{s}_{t + 1})\right) =}\\ & {\qquad = Q^* (\mathbf{s}_0,\mathbf{a}_0) -\beta \log \pi_{\mathrm{ref}}(\mathbf{a}_0|\mathbf{s}_0) -\sum_{t = 1}^{T -1}Q^* (\mathbf{s}_t,\mathbf{a}_t) -V^* (\mathbf{s}_t) -\beta \log \pi_{\mathrm{ref}}(\mathbf{a}_t|\mathbf{s}_t)} \end{array}
+\begin{align}
+\sum_{t = 0}^{T -1}r(\mathbf{s}_t,\mathbf{a}_t)&= \sum_{t = 0}^{T -1}\left(Q^* (\mathbf{s}_t,\mathbf{a}_t) -\beta \log \pi_{\mathrm{ref}}(\mathbf{a}_t|\mathbf{s}_t) -V^* (\mathbf{s}_{t + 1})\right) \\
+&= Q^* (\mathbf{s}_0,\mathbf{a}_0) -\beta \log \pi_{\mathrm{ref}}(\mathbf{a}_0|\mathbf{s}_0) -\sum_{t = 1}^{T -1}Q^* (\mathbf{s}_t,\mathbf{a}_t) -V^* (\mathbf{s}_t) -\beta \log \pi_{\mathrm{ref}}(\mathbf{a}_t|\mathbf{s}_t) \end{align}
 $$
 
-The equality follows from $V^{*}(\mathbf{s}_{T}) = 0$ and re-arranging the sum to isolate $t = 0$ . As $V^{*}$ is written entirely in terms of $Q^{*}$ and $\beta$ per eq. (6), we have expressed the sum of return over the sequence just in terms of $Q^{*}$ . Next, we exchange $Q^{*}$ for $\pi^{*}$ . We can log-linearize eq. (5) as $\beta \log \pi^{*}(\mathbf{a}_{t}|\mathbf{s}_{t}) = Q^{*}(\mathbf{s}_{t}, \mathbf{a}_{t}) -V^{*}(\mathbf{s}_{t})$ . This is equivalent to stating that the language model probabilities are just the softmax over $l_{\theta} = Q^{*}$ with temperature $\beta$ . Continuing from the above, with this substitution we get
+The equality follows from $V^{*}(\mathbf{s}_{T}) = 0$ and re-arranging the sum to isolate $t = 0$ . 
+>  我们的思路是先将奖励和用最优 $Q$ 函数 $Q^*$ 表示，进而用策略 $\pi^*$ 表示
+>  我们首先根据 Eq 7，将每一个时间步的奖励 $r(s_t, a_t)$ 写为用 $Q^*, \pi_{\text{ref}}, V^*$ 表示的形式，进而整个轨迹的奖励和可以写为以上的形式 ($s_T$ 为终止状态，因此没有加上 $r(s_t, a_t)$)
+>  其中第二个等号利用了 $V^*(s_T) = 0$，并重新组织了求和顺序
+
+As $V^{*}$ is written entirely in terms of $Q^{*}$ and $\beta$ per eq. (6), we have expressed the sum of return over the sequence just in terms of $Q^{*}$ . 
+>  因为 Eq 6 给出了 $Q^*$ 和 $V^*$ 的关系，故 $V^*$ 完全可以用 $Q^*$ 和 $\beta$ 来表示，因此我们已经将序列上的回报写为了仅和 $Q^*$ 有关的形式
+
+Next, we exchange $Q^{*}$ for $\pi^{*}$ . We can log-linearize eq. (5) as $\beta \log \pi^{*}(\mathbf{a}_{t}|\mathbf{s}_{t}) = Q^{*}(\mathbf{s}_{t}, \mathbf{a}_{t}) -V^{*}(\mathbf{s}_{t})$ . This is equivalent to stating that the language model probabilities are just the softmax over $l_{\theta} = Q^{*}$ with temperature $\beta$ . Continuing from the above, with this substitution we get
 
 $$
 = Q^{*}(\mathbf{s}_{0},\mathbf{a}_{0}) -\beta \log \pi_{\mathrm{ref}}(\mathbf{a}_{0}|\mathbf{s}_{0}) + \sum_{t = 1}^{T -1}\beta \log \frac{\pi^{*}(\mathbf{a}_{t}|\mathbf{s}_{t})}{\pi_{\mathrm{ref}}(\mathbf{a}_{t}|\mathbf{s}_{t})} = V^{*}(\mathbf{s}_{0}) + \sum_{t = 0}^{T -1}\beta \log \frac{\pi^{*}(\mathbf{a}_{t}|\mathbf{s}_{t})}{\pi_{\mathrm{ref}}(\mathbf{a}_{t}|\mathbf{s}_{t})}
 $$
 
-where the final step results from adding and subtracting $V^{*}(\mathbf{s}_{0})$ and applying the substitution again. Now, this representation for the sum of rewards in terms of the optimal policy can be directly substituted into the preference model in eq. (1), where the $V^{*}(\mathbf{s}_{0})$ term will cancel just as $Z(\mathbf{x})$ did in the original DPO derivation assuming $\tau^{w}$ and $\tau^{l}$ start at the
-same state $\mathbf{s}_0$ , giving us the policy-induced preference model
+where the final step results from adding and subtracting $V^{*}(\mathbf{s}_{0})$ and applying the substitution again. 
+
+>  我们继而考虑用 $\pi^*$ 表示 $Q^*$，我们将 Eq 5 两边取对数，得到 $\beta \log \pi^*(a_t\mid s_t) = Q^*(s_t, a_t) - V^*(s_t)$，这等价于说 LLM 为 tokens 赋予的概率就是通过 logits $l_\theta = Q^*$ 和温度参数 $\beta$ 计算得到的
+>  我们用 $\beta \log \pi^*(a_t\mid s_t) = Q^*(s_t, a_t) - V^*(s_t)$ 代入上面的式子，继而得到了更简单的形式如上
+
+Now, this representation for the sum of rewards in terms of the optimal policy can be directly substituted into the preference model in eq. (1), where the $V^{*}(\mathbf{s}_{0})$ term will cancel just as $Z(\mathbf{x})$ did in the original DPO derivation assuming $\tau^{w}$ and $\tau^{l}$ start at the same state $\mathbf{s}_0$ , giving us the policy-induced preference model
 
 $$
 p_{\pi^*}\big(\tau^w\succeq \tau^l\big) = \sigma \left(\sum_{t = 0}^{N -1}\beta \log \frac{\pi^*\big(\mathbf{a}_t^w\big|\mathbf{s}_t^w\big)}{\pi_{\mathrm{ref}}(\mathbf{a}_t^w\big|\mathbf{s}_t^w)} -\sum_{t = 0}^{M -1}\beta \log \frac{\pi^*\big(\mathbf{a}_t^l\big|\mathbf{s}_t^l\big)}{\pi_{\mathrm{ref}}(\mathbf{a}_t^l\big|\mathbf{s}_t^l)}\right). \tag{8}
 $$
 
+>  至此，我们将奖励和表示为了和最优策略有关的形式，我们进而将它代入 Eq 1 中的偏好模型，其中 $V^*(s_0)$ 会被消掉，就像 $Z(x)$ 在最初的 DPO 推导中一样
+>  假设轨迹 $\tau^w, \tau_l$ 从相同状态 $s_0$ 开始，那么我们就有以上策略引导的偏好模型
+
 To derive the final DPO loss function, we can take the KL-divergence between the empirical preference model of our dataset $p_{\mathcal{D}}$ and the preference model implied by a learned policy $p_{\pi_{\theta}}$ , $\mathbb{D}_{\mathrm{KL}}(p_{\mathcal{D}}||p_{\pi_{\theta}})$ . This results in
 
 $$
-\mathcal{L}(\pi_{\theta},\mathcal{D}) = -\mathbb{E}_{(\tau_w,\tau_l)\sim \mathcal{D}}\left[\log \delta \left(\left(\sum_{t = 0}^{N -1}\beta \log \frac{\pi^*(\mathbf{a}_t^w|\mathbf{s}_t^w)}{\pi_{\mathrm{ref}}(\mathbf{a}_t^w|\mathbf{s}_t^w)}\right) -\left(\sum_{t = 0}^{M -1}\beta \log \frac{\pi^*(\mathbf{a}_t^l|\mathbf{s}_t^l)}{\pi_{\mathrm{ref}}(\mathbf{a}_t^l|\mathbf{s}_t^l)}\right)\right)\right] \tag{9}
+\mathcal{L}(\pi_{\theta},\mathcal{D}) = -\mathbb{E}_{(\tau_w,\tau_l)\sim \mathcal{D}}\left[\log \sigma \left(\left(\sum_{t = 0}^{N -1}\beta \log \frac{\pi^*(\mathbf{a}_t^w|\mathbf{s}_t^w)}{\pi_{\mathrm{ref}}(\mathbf{a}_t^w|\mathbf{s}_t^w)}\right) -\left(\sum_{t = 0}^{M -1}\beta \log \frac{\pi^*(\mathbf{a}_t^l|\mathbf{s}_t^l)}{\pi_{\mathrm{ref}}(\mathbf{a}_t^l|\mathbf{s}_t^l)}\right)\right)\right]\quad(9)
 $$
 
 In the next section we demonstrate that DPO can learn any dense reward function in the token-level MDP.
 
+>  我们进而用 Eq 8 计算和数据集上的经验偏好模型 $p_{\mathcal D}$ 的 KL 散度，就得到了最终的 DPO 损失
+
+>  推导
+
+$$
+\begin{align}
+\mathrm {D_KL}(p_{\mathcal D} \| p_{\pi_\theta}) &= \mathbb E_{p_{\mathcal D}}\left[\log \frac {p_{\mathcal D}}{p_{\pi_\theta}}\right]\\
+&= -\mathbb E_{p_{\mathcal D}}[\log p_{\pi_\theta}] + \mathbb E_{p_{\mathcal D}}[\log p_{\mathcal D}]\\
+&=-\mathbb E_{(\tau_w, \tau_l)\sim \mathcal D}[\log p_{\pi_\theta}(\tau_w \succeq \tau_l)] + C
+\end{align}
+$$
+
+>  推导完毕
+
 ## 4.2 Token-Level DPO Can Parameterize Any Dense Reward Function.
-In the previous section we derived DPO using the bijection between reward functions and optimal $Q$ -functions uniquely available in the token-level MDP. An alternative view of DPO casts it as restricting the learned reward function such that it belongs to the class optimal advantage functions $A^{*}(\mathbf{s},\mathbf{a}) = Q^{*}(\mathbf{s},\mathbf{a}) -V^{*}(\mathbf{s})$ from which an optimal policy is readily obtained per eq. (5). Here we show that this restriction does not limit the class of reward functions we can represent. We begin by expanding the definition of equivalency used in Rafailov et al. (2023) to the broader class of potential-based reward shaping functions:
-Definition 1. Two reward functions $r(\mathbf{s}_t,\mathbf{a}_t)$ and $r^{\prime}(\mathbf{s}_t,\mathbf{a}_t)$ are equivalent if there exists a potential function $\Phi (\mathbf{s})$ , such that $r^{\prime}(\mathbf{s}_t,\mathbf{a}_t) = r(\mathbf{s}_t,\mathbf{a}_t) + \Phi (\mathbf{s}_{t + 1}) -\Phi (\mathbf{s}_t)$
+In the previous section we derived DPO using the bijection between reward functions and optimal $Q$ -functions uniquely available in the token-level MDP. 
+>  在上一节中，我们用了 (token-level MDP 中才有的) 奖励函数和最优 $Q$ 函数之间的双射性质推导了 DPO
+
+An alternative view of DPO casts it as restricting the learned reward function such that it belongs to the class optimal advantage functions $A^{*}(\mathbf{s},\mathbf{a}) = Q^{*}(\mathbf{s},\mathbf{a}) -V^{*}(\mathbf{s})$ from which an optimal policy is readily obtained per eq. (5). Here we show that this restriction does not limit the class of reward functions we can represent. 
+>  有人认为 DPO 将奖励函数限制在了满足最优优势函数 $A^*(s, a) = Q^*(s, a) - V^*(s)$ 的形式 (参照 Eq 7 和上面的推导，DPO 就是这么将奖励函数代换为和 $Q, V$ 有关的形式的)，然后用它直接来塑造策略 (参照 Eq 5)
+>  我们在这里证明尽管奖励函数的结构限制为最优优势函数的形式，但这并不会限制奖励函数的表达能力，即这并不会导致 DPO 无法表示某种类型的奖励函数
+
+We begin by expanding the definition of equivalency used in Rafailov et al. (2023) to the broader class of potential-based reward shaping functions:
+
+**Definition 1.** Two reward functions $r(\mathbf{s}_t,\mathbf{a}_t)$ and $r^{\prime}(\mathbf{s}_t,\mathbf{a}_t)$ are equivalent if there exists a potential function $\Phi (\mathbf{s})$ , such that $r^{\prime}(\mathbf{s}_t,\mathbf{a}_t) = r(\mathbf{s}_t,\mathbf{a}_t) + \Phi (\mathbf{s}_{t + 1}) -\Phi (\mathbf{s}_t)$
+>  **Definition 1**
+>  对于两个奖励函数 $r(s_t, a_t)$ 和 $r'(s_t, a_t)$ 如果存在一个势能函数 $\Phi(s)$，使得 $r'(s_t, a_t) = r(s_t, a_t) + \Phi(s_{t+1}) - \Phi(s_t)$，就称这两个奖励函数等价
+
 In Ng et al. (1999)'s seminal work, the authors proved that two equivalent reward functions defined per definition 1 have the same optimal policy. By log-linearizing the optimal policy fixed point in eq. (5) and substituting in the Bellman equation from eq. (7) (Nadhum et al., 2017; Watson et al., 2023), we have
+
 $$
 \beta \log \frac{\pi^{*}(\mathbf{a}_{t}|\mathbf{s}_{t})}{\pi_{\mathrm{ref}}(\mathbf{a}_{t}|\mathbf{s}_{t})} = r(\mathbf{s}_{t},\mathbf{a}_{t}) + V^{*}(\mathbf{s}_{t + 1}) -V^{*}(\mathbf{s}_{t}). \tag{10}
 $$
-This is precisely the optimal advantage function, where $V^{*}$ directly follows the form of a potential shaping function. Watson et al. (2023) first used this derivation to arrive at a "coherent" reward function and follow-ups arrived at the same conclusion by noting that using the advantage as reward preserves the optimal policy (Knox et al., 2024; Hejna et al., 2024). Unlike prior works, however, we demonstrate that this re-parameterization also leads to the same exact preference distribution as $r$ .
-Theorem 1. Given a reference policy $\pi_{\mathrm{ref}}$ and a parameter $\beta >0$ all reward classes consistent with the Plackett-Luce (and Bradley-Terry) models in eq. (1) can be represented with the a re-parameterization of the form
+
+This is precisely the optimal advantage function, where $V^{*}$ directly follows the form of a potential shaping function. 
+
+>  Ng (1999) 的工作证明了在 Definition 1 定义下，两个等价的奖励函数 (即它们之间只相差一个势函数的差值) 在对应的 MDP 中会产生相同的最优策略
+>  我们利用 Eq 5 给出的最优策略形式，将其代入 Eq 7 中的 Bellman equation，得到 Eq 10
+>  Eq 10 实际上就是最优优势函数的定义，也就是 DPO 优化的核心量，或者说 DPO 所定义的奖励函数的形式，而 Eq 10 中的 $V^*$ 实际上就扮演了势函数 $\Phi(s)$ 的角色
+>  这意味着，DPO 优化的核心量实际上是一个和原始奖励函数 $r(s_t, a_t)$ 等价的新奖励函数，二者仅相差一个以 $V^*$ 为定义的奖励塑形项
+>  而根据 Ng 的结论，这种变化不会影响最优策略，因此 DPO 虽然表面上限制了奖励函数的表达形式为某种优势函数，但仍然能找到与任意原始奖励函数相同的最优策略
+
+>  推导
+
+$$
+\begin{align}
+Q^*(s_t, a_t) &= r(s_t, a_t) + \beta \log\pi_{\text{ref}}(a_t\mid s_t)+ V^*(s_{t+1})\\
+Q^*(s_t, a_t) - V^*(s_t)&=r(s_t, a_t) + \beta \log\pi_{\text{ref}}(a_t\mid s_t)+ V^*(s_{t+1}) -V^*(s_t)\\
+\beta \log\pi^*(a_t\mid s_t) &=r(s_t, a_t) + \beta \log\pi_{\text{ref}}(a_t\mid s_t)+ V^*(s_{t+1}) -V^*(s_t)\\
+\beta \log \frac {\pi^*(a_t\mid s_t)}{\pi_{\text{ref}}(a_t\mid s_t)} &= r(s_t,a_t) + V^*(s_{t+1})  - V^*(s_t)
+\end{align}
+$$
+
+>  推导完毕
+
+Watson et al. (2023) first used this derivation to arrive at a "coherent" reward function and follow-ups arrived at the same conclusion by noting that using the advantage as reward preserves the optimal policy (Knox et al., 2024; Hejna et al., 2024). Unlike prior works, however, we demonstrate that this re-parameterization also leads to the same exact preference distribution as $r$ .
+>  其他研究者也发现了使用优势函数作为奖励函数的形式仍然可以保留最优策略这一结论
+>  而 DPO 的独特贡献在于证明了这一重参数化形式不仅可以保留最优策略，并且能够保留人类偏好分布，即可以直接从偏好数据中优化
+
+**Theorem 1.** Given a reference policy $\pi_{\mathrm{ref}}$ and a parameter $\beta >0$ all reward classes consistent with the Plackett-Luce (and Bradley-Terry) models in eq. (1) can be represented with the a re-parameterization of the form
+
 $$
 r(\mathbf{s},\mathbf{a}) = \beta \log \pi (\mathbf{a}|\mathbf{s}) -\beta \log \pi_{\mathit{ref}}(\mathbf{a}|\mathbf{s}) \tag{11}
 $$
+
 within the token MDP where $V^{*}(\mathbf{s}_t) = 0$ for all terminal states.
-Proof. Above we derived the invariance of the optimal policy under the re-parameterization. The preference model can be shown to be invariant by substituting and following the same steps used to arrive at eq. (8) in the last section, or by following Definition 1 from Watson et al. (2023).
+
+>  **Theorem 1**
+>  给定参考策略 $\pi_{\text{ref}}$ 和参数 $\beta > 0$，在 token MDP 和所有终止状态的状态价值 $V^*(s_t) = 0$ 的条件下，所有和 P-L 模型一致的奖励类可以用 Eq 11 的重参数化形式表示
+>  也就是说，这种特殊的奖励函数形式足以表示所有符合人类偏好的奖励，并且能够得到最优策略和偏好分布
+
+**Proof.** Above we derived the invariance of the optimal policy under the re-parameterization. The preference model can be shown to be invariant by substituting and following the same steps used to arrive at eq. (8) in the last section, or by following Definition 1 from Watson et al. (2023).
+>  **Proof**
+>  1. 关于策略的不变性 (这样参数化以后，仍然能够得到最优策略): 在 Eq 10 我们用最大熵 RL 的最优策略的形式和 token MDP 的 Bellman equation 推导出了这种重参数化形式相较于最优策略的不变性
+>  2. 关于偏好的不变性 (这样参数化以后，能够保持和原始奖励函数表示相同的偏好分布): 将 Eq 10 代入偏好模型，就会发现多余的项会上下消掉，因此得到的是和原来奖励函数相同的偏好分布
+
 Interestingly, in practice, the potential function $\Phi (\mathbf{s}_t)$ represents the free parameter in the logits of the language model. An equal shift along all logits yields the same policy, but different Q-functions and corresponding rewards. The above Theorem proves that all of these are in the same equivalence class and induce the same set of preferences.
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/5d7f0a767bc15192892f914dfdac30cf2137ecd1bb317106d46f39fee4d24c1f.jpg) 
-Figure 1: Credit assignment in DPO based on answer-level feedback. We provide two summaries to a Reddit post about a job interview. The left is the base response and on the right we have introduced errors in the salary range and the position level. Each token is colored corresponding to the DPO implicit reward as expressed in Eq. 11 (darker is higher), using the trained model. We see that the model correctly highlights the erroneous statements, without much change to the value of the other tokens, which indicates the ability to do credit assignment.
-Moreover, this Theorem implies that we can use DPO to learn the optimal policy for any per-token reward function, provided preference queries start at the same state and end at a terminal state. In addition, DPO always fits an optimal advantage function for some reward which is responsible for credit assignment. Thus, the training data determines how close the learned advantage corresponds to that of the true reward. This is in contrast to methods that estimate the reward function and then additionally employ some policy improvement mechanism. Which algorithm performs better remains largely an open or empirical question.
+>  有趣的是，在实践中，势函数 $\Phi(s_t)$ 就表示了语言模型中 logits 的自由参数，而在所有 logits 上同时加上任意的势函数，仍然会得到相同的策略，但是会得到不同的 Q-function 以及对应的奖励函数
+>  上面的定理就证明了所有的这些 logits 都属于相同的等价类，并且诱导出相同的偏好分布
+
+Moreover, this Theorem implies that we can use DPO to learn the optimal policy for any per-token reward function, provided preference queries start at the same state and end at a terminal state. 
+>  该定理还表明了我们可以用 DPO 学习任意 per-token 奖励函数的最优策略 (定理中没有限制 $r(s_t, a_t)$ 的形式，只是告诉我们它等价地对应到 $\beta \log \frac{\pi^{*}(\mathbf{a}_{t}|\mathbf{s}_{t})}{\pi_{\mathrm{ref}}(\mathbf{a}_{t}|\mathbf{s}_{t})}$)，只要 preference queries 都从相同的状态开始，并且在一个终止状态结束
+
+In addition, DPO always fits an optimal advantage function for some reward which is responsible for credit assignment. Thus, the training data determines how close the learned advantage corresponds to that of the true reward. 
+>  此外，这个定理也说明了 DPO 的拟合目标: 最优优势函数总是可以对应到一个用于信用分配的奖励函数
+>  训练数据决定了这个学习到的优势函数能够如何对齐到真实的奖励函数
+ 
+This is in contrast to methods that estimate the reward function and then additionally employ some policy improvement mechanism. Which algorithm performs better remains largely an open or empirical question.
+
 The above derivations cast a language model as a Q function in the discrete token-level MDP. While this interpretation does not generally hold in continuous spaces, we can extend many of our results to other specially structured MDPs, like those present in diffusion. See Appendix B for more thorough treatment.
+>  上述的推导将语言模型转化为离散的 token-level MDP 中的 Q-function，这一个解释虽然通常不在连续空间成立，但我们可以将这一结论拓展到任意的特殊结构 MDP，例如扩散 MDP
+
 # 5 Practical Insights
 In this section we discuss the empirical implications of our theoretical analysis. First, we qualitatively show that DPO can learn per-token credit assignment. Next, we use the derivations of the prior section to connect guided decoding and search-based algorithms, such as MCTS, to likelihood-based search on the DPO policy and empirically validate these results. Finally, (for the first time), we mathematically explain the phenomenon of decreasing likelihoods during DPO training, observed in the research and industry community.
+>  本节将展示之前理论分析的经验性实证结果
+>  首先，我们定性地展示 DPO 可以学习到 per-token 的信用分配；然后，我们使用之前的推导将引导式解码和基于搜索的算法，例如 MCTS，联系到在 DPO 优化后的策略上进行基于似然的搜索，并经验性验证这些结果
+
 For all empirical evaluations we use the Pythia 2.8B model Biderman et al. (2023) and the Reddit TL;DR summarization dataset Stiennon et al. (2022). We use the default hyper-parameters from the original public DPO implementation, unless otherwise stated.
-# 5.1 Does DPO Learn Credit Assignment?
-In the previous section we outlined how the trained DPO policy represents an optimal Q-function for some reward that optimizes the preference equation. In this section, we evaluate qualitatively if the DPO-trained model is able to learn credit assignment from trajectory feedback. We begin with a generic set of Reddit posts for the TL;DR test dataset, which we provide in Appendix C with additional examples. In our representative example, the user discusses an employment negotiations situation. Two answers are shown in Figure 1. The base summary, which is correct is provided on the left. On the right we modify the summary by introducing a higher-level position and a corresponding higher salary. For each token in both answers we compute the DPO reward (equivalently the advantage function or "coherent" reward (Watson et al., 2023)), $r(\mathbf{s},\mathbf{a}) = \beta \log \pi_{\theta}(\mathbf{s}|\mathbf{a}) -\beta \log \pi_{\mathrm{ref}}(\mathbf{s}|\mathbf{a})$ , where $\pi_{\theta}$ as outlined in Theorem 1 (here $\pi_{\theta}$ is our DPO-trained model and $\pi_{\mathrm{ref}}$ is the SFT model). In Figure 1 each token is colored proportionally to this reward. We see that the model successfully identifies the tokens corresponding to the erroneous statements, while still maintaining comparable values for the rest, which is indicates that it can do credit assignment. Moreover, we see that within the context of the first error ("250K" salary) the model still allocates reasonable values to the rest of the tokens and specifically identifies the second error "management position". This is a promising sign of the ability to do "stitching" Levine et al. (2020) i.e. a form of combinatorial generalization from offline data. If this is the case, our findings could be significant for the use of reinforcement learning and RLHF in LLMs, particularly
-for compositional tasks, such as code and reasoning. At the same time, in the recently introduced RewardBench Lambert et al. (2024), DPO models have demonstrated strong performance as classifiers on reasoning tasks. We believe these are encouraging results, which warrant further large-scale study beyond our qualitative observations.
-# 5.2 Connecting Guided Decoding and Search to Likelihood-Based DPO Optimization
-Recently Large Language Models have been combined with search algorithms during the inference stage Mudgal et al. (2024); Feng et al. (2024); Huang et al. (2024); Liu et al. (2023a), which have found to improve the quality of responses over standard next token decoding. Following the standard literature, these methods rely on a (usually sparse) reward signal or model $r_{\theta}(\mathbf{s}_{\mathbf{t}},\mathbf{a}_t)$ which they use to train a separate value function $V_{\theta}(\mathbf{s}_t)$ . During inference time they deploy a graph-search algorithm in the token MDP as outlined in Section 3.1 to maximize the sum of rewards. Let us consider the search problem outlined in Eq. 2 with a partial expansion of length $K$ :
+
+## 5.1 Does DPO Learn Credit Assignment?
+In the previous section we outlined how the trained DPO policy represents an optimal Q-function for some reward that optimizes the preference equation. 
+>  在之前的部分，我们证明了 DPO 训练将得到某个优化偏好的奖励函数所对应的最优 Q-function 的最优策略
+
+In this section, we evaluate qualitatively if the DPO-trained model is able to learn credit assignment from trajectory feedback. We begin with a generic set of Reddit posts for the TL;DR test dataset, which we provide in Appendix C with additional examples.
+>  我们在本节定性地评估 DPO 训练的模型是否可以通过轨迹反馈学习信用分配
+
+In our representative example, the user discusses an employment negotiations situation. Two answers are shown in Figure 1. 
+
+![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/5d7f0a767bc15192892f914dfdac30cf2137ecd1bb317106d46f39fee4d24c1f.jpg) 
+
+Figure 1: **Credit assignment in DPO based on answer-level feedback.** We provide two summaries to a Reddit post about a job interview. The left is the base response and on the right we have introduced errors in the salary range and the position level. Each token is colored corresponding to the DPO implicit reward as expressed in Eq. 11 (darker is higher), using the trained model. We see that the model correctly highlights the erroneous statements, without much change to the value of the other tokens, which indicates the ability to do credit assignment.
+
+The base summary, which is correct is provided on the left. On the right we modify the summary by introducing a higher-level position and a corresponding higher salary. 
+
+For each token in both answers we compute the DPO reward (equivalently the advantage function or "coherent" reward (Watson et al., 2023)), $r(\mathbf{s},\mathbf{a}) = \beta \log \pi_{\theta}(\mathbf{s}|\mathbf{a}) -\beta \log \pi_{\mathrm{ref}}(\mathbf{s}|\mathbf{a})$ , where $\pi_{\theta}$ as outlined in Theorem 1 (here $\pi_{\theta}$ is our DPO-trained model and $\pi_{\mathrm{ref}}$ is the SFT model). In Figure 1 each token is colored proportionally to this reward. We see that the model successfully identifies the tokens corresponding to the erroneous statements, while still maintaining comparable values for the rest, which is indicates that it can do credit assignment. 
+>  我们为答案中的每个 token 计算 DPO 奖励: $r(s, a) = \beta \log \pi_\theta(s\mid a) - \beta \log \pi_{\text{ref}}(s\mid a)$
+>  Figure 1 中的颜色深度和奖励成正比，可以看到 DPO 训练出来的模型可以成功识别对应于语句中错误的 tokens (给了较低的奖励)，其他正确的 tokens 则维持了正常的奖励
+
+Moreover, we see that within the context of the first error ("250K" salary) the model still allocates reasonable values to the rest of the tokens and specifically identifies the second error "management position". This is a promising sign of the ability to do "stitching" Levine et al. (2020) i.e. a form of combinatorial generalization from offline data. If this is the case, our findings could be significant for the use of reinforcement learning and RLHF in LLMs, particularly for compositional tasks, such as code and reasoning. At the same time, in the recently introduced RewardBench Lambert et al. (2024), DPO models have demonstrated strong performance as classifiers on reasoning tasks. We believe these are encouraging results, which warrant further large-scale study beyond our qualitative observations.
+
+## 5.2 Connecting Guided Decoding and Search to Likelihood-Based DPO Optimization
+Recently Large Language Models have been combined with search algorithms during the inference stage Mudgal et al. (2024); Feng et al. (2024); Huang et al. (2024); Liu et al. (2023a), which have found to improve the quality of responses over standard next token decoding. 
+>  最近地 LLM 在推理阶段结合了搜索算法，相较于标准的 next token decoding，提高了回应的质量
+
+Following the standard literature, these methods rely on a (usually sparse) reward signal or model $r_{\theta}(\mathbf{s}_{\mathbf{t}},\mathbf{a}_t)$ which they use to train a separate value function $V_{\theta}(\mathbf{s}_t)$ . During inference time they deploy a graph-search algorithm in the token MDP as outlined in Section 3.1 to maximize the sum of rewards. 
+>  这些方法通常会使用一个稀疏的奖励模型 $r_\theta(s_t, a_t)$ 来训练一个单独的价值函数 $V_\theta(s_t)$
+>  在推理阶段，它们采用 token MDP 上的图搜索算法来最大化奖励和
+
+Let us consider the search problem outlined in Eq. 2 with a partial expansion of length $K$ :
+
 $$
-\max_{\mathbf{a}_0,\ldots ,\mathbf{a}_K}r(\mathbf{s}_0,\mathbf{a}_0) + \beta \log \pi_{\mathrm{ref}}(\mathbf{s}_0,\mathbf{a}_0) + \ldots +r(\mathbf{s}_t,\mathbf{a}_t) + \beta \log \pi_{\mathrm{ref}}(\mathbf{s}_K,\mathbf{a}_K) + V^* (\mathbf{s}_{K + 1}) \tag{12}
+\max_{\mathbf{a}_0,\ldots ,\mathbf{a}_K}r(\mathbf{s}_0,\mathbf{a}_0) + \beta \log \pi_{\mathrm{ref}}(\mathbf{s}_0,\mathbf{a}_0) + \ldots +r(\mathbf{s}_t,\mathbf{a}_t) + \beta \log \pi_{\mathrm{ref}}(\mathbf{s}_K,\mathbf{a}_K) + V^* (\mathbf{s}_{K + 1}) \quad (12)
 $$
-where $V^{*}$ is the optimal corresponding value function. Now, if we directly substitute the reward representation from Eq. 10 into the above and considering a telescoping sum, with some standard algebra, we obtain that the above objective is equivalent to
+
+where $V^{*}$ is the optimal corresponding value function. 
+
+>  考虑一个有限步骤的搜索问题，我们希望找到一个 $K$ 步的最佳动作序列，这个动作序列的价值使用上式来表示
+>  可以看到，它等于每一步的即时奖励，以及第 $K+1$ 步到最终状态的最佳预期奖励
+
+Now, if we directly substitute the reward representation from Eq. 10 into the above and considering a telescoping sum, with some standard algebra, we obtain that the above objective is equivalent to
+
 $$
-\max_{\mathbf{a}_0,\ldots ,\mathbf{a}_K} -V^* (\mathbf{s}_0) + \beta \log \pi^* (\mathbf{s}_0|\mathbf{s}_0) + \ldots +\beta \log \pi^* (\mathbf{a}_K|\mathbf{s}_K) \tag{13}
+\max_{\mathbf{a}_0,\ldots ,\mathbf{a}_K} -V^* (\mathbf{s}_0) + \beta \log \pi^* (\mathbf{a}_0|\mathbf{s}_0) + \ldots +\beta \log \pi^* (\mathbf{a}_K|\mathbf{s}_K) \tag{13}
 $$
-where $\pi^{*}$ is the corresponding optimal policy. Now, since the starting state is fixed (it's given by the problem) we have that a search algorithm based on the conservative reward function of the RLHF objective and the corresponding optimal value policy is equivalent to likelihood search on the corresponding optimal policy. We empirically verify this property in Fig. 2, which shows the win rate of DPO models trained with three different $\beta$ values against the preferred summary in the test dataset. We see that a 5-beam search improves win-rates by 10-15% over the base policy (1-beam), which is comparable to the value-function guided search improvements reported in Mudgal et al. (2024). Interestingly, we see performance degrade with higher number of beams. Increasing the number of beams also produces answer with exploding length, which is a sign of reward over-optimization Gao et al. (2023); Park et al. (2024); Rafailov et al. (2024) and would explain the degradation in performance. These observations are consistent with out formulation of beam search as a search over a learned reward function.
+
+where $\pi^{*}$ is the corresponding optimal policy.
+
+>  推导
+>  根据 Eq 10，我们可以得到
+
+$$
+\begin{align}
+\beta \log \frac {\pi^*(s_t, a_t)}{\pi_{\text{ref}}(s_t,a_t)} &= r(s_t,a_t) + V^*(s_{t+1}) - V^*(s_{t})\\
+r(s_t,a_t) + \beta \log \pi_{\text{ref}}(s_t,a_t) &= \beta \log \pi^*(s_t, a_t) - (V^*(s_{t+1}) - V^*(s_t))
+\end{align}
+$$
+
+>  因此我们有
+
+$$
+\begin{align}
+&r(s_0, a_0) + \beta \log \pi_{\text{ref}}(s_0, a_0) + \cdots + r(s_t, a_t) + \beta \log \pi_{\text{ref}}(s_K, a_K) + V^*(s_{K+1})\\
+=&\sum_{t=0}^{K}[r(s_t,a_t) + \beta \log \pi_{\text{ref}}(s_t, a_t)] + V^*(s_{K+1})\\
+=&\sum_{t=0}^K[\beta \log \pi^*(s_t, a_t) - V^*(s_{t+1}) + V^*(s_t)] + V^*(s_{K+1})\\
+=&\sum_{t=0}^K\beta \log \pi^*(s_t, a_t) + V^*(s_0) 
+\end{align}
+$$
+
+>  其中伸缩求和指的就是求和序列中相邻两项可以互相抵消的求和
+>  其中 $V^*(s_0)$ 的符号和原文不一样，应该是作者笔误，而且该状态价值和最大化没有关系，因为也无所谓符号
+>  可以看到最优的搜索序列也就是依照最优策略选择出的序列
+
+Now, since the starting state is fixed (it's given by the problem) we have that a search algorithm based on the conservative reward function of the RLHF objective and the corresponding optimal value policy is equivalent to likelihood search on the corresponding optimal policy. 
+>  因为起始状态 $s_0$ 是固定的 ($V^*(s_0)$ 项可以忽略)，故这个基于 RLHF 得到的奖励函数的搜索算法 (也就是 Eq 12) 等价于基于对应的最优策略的似然搜索问题 (也就是 Eq 13)
+>  换句话说，因为作者已经将奖励函数和最优策略关联，故基于奖励的搜索可以转化为基于最优策略的搜索，进而也就是关于最优策略的极大似然问题
+>  那么实际上，模型得到的最优策略已经包含了执行高效搜索有关的价值信息，也就是没必要再这样多此一举地搜索，简单的 beam search 即可
+
+We empirically verify this property in Fig. 2, which shows the win rate of DPO models trained with three different $\beta$ values against the preferred summary in the test dataset. We see that a 5-beam search improves win-rates by 10-15% over the base policy (1-beam), which is comparable to the value-function guided search improvements reported in Mudgal et al. (2024). 
+>  Fig2 中经验上地验证了这个性质
+>  该试验的目的是对 DPO 进行 beam search 来评估模型表现，发现 5-beam 比 1-beam (贪心) 提高了 10-15% 的胜率，证明了 beam-search 找到了更好的路径，而这个提升幅度和之前工作报告的价值函数引导的搜索的提升幅度是可比的
+
+Interestingly, we see performance degrade with higher number of beams. Increasing the number of beams also produces answer with exploding length, which is a sign of reward over-optimization Gao et al. (2023); Park et al. (2024); Rafailov et al. (2024) and would explain the degradation in performance. 
+>  但 beam 数量太大时，效果反而下降，且生成的文本变得很长，这可能是奖励过度优化的迹象 (模型找到了最大化奖励的路径，但这往往不是真实的最优路径)
+
+These observations are consistent with out formulation of beam search as a search over a learned reward function.
+>  这些观察都表明: DPO 学习到了隐含的奖励函数，而 beam search 就等价于基于这个奖励函数进行搜索
+
+![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/273c4536a357eea69fa64f4c8ad91eae51696ffb70ec14a28f74e30d77c34d87.jpg) 
+
+Figure 2: Model performance using beam search. Left: Win rate of the model generated summaries over the preferred summary on 256 held-out test prompts from the Reddit TL;DR dataset, as evaluated by GPT 4. Right: The average answer length based on number of beams. We see exploding verbosity with more than 5 beams, which also leads to lower model win rates, despite GPT4's well-know preference length bias.
+
 These findings are consistent with the result of the recently proposed V-STaR algorithm Hosseini et al. (2024), which combines the approach of STaR Zelikman et al. (2022) with a DPO trained verifier. At inference time, the STaR model produces several candidate reasoning chains (plans) which are ranked by the DPO verifier likelihood. This can be seen as a form of likelihood based search as in Eq. 12, however instead of directly searching on the DPO model, it uses the STaR model as a proposal distribution. We hypothesize this is beneficial in preventing reward hacking, which is potentially an issue with deeper search as shown in Fig. 2.
-# 5.3 Connections Between Proxy Tuning and Reinforcement Learning
-Several recent works Mitchell et al. (2023); Liu et al. (2024a,b) have proposed an approach of inference-time model alignment through a proxy guidance model. These approaches start with a (unaligned) base model $\pi_{\mathrm{base}}$ and a proxy model $\pi_{\mathrm{proxy}}$ and a target distribution reference model $\pi_{\mathrm{ref}}$ . The inference time re-alignment of the base model is carried by re-weighting the conditional probabilities of each token:
+
+## 5.3 Connections Between Proxy Tuning and Reinforcement Learning
+Several recent works Mitchell et al. (2023); Liu et al. (2024a,b) have proposed an approach of inference-time model alignment through a proxy guidance model. These approaches start with a (unaligned) base model $\pi_{\mathrm{base}}$ and a proxy model $\pi_{\mathrm{proxy}}$ and a target distribution reference model $\pi_{\mathrm{ref}}$ . 
+>  最近一些工作讨论模型的推理时对齐 (不在训练时对齐，而在推理时动态调整模型的输出分布，以符合人类偏好)
+>  这些工作通过代理引导模型来进行推理时对齐，通常用一个对齐的代理模型 $\pi_{\text{proxy}}$ (小模型) 来对齐没有对齐的基础模型 $\pi_{\text{base}}$ (大模型)，还会使用到一个目标分布参考模型 $\pi_{\text{ref}}$
+
+The inference time re-alignment of the base model is carried by re-weighting the conditional probabilities of each token:
+
 $$
 \pi (\mathbf{a}|\mathbf{s}_t)\propto \pi_{\mathrm{base}}(\mathbf{a}|\mathbf{s}_t)\left(\frac{\pi_{\mathrm{proxy}}(\mathbf{a}|\mathbf{s}_t)}{\pi_{\mathrm{ref}}(\mathbf{a}|\mathbf{s}_t)}\right)^\beta \tag{14}
 $$
+
+>  对齐方式是对基础模型在推理时的概率输出进行重新加权
+>  如果 proxy 认为某个动作相较于 ref 更为有可能，该权重就会大于 1，反之同理，这其实是一种类似于引导采样的方法
+
 Under our considerations from the prior chapter, then this becomes equivalent to
+
 $$
 \pi (\mathbf{a}|\mathbf{s}_t)\propto \pi_{\mathrm{base}}(\mathbf{a}|\mathbf{s}_t)\exp (\beta (Q^* (\mathbf{s}_t,\mathbf{a}) -V^* (\mathbf{s}_t))) \tag{15}
 $$
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/273c4536a357eea69fa64f4c8ad91eae51696ffb70ec14a28f74e30d77c34d87.jpg) 
-Figure 2: Model performance using beam search. Left: Win rate of the model generated summaries over the preferred summary on 256 held-out test prompts from the Reddit TL;DR dataset, as evaluated by GPT 4. Right: The average answer length based on number of beams. We see exploding verbosity with more than 5 beams, which also leads to lower model win rates, despite GPT4's well-know preference length bias.
+
 where $\beta (Q^{*}(\mathbf{s}_{t},\mathbf{a}) -V^{*}(\mathbf{s}_{t})$ is the optimal implicit advantage from the proxy tuning model. That is our theoretical results allows us to tie the realignment approaches of Mitchell et al. (2023); Liu et al. (2024a,b) to recent works which explicitly train critic models Mudgal et al. (2024) for token-level decoding.
-# 5.4 Likelihoods should decrease when using DPO.
-A surface level interpretation of DPO would lead one to believe it increases the likelihood of chosen responses, while decreasing the likelihood of rejected responses. This however, does not account for a well observed phenomena in which the likelihood of the chosen responses actually decrease over time (Pal et al., 2024). This is illustrated on the left half of fig. 3, which we show that when performing SFT before DPO, the implicit rewards of both the chosen and rejected response decline, though the margin between them increases. However, given a MaxEnt RL framing, this phenomena may be expected.
+
+> 而如果代理模型是符合 DPO 训练的最优策略，为我们可以将 Eq 14 写为 Eq 15 (感觉还是有笔误)
+>  因此推理时对齐实际上就是乘上了一个优势函数的指数，因此这些看似使用模型比率进行对齐的方法，在数学上等价于使用训练一个价值网络来引导对齐
+
+## 5.4 Likelihoods should decrease when using DPO.
+A surface level interpretation of DPO would lead one to believe it increases the likelihood of chosen responses, while decreasing the likelihood of rejected responses. This however, does not account for a well observed phenomena in which the likelihood of the chosen responses actually decrease over time (Pal et al., 2024). 
+>  表面上看，DPO 优化会提高被选中的 response 的似然，降低被拒绝的 response 的似然
+>  但在实际中观察到，在 DPO 训练中，被选中 response 的似然会随着时间而下降
+>  这就是一个矛盾: DPO 旨在提高被选中 response 的似然，但实际观察中这个似然却会下降
+
+This is illustrated on the left half of fig. 3, which we show that when performing SFT before DPO, the implicit rewards of both the chosen and rejected response decline, though the margin between them increases. However, given a MaxEnt RL framing, this phenomena may be expected.
+>  Fig 3 中展示了在 DPO 之前执行 SFT 时 (也就是到底用不用 SFT 之后的模型作为 DPO 的起点)，chosen response 和 rejected response 的隐式奖励都会下降，不过二者之间的边距增加 (说明绝对值下降也没关系，模型依然可以正确比较，正确选择)
+>  在最大熵 RL 的框架下，这实际上是所期望的 (降低绝对奖励来换取熵)
+
+![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/a210a48a87a2b3554ba8c9ce171e3ff2622311117d1f3cb0a3829c1fd1ed623e.jpg) 
+
+Figure 3: The evolution of implicit rewards for DPO on TLDR (left) and CPL on the bin-picking dataset (right) during training. We see that when we start with SFT, reward values decrease, whereas starting without SFT causes implicit rewards to be positive for DPO and increase for CPL.
+
 Consider the expected log ratio (or implicit reward) of a policy under the reference model, which is often measured during training. Algebraic manipulation yields the following relationship:
+
 $$
 \mathbb{E}_{\mathbf{a}\sim \pi_{\mathrm{ref}}(\cdot |\mathbf{s})}\left[\beta \log \frac{\pi(\mathbf{a}|\mathbf{s})}{\pi_{\mathrm{ref}}(\mathbf{a}|\mathbf{s})}\right] = -\beta \mathbb{D}_{\mathrm{KL}}\left(\pi_{\mathrm{ref}}(\cdot |\mathbf{s})||\pi (\cdot |\mathbf{s})\right) \tag{16}
 $$
-At the beginning of training when $\pi = \pi_{\mathrm{ref}}$ , the implicit rewards are trivially zero. However at the end of training, assuming $\pi_{\mathrm{ref}}\neq \pi^{*}$ , the KL divergence is necessarily positive, indicating that the implicit rewards must decrease in expectation to converge. This means that the average implicit rewards should go down when starting from the SFT model. In fact, on the left side of fig. 3 we show that when one does not SFT before DPO, there is little discernible trend in the average implicit reward and the implicit rewards of the chosen responses remain above zero. In fact, this trend also holds for CPL Hejna et al. (2024) for the general MDP, where the implicit rewards actually increase if SFT is not used.
+
+>  我们考虑策略的隐式奖励相对于参考模型的期望，容易知道它和 KL 散度相关，如 Eq 16
+
+At the beginning of training when $\pi = \pi_{\mathrm{ref}}$ , the implicit rewards are trivially zero. However at the end of training, assuming $\pi_{\mathrm{ref}}\neq \pi^{*}$ , the KL divergence is necessarily positive, indicating that the implicit rewards must decrease in expectation to converge. This means that the average implicit rewards should go down when starting from the SFT model. 
+>  在训练开始时，$\pi = \pi_{\text{ref}}$，隐式奖励都是零，其期望也是零，在训练结束后 $\pi_{\text{ref}} \ne \pi^*$，KL 散度就为正，隐式奖励的期望为负
+>  这说明隐式奖励必须降低，模型才能收敛到最优策略
+>  因此，如果从 SFT 模型开始，平均的隐式奖励必须下降
+
+In fact, on the left side of fig. 3 we show that when one does not SFT before DPO, there is little discernible trend in the average implicit reward and the implicit rewards of the chosen responses remain above zero. In fact, this trend also holds for CPL Hejna et al. (2024) for the general MDP, where the implicit rewards actually increase if SFT is not used.
+>  Fig 3 left 展示了在 DPO 之前不使用 SFT，则平均隐式奖励的下降趋势不明显，并且 chosen response 的奖励高于零
+>  在 CPL 中，也观察到如果不使用 SFT，隐式奖励会增大
+
 One might realize that the previous analysis does not necessitate that the implicit rewards of the chosen must decrease, just that the implicit rewards must decrease on average. However, in practice it is common place (and recommended by Rafailov et al. (2023)) to SFT on only the chosen responses to form $\pi_{\mathrm{ref}}$ . For this section only we will call this choice of reference $\tau_{\mathrm{ref}}^{w}$ . Substituting $\pi_{\mathrm{ref}}^{w}$ into eq. (16), we can see that when SFTing on the positive answers the implicit rewards of the chosen responses must go down because at convergence as $\mathbb{E}_{\pi_{\mathrm{ref}}^{w}}[\beta \log \pi^{*} -\beta \log \pi_{\mathrm{ref}}^{w}] = -\beta \mathbb{D}_{\mathrm{KL}}(\pi_{\mathrm{ref}}^{w}||\pi^{*})$
-Based on this derivation and choice of $\pi_{\mathrm{ref}}^{w}$ , the likelihood of the chosen response should decrease in the process of DPO training.
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/a210a48a87a2b3554ba8c9ce171e3ff2622311117d1f3cb0a3829c1fd1ed623e.jpg) 
-Figure 3: The evolution of implicit rewards for DPO on TLDR (left) and CPL on the bin-picking dataset (right) during training. We see that when we start with SFT, reward values decrease, whereas starting without SFT causes implicit rewards to be positive for DPO and increase for CPL.
-While choosing $\pi_{\mathrm{ref}} = \pi_{\mathrm{ref}}^{w}$ is done in practice (Rafailov et al., 2023), it does mean that DPO will decrease the likelihood of all data in favor of extrapolated responses, which could cause over-fitting. Moreover, now that we have provided a derivation of DPO in the token-level MDP, one might expect it to exhibit characteristics like an RL algorithm -namely that the implied $Q$ -function monotonically increases over time. However, this is not necessarily the case. Note that per analysis in Section section 3.1, DPO can be viewed as adjusting the reward (or advantage) from which the optimal policy is deterministically mapped within the token-level MDP. DPO does not train a policy to maximize reward, and thus we do not argue about whether its implied value functions should increase or decrease over time.
+>  上述讨论说明了隐式奖励的平均值必须下降才能收敛，但没有说明 chosen response 的隐式奖励必须下降
+>  但在实践中，只对 chosen response 进行微调是常见的操作，而如果参考模型是仅针对 chosen response 进行 SFT 的，那么 $\pi_{\text{ref}}$ 的分布也就集中在 chosen response 上，那么 chosen response 的隐式奖励下降就是合理的
+
+**Based on this derivation and choice of $\pi_{\mathrm{ref}}^{w}$ , the likelihood of the chosen response should decrease in the process of DPO training.**
+
+While choosing $\pi_{\mathrm{ref}} = \pi_{\mathrm{ref}}^{w}$ is done in practice (Rafailov et al., 2023), it does mean that DPO will decrease the likelihood of all data in favor of extrapolated responses, which could cause over-fitting. Moreover, now that we have provided a derivation of DPO in the token-level MDP, one might expect it to exhibit characteristics like an RL algorithm - namely that the implied $Q$ -function monotonically increases over time. However, this is not necessarily the case. Note that per analysis in Section section 3.1, DPO can be viewed as adjusting the reward (or advantage) from which the optimal policy is deterministically mapped within the token-level MDP. DPO does not train a policy to maximize reward, and thus we do not argue about whether its implied value functions should increase or decrease over time.
+>  1. 使用 $\pi_{\text{ref}} = \pi_{\text{ref}}^w$ 导致的过拟合: $\pi_{\text{ref}}^w$ 是只在人类偏好的 chosen response 上进行过 SFT 的参考模型，DPO 视图让模型去学习一个比 $\pi_{\text{ref}}^w$ 更好的策略，这需要让 $\pi^*$ 偏离 $\pi_{\text{ref}}^w$ (尽管 $\pi_{\text{ref}}^w$ 已经非常擅长生成 chosen response)，这个偏离会在数学上导致 KL 散度增加，从而使训练数据的平均概率下降；而 DPO 训练模型时，不仅会学习 “好” 的例子，还会学习到一个奖励函数，然后根据这个奖励函数来生成响应，“推断响应” 就是指模型根据学到的奖励函数生成的响应，这些响应不在训练数据中出现；在推理过程中，模型遇到了新 prompt，就需要生成推断响应，如果模型过拟合了奖励，可能生成的推断响应虽然最大化了奖励，但实际上并不是想要的最好响应
+>  2. DPO 和传统 RL 算法的区别: DPO 并不属于 RL 算法，RL 算法中，Q function 是随着时间单调增长的 (因为会学习到更好的策略)，但在 DPO 中则不是这样，因为 DPO 是在同时调整奖励 (优势)，从这个调整后的奖励来映射出最优策略，而不是训练一个最大化给定奖励的策略，因此，我们没有必要讨论是否隐式的价值函数是随着时间增长还是下降，因为这就不是 DPO 的训练目标，DPO 的训练目标是和数据集对齐，而对齐就会导致 KL 散度下降
+
 # 6 Discussion
-In this work we formulated the DPO optimization algorithm as learning an optimal Q function, which is represented by an LLM. This formulation and our results provide theoretical justification for empirically observed DPO training phenomena, which are not explained by the original bandit formulation. We further link and unify a family of proposed new LLM search algorithms by likelihood search under DPO and show comparable empirical gains by a simple 1-line code change to using beam search. Most importantly, we show qualitative early signs that DPO is able to learn credit assignment directly from feedback data. While larger-scale empirical exploration is necessary, we believe this an encouraging early sign. Our results indicate a number of promising future directions to explore:
-Learning intermediate reasoning from outcome feedback: Recent works have shown promising results on that front Pang et al. (2024); Hwang et al. (2024).
-Multi-turn conversations: Teaching language models to be an interactive conversationalists has been difficult, as RLHF is optimized as a single-turn bandit formulation. Moreover, classical methods, such as PPO, are not applicable in this setting. Recent work by Astukuri et al. (2024) has shown success in this domain using STaR and extending DPO to multi-turn conversational trees is a promising direction.
-Agentic LLMs: LLM agents, such as WebGPT (Nakano et al., 2022) are equipped to take autonomous actions, such as browsing the Web and collecting information before providing an answer. The user then provides feedback based on the final output. Our derivations indicate that DPO training (on the full model trajectories) could learn optimal exploration behaviour. Recent works Song et al. (2024); Xi et al. (2024) shows promise in that direction.
-End-to-end training of generative AI systems: Modern image generation systems, such as Dalle 3 Betker et al. (2023) use an LLM to produce high quality conditioning before calling a diffusion generation model. Also, recent long-form video generation models Hu et al. (2023); Gupta et al. (2023) combine transformer-based auto-regressive generations with a diffusion-based decoder. Such systems could potentially be optimized end-to-end with a hybrid version of DPO. We expand on these points in the Appendix.
+In this work we formulated the DPO optimization algorithm as learning an optimal Q function, which is represented by an LLM. This formulation and our results provide theoretical justification for empirically observed DPO training phenomena, which are not explained by the original bandit formulation. 
+>  本文将 DPO 优化算法构建为学习一个最优 Q-function 的问题，其中 Q-function 可以用 LLM 策略表示
+
+We further link and unify a family of proposed new LLM search algorithms by likelihood search under DPO and show comparable empirical gains by a simple 1-line code change to using beam search. 
+>  我们进一步将 LLM 搜索算法联系到了 DPO 下的基于似然的搜索
+
+Most importantly, we show qualitative early signs that DPO is able to learn credit assignment directly from feedback data. While larger-scale empirical exploration is necessary, we believe this an encouraging early sign. Our results indicate a number of promising future directions to explore:
+>  我们定性地展示了 DPO 可以直接从反馈数据学习信用分配
+
+**Learning intermediate reasoning from outcome feedback:** Recent works have shown promising results on that front Pang et al. (2024); Hwang et al. (2024).
+
+**Multi-turn conversations:** Teaching language models to be an interactive conversationalists has been difficult, as RLHF is optimized as a single-turn bandit formulation. Moreover, classical methods, such as PPO, are not applicable in this setting. Recent work by Astukuri et al. (2024) has shown success in this domain using STaR and extending DPO to multi-turn conversational trees is a promising direction.
+
+**Agentic LLMs:** LLM agents, such as WebGPT (Nakano et al., 2022) are equipped to take autonomous actions, such as browsing the Web and collecting information before providing an answer. The user then provides feedback based on the final output. Our derivations indicate that DPO training (on the full model trajectories) could learn optimal exploration behaviour. Recent works Song et al. (2024); Xi et al. (2024) shows promise in that direction.
+
+**End-to-end training of generative AI systems:** Modern image generation systems, such as Dalle 3 Betker et al. (2023) use an LLM to produce high quality conditioning before calling a diffusion generation model. Also, recent long-form video generation models Hu et al. (2023); Gupta et al. (2023) combine transformer-based auto-regressive generations with a diffusion-based decoder. Such systems could potentially be optimized end-to-end with a hybrid version of DPO. We expand on these points in the Appendix.
+
 We believe these are promising directions for future work.
-# Acknowledgements
-AcknowledgementsChelsea Finn is a CIFAR Fellow in the Learning in Machines and Brains program. JH is supported by an NDSEG Fellowship. This work was also supported by ONR grant N00014-22-1-2621 and the Volkswagen Group.
-# References
-Riad Akreur, Marc Schoenauer, and Michele Sebag. Preference-based policy learning. In Joint European Conference on Machine Learning and Knowledge Discovery in Databases, 2011.
-Chinmaya Andukuri, Jan-Philipp Franken, Tobias Gerstenberg, and Noah D. Goodman. Star-gate: Teaching language models to ask clarifying questions, 2024.
-Mohammad Gheshlaghi Azar, Mark Rowland, Bilal Piot, Daniel Guo, Daniele Calandriello, Michal Valko, and Remi Munos. A general theoretical paradigm to understand learning from human preferences, 2023.
-Yuntao Bai, Andy Jones, Kamal Ndousse, Amanda Askell, Anna Chen, Nova DasSarma, Dawn Drain, Stanislav Fort, Deep Ganguli, Tom Henighan, Nicholas Joseph, Saurav Kadavath, Jackson Kernion, Tom Conerly, Sheer El-Showk, Nelson Elhage, Zac Hatfield-Dodds, Danny Hernandez, Tristan Hume, Scott Johnston, Shauna Kravec, Liane Lovitt, Neel Nanda, Catherine Olsson, Dario Amodei, Tom Brown, Jack Clark, Sam McCandlish, Chris Olah, Ben Mann, and Jared Kaplan. Training a helpful and harmless assistant with reinforcement learning from human feedback, 2022a.
-Yuntao Bai, Saurav Kadavath, Sandipan Kundu, Amanda Askell, Jackson Kernion, Andy Jones, Anna Chen, Anna Goldie, Azalia Mirhoseini, Cameron McKinnon, Carol Chen, Catherine Olsson, Christopher Olah, Danny Hernandez, Dawn Drain, Deep Ganguli, Dustin Li, Eli Tran-Johnson, Ethan Perez, Jamie Kerr, Jared Mueller, Jeffrey Ladish, Joshua Landau, Kamal Ndousse, Kamile Lukosuite, Liane Lovitt, Michael Sellitto, Nelson Elhage, Nicholas Schiefer, Noemi Mercado, Nova DasSarma, Robert Lasenby, Robin Larson, Sam Ringer, Scott Johnston, Shauna Kravec, Sheer El Showk, Stanislav Fort, Tamera Lanham, Timothy Telleen-Lawton, Tom Conerly, Tom Henighan, Tristan Hume, Samuel R. Bowman, Zac Hatfield-Dodds, Ben Mann, Dario Amodei, Nicholas Joseph, Sam McCandlish, Tom Brown, and Jared Kaplan. Constitutional ai: Harmlessness from ai feedback, 2022b.
-James Beiker, Gabriel Goh, Li Jing, Tim Brooks, Jianfeng Wang, Linjie Li, Long Ouyang, Juntang Zhuang, Joyce Lee, Yufei Guo, Wesam Manassra, Prafulla Dhariwal, Casey Chu, Yunxin Jiao, and Aditya Ramesh. Improving image generation with better captions, 2023. URL https://cdn.openai.com/papers/dall-e-3. pdf.
-Stella Biderman, Hailey Schoelkopf, Quentin Anthony, Herbie Bradley, Kyle O'Brien, Eric Hallahan, Mohammad Aflah Khan, Shivanshri Purohit, USVSN Sai Prashanth, Edward Raff, Aviya Skowron, Lintang Sutawika, and Oskar van der Wal. Pythia: A suite for analyzing large language models across training and scaling, 2023.
-Kevin Black, Michael Janner, Yilun Du, Ilya Kostrikov, and Sergey Levine. Training diffusion models with reinforcement learning. arXiv preprint arXiv:2305.13301, 2023a.
-Kevin Black, Michael Janner, Yilun Du, Ilya Kostrikov, and Sergey Levine. Training diffusion models with reinforcement learning. arXiv preprint arXiv:2305.13301, 2023b.
-Ralph Allan Bradley and Milton E. Terry. Rank analysis of incomplete block designs: I. the method of paired comparisons. Biometrika, 39(3/4):324-345, 1952. doi: https://doi.org/10.2307/2334029.
-Haoyang Cao, Samuel Cohen, and Lukasz Szpruch. Identifiability in inverse reinforcement learning. Advances in Neural Information Processing Systems, 34:12362-12373, 2021.
-Alex J Chan, Hao Sun, Samuel Holt, and Milhaela van der Schaar. Dense reward for free in reinforcement learning from human feedback. arXiv preprint arXiv:2402.00782, 2024.
-Paul F Christiano, Jan Leike, Tom Brown, Miljan Martic, Shane Legg, and Dario Amodei. Deep reinforcement learning from human preferences. In I. Guyon, U. Von Luxburg, S. Bengio, H. Wallach, R. Fergus, S. Vishwanathan, and R. Garnett (eds.), Advances in Neural Information Processing Systems, volume 30. Curran Associates, Inc., 2017. URL https://proceedings.neurips.cc/paper_files/paper/2017/file/d5e2c0dad503c91f91df240d0cd4e49-Paper.pdf.
-Chris Cundy and Stefano Ermon. Sequencematch: Imitation learning for autoregressive sequence modelling with backtracking. arXiv preprint arXiv:2306.05426, 2023.
-Logan Ensrstrom, Andrew Ilyas, Shibani Santurkar, Dimitris Tsipras, Firdaus Janoos, Larry Rudolph, and Aleksander Madry. Implementation matters in deep policy gradients: A case study on ppo and trpo. arXiv preprint arXiv:2005.12729, 2020.
-Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Müller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, Dustin Podell, Tim Dockhorn, Zion English, Kyle Lacey, Alex Goodwin, Yannik Marek, and Robin Rombach. Scaling rectified flow transformers for high-resolution image synthesis, 2024.
-Ying Fan, Olivia Watkins, Yuqing Du, Hao Liu, Moonkyung Ryu, Craig Boutilier, Pieter Abbeel, Mohammad Ghavamzadeh, Kangwook Lee, and Kimin Lee. Dpok: Reinforcement learning for fine-tuning text-to-image diffusion models. arXiv preprint arXiv:2305.16381, 2023.
-Xidong Feng, Ziyu Wan, Muning Wen, Stephen Marcus McAleer, Ying Wen, Weinan Zhang, and Jun Wang. Alphazero-like tree-search can guide large language model decoding and training, 2024.
-Leo Gao, John Schulman, and Jacob Hilton. Scaling laws for reward model overoptimization. International Conference on machine Learning, 2023.
-Divyansh Garg, Shuvam Chakraborty, Chris Cundy, Jiaming Song, Matthieu Geist, and Stefano Ermon. IQ-learn: Inverse soft-q learning for imitation, 2022.
-Agrim Gupta, Lijun Yu, Kihyuk Sohn, Xiuye Gu, Meera Hahn, Li Fei-Fei, Irfan Essa, Lu Jiang, and Jose Lezama. Photorealistic video generation with diffusion models, 2023.
-Joey Hejna and Dorsa Sadigh. Inverse preference learning: Preference-based rl without a reward function. Advances in Neural Information Processing Systems, 36, 2024.
-Joey Hejna, Rafael Rafailov, Harshit Sikchi, Chelsea Finn, Scott Niekum, W. Bradley Knox, and Dorsa Sadigh. Contrastive preference learning: Learning from human feedback without reinforcement learning. In The Twelfth International Conference on Learning Representations, 2024. URL https://openreview.net/forum?id=iX1RjVQODj.
-Arian Hossami, Xingdi Yuan, Nikolay Malkin, Aaron Courville, Alessandro Sorroni, and Rishabh Agarwal. V-star: Training verifiers for self-taught reasoners, 2024.
-Anthony Hu, Lloyd Russell, Hudson Yeo, Zak Murez, George Fedoseev, Alex Kendall, Jamie Shotton, and Gianruca Corrado. Gaia-1: A generative world model for autonomous driving, 2023.
-James Y. Huang, Sailik Sengupta, Daniele Bonadiman, Yi an Lai, Arshit Gupta, Nikolaos Pappas, Saab Mansour, Katrin Kirchhoff, and Dan Roth. Deal: Decoding-time alignment for large language models, 2024.
-Hyeonbin Hwang, Doyoung Kim, Seungone Kim, Seonghyeon Ye, and Minjoon Seo. Self-explore to avoid the pit: Improving the reasoning capabilities of language models with fine-grained rewards, 2024. URL https://arxiv.org/abs/2404.10346.
-Minbeom Kim, Hwanhee Lee, Kang Min Yoo, Joonsuk Park, Hwaran Lee, and Kyomin Jung. Critic-guided decoding for controlled text generation. arXiv preprint arXiv:2212.10938, 2022.
-W Bradley Knox, Stephane Hatgis-Kessell, Serena Booth, Scott Niekum, Peter Stone, and Alessandro G Allievi. Models of human preference for learning reward functions. Transactions on Machine Learning Research, 2023. W Bradley Knox, Stephane Hatgis-Kessell, Sigurdur Orn Adalgeirsson, Serena Booth, Anca Dragan, Peter Stone, and Scott Niekum. Learning optimal advantage from preferences and mistaking it for reward. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 38, pp. 10066-10073, 2024. Nathan Lambert, Valentina Pyatkin, Jacob Morrison, LJ Miranda, Bill Yuchen Lin, Khyathi Chandu, Nouha Dziri, Sachin Kumar, Tom Zick, Yejin Choi, Noah A. Smith, and Hannaneh Hajishirzi. Rewardbench: Evaluating reward models for language modeling, 2024. Kimin Lee, Hao Liu, Moonkyung Ryu, Olivia Watkins, Yuqing Du, Craig Boutilier, Pieter Abbeel, Mohammad Ghavamzadeh, and Shixiang Shane Gu. Aligning text-to-image models using human feedback. arXiv e-prints, pp. arXiv-2302, 2023. Sergey Levine. Reinforcement learning and control as probabilistic inference: Tutorial and review, 2018. Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Offline reinforcement learning: Tutorial, review, and perspectives on open problems, 2020. Jiwei Li, Will Monroe, and Dan Jurafsky. Learning to decode for future success. arXiv preprint arXiv:1701.06549, 2017. Alisa Liu, Xiaochuang Han, Yizhong Wang, Yulia Tsvetkov, Yejin Choi, and Noah A. Smith. Tuning language models by proxy, 2024a. URL https://arxiv.org/abs/2401.08565. Jiacheng Liu, Andrew Cohen, Ramakanth Pasunuru, Yejin Choi, Hannaneh Hajishirzi, and Asli Celikyilmaz. Don't throw away your value model! making ppo even better via value-guided monte-carlo tree search decoding, 2023a. Jiacheng Liu, Andrew Cohen, Ramakanth Pasunuru, Yejin Choi, Hannaneh Hajishirzi, and Asli Celikyilmaz. Making ppo even better: Value-guided monte-carlo tree search decoding. arXiv preprint arXiv:2309.15028, 2023b. Tianlin Liu, Shangmin Guo, Leonardo Bianco, Daniele Calandriello, Quentin Berthet, Felipe Llinares, Jessica Hoffmann, Lucas Dixon, Michal Valko, and Mathieu Blondel. Decoding-time realignment of language models, 2024b. URL https://arxiv.org/abs/2402.02992. Eric Mitchell, Rafael Rafailov, Archit Sharma, Chelsea Finn, and Christopher D. Manning. An emulator for fine-tuning large language models using small language models, 2023. Sidharth Mudgal, Jong Lee, Harish Ganapatthy, YaGuang Li, Tao Wang, Yanping Huang, Zhifeng Chen, Heng-Tze Cheng, Michael Collins, Trevor Strohman, et al. Controlled decoding from language models. arXiv preprint arXiv:2310.17022, 2023. Sidharth Mudgal, Jong Lee, Harish Ganapatthy, YaGuang Li, Tao Wang, Yanping Huang, Zhifeng Chen, Heng-Tze Cheng, Michael Collins, Trevor Strohman, Jilin Chen, Alex Beutel, and Ahmad Beirani. Controlled decoding from language models, 2024. Ofir Nachum, Mohammad Norouzi, Kelvin Xu, and Dale Schuurmans. Bridging the gap between value and policy based reinforcement learning, 2017. Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu, Long Ouyang, Christina Kim, Christopher Hesse, Shantanu Jain, Vineet Kosaraju, William Saunders, et al. Webgpt: Browser-assisted question-answering with human feedback. arXiv preprint arXiv:2112.09332, 2021. Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu, Long Ouyang, Christina Kim, Christopher Hesse, Shantanu Jain, Vineet Kosaraju, William Saunders, Xu Jiang, Karl Cobbe, Tyna Eloundou, Gretchen Krueger, Kevin Button, Matthew Knight, Benjamin Chess, and John Schulman. Webgpt: Browser-assisted question-answering with human feedback, 2022.
-Andrew Y Ng, Daishi Harada, and Stuart Russell. Policy invariance under reward transformations: Theory and application to reward shaping. In Icml, volume 99, pp. 278-287, 1999.
-Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, John Schulman, Jacob Hilton, Fraser Korbon, Luke Miller, Maddie Simens, Amanda Askell, Peter Welinder, Paul F Christiano, Jan Leike, and Ryan Lowe. Training language models to follow instructions with human feedback. In S. Koyejo, S. Mohamed, A. Agarwal, D. Belgrave, K. Cho, and A. Oh (eds.), Advances in Neural Information Processing Systems, volume 35, pp. 27730-27744. Curran Associates, Inc., 2022. URL https://proceedings.neurips.cc/paper_files/paper/2022/file/blefde53be364a73914f58805a001731-Paper-Conference.pdf.
-Arka Pal, Deep Karkhanis, Samuel Dooley, Manley Roberts, Siddartha Naidu, and Colin White. Smaug: Fixing failure modes of preference optimisation with dpo-positive. arXiv preprint arXiv:2402.13228, 2024.
-Sarah Pan, Vladislav Lialin, Sherin Muckatira, and Anna Rumshisky. Let's reinforce step by step. arXiv preprint arXiv:2311.05821, 2023.
-Richard Yuanzhe Pang, Weizhe Yuan, Kyunghyun Cho, He He, Sainbayar Sukhbaatar, and Jason Weston. Iterative reasoning preference optimization, 2024. URL https://arxiv.org/abs/2404.19733.
-Ryan Park, Rafael Rafailov, Stefano Ermon, and Chelsea Finn. Disentangling length from quality in direct preference optimization, 2024.
-Rafael Rafailov, Archit Sharma, Eric Mitchell, Christopher D Manning, Stefano Ermon, and Chelsea Finn. Direct preference optimization: Your language model is secretly a reward model. In Thirty-seventh Conference on Neural Information Processing Systems, 2023. URL https://arxiv.org/abs/2305.18290.
-Rafael Rafailov, Yaswanth Chittepu, Ryan Park, Harshit Sikchi, Joey Hejna, Bradley Knox, Chelsea Finn, and Scott Niekum. Scaling laws for reward model overoptimization in direct alignment algorithms, 2024. URL https://arxiv.org/abs/2406.02900.
-John Schulman, Filip Wolski, Prafulla Dharival, Alec Radford, and Oleg Klimov. Proximal policy optimization algorithms, 2017.
-Charlie Victor Snell, Ilya Kostrikov, Yi Su, Sherry Yang, and Sergey Levine. Offline rl for natural language generation with implicit language q learning. In The Eleventh International Conference on Learning Representations, 2022.
-Yifan Song, Da Yin, Xiang Yue, Jie Huang, Sujian Li, and Bill Yuchen Lin. Trial and error: Exploration-based trajectory optimization for llm agents, 2024.
-Nisan Stiennon, Long Ouyang, Jeff Wu, Daniel M. Ziegler, Ryan Lowe, Chelsea Voss, Alec Radford, Dario Amodei, and Paul Christiano. Learning to summarize from human feedback, 2022.
-Bram Wallace, Meihua Dang, Rafael Rafailov, Linqi Zhou, Aaron Lou, Senthil Purushwalkam, Stefano Ermon, Caiming Xiong, Shafiq Joty, and Nikhil Naik. Diffusion model alignment using direct preference optimization, 2023.
-Joe Watson, Sandy Huang, and Nicolas Heess. Coherent soft imitation learning. In Thirty-seventh Conference on Neural Information Processing Systems, 2023. URL https://openreview.net/forum?id=kCCD8d2aEu.
-Aaron Wilson, Alan Fern, and Prasad Tadepalli. A bayesian approach for policy learning from trajectory preference queries. In Advances in Neural Information Processing Systems, 2012.
-Zhiheng Xi, Yiwen Ding, Wenxiang Chen, Boyang Hong, Honglin Guo, Junzhe Wang, Dingwen Yang, Chenyang Liao, Xin Guo, Wei He, Songyang Gao, Lu Chen, Rui Zheng, Yicheng Zou, Tao Gui, Qi Zhang, Xipeng Qiu, Xuanjing Huang, Zuxuan Wu, and Yu-Gang Jiang. Agentgym: Evolving large language model-based agents across diverse environments, 2024. URL https://arxiv.org/abs/2406.04151. Kevin Yang and Dan Klein. Fudge: Controlled text generation with future discriminators. arXiv preprint arXiv:2104.05218, 2021. Zishun Yu, Yunzhe Tao, Liyu Chen, Tao Sun, and Hongxia Yang. $\mathcal{B}$ -coder: Value-based deep reinforcement learning for program synthesis, 2024. Eric Zelikman, Yuhuai Wu, Jesse Mu, and Noah Goodman. Star: Bootstrapping reasoning with reasoning. Advances in Neural Information Processing Systems, 35:15476-15488, 2022. Yao Zhao, Rishabh Joshi, Tianqi Liu, Misha Khalman, Mohammad Saleh, and Peter J Liu. Silic-hf: Sequence likelihood calibration with human feedback. arXiv preprint arXiv:2305.10425, 2023a. Zhiyuan Zhao, Bin Wang, Linke Ouyang, Xiaoyi Dong, Jiaqi Wang, and Conghui He. Beyond hallucinations: Enhancing lvms through hallucination-aware direct preference optimization. arXiv preprint arXiv:2311.16839, 2023b.Brian D Liebart. Modeling purposeful adaptive behavior with the principle of maximum causal entropy. Carnegie Mellon University, 2010. Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, Anind K Dey, et al. Maximum entropy inverse reinforcement learning. In Aaai, volume 8, pp. 1433-1438. Chicago, IL, USA, 2008. Daniel M. Ziegler, Nisan Stiennon, Jeffrey Wu, Tom B. Brown, Alec Radford, Dario Amodei, Paul Christiano, and Geoffrey Irving. Fine-tuning language models from human preferences, 2020.
+
 # A Proof of Lemma 1
 **Lemma 1.** For a fixed policy $\pi$ , there is a bijection between reward functions $r$ and corresponding optimal $Q$ -functions $(Q^{*})$ in the deterministic tree-structured LLM MDP.
 >  **Lemma 1**
@@ -422,149 +618,133 @@ The surjective direction is easier. For all $Q^{*}$ , we can compute a reward fu
 >  证明: 在确定性动态下，方程 $r(s_t, a_t) = Q^*(s_t, a_t) - V^*(s_{t+1})$ 始终满足，故无论是何种的 $Q^*$ ，显然都存在到奖励函数 $r$ 的映射关系
 
 # B Treatment of Diffusion Models
-B Treatment of Diffusion ModelsConditional diffusion image generation models, such as Stable Diffusion 3 Esser et al. (2024) have also used a form of the DPO algorithm as outlined in Wallace et al. (2023). Our analysis can no longer be directly applied in that setting, since the generations are continuous. However, we could translate many of our results to that setting, if we consider a certain diffusion MDP. We outline our results below.
+Conditional diffusion image generation models, such as Stable Diffusion 3 Esser et al. (2024) have also used a form of the DPO algorithm as outlined in Wallace et al. (2023). Our analysis can no longer be directly applied in that setting, since the generations are continuous. However, we could translate many of our results to that setting, if we consider a certain diffusion MDP. We outline our results below.
+>  作者要考虑对扩散过程进行偏好微调的情况
 
 ## B.1 Diffusion MDP
-We borrow the denoising MDP formulation from Black et al. (2023b); Fan et al. (2023). We again have the tuple $(S,A,f,r,\rho_0)$ , with the same formulation as in Section 3.1. At the same time consider a diffusion process with time index $t$ and $T$ total steps, conditioned on context $\mathbb{C}$ and image denoted by $\mathbf{x}_t$ . Then we can map the diffusion generation process to an MDP in the following way
+We borrow the denoising MDP formulation from Black et al. (2023b); Fan et al. (2023). We again have the tuple $(S,A,f,r,\rho_0)$ , with the same formulation as in Section 3.1. At the same time consider a diffusion process with time index $t$ and $T$ total steps, conditioned on context $\mathbf {c}$ and image denoted by $\mathbf{x}_t$ . 
+> 考虑一个去噪 MDP 过程，用 $(\mathcal S, \mathcal A, f, r ,\rho_0)$ 描述，它对应于一个时间步 $T$，条件于 context $\mathbf c$，以及图像 $\mathbf x_t$
+
+Then we can map the diffusion generation process to an MDP in the following way
 
 $$
 \mathbf{s}_t = \left\{ \begin{array}{ll}(\pmb {c},T) & \mathrm{if~}t = 0\\ (\pmb {c},\pmb{x}_{T -t},T -t) & \mathrm{otherwise} \end{array} \right.
 $$
 
-That is the initial state consists of the prompt $\mathbb{C}$ and afterwards each state consists of the current denoised image $\mathbf{x}_t$ and time step $T -t$ .Notice that the time-steps in the MDP are inverse to the direction of the diffusion process (i.e. we start at noise and end at the final image). The action is just the next image iteration, from where the dynamics is also straightforward:
+That is the initial state consists of the prompt $\mathbf {c}$ and afterwards each state consists of the current denoised image $\mathbf{x}_t$ and time step $T -t$ .
+> 扩散 MDP 中的状态定义如上，初始状态仅包含 prompt $\mathbf c$，后续的状态包含了 prompt $\mathbf c$ 和当前去噪的图像 $\mathbf x_t$
+
+Notice that the time-steps in the MDP are inverse to the direction of the diffusion process (i.e. we start at noise and end at the final image). The action is just the next image iteration, from where the dynamics is also straightforward:
 
 $$
 \begin{array}{c}{\mathbf{a}_t\triangleq \mathbf{x}_{T -t + 1}}\\ {f(\mathbf{s}_t = (\mathbf{c},\mathbf{x}_{T -t},T -t),\mathbf{a}_t) = (\mathbf{c},\mathbf{a}_t,T -t -1)} \end{array}
 $$
+Notice that in this case the policy is stochastic, but the dynamics of the MDP is still deterministic.
 
-Notice that in this case the policy is stochastic, but the dynamics of the MDP is still deterministic. Finally, the initial distribution, is just the distribution of prompts:
+>  动作就是下一张图像，环境动态是确定性的，也就是将下一个状态的图像替换为 $\mathbf a_t$
+
+ Finally, the initial distribution, is just the distribution of prompts:
 
 $$
 \rho (\mathbf{s}_0)\triangleq (p(\pmb {c}),0)
 $$
 
+>  初始状态分布就是 prompts 的分布
+
 ## B.2 Theoretical Results for the Diffusion MDP
 Given the above formulation, we can also prove that Lemma 1 also holds in the diffusion MDP.
-Lemma 2. Under mild assumptions, there is a bijection between reward functions $r(\mathbf{s}_t,\mathbf{a}_t)$ and corresponding optimal $Q$ -functions $Q^{*}(\mathbf{s}_t,\mathbf{a}_t)$ in the diffusion MDP.
-Proof. Since the MDP still has deterministic dynamics, we have that Eq. 5-7 still hold. Now, given a reference policy $\pi_{\mathrm{ref}}$ , parameter $\beta$ and a critic $Q$ , we can trivially recover the unique reward function by inverting Eq. 7. We will prove that given a reward function $r(\mathbf{s}_t,\mathbf{a}_t)$ we can recover a unique critic $Q$ .We work inductively in the diffusion MDP starting with $t = T$ , where we have $V^{*}(\mathbf{a}_{T}) = 0$ for all terminal states. We then have that
+>  在上述的构造下，Lemma 1 (最优 Q-function 和奖励函数存在一一对应关系) 在扩散 MDP 下仍然成立
+
+**Lemma 2.** Under mild assumptions, there is a bijection between reward functions $r(\mathbf{s}_t,\mathbf{a}_t)$ and corresponding optimal $Q$ -functions $Q^{*}(\mathbf{s}_t,\mathbf{a}_t)$ in the diffusion MDP.
+>  **Lemma 2**
+>  在扩散 MDP 下，奖励函数 $r(s_t, a_t)$ 和对应的最优 Q-function $Q^*(s_t, a_t)$ 之间存在双射关系
+
+**Proof.** Since the MDP still has deterministic dynamics, we have that Eq. 5-7 still hold. Now, given a reference policy $\pi_{\mathrm{ref}}$ , parameter $\beta$ and a critic $Q$ , we can trivially recover the unique reward function by inverting Eq. 7. 
+>  **Proof**
+>  因为 MDP 是确定性的，故 Eq 5-7 仍然成立
+>  给定参考策略 $\pi_{\text{ref}}$ ，参数 $\beta$，critic $Q$，通过 Eq 7 ，我们可以表示出和 $Q$ 相关的，唯一的奖励函数
+
+We will prove that given a reward function $r(\mathbf{s}_t,\mathbf{a}_t)$ we can recover a unique critic $Q$ .We work inductively in the diffusion MDP starting with $t = T$ , where we have $V^{*}(\mathbf{a}_{T}) = 0$ for all terminal states. We then have that
+
 $$
-\begin{array}{rl} & {Q^{*}(\mathbf{s}_{t -1},\mathbf{a}_{t -1}) = Q^{*}(\mathbf{s}_{t} = (\mathbf{c},\mathbf{x}_{T -t + 1},T -t + 1),\mathbf{a} = \mathbf{x}_{T -t}) =}\\ & {r(\mathbf{s}_{t} = (\mathbf{c},\mathbf{x}_{T -t + 1},T -t + 1),\mathbf{a} = \mathbf{x}_{T -t}) + \beta \log p_{ref}(\mathbf{x}_{T -t}|\mathbf{c},\mathbf{x}_{T -t + 1},T -t + 1) + }\\ & {\beta \log \int_{A}e^{Q^{*}(\mathbf{s}_{t} = (\mathbf{c},\mathbf{x}_{T -t},T -t),\mathbf{x}_{T -t -1}) / \beta}d\mathbf{x}_{T -t -1}} \end{array}
+\begin{align} 
+& {Q^{*}(\mathbf{s}_{t -1},\mathbf{a}_{t -1}) = Q^{*}(\mathbf{s}_{t} = (\mathbf{c},\mathbf{x}_{T -t + 1},T -t + 1),\mathbf{a} = \mathbf{x}_{T -t}) =}\\ 
+& {r(\mathbf{s}_{t} = (\mathbf{c},\mathbf{x}_{T -t + 1},T -t + 1),\mathbf{a} = \mathbf{x}_{T -t}) + \beta \log p_{ref}(\mathbf{x}_{T -t}|\mathbf{c},\mathbf{x}_{T -t + 1},T -t + 1) + }\\ 
+& {\beta \log \int_{A}e^{Q^{*}(\mathbf{s}_{t} = (\mathbf{c},\mathbf{x}_{T -t},T -t),\mathbf{x}_{T -t -1}) / \beta}d\mathbf{x}_{T -t -1}} \end{align}
 $$
-where $\pi_{ref}$ is the reference backwards diffusion process. In this case even though the state space is deterministic, our approach to the proof of Lemma 1 still holds by using backwards induction on the diffusion step $t$ . Notice, that from $V(\mathbf{s}_T = (\mathbf{c},\mathbf{x}_0,0)) = 0$ we can uniquely determine the critic values for all states at time step $T -1$ . Proceeding inductively backwards through time in the MDP/denoising process (forward in the diffusion process), we obtain the desired result.
+
+where $\pi_{ref}$ is the reference backwards diffusion process.
+>  我们接着证明给定奖励函数 $r(s_t, a_t)$，可以对应到唯一的 critic $Q$
+>  我们从 $t= T$ 归纳式地进行推导
+>  其中 $\pi_{ref}$ 是参考反扩散过程
+
+In this case even though the state space is deterministic, our approach to the proof of Lemma 1 still holds by using backwards induction on the diffusion step $t$ . Notice, that from $V(\mathbf{s}_T = (\mathbf{c},\mathbf{x}_0,0)) = 0$ we can uniquely determine the critic values for all states at time step $T -1$ . Proceeding inductively backwards through time in the MDP/denoising process (forward in the diffusion process), we obtain the desired result.
+>  通过对扩散时间步反向归纳，我们可以通过 $\pi_{ref}$ 和 $r$ 唯一地恢复所有状态-动作对的 Q-function
+
 Given the proof of this Lemma, we can then directly apply the results of Section 4.2, including Theorem 1. Our results, also give us insights into the formulation of Wallace et al. (2023). In particular, by changing the sampling scheme of the intermediate diffusion the authors obtain two alternative formulations (Appendix S2 in Wallace et al. (2023)). Both of these schemes are suggested as empirical approximations in the formulation of the Diffusion-DPO algorithm, however in the view of Q-learning both of these are valid approaches to generating off-policy data. In fact, our interpretation of DPO allows for general off-policy data sampling and aggregation methods, which could yield a whole family of DPO algorithms in this domain. We leave the exploration of this direction for further work.
+>  证明了扩散 MDP 中奖励函数和最优 Q-function 的一一对应性质，就可以利用 DPO 的结论，将奖励函数用策略表示
+
 # C Reddit TL;DR Posts
-SUBREDOIT: r/running
-TITLE: Tips on getting back into running after 4 years of not doing so & shin splints
-TITLE: Tips on getting back into running after 4 years of not doing so & shin splintsPOST: Hey everyone, I was hoping to gather some tips from people who left running and had to start over. A semi-lengthy background on myself to help you understand where I am coming from. In high school I was a very good cross country runner, running from 35-50 miles a week and never slower than 8-9 minute miles. At the end of senior year, I planned on taking a break from running and then try to race half or full marathons in the spring. I ended up not running at all after xc. 4 years later, I was noticing how much I miss the sport (especially after seeing the success of xc friends) so I decided to join a running group to get back into it. But the only group at my university that I could find was a triathlon club. I joined them, but only did the running workouts. After about 4 weeks, I developed shin splints. This is because I haven't ran in 4 years but thought 6 miles was ok after 4 weeks. Also, being 25 pounds heavier didn't help. After taking 3 months off and training on the bike and in the pool, I finally was back to running in february. but my shinsplints was still around. I finished my first sprint triathlon last week, and have been trying to get miles back under my feet again. I haven't felt shin splints severely since the beginning of March, but I can feel it looming around. After a half year of it, I am getting really really frustrated. I cant run more than 4 miles still and my fastest mile is 8 minutes. I know I will probably never run like I did when I was 17, but its difficult because of remembering what I used to be capable of running.
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/3b3869d32a7576172ed4d5f465e0e18e7b3525b9baa11670e39c95fa06a8e981.jpg)
-DPO successfully identifies the wrong tokens ("busted knee") in the right summary and correctly classifies this pair.
-SUBREDOIT: r/AskReddit
-TITLE: What is a sub-\(\) 800$ camera that can shoot high quality video ideal for music video-like appearances?
-POST: [This is a video of what we're trying to achieve.](
-My school currently has a Sony HVR-HD1000u, and compared to that, our videos are nowhere near as good. I understand that things like lighting and color correction play a pretty big role, but even then I feel like our videos are never that clean. I usually can't get 720p clips out of our camera and the slow motion that they have is something we can't even come close to.
-One possible \*problem\* is that for some reason we can't use firewire to connect the camera to the computer so we have to play the tape on this thing that basically plays it and then we capture the tape playing. I feel like this is probably a huge problem because it's like trying to show a friend a movie by screen-capping from Skype.
-SO, should we scrap the HVR-HD1000u and get a Canon T2i (a cheaper DSLR which from the samples I've seen on YouTube and clips from that video, seems pretty high quality), or continue trying to use the Sony?
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/9145eed0341c7d608e9609f219abfac160e4c0b397f0591706a82a94e92f8c9b.jpg)
-DPO successfully identifies the wrong tokens ("iPhone") in the right summary and correctly classifies this pair.
-SUBREDDIT: r/personalfinance
-TITLE: When asked about salary expectations during my interview I said 38k to 45k. Was just offered the position with 38k. Should I try and negotiate?
-POST: So I interviewed for a position last week, and before the interview I saw online that the industry average for this position was $41,000. During the interview, they asked me my salary expectations, I said between$ 38,000 and $45,000 hoping it'd land somewhere in the middle. I received my offer today, and it was for$ 38,000. I can't help but wonder if I had just said $41,000 they probably would've offered it...
-Anyways, so what I know is they are hiring 3 other people for this same position... I either got lucky and guessed exactly what salary they were planning on paying all of us to begin with, or we're all getting paid differently. As for the job, it is the ideal entry level position for me right now, and is a great company with benefits etc so I actually wouldn't mind working there for the 38k salary.
-But it would be nice to get an even 40 at least, so my question is, is it common practice to negotiate salary after receiving an offer already? I also must say that I don't have any leverage as this is entry level and I would have probably still accepted had the offer been even as low as 30k. As such, I'm very afraid the offer may be retracted if I do try and negotiate, if that sort of thing happens?
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/6ed1466ad8200100cef1ab450eda9fcd5078bb7ac14bc82b90a23eaf95a7c9b9.jpg)
-DPO successfully identifies the wrong tokens ("250k" and "management position") in the right summary and correctly classifies this pair.
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/5a7746693bee0407a5f20e4ec592fb131e117c50e2303878b011309600c4ec03.jpg) 
-Figure 4: Example of an end-to-end generative AI workflow. The user request an image of a Minotaur in the streets of New York. However, we see that the rejected image does not actually represent a Minotaur, but a bull. The prompt refiner generates a valid description and specifically includes the phrasing "the body of a man and the head of a bull", but the image generation model fails to follow that prompt. At the same time in the case of the chosen image (which does reflect the prompt) the prompt refiner generates a more descriptive text, which the image generator is able to follow more closely. While it is possible to train each component separately, joint training can in theory, optimize the refiner to generate prompts that the image generator can more closely realize, while also training the generator to directly produce more aligned images.
+
 # D End-to-End Training of Generative AI Systems
-End-to-end system: Here, we present an outline for end-to-end training of generative AI systems from human feedback using DPO in multi-step MDP. We assume two models -a prompt refiner $\pi_{\theta}(\mathbf{z}|\mathbf{x})$ , which is a language model, generating discrete tokens in an autoregressive way, which, given a prompt $\mathbf{x}$ produces a refined prompt $\mathbf{z}$ . This prompt is then fed into an image-generation diffusion model $\pi_{\phi}(\mathbf{y}|\mathbf{z})$ , (which we parameterize as a denoising model $\epsilon_{\phi}$ ), which generates the final image. A real case example of that system is shown in Figure 4.
-Feedback generation: During the feedback gathering stage, a user provides a query $\mathbf{x}$ and two refined prompts are sampled from $\mathbf{z}^1, \mathbf{z}^2 \sim \pi_{\theta}(\mathbf{x}|\mathbf{z})$ , which the user does not directly evaluate. Then, the image generation model generates two images $\mathbf{y}^i \sim \pi_{\phi}(\mathbf{y}|\mathbf{z}^i)$ for $i = 1,2$ . The user then provides a preference over the $\mathbf{y}^i$ to yield the preference pair $\{\mathbf{y}^w, \mathbf{z}^w \succ \mathbf{y}^l, \mathbf{z}^l |\mathbf{x}\}$
-Optimization: Optimization is carried in a hybrid MDP, where the initial state is the prompt $\mathbf{x}$ and has the same form as the token MDP, as outlined in 3.1. When the EOS token is encountered in that MDP, at which point the transition dynamics switches to the diffusion denoising MDP introduced in Black et al. (2023a). Notice that this is still a valid MDP and all the conclusions of our derivations in the main section of our paper hold. We could then optimize this system end-to-end using a hybrid DPO objective, combining our results, with those presented in Wallace et al. (2023) we have:
+**End-to-end system:** Here, we present an outline for end-to-end training of generative AI systems from human feedback using DPO in multi-step MDP. We assume two models - a prompt refiner $\pi_{\theta}(\mathbf{z}|\mathbf{x})$ , which is a language model, generating discrete tokens in an autoregressive way, which, given a prompt $\mathbf{x}$ produces a refined prompt $\mathbf{z}$ . This prompt is then fed into an image-generation diffusion model $\pi_{\phi}(\mathbf{y}|\mathbf{z})$ , (which we parameterize as a denoising model $\epsilon_{\phi}$ ), which generates the final image. A real case example of that system is shown in Figure 4.
+
+![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/5a7746693bee0407a5f20e4ec592fb131e117c50e2303878b011309600c4ec03.jpg) 
+
+Figure 4: Example of an end-to-end generative AI workflow. The user request an image of a Minotaur in the streets of New York. However, we see that the rejected image does not actually represent a Minotaur, but a bull. The prompt refiner generates a valid description and specifically includes the phrasing "the body of a man and the head of a bull", but the image generation model fails to follow that prompt. At the same time in the case of the chosen image (which does reflect the prompt) the prompt refiner generates a more descriptive text, which the image generator is able to follow more closely. While it is possible to train each component separately, joint training can in theory, optimize the refiner to generate prompts that the image generator can more closely realize, while also training the generator to directly produce more aligned images.
+
+**Feedback generation:** During the feedback gathering stage, a user provides a query $\mathbf{x}$ and two refined prompts are sampled from $\mathbf{z}^1, \mathbf{z}^2 \sim \pi_{\theta}(\mathbf{x}|\mathbf{z})$ , which the user does not directly evaluate. Then, the image generation model generates two images $\mathbf{y}^i \sim \pi_{\phi}(\mathbf{y}|\mathbf{z}^i)$ for $i = 1,2$ . The user then provides a preference over the $\mathbf{y}^i$ to yield the preference pair $\{\mathbf{y}^w, \mathbf{z}^w \succ \mathbf{y}^l, \mathbf{z}^l |\mathbf{x}\}$
+
+**Optimization:** Optimization is carried in a hybrid MDP, where the initial state is the prompt $\mathbf{x}$ and has the same form as the token MDP, as outlined in 3.1. When the EOS token is encountered in that MDP, at which point the transition dynamics switches to the diffusion denoising MDP introduced in Black et al. (2023a). Notice that this is still a valid MDP and all the conclusions of our derivations in the main section of our paper hold. We could then optimize this system end-to-end using a hybrid DPO objective, combining our results, with those presented in Wallace et al. (2023) we have:
+
 $$
 \begin{array}{r l} & {r_{\theta ,\phi}(\mathbf{x}^{w},\mathbf{y}^{w}) = \beta \sum_{i = 0}^{|\mathbf{z}^{w}|}\underset {\mathrm{prompt~refiner~MDP}}{\log}\frac{\pi_{\theta}(\mathbf{z}_{i}^{w}|\mathbf{x},\mathbf{z}_{< i}^{w})}{\pi_{\mathrm{ref}}(\mathbf{z}_{i}^{w}|\mathbf{x},\mathbf{z}_{< i}^{w})} +}\\ & {\qquad \gamma T\omega (\lambda_{t})\mathbb{E}_{t\sim \mathcal{U}(0,T)}\bigg[\underset {\mathrm{diffusion~MDP~objective}}{\underbrace{(\|e^{w} -\epsilon_{\mathrm{ref}}(\mathbf{y}_{t}^{w},\mathbf{z}^{w},t)\|_{2}^{2} -\|e^{w} -\epsilon_{\phi}(\mathbf{y}_{t}^{w},\mathbf{z}^{w},t)\|_{2}^{2})}}\bigg]} \end{array} \tag{17}
 $$
-where $\beta$ and $\gamma$ are two separate discounting factors for each modality. Here the diffusion objective follows directly from the derivation of Eq. 9 and the sampling scheme proposed in Wallace et al. (2023) (Eq. 12-14 in that paper). Notice here that the image generation model is conditioned on the corresponding refined prompt $\mathbf{z}^w$ . We can define $r(\mathbf{x}^l, \mathbf{y}^l)$ similarly
-and optimize the DPO objective:
+
+where $\beta$ and $\gamma$ are two separate discounting factors for each modality. Here the diffusion objective follows directly from the derivation of Eq. 9 and the sampling scheme proposed in Wallace et al. (2023) (Eq. 12-14 in that paper). Notice here that the image generation model is conditioned on the corresponding refined prompt $\mathbf{z}^w$ . We can define $r(\mathbf{x}^l, \mathbf{y}^l)$ similarly and optimize the DPO objective:
+
 $$
 \mathcal{L}_{\mathrm{DPO}_{\theta ,\phi}} = -\mathbb{E}_{(\mathbf{x},\mathbf{y}^w,\mathbf{y}^l)\sim \mathcal{D}}\left[\log \sigma \left(r_{\theta ,\phi}(\mathbf{x}^w,\mathbf{y}^w) -r_{\theta ,\phi}(\mathbf{x}^l,\mathbf{y}^l)\right)\right] \tag{18}
 $$
+
 We demonstrate a particular real use of such a system in Figure 4. The user request an image of a Minotaur in the streets of New York. However, we see that the rejected image does not actually represent a Minotaur, but a bull. The prompt refiner generates a valid description and specifically includes the phrasing "the body of a man and the head of a bull", but the image generation model fails to follow that prompt. At the same time in the case of the chosen image (which does reflect the prompt) the prompt refiner generates a more descriptive text, which the image generator is able to follow more closely. While it is possible to train each component separately, joint training can in theory, optimize the refiner to generate prompts that the image generator can more closely realize, while also training the generator to directly produce more aligned images.
+
+>  作者把 DPO 的思想拓展到任意的偏好拟合的场景
+
 ## D.1 Hybrid Video Generative Models
 A recent line of work on long-form video generation Hu et al. (2023); Gupta et al. (2023) by combining auto-regressive transformer generation with a diffusion model decoding or uspcaling of the actual video frames to obtain temporally consistent and high-fidelity generations. We could deploy similar RLHF pipelines to the video-generation problem as well. It is also straightforward to extend the DPO joint optimization framework, presented in the previous section in Eq. 18 to this setting as well. Instead of textual prompt refiner tokens, the variables $\mathbf{z}$ would represent the latent token generations of the autoregressive component $\pi_{\theta}$ , which would be decoded into actual video frames $\mathbf{y}$ via the diffusion decoder $\pi_{\phi}$ . We believe this is an exciting direction to pursue for the emerging video generation technologies.
-![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/cc886991b919e1d01a3d65f7eedae9d3eea15a4c91ca91e4f00fe2ba32736bf5.jpg) 
-Figure 5: PPO model performance using beam search. Left: Win-rate of model summaries over preferred summary. Right: Average answer length based on number of beams.
+
 # E Beam Search Trends for PPO
 We consider whether the beam search trends in Figure 2 hold for PPO, since PPO is known to exhibit reward over-optimization as well (Gao et al. (2023)). We use a PPO-tuned GPT-J-6B model released by CarperAI $^1$ , fine-tuned on the same TL;DR dataset. We use the same sampling parameters as with the DPO experiments ( $\tau = 1.0$ , $k = 50$ ) and generate 256 samples from test set prompts, with GPT-4 as the evaluator. We only report results for 1, 2, 5, and 7 beams; higher number of beams were tried but exhausted memory on an NVIDIA A40 GPU.
+
+![](https://cdn-mineru.openxlab.org.cn/extract/59a4bfae-d140-4047-a800-2cfb72185b92/cc886991b919e1d01a3d65f7eedae9d3eea15a4c91ca91e4f00fe2ba32736bf5.jpg) 
+
+Figure 5: PPO model performance using beam search. Left: Win-rate of model summaries over preferred summary. Right: Average answer length based on number of beams.
+
 In Figure 5, we observe a similar over-optimization phenomenon as with DPO, with 2 beams both increasing winrate and decreasing sample length (even under the length-biased evaluator GPT-4). However, more than 2 beams leads to a decline in downstream performance and large uptick in sample length, similar behavior to DPO in the over-optimization regime. We find that the benefits of increasing the beam size are more limited when using this model.
+
 # F TL;DR Sample Generations
-# F.1 Samples Across Different Beam Searches
-All samples generated from the $\beta = 0.1$ checkpoint.
-SUBREDOET r/AskReddit
-TITLE: Question regarding learning/teaching.
-POST: I apologize in advance if this is not the right sub reddit for this kind of question.
-for the past 2 years, I've been slowly but surely developing my illustration skills. I am 18, recently out of high school, and will be going to college for a bachelors in illustration in likely 1-2 years.
-Despite teaching my self to be better, by using resources from the internet/library ext, but improvement has been slow. It can be seen, but I still feel i am behind where i should be at my age, and for how long i have been drawing/painting.
-I've met many artists who are self taught, and never went to college at all for what they do, yet i have it in my mind that college will help me greatly, since i learn faster when taught by another, rather then myself.
-My question is, is this actually possible? do some people just have a harder time of teaching theirself? I have the dedication and interest to pursue education, but i respond so much better to being instructed, rather than instructing myself. Is this normal?
-Num beams = 1. TL;DR: i want to continue my art education, but still be able to teach myself as much as possible, is it possible to do both at the same time? I appreciate all inputs.
-Num beams = 5. TL;DR: 18, recently out of high school, and will be going to college for a bachelors in illustration in likely 1-2 years. Slow but steady improvement in my drawing/painting skills, but i respond better to being taught rather then instructing myself. Is this normal?
-Num beams = 20. TL;DR: 18 year old self taught myself to be better at drawing/painting over the past 2 years, but still feel i am behind where i should be at my age, and for how long i have been drawing/painting. Do some people just have a harder time of teaching themselves? Is this normal?
-SUBREDDIT: r/legaladvice
-TITLE: Mom was hurt at work, I think it's something that is a little past worker's comp. Any advice?
-POST: My mom works at an old navy for something upwards of almost ten years. Over the span of her working their they have been lingering in and out of being abusive employers. Not that this isn't something I wouldn't expect out of a big corporation, something happened recently that I'm close to positive should be lawsuit worthy or something in my mom's favor.
-The other day on the clock my mom was cleaning one of the bathrooms and while taking the garbage out there was a faced up syringe under some paper towels! She found out after jabbing her hand with the syringe and noticed that there was preexisting blood on this syringe!!! She was then brought to the hospital (obviously) to be screened for all sorts of diseases and had the option of starting intense medications to prevent the microscopic chance of that needle being contaminated with HIV though the medications would make her very ill. All old navy did about the situation was lock the bathrooms so the public can't use them.
-Is there anything about this situation that my mom can use in her favor? She didn't turn the syringe over to Old Navy because they were being very nonchalant and dismissive about the situation.
-Num beams = 1. TL;DR: mom is a working at old navy, had a bloody syringe found under some paper towels on the garbage disposal, likely contaminated with HIV/AIDS. Any help in what she can use in her favor in future lawsuits or otherwise?
-Num beams = 5. TL;DR: Mom found syringe with preexisting blood under paper towels at work. Old navy was dismissive and locked the bathrooms so the public couldn't use them. Is there anything my mom can use in her favor? She didn't turn the syringe over to Old Navy because they were being very nonchalant and dismissive about the situation.
-Num beams = 20. TL;DR: Mom found a syringe in the bathroom at work that had preexisting blood on it. Old navy was dismissive about the situation and locked the bathrooms so the public couldn't use them. Is there anything my mom can use in her favor? She didn't turn the syringe over to Old Navy because they were being very nonchalant and dismissive about the situation. A: My mom works at an old navy for something upwards of almost ten years. Over the span of her working their they have been lingering in and out of being abusive employers. Not that this isn't something I wouldn't expect out of a big corporation, something happened recently that I'm close to positive should be lawsuit worthy or something in my mom's favor. The other day on the clock my mom was cleaning one of the bathrooms and while taking the garbage out there was a faced up syringe under some paper towels! She found out after jabbing her hand with the syringe and noticed that there was preexisting blood on this syringe!!! She was then brought to the hospital (obviously) to be screened for all sorts of diseases and had the option of starting intense medications
-SUBREDDIT: r/self
-TITLE: Always seize the opportunity to help others
-POST: This is my first post so here's a little intro about what I do for work. I'm a security guard. I work the graveyard shift in the downtown part of my city. Nothing special. Being a security guard is easy money.
-Anyways, while making my first round I noticed a larger man in a wheelchair across the street trying to make it onto the curb. The transition for the handicapped access wasn't smooth enough and he was stuck. I crossed and pushed him onto the sidewalk.
-He needed to go to the hospital five blocks the road. I called my supervisor and said I'd be back in a few I had to help this guy. I pushed him to the hospital and walked back.
-If I had my headphones in like any other day, I wouldn't have seen him and he'd be struggling to get there.
-I'm not sure what was wrong but he had one arm and one leg missing.
-Num beams = 1. TL;DR: I helped a man who needed emergency attention on the street by pushing him for five blocks because I had headphones in. I didn't see him until after I had to walk back.
-Num beams = 5. TL;DR: I saw a handicapped guy stuck on the sidewalk. I pushed him to the hospital. If I had my headphones in I wouldn't have seen him and he'd be struggling to get there. I'm not sure what was wrong but he had one arm and one leg missing.
-Num beams = 20. TL;DR: I saw a handicapped guy stuck on the sidewalk. I pushed him to the hospital. If I had my headphones in, I wouldn't have seen him and he'd be struggling to get there. I'm not sure what was wrong but he had one arm and one leg missing.
-# F.2 Samples from DPO with and without SFT Pre-Training
-SUBREDDIT: r/Parenting
-TITLE: Young adults/Reddit parents: how have you found ways of asking a parent to loan you money and figure out a way of paying it back? Diplomatically.
-POST: I know this question has a lot to do with the kind of relationship one has with each parent and at what stage in life you are personally and professionally.
-I'm 27, moved two states away for grad school, and I'm living strictly off loans. It's my first semester and I'm taking 12 hours. I'm an ex-teacher, so I have some professional background. No savings. I've travelled quite a bit though. Shooting for an assistantship/internship in the Spring. I've never been this low on funds. It's also scary realizing how much deeper I am putting myself into the dark debt hole of student loans.
-I'm pretty much living on a credit card for the next two months and I am too ashamed to ask my parents for any money. I can nancy here or there, but it takes time and effort (yes, like everything) to find families needing a babysitter in a giant college town. I will get organized enough to pay my father back, of course. He's already loaned me close to \(\) 1,000$ in the past four or five months and I feel a little disgusting since he has a hard time making any income himself. Mother is another story-she's got a really tight grasp on her pocket and is a little aggressive when it comes to financial advice. So I never approach her.
-My dad is the kindest man I know and has the cleanest reputation among his contacts, which is why people trust him and partner with him so much. His kindness does get the best of him however, sometimes to his detriment. In other words, people have walked all over him in the past. Mom, on the other hand, is constantly reminding me about payments, asking me about my loan, really approaching things in a way that push me far from wanting to face finances. Fabulous parenting. It's always been this way, with anything growing up. Dad never seemed to say no, he always gave me options/choices. Mom was a straightforward, dry, clear, British NO. She has always said I don't have my feet firmly grounded. I'm getting off on a tangent now so I'll stop.
-With SFT, TL;DR: Since I inherited money and owe my father a significant chunk of it, my mother doesn't allow herself to see any sense in dealing with my finances. She constantly reminds me I need to pay my loan, yet seems to be a little aggressive and pushy about things. How do I confront that without making my mother uncomfortable?
-Without SFT. TL;DR: [CHINESE SCRIPT]
-SUBREDDIT: r/AskReddit
-TITLE: [Serious] How can I tell my mother politely, that she is dealing with our dog in an inappropriate way?
-POST: My mother watched Cesar Millan a lot before we got our dog, and she acted like she knew everything there was to know about training and raising a dog.
-Its been about 2 years with our dog, and he has a problem with barking at the door when people go to open it (doesn't seem like that much of a problem to me). My mother's reaction is to yell at him, or if he does it sequentially, she will strike him in the thigh/rear end.
-Whenever I step in and try and take control of the situation, she will get mad, and try and tell me how to handle this kind of thing, because she thinks she is a dog expert. (This upsets me because it feels like I am being talked down to)
-The last strand was crossed today, when I was in the basement watching tv, I heard my dog bark at the door, and then my mother get up and yell at him. He ran into our sun room, which is above the basement, and I could hear her hit him, and his paws skid on the floor. I went up to check on him (he was fine, no damage, happy little guy when he's with me) and my mother yelled at me to put him back in the room where he is to stay for a long long timebecause he tried to bite her when she was disciplininghim.
-Her solution to my dogs problem is completely inappropriate, and no way to treat a dog. I believe in positive reinforcement, and I am getting very frustrated listening to her complain about my dog, and her inappropriate ways of dealing with his barking.
-So if anyone knows a way I can tell her what she is doing is wrong, or if there is a way I can try and get my dog to stop barking at the door, please let me know.
-With SFT. TL;DR: My mother's ways of dealing with our dog's barking problem is in. appropriate and is getting worse. How can I tell her otherwise, or get her to change her behavior?
-Without SFT. TL;DR: [CHINESE SCRIPT]
-SUBREDDIT: r/legaladvice
-TITLE: Speeding down highway. Can I get a ticket?
-POST: 18, Male, Tennessee.
-I was speeding, like 120 in a 65. Some girl kept trying to speed up with me in a shit car, I drive a turbo g35 it was no match but she wouldn't budge she'd push her little car around trying to pass me, and obviously putting her life in danger, I'm no godly driver but I know my car, and the road. I knew what I could do speed wise, and I constantly took it back to around 80 before she'd speed up. Eventually I had to turn, and she held up her phone, and a piece of paper, I assumed it was her number but now that I think about it she probably got my tags and plans to report or something, I want to know could I get in trouble?
-On mobile.
-With SFT. TL;DR: speeding 120 in a 65, girl tried to speed up with me in shitty car, had phone with street address on it and number for police, could get in trouble for following too close.
-Without SFT. TL;DR: Female driver started tailgating, almost hitting me in my car. Then tried to make passes. I know my car works well, but she wanted to prove me wrong, even though I'm pretty sure I'd outrun her at a lower speed. She constantly kept slowing me down so I'd be at a speed she could pass me. But after getting
+## F.1 Samples Across Different Beam Searches
+## F.2 Samples from DPO with and without SFT Pre-Training
+
+
 # G Dataset and Hyperparameter Details
-G Dataset and Hyperparameter DetailsThe TL;DR dataset contains 64,832 summary comparisons and is derived from the Webis TLDR dataset, with human feedback collected by OpenAI. Each example is scraped from Reddit and belongs to one of several "subreddits" (topic forums), with an associated title/post/human TL;DR (summary). Around $5\%$ is held out for validation.
+The TL;DR dataset contains 64,832 summary comparisons and is derived from the Webis TLDR dataset, with human feedback collected by OpenAI. Each example is scraped from Reddit and belongs to one of several "subreddits" (topic forums), with an associated title/post/human TL;DR (summary). Around $5\%$ is held out for validation.
+
 Each TL;DR model was a pre-trained Pythia 2.8B model. We first SFT with a learning rate of $0.5 \times 10^{-6}$ and batch size of 128 for one epoch using 8 gradient accumulation steps on 4 NVIDIA A40 GPUs. All DPO models with the same setup and hyperparameters as the original paper (Rafailev et al., 2023). Specifically, we train for 1 epoch with a learning rate of $0.5 \times 10^{-6}$ and linear warmup of 150 steps. We use a batch size of 32 (example example is a positive and a negative) and clip gradient norms to 10. We use $\beta = 0.1$ for DPO.
+
 All generation samples are performed with temperature 1.0 and max length 512 unless otherwise specified. Evaluations (winrates, lengths, etc) are computed with 256 samples from the held-out set in TL;DR.
+
 # H GPT 4 Evaluation
 We use the following prompt in all our GPT 4 evaluations. The order of the model sample and the reference response is randomized in each evaluation to avoid positional bias in the judge.
+
+```
 Which of the following summaries does a better job of summarizing the most important points in the given forum post?
 Post: QUERY
 Summary A: A
 Summary B: B
 FIRST provide a one-sentence comparison of the two summaries, explaining which you prefer and why. SECOND, on a new line, state only "A" or "B" to indicate your choice. Your response should use the format:
 
-```
 Comparison: <one-sentence comparison and explanation> Preferred: <"A" or "B">
 ```
 
