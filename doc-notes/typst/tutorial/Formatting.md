@@ -2,7 +2,6 @@
 completed: true
 version: 0.13.1
 ---
-# Formatting
 So far, you have written a report with some text, a few equations and images. However, it still looks very plain. Your teaching assistant does not yet know that you are using a new typesetting system, and you want your report to fit in with the other student's submissions. In this chapter, we will see how to format your report using Typst's styling system.
 
 ## Set rules
