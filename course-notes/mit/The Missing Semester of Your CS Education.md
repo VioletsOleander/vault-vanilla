@@ -2039,6 +2039,8 @@ $ python logger.py color
 ```
 
 One of my favorite tips for making logs more readable is to color code them. By now you probably have realized that your terminal uses colors to make things more readable. But how does it do it? Programs like `ls` or `grep` are using [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code), which are special sequences of characters to indicate your shell to change the color of the output. For example, executing `echo -e "\e[38;2;255;0;0mThis is red\e[0m"` prints the message `This is red` in red on your terminal, as long as it supports [true color](https://github.com/termstandard/colors#truecolor-support-in-output-devices). If your terminal doesn’t support this (e.g. macOS’s Terminal.app), you can use the more universally supported escape codes for 16 color choices, for example `echo -e "\e[31;1mThis is red\e[0m"`.
+>  让 log 更易读的技巧之一是使用颜色编码
+>  像 `ls, grep` 这样的程序使用 ANSI 转义码来指示 shell 改变输出的颜色
 
 The following script shows how to print many RGB colors into your terminal (again, as long as it supports true color).
 
@@ -2053,13 +2055,19 @@ for R in $(seq 0 20 255); do
 done
 ```
 
-## Third party logs
-
+### Third party logs
 As you start building larger software systems you will most probably run into dependencies that run as separate programs. Web servers, databases or message brokers are common examples of this kind of dependencies. When interacting with these systems it is often necessary to read their logs, since client side error messages might not suffice.
 
 Luckily, most programs write their own logs somewhere in your system. In UNIX systems, it is commonplace for programs to write their logs under `/var/log`. For instance, the [NGINX](https://www.nginx.com/) webserver places its logs under `/var/log/nginx`. More recently, systems have started using a **system log**, which is increasingly where all of your log messages go. Most (but not all) Linux systems use `systemd`, a system daemon that controls many things in your system such as which services are enabled and running. `systemd` places the logs under `/var/log/journal` in a specialized format and you can use the [`journalctl`](https://www.man7.org/linux/man-pages/man1/journalctl.1.html) command to display the messages. Similarly, on macOS there is still `/var/log/system.log` but an increasing number of tools use the system log, that can be displayed with [`log show`](https://www.manpagez.com/man/1/log/). On most UNIX systems you can also use the [`dmesg`](https://www.man7.org/linux/man-pages/man1/dmesg.1.html) command to access the kernel log.
+>  大多数程序都会在系统中写下日志
+>  Unix 系统中，程序通常将日志放在 `/var/log`，例如 `/var/log/nginx`
+>  最近的系统开始使用 system log 来集中大部分的日志信息
+>  Linux 提供使用 `systemd`，这是一个系统守护进程，用于控制系统中的许多功能，例如哪些服务是启动且正在运行的
+>  `systemd` 将日志放在 `/var/log/journal`，存放格式是特殊格式，可以用 `journalctl` 查看
+>  在大多数 Unix 系统上，可以使用 `dmesg` 来访问内核日志
 
 For logging under the system logs you can use the [`logger`](https://www.man7.org/linux/man-pages/man1/logger.1.html) shell program. Here’s an example of using `logger` and how to check that the entry made it to the system logs. Moreover, most programming languages have bindings logging to the system log.
+>  `logger` 程序可以用于在系统日志中记录日志，许多编程语言也有对系统日志的绑定
 
 ```
 logger "Hello Logs"
@@ -2071,8 +2079,7 @@ journalctl --since "1m ago" | grep Hello
 
 As we saw in the data wrangling lecture, logs can be quite verbose and they require some level of processing and filtering to get the information you want. If you find yourself heavily filtering through `journalctl` and `log show` you can consider using their flags, which can perform a first pass of filtering of their output. There are also some tools like [`lnav`](http://lnav.org/), that provide an improved presentation and navigation for log files.
 
-## Debuggers
-
+### Debuggers
 When printf debugging is not enough you should use a debugger. Debuggers are programs that let you interact with the execution of a program, allowing the following:
 
 - Halt execution of the program when it reaches a certain line.
