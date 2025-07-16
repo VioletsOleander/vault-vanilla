@@ -1,7 +1,7 @@
 ---
 version: 4.0.1
 ---
-## cmake_parse_arguments
+# cmake_parse_arguments
 Parse function or macro arguments.
 
 ```cmake
