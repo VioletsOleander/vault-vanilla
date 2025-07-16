@@ -164,6 +164,7 @@ public:
 ```
 
 Once the interface has been defined, it is registered to an operation by adding the provided trait `ExampleOpInterface::Trait` as described earlier. Using this interface is just like using any other derived operation type, i.e. casting:
+>  定义好 interface 类之后，通过在 operation 的模板参数中添加 `ExampleOpInterface::Trait` 就可以注册该 interface
 
 ```c++
 /// When defining the operation, the interface is registered via the nested
@@ -186,6 +187,8 @@ if (ExampleOpInterface example = dyn_cast<ExampleOpInterface>(op))
 It may be desirable to provide an interface implementation for an IR object without modifying the definition of said object. Notably, this allows to implement interfaces for attributes, operations and types outside of the dialect that defines them, for example, to provide interfaces for built-in types.
 
 This is achieved by extending the concept-based polymorphism model with two more classes derived from `Concept` as follows.
+
+>  如果想在不修改对应的 IR object 的定义的情况下为其提供 interface 实现，可以通过拓展基于概念的多态模型中的 `Concept` 实现
 
 ```c++
 struct ExampleTypeInterfaceTraits {
@@ -363,8 +366,7 @@ Providing a definition of the `AttrInterface`, `OpInterface`, or `TypeInterfa
     - A C++ code block containing additional verification applied to the operation that the interface is attached to.
     - The structure of this code block corresponds 1-1 with the structure of a [`Trait::verifyTrait`](https://mlir.llvm.org/docs/Traits/) method.
 
-##### Interface Methods [¶](https://mlir.llvm.org/docs/Interfaces/#interface-methods)
-
+##### Interface Methods 
 There are two types of methods that can be used with an interface, `InterfaceMethod` and `StaticInterfaceMethod`. They are both comprised of the same core components, with the distinction that `StaticInterfaceMethod` models a static method on the derived IR object.
 
 Interface methods are comprised of the following components:
@@ -565,9 +567,9 @@ def OpWithOverrideInferTypeInterfaceOp : Op<...
     [DeclareOpInterfaceMethods<MyInterface, ["getNumWithDefault"]>]> { ... }
 ```
 
-##### Interface Inheritance [¶](https://mlir.llvm.org/docs/Interfaces/#interface-inheritance)
-
+##### Interface Inheritance 
 Interfaces also support a limited form of inheritance, which allows for building upon pre-existing interfaces in a way similar to that of classes in programming languages like C++. This more easily allows for building modular interfaces, without suffering from the pain of lots of explicit casting. To enable inheritance, an interface simply needs to provide the desired set of base classes in its definition. For example:
+>  Interface 通过在模板参数中传入需要继承的一组 base interface 来实现继承
 
 ```tablegen
 def MyBaseInterface : OpInterface<"MyBaseInterface"> {
@@ -579,7 +581,10 @@ def MyInterface : OpInterface<"MyInterface", [MyBaseInterface]> {
 }
 ```
 
-This will result in `MyInterface` inheriting various components from `MyBaseInterface`, namely its interface methods and extra class declarations. Given that these inherited components are comprised of opaque C++ blobs, we cannot properly sandbox the names. As such, it’s important to ensure that inherited components do not create name overlaps, as these will result in errors during interface generation.
+This will result in `MyInterface` inheriting various components from `MyBaseInterface`, namely its interface methods and extra class declarations. 
+
+Given that these inherited components are comprised of opaque C++ blobs, we cannot properly sandbox the names. As such, it’s important to ensure that inherited components do not create name overlaps, as these will result in errors during interface generation.
+>  注意在继承的时候不要导致命名冲突
 
 `MyInterface` will also implicitly inherit any base classes defined on `MyBaseInterface` as well. It’s important to note, however, that there is only ever one instance of each interface for a given attribute, operation, or type. Inherited interface methods simplify forward to base interface implementation. This produces a simpler system overall, and also removes any potential problems surrounding “diamond inheritance”. The interfaces on an attribute/op/type can be thought of as comprising a set, with each interface (including base interfaces) uniqued within this set and referenced elsewhere as necessary.
 
@@ -607,21 +612,18 @@ An operation with `MyInterface` attached, would have the following interfaces 
 
 The methods from `MyBaseInterface` in both `MyInterface` and `MyOtherBaseInterface` would forward to a single unique implementation for the operation.
 
-##### Generation [¶](https://mlir.llvm.org/docs/Interfaces/#generation)
-
+##### Generation
 Once the interfaces have been defined, the C++ header and source files can be generated using the `--gen-<attr|op|type>-interface-decls` and `--gen-<attr|op|type>-interface-defs` options with mlir-tblgen. Note that when generating interfaces, mlir-tblgen will only generate interfaces defined in the top-level input `.td` file. This means that any interfaces that are defined within include files will not be considered for generation.
 
 Note: Existing operation interfaces defined in C++ can be accessed in the ODS framework via the `OpInterfaceTrait` class.
 
-#### Operation Interface List [¶](https://mlir.llvm.org/docs/Interfaces/#operation-interface-list)
-
+#### Operation Interface List
 MLIR includes standard interfaces providing functionality that is likely to be common across many different operations. Below is a list of some key interfaces that may be used directly by any dialect. The format of the header for each interface section goes as follows:
 
 - `Interface class name`
     - (`C++ class` – `ODS class`(if applicable))
 
-##### CallInterfaces [¶](https://mlir.llvm.org/docs/Interfaces/#callinterfaces)
-
+##### CallInterfaces 
 - `CallOpInterface` - Used to represent operations like ‘call’
     - `CallInterfaceCallable getCallableForCallee()`
     - `void setCalleeFromCallable(CallInterfaceCallable)`
@@ -642,16 +644,14 @@ MLIR includes standard interfaces providing functionality that is likely to be c
     - `Attribute removeArgAttrsAttr()`
     - `Attribute removeResAttrsAttr()`
 
-##### RegionKindInterfaces [¶](https://mlir.llvm.org/docs/Interfaces/#regionkindinterfaces)
-
+##### RegionKindInterfaces 
 - `RegionKindInterface` - Used to describe the abstract semantics of regions.
     - `RegionKind getRegionKind(unsigned index)` - Return the kind of the region with the given index inside this operation.
         - RegionKind::Graph - represents a graph region without control flow semantics
         - RegionKind::SSACFG - represents an [SSA-style control flow](https://mlir.llvm.org/docs/LangRef/#control-flow-and-ssacfg-regions) region with basic blocks and reachability
     - `hasSSADominance(unsigned index)` - Return true if the region with the given index inside this operation requires dominance.
 
-##### SymbolInterfaces [¶](https://mlir.llvm.org/docs/Interfaces/#symbolinterfaces)
-
+##### SymbolInterfaces
 - `SymbolOpInterface` - Used to represent [`Symbol`](https://mlir.llvm.org/docs/SymbolsAndSymbolTables/#symbol) operations which reside immediately within a region that defines a [`SymbolTable`](https://mlir.llvm.org/docs/SymbolsAndSymbolTables/#symbol-table).
     
 - `SymbolUserOpInterface` - Used to represent operations that reference [`Symbol`](https://mlir.llvm.org/docs/SymbolsAndSymbolTables/#symbol) operations. This provides the ability to perform safe and efficient verification of symbol uses, as well as additional functionality.
