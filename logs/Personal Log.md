@@ -2570,3 +2570,75 @@ Date: 2025.6.30-2025.7.7
         Soft Q-learning formulate soft Q-iteration as stochastic gradient update problem, and use SVGD to approximate the sampler.
     Related Work
     Experiments 
+
+### Week 2
+Date: 2025.7.7-2025.7.16
+
+\[Paper\]
+- [[paper-notes/rl/From r to Q Your Language Model is Secretly a Q-Function-2024-COLM|2024-COLM-From r to Q Your Language Model is Secretly a Q-Function]]
+    Abstract
+        This paper shows that we can derive DPO in the token-level MDP as a general inverse Q-learning algorithm.
+    Introduction
+    Related Work
+        This paper utilize the mapping between Q-functions and reward functions under a fixed policy.
+    Preliminaries
+        In token-level MDP, we assume that the trajectory begins at the prompt, and ends in the terminal state (EOS token), from which the future rewards are zero.
+        In token-level MDP, the preference model is defined with the sum of token rewards.
+        According to the optimization objective of the classical RLHF methods, we can derive the formula of token-level reward function, which is basically a general reward plus an entropy term.
+    Theoretical Insights
+        We explore how to apply DPO in token-level MDP.
+        With the theorem in Maximum Entropy RL, we can write the closed form optimal policy with respect to the RLHF objective as a formula related to the optimal Q-function.
+        Next, we utilized the soft Bellman optimal equation to express the optimal function in terms of the reward function.
+        We can prove that in token-level MDP, the reward function and Q-function has a bijection relationship. Therefore, we can express the reward function in terms of optimal Q-function (the form is actually a advantage function) and thus in terms of optimal policy.
+        Finally, we can express the preference model in terms of the optimal policy, with the bridge of optimal Q-function. 
+        Thus we get the DPO for token-level MDP.
+        We can derive that the form of reward function that DPO optimizes actually remains in an equivalence class of many rewards function, and they all leads to the same optimal policy.
+        Therefore, we can finally get Theorem 1, which states that the special parameterization of reward function is enough to express any optimal policy and preference distribution.
+    Practical Insights
+        The parametrization of token-level DPO shed a light that we can use policy to define token level reward function, which leads to credit assignment insights.
+        Also, we can prove that using learnt value function and reward function to guide decoding in test time is equivalent to using policy likelihood to guide decoding in DPO setting (mapping Q-function to policy)
+    Discussion
+- [[paper-notes/AutoPSV Automated Process-Supervised Verifier-2024-NeurIPS|2024-NeurIPS-AutoPSV Automated Process-Supervised Verifier]]
+    Abstract
+        AUTOPSV begins by training a verification model on the correctness of final answers. The verification model assign a confidence score to each reasoning step, which indicates the probability of arriving at the final correct answer from that point onward. The process score is defined as the confidence variance between neighboring reasoning step.
+        Confidence variance is actually the relative change in the verification's confidence score across reasoning steps. For example, a sudden drop of the reasoning step's confidence score indicates the associated reasoning step is wrong.
+    Introduction
+        AUTOPSV first trains a outcome-supervised verification model, and let this model assign confidence score to each intermediate reasoning step. The confidence score estimates the reasoning step's likelihood of contributing to a correct final answer.
+        AUTOPSV then utilize the step-level confidence variance to generate process annotation automatically.
+    Related Work
+    AUTOPSV
+        Given that just use prompt to make LLM do response selection job can not achieve optimal performance, It's better to train a outcome-supervised verification model, using mean square loss.
+        By using mean square loss, we can easily derive that the trained outcome-supervised verification model's prediction score is the estimation of the probability that the given sequence finally get the correct answer.
+        We can define the process supervision signal as the relative probability change. We use the first error location strategy to do process labeling. That is, once the process supervision signal is below the threshold, the tokens afterwards will all be labelled as error.
+        After process labelling, we can continue optimizing the supervision model by using the process labels.
+    Preliminary Findings
+        We first validate that the initial trained outcome-supervised verification model is robust and effective. Then, we use a benchmark for process errors to validate using $\Delta_{conf}^t$ to detect the errors is reasonable.
+        By validation, using outcome-supervised verification model to validate response is more effective than using bare model with just prompts.
+        By validation, using $\Delta_{conf}^t$ to detect error in math calculation process is effective. Also, theoretically, using the mean square error to train the verification model can lead to the estimation of the probability that any given intermediate reasoning step reaching the final correct answer.
+    Experiment
+    Analysis
+    Conclusion
+
+\[OpenReview\]
+- [[openreview-notes/From r to Q Your Language Model is Secretly a Q Function|From r to Q Your Language Model is Secretly a Q Function]]
+- [[openreview-notes/AutoPSV Automated Process-Supervised Verifier|AutoPSV Automated Process-Supervised Verifier]]
+
+\[Doc\]
+- [[doc-notes/typst/tutorial/Overview|typst/tutorial/Overview]]: All
+- [[doc-notes/typst/tutorial/Writing in Typst|typst/tutorial/Writing in Typst]]: All
+- [[doc-notes/typst/tutorial/Formatting|typst/tutorial/Formatting]]: All
+- [[doc-notes/typst/tutorial/Advanced Styling|typst/tutorial/Advanced Styling]]: All
+- [[doc-notes/python/packages/ruff/The Ruff Linter|python/packages/ruff/The Ruff Linter]]
+- [[doc-notes/python/packages/uv/Introduction|python/packages/uv/Introduction]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/set|cmake/reference-manuals/cmake-commands/set]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/option|cmake/reference-manuals/cmake-commands/option]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/file|cmake/reference-manuals/cmake-commands/file]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/add_library|cmake/reference-manuals/cmake-commands/add_library]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/add_definitions|cmake/reference-manuals/cmake-commands/add_definitions]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/add_subdirectory|cmake/reference-manuals/cmake-commands/add_subdirectory]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/link_directories|cmake/reference-manuals/cmake-commands/link_directories]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/add_compile_options|cmake/reference-manuals/cmake-commands/add_compile_options]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/include_directories|cmake/reference-manuals/cmake-commands/include_directories]]
+- [[doc-notes/cmake/reference-manuals/cmake-commands/target_link_libraries|cmake/reference-manuals/cmake-commands/target_link_libraries]]
+
+### Week 3
