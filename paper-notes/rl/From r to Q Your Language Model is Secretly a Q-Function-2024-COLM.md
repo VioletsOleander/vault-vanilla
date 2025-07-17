@@ -5,7 +5,7 @@ Although DPO solves the same objective as the standard RLHF setup, there is a mi
 >  虽然 DPO 和标准的 RLHF 求解的是相同的目标，但二者之间存在根本性的理论差异: 标准 RLHF 在 token-level 上的 MDP 上执行 RL，而 DPO 则可以视作一个多臂赌博机问题，其中模型的整个响应视作一个 “臂”，这简化了问题，但失去了 token 生成的细粒度、顺序性特征，使得模型或许无法理解序列生成中的因果性
 
 In this work we rectify this difference. We theoretically show that we can derive DPO in the token-level MDP as a general inverse Q-learning algorithm, which satisfies the Bellman equation. Using our theoretical results, we provide three concrete empirical insights. First, we show that because of its token-level interpretation, DPO is able to perform some type of credit assignment. Next, we prove that under the token level formulation, classical search-based algorithms, such as MCTS, which have recently been applied to the language generation space, are equivalent to likelihood-based search on a DPO policy. Empirically we show that a simple beam search yields meaningful improvement over the base DPO policy. Finally, we show how the choice of reference policy causes implicit rewards to decline during training. 
->  本文意在解决这一差异，本文在理论上证明了 DPO 可以在 token-level 的 MDP 中被推导为广义的逆向 Q-learning算法
+>  本文意在解决这一差异，本文在理论上证明了 DPO 可以在 token-level 的 MDP 中被推导为广义的逆向 Q-learning 算法
 >  本文在理论结果下提供了三个具体的经验性观点:
 >  - 由于 DPO 可以被解释为 token-level，故可以执行某种类型的信用分配
 >  - 在 token-level 的解释下，经典的基于搜索的算法，例如 MCTS ，等价于在 DPO 策略上基于似然的搜索
