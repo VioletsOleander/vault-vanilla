@@ -70,6 +70,7 @@ if (DialectInlinerInterface *interface = dyn_cast<DialectInlinerInterface>(diale
 
 #### DialectInterfaceCollection 
 An additional utility is provided via `DialectInterfaceCollection`. This class allows collecting all of the dialects that have registered a given interface within an instance of the `MLIRContext`. This can be useful to hide and optimize the lookup of a registered dialect interface.
+>  `DialectInterfaceCollection` 类表示方言结构集合，该类可以收集用于在一个 `MLIRContext` 实例中，一个给定的 Interface 所注册的所有方言
 
 ```c++
 class InlinerInterface : public
@@ -235,6 +236,8 @@ struct ExampleTypeInterfaceTraits {
 ```
 
 External models can be provided for attribute, operation and type interfaces by deriving either `FallbackModel` or `ExternalModel` and by registering the model class with the relevant class in a given context. Other contexts will not see the interface unless registered.
+>  可以通过派生 `FallbackModel` 或 `ExternalModel` 来为属性、操作和类型结构提供外部模型
+>  并通过将模型类 (`FallbackModel, ExternalModel`) 注册到给定上下文中的相关类来使用
 
 ```c++
 /// External interface implementation for a concrete class. This does not
@@ -316,6 +319,9 @@ void *TestDialect::getRegisteredInterfaceForOp(TypeID typeID,
 Note: Before reading this section, the reader should have some familiarity with the concepts described in the [`Operation Definition Specification`](https://mlir.llvm.org/docs/DefiningDialects/Operations/) documentation.
 
 As detailed above, [Interfaces](https://mlir.llvm.org/docs/Interfaces/#attributeoperationtype-interfaces) allow for attributes, operations, and types to expose method calls without requiring that the caller know the specific derived type. The downside to this infrastructure, is that it requires a bit of boiler plate to connect all of the pieces together. MLIR provides a mechanism with which to defines interfaces declaratively in ODS, and have the C++ definitions auto-generated.
+>  如上所述，`Interfaces` 允许 attributes, operations, types 在不要求调用者知道具体的衍生类的情况下暴露方法调用
+>  而这个方法的缺点在于，需要一些样本代码将所有的部分连接起来
+>  MLIR 提供了在 ODS 中以声明方式定义结构，并自动生成 C++ 定义的机制
 
 As an example, using the ODS framework would allow for defining the example interface above as:
 
@@ -337,6 +343,9 @@ def ExampleOpInterface : OpInterface<"ExampleOpInterface"> {
   ];
 }
 ```
+
+>  通过 ODS 框架定义接口的例子如上
+>  接口需要继承 `OpInterface/AttrInterface/TypeInterface`，并定义好 `description` 和 `methods` 域
 
 Providing a definition of the `AttrInterface`, `OpInterface`, or `TypeInterface` class will auto-generate the C++ classes for the interface. Interfaces are comprised of the following components:
 
@@ -360,14 +369,27 @@ Providing a definition of the `AttrInterface`, `OpInterface`, or `TypeInterfa
     - Additional C++ code that is injected into the interface trait declaration.
     - Allows the same replacements as extra shared class declarations.
 
+>  具体地说，结构包括了以下的组成成分:
+>  - C++ 类名: 通过模板参数提供
+>  - 接口基类: 接口类应该派生的一组接口类
+>  - 描述
+>  - C++ 命名空间: 接口类会处于的 C++ 命名空间
+>  - 方法: 实现该接口的 IR object 应该实现的方法签名
+>  - 额外的类声明
+>  - 额外的共享类声明
+>  - 额外的 Trait 类声明
+
 `OpInterface` classes may additionally contain the following:
 
 - Verifier (`verify`)
     - A C++ code block containing additional verification applied to the operation that the interface is attached to.
     - The structure of this code block corresponds 1-1 with the structure of a [`Trait::verifyTrait`](https://mlir.llvm.org/docs/Traits/) method.
 
+>  `OpInterface` 类还可以添加 `verify`，它应该是一个包含了对 operation 的接口方法的验证逻辑的 C++ 代码块
+
 ##### Interface Methods 
 There are two types of methods that can be used with an interface, `InterfaceMethod` and `StaticInterfaceMethod`. They are both comprised of the same core components, with the distinction that `StaticInterfaceMethod` models a static method on the derived IR object.
+>  接口中可以定义两类方法: `InterfaceMethod` 和 `StaticInterfaceMethod`，二者的核心成分都相同，差异在于 `StaticInterfaceMethod` 表示的是衍生 IR object 的静态方法
 
 Interface methods are comprised of the following components:
 
@@ -389,6 +411,14 @@ Interface methods are comprised of the following components:
     - This implementation is placed within the `Trait` class that is attached to the IR entity, and does not directly affect any of the interface classes. As such, this method has the same characteristics as any other [`Trait`](https://mlir.llvm.org/docs/Traits/) method.
     - `ConcreteAttr`/`ConcreteOp`/`ConcreteType` is an implicitly defined `typename` that can be used to refer to the type of the derived IR entity currently being operated on.
     - This may refer to static fields of the interface class using the qualified name, e.g., `TestOpInterface::staticMethod()`.
+
+>  接口方法包含以下成分:
+>  - 描述: 字符串
+>  - 返回类型: 字符串，表示方法的 C++ 返回类型
+>  - 方法名: 字符串，表示 C++ 方法名
+>  - 参数 (可选): 字符串组成的 dag，分别对应于 C++ 类型和变量名
+>  - 方法体 (可选): 对接口方法的显式实现，该实现会在 `Model` traits 类中的出现，但不会在附加到 IR entity 中的 `Trait` 类中出现，更具体地说，该方法体仅对于接口类可见，但不影响衍生的 IR entity
+>  - 默认实现 (可选): 对接口方法的默认显式实现
 
 ODS also allows for generating declarations for the `InterfaceMethod`s of an operation if the operation specifies the interface with `DeclareOpInterfaceMethods` (see an example below).
 
@@ -569,7 +599,7 @@ def OpWithOverrideInferTypeInterfaceOp : Op<...
 
 ##### Interface Inheritance 
 Interfaces also support a limited form of inheritance, which allows for building upon pre-existing interfaces in a way similar to that of classes in programming languages like C++. This more easily allows for building modular interfaces, without suffering from the pain of lots of explicit casting. To enable inheritance, an interface simply needs to provide the desired set of base classes in its definition. For example:
->  Interface 通过在模板参数中传入需要继承的一组 base interface 来实现继承
+>  Interface 通过在模板参数中传入需要继承的一组 base interface 来实现 Interface 之间的继承
 
 ```tablegen
 def MyBaseInterface : OpInterface<"MyBaseInterface"> {
@@ -582,6 +612,7 @@ def MyInterface : OpInterface<"MyInterface", [MyBaseInterface]> {
 ```
 
 This will result in `MyInterface` inheriting various components from `MyBaseInterface`, namely its interface methods and extra class declarations. 
+>  Interface 之间的继承会让派生 Interface 继承基 Interface 的接口方法和额外类定义
 
 Given that these inherited components are comprised of opaque C++ blobs, we cannot properly sandbox the names. As such, it’s important to ensure that inherited components do not create name overlaps, as these will result in errors during interface generation.
 >  注意在继承的时候不要导致命名冲突
