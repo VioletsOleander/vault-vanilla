@@ -860,4 +860,552 @@ Please input your guess.
 You guessed: 6
 ```
 
-At this point, the first part of the game is done: we’re getting input from the keyboard and then printing it.
+
+## Generating a Secret Number
+Next, we need to generate a secret number that the user will try to guess. The secret number should be different every time so the game is fun to play more than once. We’ll use a random number between 1 and 100 so the game isn’t too difficult. Rust doesn’t yet include random number functionality in its standard library. However, the Rust team does provide a [`rand` crate](https://crates.io/crates/rand) with said functionality.
+>  Rust 标准库尚没有提供随机数生成的功能，但 Rust team 提供了 `rand` crate 来实现类似的功能
+
+### Using a Crate to Get More Functionality
+Remember that a crate is a collection of Rust source code files. The project we’ve been building is a _binary crate_, which is an executable. The `rand` crate is a _library crate_, which contains code that is intended to be used in other programs and can’t be executed on its own.
+>  crate 就是一组 Rust 源文件的集合
+>  我们构建的项目是二进制 crate，它是可执行的
+>  `rand` crate 是库 crate，它包含了意在被使用的代码，crate 本身是不可执行的 (没有提供 `main` 函数)
+
+Cargo’s coordination of external crates is where Cargo really shines. Before we can write code that uses `rand`, we need to modify the _Cargo.toml_ file to include the `rand` crate as a dependency. 
+>  Cargo 对外部 crate 的协调是它真正出色的地方
+>  在我们编写使用 `rand` crate 的代码之前，我们需要修改 `Cargo.toml` 文件，将 `rand` crate 添加为依赖项
+
+Open that file now and add the following line to the bottom, beneath the `[dependencies]` section header that Cargo created for you. Be sure to specify `rand` exactly as we have here, with this version number, or the code examples in this tutorial may not work:
+>  我们需要在 `[dependencies]` 下添加依赖项，同时可以指定依赖版本
+
+Filename: Cargo.toml
+
+```toml
+[dependencies] 
+rand = "0.8.5"
+```
+
+In the _Cargo.toml_ file, everything that follows a header is part of that section that continues until another section starts. In `[dependencies]` you tell Cargo which external crates your project depends on and which versions of those crates you require. In this case, we specify the `rand` crate with the semantic version specifier `0.8.5`. Cargo understands [Semantic Versioning](http://semver.org/) (sometimes called _SemVer_), which is a standard for writing version numbers. The specifier `0.8.5` is actually shorthand for `^0.8.5`, which means any version that is at least 0.8.5 but below 0.9.0.
+>  Cargo 理解 Semantic Versioning
+>  `0.8.5` 实际上是 `^0.8.5` 的缩写，表示版本至少是 `0.8.5`，但小于 `0.9.0`
+
+Cargo considers these versions to have public APIs compatible with version 0.8.5, and this specification ensures you’ll get the latest patch release that will still compile with the code in this chapter. Any version 0.9.0 or greater is not guaranteed to have the same API as what the following examples use.
+>  Cargo 认为版本在 `0.8.5` 和 `0.9.0` 之间的版本会有和 `0.8.5` 版本兼容的 API，以确保我们可以的得到能够正常编译的最新版本
+>  任意大于 `0.9.0` 的版本都不保证会有相同的 API
+
+Now, without changing any of the code, let’s build the project, as shown in Listing 2-2.
+
+```shell
+$ cargo build
+  Updating crates.io index
+   Locking 15 packages to latest Rust 1.85.0 compatible versions
+    Adding rand v0.8.5 (available: v0.9.0)
+ Compiling proc-macro2 v1.0.93
+ Compiling unicode-ident v1.0.17
+ Compiling libc v0.2.170
+ Compiling cfg-if v1.0.0
+ Compiling byteorder v1.5.0
+ Compiling getrandom v0.2.15
+ Compiling rand_core v0.6.4
+ Compiling quote v1.0.38
+ Compiling syn v2.0.98
+ Compiling zerocopy-derive v0.7.35
+ Compiling zerocopy v0.7.35
+ Compiling ppv-lite86 v0.2.20
+ Compiling rand_chacha v0.3.1
+ Compiling rand v0.8.5
+ Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+  Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.48s
+
+```
+
+[Listing 2-2](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#listing-2-2): The output from running `cargo build` after adding the rand crate as a dependency
+
+You may see different version numbers (but they will all be compatible with the code, thanks to SemVer!) and different lines (depending on the operating system), and the lines may be in a different order.
+
+When we include an external dependency, Cargo fetches the latest versions of everything that dependency needs from the _registry_, which is a copy of data from [Crates.io](https://crates.io/). Crates.io is where people in the Rust ecosystem post their open source Rust projects for others to use.
+>  当我们加入了外部依赖后，Cargo 会在构建时从 registry 获取依赖所需的所有最新版本
+>  registry 是 `Crates.io` 的副本，`Crates.io` 是 Rust 生态系统中人们发布开源 Rust 项目供他人使用的平台
+
+After updating the registry, Cargo checks the `[dependencies]` section and downloads any crates listed that aren’t already downloaded. In this case, although we only listed `rand` as a dependency, Cargo also grabbed other crates that `rand` depends on to work. After downloading the crates, Rust compiles them and then compiles the project with the dependencies available.
+>  在更新完 registry 之后，Cargo 会检查 `[dependencies]` 部分，然后下载任意还没有下载的 crates
+>  注意到 Cargo 还下载了 `rand` 所依赖的 crates
+>  在下载之后，Cargo 会将编译它们，然后编译项目
+
+If you immediately run `cargo build` again without making any changes, you won’t get any output aside from the `Finished` line. Cargo knows it has already downloaded and compiled the dependencies, and you haven’t changed anything about them in your _Cargo.toml_ file. Cargo also knows that you haven’t changed anything about your code, so it doesn’t recompile that either. With nothing to do, it simply exits.
+>  如果我们再运行一次 `cargo build`，我们将直接看到 `Finished`
+
+If you open the _src/main.rs_ file, make a trivial change, and then save it and build again, you’ll only see two lines of output:
+
+```shell
+$ cargo build
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+```
+
+These lines show that Cargo only updates the build with your tiny change to the _src/main.rs_ file. Your dependencies haven’t changed, so Cargo knows it can reuse what it has already downloaded and compiled for those.
+>  Cargo 会识别具体哪些修改需要重新编译
+
+#### Ensuring Reproducible Builds with the _Cargo.lock_ File
+Cargo has a mechanism that ensures you can rebuild the same artifact every time you or anyone else builds your code: Cargo will use only the versions of the dependencies you specified until you indicate otherwise. For example, say that next week version 0.8.6 of the `rand` crate comes out, and that version contains an important bug fix, but it also contains a regression that will break your code. To handle this, Rust creates the _Cargo.lock_ file the first time you run `cargo build`, so we now have this in the _guessing_game_ directory.
+>  Cargo 具有一个机制，可以确保每次我们或其他人构建代码的时候都能得到相同的产物: Cargo 将只使用我们指定的依赖版本，直到我们另有只是
+>  例如，加入下周 `rand` 的 0.8.6 版本发布了，这个版本包含一个重要的错误修复，但也包含一个会破坏代码的回归问题
+>  为了解决这个问题，Rust 会第一次运行 `cargo build` 的时候生成一个 `Cargo.lock` 文件
+
+When you build a project for the first time, Cargo figures out all the versions of the dependencies that fit the criteria and then writes them to the _Cargo.lock_ file. When you build your project in the future, Cargo will see that the _Cargo.lock_ file exists and will use the versions specified there rather than doing all the work of figuring out versions again. This lets you have a reproducible build automatically. In other words, your project will remain at 0.8.5 until you explicitly upgrade, thanks to the _Cargo.lock_ file. Because the _Cargo.lock_ file is important for reproducible builds, it’s often checked into source control with the rest of the code in your project.
+>  当我们第一次构建一个项目时，Cargo 会确定所有符合要求的依赖版本，并将它们写入 `Cargo.lock` 文件
+>  在以后构建项目的时候，Cargo 会使用 `Cargo.lock` 中指定的版本，而不是重新计算所有依赖的版本，这样我们的构建就是可重复的
+>  换句话说，除非我们显式升级，项目将一直将 `rand` 保持在 0.8.5 版本
+>  因为 `Cargo.lock` 对于可重复构建非常重要，通常会和其他代码一起被提交到版本控制中
+
+#### Updating a Crate to Get a New Version
+When you _do_ want to update a crate, Cargo provides the command `update`, which will ignore the _Cargo.lock_ file and figure out all the latest versions that fit your specifications in _Cargo.toml_. Cargo will then write those versions to the _Cargo.lock_ file. In this case, Cargo will only look for versions greater than 0.8.5 and less than 0.9.0. 
+>  当我们需要更新 crate 时，可以使用 `cargo update`
+>  `cargo update` 会忽略 `Cargo.lock` 文件，然后根据 `Cargo.toml` 中的信息确定需要获取的最新版本，然后将这些版本写入 `Cargo.lock` 文件中
+>  例如我们直接 `cargo update` 后，Cargo 将寻找大于 `0.8.5` 但小于 `0.9.0` 的版本
+
+If the `rand` crate has released the two new versions 0.8.6 and 0.9.0, you would see the following if you ran `cargo update`:
+
+```shell
+$ cargo update
+    Updating crates.io index
+     Locking 1 package to latest Rust 1.85.0 compatible version
+    Updating rand v0.8.5 -> v0.8.6 (available: v0.9.0)
+```
+
+Cargo ignores the 0.9.0 release. At this point, you would also notice a change in your _Cargo.lock_ file noting that the version of the `rand` crate you are now using is 0.8.6. 
+
+To use `rand` version 0.9.0 or any version in the 0.9._x_ series, you’d have to update the _Cargo.toml_ file to look like this instead:
+>  要使用 0.9.0 以上的版本，我们需要在 `Cargo.toml` 中显式指定
+
+```toml
+[dependencies]
+rand = "0.9.0"
+```
+
+The next time you run `cargo build`, Cargo will update the registry of crates available and reevaluate your `rand` requirements according to the new version you have specified.
+
+There’s a lot more to say about [Cargo](https://doc.rust-lang.org/cargo/) and [its ecosystem](https://doc.rust-lang.org/cargo/reference/publishing.html), which we’ll discuss in Chapter 14, but for now, that’s all you need to know. Cargo makes it very easy to reuse libraries, so Rustaceans are able to write smaller projects that are assembled from a number of packages.
+
+### Generating a Random Number
+Let’s start using `rand` to generate a number to guess. The next step is to update _src/main.rs_, as shown in Listing 2-3.
+
+Filename: src/main.rs
+
+```rust
+use std::io;
+
+use rand::Rng;
+
+fn main() {
+    println!("Guess the number!");
+
+    let secret_number = rand::thread_rng().gen_range(1..=100);
+
+    println!("The secret number is: {secret_number}");
+
+    println!("Please input your guess.");
+
+    let mut guess = String::new();
+
+    io::stdin()
+        .read_line(&mut guess)
+        .expect("Failed to read line");
+
+    println!("You guessed: {guess}");
+}
+```
+
+[Listing 2-3](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#listing-2-3): Adding code to generate a random number
+
+First we add the line `use rand::Rng;`. The `Rng` trait defines methods that random number generators implement, and this trait must be in scope for us to use those methods. Chapter 10 will cover traits in detail.
+>  我们先添加了 `use rand::Rng`，`Rng` trait 定义了随机数生成器需要实现的方法，且这个 trait 必须在作用域中，我们才能使用这些方法
+
+Next, we’re adding two lines in the middle. In the first line, we call the `rand::thread_rng` function that gives us the particular random number generator we’re going to use: one that is local to the current thread of execution and is seeded by the operating system. Then we call the `gen_range` method on the random number generator. This method is defined by the `Rng` trait that we brought into scope with the `use rand::Rng;` statement. The `gen_range` method takes a range expression as an argument and generates a random number in the range. The kind of range expression we’re using here takes the form `start..=end` and is inclusive on the lower and upper bounds, so we need to specify `1..=100` to request a number between 1 and 100.
+>  之后，我们在中间加入了两行，第一行调用了 `rand::thread_rng` 函数，该函数会给我们一个特定的随机数生成器: 这个生成器是当前执行线程本地的，并由操作系统初始化
+>  然后我们在该随机数生成器上调用 `gen_range` 方法，该方法由 `Rng` trait 定义，该方法接收一个范围表达式作为参数，生成该范围内的一个随机数
+>  我们这里使用的范围表达式形式为 `start..=end`，上下限包含
+
+Note: You won’t just know which traits to use and which methods and functions to call from a crate, so each crate has documentation with instructions for using it. Another neat feature of Cargo is that running the `cargo doc --open` command will build documentation provided by all your dependencies locally and open it in your browser. If you’re interested in other functionality in the `rand` crate, for example, run `cargo doc --open` and click `rand` in the sidebar on the left.
+>  `cargo doc --open` 会本地构建所有依赖项提供的文档，并在浏览器中打开
+
+The second new line prints the secret number. This is useful while we’re developing the program to be able to test it, but we’ll delete it from the final version. It’s not much of a game if the program prints the answer as soon as it starts!
+
+Try running the program a few times:
+
+```shell
+$ cargo run
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/guessing_game`
+Guess the number!
+The secret number is: 7
+Please input your guess.
+4
+You guessed: 4
+
+$ cargo run
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/guessing_game`
+Guess the number!
+The secret number is: 83
+Please input your guess.
+5
+You guessed: 5
+```
+
+You should get different random numbers, and they should all be numbers between 1 and 100. Great job!
+
+## Comparing the Guess to the Secret Number
+Now that we have user input and a random number, we can compare them. That step is shown in Listing 2-4. Note that this code won’t compile just yet, as we will explain.
+
+Filename: src/main.rs
+
+```rust
+use std::cmp::Ordering;
+use std::io;
+
+use rand::Rng;
+
+fn main() {
+    // --snip--
+
+    println!("You guessed: {guess}");
+
+    match guess.cmp(&secret_number) {
+        Ordering::Less => println!("Too small!"),
+        Ordering::Greater => println!("Too big!"),
+        Ordering::Equal => println!("You win!"),
+    }
+}
+```
+
+[Listing 2-4](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#listing-2-4): Handling the possible return values of comparing two numbers
+
+First we add another `use` statement, bringing a type called `std::cmp::Ordering` into scope from the standard library. The `Ordering` type is another enum and has the variants `Less`, `Greater`, and `Equal`. These are the three outcomes that are possible when you compare two values.
+>  有了用户输入和随机数之后，我们可以对其进行比较
+>  我们首先添加另一个 `use` 语句，将类型 `std::cmp::Ordering` 带入作用域
+>  `Ordering` 类型是另一个 enum 类型，它变体有 `Less, Greater, Equal`，表示了比较两个值的时候，可能的三个结果
+
+Then we add five new lines at the bottom that use the `Ordering` type. The `cmp` method compares two values and can be called on anything that can be compared. It takes a reference to whatever you want to compare with: here it’s comparing `guess` to `secret_number`. Then it returns a variant of the `Ordering` enum we brought into scope with the `use` statement. We use a [`match`](https://doc.rust-lang.org/stable/book/ch06-02-match.html) expression to decide what to do next based on which variant of `Ordering` was returned from the call to `cmp` with the values in `guess` and `secret_number`.
+>  然后，我们使用了 `cmp` 方法来比较两个值，该方法可以接受一个想要比较的内容的引用，然后返回一个 `Ordering` 枚举的变体
+>  我们使用 `match` 表达式，根据返回的变体决定下一步的操作
+
+A `match` expression is made up of _arms_. An arm consists of a _pattern_ to match against, and the code that should be run if the value given to `match` fits that arm’s pattern. Rust takes the value given to `match` and looks through each arm’s pattern in turn. Patterns and the `match` construct are powerful Rust features: they let you express a variety of situations your code might encounter and they make sure you handle them all. These features will be covered in detail in Chapter 6 and Chapter 19, respectively.
+>  `match` 表示由多个分支 (arms) 组成，每个分支包含一个模式 (pattern)，代码会将 `match` 给定的值对模式一一比较，如果发现相同，就执行分支的代码，然后退出
+>  模式和 `match` 结构是 Rust 中非常强大的特性: 它们允许你表达代码中可能遇到的各种情况，并确保你处理所有情况
+
+Let’s walk through an example with the `match` expression we use here. Say that the user has guessed 50 and the randomly generated secret number this time is 38.
+
+When the code compares 50 to 38, the `cmp` method will return `Ordering::Greater` because 50 is greater than 38. The `match` expression gets the `Ordering::Greater` value and starts checking each arm’s pattern. It looks at the first arm’s pattern, `Ordering::Less`, and sees that the value `Ordering::Greater` does not match `Ordering::Less`, so it ignores the code in that arm and moves to the next arm. The next arm’s pattern is `Ordering::Greater`, which _does_ match `Ordering::Greater`! The associated code in that arm will execute and print `Too big!` to the screen. The `match` expression ends after the first successful match, so it won’t look at the last arm in this scenario.
+>  注意 `match` 在第一次成功比较之后就会结束
+
+However, the code in Listing 2-4 won’t compile yet. Let’s try it:
+
+```shell
+$ cargo build
+   Compiling libc v0.2.86
+   Compiling getrandom v0.2.2
+   Compiling cfg-if v1.0.0
+   Compiling ppv-lite86 v0.2.10
+   Compiling rand_core v0.6.2
+   Compiling rand_chacha v0.3.0
+   Compiling rand v0.8.5
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+error[E0308]: mismatched types
+  --> src/main.rs:23:21
+   |
+23 |     match guess.cmp(&secret_number) {
+   |                 --- ^^^^^^^^^^^^^^ expected `&String`, found `&{integer}`
+   |                 |
+   |                 arguments to this method are incorrect
+   |
+   = note: expected reference `&String`
+              found reference `&{integer}`
+note: method defined here
+  --> /rustc/4eb161250e340c8f48f66e2b929ef4a5bed7c181/library/core/src/cmp.rs:964:8
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `guessing_game` (bin "guessing_game") due to 1 previous error
+```
+
+The core of the error states that there are _mismatched types_. Rust has a strong, static type system. However, it also has type inference. When we wrote `let mut guess = String::new()`, Rust was able to infer that `guess` should be a `String` and didn’t make us write the type. The `secret_number`, on the other hand, is a number type. A few of Rust’s number types can have a value between 1 and 100: `i32`, a 32-bit number; `u32`, an unsigned 32-bit number; `i64`, a 64-bit number; as well as others. Unless otherwise specified, Rust defaults to an `i32`, which is the type of `secret_number` unless you add type information elsewhere that would cause Rust to infer a different numerical type. The reason for the error is that Rust cannot compare a string and a number type.
+>  但是目前的代码是无法编译的
+>  错误的核心信息是类型不匹配，Rust 有一个强大的静态类型系统，并且它也支持类型推断
+>  当我们编写 `let mut guess = String::new()` 时，Rust 能够推断出 `guess` 应该是一个 `String` 类型，而不需要我们显式地写出类型
+>  然而 `secret_number` 是一个数字类型，Rust 的很多数字类型可以表示 1 到 100 之间的值，例如 `i32` (32 位有符号整数)， `u32` (32 位无符号整数)，`i64` (64 位有符号整数) 等
+>  除非另有指定，Rust 默认使用 `i32` 类型
+>  这里的错误就是无法比较 `String` 和 `i32` 类型
+
+Ultimately, we want to convert the `String` the program reads as input into a number type so we can compare it numerically to the secret number. We do so by adding this line to the `main` function body:
+
+Filename: src/main.rs
+
+```rust
+// --snip--
+
+let mut guess = String::new();
+
+io::stdin()
+    .read_line(&mut guess)
+    .expect("Failed to read line");
+
+let guess: u32 = guess.trim().parse().expect("Please type a number!");
+
+println!("You guessed: {guess}");
+
+match guess.cmp(&secret_number) {
+    Ordering::Less => println!("Too small!"),
+    Ordering::Greater => println!("Too big!"),
+    Ordering::Equal => println!("You win!"),
+}
+```
+
+The line is:
+
+```rust
+let guess: u32 = guess.trim().parse().expect("Please type a number!");
+```
+
+We create a variable named `guess`. But wait, doesn’t the program already have a variable named `guess`? It does, but helpfully Rust allows us to shadow the previous value of `guess` with a new one. _Shadowing_ lets us reuse the `guess` variable name rather than forcing us to create two unique variables, such as `guess_str` and `guess`, for example. We’ll cover this in more detail in [Chapter 3](https://doc.rust-lang.org/stable/book/ch03-01-variables-and-mutability.html#shadowing), but for now, know that this feature is often used when you want to convert a value from one type to another type.
+>  我们额外添加一行将 `guess` 转换为数字类型
+>  我们在这一行中，创建了一个名为 `guess` 的变量，虽然之前已经有了 `guess`，但 Rust 会用新的值来遮蔽 (shadow) 之前的值
+>  遮蔽允许我们重复使用变量名，而不需要创建不同的变量
+>  shadowing 的特定在将一个值从一个类型转化到另一个类型非常常见
+
+We bind this new variable to the expression `guess.trim().parse()`. The `guess` in the expression refers to the original `guess` variable that contained the input as a string. The `trim` method on a `String` instance will eliminate any whitespace at the beginning and end, which we must do before we can convert the string to a `u32`, which can only contain numerical data. The user must press enter to satisfy `read_line` and input their guess, which adds a newline character to the string. For example, if the user types 5 and presses enter, `guess` looks like this: `5\n`. The `\n` represents “newline.” (On Windows, pressing enter results in a carriage return and a newline, `\r\n`.) The `trim` method eliminates `\n` or `\r\n`, resulting in just `5`.
+>  我们将变量 `guess` 绑定到 `guess.trim().parse()`
+>  `trim` 方法会删除开头和结尾的空白字符，这一步是必须的，在将字符串转化为 `u32` 之前，我们必须确保字符串中只包含数字数据
+>  因为用户必须按下回车来结束 `read_line`，故输入字符中总会有换行符，例如 `\n` 或 `\r\n`
+
+The [`parse` method on strings](https://doc.rust-lang.org/stable/std/primitive.str.html#method.parse) converts a string to another type. Here, we use it to convert from a string to a number. We need to tell Rust the exact number type we want by using `let guess: u32`. The colon (`:`) after `guess` tells Rust we’ll annotate the variable’s type. Rust has a few built-in number types; the `u32` seen here is an unsigned, 32-bit integer. It’s a good default choice for a small positive number. You’ll learn about other number types in [Chapter 3](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#integer-types).
+>  `parse` 方法将字符串转化为另一个类型，我们通过使用 `let guess: u32` 来告诉 Rust 我们需要的类型，即通过了类型标注
+
+Additionally, the `u32` annotation in this example program and the comparison with `secret_number` means Rust will infer that `secret_number` should be a `u32` as well. So now the comparison will be between two values of the same type!
+>  此外，Rust 还会通过比较代码，推断出 `secret_number` 的类型也应该是 `u32`，故比较最终会成功
+
+The `parse` method will only work on characters that can logically be converted into numbers and so can easily cause errors. If, for example, the string contained `A👍%`, there would be no way to convert that to a number. Because it might fail, the `parse` method returns a `Result` type, much as the `read_line` method does (discussed earlier in [“Handling Potential Failure with `Result`”](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#handling-potential-failure-with-result)). We’ll treat this `Result` the same way by using the `expect` method again. If `parse` returns an `Err` `Result` variant because it couldn’t create a number from the string, the `expect` call will crash the game and print the message we give it. If `parse` can successfully convert the string to a number, it will return the `Ok` variant of `Result`, and `expect` will return the number that we want from the `Ok` value.
+>  `parse` 方法只能对逻辑上可以转换为数字的字符起作用，因此很容易引发错误
+>  由于可能引发失败，`parse` 方法返回的是一个 `Result` 类型，和 `read_line` 方法类似，我们同样使用 `expect` 方法来处理这个 `Result`
+>  如果 `parse` 返回了 `Err` 变体，那么 `expect` 调用将让程序崩溃，并打印提供的信息
+>  如果返回了 `Ok` 变体，则 `expect` 从 `Ok` 值中返回我们想要的数字
+
+Let’s run the program now:
+
+```shell
+$ cargo run
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running `target/debug/guessing_game`
+Guess the number!
+The secret number is: 58
+Please input your guess.
+  76
+You guessed: 76
+Too big!
+```
+
+Nice! Even though spaces were added before the guess, the program still figured out that the user guessed 76. Run the program a few times to verify the different behavior with different kinds of input: guess the number correctly, guess a number that is too high, and guess a number that is too low.
+
+We have most of the game working now, but the user can make only one guess. Let’s change that by adding a loop!
+
+## Allowing Multiple Guesses with Looping
+The `loop` keyword creates an infinite loop. We’ll add a loop to give users more chances at guessing the number:
+>  `loop` 关键词用于创建无限循环
+
+Filename: src/main.rs
+
+```rust
+    // --snip--
+
+    println!("The secret number is: {secret_number}");
+
+    loop {
+        println!("Please input your guess.");
+
+        // --snip--
+
+        match guess.cmp(&secret_number) {
+            Ordering::Less => println!("Too small!"),
+            Ordering::Greater => println!("Too big!"),
+            Ordering::Equal => println!("You win!"),
+        }
+    }
+}
+```
+
+As you can see, we’ve moved everything from the guess input prompt onward into a loop. Be sure to indent the lines inside the loop another four spaces each and run the program again. The program will now ask for another guess forever, which actually introduces a new problem. It doesn’t seem like the user can quit!
+
+The user could always interrupt the program by using the keyboard shortcut ctrl-c. But there’s another way to escape this insatiable monster, as mentioned in the `parse` discussion in [“Comparing the Guess to the Secret Number”](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#comparing-the-guess-to-the-secret-number): if the user enters a non-number answer, the program will crash. We can take advantage of that to allow the user to quit, as shown here:
+>  我们可以利用程序在接收非数字输入时就退出的特性来帮助用户退出程序
+
+```shell
+$ cargo run
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.23s
+     Running `target/debug/guessing_game`
+Guess the number!
+The secret number is: 59
+Please input your guess.
+45
+You guessed: 45
+Too small!
+Please input your guess.
+60
+You guessed: 60
+Too big!
+Please input your guess.
+59
+You guessed: 59
+You win!
+Please input your guess.
+quit
+
+thread 'main' panicked at src/main.rs:28:47:
+Please type a number!: ParseIntError { kind: InvalidDigit }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+Typing `quit` will quit the game, but as you’ll notice, so will entering any other non-number input. This is suboptimal, to say the least; we want the game to also stop when the correct number is guessed.
+
+### Quitting After a Correct Guess
+Let’s program the game to quit when the user wins by adding a `break` statement:
+
+Filename: src/main.rs
+
+```rust
+        // --snip--
+
+        match guess.cmp(&secret_number) {
+            Ordering::Less => println!("Too small!"),
+            Ordering::Greater => println!("Too big!"),
+            Ordering::Equal => {
+                println!("You win!");
+                break;
+            }
+        }
+    }
+}
+```
+
+Adding the `break` line after `You win!` makes the program exit the loop when the user guesses the secret number correctly. Exiting the loop also means exiting the program, because the loop is the last part of `main`.
+>  我们添加 `break` 语句让成功匹配时退出循环
+
+### Handling Invalid Input
+To further refine the game’s behavior, rather than crashing the program when the user inputs a non-number, let’s make the game ignore a non-number so the user can continue guessing. We can do that by altering the line where `guess` is converted from a `String` to a `u32`, as shown in Listing 2-5.
+
+Filename: src/main.rs
+
+```rust
+    // --snip--
+    
+    io::stdin()
+        .read_line(&mut guess)
+        .expect("Failed to read line");
+    
+    let guess: u32 = match guess.trim().parse() {
+        Ok(num) => num,
+        Err(_) => continue,
+    };
+    
+    println!("You guessed: {guess}");
+    
+    // --snip--
+```
+
+[Listing 2-5](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#listing-2-5): Ignoring a non-number guess and asking for another guess instead of crashing the program
+
+We switch from an `expect` call to a `match` expression to move from crashing on an error to handling the error. Remember that `parse` returns a `Result` type and `Result` is an enum that has the variants `Ok` and `Err`. We’re using a `match` expression here, as we did with the `Ordering` result of the `cmp` method.
+>  我们将原来的错误处理: 调用 `expect` 改为使用 `match` 表达式
+>  回忆一下，`parse` 返回 `Result` 类型，`Result` 类型是一个 enum 类型，有两个变体 `Ok, Err`
+>  我们使用 `match` 表达式来匹配这两个变体
+
+If `parse` is able to successfully turn the string into a number, it will return an `Ok` value that contains the resultant number. That `Ok` value will match the first arm’s pattern, and the `match` expression will just return the `num` value that `parse` produced and put inside the `Ok` value. That number will end up right where we want it in the new `guess` variable we’re creating.
+>  如果 `parse` 成功将字符串转化为数字，它将返回 `Ok` 值，且包含了结果数字，这会匹配到第一个分支，`match` 表达式就会返回 `num`
+
+If `parse` is _not_ able to turn the string into a number, it will return an `Err` value that contains more information about the error. The `Err` value does not match the `Ok(num)` pattern in the first `match` arm, but it does match the `Err(_)` pattern in the second arm. The underscore, `_`, is a catch-all value; in this example, we’re saying we want to match all `Err` values, no matter what information they have inside them. So the program will execute the second arm’s code, `continue`, which tells the program to go to the next iteration of the `loop` and ask for another guess. So, effectively, the program ignores all errors that `parse` might encounter!
+>  如果 `parse` 失败，它会返回 `Err` 值，包含了错误信息
+>  `Err(_)` 中的 `_` 是一个通配符，表示匹配所有可能的值，即无论 `Err` 中包含什么信息，都会匹配，进而执行 `continue`，跳转到 `loop` 的下一次循环
+
+Now everything in the program should work as expected. Let’s try it:
+
+```shell
+$ cargo run
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running `target/debug/guessing_game`
+Guess the number!
+The secret number is: 61
+Please input your guess.
+10
+You guessed: 10
+Too small!
+Please input your guess.
+99
+You guessed: 99
+Too big!
+Please input your guess.
+foo
+Please input your guess.
+61
+You guessed: 61
+You win!
+```
+
+Awesome! With one tiny final tweak, we will finish the guessing game. Recall that the program is still printing the secret number. That worked well for testing, but it ruins the game. Let’s delete the `println!` that outputs the secret number. Listing 2-6 shows the final code.
+
+Filename: src/main.rs
+
+```rust
+use std::cmp::Ordering;
+use std::io;
+
+use rand::Rng;
+
+fn main() {
+    println!("Guess the number!");
+
+    let secret_number = rand::thread_rng().gen_range(1..=100);
+
+    loop {
+        println!("Please input your guess.");
+
+        let mut guess = String::new();
+
+        io::stdin()
+            .read_line(&mut guess)
+            .expect("Failed to read line");
+
+        let guess: u32 = match guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => continue,
+        };
+
+        println!("You guessed: {guess}");
+
+        match guess.cmp(&secret_number) {
+            Ordering::Less => println!("Too small!"),
+            Ordering::Greater => println!("Too big!"),
+            Ordering::Equal => {
+                println!("You win!");
+                break;
+            }
+        }
+    }
+}
+```
+
+[Listing 2-6](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#listing-2-6): Complete guessing game code
+
+At this point, you’ve successfully built the guessing game. Congratulations!
+
+## Summary
+This project was a hands-on way to introduce you to many new Rust concepts: `let`, `match`, functions, the use of external crates, and more. In the next few chapters, you’ll learn about these concepts in more detail. Chapter 3 covers concepts that most programming languages have, such as variables, data types, and functions, and shows how to use them in Rust. Chapter 4 explores ownership, a feature that makes Rust different from other languages. Chapter 5 discusses structs and method syntax, and Chapter 6 explains how enums work.
+
+# Common Programming Concepts
+This chapter covers concepts that appear in almost every programming language and how they work in Rust. Many programming languages have much in common at their core. None of the concepts presented in this chapter are unique to Rust, but we’ll discuss them in the context of Rust and explain the conventions around using these concepts.
+
+Specifically, you’ll learn about variables, basic types, functions, comments, and control flow. These foundations will be in every Rust program, and learning them early will give you a strong core to start from.
+
+#### Keywords
+The Rust language has a set of _keywords_ that are reserved for use by the language only, much as in other languages. Keep in mind that you cannot use these words as names of variables or functions. Most of the keywords have special meanings, and you’ll be using them to do various tasks in your Rust programs; a few have no current functionality associated with them but have been reserved for functionality that might be added to Rust in the future. You can find a list of the keywords in [Appendix A](https://doc.rust-lang.org/stable/book/appendix-01-keywords.html).
