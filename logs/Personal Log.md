@@ -2572,7 +2572,7 @@ Date: 2025.6.30-2025.7.7
     Experiments 
 
 ### Week 2
-Date: 2025.7.7-2025.7.16
+Date: 2025.7.7-2025.7.14
 
 \[Paper\]
 - [[paper-notes/rl/From r to Q Your Language Model is Secretly a Q-Function-2024-COLM|2024-COLM-From r to Q Your Language Model is Secretly a Q-Function]]
@@ -2642,3 +2642,65 @@ Date: 2025.7.7-2025.7.16
 - [[doc-notes/cmake/reference-manuals/cmake-commands/target_link_libraries|cmake/reference-manuals/cmake-commands/target_link_libraries]]
 
 ### Week 3
+Date: 2025.7.14-2025.7.21
+
+\[Book\]
+- [[book-notes/programming language/The Rust Programming Language|The Rust Programming Language]]: CH0, CH1, CH2
+    CH0-Introduction
+    CH1-Getting Started
+        `rustup` is a command line tool for managing Rust versions and associated tools.
+        `rustup self update` to update Rust compiler.
+        Rust source file should use underscore to separate different words.
+        `rustc main.rs` to compile.
+        The entry point for Rust executable is `main` function.
+        `rustfmt` is used to format code.
+        using `!` is to invoke a macro, not a function.
+        Cargo is the build system and package manager of Rust.
+        `cargo new` to create a new Rust project.
+        Cargo use toml as configuration file, the `[package]` section is used to configure package, the `[dependencies]` section is used to configure project dependencies.
+        Rust calls packages of code as crates.
+        Cargo expects all source files in the `src` directory, top directory only places README, LICENSE, configuration files and anything else not related to the code.
+        `cargo init` can generate `Cargo.toml` file for the project.
+        `cargo build` to build the project. The default build is debug mode.
+        The first time running of `cargo build` will create `Cargo.lock` in the top directory. This file tracks the dependencies' versions of the project. This file should be managed automatically by Cargo.
+        `cargo run` to build and run.
+        `cargo check` to check the code compiles quickly, because there is no output executable, the check is commonly faster than `cargo build`.
+        `cargo build --release` to build for release.
+    CH2-Programming a Guessing Game
+        Rust by default has a set of items defined in the standard library that it brings into the scope of every program. This set of item is called prelude.
+        If the item we want is not contained in the prelude, we should use `use` to bring it to the scope.
+        `let` is used to create variables. Variables are immutable by default, and we should use `mut` to indicate mutability.
+        `String::new` syntax means that the `new` function is an associated function of `String` type. Many types have its `new` function.
+        `&` indicates reference. By default, reference is immutable, use `&mut` indicates mutability.
+        `Result` is an enum type, which has two variants: `Ok, Err`. `Result` 's `expect` method will judge the actual value and do corresponding actions. If we do not use `expect` on `Result`, we will get a warning in compliation.
+        In `println!`, `{}` can be used as placeholder.
+        Crate is a collection of Rust source files. The project we are building is a binary crate, which is executable. The `rand` crate is a library crate, which contains code intended to be called by other programs.
+        Before using `rand` crate, we should first modify `Cargo.toml`, add the dependency into `[dependencies]`.
+        In build, Cargo will first update the registry, and fetch the latest versions of dependencies from the registry, which is a copy of data from `Crates.io`.
+        To ensure build reproducibility, Cargo uses `Cargo.lock` to record dependencies' version on building.
+        When we want to update crates, we should use `cargo update`, which will ignore `Cargo.lock`, and find the latest compatible crates according to `Cargo.toml`, and update `Cargo.lock`.
+        `Rng` trait defines methods that random number generator should implement, and this trait must be in scope for us to use those methods.
+        Range expression is like `start..=end`, upper bound and lower bound is inclusive.
+        `Ordering` is another enum type, which has variants `Less, Greater, Equal`.
+        `match` expression is made up of arms, which consists of a pattern to match against.
+        By default, Rust use `i32` for numbers.
+        Shadowing allows us to use same name for different variables.
+        `loop` is used to crate infinite loop.
+
+\[Blog\]
+- [[blog-notes/LLVM, MLIR CMAKE 相关命令解析|LLVM, MLIR CMAKE 相关命令解析]]
+    `LLVM_DEFINITIONS` 变量包含了所有 LLVM 项目在编译时用到的宏定义，宏定义的形式通常为 `-DXXX, -DXXX=value`
+    `MLIR_XXX_LIBS` 属性存储了库名称的列表，这类属性全局可见和访问
+    `LLVM_RUNTIME_OUTPUT_INTDIR, LLVM_LIBRARY_OUTPUT_INTDIR` 用于存储 LLVM 相关目标的最终输出目录，LLVM 的自定义函数例如 `add_clang_executable, set_output_directory` 等都会使用这两个变量来设置输出路径
+
+\[Wiki\]
+- [[wiki-notes/RISC-V|RISC-V]]
+- [[wiki-notes/System on a chip|System on a chip]]
+
+\[Doc\]
+- [[doc-notes/onnx/onnx-operators/InstanceNormalization|onnx/onnx-operators/InstanceNormalization]]: All
+- [[doc-notes/cmake/reference-manuals/cmake-commands/aux_source_directory|cmake/reference-manuals/cmake-commands/aux_source_directory]]
+
+\[Code\]
+- InstanceNorm operator development for Tx8
+
