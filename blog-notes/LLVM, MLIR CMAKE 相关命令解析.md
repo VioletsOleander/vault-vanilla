@@ -57,7 +57,6 @@ set_target_properties(${target} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINA
 set_target_properties(${target} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 ```
 
-
 >  `LLVM_RUNTIME_OUTPUT_INTDIR, LLVM_LIBRARY_OUTPUT_INTDIR` 是 LLVM 定义的 CMake 变量，用于存储 LLVM 相关目标的最终输出目录
 
 >  LLVM 的自定义函数例如 `add_clang_executable` 等都会使用 `set_output_directory`，并引用这两个变量来设置输出路径
