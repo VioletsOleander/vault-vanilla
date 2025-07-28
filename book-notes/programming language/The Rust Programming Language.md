@@ -82,12 +82,14 @@ In most situations, we’ll lead you to the correct version of any code that doe
 
 ## Source Code
 The source files from which this book is generated can be found on [GitHub](https://github.com/rust-lang/book/tree/main/src).
+
 # 1 Getting Started
 Let’s start your Rust journey! There’s a lot to learn, but every journey starts somewhere. In this chapter, we’ll discuss:
 
 - Installing Rust on Linux, macOS, and Windows
 - Writing a program that prints `Hello, world!`
 - Using `cargo`, Rust’s package manager and build system
+
 ## 1.1 Installation
 The first step is to install Rust. We’ll download Rust through `rustup`, a command line tool for managing Rust versions and associated tools. You’ll need an internet connection for the download.
 >  我们通过 `rustup` —— 一个管理 Rust 版本和相关工具的命令行工具，来下载 Rust
@@ -1407,7 +1409,7 @@ This chapter covers concepts that appear in almost every programming language an
 
 Specifically, you’ll learn about variables, basic types, functions, comments, and control flow. These foundations will be in every Rust program, and learning them early will give you a strong core to start from.
 
-#### Keywords
+**Keywords**
 The Rust language has a set of _keywords_ that are reserved for use by the language only, much as in other languages. Keep in mind that you cannot use these words as names of variables or functions. Most of the keywords have special meanings, and you’ll be using them to do various tasks in your Rust programs; a few have no current functionality associated with them but have been reserved for functionality that might be added to Rust in the future. You can find a list of the keywords in [Appendix A](https://doc.rust-lang.org/stable/book/appendix-01-keywords.html).
 
 ## 3.1 Variables and Mutability
@@ -1593,27 +1595,53 @@ error: could not compile `variables` (bin "variables") due to 1 previous error
 
 Now that we’ve explored how variables work, let’s look at more data types they can have.
 
-## [Data Types](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#data-types)
-
+## 3.2 Data Types
 Every value in Rust is of a certain _data type_, which tells Rust what kind of data is being specified so it knows how to work with that data. We’ll look at two data type subsets: scalar and compound.
+>  Rust 中的每个值都有特定的数据类型
+>  我们将介绍两个数据类型子集: 标量类型和复合类型
 
 Keep in mind that Rust is a _statically typed_ language, which means that it must know the types of all variables at compile time. The compiler can usually infer what type we want to use based on the value and how we use it. In cases when many types are possible, such as when we converted a `String` to a numeric type using `parse` in the [“Comparing the Guess to the Secret Number”](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#comparing-the-guess-to-the-secret-number) section in Chapter 2, we must add a type annotation, like this:
+>  Rust 是静态类型语言，这意味着 Rust 必须在编译时知道所有变量的类型
+>  通常，编译器可以根据值以及我们如何使用该值来推断值的类型
+>  但在某些情况下，可能有多种可能的类型可以选择
+>  例如在 CH2 中，我们使用 `parse` 将 `String` 转换为数值类型时，我们必须添加类型注解，如下所示:
 
-`let guess: u32 = "42".parse().expect("Not a number!");`
+```rust
+let guess: u32 = "42".parse().expect("Not a number!");
+```
 
 If we don’t add the `: u32` type annotation shown in the preceding code, Rust will display the following error, which means the compiler needs more information from us to know which type we want to use:
+>  如果没有足够的类型注解，导致编译器无法推断一些数据类型时，编译器会报错
 
-``$ cargo build    Compiling no_type_annotations v0.1.0 (file:///projects/no_type_annotations) error[E0284]: type annotations needed  --> src/main.rs:2:9   | 2 |     let guess = "42".parse().expect("Not a number!");   |         ^^^^^        ----- type must be known at this point   |   = note: cannot satisfy `<_ as FromStr>::Err == _` help: consider giving `guess` an explicit type   | 2 |     let guess: /* Type */ = "42".parse().expect("Not a number!");   |              ++++++++++++  For more information about this error, try `rustc --explain E0284`. error: could not compile `no_type_annotations` (bin "no_type_annotations") due to 1 previous error``
+```shell
+$ cargo build
+   Compiling no_type_annotations v0.1.0 (file:///projects/no_type_annotations)
+error[E0284]: type annotations needed
+ --> src/main.rs:2:9
+  |
+2 |     let guess = "42".parse().expect("Not a number!");
+  |         ^^^^^        ----- type must be known at this point
+  |
+  = note: cannot satisfy `<_ as FromStr>::Err == _`
+help: consider giving `guess` an explicit type
+  |
+2 |     let guess: /* Type */ = "42".parse().expect("Not a number!");
+  |              ++++++++++++
+
+For more information about this error, try `rustc --explain E0284`.
+error: could not compile `no_type_annotations` (bin "no_type_annotations") due to 1 previous error
+```
 
 You’ll see different type annotations for other data types.
 
-### [Scalar Types](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#scalar-types)
-
+### Scalar Types
 A _scalar_ type represents a single value. Rust has four primary scalar types: integers, floating-point numbers, Booleans, and characters. You may recognize these from other programming languages. Let’s jump into how they work in Rust.
+>  标量类型表示单个值，Rust 有四个主要的标量类型: 整数、浮点数、布尔值、字符
 
-#### [Integer Types](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#integer-types)
-
+#### Integer Types
 An _integer_ is a number without a fractional component. We used one integer type in Chapter 2, the `u32` type. This type declaration indicates that the value it’s associated with should be an unsigned integer (signed integer types start with `i` instead of `u`) that takes up 32 bits of space. Table 3-1 shows the built-in integer types in Rust. We can use any of these variants to declare the type of an integer value.
+>  整数即没有小数部分的数字，我们在 chapter 2 使用了一个整数类型 `u32`，它表示关联的值是一个无符号整数 (有符号整数应该以 `i` 开头而不是 `u`)，并且占据 32 bit 的空间
+>  Rust 的内建整数类型如下所示
 
 Table 3-1: Integer Types in Rust
 
@@ -1627,12 +1655,18 @@ Table 3-1: Integer Types in Rust
 |arch|`isize`|`usize`|
 
 Each variant can be either signed or unsigned and has an explicit size. _Signed_ and _unsigned_ refer to whether it’s possible for the number to be negative—in other words, whether the number needs to have a sign with it (signed) or whether it will only ever be positive and can therefore be represented without a sign (unsigned). It’s like writing numbers on paper: when the sign matters, a number is shown with a plus sign or a minus sign; however, when it’s safe to assume the number is positive, it’s shown with no sign. Signed numbers are stored using [two’s complement](https://en.wikipedia.org/wiki/Two%27s_complement) representation.
+>  每种变体都可以是有符号的或无符号的，且具有明确的大小
+>  有符号数使用补码表示法进行存储
 
-Each signed variant can store numbers from −(2n − 1) to 2n − 1 − 1 inclusive, where _n_ is the number of bits that variant uses. So an `i8` can store numbers from −(27) to 27 − 1, which equals −128 to 127. Unsigned variants can store numbers from 0 to 2n − 1, so a `u8` can store numbers from 0 to 28 − 1, which equals 0 to 255.
+Each signed variant can store numbers from $−(2^{n − 1})$ to $2^{n − 1} − 1$ inclusive, where _n_ is the number of bits that variant uses. So an `i8` can store numbers from $−(2^7)$ to $2^7 − 1$, which equals $−128$ to $127$. Unsigned variants can store numbers from $0$ to $2^{n − 1}$, so a `u8` can store numbers from $0$ to $2^8 − 1$, which equals 0 to 255.
 
 Additionally, the `isize` and `usize` types depend on the architecture of the computer your program is running on, which is denoted in the table as “arch”: 64 bits if you’re on a 64-bit architecture and 32 bits if you’re on a 32-bit architecture.
+>  `isize, usize` 类型依赖于程序所运行的计算机架构，如果是 64 位架构，则为 64 位，如果是 32 位架构，则为 32 位
 
 You can write integer literals in any of the forms shown in Table 3-2. Note that number literals that can be multiple numeric types allow a type suffix, such as `57u8`, to designate the type. Number literals can also use `_` as a visual separator to make the number easier to read, such as `1_000`, which will have the same value as if you had specified `1000`.
+>  我们可以使用 Table 3-2 中的任意形式表示整数字面量
+>  注意，可以属于多种数据类型的数字字面量可以使用类型后缀，例如 `57u8`，以指定其类型
+>  数字字面量可以使用 `_` 作为视觉分隔符，是其更加易读，例如 `1_000`，它的值和写成 `1000` 是相同的
 
 Table 3-2: Integer Literals in Rust
 
@@ -1645,12 +1679,18 @@ Table 3-2: Integer Literals in Rust
 |Byte (`u8` only)|`b'A'`|
 
 So how do you know which type of integer to use? If you’re unsure, Rust’s defaults are generally good places to start: integer types default to `i32`. The primary situation in which you’d use `isize` or `usize` is when indexing some sort of collection.
+>  Rust 的默认整数类型是 `i32`，一般我们在对某种集合进行索引时才会使用 `isize` 或 `usize`
 
-##### [Integer Overflow](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#integer-overflow)
-
+**Integer Overflow**
 Let’s say you have a variable of type `u8` that can hold values between 0 and 255. If you try to change the variable to a value outside that range, such as 256, _integer overflow_ will occur, which can result in one of two behaviors. When you’re compiling in debug mode, Rust includes checks for integer overflow that cause your program to _panic_ at runtime if this behavior occurs. Rust uses the term _panicking_ when a program exits with an error; we’ll discuss panics in more depth in the [“Unrecoverable Errors with `panic!`”](https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html) section in Chapter 9.
+>  Rust 的 debug mode 编译包含了对可以在程序运行时引发 panic 的整数溢出的检查
 
 When you’re compiling in release mode with the `--release` flag, Rust does _not_ include checks for integer overflow that cause panics. Instead, if overflow occurs, Rust performs _two’s complement wrapping_. In short, values greater than the maximum value the type can hold “wrap around” to the minimum of the values the type can hold. In the case of a `u8`, the value 256 becomes 0, the value 257 becomes 1, and so on. The program won’t panic, but the variable will have a value that probably isn’t what you were expecting it to have. Relying on integer overflow’s wrapping behavior is considered an error.
+>  在 release mode 编译下，Rust 不会对导致 panic 的整数溢出进行检查
+>  如果发生溢出，Rust 会执行补码环绕，简而言之，超过该类型的最大值的值会被 “环绕” 到该类型可以存储的最小值
+>  例如，对于 `u8` 类型来说，值 256 会变成 0，值 257 会变成 1，依次类推
+>  程序不会 panic，但变量的值可能与你预期的完全不同
+>  注意编程时不要依赖整数溢出的环绕行为
 
 To explicitly handle the possibility of overflow, you can use these families of methods provided by the standard library for primitive numeric types:
 
@@ -1659,132 +1699,276 @@ To explicitly handle the possibility of overflow, you can use these families of 
 - Return the value and a Boolean indicating whether there was overflow with the `overflowing_*` methods.
 - Saturate at the value’s minimum or maximum values with the `saturating_*` methods.
 
-#### [Floating-Point Types](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#floating-point-types)
+>  要显式处理溢出的可能性，可以使用标准库为原始数值类型提供的以下方法族:
+>  - 使用 `wrapping_*` 方法 (例如 `warpping_add`) 在所有模式下进行环绕处理
+>  - 使用 `checked_*` 方法在发生溢出时返回 `None` 值
+>  - 使用 `overflowing_*` 方法返回一个值以及布尔值，表示是否发生了溢出
+>  - 使用 `saturating_*` 方法在达到该类型的最小值或最大值时进行饱和处理
 
+#### Floating-Point Types
 Rust also has two primitive types for _floating-point numbers_, which are numbers with decimal points. Rust’s floating-point types are `f32` and `f64`, which are 32 bits and 64 bits in size, respectively. The default type is `f64` because on modern CPUs, it’s roughly the same speed as `f32` but is capable of more precision. All floating-point types are signed.
+>  Rust 还有两种用于浮点数的原始类型 (浮点数即带有小数点的数字): `f32, f64`
+>  默认的类型是 `f64`，因为在现代 CPU 上，它的速度与 `f32` 相当，但能提高更高的精度
+>  所有的浮点类型都是有符号的
 
 Here’s an example that shows floating-point numbers in action:
 
 Filename: src/main.rs
 
-`fn main() {     let x = 2.0; // f64      let y: f32 = 3.0; // f32 }`
+```rust
+fn main() {
+    let x = 2.0; // f64
+
+    let y: f32 = 3.0; // f32
+}
+```
 
 Floating-point numbers are represented according to the IEEE-754 standard.
+>  浮点数使用 IEEE-754 标准表示
 
-#### [Numeric Operations](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#numeric-operations)
+#### Numeric Operations
+Rust supports the basic mathematical operations you’d expect for all the number types: addition, subtraction, multiplication, division, and remainder. Integer division truncates toward zero to the nearest integer. 
+>  Rust 支持所有数字类型都具备的基本数学运算: 加法、减法、乘法、除法和取余
+>  整数除法会向零方向阶段，得到最近的整数
 
-Rust supports the basic mathematical operations you’d expect for all the number types: addition, subtraction, multiplication, division, and remainder. Integer division truncates toward zero to the nearest integer. The following code shows how you’d use each numeric operation in a `let` statement:
+The following code shows how you’d use each numeric operation in a `let` statement:
 
 Filename: src/main.rs
 
-`fn main() {     // addition     let sum = 5 + 10;      // subtraction     let difference = 95.5 - 4.3;      // multiplication     let product = 4 * 30;      // division     let quotient = 56.7 / 32.2;     let truncated = -5 / 3; // Results in -1      // remainder     let remainder = 43 % 5; }`
+```rust
+fn main() {
+    // addition
+    let sum = 5 + 10;
+
+    // subtraction
+    let difference = 95.5 - 4.3;
+
+    // multiplication
+    let product = 4 * 30;
+
+    // division
+    let quotient = 56.7 / 32.2;
+    let truncated = -5 / 3; // Results in -1
+
+    // remainder
+    let remainder = 43 % 5;
+}
+```
 
 Each expression in these statements uses a mathematical operator and evaluates to a single value, which is then bound to a variable. [Appendix B](https://doc.rust-lang.org/stable/book/appendix-02-operators.html) contains a list of all operators that Rust provides.
 
-#### [The Boolean Type](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#the-boolean-type)
-
+#### The Boolean Type
 As in most other programming languages, a Boolean type in Rust has two possible values: `true` and `false`. Booleans are one byte in size. The Boolean type in Rust is specified using `bool`. For example:
+>  Rust 中，布尔类型有两个可能值: `true, false`
+>  布尔类型的大小为单字节
+>  布尔类型通过 `bool` 注解
 
 Filename: src/main.rs
 
-`fn main() {     let t = true;      let f: bool = false; // with explicit type annotation }`
+```rust
+fn main() {
+    let t = true;
+
+    let f: bool = false; // with explicit type annotation
+}
+```
 
 The main way to use Boolean values is through conditionals, such as an `if` expression. We’ll cover how `if` expressions work in Rust in the [“Control Flow”](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#control-flow) section.
 
-#### [The Character Type](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#the-character-type)
-
+#### The Character Type
 Rust’s `char` type is the language’s most primitive alphabetic type. Here are some examples of declaring `char` values:
+>  Rust 的 `char` 类型是语言中最基本的字母类型
 
 Filename: src/main.rs
 
-`fn main() {     let c = 'z';     let z: char = 'ℤ'; // with explicit type annotation     let heart_eyed_cat = '😻'; }`
+```rust
+fn main() {
+    let c = 'z';
+    let z: char = 'ℤ'; // with explicit type annotation
+    let heart_eyed_cat = '😻';
+}
+```
 
-Note that we specify `char` literals with single quotes, as opposed to string literals, which use double quotes. Rust’s `char` type is four bytes in size and represents a Unicode Scalar Value, which means it can represent a lot more than just ASCII. Accented letters; Chinese, Japanese, and Korean characters; emoji; and zero-width spaces are all valid `char` values in Rust. Unicode Scalar Values range from `U+0000` to `U+D7FF` and `U+E000` to `U+10FFFF` inclusive. However, a “character” isn’t really a concept in Unicode, so your human intuition for what a “character” is may not match up with what a `char` is in Rust. We’ll discuss this topic in detail in [“Storing UTF-8 Encoded Text with Strings”](https://doc.rust-lang.org/stable/book/ch08-02-strings.html#storing-utf-8-encoded-text-with-strings) in Chapter 8.
+Note that we specify `char` literals with single quotes, as opposed to string literals, which use double quotes. Rust’s `char` type is four bytes in size and represents a Unicode Scalar Value, which means it can represent a lot more than just ASCII. Accented letters; Chinese, Japanese, and Korean characters; emoji; and zero-width spaces are all valid `char` values in Rust. 
+>  我们通过单引号来表示 `char` 字面量，而字符串字面量则使用双引号
+>  `char` 类型的大小是四字节，表示一个 Unicode 标量值，这意味着它不仅可以表示 ASCII 字符，也可以表示更多字符
+>  带变音符号的字母、中文、日文、韩文、emoji、零宽度空格在 Rust 中都是合法的 `char` 值
 
-### [Compound Types](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#compound-types)
+Unicode Scalar Values range from `U+0000` to `U+D7FF` and `U+E000` to `U+10FFFF` inclusive. However, a “character” isn’t really a concept in Unicode, so your human intuition for what a “character” is may not match up with what a `char` is in Rust. We’ll discuss this topic in detail in [“Storing UTF-8 Encoded Text with Strings”](https://doc.rust-lang.org/stable/book/ch08-02-strings.html#storing-utf-8-encoded-text-with-strings) in Chapter 8.
+>  Unicode 标量值的范围是从 `U+0000` 到 `U+D7FF`，以及 `U+E000` 到 `U+10FFFF`
+>  但是 “字符” 并不是 Unicode 中的一个明确概念，因此人类对 “字符” 的直觉可能与 Rust 中 `char` 的定义不太一致
 
+### Compound Types
 _Compound types_ can group multiple values into one type. Rust has two primitive compound types: tuples and arrays.
+>  复合类型将多个值聚集到一个类型中，Rust 有两个原始复合类型: tuple, array
 
-#### [The Tuple Type](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#the-tuple-type)
-
+#### The Tuple Type
 A _tuple_ is a general way of grouping together a number of values with a variety of types into one compound type. Tuples have a fixed length: once declared, they cannot grow or shrink in size.
+>  tuple 可以将多种类型的值组合到一个复合类型中
+>  tuple 的长度固定，一旦声明，就不能变化
 
 We create a tuple by writing a comma-separated list of values inside parentheses. Each position in the tuple has a type, and the types of the different values in the tuple don’t have to be the same. We’ve added optional type annotations in this example:
+>  我们通过在括号内编写用逗号分隔的值列表来创建 tuple
+>  tuple 中的每个位置都有一个类型
+>  在这个例子中，我们添加了可选的类型注释:
 
 Filename: src/main.rs
 
-`fn main() {     let tup: (i32, f64, u8) = (500, 6.4, 1); }`
+```rust
+fn main() {
+    let tup: (i32, f64, u8) = (500, 6.4, 1);
+}
+```
 
 The variable `tup` binds to the entire tuple because a tuple is considered a single compound element. To get the individual values out of a tuple, we can use pattern matching to destructure a tuple value, like this:
+>  上例中，变量 `tup` 绑定了整个 tuple，因为一个 tuple 被视作单个复合元素
+>  为了得到 tuple 中的单个值，我们可以使用模式匹配来结构元组值，例如:
 
 Filename: src/main.rs
 
-`fn main() {     let tup = (500, 6.4, 1);      let (x, y, z) = tup;      println!("The value of y is: {y}"); }`
+```rust
+fn main() {
+    let tup = (500, 6.4, 1);
+
+    let (x, y, z) = tup;
+
+    println!("The value of y is: {y}");
+}
+```
 
 This program first creates a tuple and binds it to the variable `tup`. It then uses a pattern with `let` to take `tup` and turn it into three separate variables, `x`, `y`, and `z`. This is called _destructuring_ because it breaks the single tuple into three parts. Finally, the program prints the value of `y`, which is `6.4`.
+>  这个程序首先创建一个 tuple 并将它绑定到变量 `tup`
+>  然后，使用 `let` 进行模式匹配，将 `tup` 拆分为三个独立的变量，这称为 destructuring，因为它将单个 tuple 拆分为了三个部分
 
 We can also access a tuple element directly by using a period (`.`) followed by the index of the value we want to access. For example:
+>  我们也可以通过 `.<index>` 来访问 tuple 元素，如下所示:
 
 Filename: src/main.rs
 
-`fn main() {     let x: (i32, f64, u8) = (500, 6.4, 1);      let five_hundred = x.0;      let six_point_four = x.1;      let one = x.2; }`
+```rust
+fn main() {
+    let x: (i32, f64, u8) = (500, 6.4, 1);
+
+    let five_hundred = x.0;
+
+    let six_point_four = x.1;
+
+    let one = x.2;
+}
+```
 
 This program creates the tuple `x` and then accesses each element of the tuple using their respective indices. As with most programming languages, the first index in a tuple is 0.
 
 The tuple without any values has a special name, _unit_. This value and its corresponding type are both written `()` and represent an empty value or an empty return type. Expressions implicitly return the unit value if they don’t return any other value.
+>  没有任何值的 tuple 称为 unit，这个值及其对应的类型都写为 `()`，表示空值或空返回类型
+>  Rust 中，如果表达式不返回其他任何值，它们就会隐式地返回 unit 值
 
-#### [The Array Type](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#the-array-type)
-
+#### The Array Type
 Another way to have a collection of multiple values is with an _array_. Unlike a tuple, every element of an array must have the same type. Unlike arrays in some other languages, arrays in Rust have a fixed length.
+>  另一种集合一组值的方式是 array
+>  和 tuple 不同，array 中的所有元素的类型都相同
+>  Rust 中，array 也是固定长度的
 
 We write the values in an array as a comma-separated list inside square brackets:
+>  array 通过方括号中逗号分隔的值创建，如下所示:
 
 Filename: src/main.rs
 
-`fn main() {     let a = [1, 2, 3, 4, 5]; }`
+```rust
+fn main() {
+    let a = [1, 2, 3, 4, 5];
+}
+```
 
 Arrays are useful when you want your data allocated on the stack, the same as the other types we have seen so far, rather than the heap (we will discuss the stack and the heap more in [Chapter 4](https://doc.rust-lang.org/stable/book/ch04-01-what-is-ownership.html#the-stack-and-the-heap)) or when you want to ensure you always have a fixed number of elements. An array isn’t as flexible as the vector type, though. A _vector_ is a similar collection type provided by the standard library that _is_ allowed to grow or shrink in size. If you’re unsure whether to use an array or a vector, chances are you should use a vector. [Chapter 8](https://doc.rust-lang.org/stable/book/ch08-01-vectors.html) discusses vectors in more detail.
+>  和 array 类似的类型是 vector 类型，vector 是由标准库提供的集合类型，vector 类型允许大小增大或减小
+>  如果我们不确定使用 array 或 vector，那么很可能应该使用 vector
 
 However, arrays are more useful when you know the number of elements will not need to change. For example, if you were using the names of the month in a program, you would probably use an array rather than a vector because you know it will always contain 12 elements:
 
-`let months = ["January", "February", "March", "April", "May", "June", "July",               "August", "September", "October", "November", "December"];`
+```rust
+let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; 
+```
 
 You write an array’s type using square brackets with the type of each element, a semicolon, and then the number of elements in the array, like so:
+>  可以使用 `[dtype, ele_num]` 作为数组的类型注释，例如:
 
-`let a: [i32; 5] = [1, 2, 3, 4, 5];`
+```rust
+let a: [i32; 5] = [1, 2, 3, 4, 5];
+```
 
 Here, `i32` is the type of each element. After the semicolon, the number `5` indicates the array contains five elements.
 
 You can also initialize an array to contain the same value for each element by specifying the initial value, followed by a semicolon, and then the length of the array in square brackets, as shown here:
 
-`let a = [3; 5];`
+```rust
+let a = [3; 5]; 
+```
 
 The array named `a` will contain `5` elements that will all be set to the value `3` initially. This is the same as writing `let a = [3, 3, 3, 3, 3];` but in a more concise way.
 
-##### [Accessing Array Elements](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#accessing-array-elements)
+>  像 `let a = [3; 5];` 这样的写法将初始化一个长度为 `5`，所有元素都是 `3` 的数组
 
+##### Accessing Array Elements
 An array is a single chunk of memory of a known, fixed size that can be allocated on the stack. You can access elements of an array using indexing, like this:
+>  array 是分配在栈上的一块已知且固定大小的内存，可以使用索引访问 array 元素:
 
 Filename: src/main.rs
 
-`fn main() {     let a = [1, 2, 3, 4, 5];      let first = a[0];     let second = a[1]; }`
+```rust
+fn main() {
+    let a = [1, 2, 3, 4, 5];
+
+    let first = a[0];
+    let second = a[1];
+}
+```
 
 In this example, the variable named `first` will get the value `1` because that is the value at index `[0]` in the array. The variable named `second` will get the value `2` from index `[1]` in the array.
 
-##### [Invalid Array Element Access](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#invalid-array-element-access)
-
+##### Invalid Array Element Access
 Let’s see what happens if you try to access an element of an array that is past the end of the array. Say you run this code, similar to the guessing game in Chapter 2, to get an array index from the user:
 
 Filename: src/main.rs
 
-[![](https://doc.rust-lang.org/stable/book/img/ferris/panics.svg "This code panics!")](https://doc.rust-lang.org/stable/book/ch00-00-introduction.html#ferris)
+```rust
+use std::io;
 
-`use std::io;  fn main() {     let a = [1, 2, 3, 4, 5];      println!("Please enter an array index.");      let mut index = String::new();      io::stdin()         .read_line(&mut index)         .expect("Failed to read line");      let index: usize = index         .trim()         .parse()         .expect("Index entered was not a number");      let element = a[index];      println!("The value of the element at index {index} is: {element}"); }`
+fn main() {
+    let a = [1, 2, 3, 4, 5];
+
+    println!("Please enter an array index.");
+
+    let mut index = String::new();
+
+    io::stdin()
+        .read_line(&mut index)
+        .expect("Failed to read line");
+
+    let index: usize = index
+        .trim()
+        .parse()
+        .expect("Index entered was not a number");
+
+    let element = a[index];
+
+    println!("The value of the element at index {index} is: {element}");
+}
+```
 
 This code compiles successfully. If you run this code using `cargo run` and enter `0`, `1`, `2`, `3`, or `4`, the program will print out the corresponding value at that index in the array. If you instead enter a number past the end of the array, such as `10`, you’ll see output like this:
 
-``thread 'main' panicked at src/main.rs:19:19: index out of bounds: the len is 5 but the index is 10 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace``
+```
+thread 'main' panicked at src/main.rs:19:19:
+index out of bounds: the len is 5 but the index is 10
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
 
 The program resulted in a _runtime_ error at the point of using an invalid value in the indexing operation. The program exited with an error message and didn’t execute the final `println!` statement. When you attempt to access an element using indexing, Rust will check that the index you’ve specified is less than the array length. If the index is greater than or equal to the length, Rust will panic. This check has to happen at runtime, especially in this case, because the compiler can’t possibly know what value a user will enter when they run the code later.
+>  如果 array 访问越界，将导致一个运行时错误，程序会立刻退出
+>  当我们用索引访问元素时，Rust 会检查指定的索引是否小于数组长度，如果索引大于等于数组长度，Rust 会 panic
+>  这种检查必须在运行时执行，因为编译时无法确定具体的索引数值
 
 This is an example of Rust’s memory safety principles in action. In many low-level languages, this kind of check is not done, and when you provide an incorrect index, invalid memory can be accessed. Rust protects you against this kind of error by immediately exiting instead of allowing the memory access and continuing. Chapter 9 discusses more of Rust’s error handling and how you can write readable, safe code that neither panics nor allows invalid memory access.
+>  这是 Rust 的内存安全原则实际应用的例子，在许多低级语言中，这个检查通常不会运行，故我们可能会访问到无效的内存
+>  Rust 通过立即退出程序来保护我们免受此类错误的影响，而不是允许内存访问并继续执行
