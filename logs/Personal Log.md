@@ -2704,3 +2704,40 @@ Date: 2025.7.14-2025.7.21
 \[Code\]
 - InstanceNorm operator development for Tx8
 
+### Week 4
+Date: 2025.7.21-2025.7.28
+
+\[Paper\]
+- [[paper-notes/mlsys/Large Scale Distributed Deep Networks-NeurIPS-2012|2012-Large Scale Distributed Deep Networks-NeurIPS]]
+    Abstract
+        This work focuses on training DL model with billion parameters using tens of thousands of CPU cores.
+        The framework is called DistBelief, which includes two algorithms for large-scale distributed training: Downpour SGD, Sandblaster.
+    Introduction
+        DistBelief allows model within a machine (via multithreading) and across machines (via message passing). The details are managed by the framework. DistBelief also supports data parallelism, where multiple replicas of a model are used to optimize a single objective.
+    Previous work
+    Model parallelism
+        DistBelief will partition large model into multiple machines. The nodes with edges that cross partition boundaries will need to transmit their states across machines.
+        Model with high computation demand will normally benefit from scaling up until the communication cost dominate.
+        The typical case of less-than-ideal speedups is variance in processing times across different machines, leading to many machines waiting for the slowest machine to finish a given phase of computation.
+    Distributed optimization algorithms
+        Model parallelism is the first layer parallelism. Under the first layer parallelism, the model partition will be trained by data parallelism.
+        Data parallelism replicates the model partition into multiple replicas, and use distributed optimization method to optimize the model partition.
+        The two distributed optimization method all utilize shared parameter server to share the parameter.
+        Downpour SGD is an asynchronous version of SGD. Downpour SGD focuses on maximizing the throughput, therefore the computation node will update its parameters almost independently, and communicate with the parameter server shared independently. The communication frequency is high to improve stability.
+        Sandblaster's communication frequency is low, but every node will compute multiple mini-batches every time.
+    Experiments
+    Conclusions
+
+\[Book\]
+- [[book-notes/programming language/The Modern Javascript Tutorial|The Modern Javascript Tutorial]]: CH1
+    JS program is called scripts. 
+    JS execution environment is called JS engine. (essentially the compiler of JS script)
+    JS engine embedded in browser is called JS virtual machine.
+    JS has ECMAScipt as specification.
+    JS's capability relies on the execution environment, such as `Node.js`
+
+\[Doc\]
+- [[doc-notes/Semantic Versioning|Semantic Versioning]]
+- [[doc-notes/onednn/about/Introduction|onednn/about/Introduction]]: All
+- [[doc-notes/onednn/learn-ondnn/Key Concepts|onednn/learn-ondnn/Key Concepts]]: All
+- [[doc-notes/onednn/learn-ondnn/Functional API Basic Workflow|onednn/learn-ondnn/Functional API Basic Workflow]]: All
