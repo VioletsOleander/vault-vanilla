@@ -224,135 +224,222 @@ This auxiliary data is the set of topics assigned to each word of a document, an
 As before, each worker needs to store only the parameters for the words occurring in the documents it processes. Hence, distributing documents across workers has the same effect as in the previous section: we can process much bigger models than a single worker may hold.
 >  和之前一样，每个 worker 只需要存储它所负责处理的文档中出现的词的参数，因此，将文档分发给各个 worker 的效果和前一节相同: 我们可以处理比单个 worker 所能存储的更大的模型
 
+# 3 Architecture
+An instance of the parameter server can run more than one algorithm simultaneously. Parameter server nodes are grouped into a server group and several worker groups as shown in Figure 4. A server node in the server group maintains a partition of the globally shared parameters. Server nodes communicate with each other to replicate and/or to migrate parameters for reliability and scaling. A server manager node maintains a consistent view of the metadata of the servers, such as node liveness and the assignment of parameter partitions.
+>  一个 Parameter Server 实例可以同时运行多个算法
+>  如 Figure 4，Parameter Server 节点被分为一个 server group 和多个 worker groups
+>  Server group 中的 server nodes 之间相互通信，以复制/迁移参数，从而实现可靠性和拓展性
+>  server manager node 维护 servers 的元数据的一致视图，例如节点的存活状态以及参数分区的分配情况
+
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/3207ac2aae29a1d7a2ec589708bfab0b483431eb0724cc7dd635bce300a44607.jpg)  
 
 Figure 4: Architecture of a parameter server communicating with several groups of workers.
 
-# 3 Architecture
-An instance of the parameter server can run more than one algorithm simultaneously. Parameter server nodes are grouped into a server group and several worker groups as shown in Figure 4. A server node in the server group maintains a partition of the globally shared parameters. Server nodes communicate with each other to replicate and/or to migrate parameters for reliability and scaling. A server manager node maintains a consistent view of the metadata of the servers, such as node liveness and the assignment of parameter partitions.
-
 Each worker group runs an application. A worker typically stores locally a portion of the training data to compute local statistics such as gradients. Workers communicate only with the server nodes (not among themselves), updating and retrieving the shared parameters. There is a scheduler node for each worker group. It assigns tasks to workers and monitors their progress. If workers are added or removed, it reschedules unfinished tasks.
+>  每个 worker group 运行一个应用
+>  worker 通常会本地存储一部分训练数据，以计算局部统计信息，如梯度
+>  worker 仅和 server nodes 通信 (worker nodes 之间不通信)，来获取和更新共享参数
+>  每个 worker group 有一个 scheduler node，它负责将任务分配个 workers 并监控其进度，如果 workers 被添加或删除，它会重新安排未完成的任务
 
 The parameter server supports independent parameter namespaces. This allows a worker group to isolate its set of shared parameters from others. Several worker groups may also share the same namespace: we may use more than one worker group to solve the same deep learning application [13] to increase parallelization. Another example is that of a model being actively queried by some nodes, such as online services consuming this model. Simultaneously the model is updated by a different group of worker nodes as new training data arrives.
+>  Parameter server 支持独立的参数命名空间，这使得一个 worker group 可以将其共享参数集与其他 worker group 隔离
+>  多个 worker group 也可以共享同一个命名空间: 使用多个 worker group 解决同一个 DL 应用
+>  另一个例子是，某些 worker nodes (如在线服务) 正在主动查询模型，同时随着新训练数据的到来，模型又由另一组 worker nodes 进行更新
 
 The parameter server is designed to simplify developing distributed machine learning applications such as those discussed in Section 2. The shared parameters are presented as (key,value) vectors to facilitate linear algebra operations (Sec. 3.1). They are distributed across a group of server nodes (Sec. 4.3). Any node can both push out its local parameters and pull parameters from remote nodes (Sec. 3.2). By default, workloads, or tasks, are executed by worker nodes; however, they can also be assigned to server nodes via user defined functions (Sec. 3.3). Tasks are asynchronous and run in parallel (Sec. 3.4). The parameter server provides the algorithm designer with flexibility in choosing a consistency model via the task dependency graph (Sec. 3.5) and predicates to communicate a subset of parameters (Sec. 3.6).
+>  Parameter server 的设计旨在简化分布式 ML 引用的开发
+>  共享参数以 (key, value) 向量的形式表示，以促进线性代数运算，共享参数分布在一组 server nodes 上
+>  任何节点都可以推送其本地参数，并拉取远程参数
+>  默认情况下，workload/task 由 worker nodes 执行，但也可以通过用户定义的函数分配给 server node
+>  tasks 是异步并行执行的，Parameter Server 通过任务依赖图和用于通信部分参数的谓词来为算法设计者提供了选择一致性模型的灵活性
 
-# 3.1 (Key,Value) Vectors
-
+## 3.1 (Key,Value) Vectors
 The model shared among nodes can be represented as a set of (key, value) pairs. For example, in a loss minimization problem, the pair is a feature ID and its weight. For LDA, the pair is a combination of the word ID and topic ID, and a count. Each entry of the model can be read and written locally or remotely by its key. This (key,value) abstraction is widely adopted by existing approaches [37, 29, 12].
+>  nodes 之间共享的模型 (参数) 可以表示为一组 (key, value) pairs
+>  例如，在损失最小化问题中，该 pair 是 (feature ID, weight)，LDA 中，该 pair 是 (work ID; topic ID, count)
+>  (key 可以是一个哈希出来的值、下标，value 可以是浮点数、向量、参数矩阵)
+>  模型的每个 (key, value) entry 可以通过 key 局部或远程读写
+>  这种 (key, value) 抽象在当下被广泛采用
 
-Our parameter server improves upon this basic approach by acknowledging the underlying meaning of these key value items: machine learning algorithms typically treat the model as a linear algebra object. For instance,  $w$  is used as a vector for both the objective function (1) and the optimization in Algorithm 1 by risk minimization. By treating these objects as sparse linear algebra objects, the parameter server can provide the same functionality as the (key,value) abstraction, but admits important optimized operations such as vector addition  $w + u$  multiplication  $Xw$  finding the 2-norm  $\| w\| _2$  and other more sophisticated operations [16].
+Our parameter server improves upon this basic approach by acknowledging the underlying meaning of these key value items: machine learning algorithms typically treat the model as a linear algebra object. For instance,  $w$  is used as a vector for both the objective function (1) and the optimization in Algorithm 1 by risk minimization. By treating these objects as sparse linear algebra objects, the parameter server can provide the same functionality as the (key,value) abstraction, but admits important optimized operations such as vector addition  $w + u$  , multiplication  $Xw$  , finding the 2-norm  $\| w\| _2$  and other more sophisticated operations [16].
+>  由于 ML 算法通常将模型视作一个线性代数对象，例如目标函数 1 和优化算法 1 中，$w$ 被视作一个向量
+>  因此 Parameter Server 将模型参数视作一个稀疏的线性代数对象，故在提供 key-value 抽象的同时，支持了优化的操作，例如向量加法、矩阵向量乘、求 2 范数等
 
 To support these optimizations, we assume that the keys are ordered. This lets us treat the parameters as (key,value) pairs while endowing them with vector and matrix semantics, where non-existing keys are associated with zeros. This helps with linear algebra in machine learning. It reduces the programming effort to implement optimization algorithms. Beyond convenience, this interface design leads to efficient code by leveraging CPU-efficient multithreaded self-tuning linear algebra libraries such as BLAS [16], LAPACK [3], and ATLAS [49].
+>  实际的实现利用了高效的 CPU 多线程自动调优线性代数库，例如 BLAS, LAPACK, ATLAS
 
-# 3.2 Range Push and Pull
-
+## 3.2 Range Push and Pull
 Data is sent between nodes using push and pull operations. In Algorithm 1 each worker pushes its entire local gradient into the servers, and then pulls the updated weight back. The more advanced algorithm described in Algorithm 3 uses the same pattern, except that only a range of keys is communicated each time.
+>  数据在 nodes 之间通过 push 和 pull 操作发送
+>  算法 1 中，每个 worker 将其局部梯度 push 到 servers，然后 pull 更新的梯度
+>  算法 3 使用了相同模型，只不过每次通信时传输 a range of keys
 
-The parameter server optimizes these updates for programmer convenience as well as computational and network bandwidth efficiency by supporting rangebased push and pull.If  $\mathcal{R}$  is a key range, then w.push  $(\mathcal{R},\mathsf{dest})$  sends all existing entries of  $w$  in key range  $\mathcal{R}$  to the destination, which can be either a particular node, or a node group such as the server group. Similarly, w.pul1  $(\mathcal{R},\mathsf{dest})$  reads all existing entries of  $w$  in key range  $\mathcal{R}$  from the destination. If we set  $\mathcal{R}$  to be the whole key range, then the whole vector  $w$  will be communicated. If we set  $\mathcal{R}$  to include a single key, then only an individual entry will be sent.
+The parameter server optimizes these updates for programmer convenience as well as computational and network bandwidth efficiency by supporting range-based push and pull. If  $\mathcal{R}$  is a key range, then w.push  $(\mathcal{R},\mathsf{dest})$  sends all existing entries of  $w$  in key range  $\mathcal{R}$  to the destination, which can be either a particular node, or a node group such as the server group. Similarly, w.pull $(\mathcal{R},\mathsf{dest})$  reads all existing entries of  $w$  in key range  $\mathcal{R}$  from the destination. If we set  $\mathcal{R}$  to be the whole key range, then the whole vector  $w$  will be communicated. If we set  $\mathcal{R}$  to include a single key, then only an individual entry will be sent.
+>  Parameter server 支持 range-based push and pull，也就是可以发送和拉取一个 range 内 keys 对应的 values
+>  如果 range 设定为全部的 key range，就是发送和拉取整个参数向量 $w$
 
-This interface can be extended to communicate any local data structures that share the same keys as  $w$  .For example, in Algorithm 1, a worker pushes its temporary local gradient  $g$  to the parameter server for aggregation. One option is to make  $g$  globally shared. However, note that  $g$  shares the keys of the worker's working set  $w$  .Hence the programmer can use w.push  $(\mathcal{R},\mathsf{g},\mathsf{dest})$  for the local gradients to save memory and also enjoy the optimization discussed in the following sections.
+This interface can be extended to communicate any local data structures that share the same keys as  $w$  . For example, in Algorithm 1, a worker pushes its temporary local gradient  $g$  to the parameter server for aggregation. One option is to make  $g$  globally shared. However, note that  $g$  shares the keys of the worker's working set  $w$  . Hence the programmer can use w.push  $(\mathcal{R},\mathsf{g},\mathsf{dest})$  for the local gradients to save memory and also enjoy the optimization discussed in the following sections.
 
-# 3.3 User-Defined Functions on the Server
+## 3.3 User-Defined Functions on the Server
+Beyond aggregating data from workers, server nodes can execute user-defined functions. It is beneficial because the server nodes often have more complete or up-to-date information about the shared parameters. In Algorithm 1, server nodes evaluate subgradients of the regularizer  $\Omega$  in order to update  $w$  . At the same time a more complicated proximal operator is solved by the servers to update the model in Algorithm 3. In the context of sketching (Sec. 5.3), almost all operations occur on the server side.
+>  server nodes 除了负责聚合 worker 的数据之外，还可以执行用户定义的函数
+>  这很有好处，因为 servers node 通常具有最新的参数
+>  Algorithm 1 中，server node 会计算正则化项的梯度
+>  Algorithm 3 中，server node 会求解一个更复杂的近似算子
 
-Beyond aggregating data from workers, server nodes can execute user-defined functions. It is beneficial because the server nodes often have more complete or up-to-date information about the shared parameters. In Algorithm 1, server nodes evaluate subgradients of the regularizer  $\Omega$  in order to update  $w$  .At the same time a more complicated proximal operator is solved by the servers to update the model in Algorithm 3. In the context of sketching (Sec. 5.3), almost all operations occur on the server side.
-
-# 3.4 Asynchronous Tasks and Dependency
-
+## 3.4 Asynchronous Tasks and Dependency
 A tasks is issued by a remote procedure call. It can be a push or a pull that a worker issues to servers. It can also be a user-defined function that the scheduler issues to any node. Tasks may include any number of subtasks. For example, the task WorkerIterate in Algorithm 1 contains one push and one pull.
+>  task 通过 RPC 发出，例如 worker 向 server 发出 push/pull
+>  task 也可以是调度给任意 node 的用户定义函数
+>  task 可以包含任意数量的 subtasks
+>  例如算法 1 中的 WorkerIterate 包含了 push 和 pull
 
 Tasks are executed asynchronously: the caller can perform further computation immediately after issuing a task.
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/b10b0c88c3e87c965bbc72c360b066aa5cd81d65d13d0c4629ff027a03a80931.jpg)  
-Figure 5:Iteration 12 depends on 11, while 10 and 11 are independent, thus allowing asynchronous processing.
+>  tasks 是异步执行的: 调用者发出 task 之后，可以继续忙自己的事
 
 The caller marks a task as finished only once it receives the callee's reply. A reply could be the function return of a user-defined function, the (key,value) pairs requested by the pull, or an empty acknowledgement. The callee marks a task as finished only if the call of the task is returned and all subtasks issued by this call are finished.
+>  caller 在收到 callee 的回复后，将 task 标记为完成
+>  回复可以是用户定义函数的返回值、pull 请求的 key-value 对，或者是 acknowledgement
+
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/b10b0c88c3e87c965bbc72c360b066aa5cd81d65d13d0c4629ff027a03a80931.jpg)  
+
+Figure 5: Iteration 12 depends on 11, while 10 and 11 are independent, thus allowing asynchronous processing.
 
 By default, callees execute tasks in parallel, for best performance. A caller that wishes to serialize task execution can place an execute-after-finished dependency between tasks. Figure 5 depicts three example iterations of WorkerIterate. Iterations 10 and 11 are independent, but 12 depends on 11. The callee therefore begins iteration 11 immediately after the local gradients are computed in iteration 10. Iteration 12, however, is postponed until the pull of 11 finishes.
+>  callees 默认并行执行 tasks，希望顺序化执行的 caller 可以自行以 execute-after-finished 依赖调度 tasks
 
 Task dependencies help implement algorithm logic. For example, the aggregation logic in ServerIterate of Algorithm 1 updates the weight  $w$  only after all worker gradients have been aggregated. This can be implemented by having the updating task depend on the push tasks of all workers. The second important use of dependencies is to support the flexible consistency models described next.
+>  task 依赖用于实现算法逻辑
+>  例如算法 1 中的 ServerIterater 仅在所有 worker 梯度被聚合后更新其权重 $w$，也就是 update task 依赖于所有 workers 的 push tasks
+>  task 依赖也用于支持灵活的一致性模型
 
-# 3.5 Flexible Consistency
+## 3.5 Flexible Consistency
+Independent tasks improve system efficiency via parallelizing the use of CPU, disk and network bandwidth. However, this may lead to data inconsistency between nodes. In the diagram above, the worker  $r$  starts iteration 11 before  $w^{(11)}$  has been pulled back, so it uses the old  $w_{r}^{(10)}$  in this iteration and thus obtains the same gradient as in iteration 10, namely  $g_{r}^{(11)} = g_{r}^{(10)}$  . This inconsistency potentially slows down the convergence progress of Algorithm 1. However, some algorithms may be less sensitive to this type of inconsistency. For example, only a segment of  $w$  is updated each time in Algorithm 3. Hence, starting iteration 11 without waiting for 10 causes only a part of  $w$  to be inconsistent.
+>  通过并行使用 CPU、磁盘和网络带宽，独立任务可以提高系统效率，但这也会导致 nodes 之间数据不一致
+>  在 Figure 5 中，worker $r$ 在 $w^{11}$ 被拉取回来之前就启动了 iteration 11，故它使用的是 $w_r^{10}$，因此 iteration 11 获得的是和 iteration 10 相同的梯度，即 $g_r^{11} = g_r^{10}$
+>  这个不一致性可能会降低算法 1 的收敛进度
+>  一些算法可能对于这类不一致性更不敏感，例如算法 3 中每次仅更新 $w$ 的片段，故仅有一部分的不一致性
 
-Independent tasks improve system efficiency via paral-. lelizing the use of CPU, disk and network bandwidth. However, this may lead to data inconsistency between nodes. In the diagram above, the worker  $\mathcal{T}$  starts iteration 11 before  $w^{(11)}$  has been pulled back, so it uses the old  $w_{r}^{(10)}$  in this iteration and thus obtains the same gradient as in iteration 10, namely  $g_{r}^{(11)} = g_{r}^{(10)}$  . This inconsistency potentially slows down the convergence progress of Algorithm 1. However, some algorithms may be less sensitive to this type of inconsistency. For example, only a segment of  $w$  is updated each time in Algorithm 3. Hence, starting iteration 11 without waiting for 10 causes only a part of  $w$  to be inconsistent.
-
-The best trade-off between system efficiency and algorithm convergence rate usually depends on a variety of factors, including the algorithm's sensitivity to data inconsistency, feature correlation in training data, and capacity
+The best trade-off between system efficiency and algorithm convergence rate usually depends on a variety of factors, including the algorithm's sensitivity to data inconsistency, feature correlation in training data, and capacity difference of hardware components. Instead of forcing the user to adopt one particular dependency that may be ill-suited to the problem, the parameter server gives the algorithm designer flexibility in defining consistency models. This is a substantial difference to other machine learning systems.
+>  系统效率和算法收敛速度之间的最佳权衡取决于多种因素
+>  Parameter server 为算法设计者提供了定义一致性模型的灵活性
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/5fd79727b5948420cb2d9e2b9f4b9e75829482cd2eb25baa3c3407220163af0b.jpg)  
+
 Figure 6: Directed acyclic graphs for different consistency models. The size of the DAG increases with the delay.
 
-difference of hardware components. Instead of forcing the user to adopt one particular dependency that may be ill-suited to the problem, the parameter server gives the algorithm designer flexibility in defining consistency models. This is a substantial difference to other machine learning systems.
-
 We show three different models that can be implemented by task dependency. Their associated directed acyclic graphs are given in Figure 6.
+>  我们展示三个可以通过任务依赖性实现的模型，它们相关的有向无环图见 Figure 6
 
-Sequential In sequential consistency, all tasks are executed one by one. The next task can be started only if the previous one has finished. It produces results identical to the single-thread implementation, and also named Bulk Synchronous Processing.
+**Sequential** In sequential consistency, all tasks are executed one by one. The next task can be started only if the previous one has finished. It produces results identical to the single-thread implementation, and also named Bulk Synchronous Processing.
+>  顺序一致性
+>  顺序一致性中，所有任务依次执行，前一个任务完成后，下一个任务才开始
+>  这种模型产生的结果与单线程实现相同，称为批量同步处理
 
-Eventual Eventual consistency is the opposite: all tasks may be started simultaneously. For instance, [43] describes such a system. However, this is only recommendable if the underlying algorithms are robust with regard to delays.
+**Eventual** Eventual consistency is the opposite: all tasks may be started simultaneously. For instance, [43] describes such a system. However, this is only recommendable if the underlying algorithms are robust with regard to delays.
+>  最终一致性
+>  所有任务可以同时启动
 
-Bounded Delay When a maximal delay time  $\tau$  is set, a new task will be blocked until all previous tasks  $\tau$  times ago have been finished. Algorithm 3 uses such a model. This model provides more flexible controls than the previous two:  $\tau = 0$  is the sequential consistency model, and an infinite delay  $\tau = \infty$  becomes the eventual consistency model.
+**Bounded Delay** When a maximal delay time  $\tau$  is set, a new task will be blocked until all previous tasks  $\tau$  times ago have been finished. Algorithm 3 uses such a model. This model provides more flexible controls than the previous two:  $\tau = 0$  is the sequential consistency model, and an infinite delay  $\tau = \infty$  becomes the eventual consistency model.
+>  有界延迟
+>  达到最大延迟时间时，所有任务会被阻塞，直到延迟时间之前的任务都完成
 
 Note that the dependency graphs may be dynamic. For instance the scheduler may increase or decrease the maximal delay according to the runtime progress to balance system efficiency and convergence of the underlying optimization algorithm. In this case the caller traverses the DAG. If the graph is static, the caller can send all tasks with the DAG to the callee to reduce synchronization cost.
+>  依赖图也可以动态调整
 
-# 3.6 User-defined Filters
-
+## 3.6 User-defined Filters
 Complementary to a scheduler-based flow control, the parameter server supports user-defined filters to selectively synchronize individual (key,value) pairs, allowing fine-grained control of data consistency within a task. The insight is that the optimization algorithm itself usually possesses information on which parameters are most useful for synchronization. One example is the significantly modified filter, which only pushes entries that have changed by more than a threshold since their last synchronization. In Section 5.1, we discuss another filter named  $KKT$  which takes advantage of the optimality condition of the optimization problem: a worker only pushes gradients that are likely to affect the weights on the servers.
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/52a0435b5683eb06da52e614a80577f032fd7ad8a12123efcc4e47983ed8eef1.jpg)
+>  除了基于调度器的流量控制以外，Parameter server 还支持用户定义的过滤器，来选择性地同步单独的 key-value 对，从而实现对任务内数据一致性的细粒度控制
+>  其核心思想依然是节省通信，例如在本轮梯度相对上一轮没有太大更新的情况下，就不需要发送梯度了
 
 # 4 Implementation
-
 The servers store the parameters (key-value pairs) using consistent hashing [45] (Sec. 4.3). For fault tolerance, entries are replicated using chain replication [47] (Sec. 4.4). Different from prior (key,value) systems, the parameter server is optimized for range based communication with compression on both data (Sec. 4.2) and range based vector clocks (Sec. 4.1).
+>  存储参数 (key-value pairs) 的 servers 使用一致性哈希
+>  为了实现容错，entries 通过 chain replication 进行复制
+>  和之前的 key-value 系统不同，Parameter server 针对 range based 通信进行了优化，并在数据和 range based 向量钟上都应用了压缩
 
-# 4.1 Vector Clock
-
+## 4.1 Vector Clock
 Given the potentially complex task dependency graph and the need for fast recovery, each (key,value) pair is associated with a vector clock [30, 15], which records the time of each individual node on this (key,value) pair. Vector clocks are convenient, e.g., for tracking aggregation status or rejecting doubly sent data. However, a naive implementation of the vector clock requires  $O(nm)$  space to handle  $n$  nodes and  $m$  parameters. With thousands of nodes and billions of parameters, this is infeasible in terms of memory and bandwidth.
+>  鉴于潜在复杂的任务依赖图以及快速恢复的需求，每个 key-value pair 都关联了一个向量时钟
+>  向量时钟记录了每个 node 在该 key-value pair 上的时间
+>  vector clock 非常方便，例如用于跟踪聚合状态或拒绝重复发送的数据
+>  然而，vector clock 的朴素实现需要 $O(nm)$ 的空间来处理 $n$ 个节点和 $m$ 个参数
 
 Fortunately, many parameters have the same timestamp as a result of the range-based communication pattern of the parameter server: If a node pushes the parameters in a range, then the timestamps of the parameters associated with the node are likely the same. Therefore, they can be compressed into a single range vector clock. More specifically, assume that  $\mathrm{vc}_i(k)$  is the time of key  $k$  for node  $i$ . Given a key range  $\mathcal{R}$ , the ranged vector clock  $\mathrm{vc}_i(\mathcal{R}) = t$  means for any key  $k \in \mathcal{R}$ ,  $\mathrm{vc}_i(k) = t$ .
+>  由于 Parameter Server 基于范围的通信模式，许多参数具有相同的时间戳: 如果一个 node push 一个范围内的参数，那么与该 node 相关的参数很有可能是相同的
+>  因此，这个范围内的 key-value pairs 可以使用一个单一的 range vector clock
 
-Initially, there is only one range vector clock for each node  $i$ . It covers the entire parameter key space as its
+Initially, there is only one range vector clock for each node  $i$ . It covers the entire parameter key space as its range with 0 as its initial timestamp. Each range set may split the range and create at most 3 new vector clocks (see Algorithm 2). Let  $k$  be the total number of unique ranges communicated by the algorithm, then there are at most  $\mathcal{O}(mk)$  vector clocks, where  $m$  is the number of nodes.  $k$  is typically much smaller than the total number of parameters. This significantly reduces the space required for range vector clocks.
+>  最初，每个节点只有一个 range vector clock，它的范围覆盖整个参数 key space，初始时间戳为零
+>  每个 range set 会分割范围，并生成最多 3 个新的 vector clock
+>  设 $k$ 为算法所通信的唯一范围总数，则最多有 $O(mk)$ 个 vector clock，$k$ 通常远小于总参数的数量
 
-range with 0 as its initial timestamp. Each range set may split the range and create at most 3 new vector clocks (see Algorithm 2). Let  $k$  be the total number of unique ranges communicated by the algorithm, then there are at most  $\mathcal{O}(mk)$  vector clocks, where  $m$  is the number of nodes.  $k$  is typically much smaller than the total number of parameters. This significantly reduces the space required for range vector clocks. $^3$
+>  vector clock 即在 server 端维护哪一个 worker node 现在获取的参数 (所有的 key-value pairs) 各自是哪一个时刻的
 
-# 4.2 Messages
-
+## 4.2 Messages
 Nodes may send messages to individual nodes or node groups. A message consists of a list of (key,value) pairs in the key range  $\mathcal{R}$  and the associated range vector clock:
 
 $$
-[\mathrm{vc}(\mathcal{R}),(k_1,v_1),\ldots ,(k_p,v_p)]k_j\in \mathcal{R}\mathrm{and}j\in \{1,\ldots p\}
+[\mathrm{vc}(\mathcal{R}),(k_1,v_1),\ldots ,(k_p,v_p)]k_j\in \mathcal{R}\ \mathrm{and}\ j\in \{1,\ldots p\}
 $$
 
 This is the basic communication format of the parameter server not only for shared parameters but also for tasks. For the latter, a (key,value) pair might assume the form (task ID, arguments or return results).
 
+>  Parameter server 的基本消息格式是 key range 内的一组 key-value pairs 以及相关的 range vector clock，不仅用于共享参数，也用于任务 (taskID-arguments/return results pair)
+
 Messages may carry a subset of all available keys within range  $\mathcal{R}$ . The missing keys are assigned the same timestamp without changing their values. A message can be split by the key range. This happens when a worker sends a message to the whole server group, or when the key assignment of the receiver node has changed. By doing so, we partition the (key,value) lists and split the range vector clock similar to Algorithm 2.
+>  消息可以携带范围内 keys 的子集，缺失的 keys 被赋予相同的时间戳，但不会改变它们的值
+>  消息也可以根据 key range 拆分
+
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/52a0435b5683eb06da52e614a80577f032fd7ad8a12123efcc4e47983ed8eef1.jpg)
 
 Because machine learning problems typically require high bandwidth, message compression is desirable. Training data often remains unchanged between iterations. A worker might send the same key lists again. Hence it is desirable for the receiving node to cache the key lists. Later, the sender only needs to send a hash of the list rather than the list itself. Values, in turn, may contain many zero entries. For example, a large portion of parameters remain unchanged in sparse logistic regression, as evaluated in Section 5.1. Likewise, a user-defined filter may also zero out a large fraction of the values (see Figure 12). Hence we need only send nonzero (key,value) pairs. We use the fast Snappy compression library [21] to compress messages, effectively removing the zeros. Note that key-caching and value-compression can be used jointly.
+>  如果 workers 经常发送相同的 key list，接收端可以存储 key list 的哈希，发送端之后只需要发送哈希值即可，无需发送整个列表，实现 key 缓存
+>  此外，value 中可能包含大量 0 条目，故可以使用压缩算法进行压缩
 
-# 4.3 Consistent Hashing
-
+## 4.3 Consistent Hashing
 The parameter server partitions keys much as a conventional distributed hash table does [8, 41]: keys and server node IDs are both inserted into the hash ring (Figure 7). Each server node manages the key range starting with its insertion point to the next point by other nodes in the counter-clockwise direction. This node is called the master of this key range. A physical server is often represented in the ring via multiple "virtual" servers to improve load balancing and recovery.
+>  Parameter Server 对 key 的划分方式和传统的分布式哈希表 (DHT) 类似: key 和 server node ID 被插入到 hash ring 中
+>  每个 server node 从管理其插入点开始，沿着逆时针方向到下一个 server ode 的 key range，这个 server node 称为该 key range 的 master
+>  通常一个物理 server 会在 ring 中表示多个 virtual server node
 
-We simplify the management by using a direct-mapped DHT design. The server manager handles the ring management. All other nodes cache the key partition locally. This way they can determine directly which server is responsible for a key range, and are notified of any changes.
-
-# 4.4 Replication and Consistency
-
-Each server node stores a replica of the  $k$  counterclockwise neighbor key ranges relative to the one it owns. We refer to nodes holding copies as slaves of the appropriate key range. The above diagram shows an example with  $k = 2$ , where server 1 replicates the key ranges owned by server 2 and server 3.
-
-Worker nodes communicate with the master of a key range for both push and pull. Any modification on the master is copied with its timestamp to the slaves. Modifications to data are pushed synchronously to the slaves. Figure 8 shows a case where worker 1 pushes  $x$  into server 1, which invokes a user defined function  $f$  to modify the shared data. The push task is completed only once the data modification  $f(x)$  is copied to the slave.
-
-Naive replication potentially increases the network traffic by  $k$  times. This is undesirable for many machine learning applications that depend on high network bandwidth. The parameter server framework permits an important optimization for many algorithms: replication after aggregation. Server nodes often aggregate data from the worker nodes, such as summing local gradients. Servers may therefore postpone replication until aggregation is complete. In the righthand side of the diagram, two workers push  $x$  and  $y$  to the server, respectively. The server first aggregates the push by  $x + y$ , then applies the modification  $f(x + y)$ , and finally performs the replication. With  $n$  workers, replication uses only  $k / n$  bandwidth. Often  $k$  is a small constant, while  $n$  is hundreds to thousands. While aggregation increases the delay of the task reply, it can be hidden by relaxed consistency conditions.
-
-# 4.5 Server Management
-
-To achieve fault tolerance and dynamic scaling we must support addition and removal of nodes. For convenience we refer to virtual servers below. The following steps happen when a server joins.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/07dd5c52ac2134eed5fb2b53480e768b6381ec3bc3962b9a5a703a58165a519c.jpg)  
+
 Figure 7: Server node layout.  Figure 8: Replica generation. Left: single worker. Right: multiple workers updating values simultaneously.
+
+We simplify the management by using a direct-mapped DHT design. The server manager handles the ring management. All other nodes cache the key partition locally. This way they can determine directly which server is responsible for a key range, and are notified of any changes.
+>  server manager 处理 ring 管理事宜，其他 server node 会本地缓存 key partition 情况
+
+>  也就是每一个 server node 维护 key space 中的一段，同时 server node 会存储当前段的后面两段 key range 作为备份
+
+## 4.4 Replication and Consistency
+Each server node stores a replica of the  $k$  counterclockwise neighbor key ranges relative to the one it owns. We refer to nodes holding copies as slaves of the appropriate key range. The above diagram shows an example with  $k = 2$ , where server 1 replicates the key ranges owned by server 2 and server 3.
+>  每个 server node 存储 k 个邻居的 key ranges 的副本，存储副本的 server nodes 称为这个 key range master node 的 slaves，总体的备份方式遵循 chain replication
+
+Worker nodes communicate with the master of a key range for both push and pull. Any modification on the master is copied with its timestamp to the slaves. Modifications to data are pushed synchronously to the slaves. Figure 8 shows a case where worker 1 pushes  $x$  into server 1, which invokes a user defined function  $f$  to modify the shared data. The push task is completed only once the data modification  $f(x)$  is copied to the slave.
+>  worker nodes 和 key range master node 通讯，进行 push 和 pull，任意对 master node 的修改及其时间戳都会被复制到其 slaves
+>  当修改复制完成后，server node 才会回复
+
+Naive replication potentially increases the network traffic by  $k$  times. This is undesirable for many machine learning applications that depend on high network bandwidth. The parameter server framework permits an important optimization for many algorithms: replication after aggregation. Server nodes often aggregate data from the worker nodes, such as summing local gradients. Servers may therefore postpone replication until aggregation is complete. In the righthand side of the diagram, two workers push  $x$  and  $y$  to the server, respectively. The server first aggregates the push by  $x + y$ , then applies the modification  $f(x + y)$ , and finally performs the replication. With  $n$  workers, replication uses only  $k / n$  bandwidth. Often  $k$  is a small constant, while  $n$  is hundreds to thousands. While aggregation increases the delay of the task reply, it can be hidden by relaxed consistency conditions.
+>  为了减少带宽损耗，master node 会在聚合之后才进行复制，也就是 master node 会等待收到多个 worker nodes 的修改之后，执行聚合之后，例如加上局部梯度 (然后更新参数)，再进行复制，然后同时回复这些 workers
+
+## 4.5 Server Management
+To achieve fault tolerance and dynamic scaling we must support addition and removal of nodes. For convenience we refer to virtual servers below. The following steps happen when a server joins.
 
 1. The server manager assigns the new node a key range to serve as master. This may cause another key range to split or be removed from a terminated node. 
 2. The node fetches the range of data to maintains as master and  $k$  additional ranges to keep as slave. 
 3. The server manager broadcasts the node changes. The recipients of the message may shrink their own data based on key ranges they no longer hold and to resubmit unfinished tasks to the new node.
 
+>  servers 的添加和减少也支持，server 添加时:
+>  1. server manager 为新增的 server 赋予新的 key range (从现有的 key range 分离或者从没人管理的 key range 赋予)
+>  2. 新 server 获取 key range 的数据，然后做拷贝
+>  3. server manager 在新 server 准备好之后广播新的 nodes 情况，接收者相应地减少其 key range，删除对应的数据
+
 Fetching the data in the range  $\mathcal{R}$  from some node  $S$  proceeds in two stages, similar to the Ouroboros protocol [38]. First  $S$  pre-copies all (key,value) pairs in the range together with the associated vector clocks. This may cause a range vector clock to split similar to Algorithm 2. If the new node fails at this stage,  $S$  remains unchanged. At the second stage  $S$  no longer accepts messages affecting the key range  $\mathcal{R}$  by dropping the messages without executing and replying. At the same time,  $S$  sends the new node all changes that occurred in  $\mathcal{R}$  during the pre-copy stage.
+>  某个节点 $S$ key range $\mathcal R$ 的数据移动到新节点的过程为两阶段:
+>  -  $S$ 先将所有的 range 内的所有 key-value pairs 以及相关的 vector clocks 预拷贝到新节点，如果新节点故障了，则 $S$ 保持其配置不变
+>  - $S$ 不再接收 $\mathcal R$ 内的信息，同时在预拷贝阶段接收到的信息会转发给新节点
 
 On receiving the node change message a node  $N$  first checks if it also maintains the key range  $\mathcal{R}$ . If true and if this key range is no longer to be maintained by  $N$ , it deletes all associated (key,value) pairs and vector clocks in  $\mathcal{R}$ . Next,  $N$  scans all outgoing messages that have not received replies yet. If a key range intersects with  $\mathcal{R}$ , then the message will be split and resent.
 
@@ -360,130 +447,114 @@ Due to delays, failures, and lost acknowledgements  $N$  may send messages twice
 
 The departure of a server node (voluntary or due to failure) is similar to a join. The server manager tasks a new node with taking the key range of the leaving node. The server manager detects node failure by a heartbeat signal. Integration with a cluster resource manager such as Yarn [17] or Mesos [23] is left for future work.
 
-# 4.6 Worker Management
-
+## 4.6 Worker Management
 Adding a new worker node  $W$  is similar but simpler than adding a new server node:
 
 1. The task scheduler assigns  $W$  a range of data. 
 2. This node loads the range of training data from a network file system or existing workers. Training data is often read-only, so there is no two-phase fetch. Next,  $W$  pulls the shared parameters from servers. 
 3. The task scheduler broadcasts the change, possibly causing other workers to free some training data.
 
+>  worker node 的添加
+>  1. task scheduler 为新 worker 赋予 range of data
+>  2. worker node 加载该数据，并拉取参数
+>  3. task scheduler 广播这一变化，这可能导致其他 workers 释放一些数据
+
 When a worker departs, the task scheduler may start a replacement. We give the algorithm designer the option to control recovery for two reasons: If the training data is huge, recovering a worker node be may more expensive than recovering a server node. Second, losing a small amount of training data during optimization typically affects the model only a little. Hence the algorithm designer may prefer to continue without replacing a failed worker. It may even be desirable to terminate the slowest workers.
 
 # 5 Evaluation
-
 We evaluate our parameter server based on the use cases of Section 2 — Sparse Logistic Regression and Latent Dirichlet Allocation. We also show results of sketching to illustrate the generality of our framework. The experiments were run on clusters in two (different) large internet companies and a university research cluster to demonstrate the versatility of our approach.
 
-# 5.1 Sparse Logistic Regression
-
-Problem and Data: Sparse logistic regression is one of the most popular algorithms for large scale risk minimization [9]. It combines the logistic loss with the  $\ell_1$
-
-# Algorithm 3 Delayed Block Proximal Gradient [31]
-
-1: Partition features into  $b$  ranges  $\mathcal{R}_1,\ldots ,\mathcal{R}_b$  2:for  $t = 0$  to  $T$  do 3: Pick random range  $\mathcal{R}_{i_t}$  and issue task to workers 4:end for
-
-# Worker  $r$  at iteration  $t$
-
-1: Wait until all iterations before  $t -\tau$  are finished 2: Compute first-order gradient  $g_{r}^{(t)}$  and diagonal second-order gradient  $u_{r}^{(t)}$  on range  $\mathcal{R}_{i_t}$  3: Push  $g_{r}^{(t)}$  and  $u_{r}^{(t)}$  to servers with the KKT filter 4: Pull  $w_{r}^{(t + 1)}$  from servers
-
-# Servers at iteration  $t$
-
-1: Aggregate gradients to obtain  $g^{(t)}$  and  $u^{(t)}$  2: Solve the proximal operator  $w^{(t + 1)}\gets \underset {w}{\mathrm{argmin}}\Omega (u) + \frac{1}{2\eta}\| w^{(t)} -\eta g^{(t)} + u\|_{H}^{2},$  where  $H = \mathrm{diag}(h^{(t)})$  and  $\| x\|_{H}^{2} = x^{T}Hx$
-
+## 5.1 Sparse Logistic Regression
+**Problem and Data:** Sparse logistic regression is one of the most popular algorithms for large scale risk minimization [9]. It combines the logistic loss with the  $\ell_1$ regularizer of Section 2.2. The latter biases a compact solution with a large portion of O value entries. The nonsmoothness of this regularizer, however, makes learning more difficult.
+![[pics/Parameter Server-Algorithm3.png]]
 Table 3: Systems evaluated.  
 
 <table><tr><td></td><td>Method</td><td>Consistency</td><td>LOC</td></tr><tr><td>System A</td><td>L-BFGS</td><td>Sequential</td><td>10,000</td></tr><tr><td>System B</td><td>Block PG</td><td>Sequential</td><td>30,000</td></tr><tr><td>Parameter Server</td><td>Block PG</td><td>Bounded Delay KKT Filter</td><td>300</td></tr></table>
 
-regularizer of Section 2.2. The latter biases a compact solution with a large portion of O value entries. The nonsmoothness of this regularizer, however, makes learning more difficult.
-
 We collected an ad click prediction dataset with 170 billion examples and 65 billion unique features. This dataset is 636 TB uncompressed (141 TB compressed). We ran the parameter server on 1000 machines, each with 16 physical cores, 192GB DRAM, and connected by  $10\mathrm{Gb}$  Ethernet. 800 machines acted as workers, and 200 were parameter servers. The cluster was in concurrent use by other (unrelated) tasks during operation.
 
-Algorithm: We used a state-of-the-art distributed regression algorithm (Algorithm 3, [31, 32]). It differs from the simpler variant described earlier in four ways: First, only a block of parameters is updated in an iteration. Second, the workers compute both gradients and the diagonal part of the second derivative on this block. Third, the parameter servers themselves must perform complex com putation: the servers update the model by solving a proximal operator based on the aggregated local gradients. Fourth, we use a bounded-delay model over iterations and use a "KKT" filter to suppress transmission of parts of the generated gradient update that are small enough that their effect is likely to be negligible.6
+**Algorithm:** We used a state-of-the-art distributed regression algorithm (Algorithm 3, [31, 32]). It differs from the simpler variant described earlier in four ways: First, only a block of parameters is updated in an iteration. Second, the workers compute both gradients and the diagonal part of the second derivative on this block. Third, the parameter servers themselves must perform complex computation: the servers update the model by solving a proximal operator based on the aggregated local gradients. Fourth, we use a bounded-delay model over iterations and use a "KKT" filter to suppress transmission of parts of the generated gradient update that are small enough that their effect is likely to be negligible.6
 
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/d6b95c717eedea8bd3578d954df80113134c710645778e5ee82d7abe21ec40c8.jpg)  
-Figure 9: Convergence of sparse logistic regression. The goal is to minimize the objective rapidly.
 
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/ece6306fa92db9130b0817940066daae646e4cabb74a464d35f9388ca1cf496f.jpg)  
-Figure 10: Time per worker spent on computation and waiting during sparse logistic regression.
-
-To the best of our knowledge, no open source system can scale sparse logistic regression to the scale described in this paper.7 We compare the parameter server with two special-purpose systems, named System A and B, devel
-
-oped by a large internet company.
+To the best of our knowledge, no open source system can scale sparse logistic regression to the scale described in this paper.7 We compare the parameter server with two special-purpose systems, named System A and B, developed by a large internet company.
 
 Notably, both Systems A and B consist of more than 10K lines of code. The parameter server only requires 300 lines of code for the same functionality as System B. The parameter server successfully moves most of the system complexity from the algorithmic implementation into a reusable generalized component.
 
-Results: We first compare these three systems by running them to reach the same objective value. A better system achieves a lower objective in less time. Figure 9 shows the results: System B outperforms system A because it uses a better algorithm. The parameter server, in turn, outperforms System B while using the same algorithm. It does so because of the efficacy of reducing the network traffic and the relaxed consistency model.
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/d6b95c717eedea8bd3578d954df80113134c710645778e5ee82d7abe21ec40c8.jpg)  
+
+Figure 9: Convergence of sparse logistic regression. The goal is to minimize the objective rapidly.
+
+**Results:** We first compare these three systems by running them to reach the same objective value. A better system achieves a lower objective in less time. Figure 9 shows the results: System B outperforms system A because it uses a better algorithm. The parameter server, in turn, outperforms System B while using the same algorithm. It does so because of the efficacy of reducing the network traffic and the relaxed consistency model.
+>  Parameter Server 上实现 sparse logistic 算法更简单，收敛更快
+
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/ece6306fa92db9130b0817940066daae646e4cabb74a464d35f9388ca1cf496f.jpg)  
+
+Figure 10: Time per worker spent on computation and waiting during sparse logistic regression.
 
 Figure 10 shows that the relaxed consistency model substantially increases worker node utilization. Workers can begin processing the next block without waiting for the previous one to finish, hiding the delay otherwise imposed by barrier synchronization. Workers in System A are  $32\%$  idle, and in system B, they are  $53\%$  idle, while waiting for the barrier in each block. The parameter server reduces this cost to under  $2\%$ . This is not entirely free: the parameter server uses slightly more CPU than System B for two reasons. First, and less fundamentally, System B optimizes its gradient calculations by careful data preprocessing. Second, asynchronous updates with the parameter server require more iterations to achieve the same objective value. Due to the significantly reduced communication cost, the parameter server halves the total time.
+>  松弛的一致性模型提高了 worker node utilization，减少了等待
+
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/fb8173e6231904e1f91b19d31febda61f45f2fffe638a6cbc9074e73c74802b6.jpg)  
+
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/6b3afd90d3fac70797d8259289cbc4fb50132b08ea2e03b472d3d42bf15b0463.jpg)
+
+Figure 11: The savings of outgoing network traffic by different components. Left: per server. Right: per worker.
+
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/92d1fc61bc9c2a804f16392bd52f5b80658e13c5a0e1a9fb51d95eb0ad11e7e8.jpg)  
+
+Figure 12: Unique features (keys) filtered by the KKT filter as optimization proceeds.
 
 Next we evaluate the reduction of network traffic by each system components. Figure 11 shows the results for servers and workers. As can be seen, allowing the senders and receivers to cache the keys can save near  $50\%$  traffic. This is because both key (int64) and value (double) are of the same size, and the key set is not changed during optimization. In addition, data compression is effective for compressing the values for both servers  $(>20x)$  and workers when applying the KKT filter  $(>6x)$ . The reason is twofold. First, the  $\ell_1$  regularizer encourages a sparse model  $(w)$ , so that most of values pulled from servers are 0. Second, the KKT filter forces a large portion of gradients sending to servers to be 0. This can be seen more clearly in Figure 12, which shows that more than  $93\%$  unique features are filtered by the KKT filter.
+>  数据压缩减少了通信量
+
+![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/006614c1bfb7337300f9be74a8ae7b6a8701c884b72db02de847b1a880f57f87.jpg)  
+
+Figure 13: Time a worker spent to achieve the same convergence criteria by different maximal delays.
 
 Finally, we analyze the bounded delay consistency model. The time decomposition of workers to achieve the same convergence criteria under different maximum allowed delay  $(\tau)$  is shown in Figure 13. As expected, the waiting time decreases when the allowed delay increases. Workers are  $50\%$  idle when using the sequential consistency model  $(\tau = 0)$ , while the idle rate is reduced to  $1.7\%$  when  $\tau$  is set to be 16. However, the computing time increases nearly linearly with  $\tau$ . Because the data inconsistency slows convergence, more iterations are needed to achieve the same convergence criteria. As a result,  $\tau = 8$  is the best trade-off between algorithm convergence and system performance.
 
-# 5.2 Latent Dirichlet Allocation
+## 5.2 Latent Dirichlet Allocation
+**Problem and Data:** To demonstrate the versatility of our approach, we applied the same parameter server architecture to the problem of modeling user interests based upon which domains appear in the URLs they click on in search results. We collected search log data containing 5 billion unique user identifiers and evaluated the model for the 5 million most frequently clicked domains in the result set. We ran the algorithm using 800 workers and 200 servers and 5000 workers and 1000 servers respectively. The machines had 10 physical cores, 128GB DRAM, and at least  $10\mathrm{Gb / s}$  of network connectivity. We again shared the cluster with production jobs running concurrently.
 
-Problem and Data: To demonstrate the versatility of our approach, we applied the same parameter server architecture to the problem of modeling user interests based upon which domains appear in the URLs they click on in search results. We collected search log data containing 5 billion unique user identifiers and evaluated the model for the 5 million most frequently clicked domains in the result set. We ran the algorithm using 800 workers and 200 servers and 5000 workers and 1000 servers respectively. The machines had 10 physical cores, 128GB DRAM, and at least  $10\mathrm{Gb / s}$  of network connectivity. We again shared the cluster with production jobs running concurrently.
-
-Algorithm: We performed LDA using a combination of Stochastic Variational Methods [15], Collapsed Gibbs sampling [20] and distributed gradient descent. Here, gradients are aggregated asynchronously as they arrive from workers, along the lines of [1].
+**Algorithm:** We performed LDA using a combination of Stochastic Variational Methods [15], Collapsed Gibbs sampling [20] and distributed gradient descent. Here, gradients are aggregated asynchronously as they arrive from workers, along the lines of [1].
 
 We divided the parameters in the model into local and global parameters. The local parameters (i.e. auxiliary metadata) are pertinent to a given user and they are streamed the from disk whenever we access a given user. The global parameters are shared among users and they are represented as (key,value) pairs to be stored using the parameter server. User data is shared over workers. Each of them runs a set of computation threads to perform inference over its assigned users. We synchronize asynchronously to send and receive local updates to the server and receive new values of the global parameters.
 
 To our knowledge, no other system (e.g., YahooLDA, Graphlab or Petuum) can handle this amount of data and model complexity for LDA, using up to 10 billion (5 million tokens and 2000 topics) shared parameters. The largest previously reported experiments [2] had under 100 million users active at any time, less than 100,000 tokens and under 1000 topics (2% the data, 1% the parameters).
 
-Results: To evaluate the quality of the inference algorithm we monitor how rapidly the training log-likelihood
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/fb8173e6231904e1f91b19d31febda61f45f2fffe638a6cbc9074e73c74802b6.jpg)  
-Figure 11: The savings of outgoing network traffic by different components. Left: per server. Right: per worker.
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/92d1fc61bc9c2a804f16392bd52f5b80658e13c5a0e1a9fb51d95eb0ad11e7e8.jpg)  
-Figure 12: Unique features (keys) filtered by the KKT filter as optimization proceeds.
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/6b3afd90d3fac70797d8259289cbc4fb50132b08ea2e03b472d3d42bf15b0463.jpg)
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/006614c1bfb7337300f9be74a8ae7b6a8701c884b72db02de847b1a880f57f87.jpg)  
-Figure 13: Time a worker spent to achieve the same convergence criteria by different maximal delays.
-
-(measuring goodness of fit) converges. As can be seen in Figure 14, we observe an approximately 4x speedup in convergence when increasing the number of machines from 1000 to 6000. The stragglers observed in Figure 14 (leftmost) also illustrate the importance of having an architecture that can cope with performance variation across workers.
+**Results:** To evaluate the quality of the inference algorithm we monitor how rapidly the training log-likelihood (measuring goodness of fit) converges. As can be seen in Figure 14, we observe an approximately 4x speedup in convergence when increasing the number of machines from 1000 to 6000. The stragglers observed in Figure 14 (leftmost) also illustrate the importance of having an architecture that can cope with performance variation across workers.
 
 Table 4: Example topics learned using LDA over the .5 billion dataset. Each topic represents a user interest  
 
 <table><tr><td>Topic name</td><td># Top urls</td></tr><tr><td>Programming</td><td>stackoverflow.com w3schools.com cplusplus.com github.com tutorials-stacks.com quvery.com codeproject.com 91tabs.com qt-project.org bytes.com androi.com mysql.com</td></tr><tr><td>Music</td><td>ultimate-guitar.com guttretab.com ukulele-tabs.com e-chords.com song-sterr.com chodify.net muscnotes.com ukulele-tabs.com</td></tr><tr><td>Baby Related</td><td>babycenter.com whattoexpect.com babycentre.co.uk circleofmoms.com thebub.org parents.com momtastic.com parenting.com americanpreg-nancy.org kidshealth.org</td></tr><tr><td>Strength Train-ing</td><td>bodybuilding.com muscleandfitness.com mensfitness.com menshealth.com t-nation.com livestrong.com muscleandstrength.com myfitnesspal.com elit-efitness.com crossfit.com steroid.com gnc.com askmen.com</td></tr></table>
 
-# 5.3 Sketches
+## 5.3 Sketches
+**Problem and Data:** We include sketches as part of our evaluation as a test of generality, because they operate very differently from machine learning algorithms. They typically observe a large number of writes of events coming from a streaming data source [11, 5].
 
-Problem and Data: We include sketches as part of our evaluation as a test of generality, because they operate very differently from machine learning algorithms. They typically observe a large number of writes of events coming from a streaming data source [11, 5].
-
-We evaluate the time required to insert a streaming log of pageviews into an approximate structure that can efficiently track pageview counts for a large collection of web pages. We use the Wikipedia (and other Wiki projects) page view statistics as benchmark. Each entry is an unique key of a webpage with the corresponding number of requests served in a hour. From 12/2007 to 1/2014, there are 300 billion entries for more than 100 million unique keys. We run the parameter server with 90 virtual server nodes on 15 machines of a research cluster [40] (each has
+We evaluate the time required to insert a streaming log of pageviews into an approximate structure that can efficiently track pageview counts for a large collection of web pages. We use the Wikipedia (and other Wiki projects) page view statistics as benchmark. Each entry is an unique key of a webpage with the corresponding number of requests served in a hour. From 12/2007 to 1/2014, there are 300 billion entries for more than 100 million unique keys. We run the parameter server with 90 virtual server nodes on 15 machines of a research cluster [40] (each has 64 cores and is connected by a 40Gb Ethernet).
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/fc496ce2-adc9-458e-be99-8b287c9ad07c/1646c5fb2ffbea6d52644dc43cad2e7301b4100518486dc5a81f3d39353dc648.jpg)  
+
 Figure 14: Left: Distribution over worker log-likelihoods as a function of time for 1000 machines and 5 billion users. Some of the low values are due to stragglers synchronizing slowly initially. Middle: the same distribution, stratified by the number of iterations. Right: convergence (time in 1000s) using 1000 and 6000 machines on 500M users.
 
 Table 5: Results of distributed CountMin  
 
 <table><tr><td colspan="2">Algorithm 4 CountMin Sketch</td></tr><tr><td>Init:</td><td>M[i,j] = 0 for i ∈ {1,...n} and j ∈ {1,...k}.</td></tr><tr><td colspan="2">Insert(x)</td></tr><tr><td>1:</td><td>for i = 1 to k do</td></tr><tr><td>2:</td><td>M[i,hash(i,x)] ← M[i,hash(i,x)] + 1</td></tr><tr><td colspan="2">Query(x)</td></tr><tr><td>1:</td><td>return min{M[i,hash(i,x)] for 1 ≤ i ≤ k}</td></tr></table>
 
-64 cores and is connected by a 40Gb Ethernet).
-
-Algorithm: Sketching algorithms efficiently store summaries of huge volumes of data so that approximate queries can be quickly answered. These algorithms are particularly important in streaming applications where data and queries arrive in real-time. Some of the highest-volume applications involve examples such as Cloudflare's DDoS-prevention service, which must analyze page requests across its entire content delivery service architecture to identify likely DDoS targets and attackers. The volume of data logged in such applications considerably exceeds the capacity of a single machine. While a conventional approach might be to shard a workload across a key-value cluster such as Redis, these systems typically do not allow the user-defined aggregation semantics needed to implement approximate aggregation.
+**Algorithm:** Sketching algorithms efficiently store summaries of huge volumes of data so that approximate queries can be quickly answered. These algorithms are particularly important in streaming applications where data and queries arrive in real-time. Some of the highest-volume applications involve examples such as Cloudflare's DDoS-prevention service, which must analyze page requests across its entire content delivery service architecture to identify likely DDoS targets and attackers. The volume of data logged in such applications considerably exceeds the capacity of a single machine. While a conventional approach might be to shard a workload across a key-value cluster such as Redis, these systems typically do not allow the user-defined aggregation semantics needed to implement approximate aggregation.
 
 Algorithm 4 gives a brief overview of the CountMin sketch [11]. By design, the result of a query is an upper bound on the number of observed keys  $x$ . Splitting keys into ranges automatically allows us to parallelize the sketch. Unlike the two previous applications, the workers simply dispatch updates to the appropriate servers.
 
-Results: The system achieves very high insert rates, which are shown in Table 5. It performs well for two reasons: First, bulk communication reduces the communication cost. Second, message compression reduces the aver age (key,value) size to around 50 bits. Importantly, when we terminated a server node during the insertion, the parameter server was able to recover the failed node within 1 second, making our system well equipped for realtime.
+**Results:** The system achieves very high insert rates, which are shown in Table 5. It performs well for two reasons: First, bulk communication reduces the communication cost. Second, message compression reduces the aver age (key,value) size to around 50 bits. Importantly, when we terminated a server node during the insertion, the parameter server was able to recover the failed node within 1 second, making our system well equipped for realtime.
 
 <table><tr><td>Peak inserts per second</td><td>1.3 billion</td></tr><tr><td>Average inserts per second</td><td>1.1 billion</td></tr><tr><td>Peak net bandwidth per machine</td><td>4.37 GBit/s</td></tr><tr><td>Time to recover a failed node</td><td>0.8 second</td></tr></table>
 
 # 6 Summary and Discussion
-
 We described a parameter server framework to solve distributed machine learning problems. This framework is easy to use: Globally shared parameters can be used as local sparse vectors or matrices to perform linear algebra operations with local training data. It is efficient: All communication is asynchronous. Flexible consistency models are supported to balance the trade-off between system efficiency and fast algorithm convergence rate. Furthermore, it provides elastic scalability and fault tolerance, aiming for stable long term deployment. Finally, we show experiments for several challenging tasks on real datasets with billions of variables to demonstrate its efficiency. We believe that this third generation parameter server is an important building block for scalable machine learning. The codes are available at parameterserver.org.
+>  我们描述了 Parameter Server 框架
+>  该框架易于使用: 全局共享的参数可以作为本地的稀疏向量或矩阵，与本地训练数据进行线性代数运算
+>  该框架高效: 通信异步，支持灵活的一致性模型 (定义任务依赖)
+>  该框架提供了弹性可拓展性 (nodes 的增删) 和容错能力 (复制)
+>  我们在包含数十亿个变量的真实数据集上进行了多个任务的实验，展示了其高效性
 
-Acknowledgments: This work was supported in part by gifts and/or machine time from Google, Amazon, Baidu, PRObE, and Microsoft; by NSF award 1409802; and by the Intel Science and Technology Center for Cloud Computing. We are grateful to our reviewers and colleagues for their comments on earlier versions of this paper.
 
-# References
-
-[1] A. Ahmed, M. Aly, J. Gonzalez, S. Narayanamurthy, and A. J. Smola. Scalable inference in latent variable models. In Proceedings of The 5th ACM International Conference on Web Search and Data Mining (WSDM), 2012. [2] A. Ahmed, Y. Low, M. Aly, V. Josifovski, and A. J. Smola. Scalable inference of dynamic user interests for behavioural targeting. In Knowledge Discovery and Data Mining, 2011. [3] E. Anderson, Z. Bai, C. Bischof, J. Demmel, J. Dongarra, J. Du Croz, A. Greenbaum, S. Hammarling, A. McKenney, S. Ostrouchov, and D. Sorensen. LAPACK Users' Guide. SIAM, Philadelphia, second edition, 1995. [4] Apache Foundation. Mahout project, 2012. http:// mahout.apache.org. [5] R. Berinde, G. Cormode, P. Indyk, and M.J. Strauss. Space-optimal heavy hitters with strong error bounds. In J. Paredaens and J. Su, editors, Proceedings of the TwentyEigth ACM SIGMOD-SIGACT-SIGART Symposium on Principles of Database Systems, PODS, pages 157-166. ACM, 2009. [6] C. Bishop. Pattern Recognition and Machine Learning. Springer, 2006. [7] D. Blei, A. Ng, and M. Jordan. Latent Dirichlet allocation. Journal of Machine Learning Research, 3:993-1022, January 2003. [8] J. Byers, J. Considine, and M. Mitzenmacher. Simple load balancing for distributed hash tables. In Peer-to-peer systems II, pages 80-87. Springer, 2003. [9] K. Canini. Sibyl: A system for large scale supervised machine learning. Technical Talk, 2012. [10] B.-G. Chun, T. Condie, C. Curino, C. Douglas, S. Matusevych, B. Myers, S. Narayanamurthy, R. Ramakrishnan, S. Rao, J. Rosen, R. Sears, and M. Weimer. Reef: Retainable evaluator execution framework. Proceedings of the VLDB Endowment, 6(12):1370-1373, 2013. [11] G. Cormode and S. Muthukrishnan. Summarizing and mining skewed data streams. In SDM, 2005. [12] W. Dai, J. Wei, X. Zheng, J. K. Kim, S. Lee, J. Yin, Q. Ho, and E. P. Xing. Petuum: A framework for iterative-convergent distributed ml. arXiv preprint arXiv:1312.7657, 2013. [13] J. Dean, G. Corrado, R. Monga, K. Chen, M. Devin, Q. Le, M. Mao, M. Ranzato, A. Senior, P. Tucker, K. Yang, and A. Ng. Large scale distributed deep networks. In Neural Information Processing Systems, 2012. [14] J. Dean and S. Ghemawat. MapReduce: simplified data processing on large clusters. CACM, 51(1):107-113, 2008. [15] G. DeCandia, D. Hastorun, M. Jampani, G. Kakulapati, A. Lakshman, A. Pilchin, S. Sivasubramanian, P. Vosshall, and W. Vogels. Dynamo: Amazon's highly available key-value store. In T. C. Bressoud and M. F. Kaashoek, editors, Symposium on Operating Systems Principles, pages 205-220. ACM, 2007.
-
-[16] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson. An extended set of fortran basic linear algebra subprograms. ACM Transactions on Mathematical Software, 14:18-32, 1988. [17] The Apache Software Foundation. Apache hadoop nextgen mapreduce (yarn). http://hadoop.apache.org/.[18] The Apache Software Foundation. Apache hadoop, 2009. http://hadoop.apache.org/core/.[19] F. Girosi, M. Jones, and T. Poggio. Priors, stabilizers and basis functions: From regularization to radial, tensor and additive splines. A.I. Memo 1430, Artificial Intelligence Laboratory, Massachusetts Institute of Technology, 1993. [20] T.L. Griffiths and M. Steyvers. Finding scientific topics. Proceedings of the National Academy of Sciences, 101:5228-5235, 2004. [21] S. H. Gunderson. Snappy: A fast compressor/decompressor. https://code.google.com/p/snappy/.[22] T. Hastie, R. Tibshirani, and J. Friedman. The Elements of Statistical Learning. Springer, New York, 2 edition, 2009. [23] B. Hindman, A. Korwiniski, M. Zaharia, A. Ghodsi, A. D. Joseph, R. Katz, S. Shenker, and I. Stoica. Mesos: A platform for fine-grained resource sharing in the data center. In Proceedings of the 8th USENIX conference on Networked systems design and implementation, pages 22-22, 2011. [24] Q. Ho, J. Cipar, H. Cui, S. Lee, J. Kim, P. Gibbons, G. Gibson, G. Ganger, and E. Xing. More effective distributed ml via a stale synchronous parallel parameter server. In NIPS, 2013. [25] M. Hoffman, D. M. Blei, C. Wang, and J. Paisley. Stochastic variational inference. In International Conference on Machine Learning, 2012. [26] W. Karush. Minima of functions of several variables with inequalities as side constraints. Master's thesis, Dept. of Mathematics, Univ. of Chicago, 1939. [27] L. Kim. How many ads does Google serve in a day?, 2012. http://goo.gl/81d4x0. [28] D. Koller and N. Friedman. Probabilistic Graphical Models: Principles and Techniques. MIT Press, 2009. [29] T. Kraska, A. Talwalkar, J. C. Duchi, R. Griffith, M. J. Franklin, and M. I. Jordan. Mlbase: A distributed machine-learning system. In CIDR, 2013. [30] L. Lamport. Paxos made simple. ACM Sigact News, 32(4):18-25, 2001. [31] M. Li, D. G. Andersen, and A. J. Smola. Distributed delayed proximal gradient methods. In NIPS Workshop on Optimization for Machine Learning, 2013.
-
-[32] M. Li, D. G. Andersen, and A. J. Smola. Communication Efficient Distributed Machine Learning with the Parameter Server. In Neural Information Processing Systems, 2014. [33] M. Li, L. Zhou, Z. Yang, A. Li, F. Xia, D.G. Andersen, and A. J. Smola. Parameter server for distributed machine learning. In Big Learning NIPS Workshop, 2013. [34] Y. Low, J. Gonzalez, A. Kyrola, D. Bickson, C. Guestrin, and J. M. Hellerstein. Distributed Graphlab: A framework for machine learning and data mining in the cloud. In PVLDB, 2012. [35] H. B. McMahan, G. Holt, D. Sculley, M. Young, D. Ebner, J. Grady, L. Nie, T. Phillips, E. Davydov, and D. Golovin. Ad click prediction: a view from the trenches. In KDD, 2013. [36] K. P. Murphy. Machine learning: a probabilistic perspective. MIT Press, 2012. [37] D. G. Murray, F. McSherry, R. Isaacs, M. Isard, P. Barham, and M. Abadi. Naiad: a timely dataflow system. In Proceedings of the Twenty-Fourth ACM Symposium on Operating Systems Principles, pages 439-455. ACM, 2013. [38] A. Phanishayee, D. G. Andersen, H. Pucha, A. Povzner, and W. Belluomini. Flex-KV: Enabling high-performance and flexible KV systems. In Proceedings of the 2012 workshop on Management of big data systems, pages 19-24. ACM, 2012. [39] R. Power and J. Li. Piccolo: Building fast, distributed programs with partitioned tables. In R. H. Arpaci-Dusseau and B. Chen, editors, Operating Systems Design and Implementation, OSDI, pages 293-306. USENIX Association, 2010. [40] PRObE Project. Parallel Reconfigurable Observational Environment. https://www.nmc-probe.org/wiki/Machines:Susitna, [41] A. Rowstron and P. Druschel. Pastry: Scalable, decentralized object location and routing for large-scale peer-to-peer systems. In IFIP/ACM International Conference on Distributed Systems Platforms (Middleware), pages 329-350, Heidelberg, Germany, November 2001. [42] B. Scholkopf and A. J. Smola. Learning with Kernels. MIT Press, Cambridge, MA, 2002. [43] A. J. Smola and S. Narayanamurthy. An architecture for parallel topic models. In Very Large Databases (VLDB), 2010. [44] E. Sparks, A. Talwalkar, V. Smith, J. Kottalam, X. Pan, J. Gonzalez, M. J. Franklin, M. I. Jordan, and T. Kraska. Mli: An api for distributed machine learning. 2013. [45] I. Stoica, R. Morris, D. Karger, M. F. Kaashoek, and H. Balakrishnan. Chord: A scalable peer-to-peer lookup service for internet applications. ACM SIGCOMM Computer Communication Review, 31(4):149-160, 2001.
-
-[46] C.H. Teo, Q. Le, A. J. Smola, and S. V. N. Vishwanathan. A scalable modular convex solver for regularized risk minimization. In Proc. ACM Conf. Knowledge Discovery and Data Mining (KDD). ACM, 2007. [47] R. van Renesse and F. B. Schneider. Chain replication for supporting high throughput and availability. In OSDI, volume 4, pages 91-104, 2004. [48] V. Vapnik. The Nature of Statistical Learning Theory. Springer, New York, 1995. [49] R.C. Whaley, A. Petitet, and J.J. Dongarra. Automated empirical optimization of software and the ATRAIS project. Parallel Computing, 27(1-2):3-35, 2001. [50] M. Zaharia, M. Chowdhury, T. Das, A. Dave, J. M. Ma, M. McCauley, M. J. Franklin, S. Shenker, and I. Stoica. Fast and interactive analytics over Hadoop data with Spark. USENIX ;login:, 37(4):45-51, August 2012.
