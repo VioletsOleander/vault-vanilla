@@ -59,7 +59,7 @@ To facilitate the training of very large deep networks, we have developed a soft
 Figure 1: An example of model parallelism in DistBelief. A five layer deep neural network with local connectivity is shown here, partitioned across four machines (blue rectangles). Only those nodes with edges that cross partition boundaries (thick lines) will need to have their state transmitted between machines. Even in cases where a node has multiple edges crossing a partition boundary, its state is only sent to the machine on the other side of that boundary once. Within each partition, computation for individual nodes will the parallelized across all available CPU cores.
 
 >  DistBelief 的模型并行如上所示
->  Figure 1 展示了一个 5 层网络，划分到四台机器，其中跨 partition 边界的节点需要在机器之间传输状态
+>  Figure 1 展示了一个 5 层网络，划分到四台机器，其中跨 partition 边界的节点需要在机器之间传输状态 (前向计算中，传递计算结果以便计算下一层结果，反向计算中，传递计算结果和梯度以便计算梯度)
 >  partition 内部的计算会划分到多个 CPU cores 上并行计算
 
 The performance benefits of distributing a deep network across multiple machines depends on the connectivity structure and computational needs of the model. Models with a large number of parameters or high computational demands typically benefit from access to more CPUs and memory, up to the point where communication costs dominate. 
@@ -175,7 +175,7 @@ The speech recognition task was to classify the central region (or frame) in a s
 For visual object recognition we trained a larger neural network with locally-connected receptive fields on the ImageNet data set of 16 million images, each of which we scaled to  $100\mathrm{x}100$  pixels [29]. The network had three stages, each composed of filtering, pooling and local contrast normalization, where each node in the filtering layer was connected to a  $10\mathrm{x}10$  patch in the layer below. Our infrastructure allows many nodes to connect to the same input patch, and we ran experiments varying the number of identically connected nodes from 8 to 36. The output layer consisted of 21 thousand one-vs-all logistic classifier nodes, one for each of the ImageNet object categories. See [30] for similar deep network configurations and training procedures.
 
 **Model parallelism benchmarks:** To explore the scaling behavior of DistBelief model parallelism (Section 3), we measured the mean time to process a single mini-batch for simple SGD training as a function of the number of partitions (machines) used in a single model instance. In Figure 3 we quantify the impact of parallelizing across N machines by reporting the average training speed-up: the ratio of the time taken using only a single machine to the time taken using N. Speedups for inference steps in these models are similar and are not shown here.
->  为了探索 DistBelief 模型并行的拓展行为，我们衡量处理的单个 mini-batch 的 SGD 训练时间和单个 model insatnce 划分的 partitions (machines) 数量的关系
+>  为了探索 DistBelief 模型并行的拓展行为，我们衡量处理的单个 mini-batch 的 SGD 训练时间和单个 model instance 划分的 partitions (machines) 数量的关系
 >  我们报告平均加速比来衡量并行到 N 台机器的效果
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-07-26/92b2d390-b4dc-49e1-88c1-d75c37ee78a3/ff0ecb4d2e800758aab4682423ac1820f8c605dceaa51534d4ff6dcb2811bc61.jpg)  
