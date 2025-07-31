@@ -1972,3 +1972,522 @@ The program resulted in a _runtime_ error at the point of using an invalid val
 This is an example of Rust’s memory safety principles in action. In many low-level languages, this kind of check is not done, and when you provide an incorrect index, invalid memory can be accessed. Rust protects you against this kind of error by immediately exiting instead of allowing the memory access and continuing. Chapter 9 discusses more of Rust’s error handling and how you can write readable, safe code that neither panics nor allows invalid memory access.
 >  这是 Rust 的内存安全原则实际应用的例子，在许多低级语言中，这个检查通常不会运行，故我们可能会访问到无效的内存
 >  Rust 通过立即退出程序来保护我们免受此类错误的影响，而不是允许内存访问并继续执行
+
+## 3.3 Functions
+Functions are prevalent in Rust code. You’ve already seen one of the most important functions in the language: the `main` function, which is the entry point of many programs. You’ve also seen the `fn` keyword, which allows you to declare new functions.
+
+Rust code uses _snake case_ as the conventional style for function and variable names, in which all letters are lowercase and underscores separate words. Here’s a program that contains an example function definition:
+>  Rust 使用 snake case 用于函数和变量名
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    println!("Hello, world!");
+
+    another_function();
+}
+
+fn another_function() {
+    println!("Another function.");
+}
+```
+
+We define a function in Rust by entering `fn` followed by a function name and a set of parentheses. The curly brackets tell the compiler where the function body begins and ends.
+
+We can call any function we’ve defined by entering its name followed by a set of parentheses. Because `another_function` is defined in the program, it can be called from inside the `main` function. Note that we defined `another_function` _after_ the `main` function in the source code; we could have defined it before as well. Rust doesn’t care where you define your functions, only that they’re defined somewhere in a scope that can be seen by the caller.
+>  Rust 对于函数定义的位置没有要求，只要定义在调用者可以看到的作用域内接口
+
+Let’s start a new binary project named _functions_ to explore functions further. Place the `another_function` example in _src/main.rs_ and run it. You should see the following output:
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running `target/debug/functions`
+Hello, world!
+Another function.
+```
+
+The lines execute in the order in which they appear in the `main` function. First the “Hello, world!” message prints, and then `another_function` is called and its message is printed.
+
+### Parameters
+We can define functions to have _parameters_, which are special variables that are part of a function’s signature. When a function has parameters, you can provide it with concrete values for those parameters. Technically, the concrete values are called _arguments_, but in casual conversation, people tend to use the words _parameter_ and _argument_ interchangeably for either the variables in a function’s definition or the concrete values passed in when you call a function.
+>  parameter 是作为函数签名一部分的特殊变量
+>  我们为 parameter 提供具体的值，具体的值称为 arguments
+
+In this version of `another_function` we add a parameter:
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    another_function(5);
+}
+
+fn another_function(x: i32) {
+    println!("The value of x is: {x}");
+}
+```
+
+Try running this program; you should get the following output:
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.21s
+     Running `target/debug/functions`
+The value of x is: 5
+```
+
+The declaration of `another_function` has one parameter named `x`. The type of `x` is specified as `i32`. When we pass `5` in to `another_function`, the `println!` macro puts `5` where the pair of curly brackets containing `x` was in the format string.
+
+In function signatures, you _must_ declare the type of each parameter. This is a deliberate decision in Rust’s design: requiring type annotations in function definitions means the compiler almost never needs you to use them elsewhere in the code to figure out what type you mean. The compiler is also able to give more helpful error messages if it knows what types the function expects.
+>  函数签名中，形参必须声明类型，即要有类型注解
+
+When defining multiple parameters, separate the parameter declarations with commas, like this:
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    print_labeled_measurement(5, 'h');
+}
+
+fn print_labeled_measurement(value: i32, unit_label: char) {
+    println!("The measurement is: {value}{unit_label}");
+}
+```
+
+This example creates a function named `print_labeled_measurement` with two parameters. The first parameter is named `value` and is an `i32`. The second is named `unit_label` and is type `char`. The function then prints text containing both the `value` and the `unit_label`.
+
+Let’s try running this code. Replace the program currently in your _functions_ project’s _src/main.rs_ file with the preceding example and run it using `cargo run`:
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s
+     Running `target/debug/functions`
+The measurement is: 5h
+```
+
+Because we called the function with `5` as the value for `value` and `'h'` as the value for `unit_label`, the program output contains those values.
+
+### Statements and Expressions
+Function bodies are made up of a series of statements optionally ending in an expression. So far, the functions we’ve covered haven’t included an ending expression, but you have seen an expression as part of a statement. Because Rust is an expression-based language, this is an important distinction to understand. Other languages don’t have the same distinctions, so let’s look at what statements and expressions are and how their differences affect the bodies of functions.
+>  函数体包含一系列语句，函数体可以以一个表达式为结束
+>  Rust 是一个基于表达式的语言
+
+- **Statements** are instructions that perform some action and do not return a value.
+- **Expressions** evaluate to a resultant value. Let’s look at some examples.
+
+>  语句: 执行动作，不返回值
+>  表达式: 评估值，并返回值
+
+We’ve actually already used statements and expressions. Creating a variable and assigning a value to it with the `let` keyword is a statement. In Listing 3-1, `let y = 6;` is a statement.
+>  使用 `let` 创建变量为语句
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let y = 6;
+}
+```
+
+[Listing 3-1](https://doc.rust-lang.org/stable/book/ch03-03-how-functions-work.html#listing-3-1): A `main` function declaration containing one statement
+
+Function definitions are also statements; the entire preceding example is a statement in itself. (As we will see below, _calling_ a function is not a statement.)
+>  函数定义也是语句
+
+Statements do not return values. Therefore, you can’t assign a `let` statement to another variable, as the following code tries to do; you’ll get an error:
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let x = (let y = 6);
+}
+```
+
+When you run this program, the error you’ll get looks like this:
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+error: expected expression, found `let` statement
+ --> src/main.rs:2:14
+  |
+2 |     let x = (let y = 6);
+  |              ^^^
+  |
+  = note: only supported directly in conditions of `if` and `while` expressions
+
+warning: unnecessary parentheses around assigned value
+ --> src/main.rs:2:13
+  |
+2 |     let x = (let y = 6);
+  |             ^         ^
+  |
+  = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+  |
+2 -     let x = (let y = 6);
+2 +     let x = let y = 6;
+  |
+
+warning: `functions` (bin "functions") generated 1 warning
+error: could not compile `functions` (bin "functions") due to 1 previous error; 1 warning emitted
+```
+
+The `let y = 6` statement does not return a value, so there isn’t anything for `x` to bind to. This is different from what happens in other languages, such as C and Ruby, where the assignment returns the value of the assignment. In those languages, you can write `x = y = 6` and have both `x` and `y` have the value `6`; that is not the case in Rust.
+
+Expressions evaluate to a value and make up most of the rest of the code that you’ll write in Rust. Consider a math operation, such as `5 + 6`, which is an expression that evaluates to the value `11`. Expressions can be part of statements: in Listing 3-1, the `6` in the statement `let y = 6;` is an expression that evaluates to the value `6`. Calling a function is an expression. Calling a macro is an expression. A new scope block created with curly brackets is an expression, for example:
+>  表达式可以是语句的一部分
+>  函数调用是表达式
+>  宏调用是表达式
+>  创建一个新的作用域是表达式
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let y = {
+        let x = 3;
+        x + 1
+    };
+
+    println!("The value of y is: {y}");
+}
+```
+
+This expression:
+
+```rust
+{
+    let x = 3;
+    x + 1
+}
+```
+
+is a block that, in this case, evaluates to `4`. That value gets bound to `y` as part of the `let` statement. Note that the `x + 1` line doesn’t have a semicolon at the end, which is unlike most of the lines you’ve seen so far. Expressions do not include ending semicolons. If you add a semicolon to the end of an expression, you turn it into a statement, and it will then not return a value. Keep this in mind as you explore function return values and expressions next.
+>  `{}` 的结尾表达式没有 `;`，因为表达式本身不需要以 `;` 结尾，只有语句需要以 `;` 结尾
+
+### Functions with Return Values
+Functions can return values to the code that calls them. We don’t name return values, but we must declare their type after an arrow (`->`). In Rust, the return value of the function is synonymous with the value of the final expression in the block of the body of a function. You can return early from a function by using the `return` keyword and specifying a value, but most functions return the last expression implicitly. Here’s an example of a function that returns a value:
+>  如果函数有返回值，需要通过 `->` 声明返回值类型
+>  Rust 中，函数的返回值等于函数体块中最后一个表达式的值，也可以通过 `return` 关键字返回特定的值，但大多数函数隐式返回最后一个表达式的值
+
+Filename: src/main.rs
+
+```rust
+fn five() -> i32 {
+    5
+}
+
+fn main() {
+    let x = five();
+
+    println!("The value of x is: {x}");
+}
+```
+
+There are no function calls, macros, or even `let` statements in the `five` function—just the number `5` by itself. That’s a perfectly valid function in Rust. Note that the function’s return type is specified too, as `-> i32`. Try running this code; the output should look like this:
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running `target/debug/functions`
+The value of x is: 5
+```
+
+The `5` in `five` is the function’s return value, which is why the return type is `i32`. Let’s examine this in more detail. There are two important bits: first, the line `let x = five();` shows that we’re using the return value of a function to initialize a variable. Because the function `five` returns a `5`, that line is the same as the following:
+
+```rust
+let x = 5;
+```
+
+Second, the `five` function has no parameters and defines the type of the return value, but the body of the function is a lonely `5` with no semicolon because it’s an expression whose value we want to return.
+
+Let’s look at another example:
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let x = plus_one(5);
+
+    println!("The value of x is: {x}");
+}
+
+fn plus_one(x: i32) -> i32 {
+    x + 1
+}
+```
+
+Running this code will print `The value of x is: 6`. But if we place a semicolon at the end of the line containing `x + 1`, changing it from an expression to a statement, we’ll get an error:
+
+Compiling this code produces an error, as follows:
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+error[E0308]: mismatched types
+ --> src/main.rs:7:24
+  |
+7 | fn plus_one(x: i32) -> i32 {
+  |    --------            ^^^ expected `i32`, found `()`
+  |    |
+  |    implicitly returns `()` as its body has no tail or `return` expression
+8 |     x + 1;
+  |          - help: remove this semicolon to return this value
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `functions` (bin "functions") due to 1 previous error
+```
+
+The main error message, `mismatched types`, reveals the core issue with this code. The definition of the function `plus_one` says that it will return an `i32`, but statements don’t evaluate to a value, which is expressed by `()`, the unit type. Therefore, nothing is returned, which contradicts the function definition and results in an error. In this output, Rust provides a message to possibly help rectify this issue: it suggests removing the semicolon, which would fix the error.
+>  表达式不会返回任何值，或者说等价于返回单元类型 `()`
+
+## 3.4 Comments
+All programmers strive to make their code easy to understand, but sometimes extra explanation is warranted. In these cases, programmers leave _comments_ in their source code that the compiler will ignore but people reading the source code may find useful.
+
+Here’s a simple comment:
+
+```
+// hello, world
+```
+
+In Rust, the idiomatic comment style starts a comment with two slashes, and the comment continues until the end of the line. For comments that extend beyond a single line, you’ll need to include `//` on each line, like this:
+
+```
+// So we're doing something complicated here, long enough that we need
+// multiple lines of comments to do it! Whew! Hopefully, this comment will
+// explain what's going on.
+```
+
+Comments can also be placed at the end of lines containing code:
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let lucky_number = 7; // I'm feeling lucky today
+}
+```
+
+But you’ll more often see them used in this format, with the comment on a separate line above the code it’s annotating:
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    // I'm feeling lucky today
+    let lucky_number = 7;
+}
+```
+
+Rust also has another kind of comment, documentation comments, which we’ll discuss in the [“Publishing a Crate to Crates.io”](https://doc.rust-lang.org/stable/book/ch14-02-publishing-to-crates-io.html) section of Chapter 14.
+
+## 3.5 Control Flow
+The ability to run some code depending on whether a condition is `true` and to run some code repeatedly while a condition is `true` are basic building blocks in most programming languages. The most common constructs that let you control the flow of execution of Rust code are `if` expressions and loops.
+
+### `if` Expressions
+An `if` expression allows you to branch your code depending on conditions. You provide a condition and then state, “If this condition is met, run this block of code. If the condition is not met, do not run this block of code.”
+
+Create a new project called _branches_ in your _projects_ directory to explore the `if` expression. In the _src/main.rs_ file, input the following:
+
+Filename: src/main.rs
+
+`fn main() {     let number = 3;      if number < 5 {         println!("condition was true");     } else {         println!("condition was false");     } }`
+
+All `if` expressions start with the keyword `if`, followed by a condition. In this case, the condition checks whether or not the variable `number` has a value less than 5. We place the block of code to execute if the condition is `true` immediately after the condition inside curly brackets. Blocks of code associated with the conditions in `if` expressions are sometimes called _arms_, just like the arms in `match` expressions that we discussed in the [“Comparing the Guess to the Secret Number”](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#comparing-the-guess-to-the-secret-number) section of Chapter 2.
+
+Optionally, we can also include an `else` expression, which we chose to do here, to give the program an alternative block of code to execute should the condition evaluate to `false`. If you don’t provide an `else` expression and the condition is `false`, the program will just skip the `if` block and move on to the next bit of code.
+
+Try running this code; you should see the following output:
+
+``$ cargo run    Compiling branches v0.1.0 (file:///projects/branches)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s      Running `target/debug/branches` condition was true``
+
+Let’s try changing the value of `number` to a value that makes the condition `false` to see what happens:
+
+    `let number = 7;`
+
+Run the program again, and look at the output:
+
+``$ cargo run    Compiling branches v0.1.0 (file:///projects/branches)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s      Running `target/debug/branches` condition was false``
+
+It’s also worth noting that the condition in this code _must_ be a `bool`. If the condition isn’t a `bool`, we’ll get an error. For example, try running the following code:
+
+Filename: src/main.rs
+
+[![](https://doc.rust-lang.org/stable/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/stable/book/ch00-00-introduction.html#ferris)
+
+`fn main() {     let number = 3;      if number {         println!("number was three");     } }`
+
+The `if` condition evaluates to a value of `3` this time, and Rust throws an error:
+
+``$ cargo run    Compiling branches v0.1.0 (file:///projects/branches) error[E0308]: mismatched types  --> src/main.rs:4:8   | 4 |     if number {   |        ^^^^^^ expected `bool`, found integer  For more information about this error, try `rustc --explain E0308`. error: could not compile `branches` (bin "branches") due to 1 previous error``
+
+The error indicates that Rust expected a `bool` but got an integer. Unlike languages such as Ruby and JavaScript, Rust will not automatically try to convert non-Boolean types to a Boolean. You must be explicit and always provide `if` with a Boolean as its condition. If we want the `if` code block to run only when a number is not equal to `0`, for example, we can change the `if` expression to the following:
+
+Filename: src/main.rs
+
+`fn main() {     let number = 3;      if number != 0 {         println!("number was something other than zero");     } }`
+
+Running this code will print `number was something other than zero`.
+
+#### [Handling Multiple Conditions with `else if`](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#handling-multiple-conditions-with-else-if)
+You can use multiple conditions by combining `if` and `else` in an `else if` expression. For example:
+
+Filename: src/main.rs
+
+`fn main() {     let number = 6;      if number % 4 == 0 {         println!("number is divisible by 4");     } else if number % 3 == 0 {         println!("number is divisible by 3");     } else if number % 2 == 0 {         println!("number is divisible by 2");     } else {         println!("number is not divisible by 4, 3, or 2");     } }`
+
+This program has four possible paths it can take. After running it, you should see the following output:
+
+``$ cargo run    Compiling branches v0.1.0 (file:///projects/branches)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s      Running `target/debug/branches` number is divisible by 3``
+
+When this program executes, it checks each `if` expression in turn and executes the first body for which the condition evaluates to `true`. Note that even though 6 is divisible by 2, we don’t see the output `number is divisible by 2`, nor do we see the `number is not divisible by 4, 3, or 2` text from the `else` block. That’s because Rust only executes the block for the first `true` condition, and once it finds one, it doesn’t even check the rest.
+
+Using too many `else if` expressions can clutter your code, so if you have more than one, you might want to refactor your code. Chapter 6 describes a powerful Rust branching construct called `match` for these cases.
+
+#### [Using `if` in a `let` Statement](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#using-if-in-a-let-statement)
+
+Because `if` is an expression, we can use it on the right side of a `let` statement to assign the outcome to a variable, as in Listing 3-2.
+
+Filename: src/main.rs
+
+`fn main() {     let condition = true;     let number = if condition { 5 } else { 6 };      println!("The value of number is: {number}"); }`
+
+[Listing 3-2](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#listing-3-2): Assigning the result of an `if` expression to a variable
+
+The `number` variable will be bound to a value based on the outcome of the `if` expression. Run this code to see what happens:
+
+``$ cargo run    Compiling branches v0.1.0 (file:///projects/branches)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s      Running `target/debug/branches` The value of number is: 5``
+
+Remember that blocks of code evaluate to the last expression in them, and numbers by themselves are also expressions. In this case, the value of the whole `if` expression depends on which block of code executes. This means the values that have the potential to be results from each arm of the `if` must be the same type; in Listing 3-2, the results of both the `if` arm and the `else` arm were `i32` integers. If the types are mismatched, as in the following example, we’ll get an error:
+
+Filename: src/main.rs
+
+[![](https://doc.rust-lang.org/stable/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/stable/book/ch00-00-introduction.html#ferris)
+
+`fn main() {     let condition = true;      let number = if condition { 5 } else { "six" };      println!("The value of number is: {number}"); }`
+
+When we try to compile this code, we’ll get an error. The `if` and `else` arms have value types that are incompatible, and Rust indicates exactly where to find the problem in the program:
+
+``$ cargo run    Compiling branches v0.1.0 (file:///projects/branches) error[E0308]: `if` and `else` have incompatible types  --> src/main.rs:4:44   | 4 |     let number = if condition { 5 } else { "six" };   |                                 -          ^^^^^ expected integer, found `&str`   |                                 |   |                                 expected because of this  For more information about this error, try `rustc --explain E0308`. error: could not compile `branches` (bin "branches") due to 1 previous error``
+
+The expression in the `if` block evaluates to an integer, and the expression in the `else` block evaluates to a string. This won’t work because variables must have a single type, and Rust needs to know at compile time what type the `number` variable is, definitively. Knowing the type of `number` lets the compiler verify the type is valid everywhere we use `number`. Rust wouldn’t be able to do that if the type of `number` was only determined at runtime; the compiler would be more complex and would make fewer guarantees about the code if it had to keep track of multiple hypothetical types for any variable.
+
+### [Repetition with Loops](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#repetition-with-loops)
+
+It’s often useful to execute a block of code more than once. For this task, Rust provides several _loops_, which will run through the code inside the loop body to the end and then start immediately back at the beginning. To experiment with loops, let’s make a new project called _loops_.
+
+Rust has three kinds of loops: `loop`, `while`, and `for`. Let’s try each one.
+
+#### [Repeating Code with `loop`](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#repeating-code-with-loop)
+
+The `loop` keyword tells Rust to execute a block of code over and over again forever or until you explicitly tell it to stop.
+
+As an example, change the _src/main.rs_ file in your _loops_ directory to look like this:
+
+Filename: src/main.rs
+
+`fn main() {     loop {         println!("again!");     } }`
+
+When we run this program, we’ll see `again!` printed over and over continuously until we stop the program manually. Most terminals support the keyboard shortcut ctrl-c to interrupt a program that is stuck in a continual loop. Give it a try:
+
+``$ cargo run    Compiling loops v0.1.0 (file:///projects/loops)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s      Running `target/debug/loops` again! again! again! again! ^Cagain!``
+
+The symbol `^C` represents where you pressed ctrl-c. You may or may not see the word `again!` printed after the `^C`, depending on where the code was in the loop when it received the interrupt signal.
+
+Fortunately, Rust also provides a way to break out of a loop using code. You can place the `break` keyword within the loop to tell the program when to stop executing the loop. Recall that we did this in the guessing game in the [“Quitting After a Correct Guess”](https://doc.rust-lang.org/stable/book/ch02-00-guessing-game-tutorial.html#quitting-after-a-correct-guess) section of Chapter 2 to exit the program when the user won the game by guessing the correct number.
+
+We also used `continue` in the guessing game, which in a loop tells the program to skip over any remaining code in this iteration of the loop and go to the next iteration.
+
+#### [Returning Values from Loops](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#returning-values-from-loops)
+
+One of the uses of a `loop` is to retry an operation you know might fail, such as checking whether a thread has completed its job. You might also need to pass the result of that operation out of the loop to the rest of your code. To do this, you can add the value you want returned after the `break` expression you use to stop the loop; that value will be returned out of the loop so you can use it, as shown here:
+
+`fn main() {     let mut counter = 0;      let result = loop {         counter += 1;          if counter == 10 {             break counter * 2;         }     };      println!("The result is {result}"); }`
+
+Before the loop, we declare a variable named `counter` and initialize it to `0`. Then we declare a variable named `result` to hold the value returned from the loop. On every iteration of the loop, we add `1` to the `counter` variable, and then check whether the `counter` is equal to `10`. When it is, we use the `break` keyword with the value `counter * 2`. After the loop, we use a semicolon to end the statement that assigns the value to `result`. Finally, we print the value in `result`, which in this case is `20`.
+
+You can also `return` from inside a loop. While `break` only exits the current loop, `return` always exits the current function.
+
+#### [Loop Labels to Disambiguate Between Multiple Loops](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#loop-labels-to-disambiguate-between-multiple-loops)
+
+If you have loops within loops, `break` and `continue` apply to the innermost loop at that point. You can optionally specify a _loop label_ on a loop that you can then use with `break` or `continue` to specify that those keywords apply to the labeled loop instead of the innermost loop. Loop labels must begin with a single quote. Here’s an example with two nested loops:
+
+`fn main() {     let mut count = 0;     'counting_up: loop {         println!("count = {count}");         let mut remaining = 10;          loop {             println!("remaining = {remaining}");             if remaining == 9 {                 break;             }             if count == 2 {                 break 'counting_up;             }             remaining -= 1;         }          count += 1;     }     println!("End count = {count}"); }`
+
+The outer loop has the label `'counting_up`, and it will count up from 0 to 2. The inner loop without a label counts down from 10 to 9. The first `break` that doesn’t specify a label will exit the inner loop only. The `break 'counting_up;` statement will exit the outer loop. This code prints:
+
+``$ cargo run    Compiling loops v0.1.0 (file:///projects/loops)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s      Running `target/debug/loops` count = 0 remaining = 10 remaining = 9 count = 1 remaining = 10 remaining = 9 count = 2 remaining = 10 End count = 2``
+
+#### [Conditional Loops with `while`](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#conditional-loops-with-while)
+
+A program will often need to evaluate a condition within a loop. While the condition is `true`, the loop runs. When the condition ceases to be `true`, the program calls `break`, stopping the loop. It’s possible to implement behavior like this using a combination of `loop`, `if`, `else`, and `break`; you could try that now in a program, if you’d like. However, this pattern is so common that Rust has a built-in language construct for it, called a `while` loop. In Listing 3-3, we use `while` to loop the program three times, counting down each time, and then, after the loop, print a message and exit.
+
+Filename: src/main.rs
+
+`fn main() {     let mut number = 3;      while number != 0 {         println!("{number}!");          number -= 1;     }      println!("LIFTOFF!!!"); }`
+
+[Listing 3-3](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#listing-3-3): Using a `while` loop to run code while a condition evaluates to `true`
+
+This construct eliminates a lot of nesting that would be necessary if you used `loop`, `if`, `else`, and `break`, and it’s clearer. While a condition evaluates to `true`, the code runs; otherwise, it exits the loop.
+
+#### [Looping Through a Collection with `for`](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#looping-through-a-collection-with-for)
+
+You can also use the `while` construct to loop over the elements of a collection, such as an array. For example, the loop in Listing 3-4 prints each element in the array `a`.
+
+Filename: src/main.rs
+
+`fn main() {     let a = [10, 20, 30, 40, 50];     let mut index = 0;      while index < 5 {         println!("the value is: {}", a[index]);          index += 1;     } }`
+
+[Listing 3-4](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#listing-3-4): Looping through each element of a collection using a `while` loop
+
+Here, the code counts up through the elements in the array. It starts at index `0`, and then loops until it reaches the final index in the array (that is, when `index < 5` is no longer `true`). Running this code will print every element in the array:
+
+``$ cargo run    Compiling loops v0.1.0 (file:///projects/loops)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.32s      Running `target/debug/loops` the value is: 10 the value is: 20 the value is: 30 the value is: 40 the value is: 50``
+
+All five array values appear in the terminal, as expected. Even though `index` will reach a value of `5` at some point, the loop stops executing before trying to fetch a sixth value from the array.
+
+However, this approach is error prone; we could cause the program to panic if the index value or test condition is incorrect. For example, if you changed the definition of the `a` array to have four elements but forgot to update the condition to `while index < 4`, the code would panic. It’s also slow, because the compiler adds runtime code to perform the conditional check of whether the index is within the bounds of the array on every iteration through the loop.
+
+As a more concise alternative, you can use a `for` loop and execute some code for each item in a collection. A `for` loop looks like the code in Listing 3-5.
+
+Filename: src/main.rs
+
+`fn main() {     let a = [10, 20, 30, 40, 50];      for element in a {         println!("the value is: {element}");     } }`
+
+[Listing 3-5](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#listing-3-5): Looping through each element of a collection using a `for` loop
+
+When we run this code, we’ll see the same output as in Listing 3-4. More importantly, we’ve now increased the safety of the code and eliminated the chance of bugs that might result from going beyond the end of the array or not going far enough and missing some items.
+
+Using the `for` loop, you wouldn’t need to remember to change any other code if you changed the number of values in the array, as you would with the method used in Listing 3-4.
+
+The safety and conciseness of `for` loops make them the most commonly used loop construct in Rust. Even in situations in which you want to run some code a certain number of times, as in the countdown example that used a `while` loop in Listing 3-3, most Rustaceans would use a `for` loop. The way to do that would be to use a `Range`, provided by the standard library, which generates all numbers in sequence starting from one number and ending before another number.
+
+Here’s what the countdown would look like using a `for` loop and another method we’ve not yet talked about, `rev`, to reverse the range:
+
+Filename: src/main.rs
+
+`fn main() {     for number in (1..4).rev() {         println!("{number}!");     }     println!("LIFTOFF!!!"); }`
+
+This code is a bit nicer, isn’t it?
+
+## [Summary](https://doc.rust-lang.org/stable/book/ch03-05-control-flow.html#summary)
+
+You made it! This was a sizable chapter: you learned about variables, scalar and compound data types, functions, comments, `if` expressions, and loops! To practice with the concepts discussed in this chapter, try building programs to do the following:
+
+- Convert temperatures between Fahrenheit and Celsius.
+- Generate the _n_th Fibonacci number.
+- Print the lyrics to the Christmas carol “The Twelve Days of Christmas,” taking advantage of the repetition in the song.
+
+When you’re ready to move on, we’ll talk about a concept in Rust that _doesn’t_ commonly exist in other programming languages: ownership.
+
+[  
+](https://doc.rust-lang.org/stable/book/ch03-04-comments.html "Previous chapter")
