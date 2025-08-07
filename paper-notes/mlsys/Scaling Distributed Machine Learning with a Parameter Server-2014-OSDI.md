@@ -4,6 +4,8 @@ We propose a parameter server framework for distributed machine learning problem
 >  数据和 workload 被分布到 worker nodes 上，server nodes 维护全局共享的参数，这些参数以密集或稀疏的向量和矩阵形式表示
 >  该框架管理 nodes 之间的异步数据通信，并支持灵活的一致性模型、弹性可拓展性以及持续的容错能力
 
+>  这个框架中，应该没有考虑 workers 之间的模型并行，假设了模型可以完全 fit 到一个 worker 上，故 worker 之间应该是数据并行
+
 To demonstrate the scalability of the proposed framework, we show experimental results on petabytes of real data with billions of examples and parameters on problems ranging from Sparse Logistic Regression to Latent Dirichlet Allocation and Distributed Sketching.
 >  我们展示了在各种带有数十亿个数据和参数的真实数据集上的实验结果
 
@@ -18,9 +20,9 @@ Realistic quantities of training data can range between 1TB and 1PB. This allows
 
 >  模型并行下，所有 worker nodes 都拥有模型，且需要频繁访问共享的参数
 >  共享带来了三个挑战:
->  -访问这些参数需要巨大的网络带宽
->  -许多 ML 算法是顺序执行的 (算完第一个 batch 再算第二个 batch)，当同步成本和机器延迟较高时，这一顺序性会阻碍性能
->  -在大规模情况下，容错能力很重要，学习任务通常在云环境中执行，其中的机器可能不可靠，任务也可能被中断
+>  - 访问这些参数需要巨大的网络带宽
+>  - 许多 ML 算法是顺序执行的 (算完第一个 batch 再算第二个 batch)，当同步成本和机器延迟较高时，这一顺序性会阻碍性能
+>  - 在大规模情况下，容错能力很重要，学习任务通常在云环境中执行，其中的机器可能不可靠，任务也可能被中断
 
 Table 1: Statistics of machine learning jobs for a three month period in a data center.
 
@@ -92,7 +94,7 @@ Figure 1 provides an overview of the scale of the largest supervised and unsuper
 
 Table 2: Attributes of distributed data analysis systems.  
 
-<table><tr><td></td><td>Shared Data</td><td>Consistency</td><td>Fault Tolerance</td></tr><tr><td>Graphlab [34]</td><td>graph</td><td>eventual</td><td>checkpoint</td></tr><tr><td>Petuum [12]</td><td>hash table</td><td>delay bound</td><td>none</td></tr><tr><td>REEF [10]</td><td>array</td><td>BSP</td><td>checkpoint</td></tr><tr><td>Naiad [37]</td><td>(key,value)</td><td>multiple</td><td>checkpoint</td></tr><tr><td>Mlbase [29]</td><td>table</td><td>BSP</td><td>RDD</td></tr><tr><td>Parameter Server</td><td>(sparse) vector/matrix</td><td>various</td><td>continuous</td></tr></table>
+<center><table><tr><td></td><td>Shared Data</td><td>Consistency</td><td>Fault Tolerance</td></tr><tr><td>Graphlab [34]</td><td>graph</td><td>eventual</td><td>checkpoint</td></tr><tr><td>Petuum [12]</td><td>hash table</td><td>delay bound</td><td>none</td></tr><tr><td>REEF [10]</td><td>array</td><td>BSP</td><td>checkpoint</td></tr><tr><td>Naiad [37]</td><td>(key,value)</td><td>multiple</td><td>checkpoint</td></tr><tr><td>Mlbase [29]</td><td>table</td><td>BSP</td><td>RDD</td></tr><tr><td>Parameter Server</td><td>(sparse) vector/matrix</td><td>various</td><td>continuous</td></tr></table></center>
 
 Furthermore, Table 2 provides an overview of the main characteristics of several machine learning systems. Our parameter server offers the greatest degree of flexibility in terms of consistency. It is the only system offering continuous fault tolerance. Its native data types make it particularly friendly for data analysis.
 >  此外，Table 2 提供了目前几个 ML 系统的主要特性
@@ -473,8 +475,7 @@ Table 3: Systems evaluated.
 
 We collected an ad click prediction dataset with 170 billion examples and 65 billion unique features. This dataset is 636 TB uncompressed (141 TB compressed). We ran the parameter server on 1000 machines, each with 16 physical cores, 192GB DRAM, and connected by  $10\mathrm{Gb}$  Ethernet. 800 machines acted as workers, and 200 were parameter servers. The cluster was in concurrent use by other (unrelated) tasks during operation.
 
-**Algorithm:** We used a state-of-the-art distributed regression algorithm (Algorithm 3, [31, 32]). It differs from the simpler variant described earlier in four ways: First, only a block of parameters is updated in an iteration. Second, the workers compute both gradients and the diagonal part of the second derivative on this block. Third, the parameter servers themselves must perform complex computation: the servers update the model by solving a proximal operator based on the aggregated local gradients. Fourth, we use a bounded-delay model over iterations and use a "KKT" filter to suppress transmission of parts of the generated gradient update that are small enough that their effect is likely to be negligible.6
-
+**Algorithm:** We used a state-of-the-art distributed regression algorithm (Algorithm 3, [31, 32]). It differs from the simpler variant described earlier in four ways: First, only a block of parameters is updated in an iteration. Second, the workers compute both gradients and the diagonal part of the second derivative on this block. Third, the parameter servers themselves must perform complex computation: the servers update the model by solving a proximal operator based on the aggregated local gradients. Fourth, we use a bounded-delay model over iterations and use a "KKT" filter to suppress transmission of parts of the generated gradient update that are small enough that their effect is likely to be negligible.
 
 To the best of our knowledge, no open source system can scale sparse logistic regression to the scale described in this paper.7 We compare the parameter server with two special-purpose systems, named System A and B, developed by a large internet company.
 
