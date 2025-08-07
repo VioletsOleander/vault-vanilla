@@ -174,6 +174,7 @@ DNN Weaver [83], AngelEye [33], ALAMO [63], FP-DNN [32], SysArrayAccel [101] are
 >  针对流式架构的代码生成器有 fpgaConvNet, Deep Burning, Haddoc2, Auto Code Gen
 
 ![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/00e875fda4506a93cefa6b3c32fbd9955488abd20d3e10ed81aa57fee6a66667.jpg)  
+
 Fig. 2. The overview of commonly adopted design architecture of DL compilers.
 
 For the detailed survey of specific compilation techniques that map DL models to FPGAs, the readers can refer to [34 , 93 , 104]. Different from [34 , 93 , 104], this survey focuses on general DL compilation techniques that can be applied to broader DL hardware other than bounding to FPGA.
@@ -446,6 +447,7 @@ The frontend optimizations are usually defined by passes , and can be applied by
 Figure 3 shows an example of computation graph optimizations with Tensorflow XLA.
 
 ![](https://cdn-mineru.openxlab.org.cn/model-mineru/prod/6b1225e22de5652bb312c243366061a6d8bc5b55af2f55fc5c5bdc19575d7980.jpg)  
+
 Fig. 3 Example of computation graph optimizations, taken from the HLO graph of Alexnet on VoltaGPU using Tensorflow XLA
 
 In this section, we classify the frontend optimizations into three categories: 1) node-level optimizations, 2) block-level (peephole, local) optimizations, and 3) dataflow-level (global) optimizations.
