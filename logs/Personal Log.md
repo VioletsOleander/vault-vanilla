@@ -2737,7 +2737,114 @@ Date: 2025.7.21-2025.7.28
     JS's capability relies on the execution environment, such as `Node.js`
 
 \[Doc\]
-- [[doc-notes/Semantic Versioning|Semantic Versioning]]
+- [[doc-notes/Semantic Versioning|Semantic Versioning]]: All
+    Major. Minor. Patch
+    Major: backward-incompatible API change
+    Minor: backward-compatible feature addition
+    Patch: backward-compatible bug fixes
+    `1.0.0` defines public API
 - [[doc-notes/onednn/about/Introduction|onednn/about/Introduction]]: All
+    oneDNN is a open-source cross-platform performance library of basic building blocks for DL applications.
+    oneDNN is optimized for Intel Architecture Processor, Intel Graphics, ARM Architecture.
 - [[doc-notes/onednn/learn-ondnn/Key Concepts|onednn/learn-ondnn/Key Concepts]]: All
+    oneDNN programming model consists in executing primitives to process data in memory objects.
+    Execution is performed on an engine in the context of a stream.
+    oneDNN is built around the notion of primitive (`dnnl::primitive`), which is an object encapsulating specific computation.
+    The most important difference between primitive and pure function is that primitive can store states. The primitive's state is immutable once created.
+    oneDNN utilize these states to generate optimized code for primitive. Those states can help oneDNN decide memory layout, cache blocking etc.
+    The oneDNN programming model assumes the creation time of primitive is amortized by reusing the primitives. That is: configure once, run multiple times.
+    Engine (`dnnl::engine`) is the abstraction for a device.
+    Stream (`dnnl::stream`) encapsulates the execution context tied to a particular engine. Stream is used to schedule, synchronize, manage resources and operations.
+    Memory object (`dnnl::memory`) encapsulates handles to memory allocated on a specific engine.
+    Memory descriptor describes the logical dimension, data type, memory layout of a tensor.
+    Primitive descriptor uses memory descriptor to describe the computation of an operation.
+    Primitive is the most concrete abstraction level, which contains code for real execution.
 - [[doc-notes/onednn/learn-ondnn/Functional API Basic Workflow|onednn/learn-ondnn/Functional API Basic Workflow]]: All
+    Basic workflow: 
+    - create engine, stream
+    - encapsulate date into memory object
+    - create primitive
+    - execute primitive
+    - acquire result, verify result
+
+## August
+### Week 1
+Date: 2025.7.28-2025.8.4
+
+\[Paper\]
+- [[paper-notes/mlsys/Scaling Distributed Machine Learning with a Parameter Server-2014-OSDI|Scaling Distributed Machine Learning with a Parameter Server-2014-OSDI]]
+    Abstract
+        This paper proposes a parameter server framework for distributed ML training.
+        Data and workload are distributed over worker nodes. Server nodes maintain globally shared parameters.
+        This framework manages asynchronous data communication between nodes, and supports flexible consistency model, scalability, fault tolerance.
+    Introduction
+        Parameter server is an mechanism to aggregate parameters between worker nodes.
+        In parameter server framework, each server nodes maintains a subset of parameters.
+        This system provides optimization for communication of (sparse) parameters (compression, batching).
+        This system provides hot replication mechanism for server nodes as fault tolerance.
+    Machine Learning
+    Architecture
+        workers are grouped in a worker group, each group runs an model replica.
+        workers only communicates with server nodes, to push and pull parameters.
+        There is a schedule node in worker groups to manage and schedule workloads to workers.
+        Parameters is expressed as key-value pairs.
+        workers pull and push a range of keys, which represent its partial parameter. The whole range thus represents the whole parameter vector $w$.
+        server nodes will do aggregation on partial parameters.
+        Task (push, pull tasks after worker node's each computation iteration) dependency is used to define flexible consistency model.
+    Implementation
+        Server node use vector clock on key-value pair to manage task dependency.
+        Server nodes backup each other's key range, the way of backup is chain replication.
+    Evaluation
+    Summary and Discussion
+
+\[Book\]
+- [[book-notes/programming language/The Rust Programming Language|The Rust Programming Language]]: CH3, CH4
+    CH3-Common Programming Concepts
+        By default, variables are immutable.
+        Constant is different from immutable variables: Constant must be type annotated; Constant can be declared in any scope; Constant can only be set to a constant expression, not a result of value to be computed at runtime.
+        Constants are valid for the entire time the program runs, within the scope they were declared.
+        Shadowing refers to declare a new variable with the same name of an existing variable.
+        Two data type subsets: scalar and compound.
+        Rust is statically types, means that the compiler needs to know the types of all variables at compile time.
+        Scalar types: integer, float, boolean, char.
+        char sizes four bytes, representing a Unicode Scalar Value.
+        Compound types: tuple, array.
+        Each position in tuple has a type.
+        tuple with no values is called unit, represented as `()`, meaning an empty value or an empty return type. Expressions implicitly return `()` if they don't return any value.
+        All elements in array have the same data type. Array can be annotated as `[dtype; length]`.
+        Functions signatures must declare parameter types.
+        Statements do not return a value. Expressions do return a value.
+        Function definitions are also statements.
+        `If` is an expression, each code of `if` should return the same type.
+        `break + value` can be used as returning `value` when `break`.
+        loop label starts with `'`
+    CH4-Understanding Ownership
+        Ownership is a set of rules that govern how a Rust program manages memory.
+        All data in stack should have sizes that is known at compile time.
+        Heap is managed by memory allocator.
+        Push to stack is faster than memory allocation, because there is no need for bookkeeping and empty slots searching.
+        Accessing head is slower than accessing stack because we need to do indirect access through pointer.
+        Ownership rules: 1. each value has one owner 2. there can be only one owner at a time 3. the the owner goes out of scope, the value dropped.
+        Rust will call the variables' `drop` function when the variable goes out of scope.
+        Assignment is considered as shallow copy and move.
+        When a variable is assigned with new value, the original value will be called `drop`, because there is no reference to the original value, then the value goes out of scope.
+        Data on stack implements `Copy` trait, therefore is copied, not moved.
+        It is not allowed to implement `Copy` trait for a type that implements `Copy` trait.
+        Passing value to function is also copy or move.
+        Returning value is also copy or move.
+        The difference between reference and pointer is that reference is guaranteed to point to a valid value for the life of that reference.
+        Reference does not have ownership. The action of creating reference is called borrowing.
+        Multiple mutable references are not allowed to avoid data race.
+        The scope of a reference starts with its first creation and ends with its last usage.
+        The time that reference leaves its scope must be earlier than the time that the value leaves its scope, to avoid dangling reference.
+        Slice is a type of reference.
+        Functions should not acquire ownership unless necessary.
+        Slice stores start position and length.
+
+\[Blog\]
+- [[blog-notes/NVIDIA NVLink and NVIDIA NVSwitch Supercharge Large Language Model Inference|NVIDIA NVLink and NVIDIA NVSwitch Supercharge Large Language Model Inference]]
+    Tensor parallelism requires GPU-GPU all-to-all communication.
+    Tensor cores often remains idle, waiting for data to continue processing.
+    Each query to Llama 70B requires 20GB TP synchronization data.
+    Process multiple queries in parallel through batching can increase throughput, but the amount of data to be transferred will also be increased by multiples.
+
