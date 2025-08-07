@@ -37,8 +37,8 @@ Minimizing the time spent communicating results between GPUs is critical, as dur
 >  因此最小化 GPU 之间的通信开销非常重要，Tensor Cores 的处理速度很快，通常会等待数据传输
 
 During this communication step, a large amount of data must be transferred. A single query to Llama 3.1 70B (8K input tokens and 256 output tokens) requires that up to 20 GB of TP synchronization data be transferred from each GPU. As multiple queries are processed in parallel through batching to improve inference throughput, the amount of data transferred increases by multiples. 
->  在这个通信步中，需要传输非常多的数据，对 Llama 3.1 70B 的单个 query (8K input tokens, 256 output tokens) 需要每个 GPU 传输高达 20GB 的 TB 同步数据
->  通过并行批处理多个 query 可以提高推理吞吐，但需要传输的数据量和成倍提高
+>  在这个通信步中，需要传输非常多的数据，对 Llama 3.1 70B 的单个 query (8K input tokens, 256 output tokens) 需要每个 GPU 传输高达 20GB 的 TP 同步数据
+>  通过并行批处理多个 query 可以提高推理吞吐，但需要传输的数据量会成倍提高
 
 This is why a high-bandwidth GPU-to-GPU interconnect is essential for multi-GPU inference. 
 >  因此高带宽 GPU-GPU 互联对于多 GPU 推理是必要的
