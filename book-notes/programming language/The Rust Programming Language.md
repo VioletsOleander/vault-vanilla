@@ -1729,7 +1729,7 @@ Floating-point numbers are represented according to the IEEE-754 standard.
 #### Numeric Operations
 Rust supports the basic mathematical operations you’d expect for all the number types: addition, subtraction, multiplication, division, and remainder. Integer division truncates toward zero to the nearest integer. 
 >  Rust 支持所有数字类型都具备的基本数学运算: 加法、减法、乘法、除法和取余
->  整数除法会向零方向阶段，得到最近的整数
+>  整数除法会向零方向截断，得到最近的整数
 
 The following code shows how you’d use each numeric operation in a `let` statement:
 
@@ -1891,7 +1891,7 @@ let months = ["January", "February", "March", "April", "May", "June", "July", "A
 ```
 
 You write an array’s type using square brackets with the type of each element, a semicolon, and then the number of elements in the array, like so:
->  可以使用 `[dtype, ele_num]` 作为数组的类型注释，例如:
+>  可以使用 `[dtype; ele_num]` 作为数组的类型注释，例如:
 
 ```rust
 let a: [i32; 5] = [1, 2, 3, 4, 5];
@@ -1996,7 +1996,7 @@ fn another_function() {
 We define a function in Rust by entering `fn` followed by a function name and a set of parentheses. The curly brackets tell the compiler where the function body begins and ends.
 
 We can call any function we’ve defined by entering its name followed by a set of parentheses. Because `another_function` is defined in the program, it can be called from inside the `main` function. Note that we defined `another_function` _after_ the `main` function in the source code; we could have defined it before as well. Rust doesn’t care where you define your functions, only that they’re defined somewhere in a scope that can be seen by the caller.
->  Rust 对于函数定义的位置没有要求，只要定义在调用者可以看到的作用域内接口
+>  Rust 对于函数定义的位置没有要求，只要定义在调用者可以看到的作用域内即可
 
 Let’s start a new binary project named _functions_ to explore functions further. Place the `another_function` example in _src/main.rs_ and run it. You should see the following output:
 
@@ -2248,7 +2248,7 @@ error: could not compile `functions` (bin "functions") due to 1 previous error
 ```
 
 The main error message, `mismatched types`, reveals the core issue with this code. The definition of the function `plus_one` says that it will return an `i32`, but statements don’t evaluate to a value, which is expressed by `()`, the unit type. Therefore, nothing is returned, which contradicts the function definition and results in an error. In this output, Rust provides a message to possibly help rectify this issue: it suggests removing the semicolon, which would fix the error.
->  表达式不会返回任何值，或者说等价于返回单元类型 `()`
+>  语句不会返回任何值，或者说等价于返回单元类型 `()`
 
 ## 3.4 Comments
 All programmers strive to make their code easy to understand, but sometimes extra explanation is warranted. In these cases, programmers leave _comments_ in their source code that the compiler will ignore but people reading the source code may find useful.
@@ -2800,7 +2800,7 @@ In other words, there are two important points in time here:
 
 >  也就是两点规则:
 >  - 变量进入作用域，开始有效
->  - 变量离开作用域之前，奥驰有效
+>  - 变量离开作用域之前，保持有效
 
 At this point, the relationship between scopes and when variables are valid is similar to that in other programming languages. Now we’ll build on top of this understanding by introducing the `String` type.
 
@@ -3813,3 +3813,758 @@ This slice has the type `&[i32]`. It works the same way as string slices do, by
 The concepts of ownership, borrowing, and slices ensure memory safety in Rust programs at compile time. The Rust language gives you control over your memory usage in the same way as other systems programming languages, but having the owner of data automatically clean up that data when the owner goes out of scope means you don’t have to write and debug extra code to get this control.
 
 Ownership affects how lots of other parts of Rust work, so we’ll talk about these concepts further throughout the rest of the book. Let’s move on to Chapter 5 and look at grouping pieces of data together in a `struct`.
+
+# 5 Using Structs to Structure Related Data
+A _struct_, or _structure_, is a custom data type that lets you package together and name multiple related values that make up a meaningful group. If you’re familiar with an object-oriented language, a _struct_ is like an object’s data attributes. In this chapter, we’ll compare and contrast tuples with structs to build on what you already know and demonstrate when structs are a better way to group data.
+>  struct 是自定义数据类型，用于将多个相关的值组合在一起
+
+We’ll demonstrate how to define and instantiate structs. We’ll discuss how to define associated functions, especially the kind of associated functions called _methods_, to specify behavior associated with a struct type. Structs and enums (discussed in Chapter 6) are the building blocks for creating new types in your program’s domain to take full advantage of Rust’s compile-time type checking.
+
+## 5.1 Defining and Instantiating Structs
+Structs are similar to tuples, discussed in [“The Tuple Type”](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#the-tuple-type) section, in that both hold multiple related values. Like tuples, the pieces of a struct can be different types. Unlike with tuples, in a struct you’ll name each piece of data so it’s clear what the values mean. Adding these names means that structs are more flexible than tuples: you don’t have to rely on the order of the data to specify or access the values of an instance.
+>  struct 类似于 tuple，和 tuple 一样，struct 内可以有多个类型
+>  和 tuple 不同的是，struct 内可以为每个 field 命名，进而可以不依赖顺序来访问 struct 内的 value
+
+To define a struct, we enter the keyword `struct` and name the entire struct. A struct’s name should describe the significance of the pieces of data being grouped together. Then, inside curly brackets, we define the names and types of the pieces of data, which we call _fields_. For example, Listing 5-1 shows a struct that stores information about a user account.
+>  struct 通过关键字 `struct` 定义，形式为 `struct <struct-name>`
+>  struct 内需要定义名称和类型，我们称为 fields
+
+Filename: src/main.rs
+
+```rust
+struct User {
+    active: bool,
+    username: String,
+    email: String,
+    sign_in_count: u64,
+}
+```
+
+[Listing 5-1](https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#listing-5-1): A `User` struct definition
+
+To use a struct after we’ve defined it, we create an _instance_ of that struct by specifying concrete values for each of the fields. We create an instance by stating the name of the struct and then add curly brackets containing _ `key: value` _ pairs, where the keys are the names of the fields and the values are the data we want to store in those fields. We don’t have to specify the fields in the same order in which we declared them in the struct. In other words, the struct definition is like a general template for the type, and instances fill in that template with particular data to create values of the type. For example, we can declare a particular user as shown in Listing 5-2.
+>  我们通过为每个 fields 指定具体的值来为 struct 创建 instance
+>  instance 创建的格式为 `<struct-name> {name: value, ...}`
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let user1 = User {
+        active: true,
+        username: String::from("someusername123"),
+        email: String::from("someone@example.com"),
+        sign_in_count: 1,
+    };
+}
+```
+
+[Listing 5-2](https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#listing-5-2): Creating an instance of the `User` struct
+
+To get a specific value from a struct, we use dot notation. For example, to access this user’s email address, we use `user1.email`. If the instance is mutable, we can change a value by using the dot notation and assigning into a particular field. Listing 5-3 shows how to change the value in the `email` field of a mutable `User` instance.
+>  访问 fields 的格式为 `<struct-name>.<field-name>`
+>  如果该 instance 是可变的，value 可以重新赋值
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let mut user1 = User {
+        active: true,
+        username: String::from("someusername123"),
+        email: String::from("someone@example.com"),
+        sign_in_count: 1,
+    };
+
+    user1.email = String::from("anotheremail@example.com");
+}
+```
+
+[Listing 5-3](https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#listing-5-3): Changing the value in the `email` field of a `User` instance
+
+Note that the entire instance must be mutable; Rust doesn’t allow us to mark only certain fields as mutable. As with any expression, we can construct a new instance of the struct as the last expression in the function body to implicitly return that new instance.
+>  Rust 不允许将特定的 field 标记为可变
+>  我们可以在函数体的最后一个表达式构造 struct 的 instance，作为返回值
+
+Listing 5-4 shows a `build_user` function that returns a `User` instance with the given email and username. The `active` field gets the value of `true`, and the `sign_in_count` gets a value of `1`.
+
+Filename: src/main.rs
+
+```rust
+fn build_user(email: String, username: String) -> User {
+    User {
+        active: true,
+        username: username,
+        email: email,
+        sign_in_count: 1,
+    }
+}
+```
+
+[Listing 5-4](https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#listing-5-4): A `build_user` function that takes an email and username and returns a `User` instance
+
+It makes sense to name the function parameters with the same name as the struct fields, but having to repeat the `email` and `username` field names and variables is a bit tedious. If the struct had more fields, repeating each name would get even more annoying. Luckily, there’s a convenient shorthand!
+
+### Using the Field Init Shorthand
+Because the parameter names and the struct field names are exactly the same in Listing 5-4, we can use the _field init shorthand_ syntax to rewrite `build_user` so it behaves exactly the same but doesn’t have the repetition of `username` and `email`, as shown in Listing 5-5.
+>  如果变量名和 field name 完全相同，我们可以使用 field init shorthand 语法进行简写，这使得我们不需要重复 field name
+
+Filename: src/main.rs
+
+```rust
+fn build_user(email: String, username: String) -> User {
+    User {
+        active: true,
+        username,
+        email,
+        sign_in_count: 1,
+    }
+}
+```
+
+[Listing 5-5](https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#listing-5-5): A `build_user` function that uses field init shorthand because the `username` and `email` parameters have the same name as struct fields
+
+Here, we’re creating a new instance of the `User` struct, which has a field named `email`. We want to set the `email` field’s value to the value in the `email` parameter of the `build_user` function. Because the `email` field and the `email` parameter have the same name, we only need to write `email` rather than `email: email`.
+
+### Creating Instances from Other Instances with Struct Update Syntax
+It’s often useful to create a new instance of a struct that includes most of the values from another instance, but changes some. You can do this using _struct update syntax_.
+>  如果要通过一个 instance 创建另一个 instance，可以使用 struct update syntax
+
+First, in Listing 5-6 we show how to create a new `User` instance in `user2` regularly, without the update syntax. We set a new value for `email` but otherwise use the same values from `user1` that we created in Listing 5-2.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    // --snip--
+
+    let user2 = User {
+        active: user1.active,
+        username: user1.username,
+        email: String::from("another@example.com"),
+        sign_in_count: user1.sign_in_count,
+    };
+}
+```
+
+[Listing 5-6](https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#listing-5-6): Creating a new `User` instance using all but one of the values from `user1`
+
+Using struct update syntax, we can achieve the same effect with less code, as shown in Listing 5-7. The syntax `..` specifies that the remaining fields not explicitly set should have the same value as the fields in the given instance.
+>  在 struct update syntax 中，我们指定需要修改的 fields，然后通过 `..` 指定剩余的 fields 都具有和给定实例相同的 value
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    // --snip--
+
+    let user2 = User {
+        email: String::from("another@example.com"),
+        ..user1
+    };
+}
+```
+
+[Listing 5-7](https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#listing-5-7): Using struct update syntax to set a new `email` value for a `User` instance but to use the rest of the values from `user1`
+
+The code in Listing 5-7 also creates an instance in `user2` that has a different value for `email` but has the same values for the `username`, `active`, and `sign_in_count` fields from `user1`. The `..user1` must come last to specify that any remaining fields should get their values from the corresponding fields in `user1`, but we can choose to specify values for as many fields as we want in any order, regardless of the order of the fields in the struct’s definition.
+>  `..<instance-name>` 必须在最后指定
+
+Note that the struct update syntax uses `=` like an assignment; this is because it moves the data, just as we saw in the [“Variables and Data Interacting with Move”](https://doc.rust-lang.org/stable/book/ch04-01-what-is-ownership.html#variables-and-data-interacting-with-move) section. In this example, we can no longer use `user1` after creating `user2` because the `String` in the `username` field of `user1` was moved into `user2`. If we had given `user2` new `String` values for both `email` and `username`, and thus only used the `active` and `sign_in_count` values from `user1`, then `user1` would still be valid after creating `user2`. Both `active` and `sign_in_count` are types that implement the `Copy` trait, so the behavior we discussed in the [“Stack-Only Data: Copy”](https://doc.rust-lang.org/stable/book/ch04-01-what-is-ownership.html#stack-only-data-copy) section would apply. We can still use `user1.email` in this example, because its value was _not_ moved out.
+>  注意，struct update syntax 类似赋值一样，使用 `=`，这是因为 struct update syntax 移动了数据
+>  在上例中，我们不能在创建了 `user2` 之后再使用 `user1`，因为 `user1` 中的 `String` 都被移动了
+>  而如果我们在 struct update syntax 没有移动涉及 `String` 的值，则仍然可以在创建了 ` user2 ` 之后使用 `user1`
+>  这实际上是因为其他的类型都实现了 `Copy` trait，故它们的数据会被拷贝
+>  注意没有被 move out 的数据仍然可以被访问，例如 `user1.email`
+
+### Using Tuple Structs Without Named Fields to Create Different Types
+Rust also supports structs that look similar to tuples, called _tuple structs_. Tuple structs have the added meaning the struct name provides but don’t have names associated with their fields; rather, they just have the types of the fields. Tuple structs are useful when you want to give the whole tuple a name and make the tuple a different type from other tuples, and when naming each field as in a regular struct would be verbose or redundant.
+>  Rust 也支持看起来像 tuple 的 struct，称为 tuple structs
+>  tuple structs 的字段没有各自的名称，只有字段的类型
+
+To define a tuple struct, start with the `struct` keyword and the struct name followed by the types in the tuple. For example, here we define and use two tuple structs named `Color` and `Point`:
+>  tuple struct 的定义语法为 `struct <struct-name> (type1, type2, ...)`
+
+Filename: src/main.rs
+
+```rust
+struct Color(i32, i32, i32);
+struct Point(i32, i32, i32);
+
+fn main() {
+    let black = Color(0, 0, 0);
+    let origin = Point(0, 0, 0);
+}
+```
+
+Note that the `black` and `origin` values are different types because they’re instances of different tuple structs. Each struct you define is its own type, even though the fields within the struct might have the same types. For example, a function that takes a parameter of type `Color` cannot take a `Point` as an argument, even though both types are made up of three `i32` values. Otherwise, tuple struct instances are similar to tuples in that you can destructure them into their individual pieces, and you can use a `.` followed by the index to access an individual value. Unlike tuples, tuple structs require you to name the type of the struct when you destructure them. For example, we would write `let Point(x, y, z) = point`.
+>  注意每个自定义的 struct 都属于自己的类型，和其 fields 的类型无关
+>  tuple struct instance 可以向 tuple 一样被 destructure，且通过 `.<index>` 访问 fields
+>  注意 tuple struct 在 destructure 时，需要提供结构目标的 struct 的名字，例如 `let Point(x, y, z) = point` 而不是 `let x, y, z = point`
+
+### Unit-Like Structs Without Any Fields
+You can also define structs that don’t have any fields! These are called _unit-like structs_ because they behave similarly to `()`, the unit type that we mentioned in [“The Tuple Type”](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#the-tuple-type) section. Unit-like structs can be useful when you need to implement a trait on some type but don’t have any data that you want to store in the type itself. We’ll discuss traits in Chapter 10. Here’s an example of declaring and instantiating a unit struct named `AlwaysEqual`:
+>  没有任何 fields 的 struct 称为 unit-like struct，它们的行为和 unit type `()` 类似
+>  unit-like struct 在我们想要在某个类型上实现一个 trait，但并不想存储任何数据在该类型上时十分有用
+
+Filename: src/main.rs
+
+```rust
+struct AlwaysEqual;
+
+fn main() {
+    let subject = AlwaysEqual;
+}
+```
+
+To define `AlwaysEqual`, we use the `struct` keyword, the name we want, and then a semicolon. No need for curly brackets or parentheses! Then we can get an instance of `AlwaysEqual` in the `subject` variable in a similar way: using the name we defined, without any curly brackets or parentheses. 
+>  unit-like struct 的定义为 `struct <struct-name>;`
+>  并且直接使用 `<struct-name>` 就可以得到其 instance
+
+Imagine that later we’ll implement behavior for this type such that every instance of `AlwaysEqual` is always equal to every instance of any other type, perhaps to have a known result for testing purposes. We wouldn’t need any data to implement that behavior! You’ll see in Chapter 10 how to define traits and implement them on any type, including unit-like structs.
+
+### Ownership of Struct Data
+In the `User` struct definition in Listing 5-1, we used the owned `String` type rather than the `&str` string slice type. This is a deliberate choice because we want each instance of this struct to own all of its data and for that data to be valid for as long as the entire struct is valid.
+>  我们通常希望 struct 的每个 instance 都拥有其所有的数据，并且这些数据在 instance 实例有效下都有效
+
+It’s also possible for structs to store references to data owned by something else, but to do so requires the use of _lifetimes_, a Rust feature that we’ll discuss in Chapter 10. Lifetimes ensure that the data referenced by a struct is valid for as long as the struct is. Let’s say you try to store a reference in a struct without specifying lifetimes, like the following; this won’t work:
+>  struct 可以存储引用，但要做到这一点需要使用生命周期
+>  生命周期确保结构体引用的数据在结构体有效期间一直有效
+>  在结构体中存储引用而不指定声明周期会无法编译
+
+Filename: src/main.rs
+
+```rust
+struct User {
+    active: bool,
+    username: &str,
+    email: &str,
+    sign_in_count: u64,
+}
+
+fn main() {
+    let user1 = User {
+        active: true,
+        username: "someusername123",
+        email: "someone@example.com",
+        sign_in_count: 1,
+    };
+}
+```
+
+The compiler will complain that it needs lifetime specifiers:
+
+```
+$ cargo run
+   Compiling structs v0.1.0 (file:///projects/structs)
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:3:15
+  |
+3 |     username: &str,
+  |               ^ expected named lifetime parameter
+  |
+help: consider introducing a named lifetime parameter
+  |
+1 ~ struct User<'a> {
+2 |     active: bool,
+3 ~     username: &'a str,
+  |
+
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:4:12
+  |
+4 |     email: &str,
+  |            ^ expected named lifetime parameter
+  |
+help: consider introducing a named lifetime parameter
+  |
+1 ~ struct User<'a> {
+2 |     active: bool,
+3 |     username: &str,
+4 ~     email: &'a str,
+  |
+
+For more information about this error, try `rustc --explain E0106`.
+error: could not compile `structs` (bin "structs") due to 2 previous errors
+```
+
+In Chapter 10, we’ll discuss how to fix these errors so you can store references in structs, but for now, we’ll fix errors like these using owned types like `String` instead of references like `&str`.
+
+## 5.2 An Example Program Using Structs
+To understand when we might want to use structs, let’s write a program that calculates the area of a rectangle. We’ll start by using single variables, and then refactor the program until we’re using structs instead.
+
+Let’s make a new binary project with Cargo called _rectangles_ that will take the width and height of a rectangle specified in pixels and calculate the area of the rectangle. Listing 5-8 shows a short program with one way of doing exactly that in our project’s _src/main.rs_.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let width1 = 30;
+    let height1 = 50;
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(width1, height1)
+    );
+}
+
+fn area(width: u32, height: u32) -> u32 {
+    width * height
+}
+```
+
+[Listing 5-8](https://doc.rust-lang.org/stable/book/ch05-02-example-structs.html#listing-5-8): Calculating the area of a rectangle specified by separate width and height variables
+
+Now, run this program using `cargo run`:
+
+```
+$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.42s
+     Running `target/debug/rectangles`
+The area of the rectangle is 1500 square pixels.
+```
+
+This code succeeds in figuring out the area of the rectangle by calling the `area` function with each dimension, but we can do more to make this code clear and readable.
+
+The issue with this code is evident in the signature of `area`:
+
+```rust
+fn area(width: u32, height: u32) -> u32 {
+```
+
+The `area` function is supposed to calculate the area of one rectangle, but the function we wrote has two parameters, and it’s not clear anywhere in our program that the parameters are related. It would be more readable and more manageable to group width and height together. We’ve already discussed one way we might do that in [“The Tuple Type”](https://doc.rust-lang.org/stable/book/ch03-02-data-types.html#the-tuple-type) section of Chapter 3: by using tuples.
+>  `area` 函数的功能是计算长方形的面积，但是通过其参数实际上并没有传达这些信息
+>  比如，我们传递的两个参数是分离的，没有表现出它们互相关联
+
+### Refactoring with Tuples
+Listing 5-9 shows another version of our program that uses tuples.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let rect1 = (30, 50);
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(rect1)
+    );
+}
+
+fn area(dimensions: (u32, u32)) -> u32 {
+    dimensions.0 * dimensions.1
+}
+```
+
+[Listing 5-9](https://doc.rust-lang.org/stable/book/ch05-02-example-structs.html#listing-5-9): Specifying the width and height of the rectangle with a tuple
+
+In one way, this program is better. Tuples let us add a bit of structure, and we’re now passing just one argument. But in another way, this version is less clear: tuples don’t name their elements, so we have to index into the parts of the tuple, making our calculation less obvious.
+>  简单改进之后，我们可以传递 tuple
+>  但此时的问题是 tuple 的 field 没有名字，我们需要使用索引访问
+
+Mixing up the width and height wouldn’t matter for the area calculation, but if we want to draw the rectangle on the screen, it would matter! We would have to keep in mind that `width` is the tuple index `0` and `height` is the tuple index `1`. This would be even harder for someone else to figure out and keep in mind if they were to use our code. Because we haven’t conveyed the meaning of our data in our code, it’s now easier to introduce errors.
+
+### Refactoring with Structs: Adding More Meaning
+We use structs to add meaning by labeling the data. We can transform the tuple we’re using into a struct with a name for the whole as well as names for the parts, as shown in Listing 5-10.
+>  进一步改进后，我们使用 struct
+
+Filename: src/main.rs
+
+```rust
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(&rect1)
+    );
+}
+
+fn area(rectangle: &Rectangle) -> u32 {
+    rectangle.width * rectangle.height
+}
+```
+
+[Listing 5-10](https://doc.rust-lang.org/stable/book/ch05-02-example-structs.html#listing-5-10): Defining a `Rectangle` struct
+
+Here, we’ve defined a struct and named it `Rectangle`. Inside the curly brackets, we defined the fields as `width` and `height`, both of which have type `u32`. Then, in `main`, we created a particular instance of `Rectangle` that has a width of `30` and a height of `50`.
+
+Our `area` function is now defined with one parameter, which we’ve named `rectangle`, whose type is an immutable borrow of a struct `Rectangle` instance. As mentioned in Chapter 4, we want to borrow the struct rather than take ownership of it. This way, `main` retains its ownership and can continue using `rect1`, which is the reason we use the `&` in the function signature and where we call the function.
+>  函数的参数是对 `Rectangle` 的不可变引用
+
+The `area` function accesses the `width` and `height` fields of the `Rectangle` instance (note that accessing fields of a borrowed struct instance does not move the field values, which is why you often see borrows of structs). Our function signature for `area` now says exactly what we mean: calculate the area of `Rectangle`, using its `width` and `height` fields. This conveys that the width and height are related to each other, and it gives descriptive names to the values rather than using the tuple index values of `0` and `1`. This is a win for clarity.
+>  此时函数的功能从参数和函数体来看就更加清晰
+
+### Adding Useful Functionality with Derived Traits
+It’d be useful to be able to print an instance of `Rectangle` while we’re debugging our program and see the values for all its fields. Listing 5-11 tries using the [`println!` macro](https://doc.rust-lang.org/stable/std/macro.println.html) as we have used in previous chapters. This won’t work, however.
+
+Filename: src/main.rs
+
+```rust
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!("rect1 is {rect1}");
+}
+```
+
+[Listing 5-11](https://doc.rust-lang.org/stable/book/ch05-02-example-structs.html#listing-5-11): Attempting to print a `Rectangle` instance
+
+>  直接使用 `println!` 试图打印 `Rectangle` 类型会出现编译错误
+
+When we compile this code, we get an error with this core message:
+
+```
+error[E0277]: `Rectangle` doesn't implement `std::fmt::Display`
+```
+
+The `println!` macro can do many kinds of formatting, and by default, the curly brackets tell `println!` to use formatting known as `Display`: output intended for direct end user consumption. The primitive types we’ve seen so far implement `Display` by default because there’s only one way you’d want to show a `1` or any other primitive type to a user. But with structs, the way `println!` should format the output is less clear because there are more display possibilities: Do you want commas or not? Do you want to print the curly brackets? Should all the fields be shown? Due to this ambiguity, Rust doesn’t try to guess what we want, and structs don’t have a provided implementation of `Display` to use with `println!` and the `{}` placeholder.
+>  `println!` 宏可以做许多格式化工作，且默认情况下 `{}` 告诉它使用一种称为 `Display` 的格式: 这种格式是为直接面向最终用户的输出设计的
+>  基本类型默认都实现了 `Display`，但对于结构体来说，我们需要根据自己的理解，实现它面型最终用户的输出
+
+If we continue reading the errors, we’ll find this helpful note:
+
+```
+= help: the trait `std::fmt::Display` is not implemented for `Rectangle`
+= note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+```
+
+Let’s try it! The `println!` macro call will now look like `println!("rect1 is {rect1:?}");`. Putting the specifier `:?` inside the curly brackets tells `println!` we want to use an output format called `Debug`. The `Debug` trait enables us to print our struct in a way that is useful for developers so we can see its value while we’re debugging our code.
+>  如果我们使用 `{rect1:?}`，其中的 `:?` 告诉 `println!` 我们想要使用格式为 `Debug` 的输出格式
+
+Compile the code with this change. Drat! We still get an error:
+
+```
+error[E0277]: ` Rectangle ` doesn't implement ` Debug `
+```
+
+But again, the compiler gives us a helpful note:
+
+```
+= help: the trait `Debug` is not implemented for `Rectangle`
+= note: add `#[derive(Debug)]` to `Rectangle` or manually `impl Debug for Rectangle`
+```
+
+Rust _does_ include functionality to print out debugging information, but we have to explicitly opt in to make that functionality available for our struct. To do that, we add the outer attribute `#[derive(Debug)]` just before the struct definition, as shown in Listing 5-12.
+>  Rust 本身提供了打印 debug 信息的功能，但我们需要显式让该功能对于我们的结构体可用
+>  为此，我们需要在结构体定义之前添加属性 `#[derive(Debug)]`
+
+Filename: src/main.rs
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!("rect1 is {rect1:?}");
+}
+```
+
+[Listing 5-12](https://doc.rust-lang.org/stable/book/ch05-02-example-structs.html#listing-5-12): Adding the attribute to derive the `Debug` trait and printing the `Rectangle` instance using debug formatting
+
+Now when we run the program, we won’t get any errors, and we’ll see the following output:
+
+```
+$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.48s
+     Running `target/debug/rectangles`
+rect1 is Rectangle { width: 30, height: 50 }
+```
+
+Nice! It’s not the prettiest output, but it shows the values of all the fields for this instance, which would definitely help during debugging. When we have larger structs, it’s useful to have output that’s a bit easier to read; in those cases, we can use `{:#?}` instead of `{:?}` in the `println!` string. In this example, using the `{:#?}` style will output the following:
+>  如果使用 `{:#?}` 而不是 `{:?}`，可以获得更可读的方式
+
+```
+$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.48s
+     Running `target/debug/rectangles`
+rect1 is Rectangle {
+    width: 30,
+    height: 50,
+}
+```
+
+Another way to print out a value using the `Debug` format is to use the [`dbg!` macro](https://doc.rust-lang.org/stable/std/macro.dbg.html), which takes ownership of an expression (as opposed to `println!`, which takes a reference), prints the file and line number of where that `dbg!` macro call occurs in your code along with the resultant value of that expression, and returns ownership of the value.
+>  使用 `Debug` 格式打印 value 的另一种方式是使用 `dbg!` macro，它会获得表达式的所有权 (`println!` 则只获取引用)，打印出该 dbg macro 在代码中出现的文件和行号，以及该表达式的结果值，然后返回该值的所有权
+
+Note: Calling the `dbg!` macro prints to the standard error console stream (`stderr`), as opposed to `println!`, which prints to the standard output console stream (`stdout`). We’ll talk more about `stderr` and `stdout` in the [“Writing Error Messages to Standard Error Instead of Standard Output” section in Chapter 12](https://doc.rust-lang.org/stable/book/ch12-06-writing-to-stderr-instead-of-stdout.html).
+>  dbg macro 打印到标准错误控制台流 stderr 而不是标准输出控制台流 stdout
+
+Here’s an example where we’re interested in the value that gets assigned to the `width` field, as well as the value of the whole struct in `rect1`:
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let scale = 2;
+    let rect1 = Rectangle {
+        width: dbg!(30 * scale),
+        height: 50,
+    };
+
+    dbg!(&rect1);
+}
+```
+
+We can put `dbg!` around the expression `30 * scale` and, because `dbg!` returns ownership of the expression’s value, the `width` field will get the same value as if we didn’t have the `dbg!` call there. We don’t want `dbg!` to take ownership of `rect1`, so we use a reference to `rect1` in the next call. Here’s what the output of this example looks like:
+>  我们可以在需要打印的地方使用 `dbg!` 包围，因为 dbg macro 会返回所有权
+>  如果我们不希望 dbg 获取所有权，可以传递引用
+
+```
+$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running `target/debug/rectangles`
+[src/main.rs:10:16] 30 * scale = 60
+[src/main.rs:14:5] &rect1 = Rectangle {
+    width: 60,
+    height: 50,
+}
+```
+
+We can see the first bit of output came from _src/main.rs_ line 10 where we’re debugging the expression `30 * scale`, and its resultant value is `60` (the `Debug` formatting implemented for integers is to print only their value). The `dbg!` call on line 14 of _src/main.rs_ outputs the value of `&rect1`, which is the `Rectangle` struct. This output uses the pretty `Debug` formatting of the `Rectangle` type. The `dbg!` macro can be really helpful when you’re trying to figure out what your code is doing!
+
+In addition to the `Debug` trait, Rust has provided a number of traits for us to use with the `derive` attribute that can add useful behavior to our custom types. Those traits and their behaviors are listed in [Appendix C](https://doc.rust-lang.org/stable/book/appendix-03-derivable-traits.html). We’ll cover how to implement these traits with custom behavior as well as how to create your own traits in Chapter 10. There are also many attributes other than `derive`; for more information, see [the “Attributes” section of the Rust Reference](https://doc.rust-lang.org/stable/reference/attributes.html).
+>  除了 Debug trait 以外，Rust 还提供了许多其他 traits，我们可以直接使用 derive attribute 用以为我们的自定义类型添加行为
+
+Our `area` function is very specific: it only computes the area of rectangles. It would be helpful to tie this behavior more closely to our `Rectangle` struct because it won’t work with any other type. Let’s look at how we can continue to refactor this code by turning the `area` function into an `area` _method_ defined on our `Rectangle` type.
+
+## 5.3 Method Syntax
+_Methods_ are similar to functions: we declare them with the `fn` keyword and a name, they can have parameters and a return value, and they contain some code that’s run when the method is called from somewhere else. Unlike functions, methods are defined within the context of a struct (or an enum or a trait object, which we cover in [Chapter 6](https://doc.rust-lang.org/book/ch06-00-enums.html) and [Chapter 18](https://doc.rust-lang.org/book/ch18-02-trait-objects.html), respectively), and their first parameter is always `self`, which represents the instance of the struct the method is being called on.
+>  方法类似于函数: 我们同样用 `fn` 声明方法，方法可以有参数和返回值
+>  方法和函数不同，方法需要定义在 struct 的上下文内 (或者 enum, trait object)，并且方法的第一个参数永远是 `self`，表示调用方法的 instance
+
+### Defining Methods
+Let’s change the `area` function that has a `Rectangle` instance as a parameter and instead make an `area` method defined on the `Rectangle` struct, as shown in Listing 5-13.
+
+Filename: src/main.rs
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        rect1.area()
+    );
+}
+```
+
+[Listing 5-13](https://doc.rust-lang.org/book/ch05-03-method-syntax.html#listing-5-13): Defining an `area` method on the `Rectangle` struct
+
+To define the function within the context of `Rectangle`, we start an `impl` (implementation) block for `Rectangle`. Everything within this `impl` block will be associated with the `Rectangle` type. Then we move the `area` function within the `impl` curly brackets and change the first (and in this case, only) parameter to be `self` in the signature and everywhere within the body. In `main`, where we called the `area` function and passed `rect1` as an argument, we can instead use _method syntax_ to call the `area` method on our `Rectangle` instance. The method syntax goes after an instance: we add a dot followed by the method name, parentheses, and any arguments.
+>  要在 `Rectangle` 的上下文内定义函数，我们需要为 `Rectangle` 启动一个 `impl` 块，在该块内的内容都会和 `Rectangle` 类型关联
+>  我们将函数签名的第一个参数改为 `self`
+>  在调用方法时，使用 `.<method-name>()` 即可
+
+In the signature for `area`, we use `&self` instead of `rectangle: &Rectangle`. The `&self` is actually short for `self: &Self`. Within an `impl` block, the type `Self` is an alias for the type that the `impl` block is for. Methods must have a parameter named `self` of type `Self` for their first parameter, so Rust lets you abbreviate this with only the name `self` in the first parameter spot. Note that we still need to use the `&` in front of the `self` shorthand to indicate that this method borrows the `Self` instance, just as we did in `rectangle: &Rectangle`. Methods can take ownership of `self`, borrow `self` immutably, as we’ve done here, or borrow `self` mutably, just as they can any other parameter.
+>  方法签名中，我们使用 `&self` 替代了 `rectangle: &Rectangle`，它实际上是对 `self: &Self` 的简写
+>  在 `impl` 块内，类型 `Self` 就是对 `impl` 块关联的类型的别名
+>  方法可以获取 `self` 的所有权，或者获取不可变引用，或者获取可变引用
+
+We chose `&self` here for the same reason we used `&Rectangle` in the function version: we don’t want to take ownership, and we just want to read the data in the struct, not write to it. If we wanted to change the instance that we’ve called the method on as part of what the method does, we’d use `&mut self` as the first parameter. Having a method that takes ownership of the instance by using just `self` as the first parameter is rare; this technique is usually used when the method transforms `self` into something else and you want to prevent the caller from using the original instance after the transformation.
+>  如果要获取可变引用，则写为 `&mut self`
+>  获取所有权的方法很少见，通常用于方法将 `self` 转化为其他东西，并且调用者不能在转化后使用原来的实例
+
+The main reason for using methods instead of functions, in addition to providing method syntax and not having to repeat the type of `self` in every method’s signature, is for organization. We’ve put all the things we can do with an instance of a type in one `impl` block rather than making future users of our code search for capabilities of `Rectangle` in various places in the library we provide.
+
+Note that we can choose to give a method the same name as one of the struct’s fields. For example, we can define a method on `Rectangle` that is also named `width`:
+>  方法的名称可以和 struct fild 名称相同
+
+Filename: src/main.rs
+
+```rust
+impl Rectangle {
+    fn width(&self) -> bool {
+        self.width > 0
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    if rect1.width() {
+        println!("The rectangle has a nonzero width; it is {}", rect1.width);
+    }
+}
+```
+
+Here, we’re choosing to make the `width` method return `true` if the value in the instance’s `width` field is greater than `0` and `false` if the value is `0`: we can use a field within a method of the same name for any purpose. In `main`, when we follow `rect1.width` with parentheses, Rust knows we mean the method `width`. When we don’t use parentheses, Rust knows we mean the field `width`.
+
+Often, but not always, when we give a method the same name as a field we want it to only return the value in the field and do nothing else. Methods like this are called _getters_, and Rust does not implement them automatically for struct fields as some other languages do. Getters are useful because you can make the field private but the method public, and thus enable read-only access to that field as part of the type’s public API. We will discuss what public and private are and how to designate a field or method as public or private in [Chapter 7](https://doc.rust-lang.org/book/ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html#exposing-paths-with-the-pub-keyword).
+>  通常和 field 有相同名字的 method 将仅仅返回 value，不做其他的事
+>  这样的 methods 称为 getters, Rust 不会自动为 fields 实现 getters
+>  getters 用于让 fields 私有，方法共有，即让 fields 只读
+
+### Where’s the `->` Operator?
+In C and C++, two different operators are used for calling methods: you use `.` if you’re calling a method on the object directly and `->` if you’re calling the method on a pointer to the object and need to dereference the pointer first. In other words, if `object` is a pointer, `object->something()` is similar to `(*object).something()`.
+
+Rust doesn’t have an equivalent to the `->` operator; instead, Rust has a feature called _automatic referencing and dereferencing_. Calling methods is one of the few places in Rust with this behavior.
+>  Rust 具有自动引用和解引用的机制
+
+Here’s how it works: when you call a method with `object.something()`, Rust automatically adds in `&`, `&mut`, or `*` so `object` matches the signature of the method. In other words, the following are the same:
+>  当我们通过 `object.something()` 调用方法时，Rust 会自动添加 `&, &mut, *`，使得方法调用者匹配方法的 `self` 参数类型
+
+```rust
+p1.distance(&p2); (&p1).distance(&p2); 
+```
+
+The first one looks much cleaner. This automatic referencing behavior works because methods have a clear receiver—the type of `self`. Given the receiver and name of a method, Rust can figure out definitively whether the method is reading (`&self`), mutating (`&mut self`), or consuming (`self`). The fact that Rust makes borrowing implicit for method receivers is a big part of making ownership ergonomic in practice.
+>  自动引用的行为可以工作是因为方法的参数类型指定了需要接收的实例类型，即 `self` 的类型
+
+### Methods with More Parameters
+Let’s practice using methods by implementing a second method on the `Rectangle` struct. This time we want an instance of `Rectangle` to take another instance of `Rectangle` and return `true` if the second `Rectangle` can fit completely within `self` (the first `Rectangle`); otherwise, it should return `false`. That is, once we’ve defined the `can_hold` method, we want to be able to write the program shown in Listing 5-14.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    let rect2 = Rectangle {
+        width: 10,
+        height: 40,
+    };
+    let rect3 = Rectangle {
+        width: 60,
+        height: 45,
+    };
+
+    println!("Can rect1 hold rect2? {}", rect1.can_hold(&rect2));
+    println!("Can rect1 hold rect3? {}", rect1.can_hold(&rect3));
+}
+```
+
+[Listing 5-14](https://doc.rust-lang.org/book/ch05-03-method-syntax.html#listing-5-14): Using the as-yet-unwritten `can_hold` method
+
+The expected output would look like the following because both dimensions of `rect2` are smaller than the dimensions of `rect1`, but `rect3` is wider than `rect1`:
+
+```
+Can rect1 hold rect2? true
+Can rect1 hold rect3? false
+```
+
+We know we want to define a method, so it will be within the `impl Rectangle` block. The method name will be `can_hold`, and it will take an immutable borrow of another `Rectangle` as a parameter. We can tell what the type of the parameter will be by looking at the code that calls the method: `rect1.can_hold(&rect2)` passes in `&rect2`, which is an immutable borrow to `rect2`, an instance of `Rectangle`. This makes sense because we only need to read `rect2` (rather than write, which would mean we’d need a mutable borrow), and we want `main` to retain ownership of `rect2` so we can use it again after calling the `can_hold` method. The return value of `can_hold` will be a Boolean, and the implementation will check whether the width and height of `self` are greater than the width and height of the other `Rectangle`, respectively. Let’s add the new `can_hold` method to the `impl` block from Listing 5-13, shown in Listing 5-15.
+
+Filename: src/main.rs
+
+```rust
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+```
+
+[Listing 5-15](https://doc.rust-lang.org/book/ch05-03-method-syntax.html#listing-5-15): Implementing the `can_hold` method on `Rectangle` that takes another `Rectangle` instance as a parameter
+
+When we run this code with the `main` function in Listing 5-14, we’ll get our desired output. Methods can take multiple parameters that we add to the signature after the `self` parameter, and those parameters work just like parameters in functions.
+
+### Associated Functions
+All functions defined within an `impl` block are called _associated functions_ because they’re associated with the type named after the `impl`. We can define associated functions that don’t have `self` as their first parameter (and thus are not methods) because they don’t need an instance of the type to work with. We’ve already used one function like this: the `String::from` function that’s defined on the `String` type.
+>  所有在 `impl` 块内定义的函数都称为关联函数，因为他们与 `impl` 的类型关联
+>  我们可以定义一些不以 `self` 为第一个参数的相关函数 (因此不是方法)，他们不需要一个实例就可以工作
+>  `String::from` 就是例子，它是定义在 `String` 类型上的
+
+Associated functions that aren’t methods are often used for constructors that will return a new instance of the struct. These are often called `new`, but `new` isn’t a special name and isn’t built into the language. For example, we could choose to provide an associated function named `square` that would have one dimension parameter and use that as both width and height, thus making it easier to create a square `Rectangle` rather than having to specify the same value twice:
+>  不是方法的相关函数通常用于构造函数，这些函数通常命名为 `new`，会返回一个新实例
+
+Filename: src/main.rs
+
+```rust
+impl Rectangle {
+    fn square(size: u32) -> Self {
+        Self {
+            width: size,
+            height: size,
+        }
+    }
+}
+```
+
+The `Self` keywords in the return type and in the body of the function are aliases for the type that appears after the `impl` keyword, which in this case is `Rectangle`.
+
+To call this associated function, we use the `::` syntax with the struct name; `let sq = Rectangle::square(3);` is an example. This function is namespaced by the struct: the `::` syntax is used for both associated functions and namespaces created by modules. We’ll discuss modules in [Chapter 7](https://doc.rust-lang.org/book/ch07-02-defining-modules-to-control-scope-and-privacy.html).
+>  调用相关函数需要使用 `<struct-name>::<function-name>()` 的语法
+>  该函数在 struct 的命名空间下，`::` 语法即用于相关函数，也用于模块创建的命名空间
+
+### Multiple `impl` Blocks
+Each struct is allowed to have multiple `impl` blocks. For example, Listing 5-15 is equivalent to the code shown in Listing 5-16, which has each method in its own `impl` block.
+
+```rust
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+}
+
+impl Rectangle {
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+```
+
+[Listing 5-16](https://doc.rust-lang.org/book/ch05-03-method-syntax.html#listing-5-16): Rewriting Listing 5-15 using multiple `impl` blocks
+
+There’s no reason to separate these methods into multiple `impl` blocks here, but this is valid syntax. We’ll see a case in which multiple `impl` blocks are useful in Chapter 10, where we discuss generic types and traits.
+
+## Summary
+Structs let you create custom types that are meaningful for your domain. By using structs, you can keep associated pieces of data connected to each other and name each piece to make your code clear. In `impl` blocks, you can define functions that are associated with your type, and methods are a kind of associated function that let you specify the behavior that instances of your structs have.
+
+But structs aren’t the only way you can create custom types: let’s turn to Rust’s enum feature to add another tool to your toolbox.
