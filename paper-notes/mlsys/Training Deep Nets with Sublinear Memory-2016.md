@@ -147,7 +147,7 @@ The techniques introduced in Sec. 3 can reduce the memory footprint for both tra
 
 More specifically, during the backpropagation phase, we can re-compute the dropped intermediate results by running forward from the closest recorded results. To present the idea more clearly, we show a simplified algorithm for a linear chain feed-forward neural network in Alg. 1. Specifically, the neural network is divided into several segments. The algorithm only remembers the output of each segment and drops all the intermediate results within each segment. The dropped results are recomputed at the segment level during back-propagation. As a result, we only need to pay the memory cost to store the outputs of each segment plus the maximum memory cost to do backpropagation on each segment.
 >  更具体的说，在反向传播过程中，我们从最近记录的中间结果重新运行前向计算来重新计算被丢弃的中间结果
->  在 Algorithm 1 中，网络被分成几段，该算法仅记住每个段的输出，并对其每个段内的所有中间结果
+>  在 Algorithm 1 中，网络被分成几段，该算法仅记住每个段的输出，并丢弃每个段内的所有中间结果
 >  在反向传播过程中，被丢弃的结果会在段级别上被重新计算
 >  这样，我们只需要存储各个段的结果需要的内存，以及在各个单独的段上进行反向传播时，重计算需要的内存
 
@@ -158,47 +158,95 @@ Alg. 1 can also be generalized to common computation graphs as long as we can di
 
 ![[pics/Training Deep Nets with Sublinear Memory Cost-Algorithm2.png]]
 
-We solve this problem by introducing a general gradient graph construction algorithm that uses essentially the same idea. The algorithm is given in Alg. 2. In this algorithm, the user specify a function  $m_i: \mathcal{V} \to \mathbb{N}$  on the nodes of a computation graph to indicate how many times a result can be recomputed. We call  $m$  the mirror count function as the re-computation is essentially duplicating (mirroring) the nodes. When all the mirror counts are set to 0, the algorithm degenerates to normal gradient graph. To specify re-computation pattern in Alg. 2, the user only needs to set the  $m(v) = 1$  for nodes within each segment and  $m(v) = 0$  for the output node of each segment. The mirror count can also be larger than 1, which leads to a recursive generalization to be discussed in Sec 4.4. Fig. 3 shows an example of memory optimized gradient graph. Importantly, Alg. 2 also outputs a traversal order for the computation, so the memory usage can be optimized. Moreover, this traversal order can help introduce control flow dependencies for frameworks that depend on runtime allocation.
->  为了解决这个问题，我们引入了
+We solve this problem by introducing a general gradient graph construction algorithm that uses essentially the same idea. The algorithm is given in Alg. 2. In this algorithm, the user specify a function  $m_i: \mathcal{V} \to \mathbb{N}$  on the nodes of a computation graph to indicate how many times a result can be recomputed. We call  $m$  the mirror count function as the re-computation is essentially duplicating (mirroring) the nodes. When all the mirror counts are set to 0, the algorithm degenerates to normal gradient graph. 
+>  为了解决这个问题，我们引入了一个通用的梯度图构造算法，利用的是相同的思想
+>  该算法中，用户指定一个定义在计算图节点上的函数 $m_i: \mathcal V \to \mathbb N$  ，该函数表明了该节点的结果的重计算次数
+>  我们称 $m$ 为镜像计数函数，因为重计算本质上是复制 (镜像) 节点
+>  当所有镜像计数设置为 0 时，算法退化到普通的梯度图 (没有重计算，存储所有中间结果)
 
+To specify re-computation pattern in Alg. 2, the user only needs to set the  $m(v) = 1$  for nodes within each segment and  $m(v) = 0$  for the output node of each segment. The mirror count can also be larger than 1, which leads to a recursive generalization to be discussed in Sec 4.4. 
+>  要指定算法 2 中的重计算模式，用户需要将每个段内的节点的 $m(v)$ 设定为 1，将每个段的输出节点的 $m(v)$ 设置为 0
+>  镜像计数也可以大于 1，这将导致递归的泛化
+
+![[pics/Training Deep Nets with Sublinear Memory Cost-Fig3.png]]
+
+>  Fig3 中，虚线表示控制依赖，即一个操作必须要在另一个操作完成之后才能进行，但二者之间没有数据依赖
+
+>  Fig3 中，例如我们要计算 `bn-forward` 的梯度，但是 `bn-forward` 的前向计算结果已经被丢弃，我们需要寻找离 `bn-forward` 最近的，已经被存储的激活，在图中就是 `conv-forward`，我们利用该结果，重新计算 `bn-forward` 的前向结果
+
+>  图中引入的控制依赖是为了避免内存复用影响结果，例如 `relu-forward` 指向 `bn-forward` 重计算的虚线表示 `bn-forward` 的重计算必须等待 `relu-forward` 完成才可以，这是因为 `relu-forward` 的重计算会复用 `relu-forward` 的内存，故需要等待 `relu-forward` 完成计算 (且其 users 都读取了 `relu-forwad` 的结果) 之后，才能覆盖其内存
+
+Fig. 3 shows an example of memory optimized gradient graph. Importantly, Alg. 2 also outputs a traversal order for the computation, so the memory usage can be optimized. Moreover, this traversal order can help introduce control flow dependencies for frameworks that depend on runtime allocation.
+>  Fig3 展示了一个内存优化的梯度图示例
+>  重要的是，算法 2 还会输出计算的遍历顺序，从而优化内存使用
+>  此外，这个遍历顺序可以帮助那些依赖于运行时内存分配的框架引入控制流依赖关系
 
 ## 4.2 Drop the Results of Low Cost Operations
 One quick application of the general methodology is to drop the results of low cost operations and keep the results that are time consuming to compute. This is usually useful in a Conv-BatchNorm-Activation pipeline in convolutional neural networks. We can always keep the result of convolution, but drop the result of the batch normalization, activation function and pooling. In practice this will translate to a memory saving with little computation overhead, as the computation for both batch normalization and activation functions are cheap.
+>  上述通用方法的一个快速应用就是丢弃低成本 operation 的结果，保留那些计算耗时的结果
+>  这在 CNN 中的 Conv-BatchNorm-Activation 流水线中通常很有用，我们会保留卷积的结果，丢弃 batch normalization, activation function, pooling 的结果
+>  实践中，这会显著节约内存，并且额外的计算开销很小，因为 batch normalization 和 activation function 的计算成本都很低
 
 ## 4.3 An  $O(\sqrt{n})$  Memory Cost Algorithm
 Alg. 2 provides a general way to trade computation for memory. It remains to ask which intermediate result we should keep and which ones to re-compute. Assume we divide the  $n$  network into  $k$  segments the memory cost to train this network is given as follows.
+>  算法 2 提供了用计算换内存的通用方式，但我们需要考虑哪些中间结果需要保留，哪些需要重计算
+>  假设我们将 $n$ 个网络划分为 $k$ 个片段，训练该网络的内存开销如下所示:
 
 $$
-{\mathrm{cost-total}}=\max _{i=1,\ldots,k}{\mathrm{cost-of-segment}}(i)+O(k)=O\left(\frac{n}{k}\right)+O(k) \tag{1}
+{\text{cost-total}}=\max _{i=1,\ldots,k}{\text{cost-of-segment}}(i)+O(k)=O\left(\frac{n}{k}\right)+O(k) \tag{1}
 $$
 
-The first part of the equation is the memory cost to run back-propagation on each of the segment. Given that the segment is equally divided, this translates into  $O(n / k)$  cost. The second part of equation is the cost to store the intermediate outputs between segments. Setting  $k = \sqrt{n}$ , we get the cost of  $O(2\sqrt{n})$ . This algorithm only requires an additional forward pass during training, but
+The first part of the equation is the memory cost to run back-propagation on each of the segment. Given that the segment is equally divided, this translates into  $O(n / k)$  cost. The second part of equation is the cost to store the intermediate outputs between segments. Setting  $k = \sqrt{n}$ , we get the cost of  $O(2\sqrt{n})$ . 
+>  公式的第一部分是在每个 segment 上运行反向传播的内存开销，因为 segments 是等长划分的，故第一部分的开销的数量级就是 $O(\frac n k)$
+>  公式的第二部分是存储 segments 之间的中间结果的开销
+>  如果 segments 数量为 $k = \sqrt n$，那么开销就是 $O(2\sqrt n)$
 
-![](https://cdn-mineru.openxlab.org.cn/result/2025-08-06/1c21a2b7-93d9-4761-b7a0-5f9333e16446/d2faf2b0f55cac0cf900e7fac5ee7149b4a15eaf7c9692e63150a4e00ee3004a.jpg)  
-Figure 3: Memory optimized gradient graph generation example. The forward path is mirrored to represent the re-computation happened at gradient calculation. User specifies the mirror factor to control whether a result should be dropped or kept.
+This algorithm only requires an additional forward pass during training, but reduces the memory cost to be sub-linear. Since the backward operation is nearly twice as time consuming as the forward one, it only slows down the computation by a small amount.
+>  该算法仅需要训练时额外的前向传播，但能够将内存开销降低到 sub-linear
+>  因为反向计算的开销一般是前向计算的两倍，故多一次前向计算不会增加总体计算成本太多
 
-# Algorithm 2: Memory Optimized Gradient Graph Construction
+>  sub-linear 就是增长率小于线性 $O(n)$ 的情况，比线性函数增长的慢的情况包括:
+>  - $O(\log n)$
+>  - $O(\log^c n)$
+>  - $O(\sqrt n)$
+>  - $O(n^c), 0<c<1$
 
-![](https://cdn-mineru.openxlab.org.cn/result/2025-08-06/1c21a2b7-93d9-4761-b7a0-5f9333e16446/320f3f1a1974a9274ca8ffaeb7db7d208894bd72f365f18c1d55de4409b3366a.jpg)
+In the most general case, the memory cost of each layer is not the same, so we cannot simply set  $k = \sqrt{n}$ . However, the trade-off between the intermediate outputs and the cost of each stage still holds. In this case, we use Alg. 3 to do a greedy allocation with a given budget for the memory cost within each segment as a single parameter  $B$ . 
+>  在大多数情况下，每一层的内存开销一般不一样，故我们不能直接设定 $k = \sqrt n$
+>  但中间输出和每个阶段的开销之间的权衡仍然成立
+>  在这种情况下，我们使用算法 3 进行贪心分配，将每个 segment 内的内存成本预算记作一个参数 $B$
 
-reduces the memory cost to be sub-linear. Since the backward operation is nearly twice as time consuming as the forward one, it only slows down the computation by a small amount.
+Varying  $B$  gives us various allocation plans that either assign more memory to the intermediate outputs, or to computation within each stage. When we do static memory allocation, we can get the exact memory cost given each allocation plan. We can use this information to do a heuristic search over  $B$  to find optimal memory plan that balances the cost of the two. 
+>  通过调整 $B$，我们可以得到不同的内存分配方案，这些方案要么为中间输出分配更多内存，要么为每个阶段的计算分配更多的内存
+>  如果我们进行静态内存而分配，可以根据每种分配方案精确计算内存成本
+>  我们可以利用这些信息，对 $B$ 进行启发式搜索，以找到二者之间取得平衡的最优的内存方案
 
-In the most general case, the memory cost of each layer is not the same, so we cannot simply set  $k = \sqrt{n}$ . However, the trade-off between the intermediate outputs and the cost of each stage still holds. In this case, we use Alg. 3 to do a greedy allocation with a given budget for the memory cost within each segment as a single parameter  $B$ . Varying  $B$  gives us various allocation plans that either assign more memory to the intermediate outputs, or to computation within each stage. When we do static memory allocation, we can get the exact memory cost given each allocation plan. We can use this information to do a heuristic search over  $B$  to find optimal memory plan that balances the cost of the two. The details of the searching step is presented in the supplementary material. We find this approach works well in practice. We can also generalize this algorithm by considering the cost to run each operation to try to keep time consuming operations when possible.
+The details of the searching step is presented in the supplementary material. We find this approach works well in practice. We can also generalize this algorithm by considering the cost to run each operation to try to keep time consuming operations when possible.
+>  在实践中，这个方法效果很好
+>  我们可以进一步泛化该算法，考虑每个计算的运行成本，以尽可能保留耗时的计算
 
-Input:  $G = (V,\mathrm{pred})$  , input computation graph. Input:  $C\subset V$  , candidate stage splitting points, we will search splitting points over  $v\subset C$  Input:  $B$  , approximate memory budget. We can search over  $B$  to optimize the memory allocation.  $t e m p\gets 0,x\gets 0,y\gets 0$  for  $v$  in topological-order  $(V)$  do  $t e m p\gets t e m p + \mathsf{s i z e -o f -o u t p u t}(v)$  if  $v\in C$  and  $t e m p > B$  then  $x\gets x+$  size-of-output  $(v)$ $y\gets max(y,temp)$ $m(v) = 0$  ,temp  $\gets 0$  else  $m(v) = 1$  end end Output:  $x$  approximate cost to store inter-stage feature maps Output:  $y$  approximate memory cost for each sub stage Output:  $m$  the mirror plan to feed to Alg. 2
+![[pics/Training Deep Nets with Sublinear Memory Cost-Algorithm3.png]]
 
-![](https://cdn-mineru.openxlab.org.cn/result/2025-08-06/1c21a2b7-93d9-4761-b7a0-5f9333e16446/59f54571f0355ddf1af7bf42dcde153450cf0574f144180da6113f5ae680858b.jpg)  
-Figure 4: Recursion view of the memory optimized allocations. The segment can be viewed as a single operator that combines all the operators within the segment. Inside each operator, a sub-graph as executed to calculate the gradient.
+## 4.4 More General View: Recursion and Subroutine
 
-# 4.4 More General View: Recursion and Subroutine
+![[pics/Training Deep Nets with Sublinear Memory Cost-Fig4.png]]
 
 In this section, we provide an alternative view of the memory optimization scheme described above. Specifically, we can view each segment as a bulk operator that combines all the operations inside the segment together. The idea is illustrated in Fig. 4. The combined operator calculates the gradient by executing over the sub-graph that describes its internal computation. This view allows us to treat a series of operations as subroutines. The optimization within the sub-graph does not affect the external world. As a result, we can recursively apply our memory optimization scheme to each sub-graph.
+>  本节为上一节的内存优化方案提供另一种视角
+>  具体地说，我们将每个 segment 视为一个 bulk operator，它将 segment 内的所有 operations 组合在一起
+>  如 Fig4 所示，combined operator 通过执行描述了它内部计算的子图来计算梯度
+>  这种视角使得我们将 operations 视作一系列子例程，子图内部的优化不会影响外部世界，因此，我们可以递归地将内存优化方案应用到每个子图中
 
-Pay Even Less Memory with Recursion Let  $g(n)$  to be the memory cost to do forward and backward pass on a  $n$  layer neural network. Assume that we store  $k$  intermediate results in the graph and apply the same strategy recursively when doing forward and backward pass on the sub-path. We have the following recursion formula.
+**Pay Even Less Memory with Recursion** Let  $g(n)$  to be the memory cost to do forward and backward pass on a  $n$  layer neural network. Assume that we store  $k$  intermediate results in the graph and apply the same strategy recursively when doing forward and backward pass on the sub-path. We have the following recursion formula.
+>  令 $g(n)$ 为在 $n$ 层 NN 上进行前向和反向传播的内存成本
+>  假设我们在图中存储 $k$ 个中间结果，并对子路径进行前向和反向传播递归地应用相同的策略，我们得到以下的递归公式:
 
 $$
 g(n) = k + g\left(n / (k + 1)\right) \tag{2}
 $$
+
+>  $n$ 层网络的内存开销等于存储 $k$ 个中间结果的内存开销和一个 $n/(k+1)$ 层网络的内存开销
+>  (存储 $k$ 个中间结果等于将网络划分为 $n/(k+1)$ 个 segments)
 
 Solving this recursion formula gives us
 
@@ -207,88 +255,82 @@ g(n) = k\log_{k + 1}(n) \tag{3}
 $$
 
 As a special case, if we set  $k = 1$ , we get  $g(n) = \log_2 n$ . This is interesting conclusion as all the existing implementations takes  $O(n)$  memory in feature map to train a  $n$  layer neural network. This will require  $O(\log_2 n)$  cost forward pass cost, so may not be used commonly. But it demonstrates how we can trade memory even further by using recursion.
+>  解这个递归公式，我们得到 Eq3
+>  作为特殊情况，如果我们设置 $k=1$，则得到 $g(n) = \log_2n$，这是一个有趣的结论，因为现有的所有实现训练一个 $n$ 层的网络都需要 $O(n)$ 的内存
+>  这样的递归实现会导致前向传播的成本变为原来的 $O(\log_2n)$ 倍，因此可能不常使用，但它展示了我们如何通过递归进一步权衡内存使用
 
-# 4.5 Guideline for Deep Learning Frameworks
-
+## 4.5 Guideline for Deep Learning Frameworks
 In this section, we have shown that it is possible to trade computation for memory and combine it with the system optimizations proposed in Sec 3. It is helpful for deep learning frameworks to
 
--Enable option to drop result of low cost operations.-Provide planning algorithms to give efficient memory plan.-Enable user to set the mirror attribute in the computation graph for memory optimization.
+- Enable option to drop result of low cost operations.
+- Provide planning algorithms to give efficient memory plan.
+- Enable user to set the mirror attribute in the computation graph for memory optimization.
 
 While the last option is not strictly necessary, providing such interface enables user to hack their own memory optimizers and encourages future researches on the related directions. Under this spirit, we support the customization of graph mirror plan and will make the source code publicly available.
 
+>  本节中，我们讨论了如何用计算换取内存，并将其与 Section3 提出的系统优化相结合
+>  因此，DL 框架可以:
+>  - 提供丢弃低成本运算结果的选项
+>  - 提供生成高效内存方案的规划算法
+>  - 允许用户在计算图中设置镜像属性，以进行内存优化
+
 # 5 Experiments
+## 5.1 Experiment Setup
+We evaluate the memory cost of storing intermediate feature maps using the methods described in this paper. We our method on top of MXNet [6], which statically allocate all the intermediate feature maps before computation. This enables us to report the exact memory cost spend on feature maps. Note that the memory cost of parameters and temporal memory (e.g. required by convolution) are not part of the memory cost report. 
+>  我们在 MXNet 上评估本文所述方法存储中间特征图的内存成本
+>  MXNet 会在计算之前静态分配所有的内存特征图，这使得我们可以准确报告用于内存特征图的内存成本
+>  我们不考虑参数的内存成本和临时内存 (例如卷积所需的内存) 的成本
 
-# 5.1 Experiment Setup
+We also record the runtime total memory cost by running training steps on a Titan X GPU. Note that all the memory optimizations proposed in this paper gives equivalent weight gradient for training and can always be safely applied. We compare the following memory allocation algorithms
 
-We evaluate the memory cost of storing intermediate feature maps using the methods described in this paper. We our method on top of MXNet [6], which statically allocate all the intermediate feature maps before computation. This enables us to report the exact memory cost spend on feature maps. Note that the memory cost of parameters and temporal memory (e.g. required by convolution) are not part of the memory cost report. We also record the runtime total memory cost by running training steps on a Titan X GPU. Note that all the memory optimizations proposed in this paper gives equivalent weight gradient for training and can always be safely applied. We compare the following memory allocation algorithms
+- no optimization, directly allocate memory to each node in the graph without any optimization.
+- inplace, enable inplace optimization when possible.
+- sharing, enable inplace optimization as well as sharing. This represents all the system optimizations presented at Sec. 3.
+- drop bn-relu, apply all system optimizations, drop result of batch norm and relu, this is only shown in convolutional net benchmark.
+- sublinear plan, apply all system optimizations, use plan search with Alg 3 to trade computation with memory.
 
--no optimization, directly allocate memory to each node in the graph without any optimization.-inplace, enable inplace optimization when possible.-sharing, enable inplace optimization as well as sharing. This represents all the system optimizations presented at Sec. 3.-drop bn-relu, apply all system optimizations, drop result of batch norm and relu, this is only shown in convolutional net benchmark.-sublinear plan, apply all system optimizations, use plan search with Alg 3 to trade computation with memory.
+>  我们比较了以下几种内存分配算法:
+>  - 无优化: 直接为图中每个节点分配内存，没有任何优化
+>  - inplace: 可能的情况下启用 inplace 优化
+>  - sharing: 同时启用 inplace 优化和共享机制，即 Section 3 介绍的所有系统优化
+>  - drop bn-relu: 应用所有系统优化，并丢弃 batch norm 和 relu 的结果
+>  - sublinear plan: 应用所有系统优化，并使用算法 3 进行规划搜索来用计算换内存
 
-# 5.2 Deep Convolutional Network
-
+## 5.2 Deep Convolutional Network
 We first evaluate the proposed method on convolutional neural network for image classification. We use deep residual network architecture [11] (ResNet), which gives the state of art result on this task. Specifically, we use 32 batch size and set input image shape as (3, 224, 224). We generate different depth configuration of ResNet by increasing the depth of each residual stage.
 
 We show the results in Fig. 5. We can find that the system optimizations introduced in Sec. 3 can help to reduce the memory cost by factor of two to three. However, the memory cost after optimization still exhibits a linear trend with respect to number of layers. Even with all the system optimizations, it is only possible to train a 200 layer ResNet with the best GPU we can get. On the other hand, the proposed algorithm gives a sub-linear trend in terms of number of layers. By trade computation with memory, we can train a 1000 layer ResNet using less than 7GB of GPU memory.
+>  Section3 的内存优化方法已经可以减少 2 倍到 3 倍的内存开销，但优化后，内存开销仍然和层数呈线性关系
+>  而我们的算法则给出了次线性的关系，这使得我们可以在 7GB 显存上训练 1000 层的网络
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-08-06/1c21a2b7-93d9-4761-b7a0-5f9333e16446/03af37e538d5f25de2d6062a7c0bb146dcb69a7b2eafde488c09ea6055c13617.jpg)  
-Figure 5: The memory cost of different allocation strategies on deep residual net configurations. The feature map memory cost is generated from static memory allocation plan. We also use nvidiasmi to measure the total memory cost during runtime (the missing points are due to out of memory). The figures are in log-scale, so  $y = \alpha x^{\beta}$  will translate to  $\log (y) = \beta \log (x) + \log \alpha$ . We can find that the graph based allocation strategy indeed helps to reduce the memory cost by a factor of two to three. More importantly, the sub-linear planning algorithm indeed gives sub-linear memory trend with respect to the workload. The real runtime result also confirms that we can use our method to greatly reduce memory cost deep net training.
+
+
+Figure 5: The memory cost of different allocation strategies on deep residual net configurations. The feature map memory cost is generated from static memory allocation plan. We also use nvidia-smi to measure the total memory cost during runtime (the missing points are due to out of memory). The figures are in log-scale, so  $y = \alpha x^{\beta}$  will translate to  $\log (y) = \beta \log (x) + \log \alpha$ . We can find that the graph based allocation strategy indeed helps to reduce the memory cost by a factor of two to three. More importantly, the sub-linear planning algorithm indeed gives sub-linear memory trend with respect to the workload. The real runtime result also confirms that we can use our method to greatly reduce memory cost deep net training.
+
+## 5.3 LSTM for Long Sequences
+We also evaluate the algorithms on a LSTM under a long sequence unrolling setting. We unrolled a four layer LSTM with 1024 hidden states equals 64 over time. The batch size is set to 64. The input of each timestamp is a continuous 50 dimension vector and the output is softmax over 5000 class. This is a typical setting for speech recognition[17], but our result can also be generalized to other recurrent networks. Using a long unrolling step can potentially help recurrent model to learn long term dependencies over time. We show the results in Fig. 6. We can find that inplace helps a lot here. This is because inplace optimization in our experiment enables direct addition of weight gradient to a single memory cell, preventing allocate space for gradient at each timestamp. The sub-linear plan gives more than  $4x$  reduction over the optimized memory plan.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-08-06/1c21a2b7-93d9-4761-b7a0-5f9333e16446/d8a077d2ddaf7684ab333ee41e3ddeeda37e1e046b3ae97410e1049f7a9c181a.jpg)  
+
 Figure 6: The memory cost of different memory allocation strategies on LSTM configurations. System optimization gives a lot of memory saving on the LSTM graph, which contains a lot of fine grained operations. The sub-linear plan can give more than 4x reduction over the optimized plan that do not trade computation with memory.
 
-# 5.3 LSTM for Long Sequences
-
-We also evaluate the algorithms on a LSTM under a long sequence unrolling setting. We unrolled a four layer LSTM with 1024 hidden states equals 64 over time. The batch size is set to 64. The input of each timestamp is a continuous 50 dimension vector and the output is softmax over 5000 class. This is a typical setting for speech recognition[17], but our result can also be generalized to other recurrent networks. Using a long unrolling step can potentially help recurrent model to learn long
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-08-06/1c21a2b7-93d9-4761-b7a0-5f9333e16446/d7439115deb8693321db7fbc1faf99e8cfb466d58959d258a674c608ded10960.jpg)  
-Figure 7: The runtime speed of different allocation strategy on the two settings. The speed is measured by a running 20 batches on a Titan X GPU. We can see that using sub-linear memory plan incurs roughly  $30\%$  of additional runtime cost compared to linear memory allocation. The general trend of speed vs workload remains linear for both strategies.
-
-term dependencies over time. We show the results in Fig. 6. We can find that inplace helps a lot here. This is because inplace optimization in our experiment enables direct addition of weight gradient to a single memory cell, preventing allocate space for gradient at each timestamp. The sub-linear plan gives more than  $4x$  reduction over the optimized memory plan.
-
-# 5.4 Impact on Training Speed
-
+## 5.4 Impact on Training Speed
 We also measure the runtime cost of each strategy. The speed is benchmarked on a single Titan X GPU. The results are shown in Fig. 7. Because of the double forward cost in gradient calculation, the sublinear allocation strategy costs  $30\%$  additional runtime compared to the normal strategy. By paying the small price, we are now able to train a much wider range of deep learning models.
 
+![](https://cdn-mineru.openxlab.org.cn/result/2025-08-06/1c21a2b7-93d9-4761-b7a0-5f9333e16446/d7439115deb8693321db7fbc1faf99e8cfb466d58959d258a674c608ded10960.jpg)  
+
+Figure 7: The runtime speed of different allocation strategy on the two settings. The speed is measured by a running 20 batches on a Titan X GPU. We can see that using sub-linear memory plan incurs roughly  $30\%$  of additional runtime cost compared to linear memory allocation. The general trend of speed vs workload remains linear for both strategies.
+
 # 6 Conclusion
-
 In this paper, we proposed a systematic approach to reduce the memory consumption of the intermediate feature maps when training deep neural networks. Computation graph liveness analysis is used to enable memory sharing between feature maps. We also showed that we can trade the computation with the memory. By combining the techniques, we can train a  $n$  layer deep neural network with only  $O(\sqrt{n})$  memory cost, by paying nothing more than one extra forward computation per mini-batch.
+>  本文提出了一种系统的方法，减少训练深度网络时中间特征图的内存消耗
+>  我们使用计算图的存活分析来实现特征图之间的内存共享，我们还展示了如何用计算来换取内存
+>  通过结合这些计数，我们在以每个 mini-batch 额外一次前向计算的情况下，用 $O(\sqrt n)$ 的内存成本训练一个 $n$ 层的 DNN
 
-# Acknowledgement
-
-We thank the helpful feedbacks from the MXNet community and developers. We thank Ian Goodfellow and Yu Zhang on helpful discussions on computation memory tradeoffs. We would like to thank David Warde-Farley for pointing out the relation to gradient checkpointing. We would like to thank Nvidia for the hardware support. This work was supported in part by ONR (PECASE) N000141010672, NSF IIS 1258741 and the TerraSwarm Research Center sponsored by MARCO and DARPA. Chiyuan Zhang acknowledges the support of a Nuance Foundation Grant.
-
-# References
-
-[1] Martin Abadi, Ashish Agarwal, Paul Barham, Eugene Brevdo, Zhifeng Chen, Craig Citro, Greg S. Corrado, Andy Davis, Jeffrey Dean, Matthieu Devin, Sanjay Ghemawat, Ian Goodfellow, Andrew Harp, Geoffrey Irving, Michael Isard, Yangqing Jia, Rafal Jozefowicz, Lukasz Kaiser, Manjunath Kudlur, Josh Levenberg, Dan Mane, Rajat Monga, Sherry Moore, Derek Murray, Chris Olah, Mike Schuster, Jonathon Shlens, Benoit Steiner, Ilya Sutskever, Kunal Talwar, Paul Tucker, Vincent Vanhoucke, Vijay Vasudevan, Fernanda Viegas, Oriol Vinyals, Pete Warden, Martin Wattenberg, Martin Wicke, Yuan Yu, and Xiaoqiang Zheng. TensorFlow: Large-scale machine learning on heterogeneous systems, 2015. Software available from tensorflow.org.
-
-[2] Amit Agarwal, Eldar Akchurin, Chris Basoglu, Guoguo Chen, Scott Cyphers, Jasha Droppo, Adam Eversole, Brian Guenter, Mark Hillebrand, Ryan Hoens, Xuedong Huang, Zhiheng Huang, Vladimir Ivanov, Alexey Kamenev, Philipp Kranen, Oleksii Kuchaiev, Wolfgang Manousek, Avner May, Bhaskar Mitra, Olivier Nano, Gaizka Navarro, Alexey Orlov, Marko Padmilac, Hari Parthasarathi, Baolin Peng, Alexey Reznichenko, Frank Seide, Michael L. Seltzer, Malcolm Slaney, Andreas Stolcke, Yongqiang Wang, Huaming Wang, Kaisheng Yao, Dong Yu, Yu Zhang, and Geoffrey Zweig. An introduction to computational networks and the computational network toolkit. Technical Report MSR-TR-2014-112, August 2014.
-
-[3] Alfred V. Aho, Ravi Sethi, and Jeffrey D. Ullman. Compilers: Principles, Techniques, and Tools. Addison-Wesley Longman Publishing Co., Inc., Boston, MA, USA, 1986.
-
-[4] Frederic Bastien, Pascal Lamblin, Razvan Pascanu, James Bergstra, Ian J. Goodfellow, Arnaud Bergeron, Nicolas Bouchard, and Yoshua Bengio. Theano: new features and speed improvements. Deep Learning and Unsupervised Feature Learning NIPS 2012 Workshop, 2012.
-
-[5] James Bergstra, Olivier Brelleux, Frederic Bastien, Pascal Lamblin, Razvan Pascanu, Guillaume Desjardins, Joseph Turian, David Warde-Farley, and Yoshua Bengio. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010. Oral Presentation.
-
-[6] Tianqi Chen, Mu Li, Yutian Li, Min Lin, Naiyan Wang, Minjie Wang, Tianjun Xiao, Bing Xu, Chiyuan Zhang, and Zheng Zhang. MXNet: A flexible and efficient machine learning library for heterogeneous distributed systems. In Neural Information Processing Systems, Workshop on Machine Learning Systems (LearningSys'15), 2015.
-
-[7] Jeffrey Dean, Greg S. Corrado, Rajat Monga, Kai Chen, Matthieu Devin, Quoc V. Le, Mark Z. Mao, Marc Aurelio Ranzato, Andrew Senior, Paul Tucker, Ke Yang, and Andrew Y. Ng. Large scale distributed deep networks. In NIPS, 2012.
-
-[8] Ian Goodfellow, Yoshua Bengio, and Aaron Courville. Deep learning. Book in preparation for MIT Press, 2016.
-
-[9] Andreas Griewank and Andrea Walther. Algorithm 799: Revolve: An implementation of checkpointing for the reverse or adjoint mode of computational differentiation. ACM Trans. Math. Softw., 26(1):19-45, March 2000.
-
-[10] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. arXiv preprint arXiv:1512.03385, 2015.
-
-[11] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Identity mappings in deep residual networks. arXiv preprint arXiv:1603.05027, 2016.
-
-[12] Sepp Hochreiter and Jürgen Schmidhuber. Long short-term memory. Neural Comput., 9(8):1735-1780, November 1997.
-
-[13] Sergey Ioffe and Christian Szegedy. Batch normalization: Accelerating deep network training by reducing internal covariate shift. In Proceedings of the 32th International Conference on Machine Learning (ICML'15), 2015. [14] Alex Krizhevsky, Ilya Sutskever, and Geoffrey E. Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems 25, pages 1097-1105. 2012. [15] Yann LeCun, Leon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. In S. Haykin and B. Kosko, editors, Intelligent Signal Processing, pages 306-351. IEEE Press, 2001. [16] Minsoo Rhu, Natalia Gimelshein, Jason Clemons, Arslan Zulfiqar, and Stephen W Keckler. Virtualizing deep neural networks for memory-efficient neural network design. arXiv preprint arXiv:1602.08124, 2016. [17] Hasim Sak, Andrew W. Senior, and Frangoise Beaufays. Long short-term memory recurrent neural network architectures for large scale acoustic modeling. In INTERSPEECH 2014, 15th Annual Conference of the International Speech Communication Association, Singapore, September 14-18, 2014, pages 338-342, 2014. [18] Rupesh Kumar Srivastava, Klaus Greff, and Uirgen Schmidhuber. Training very deep networks. arXiv preprint arXiv:1507.06228, 2015. [19] Yu Zhang, Guoguo Chen, Dong Yu, Kaisheng Yao, Sanjeev Khudanpur, and James Glass. Highway long short-term memory rnns for distant speech recognition. arXiv preprint arXiv:1510.08983, 2015.
-
-# A Search over Budget B
-
+# A Search over Budget $B$
 Alg. 3 allows us to generate an optimized memory plan given a single parameter  $B$  . This algorithm relies on approximate memory estimation for faster speed. After we get the plan, we can use the static allocation algorithm to calculate the exact memory cost. We can then do a grid search over  $B$  to find a good memory plan.
 
-To get the setting of the grid, we first run the allocation algorithm with  $B = 0$  , then run the allocation algorithm again with  $B = \sqrt{xy}$  . Here  $\mathcal{X}$  and  $y$  are the outputs from Alg. 3 in the first run. Here  $x$  is the approximate cost to store inter-stage feature maps and  $y$  is the approximate cost to run each stage.  $B = \sqrt{xy}$  an estimation of each stage's memory cost. This can already give a good memory plan. We then set grid around  $B = \sqrt{xy}$  to further refine the solution.
+To get the setting of the grid, we first run the allocation algorithm with  $B = 0$  , then run the allocation algorithm again with  $B = \sqrt{xy}$  . Here  ${x}$  and  $y$  are the outputs from Alg. 3 in the first run. Here  $x$  is the approximate cost to store inter-stage feature maps and  $y$  is the approximate cost to run each stage.  $B = \sqrt{xy}$  an estimation of each stage's memory cost. This can already give a good memory plan. We then set grid around  $B = \sqrt{xy}$  to further refine the solution.
 
 In practice, we find that using a size 6 grid on  $[B / \sqrt{2},\sqrt{2} B]$  can already give good memory plans in the experiments. We implemented the allocation algorithm in python without any attempt to optimize for speed. Our code costs a few seconds to get the plans needed in the experiments.
