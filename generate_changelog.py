@@ -14,7 +14,7 @@ def write_file(file_path: str, content: str):
 
 
 def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
-    sections = ['Book', 'Paper', 'Doc', 'Blog', 'Code']
+    sections = ['Book', 'Paper', 'Doc', 'Blog', 'Code', 'OpenReview', 'Wiki']
     section_re = re.compile(r'^\\\[\w+\\\]')
     items = []
     item_re = re.compile(r'^- \[\[.+\]\]:?')
