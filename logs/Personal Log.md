@@ -2772,7 +2772,7 @@ Date: 2025.7.21-2025.7.28
 Date: 2025.7.28-2025.8.4
 
 \[Paper\]
-- [[paper-notes/mlsys/Scaling Distributed Machine Learning with a Parameter Server-2014-OSDI|Scaling Distributed Machine Learning with a Parameter Server-2014-OSDI]]
+- [[paper-notes/mlsys/Scaling Distributed Machine Learning with a Parameter Server-2014-OSDI|2014-OSDI-Scaling Distributed Machine Learning with a Parameter Server]]
     Abstract
         This paper proposes a parameter server framework for distributed ML training.
         Data and workload are distributed over worker nodes. Server nodes maintain globally shared parameters.
@@ -2847,4 +2847,174 @@ Date: 2025.7.28-2025.8.4
     Tensor cores often remains idle, waiting for data to continue processing.
     Each query to Llama 70B requires 20GB TP synchronization data.
     Process multiple queries in parallel through batching can increase throughput, but the amount of data to be transferred will also be increased by multiples.
+
+### Week 2
+Date: 2025.8.4-2025.8.11
+
+\[Paper\]
+- [[paper-notes/mlsys/Megatron-LM Training Multi-Billion Parameter Language Model Using Model Parallelism-2019|2019-Megatron-LM Training Multi-Billion Parameter Language Model Using Model Parallelism]]
+    Abstract
+        This work introduces techniques for training very large transformer model with a simple intra-layer model parallel approach.
+        This approach is orthogonal and complementary to pipeline model parallelism, and can be fully implemented with a insertion of a few communication operations in native PyTorch.
+    Introduction
+        As model becomes larger, they exceed the memory limit of single processors, requiring additional memory mange technique such as activation checkpointing.
+        This work implements a simple and effective intra-layer model parallelism method for transformer models. This method is orthogonal to pipeline parallelism methods like GPipe. 
+        With 8-way model parallelism in 512 V100 32GB GPU, we achieve a 76% scaling effeciency compared to the single GPU case.
+        We found that reorder the sequence of layernorm and residual connection in transformer block can avoid performance degration when scaling BERT models.
+    Background and Challenges
+        Two paradigms for scaling DNN to multiple hardwares are data parallelism and model parallelism.
+        Data parallelism splits a training batch to multiple workers.
+        Model parallelsim distribute the model computation to multiple workers.
+        By increasing the minibatch size propotionally to the number of available workers (weak scaling), we can observe near linear scaling of the throughput.
+        However, large batch will introduce complication to training optimization.
+        There are two paradigms of model parallelism: layer-wise pipeline parallelism and distributed tensor computation.
+        The GPipe framework for tensorflow use syncrhonous gradient descent.
+        Distributed tensor computation is an more general way that partition a tensor operation across multiple devices.
+        We utilize insights in Mesh-Tensorflow, exploting parallelism in computing transformer attention heads and FFN.
+        Our approach can be implemented by inserting a few simple synchronization primitives.
+    Model Parallel Transformers
+        A transformer layer consists of a self attention block followed by a two-layer MLP. We introduce model parallelim in these two blocks.
+        The first part of MLP block is GEMM + GeLU
+        In the first GEMM of MLP block, we split the weight matrix $A$ by columns, $A = [A_1, A_2]$, and place the splits into multiple devices. We do not split the input $X$ in the first GEMM. 
+        In that way, the input to the second GEMM of MLP block is split by columns, therefore we split the second GEMM weight matrix $B$ by rows. Before going to the dropout layer, the second GEMM result should be obtained with an all-reduce operation.
+        In that way, forward and backward pass for MLP block requires once all-reduce.
+        For self attention block, we exploit the inherent parallelism of MHA, partioning the GEMMs associated with key, query, value in also a column parallel fashion, just like the first GEMM in MLP block. In that way, each device is responsible for calculating one attention head.
+        The projection weight after attention is also partitioned in row fashion, just like the seond GEMM in MLP block.
+        In that way, forwad and backward pass for attention block also requires once all-reduce.
+        The input embedding weight matrix is split by columns, therefore, we need do an all-reduce to acquire the full embedding for each token in input sequence.
+        The output embedding weight matrix is split by columns, and the partial loss for each token will be computed locally before all-reduce to reduce the communication burden.
+    Setup
+    Experiments
+        Perplexity can be understood as the exp of average information entropy of the sequence. Perplexity indicates the number of candidate tokens when the model predicts the next token.
+    Conclusion and Future Work
+- [[paper-notes/mlsys/MLIR Scaling Compiler Infrastructure for Domain Specific Computation-2021-CGO|2021-CGO-MLIR Scaling Compiler Infrastructure for Domain Specific Computation]]
+    Abstract
+        MLIR is an complier infracture to reduce the cost of constructing a domain-specific compiler for heterogeneous hardware.
+    Introduction
+        Popular compiler system use "one size fits all" approach —— a single abstraction level to interface with the system.
+        Different problems is better to be modeled in different abstraction levels.
+        ML system usually use ML graphs as their domain-specific abstraction.
+        The development cost of domain-specific IR is high.
+        MLIR makes it cheap to define and introduce new abstraction levels, and provide "in the box" infrastructure to solve common compiler engineering problems.
+        MLIR does this by: 1. standardizing the SSA-based IR data structures 2. providing a declarative system for defining IR dialects 3. providing a wide range of common infrastructure, including documentation, parsing and printing logic, location tracking, multithreaded compilation support, pass management.
+        A-Contributions
+            Three core design principle of MLIR: 1. Parsimony 2. Traceability 3. Progressivity: premature lowering is the root of all evil.
+        B-Where Did MLIR Come From
+            Many high-level language often end up building their own high-level IR and reinventing the same kind of technology for higher levels of abstraction.
+    Design Principles
+        Little builtin, everything customizable - Parsimony
+        SSA and regions - Parsimony, SSA for benefiting data flow analysis, regions for representing higher level abstractioni like loop trees. That is, we sacrifice the normalization property of LLVM to introduce the ability to represent high level abstraction.
+        Maintain higher-level semantics - Progressivity
+        Declaration and Validation - Parsimony and Traceability
+        Source Location Tracking - Traceability
+    IR Design
+        We contribute an IR that follows the principles defined in the previous section.
+        MLIR has a generic textual representation that supports MLIR's extensibiliy and fully reflects the in-memory representation.
+        The unit of semantics in MLIR is an operation, referred as Op. MLIR does not have a fixed set of Ops, and provides declarative syntax for defining Ops.
+        Ops take value and produce value, called operands and results respectively. Values are maintained in SSA form.
+        Values represent data at runtime, and have a Type that encodes compile-time knowledge about data (shape, dtype...)
+        Ops generally have an opcode, oprands, results.
+        Ops also have attributes, regions, successor blocks, and location information.
+        MLIR use traits, inferfaces to describe the semantics of Ops to passes.
+        Op can have verifiers that enforce the Op invariants in overall IR validation.
+        Attrbutes store the compile-time information of Ops. Attributes are typed. Op instance uses string-to-attribute values dictionary to store attributes.
+        Op instance can have a list of regions. Region is a list of blocks. Block is a list of Ops. Blocks in a region form an control flow graph.
+        Dialects provides a logical grouping of Ops, attributes, types under a unique namespace.
+        Values are typed. MLIR use strict type equality checking and does not providing type conversion rules.
+        Module is a single region containing a single block, terminated with a dummy Op.
+        Function is a single region containing blocks.
+    Evaluation: Applications of MLIR
+        The internal representation of ML framework is usually a data flow graph with dynamic execution semantics.
+        Affine is a dialect for polyhedral representation.
+        MLIR has an extensible system for pattern rewrites.
+    Consequences of The MLIR Design
+        MLIR let Ops to know about passes. Traits and inferfaces are the way that Ops transfer informatino to passes.
+        Op traits is like "is terminator", "is commutative". This information is essential for some basic compiler passes like Dead Code Elimination and Common Subexpression Elimination.
+        Traits are unconditional, static behaviour descriptor. Interfaces are more expressive, which defines a view of IR object behaviour. MLIR pass can be implemented based on interfaces.
+    Related Work
+        MLIR is a compiler infrastructure akin to LLVM, while LLVM focuses on scalar optimization and homogeneous compilation. MLIR aims to model a rich set of data structures and algorithms as first-class values and operations, including tensor algebra, graph representations, heterogeneous compilation.
+    Conclusion and Future Work
+- [[paper-notes/mlsys/Training Deep Nets with Sublinear Memory-2016|2016-Training Deep Nets with Sublinear Memory]]
+    Abstract
+        We propose a systematic approach to reduce the memory cost of DNN. This approach will reduce the memory cost of intermediate feature map and gradient from $O(n)$ to $O(\sqrt n)$, at the cost of recomputation.
+    Introduction
+        We use a computatoin graph analysis to do automatic in-place operation and memory sharing optimizations.
+        We trade computation for memory.
+    Related Works
+        The idea of computational graph and liveness analysis can trace back to traditional compiler optimizations. We can find the analogy between optimizing a DNN graph and optimizing a computer program. For example, memory allocation in DNN is similar to register allocation in a compiler.
+        Memory allocation strategy of MXNet is statically allocating memory prior to computation.
+        The idea of dropping intermediate results is also known as gradient checkpointing technique in automatic differentiation literature. We bring this idea to NN gradient graph construction. The result shows that we can tain a general DNN with sublinear memory cost.
+    Memory Optimization with Computation Graph
+        A computatoin graph consists of operational nodes and edges that represent the dependencies between the operations.
+        Give the forward graph, we can construct the backward graph for gradient computation. A backward pathway can be constructed by traversing the configuration in reverse topological order, and apply the backward operators as in normal backpropagation algorithm.
+        Each intermediate result corresponds a node in the graph. Smart memory allocation algorithm can share these memory when possible to save memory.
+        Two types of memory optimization: 1. Inplace Operation 2. Memory sharing.
+        Inplace operation can only be applied when the input has only one user.
+        Memory sharing can only be applied when the nodes' lifetime does not overlap. We can construct a confilct graph, buliding edges with overlapped lifetime nodes and run a graph-coloring algorithm.
+        The algorithm traverse the graph in topological order, and use a conuter to indicate the liveness of each record (how many operation depends on the record). 
+        When the counter = 1, inplace operation can happen. When the counter = 0, the memory can be reused or recycled. 
+        This approach can be used as a runtime GC mehod, but we use it as a static memory allocation algorithm to allocate the memory to each node before execution starts, in order to avoid the overhead of GC.
+        It is important to declare minimum dependency in order to minimize the dependencies between operators.
+    Trade Computation for Memory
+        We partition the network into multiple segments, and the algorithm only remember the output of each sements. The intermediate results inside the segment are dropped.
+        In backward propagation, the dropped result will be recomputed in segment level.
+        A resonable way is to drop the result of low cost computation like activation, and keep the result of time-consuming operation like Conv.
+    Experiments
+    Conclusion
+        We use liveness analysis to realize memory sharing, inplace operation and show how to trade computation for memory.
+
+\[Blog\]
+- [[blog-notes/Democratizing AI Compute|Democratizing AI Compute]]: CH1-CH4
+    CH1-DeepSeek's Impact on AI
+        DeepSeek's breakthrough shows that better hardware utilization can dramatically reduce the need for expensive GPUs.
+        If AI is to continue advancing, we need to drive down the total cost of owenership.
+        Despite TPU's success, they remain only semi-compatible with AI frameworks like PyTorch. A common customer question is: Can TPUs run arbitraray AI models out of the box? The truth is no, because we do not have CUDA, the de facto standard for AI development.
+    CH2-What exactly is CUDA?
+        CUDA is a huge, layered platform - a collection of technologies, software libraries, and low-level optimizations. CUDA includes: 1. A low-level parallel programming model 2. a complex set of libraries and frameworks like cuDNN for PyTorch 3. a suite of high-level solutions like Tensor-RT and Triton, and more...
+        Early, NVIDIA makes GPU programmable parallel compute engines.
+        BrookGPU project makes CPU able to offload compute tasks to GPU.
+        In its first release, CUDA is a general-purpose programming platform for GPUs. The CUDA programming model is made up of two different things: the CUDA programming language and the NVIDIA Driver.
+        CUDA language is based on C++ and has syntax that expose low-level features of GPU, like "GPU threads, GPU memory".
+        Programmer use CUDA language to define CUDA kernel - the independent calculation unit that runs on GPU.
+        CUDA language will be compiled to PTX, which is the lowest interface that NVIDIA GPU supports.
+        NVIDIA driver is responsible for bridging CPU and GPU, which handles memory allocation, data transfer, kernel execution.
+        NVIDIA driver will use JIT compiler to compiler PTX into hardware specific SASS.
+        Two challenges of CUDA is: 1. CUDA is hard to write 2. CUDA doesn't help with performance protability: most kernels written for generation N GPU will work for generation N+1 GPU, but far from peak performance of N+1 GPU.
+        To solve this, NVIDIA builds rich and complicated close-source, high-level libraries like cuDNN, cuBLAS, cuFFT. This is a huge investment of NVIDIA, but it worked.
+        Especially cuDNN, it paved the way for TensorFlow and PyTorch, enabling DNN framework to take off. Mordern AI framework have thousands of CUDA kernels, and each is very difficult to write.
+        NVIDIA's investment into these powerful GPU libraries enable the world to focus on building high-level AI frameworks like PyTorch. Their next step is to make entire solutions that could be used out of the box - without needing to understand the CUDA programming model at all: 1. Triton servering 2. TensorRT 3. TensorRT-LLM
+        The CUDA platform includes: 1. massive codebase 2. vast ecosystem of tools and libraries 3. hardware-tuned performance 4. proprietary and opaque.
+        This whole software platform sites the foundation of modern GPU computing.
+    CH3-How did CUDA succeed?
+        There are alternatives: AMD ROCm, Intel oneAPI, but CUDA is still the king.
+        Early, NVIDIA decide not to create seperate product lines for different use-cases, but insist on creating a unified ecosystem. This means accept some trade-off like power and cost inefficiencies but the return is a unified ecosystem.
+        AlexNet's success makes GPU the default compute backend for DL.
+        NVIDIA seized the opportunity of AI and invested heavily in optimizing its High-Level CUDA libraries.
+        After GenAI, demand for AI compute surged. The investments to AI startups finally goes to NVIDIA, because it is the only player capable of meeting the exploding demand for compute.
+        Training and deploying GenAI is incredibly expensive. Every efficiency gain, no matter how small, will translate into massive savings at scale. Therefore, the industry have to optimize CUDA to avoid falling behind. Examples like FlashAttention-3 and DeepSeek's optimization into PTX.
+    CH4-CUDA is the incumbent, but is it any good?
+        AI engineers need to ensure compatibaility between CUDA toolkit, NVIDIA driver and AI framework. To solve this problems, NVIDIA tends to move up the stack and provide point-to-point solutions. 
+        For AI model developers and performance engineers, early contributions of CUDA makes GPU programming easy, but it has not evolve with mordern GPU features necessary for transformers and GenAI performance. This forces engineers to work around the limitations.
+        For engineers and researchers that building portable software, no alternative can provide NVIDIA + CUDA performance. Developers have to write their code multiple times for multiple platforms.
+        For NVIDIA, CUDA can not provide performance portability between its own hardwares.
+        NVIDIA's promise of backward compatibility has become technical debt. Blackwell breaks its compatability with Hopper for performance: PTX for Hopper can not run on Blockwell.
+
+\[Book\]
+- [[book-notes/programming language/The Rust Programming Language|The Rust Programming Language]]: CH5
+    CH5-Using Structs to Strucure Related Data
+        If the variable name is the same with the field name, we can use field init shorthand.
+        Creating an instance from another instance can use struct update syntax.
+        Tuple structs' field has no name, but its own type. Tuple struct is like a tuple but has its name.
+        Struct with no field is called unit-like struct, whose behaviour is similar to unit type `()`
+        If we need to store reference in struct, we need to specify lifetime, to make sure the reference is valid when the sturct is valid, otherwise it won't compile.
+        In `println!` marco, `{}` tells it use `Display` format, which is designed for end user. All primitive types implement `Display`.
+        `{:?}` tells it use `Debug` format. To make it usable for our type, we should add `#[derive(Debug)]` in the definition.
+        `{:#?}` is `Debug` format but more readable.
+        `dbg!` marco default print to stderr not stdout, and it default use `Debug` format, and it will acquire ownership and return owership, while `println!` only acquire reference.
+        We can pass reference to `dbg!` if we do not want pass ownership.
+        Method is declared with `fn`, and its first parameter is `self`. Method should be defined in the context of the type by using `impl`.
+        `&self` is a shorthand for `self: &self`.
+        Name of method can be the same as name of field, which is useful for private field and publid getters.
+        All functions defined in `impl` block is called associated functions. If they does not have `self` as its first paramter, it is a type-level function (not instance-level).
+        Syntax for calling associated function is `struct-name::function-name`.
 
