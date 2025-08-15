@@ -117,6 +117,8 @@ Certainly, customizability creates a risk of internal fragmentation due to poorl
 >  可自定义性可能会由于不兼容的抽象而导致内部碎片化
 >  虽然不存在技术解决方案，但系统鼓励设计可重用的抽象
 
+>  从内部碎片化的角度出发，一种批评 MLIR 的角度就是它仅仅是将上层的软件碎片化和概念碎片化转移到了 MLIR 系统的内部碎片化而已
+
 *SSA and Regions \[Parimony\]:* The Static Single Assignment (SSA) form [3] is a widely used representation in compiler IRs. It provides numerous advantages including making dataflow analysis simple and sparse, is widely understood by the compiler community for its relation with continuation-passing style, and is established in major frameworks. As a result, the IR enforces the value-based semantics of SSA, its referential transparency and algorithmic efficiency, all considered essential to a modern compiler infrastructure. However, while many existing IRs use a flat, linearized CFG, representing higher level abstractions push introducing nested regions as a first-class concept in the IR. This goes beyond the traditional region formation to lift higher level abstractions (e.g., loop trees), speeding up the compilation process or extracting instruction, or SIMD parallelism [4], [5], [6]. To support heterogeneous compilation, the system has to support the expression of structured control flow, concurrency constructs, closures in source languages, and many other purposes. One specific challenge is to make CFG-based analyses and transformations compose over nested regions.
 >  SSA and Regions (简约性): SSA 形式是编译器 IR 广泛使用的形式，它提供了诸多优势，包括使得数据流分析简单且稀疏
 >  SSA 形式也被编译器社区广泛理解，并在主要框架中确立，现代编译器基础设施的关键要素就包括了 SSA 带来的基于值的语义、引用透明性和算法效率
@@ -132,7 +134,7 @@ In doing so, we agree to sacrifice the normalization, and sometimes the canonica
 *Maintain Higher-Level Semantics \[Progressivity\]*: The system needs to retain the information and structure that are required for analysis or optimizing performance. Attempts to recover abstract semantics once lowered are fragile and shoehorning this information at low-level often invasive (e.g., all passes need to be revisited in the case of using debug information to record structure). Instead, the system should maintain the structure of computations and progressively lower to the hardware abstraction. The loss of structure is then conscious and happens only where the structure is no longer needed to match the underlying execution model. For example, the system should preserve the structured control flow such as loop structure throughout the relevant transformations; removing this structure, i.e. lowering to a CFG essentially means no further transformations will be performed that exploits the structure. The state of the art in modeling parallel computing constructs in a production compiler highlights how difficult the task may be in general [7], [8].
 >  保持高层语义 (渐进性): 系统需要保留用于分析或优化性能所需的信息和结构
 >  一旦降低到低层次，再试图恢复抽象语义会非常难
->  相反，系统应该保持计算的结构，并逐步降低到硬件抽象，结构的丢失应该是有意识的，并且仅再结构不需要在匹配底层的执行模型时发生
+>  相反，系统应该保持计算的结构，并逐步降低到硬件抽象，结构的丢失应该是有意识的，并且仅在结构不需要在匹配底层的执行模型时发生
 >  例如，系统应该将控制流例如循环结构保持，移除该结构 (例如降低为控制流图) 意味着不需要再执行任何利用该结构的转换
 
 As a corollary, mixing different levels of abstraction and different concepts in the same IR is a key to allowing a part of the representation to remain in higher-level abstraction while another part is lowered. This would enable, for instance, a compiler for a custom accelerator to reuse some higher-level structure and abstractions defined by the system alongside with primitive scalar/vector instructions specific to the accelerator.
@@ -226,7 +228,7 @@ Fig. 4. Operation (Op) is a main entity in MLIR; operations contain a list of re
 >  values 表示运行时的数据, values 有 Type, Type 在编译时确定
 
 Compiler passes treat unknown Ops conservatively, and MLIR has rich support for describing the semantics of Ops to passes through traits and interfaces as described in Section V-A. Op implementation has verifiers that enforce the Op invariants and participate in overall IR validation.
->  MLIR 通过 traits, interfaces 像 passes 传递 Ops 的语义
+>  MLIR 通过 traits, interfaces 向 passes 传递 Ops 的语义
 >  Op 可以实现 verifiers，用于在整个过程中描述 Op 需要遵守的不变式
 
 *Attributes*: MLIR attributes contain compile-time information about operations, other than the opcode. Attributes are typed (e.g., integer, string), and each Op instance has an open key-value dictionary from string names to attribute values. In the generic syntax, attributes are found in a brace-enclosed comma-separated list of pairs. 

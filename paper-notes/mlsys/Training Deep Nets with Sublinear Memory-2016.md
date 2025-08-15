@@ -22,7 +22,7 @@ In this paper, we propose a systematic approach to reduce the memory consumption
 >  我们聚焦于减少存储中间结果和梯度的内存开销，不考虑参数大小
 >  我们使用计算图分析执行自动原地运算和内存共享优化 (即将能够原地运算的运算优化为原地运算，将能够共享内存的运算优化为共享内存)
 >  我们提出了用计算换内存的方法，得到了 $O(\sqrt n)$ 内存开销的算法，代价是翻倍了前向传播计算开销
->  我们还展示了在极端情况下，内存开销可以进一步压缩 da 到 $O(\log n)$
+>  我们还展示了在极端情况下，内存开销可以进一步压缩到 $O(\log n)$
 
 We have recently witnessed the success of deep neural networks in many domains [8], such as computer vision, speech recognition, natural language processing and reinforcement learning. Many of the success are brought by innovations in new architectures of deep neural networks. Convolutional neural networks [15, 14, 13, 10] model the spatial patterns and give the state of art results in computer vision tasks. Recurrent neural networks, such as long short-term memory [12], show inspiring results in sequence modeling and structure prediction. One common trend in those new models is to use deeper architectures [18, 14, 13, 10] to capture the complex patterns in a large amount of training data. Since the cost of storing feature maps and their gradients scales linearly with the depth of network, our capability of exploring deeper models is limited by the device (usually a GPU) memory. For example, we already run out of memories in one of the current state-of-art models as described in [11]. In the long run, an ideal machine learning system should be able to continuously learn from an increasing amount of training data. Since the optimal model size and complexity often grows with more training data, it is very important to have memory-efficient training algorithms.
 
@@ -86,7 +86,7 @@ Explicit gradient path also offers some other benefits (e.g. being able to calcu
 
 When training a deep convolutional/recurrent network, a great proportion of the memory is usually used to store the intermediate outputs and gradients. Each of these intermediate results corresponds to a node in the graph. A smart allocation algorithm is able to assign the least amount of memory to these nodes by sharing memory when possible. 
 >  当训练深度 CNN, RNN，大量的内存会被用于存储中间输出和梯度，每个中间结果都对应了图中的一个节点 (该节点的计算结果)
->  一个只能的内存分配算法可以在可能的情况下通过共享内存来为这些节点分配最少量的内存
+>  一个智能的内存分配算法可以在可能的情况下通过共享内存来为这些节点分配最少量的内存
 
 Fig. 1 shows a possible allocation plan of the example two-layer neural network. Two types of memory optimizations can be used 
 
@@ -123,7 +123,7 @@ We use this as a static memory allocation algorithm, to allocate the memory to e
 - Declare the dependency requirements of gradient operators in minimum manner.
 - Apply liveness analysis on the dependency information and enable memory sharing.
 
->  从 Fig2 中的算法演示图中，我们可以知道，数据依赖性会导致每个输出的生命周期编程，进而增大大型网络的内存消耗
+>  从 Fig2 中的算法演示图中，我们可以知道，数据依赖性会导致每个输出的生命周期变长，进而增大大型网络的内存消耗
 >  因此，对于 DL 框架来说，以下几点非常重要:
 >  - 以最小的方式声明梯度算子的依赖关系
 >  - 对依赖信息进行活跃性分析，并启用内存共享

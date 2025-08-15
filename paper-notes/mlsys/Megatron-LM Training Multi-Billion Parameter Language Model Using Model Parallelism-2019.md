@@ -107,7 +107,7 @@ Within model parallelism, there are two further paradigms: layer-wise pipeline p
 >  模型并行下有两种范式: 按层的流水线并行，更通用的分布式张量计算
 >  在流水线模型并行中，一组 operations 在一个设备上执行，然后将输出传递给流水线中的下一个设备，该设备执行另一组 operations
 >  一些方法结合了流水线并行和参数服务器，但这些方法存在不一致的问题
->  TensorFlow 的 GPipe 框架通过使用同步梯度下降克服不一致性，但需要额外的逻辑来处理通信和计算操作的高效流水线化，并会收到流水线气泡的影响
+>  TensorFlow 的 GPipe 框架通过使用同步梯度下降克服不一致性，但需要额外的逻辑来处理通信和计算操作的高效流水线化，并会受到流水线气泡的影响
 
 Distributed tensor computation is an orthogonal and more general approach that partitions a tensor operation across multiple devices to accelerate computation or increase model size. 
 >  分布式张量计算是一种正交且更通用的方法，它将张量计算划分到多个设备上以加速计算或增加模型规模
@@ -413,7 +413,6 @@ Table 5. Development set results for MNLI, QQP, SQuAD 1.1 and SQuAD 2.0 and test
 <table><tr><td>Model</td><td>trained tokens ratio</td><td>MNLI m/mm accuracy (dev set)</td><td>QQP accuracy (dev set)</td><td>SQuAD 1.1 F1/EM (dev set)</td><td>SQuAD 2.0 F1/EM (dev set)</td><td>RACE m/h accuracy (test set)</td></tr><tr><td>RoBERTa (Liu et al., 2019b)</td><td>2</td><td>90.2 / 90.2</td><td>92.2</td><td>94.6 / 88.9</td><td>89.4 / 86.5</td><td>83.2 (86.5 / 81.8)</td></tr><tr><td>ALBERT (Lan et al., 2019)</td><td>3</td><td>90.8</td><td>92.2</td><td>94.8 / 89.3</td><td>90.2 / 87.4</td><td>86.5 (89.0 / 85.0)</td></tr><tr><td>XLNet (Yang et al., 2019)</td><td>2</td><td>90.8 / 90.8</td><td>92.3</td><td>95.1 / 89.7</td><td>90.6 / 87.9</td><td>85.4 (88.6 / 84.0)</td></tr><tr><td>Megatron-336M</td><td>1</td><td>89.7 / 90.0</td><td>92.3</td><td>94.2 / 88.0</td><td>88.1 / 84.8</td><td>83.0 (86.9 / 81.5)</td></tr><tr><td>Megatron-1.3B</td><td>1</td><td>90.9 / 91.0</td><td>92.6</td><td>94.9 / 89.1</td><td>90.2 / 87.1</td><td>87.3 (90.4 / 86.1)</td></tr><tr><td>Megatron-3.9B</td><td>1</td><td>91.4 / 91.4</td><td>92.7</td><td>95.5 / 90.0</td><td>91.2 / 88.5</td><td>89.5 (91.8 / 88.6)</td></tr><tr><td>ALBERT ensemble (Lan et al., 2019)</td><td></td><td></td><td></td><td>95.5 / 90.1</td><td>91.4 / 88.9</td><td>89.4 (91.2 / 88.6)</td></tr><tr><td>Megatron-3.9B ensemble</td><td></td><td></td><td></td><td>95.8 / 90.5</td><td>91.7 / 89.0</td><td>90.9 (93.1 / 90.0)</td></tr></table>
 
 From Table 5 we observe that (a) as the model size increases, the downstream task performance improves in all cases, (b) our 3.9B model establishes state of the art results on the development set compared to other BERT based models, and (c) our 3.9B model achieves both single model as well as ensembled SOTA results on RACE test set.
-
 
 # 6. Conclusion and Future Work
 In this work, we successfully surpassed the limitations posed by traditional single-GPU-per-model training by implementing model parallelism with only a few modifications to the existing PyTorch transformer implementations. We efficiently trained transformer based models up to 8.3 billion parameter on 512 NVIDIA V100 GPUs with 8-way model parallelism and achieved up to 15.1 PetaFLOPs sustained over the entire application. 
