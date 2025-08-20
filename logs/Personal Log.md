@@ -3018,3 +3018,118 @@ Date: 2025.8.4-2025.8.11
         All functions defined in `impl` block is called associated functions. If they does not have `self` as its first paramter, it is a type-level function (not instance-level).
         Syntax for calling associated function is `struct-name::function-name`.
 
+### Week 3
+Date: 2025.8.11-2025.8.18
+
+\[Paper\]
+- [[paper-notes/mlsys/GPipe Efficient Training of Giant Neural Networks using Pipeline Parallelism-2019-NeurIPS|2019-NeurIPS-GPipe Efficient Training of Giant Neural Networks using Pipeline Parallelism]]
+    Abstract
+        GPipe allows scaling any networks that can be expressed as a sequence of layers. GPipe utilizes a batch splitting pipelining algorithm, resulting in almost linear speedup when model is partitioned across multiple accelarators.
+    Introduction
+        In GPipe, model is specified as a sequence of layers, and consecutive groups of layers can be partitioned into cells. Each cell is placed on a seperate accelerator.
+        Based on this partition, we split mini-batch into multiple micro-batches, then pipeline the execution of each set of micro-batches over cells.
+        Gradient should be synchronize across all micro-batches and applied at the end of a mini-batch.
+        GPipe can be combined with data parallelism to further scale training.
+    The GPipe Library
+        GPipe requries users to specify: 1. number of model partition 2. number of micro-batch 3. the sequence and definitions of L layers that define the model
+        GPipe will insert communication primitives at partition boundary to allow data transfer between neighboring partitions.
+        To maximize the efficiency, it is necessary to sync the computation time across all cells.
+        If batch norm is used, GPipe will compute the statistics over each micro-batch, and also maintain the statistics of mini-batch.
+        GPipe supports re-materialization: only store the boundary activation in partition boundary, and recompute the intermediate activation in backward propagation.
+        Improving the number of micro batch can reduce bubble overhead. Also, in backward propagation, the recomputation can be scheduled eariler without waiting for the gradients from earlier layers.
+        GPipe also introduces low communication overhead, because we need to pass activation tensors at the partition boundaries between accelerators.
+    Perfomance Analysis
+        When the number of micro-batch is 4 times of partition, the bubble overhead can be overlooked.
+    Image Classification
+    Massive Massively Multilingual Machine Translation
+        Deeper network is harder to train, we adopt two method to alleviate the unstability of increasing depth: 1. scale down the initialization of all FFN by the number of layers 2. clip the logit predictions.
+    Design Features and Trade-offs
+        GPipe introduces minimal communiation overhead, communication only happens at partition boundary.
+    Conclusion
+- [[paper-notes/mlsys/HybridFlow A Flexible and Efficient RLHF-2025-EuroSys|2025-EuroSys-HybridFlow A Flexible and Efficient RLHF]]
+    0-Abstract
+        Different from traditional RL dataflow, in RLHF, each node in the dataflow is a LLM, which is essentially a distributed LLM training or generation program.
+        In traditional RL framework, the inter-node communication and intra-node computation are all instruced by a single controller. Because there is large control dispatch overhead for distributed intra-node computation, the single contoller may become the bottleneck.
+        Existing RLHF systems use a multi-controller paradigm, nesting distributed computation and data communication, which may be inflexible.
+        HybridFlow combines single-controller and multi-controller to enable flexible representation and efficient execution of RLHF dataflow.
+        We design a hierarchical API, which decouple computation and data dependency in RLHF dataflow.
+        We design 3D-HybridEngine for efficient actor model resharding between training and generation phases, wich zero memory redundency and significantly reduced communication overhead.
+    1-Introduction
+        RLHF system consists of four LLM: actor, critic, reference policy, reward model. The system proceeds in three stages: 1. response generation: given batch of prompts, actor generates generations 2. preparatoin of training data: use critic, reference policy, reward model to score the generated responses 3. training: update actor and critic through backward propagation
+        In RLHF dataflow, the training and generation of LLM requries distributed computation. Therefore, each node in the RLHF dataflow is a distributed computation program. What's more, each node may use different parallelism strategy as their workloads vary.
+        HybridFlow utilize single-controller paradigm on inter-node level to flexibly express data dependencies, and multi-controller paradigm on intra-node level to coordinate data resharding with mininal overhead.
+        We propose a hierarchical programming model to generate RLHF dataflow: 1. at node level, provide multiple model classes, to encapsulate distributed computation of LLM 2. among th nodes, provide a set of transfer protocols to hide the complexity of data resharding.
+        This design enable users run RLHF through a single process of the single controller. It also decouple intra-node computation and inter-node data transfer.
+        Besides the programming model, we also propose a 3D-HybridEngine, which introduces zero memory redundency and reduce communication overhead during model parameter resharding between training and generation.
+        The contribution is:
+        1. a hierarchical hybrid programming model to build RLHF dataflow, which enables intra-node efficient computation and inter-node flexible resharding and communication
+        2. 3D-HybridEngine to support efficient resharding between actor model training and generation
+        3. a mapping algorithm to find a optimized GPU allocation for each node in the dataflow.
+    2-Background and Motivation
+        2.1-Reinforcement Learning from Human Feedback
+            RLHF dataflow consists of 3 stages:
+            (1) Generation: actor accepts a batch of prompts and generate responses
+            (2) Preparation: critic accepts prompts and responses, give value, reward model give reward, reference policy give reference log probabilities.
+            (3) Learning/Training: actor and critic compute loss and backward and update parameters.
+            Parallel strategies: DP, PP, TP, ZeRO is a memory optimized solution for DP.
+            Morden distributed training frameworks like Megatron, MegaScale use 3D parallelism. LLM serving system employ 3D parallelism as well but only shard model parameters and KVCache.
+            There are three types of computation in RLHF dataflow:
+            (1) Training: one foward, one backward, one parameter update
+            (2) Inference: one forward
+            (3) Generation: multiple foward
+        2.2-Programming Model for Distributed ML
+            Single-Controller: centralized controller to manage the overall execution flow of the distributed program. Controller sends message to all workers, thus there will be large dispatch overhead in large dataflow graph.
+            Multi-Controller: each worker has its controller, user have to integrate communication, computation, point-to-point data transfer in the program run at each device.
+        2.3-RLHF Characteristics
+            Heterogeneous model workload: actor, critic, reward model, reference policy execute different computation in different stage. Reference policy and reward model only store paremters and execute forward computation. Actor and critic execute backward and forward, and stores parameters, gradient, optimizer state.
+            Unbalanbced computation between actor training and actor generation: actor training and actor generation is the main workload of RLHF iteration, actor training is computation bound, needs larger TP size, actor generation is memory bound, needs smaller TP size, larger DP size.
+            Using different parallelism strategy for actor training and generation may optimize throughput in both stages, which resharing the actor parameter will incur communication and memory overhead.
+            Diverse model placement requirements: models colocate at the same device set execute sequentially in a time-sharing manner, models placed on different devices execute in parallel in no data dependency exists. A compromise is that model places on different devices allow parallel execution but will incur device idle because RLHF dataflow is staged.
+        2.4-Limitations of existing RLHF systems
+            Inflexible support for various RLHF dataflow graphs: users have to manage collective communication, model computation, point-to-point data transfer.
+            Inefficient RLHF execution: existing RLHF framework are limited to one model placement and hence one RLHF execution pattern.
+        2.5-Design Considerations
+            The key question is: how to design a flexible and efficient programming. We provide a programming model that decouples intra-node computation and inter-node communication.
+    3-HybridFlow Overview
+        HybridFlow requires user to provide: 1. model configurations 2. device placement of models 3. parallel strategies of each model.
+    4-Hybrid Programming Model
+        Intra-node: model class encapsulates modle's distributed computation, constructs 3D parallel group for model. The distributed computation API is implemented by resuing existing LLM systems' computation scripts.
+        Inter-node: associate model class with a transfer protocol. Transfer protocol consists of a collect function and a distribute function.
+        In `3D_PROTO`, collect function gather all output data from corresponding model function to the single controller, and distribute function distribute the inputs to the registered function. Actually, the data passed the single controller is metadata, and actual data is directely sent between the devices directly.
+        Data resharding is implemented by source model's output collect function and destination model's input distribute function.
+        Flexible model placement: GPU devices are abstracted as a resource pool, resource pool instance is applied to the model class to put model into the device. Models using the same resouce pool instance are colocated.
+        If models are colocated, models are executed by invokation sequence, otherwise, the execution is asynchronous, i.e., once the input is availabe, the execution starts.
+        For users, they only need to invoke some primitive APIs to invoke the distributed computation of models.
+    5-3D-HybridEngine
+        We colocate actor training and actor generation to eliminate redundent actor copy.
+        For resharding, traditional way is to all-gather all model paramter in model replica group (thus each device) first and then keep the essential parts to achieve resharding.
+        A better method is to find the overlapping of training and generation parameter shardings. 3D-HybridEngine uses a new parallel grouping method. It use strided ranks to construct generation TP group instaed of continuous ranks, in order to be consist with training TP sharding, thus reducing the memory reduncency. Also, the communication can be reduced by only exchange parameter within micro-DP groups.
+    6-Auto Device Mapping
+        We provide an algorithm to identify the device placement given a device cluster. The alogithm minimize the end-to-end latency for each RLHF iteration.
+    7-Implementation
+        Programming Model: single controller is constructed basaed on Ray. Multi controllers runs model functions on many processes at many devices.
+        3D-HybridEngine: implemented based on Megatron-LM and vLLM
+    8-Evaluation
+        HybridFlow is deployed on a cluter of 16 machines (16 x 8 = 128 GPUs), each with 8 A100 GPUs.
+        Throughput of HybridFlow is bettern than other systems, because HybridFlow use different parallelism strategy for different workload and minimize the resharding overhead.
+        In small cluster, GPU computation resources can be utilized by all models. The colocate strategy ensures maximum GPU usage at different RLHF stages.
+        In larger clusters, improving DP size further is not good, thus place models at different devices is better. Especially place actor and critic at defferent devices.
+        Generation using smaller TP size than training can significantly reduce the latency, reducing TP size further can not improve speedup because it requires each GPU maintains larger KVCache.
+    9-Discussions
+    10-Related Work
+    11-Conclusion
+
+\[Book\]
+- [[book-notes/programming language/The Rust Programming Language|The Rust Programming Language]]: CH6
+    CH6-Enums and Pattern Matching
+        Enums allow us to define a type by enumerating its possible variants
+        Each variant can store or associate values.
+        We can implement methods for enum types, similar to struct type.
+        `Option<T>` type represents value exists or is null. Using `Option<T>` is to ensure that we do not accidentally use a null value but assume it is not null.
+        `Option<T>` , and its variants `Some, None` are in the prelude.
+        `match` expression requires us to handle all possible situations. `=>` seperates pattern and code. 
+        Catch-all pattern can be `_` or an variable name, for not binding value or binding value.
+        `if let` accepts a pattern and an expression, seperated by `=`. If expression matches pattern, it executes code.
+        `if let` can be used with `else`, similar to `_` in `match`.
+        `let .. eles` is similar to `if let`, but have no `if` branch, only `else` branch. If pattern matches expression, the expression's value is binded to outer scope.
+
