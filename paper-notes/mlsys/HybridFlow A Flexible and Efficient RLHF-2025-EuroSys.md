@@ -138,10 +138,12 @@ LLM models in the RLHF dataflow may perform distinct computations, including tra
 
 ![[pics/HybridFlow-Fig2.png]]
 
+>  Figure2a 2b 的区别就在于 Figure 2b 在 Figure 2a 的基础上又封装了一层模型层，single-controller 就控制这些封装好的模型类即可，不深入模型内部计算细节，代码的耦合度就低，具有层次结构
+
 **Single-Controller.** It employs a centralized controller to manage the overall execution flow of the distributed program. With centralized control logic, users can build core functionalities of the dataflow as a single process (Figure 2(b)), while the controller automatically generates distributed workers to carry out the computation. With a global view of the hardware and dataflow graph, the single-controller paradigm allows flexible and optimized resource mapping and execution order coordination among dataflow tasks. However, coordination messages are passed from the controller to all workers, incurring significant dispatch overhead when executing expansive dataflow graphs on large clusters [1, 9]. 
 >  Single-Controller 模型使用中心化的 controller 管理分布式程序的整体执行流
 >  中心化的 controller 具有硬件和数据流图的全局知识，依据这些知识进行数据流任务之间的资源映射和执行顺序协调，并自动将计算分配给 workers
->  但中心化的 controller 需要自己向所有 workers 传递协调消息，因此在大型集群上执行大规模数据流图是，会存在显著的分发开销
+>  但中心化的 controller 需要自己向所有 workers 传递协调消息，因此在大型集群上执行大规模数据流图时，会存在显著的分发开销
 
 **Multi-Controller.** Each device (aka worker) has its own controller. State-of-the-art distributed LLM training and serving systems adopt the multi-controller paradigm, due to its scalability and low dispatch overhead (control messaging largely passed from CPU to GPU over fast PCIe links) [36, 40, 60, 71]. 
 >  Multi-Controller 模型中，每个设备 (worker) 都有自己的 controller
@@ -192,8 +194,6 @@ Figure 3. Dataflow execution given a model placement plan. Blocks with numbers r
 We observe a compromise: placing models on different devices permits parallel processing but may inevitably lead to some GPU idle time, given staged model execution in RLHF. In Figure 3, actor and critic are placed separately, performing training in parallel, but incurring 1/3 of their GPU time being idle, during other RLHF stages. Supporting various placement strategies and maximizing device utilization are crucial for optimizing RLHF performance at any model size and cluster scale.
 >  将模型放在不同的设备上允许了并行执行，但会不可避免地导致一些 GPU 存在空闲时间，因为 RLHF 数据流的执行是分阶段的
 >  例如 Figure3 中，actor, critic 是放置在不同组设备上的，进而二者的训练计算可以并行执行，但在整个迭代中，其 $1/3$ 的 GPU 时间是空闲的
-
-Table 1. Comparison of RLHF frameworks. Figures ilustrate execution of one PPO iteration. Numbers 1-6 represent response generation, reward model inference, reference model inference, critic inference, actor training, and critic training, respectively.   placement strategies and maximizing device utilization are crucial for optimizing RLHF performance at any model size and cluster scale.
 
 ## 2.4 Limitations of existing RLHF systems
 **Inflexible support for various RLHF dataflow graphs.** Existing RLHF systems adopt the multi-controller paradigm for dataflow implementation [17, 30, 80, 82]. To implement various RLHF algorithms, a user must navigate and manage code that mixes collective communication, model computation (potentially using various distributed training/serving frameworks), and point-to-point data transfer. This code structure lacks modularity/function encapsulation, making the RLHF systems tightly coupled with specific LLM training and serving frameworks. 
@@ -256,7 +256,7 @@ The workflow of our RLHF system goes as follows. A user provides the following i
 >  2. single-controller 程序接收这些输入，初始化 RLHF 数据流中的模型并虚拟化资源池，根据 placement plane 向设备发送 operations/models，并为每个 model 调用 multi-controller 的函数来执行 model 的分布式计算
 
 The multi-controller program implements the ParallelWorker class: it constructs parallel groups of each model among allocated devices according to its parallelism strategies, invokes the 3D-HybridEngine for actor training and generation, and can be integrated seamlessly with existing LLM engines [40, 57, 60, 71] for training, inference and generation of other models. The transfer protocols are coordinated by the single controller program to support resharding of data (including prompts, responses, and other model outputs in RLHF) between models with distinct parallelism strategies. The data resharding of the actor between training and generation is handled by 3D-HybridEngine.
->  3. multi-controller 程序实现了 ` ParallelWorker` 类，它在根据并行策略，在分配的设备中为每个模型构造并行组，并调用 3D-HybridEngine 执行 actor training 和 generation
+>  3. multi-controller 程序实现了 ` ParallelWorker` 类，它根据并行策略，在分配的设备中为每个模型构造并行组，并调用 3D-HybridEngine 执行 actor training 和 generation
 >  single-controller 程序协调传输协议，以支持数据 (包括 prompts, responses, other model outputs) 在具有不同并行策略的模型之间的 resharding 
 >  3D-HybridEngine 负责 actor training, generation 阶段之间的 data resharding
 
@@ -368,7 +368,6 @@ In iteration  $i + 1$  of RLHF, 3D-HybridEngine gathers the actor model paramete
 >  这样就完成了 RLHF 的一次迭代，过程中模型参数、prompts, responses 都会被依照并行配置进行重分配和分发
 
 ## 5.3 Zero redundancy model resharding
-
 Parallel grouping methods in 3D parallelism are typically as follows: PP and TP groups are formed by assigning consecutive ranks to pipeline stages and tensor shards, respectively; DP groups are constructed by selecting ranks at regular intervals, determined by the product of PP size and TP size. 
 >  3D 并行中的并行分组方法通常是:
 >  将编号连续的 GPU 分配给多个流水线阶段来构造流水线并行组 (例如 PP = 2，就将前一半 GPU 分配给第一个流水线阶段，将后一半 GPU 分配个第二个流水线阶段)
@@ -468,10 +467,10 @@ HybridFlow is implemented in around 12k lines of Python code (LoC).
 
 **Hybrid programming model.** The hierarchical APIs are implemented with 1.8k LoC. The centralized single controller is built on top of Ray [50] and uses Remote Process Calls (RPC) to coordinate the execution order of different models and transfer data between models following the dataflow. These intermediate data are stored in TensorDict [57]. In our multi-controller paradigm for distributed computation, each model function runs on a separate process across various devices, with control messages relayed from each controller's CPU process to the corresponding GPU. Our implementation supports Megatron-LM, PyTorch FSDP, and DeepSpeed as the LLM training and inference engines, and vLLM for autoregressive generation. In vLLM, we replace the centralized KVCache manager with a distributed manager to align with the multi-controller paradigm.
 >  Hybrid 编程模型
->  中心化 single controller 基于 Ray 构建，使用 RPC 来协调不同模型的执行顺序以及在顺着数据流，在模型之间传递数据
+>  中心化 single controller 基于 Ray 构建，使用 RPC 来协调不同模型的执行顺序以及顺着数据流，在模型之间传递数据
 >  中间数据存储在 TensorDict 中
 >  multi-controller 中，每个模型函数在多个设备上运行，控制消息从每个 controller 的 CPU 进程传递到对应的 GPU
->  我们支持 Magatron-LM, PyTorch FSDP 和 DeepSpeed 作为 LLM 训练和推理迎请，使用 vLLM 进行自回归生成
+>  我们支持 Magatron-LM, PyTorch FSDP 和 DeepSpeed 作为 LLM 训练和推理引擎，使用 vLLM 进行自回归生成
 
 **3D-HybridEngine.** Its main logic is implemented with 2.4k LoC on top of Megatron-LM and vLLM. We store actor model weights for training and generation stages on separate memory buffers, offload generation weights to the CPU memory during training, reload generation weights back to GPU memory during the transition, and use both buffers in generation. We use NCCL communication primitives [35] to collect and concatenate model parameters in each micro DP group during the transition between training and generation. We offload KVCache to CPU memory after generation and reload it back to GPU in the next iteration.
 >  3D-HybridEngine 的逻辑基于 Megatron-LM 和 vLLM 实现
@@ -628,7 +627,7 @@ Applying GPU sharing and heterogeneous resources in RLHF training poses distinct
 >  ByteScheduler, DeepSpeed 对数据并行进行了通信和内存优化
 >  许多系统通过模型并行优化大规模模型训练，例如张量并行和流水线并行，将模型划分到多个设备
 >  LLM 服务系统也采用数据和模型并行来加速自回归生成，并且使用了特殊的优化例如 continuous-batching, chucked-prefill
->  所有的以上框架都采用 mult-controller 范式
+>  所有的以上框架都采用 multi-controller 范式
 
 **Dataflow systems.** Dataflow systems like MapReduce [21], Spark [86], Dryad [33], and Naiad [51] are popular for analytics and ML workloads but they lack support for dynamic task graphs. Ray [50] unifies task-parallel and actor programming models in a single dynamic task graph and implements a scalable distributed scheduler and a global control store, which is adopted by many RL frameworks [45, 46]. Pathways [9], a closed-source project for TPUs, are designed to easily express complex parallelism patterns and fine-grain control flow within a single DNN model, such as pipeline parallelism and Mixture-of-Experts with sparse computation. It employs an asynchronous distributed dataflow design that enables parallel control plane execution despite data dependencies, reducing the dispatch overhead from single-controller paradigm. Its main focus lies on single-model training, requiring complex compilations of each sub-network of a DNN model. HybridFlow can integrate Pathways as a submodule to implement the computation of models in the RLHF dataflow.
 >  数据流系统缺乏对动态任务图的支持
@@ -655,6 +654,7 @@ In HybridFlow, we implemented the primitive of each model in RLHF training by in
 Table 4. Key functions provided in each model class. The users can use these provided functions to construct various RLHF algorithms in a few lines of code.  
 
 <table><tr><td>Model</td><td>APIs</td><td>Computation</td><td>Interpretation</td></tr><tr><td rowspan="4">Actor</td><td>generate_sequence</td><td>auto-regressive generation</td><td>Based on a batch of prompts, the actor model generates a batch of responses and returns the log probability of each token in the responses.</td></tr><tr><td>compute_log_prob</td><td>a forward pass</td><td>The actor model computes the log probability of each token in the prompts and responses. This log probability is the same as the return log probability when performing generation using the same model precision. (Optional in PPO)</td></tr><tr><td>compute_loss</td><td>a forward pass</td><td>The actor model computes the pretrain loss based on the pertaining dataset [7, 19, 55].</td></tr><tr><td>update_actor</td><td>a forward, backward pass and model update</td><td>Based on the advantages, returns (calculated from computeadvantage) and pertaining loss, the actor model calculate the training loss and update its weights. We implement various loss for diverse RLHF algorithms including PPO [55], Safe-RLHF [19], ReMax [43], GRPO [70] and others.</td></tr><tr><td rowspan="2">Critic</td><td>compute_values</td><td>a forward pass</td><td>The critic model computes the values for each prompt and response.</td></tr><tr><td>update_critic</td><td>a forward, backward pass and model update</td><td>Based on the values and returns, the critic computes a squared-error loss to update its weights. We also implement critic loss for diverse RLHF algorithms including PPO [55], Safe-RLHF [19], ReMax [43], GRPO [70] and others.</td></tr><tr><td>Reference Policy</td><td>compute_ref_log_prob</td><td>a forward pass</td><td>The reference model computes the reference log probability of each token in the prompts and responses. This log probability is utilized as a benchmark to evaluate the divergence of the actor model and constrain its learning process.</td></tr><tr><td>Reward</td><td>compute_reward</td><td>a forward pass</td><td>The reward model conducts forward computation to calculate scores for a given set of prompts and responses. The rewards could be token level or sample-level.</td></tr><tr><td>-</td><td>computeadvantage</td><td>numerical computation</td><td>Based on the values rewards from the value model and reward model respectively, the function estimates the advantages on the given prompts and the current policy model& #x27 ;s responses. This computation involves no model forward passes.</td></tr></table>
+
 # B Transfer Protocols
 
 ![[pics/HybridFlow-Table3.png]]
