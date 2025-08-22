@@ -564,3 +564,340 @@ With AI hardware evolving rapidly, a natural question emerges: **Where are the 
 >  下一章将探讨 CUDA 的替代方案，分析他们突破 CUDA 护城河的技术和战略问题
 
 –Chris
+
+# 5 What about OpenCL and CUDA C++ alternatives?
+Site: https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives
+Date: 5 March 2025
+
+**GenAI may be new, but GPUs aren’t!** Over the years, many have tried to create portable GPU programming models using C++, from OpenCL to SYCL to OneAPI and beyond. These were the most plausible CUDA alternatives that aimed to democratize AI compute, but you may have never heard of them - because they failed to be relevant for AI.
+>  多年来，许多人尝试用 C++ 创建可移植的 GPU 编程模型，从 OpenCL 到 SYCL 到 OneAPI
+>  这些是 CUDA 最有希望的替代方案，旨在让 AI 计算更加普及，但它们未能在 AI 领域保持相关性
+
+These projects have all contributed meaningfully to compute, but if we are serious about unlocking AI compute for the future, we must critically examine the mistakes that held them back—not just celebrate the wins. At a high level, the problems stem from the challenges of "[open coopetition](https://en.wikipedia.org/wiki/Open_coopetition)"—where industry players both collaborate and compete—as well as specific management missteps along the way.
+>  这些项目都对计算领域做出了贡献，我们需要批判性地审视它们发展的错误
+>  从高层次来看，这些问题源于 “开放合作竞争” 的挑战 —— 行业参与者即合作又竞争 —— 以及一些发展过程中的具体管理失误
+
+Let’s dive in. 🚀
+
+## CUDA C++ Alternatives: OpenCL, SYCL, and More
+There are many projects that aimed to unlock GPU programming, but the one I know best is [**OpenCL**](https://en.wikipedia.org/wiki/OpenCL). Like CUDA, OpenCL aimed to give programmers a C++-like experience for writing code that ran on the GPU.  The history is personal: in 2008, I was one of the lead engineers implementing OpenCL at Apple (it was the first production use of the [Clang compiler](https://en.wikipedia.org/wiki/Clang) I was building). After we [shipped it,](https://en.wikipedia.org/wiki/OpenCL#History) we made the pivotal decision to contribute it to the [Khronos Group](https://www.khronos.org/opencl/) so it could get adopted and standardized across the industry.
+>  OpenCL 目标是给程序员类似编写 C++ 的体验来编写运行在 GPU 上的代码，蕾西与 CUDA
+>  OpenCL 最初由 Clang 编译器支持，后来它被贡献给了 Khronos Group
+
+That decision led to broad industry adoption of OpenCL (see [the logos](https://www.khronos.org/opencl/)), particularly in mobile and embedded devices. Today, it remains hugely successful, powering GPU compute on platforms like Android, as well as in specialized applications such as DSPs. Unlike CUDA, OpenCL was designed for portability from the outset, aiming to support heterogeneous compute across CPUs, GPUs, and other accelerators. OpenCL also inspired other systems like SyCL, Vulkan, SPIR-V, oneAPI, WebCL and many others.
+>  OpenCL 在这之后被行业广泛采用，尤其是在移动设备和嵌入式设备中，如今，它仍然非常成功，为 Android 平台上的 GPU 计算提供支持
+>  与 CUDA 不同，OpenCL 设计之初就关注可移植性，旨在支持跨 CPU, GPU 和其他加速器的异构计算
+>  OpenCL 还启发了其他系统，例如 SyCL, Vulkan, SPIR-V, oneAPI, WebCL 等
+
+However, despite its technical strengths and broad adoption, [**OpenCL never became the dominant AI compute platform**](https://github.com/tensorflow/tensorflow/issues/22#issuecomment-155145957). There are several major reasons for this: the inherent tensions of open coopetition, technical problems that flowed from that, the evolving requirements of AI, and NVIDIA’s unified strategy with TensorFlow and PyTorch.
+>  但 OpenCL 未能成为主导的 AI 计算平台，原因有: 开放合作竞争固有的矛盾、AI 要求的不断演变、NVIDIA 在 TensorFlow 和 PyTorch 上的统一策略
+
+### **“**[**Coopetition**](https://en.wikipedia.org/wiki/Open_coopetition)**” at Committee Speed**
+In 2008, Apple was a small player in the PC space, and thought that industry standardization would enable it to reach more developers.  However, while OpenCL did gain broad adoption among hardware makers, its evolution quickly ran into a major obstacle: the speed of committee-driven development. For Apple, this slow-moving, consensus-driven process was a dealbreaker: we wanted to move the platform rapidly, add new features (e.g. add C++ templates), and express the differentiation of the Apple platform.  We faced a stark reality - the downside of a committee standard is that things suddenly moved at committee consensus speed… which felt glacial.
+>  2008 年，Apple 在 PC 领域还是一个小玩家，它认为行业标准化能够吸引更多开发者，然而尽管 OpenCL 在硬件厂商中获得了广泛采用，它的演进很快遇到了一个重大障碍: 委员会的开发速度
+>  这种缓慢的、基于共识的流程对于 Apple 是不可接受的，Apple 希望快速推动平台发展，添加新特性 (例如 C++ 模板)
+
+Hardware vendors recognized the long-term benefits of a unified software ecosystem, but in the short term, they were fierce competitors. This led to subtle but significant problems: instead of telling the committee about the hardware features you’re working on (giving a competitor a head start), participants would keep innovations secret until after the hardware shipped, and only discuss it after these features became commoditized (using vendor-specific extensions instead).
+>  硬件厂商认识到统一软件生态的长期好处，但在短期内，它们仍然是激烈的竞争对手
+>  这导致了一些微妙且重要的问题: 与其向委员会报告你正在开发的硬件特性，竞争者更倾向于在硬件发布后再公开这些创新，并在这些功能变得通用化之后才进行讨论
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67c864b4945e50e3855205b4_Coopetition.jpg)
+
+Coopetition: "cooperation" amongst competitors
+
+This became a huge problem for Apple, a company that wanted to move fast in secret to make a big splash with product launches.  As such, Apple decided to abandon OpenCL: it introduced Metal instead, never brought OpenCL to iOS, and deprecated it out of macOS later. Other companies stuck with OpenCL, but these structural challenges continued to limit its ability to evolve at the pace of cutting-edge AI and GPU innovation.
+>  Apple 是一家希望在保密情况快速推进，并且在发布时造成巨大影响的公司，因此 Apple 决定放弃 OpenCL: 它推出了 Metal 作为替代方案，且从未将 OpenCL 引入 iOS，并在后来从 macOS 弃用了 OpenCLL
+>  其他公司继续使用 OpenCL，但这些接受性挑战限制了它跟上最前沿的 AI 和 GPU 发展步伐的能力
+
+### **Technical Problems with OpenCL**
+While Apple boldly decided to contribute the OpenCL standard to Kronos, it wasn’t all-in: it contributed OpenCL as a technical specification—but without a full reference implementation. Though parts of the compiler front-end (Clang) was open source, there was no shared OpenCL runtime, forcing vendors to develop their own custom forks and complete the compiler.  Each vendor had to maintain its own implementation (a ”fork”), and without a shared, evolving reference, OpenCL became a patchwork of vendor-specific forks and extensions. This fragmentation ultimately weakened its portability—the very thing it was designed to enable.
+>  Apple 将 OpenCL 贡献给 Kronos 时，仅贡献了技术规范，但没有提供完整的参考实现
+>  虽然编译器前端 (Clang) 是开源的，但没有共享的 OpenCL runtime，这迫使各厂商自行开发自己的 fork 来完成编译器
+>  由于每个厂商都维护自己的 fork，没有一个共同的，持续演进的参考实现，导致 OpenCL 碎片化，反而削弱了它的可移植性
+
+Furthermore, because vendors held back differentiated features or isolated them into vendor-specific extensions, which exploded in number and fragmented OpenCL (and the derivatives), eroding its ability to be a unifying vendor-agnostic platform.  These problems were exacerbated by weaknesses in OpenCL’s compatibility and conformance tests. On top of that, it inherited all the [“C++ problems” that we discussed before](https://www.modular.com/blog/democratizing-ai-compute-part-4-cuda-is-the-incumbent-but-is-it-any-good/#pythoncuda).
+>  此外，由于厂商保留了差异化功能，或者将功能隔离到了特定于厂商的拓展中，这些拓展数量激增，导致 OpenCL 严重碎片化，削弱了它作为统一的、无厂商依赖平台的能力
+
+Developers want stable, well-supported tools—but OpenCL’s fragmentation, weak conformance tests, and inconsistent vendor support made it an exercise in frustration. One developer summed it up by saying that [**using OpenCL is “about as comfortable as hugging a cactus”**](https://futhark-lang.org/blog/2024-07-17-opencl-cuda-hip.html#:~:text=it%20is%20because%20OpenCL%20has,comfortable%20as%20hugging%20a%20cactus)! Ouch.
+>  开发者想要适合用稳定且得到良好支持的工具，但 OpenCL 的碎片化、薄弱的一致性测试以及厂商支持的不一致，使得其开发体验很差
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67c864ea4be5af3fe6970d7a_Cactus.jpeg)
+
+One developer described using OpenCL as ["about as comfortable as hugging a cactus."](https://futhark-lang.org/blog/2024-07-17-opencl-cuda-hip.html#:~:text=it%20is%20because%20OpenCL%20has,comfortable%20as%20hugging%20a%20cactus)
+
+While OpenCL was struggling with fragmentation and slow committee-driven evolution, AI was rapidly advancing—both in software frameworks and hardware capabilities. This created an even bigger gap between what OpenCL offered and what modern AI workloads needed.
+>  OpenCL 还在为碎片化和缓慢的委员会驱动发展挣扎时，AI 正在快速进步 —— 软件框架和硬件能力都是如此
+>  OpenCL 提供的和现代 AI workload 想要的存在了更大的差异
+
+## The Evolving Needs of AI Research and AI GPU Hardware
+The introduction of TensorFlow and PyTorch kicked off a revolution in AI research - powered by improved infrastructure and massive influx of BigCo funding. This posed a major challenge for OpenCL. While it enabled GPU compute, it lacked the high-level AI libraries and optimizations necessary for training and inference at scale. Unlike CUDA, it had no built-in support for key operations like matrix multiplication, Flash Attention, or datacenter-scale training.
+>  TensorFlow 和 PyTorch 的引入发起了 AI 研究的革命
+>  OpenCL 虽然支持 GPU 计算，但**缺乏高级的 AI 库和针对规模化训练和推理的优化**，它没有对关键运算例如矩阵乘、FlashAttention, 数据库规模的训练的内建支持
+
+Cross-industry efforts to expand TensorFlow and [PyTorch](https://github.com/pytorch/pytorch/issues/488) to use OpenCL quickly ran into fundamental roadblocks ([despite being obvious and with incredible demand](https://github.com/tensorflow/tensorflow/issues/22)). The developers who kept hugging the cactus soon discovered a harsh reality: portability to new hardware is meaningless if you can’t unlock its full performance. Without a way to express portable hardware-specific enhancements—and with coopetition crushing collaboration—progress stalled.
+>  试图将 TensorFlow 和 PyTorch 拓展以支持 OpenCL 的努力很快遇到了根本性障碍
+>  坚持使用 OpenCL 的开发者发现了: 如果无法充分发挥硬件的性能，那么可移植性也就毫无意义，在没有一种可以表达可移植的硬件特定的优化，并且合作竞争额压制了协作的情况下，进展停滞不前
+
+One glaring example? OpenCL _still_ doesn’t provide standardized [support for Tensor Cores](https://www.modular.com/blog/democratizing-ai-compute-part-4-cuda-is-the-incumbent-but-is-it-any-good/#tensorcores) —the specialized hardware units that power efficient matrix multiplications in modern GPUs and AI accelerators. This means that using OpenCL often means a 5x to 10x slowdown in performance compared to using CUDA or other fragmented vendor native software.  For GenAI, where compute costs are already astronomical, **a 5x to 10x slowdown isn’t just inconvenient—it’s a complete dealbreaker**.
+>  一个最明显的例子是: OpenCL 仍然无法提供对 Tensor Cores 的标准化支持
+>  这意味着使用 OpenCL 会比使用 CUDA 慢 5-10 倍
+
+### **NVIDIA’s Strategic Approach with TensorFlow and PyTorch**
+While OpenCL struggled under the weight of fragmented governance, NVIDIA took a radically different approach—one that was tightly controlled, highly strategic, and ruthlessly effective, as we [discussed earlier](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed). It actively co-designed CUDA’s high-level libraries alongside TensorFlow and PyTorch, ensuring they always ran best on NVIDIA hardware. Since these frameworks were natively built on CUDA, NVIDIA had a massive head start—and it doubled down by optimizing performance out of the box.
+>  OpenCL 在碎片化的治理下举步维艰，NVIDIA 则采取相反的策略 —— 高度控制的方法
+>  NVIDIA 积极和 TensorFlow 以及 PyTorch 一起设计 CUDA 高层库，确保它们始终在 NVIDIA 硬件上运行得最好，由于这些框架是原生地基于 CUDA 的，NVIDIA 获得了巨大的先发优势，并进一步通过优化性能来巩固这一优势
+
+NVIDIA maintained a token OpenCL implementation—but it was strategically hobbled (e.g., not being able to use TensorCores)—ensuring that a CUDA implementation would always be necessary. NVIDIA’s continued and rising dominance in the industry put it on the path to ensure that the CUDA implementations would always be the most heavily invested in. Over time, OpenCL support faded, then vanished—while CUDA cemented its position as the undisputed standard.
+>  NVIDIA 维持了一个有限的 OpenCL 实现，但它被战略性地削弱了 (例如无法使用 TensorCores)，从而确保 CUDA 的实现始终是必要的
+
+## What Can We Learn From These C++ GPU Projects?
+The history above is well understood by those of us who lived through it, but the real value comes from learning from the past. Based on this, I believe successful systems must:
+
+- Provide **a reference implementation**, not just a paper specification and “compatibility” tests. A working, adoptable, and scalable implementation should define compatibility—not a PDF.
+- Have **strong leadership and vision** driven by whoever maintains the reference implementation.
+- Run with **top performance on the industry leader’s hardware**—otherwise, it will always be a second-class alternative, not something that can unify the industry.
+- **Evolve rapidly** to meet changing requirements, because AI research isn’t stagnant, and AI hardware innovation is still accelerating.
+- **Cultivate developer love**, by providing great usability, tools and fast compile times.  Also, “C++ like” isn’t exactly a selling point in AI!
+- **Build an open community**, because without widespread adoption, technical prowess doesn’t matter.
+- **Avoid fragmentation**—a standard that splinters into incompatible forks can’t provide an effective unification layer for software developers.
+
+>  基于此，笔者认为成功的系统必须具备以下几点:
+>  - 提供一个参考实现，而不仅仅是白皮书规格和兼容性测试，兼容性应该由一个可用的、可拓展的实现定义，而不是 PDF
+>  - 拥有强的领导和愿景，由维护参考实现的人驱动
+>  - 在行业领先的硬件上拥有顶级的性能，否则永远只能是一个次等的替代方案
+>  - 快速演进，以满足不断变化的需求
+>  - 培养开发者的情感认同，通过提供良好的易用性、工具和快速编译时间
+>  - 构建一个开放的社区，因为没有被广泛采用，技术实力也无从谈起
+>  - 避免碎片化，一个分裂成不兼容分支的标准，无法为软件开发者提供有效的统一层
+
+These are the fundamental reasons why I don’t believe that committee efforts like OpenCL can ever succeed. It’s also why I’m even more skeptical of projects like [Intel’s OneAPI](https://oneapi.io/) (now [UXL Foundation](https://uxlfoundation.org/)) that are _notionally_ open, but in practice, controlled by a single hardware vendor competing with all the others.
+>  这些是笔者认为像 OpenCL 这样的委员会项目能够成功的根本原因，像 Intel 的 OneAPI 项目，表面上是开放的，但实际上由一家硬件厂商控制，并与其他所有厂商竞争
+
+## What About AI Compilers?
+At the same time that C++ approaches failed to unify AI compute for hardware makers, the AI industry faced a bigger challenge—even using CUDA on NVIDIA hardware. How can we scale AI compute if humans have to write all the code manually? There are too many chips, too many AI algorithms, and too many workload permutations to optimize by hand.
+
+As AI’s dominance grew, it inevitably attracted interest from systems developers and compiler engineers—including myself. In the next post, we’ll dive into widely known “AI compiler” stacks like TVM, OpenXLA, and MLIR—examining what worked, what didn’t, and what lessons we can take forward. Unfortunately, the lessons are not wildly different than the ones above:
+
+> History may not repeat itself, but it does rhyme. - Mark Twain
+
+See you next time—until then, may the FLOPS be with you! 👨‍💻
+
+-Chris
+
+# 6 What about TVM, XLA, and AI compilers?
+Site: https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers
+Date: 12 March 2025
+
+In the early days of AI hardware, writing high-performance GPU code was a manageable—if tedious—task. Engineers could handcraft CUDA kernels in C++ for the key operations they needed, and NVIDIA could [build these into libraries like cuDNN](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed#wave) to drive their lock-in. But as deep learning advanced, this approach completely broke down.
+
+Neural networks grew bigger, architectures became more sophisticated, and researchers demanded ever-faster iteration cycles. The number of [unique operators in frameworks like PyTorch](https://dev-discuss.pytorch.org/t/where-do-the-2000-pytorch-operators-come-from-more-than-you-wanted-to-know/373) exploded—now numbering in the thousands. Manually writing and optimizing each one for every new hardware target? Impossible.
+>  随着神经网络变得越来越大，架构也变得越来越复杂，像 PyTorch 这样的框架中的独特算子数量呈指数级增长，现在已经达到数千个
+>  为每个新硬件目标手动编写和优化每一个算子是不可能的任务
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67d080d52d4f5fd7df68a17c_PyTorch_Operator_Count.jpg)
+
+PyTorch operator count by version ([source](https://dev-discuss.pytorch.org/t/where-do-the-2000-pytorch-operators-come-from-more-than-you-wanted-to-know/373))
+
+This challenge forced a fundamental shift: instead of writing kernels by hand, what if we had a compiler that could _generate_ them automatically? AI compilers emerged to solve this exact problem, marking a transformation from human-crafted CUDA to machine-generated, hardware-optimized compute.
+>  这一挑战迫使人们进行根本性的转变: 与其手动编写 kernel，我们能否**让编译器自动生成它们**？
+>  AI 编译器应运而生，以解决这个具体的问题，标志着从人工编写的 CUDA 到机器生成的、硬件优化的计算的转变
+
+But as history has shown, building a successful compiler stack isn’t just a technical challenge—it’s a battle over ecosystems, fragmentation, and control. So what worked? What didn’t? And what can we learn from projects like TVM and OpenXLA?
+>  但正如历史所表明的那样，构建一个成功的编译器栈不仅仅是技术上的挑战 —— 它是一场关于生态系统、碎片化和控制权的斗争
+>  那么，哪些做法有效，哪些失败了，我们又能从 TVM 和 OpenXLA 等项目中吸取哪些教训
+
+Let’s dive in. 🚀
+
+## What is an “AI Compiler”?
+At its core, an AI compiler is a system that takes high-level operations—like those in PyTorch or TensorFlow—and automatically transforms them into highly efficient GPU code. One of the most fundamental optimizations it performs is called “**kernel fusion**.**”** To see why this matters, let’s consider a simple example: [multiplying two matrices](https://en.wikipedia.org/wiki/Matrix_multiplication) (”matmul”) and then applying a ReLU (Rectified Linear Unit) [activation function](https://en.wikipedia.org/wiki/Activation_function). These are simple but important operations that occur in common neural networks.
+>  从根本上说，AI 编译器是一个系统，它将高级操作 —— 例如 PyTorch 或 TensorFlow 中的操作 —— 自动转换为高效的 GPU 代码
+>  它执行的最基本的优化之一为 kernel fusion
+>  为了理解为什么这很重要，让我们来看一个简单的例子: 对两个矩阵进行相乘，然后应用一个 ReLU 激活函数
+
+### **Naïve approach: Two separate kernels**
+The most straightforward (but inefficient) way to do this is to perform matrix multiplication first, store the result in memory, then load it again to apply ReLU.
+>  最简单的方式是先执行 GEMM，将结果存入内存，然后再 load，应用 ReLU
+
+```python
+# Naïve matmul implementation for clarity.
+def matmul(A, B):
+    # Initialize result matrix to zero.
+    C = [[0] * N for _ in range(N)]
+    for i in range(N):
+        for j in range(N):
+            sum = 0
+            for k in range(N):
+                # Matmul sums the dot product of rows and columns.
+                sum += A[i][k] * B[k][j]
+            C[i][j] = sum # store one output value
+    return C
+
+# ReLU clamp negatives to zero with the "max" function.
+def relu(C):
+    # Allocate result array.
+    result = [[0] * N for _ in range(N)]
+    for i in range(N):
+        for j in range(N):
+            # This loads from memory, does a trivial max(0, x) operation,
+            # then stores the result.
+            result[i][j] = max(0, C[i][j])
+    return result
+
+C = matmul(A, B) # Compute matrix multiplication first
+D = relu(C)      # Then apply ReLU separately.
+```
+
+These operations are extremely familiar to engineers that might write a CUDA kernel (though remember that [CUDA uses unwieldy C++ syntax!](https://www.modular.com/blog/democratizing-ai-compute-part-4-cuda-is-the-incumbent-but-is-it-any-good#pythoncuda)), and there are many tricks used for efficient implementation.
+
+While the above approach is simple and modular, executing operations like this is **extremely slow** because it writes the entire matrix `C` to memory after `matmul()`, then reads it back again in `relu()`. This memory traffic dominates performance, especially on GPUs, where memory access is more expensive than local compute.
+>  这样的方法简单且模块化，但实际上极其缓慢，因为在 `matmul()` 之后，整个矩阵 `C` 都会被写入内存，然后在 `relu()` 中再次读取回来
+>  这种内存访问流量会严重影响性能，尤其是在 GPU 上，因为内存访问成本远高于本地计算
+
+### **Fused kernel: One pass, no extra memory traffic**
+The solution for this is simple: we can “**fuse”** these two operations into a single kernel, eliminating redundant memory access. Instead of storing C after `matmul()`, we apply `relu()` _immediately_ inside the same loop:
+
+```python
+# Fused kernel: Matrix multiplication + ReLU in one pass
+def fused_matmul_relu(A, B):
+    # Initialize result matrix to zero.
+    C = [[0] * N for _ in range(N)]
+    for i in range(N):
+        for j in range(N):
+            sum = 0
+            for k in range(N):
+                sum += A[i][k] * B[k][j]  # Compute matmul
+                
+            # Apply ReLU in the same loop!
+            C[i][j] = max(0, sum)
+    return C  # Only one read/write cycle
+
+# Compute in a single pass, no extra memory.
+C = fused_matmul_relu(A, B)
+```
+
+While the benefit of this transformation varies by hardware and matrix size, the results can be profound: sometimes 2x better performance! Why is this the case? By fusing the operations:
+
+✅ We **eliminate an extra memory write/read**, reducing pressure on memory bandwidth.
+
+✅ We **keep data in registers or shared memory**, avoiding slow global memory access.
+
+✅ We **reduce memory usage and allocation/deallocation overhead**, since the intermediate buffer has been removed.
+
+This is the simplest example of kernel fusion: There are many more powerful transformations, and AI kernel engineers have always pushed the limits of optimization ([learn more](https://horace.io/brrr_intro.html)). With GenAI driving up compute demand, these optimizations are more critical than ever.
+
+### Great performance, but an exponential complexity explosion!
+While these sorts of optimizations can be extremely exciting and fun to implement for those who are chasing low cost and state of the art performance, there is a hidden truth: **this approach doesn’t scale**.
+
+Modern machine learning toolkits include hundreds of different “operations” like matmul, convolution, add, subtract, divide, etc., as well as dozens of [activation functions](https://en.wikipedia.org/wiki/Activation_function) beyond ReLU. Each neural network needs them to be combined in different ways: this causes an explosion in the number of permutations that need to be implemented (hundreds of operations x hundreds of operations = too many to count). NVIDIA’s libraries like cuDNN provide a fixed list of options to choose from, without generality to new research.
+
+Furthermore, there are other axes of explosion as well: we’ve seen an explosion of new numerics datatypes (e.g. “float8”), and of course, there is also an explosion of the kind of hardware that AI should support.
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67d1a39bfe6f96be5eb1b802_DCP6-Axis.png)
+
+Just three dimensions of complexity
+
+## Early AI compilers: TVM
+
+There are many AI compilers, but one of the earliest and most successful is TVM - the “[Tensor Virtual Machine](https://tvm.apache.org/)”. This system took models from TensorFlow/PyTorch and optimized them for diverse hardware, i.e. by applying kernel fusion automatically. This project started at the University of Washington by [Tianqi Chen](https://tqchen.com/) and [Professor Luis Ceze](https://www.cs.washington.edu/people/faculty/luis-ceze/) in about 2016, and delivered a number of innovative results and performance wins described in [the 2018 paper](https://arxiv.org/abs/1802.04799) that outlines the TVM architecture. It was open sourced and incorporated into the Apache project.
+
+Across its journey, TVM has been adopted by hardware makers (including public contributions from companies like ARM, Qualcomm, Facebook, Intel, and many others) across embedded, DSP, and many other applications. TVM's core contributors later founded OctoAI, [which NVIDIA acquired in late 2024](https://www.forbes.com/sites/janakirammsv/2024/09/30/nvidia-acquires-octoai-to-dominate-enterprise-generative-ai-solutions/)—giving it control over many of the original TVM developers and, potentially, the project's future.
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67d1b7a1fdbc1f76d43f8a15_NNVM_Compiler_Stack_Diagram.png)
+
+[Source: Apache TVM](https://tvm.apache.org/2017/10/06/nnvm-compiler-announcement)
+
+TVM is an important step for the AI compiler industry, but what can we learn from it? Here are my key takeaways. **_Disclaimer_**: although TVM was a user of LLVM and I had great interest in it, I was never directly involved. This is my perspective as an outsider.
+
+###### **Wasn’t able to deliver performance on modern hardware**
+TVM struggled to deliver peak performance on modern AI hardware, particularly as GPUs evolved toward TensorCores and other specialized acceleration. It added support over time but was often late and failed to fully unlock performance. As such, it suffered from one of [the same problems as OpenCL](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives#evolvingneeds): You can’t deliver performance if you can’t unlock the hardware.
+
+###### **Fragmentation driven by conflicting commercial interests**
+
+Unlike OpenCL, TVM wasn't just a specification—it was an **actual implementation**. This made it far more useful out of the box and attracted hardware vendors. But fragmentation still reared its head: vendors forked the code, made incompatible changes, and struggled to stay in sync, slowing progress. This led to friction executing architectural changes (because downstream vendors complained about their forks being broken), which slowed development.
+
+###### **Agility is required to keep up with rapid AI advances**
+
+A final challenge is that TVM was quite early, but the pace of AI innovation around it was rapid. TensorFlow and PyTorch rapidly evolved due to backing by huge companies like Google, Meta, and [NVIDIA](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed#genaisurge), improving their performance and changing the baselines that TVM compared against. The final nail in the coffin, though, was GenAI, which changed the game. TVM was designed for “TradAI”: a set of relatively simple operators that needed fusion, but GenAI has large and complex algorithms deeply integrated with the hardware—[things like FlashAttention3.](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed#genaisurge) TVM fell progressively behind as the industry evolved.
+
+Less strategically important (but still material), TVM also has technical problems, e.g. really slow compile times due to excessive auto-tuning. All of these together contributed to [project activity slowing](https://github.com/apache/tvm/graphs/contributors).
+
+Today, NVIDIA now employs many of its original leaders, leaving its future uncertain. Meanwhile, Google pursued its own vision with OpenXLA...
+
+## The XLA compiler from Google: Two different systems under one name
+
+Unlike TVM, which started as an academic project, XLA was built within Google—one of the most advanced AI companies, with deep pockets and a vested interest in AI hardware. Google developed XLA to replace CUDA for its (now successful) [TPU hardware](https://cloud.google.com/tpu/docs/intro-to-tpu), ensuring tight integration and peak performance for its own AI workloads. I joined Google Brain in 2017 to help scale TPUs (and XLA) from an experimental project into the world's second-most successful AI accelerator (behind NVIDIA).
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67d1a82617d9ef77df33fea4_TPU.jpg)
+
+Google TPU ([source](https://blog.google/products/google-cloud/google-cloud-offer-tpus-machine-learning/))
+
+Google had hundreds of engineers working on XLA (depending on how you count), and it evolved rapidly. Google added CPU and GPU support, and eventually formed the OpenXLA foundation. XLA is used as the AI compiler foundation for several important hardware projects, including [AWS Inferentia/Trainium](https://opensource.googleblog.com/2024/12/a-robust-open-ecosystem-accelerating-ai-infrastructure.html) among others.
+
+Beyond code generation, one of the biggest achievements and contributions of XLA is its ability to handle [large scale machine learning models](https://jax-ml.github.io/scaling-book/). At extreme scale, the ability to train with many thousands of chips becomes essential. Today, the largest practical models are starting to require advanced techniques to partition them across multiple machines—XLA developed clean and simple approaches that enable this.
+
+Given all this investment, why don’t leading projects like PyTorch and vLLM run GPUs with XLA? The answer is that XLA is two different projects with a conflated brand, incentive structure challenges for their engineers, governance struggles, and technical problems that make it impractical.
+
+###### **Google uses XLA-TPU, but OpenXLA is for everyone else**
+
+The most important thing to understand is that XLA exists in two forms: 1) the internal, closed source XLA-TPU compiler that powers Google’s AI infrastructure, and 2) OpenXLA, the public project for CPUs and GPUs. These two share some code (“[StableHLO](https://openxla.org/stablehlo)”) but the vast majority of the code (and corresponding engineering effort) in XLA is Google TPU specific—closed and proprietary, and not used on CPUs or GPUs. XLA on GPU today typically calls into standard CUDA libraries to get performance. 🤷
+
+This leads to significant incentive structure problems—Google engineers might want to build a great general-purpose AI compiler, but their paychecks are tied to making TPUs go brrr. Leadership has little incentive to optimize XLA for GPUs or alternative hardware—it’s all about keeping TPUs competitive. In my experience, XLA has never prioritized a design change that benefits other chips if it risks TPU performance.
+
+The result? A compiler that works great for TPUs but falls short elsewhere.
+
+###### **Governance of OpenXLA**
+
+XLA was released early as an open source but explicitly Google-controlled project. Google’s early leadership in AI with TensorFlow got it adopted by other teams around the industry. In March 2023, the project was renamed to OpenXLA with an [announcement about independence](https://opensource.googleblog.com/2023/03/openxla-is-ready-to-accelerate-and-simplify-ml-development.html).
+
+Despite this rebranding, Google still controls OpenXLA (seen in its [governance structure](https://openxla.org/stablehlo/governance)), and doesn’t seem to be investing: there are [declining community contributions](https://github.com/openxla/community/graphs/contributors), and the OpenXLA [X account](https://x.com/openxla) has been inactive since 2023.
+
+###### **Technical challenges with XLA**
+
+Like TVM, XLA was designed around a fixed set of predefined operators ([StableHLO](https://openxla.org/stablehlo)). This approach worked well for traditional AI models like ResNet-50 in 2017, but struggles with modern GenAI workloads, which require more flexibility in datatypes, custom kernels, and hardware-specific optimizations. This is a critical problem today, when modern GenAI algorithms require innovation in datatypes (see the chart below), or as DeepSeek showed us, [at the hardware level](https://github.com/deepseek-ai/DeepGEMM) and in [novel communication strategies](https://github.com/deepseek-ai/DeepEP).
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67d1a29994becf9ea18e3a9e_Quantization_vLLM.png)
+
+Datatypes supported in vLLM 0.7 by hardware type ([source](https://docs.vllm.ai/en/stable/features/quantization/supported_hardware.html))
+
+As a consequence, XLA (like TVM) suffers from being left behind by GenAI: today much of the critical workloads are written in experimental [systems like Pallas](https://docs.jax.dev/en/latest/pallas/index.html) that bypass the XLA compiler, even on TPUs. The core reason is that in its efforts to simplify AI compilation, XLA abstracted away too much of the hardware. This worked for early AI models, but GenAI demands fine-grained control over accelerators—something XLA simply wasn’t built to provide. And so, just like TVM, it’s being left behind.
+
+## Lessons learned from TVM and XLA
+
+I take pride in the technical accomplishments we proved in XLA-TPU: XLA supported many generational research breakthroughs, including the invention of the transformer, countless model architectures, and research and product scaling that isn’t seen anywhere else. It is clearly the most successful non-NVIDIA training and inference hardware that exists, and powers Google’s (many) leading AI products and technologies. Though I know less about it, I have a lot of respect for TVM’s contribution to compiler research, autotuning and powering many early AI systems.
+
+That said, there is a lot to learn from both projects together. Going down the [list of lessons learned from OpenCL](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives/#lessons):
+
+- **“Provide a reference implementation”:** They both provide a useful implementation, not just a technical specification like OpenCL. 👍
+- “**Have** **strong leadership and vision”:** They have defined leadership teams and a vision behind them 👍. However, OpenXLA’s vision isn’t aligned with hardware teams that want to adopt it. And like many Google projects, its [long-term prospects are uncertain](https://killedbygoogle.com/), making it risky to depend on. 👎
+- **“Run with top performance on the industry leader’s hardware”**: Neither XLA nor TVM could fully unlock NVIDIA GPUs without calling into CUDA libraries, and thus it is unclear whether they are “good” on other AI accelerators without similar libraries to call into. 👎 XLA on TPUs does show the power of TPU hardware and its greater scalability than NVIDIA hardware. 👍
+- **“Evolve rapidly”:** Both projects were built for traditional deep learning, but GenAI shattered their assumptions. The shift to massive models, complex memory hierarchies, and novel attention mechanisms required a new level of hardware-software co-design that they weren’t equipped to handle. 👎 This ultimately made both projects a lot less interesting to folks who might want to use them on modern hardware that is expected to support GenAI. 👎👎
+- **“Cultivate developer love”:** In its strong spot, XLA provided a simple and clean model that people could understand, one that led to the rise of the JAX framework among others. 👍👍 TVM had cool technology but wasn’t a joy to use with long compile times and incompatibility with popular AI models. 👎
+- **“Build an open community”:** TVM built an open community, and OpenXLA aimed to. Both benefited from industry adoption as a result. 👍
+- **“Avoid fragmentation”:** Neither project did–TVM was widely forked and changed downstream, and XLA never accepted support for non-CPU/GPU hardware in its tree; all supported hardware was downstream. 👎
+
+## The pros and cons of AI compiler technology
+
+_First-generation_ AI frameworks like TensorFlow and PyTorch 1.0 relied heavily on hand-written CUDA kernels, which couldn’t scale to rapidly evolving AI workloads. TVM and XLA, as _second-generation_ approaches, tackled this problem with automated compilation. However, in doing so, they sacrificed key strengths of the first generation: extensibility for custom algorithms, fine-grained control over hardware, and dynamic execution—features that turned out to be critical for GenAI.
+
+Beyond what we learned from OpenCL, we can also add a few wishlist items:
+
+- **Enable full programmability**: We can’t democratize AI if we hide the power of any given chip from the developer. If you spend $100M on a cluster of one specific kind of GPU, you’ll want to unlock the full power of that silicon without being limited to a simplified interface.
+- **Provide leverage over AI complexity**: The major benefit of AI compilers is that it allows one to scale into the exponential complexity of AI (operators, datatypes, etc) without having to manually write a ton of code. This is essential to unlock next generation research.
+- **Enable large scale applications**: The transformative capability of XLA is the ability to easily scale to multiple accelerators and nodes. This capability is required to support the largest and most innovative models with ease. This is something that CUDA never really cracked.
+
+Despite the wins and losses of these AI compilers, neither could fully unlock GPU performance or democratize AI compute. Instead, they reinforced silos: XLA remained TPU-centric, while TVM splintered into incompatible vendor-specific forks. They failed in the exact way CUDA alternatives were supposed to succeed!
+
+## Maybe the Triton “language” will save us?
+
+But while these compilers struggled, **a different approach was taking shape.** Instead of trying to replace CUDA, it aimed to **embrace GPU programming—while making it more programmable.**
+
+Enter **Triton and the new wave of Python eDSLs**—an attempt to bridge the gap between CUDA’s raw power and Python’s ease of use. In the next post, we’ll dive into these frameworks to see what they got right, where they fell short, and whether they finally **broke free from the mistakes of the past**.
+
+Of course, you already know the answer. The **CUDA Empire still reigns supreme**. But why? And more importantly—**what can we do about it?**
+
+> Those who cannot remember the past are condemned to repeat it.  
+> —George Santayana
+
+Perhaps one day, compiler technology will **alleviate our suffering without taking away our power**. Until next time, 🚀
+
+**—Chris**
