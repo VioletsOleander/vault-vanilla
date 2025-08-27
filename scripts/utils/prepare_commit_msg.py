@@ -31,7 +31,7 @@ if __name__ == "__main__":
     if args.source:
         exit(0)
 
-    path = "../casual-notes/Commit Message Guide.md"
+    path = "D:\\data\\vault-vanilla\\casual-notes\\Commit Message Guide.md"
     heading = "## Commit Message Guide for Obsidian Vault"
     content_lines = get_content_after_heading(path, heading)
 
