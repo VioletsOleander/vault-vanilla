@@ -26,10 +26,10 @@ class GitLogDays:
 
         try:
             result = subprocess.run(
-                ['git', 'log', f'--grep={self.pattern}', '--oneline'],
+                ["git", "log", f"--grep={self.pattern}", "--oneline"],
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
             )
             lines = result.stdout.splitlines()
             if lines:
@@ -47,7 +47,8 @@ class GitLogDays:
         try:
             index = self.arg_val if self.arg_val else 0
             subprocess.run(
-                ['git', 'log', f'{self.hash_list[index]}..HEAD', '--oneline'])
+                ["git", "log", f"{self.hash_list[index]}..HEAD", "--oneline"]
+            )
         except IndexError:
             print(f"Argument too large, abort!")
             sys.exit(1)
@@ -56,7 +57,7 @@ class GitLogDays:
 
 
 if __name__ == "__main__":
-    pattern = '^log(daily)'
+    pattern = "^log(daily)"
     command = GitLogDays(pattern)
     command.parse_arguments()
     command.get_commit_hashes()

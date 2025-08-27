@@ -1,24 +1,24 @@
-import re
 import pprint
+import re
 
 
 def read_file(file_path: str) -> list[str]:
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     return lines
 
 
 def write_file(file_path: str, content: str):
-    with open(file_path, 'w', encoding='utf-8') as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
 
 
 def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
-    sections = ['Book', 'Paper', 'Doc', 'Blog', 'Code', 'OpenReview', 'Wiki']
-    section_re = re.compile(r'^\\\[\w+\\\]')
+    sections = ["Book", "Paper", "Doc", "Blog", "Code", "OpenReview", "Wiki"]
+    section_re = re.compile(r"^\\\[\w+\\\]")
     items = []
-    item_re = re.compile(r'^- \[\[.+\]\]:?')
-    code_item_re = re.compile(r'^- .+')
+    item_re = re.compile(r"^- \[\[.+\]\]:?")
+    code_item_re = re.compile(r"^- .+")
 
     lines_tree = {section: {} for section in sections}
 
@@ -33,7 +33,7 @@ def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
         # match item header
         elif m := re.match(item_re, line):
             # strip '- ' and '[' and ']' and '[[' and ']]'
-            item = m.group().strip().strip('-').strip(':').strip()
+            item = m.group().strip().strip("-").strip(":").strip()
             # item = item.strip('[').strip(']')
             if item not in lines_tree[curr_section]:
                 lines_tree[curr_section][item] = []
@@ -41,19 +41,19 @@ def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
             curr_item = item
         # match code item header
         elif m := re.match(code_item_re, line):
-            item = m.group().strip('-').strip()
+            item = m.group().strip("-").strip()
             if item not in lines_tree[curr_section]:
                 lines_tree[curr_section][item] = []
                 items.append(item)
             curr_item = item
         # match date line
-        elif m := re.match(r'^Date: \d+', line):
+        elif m := re.match(r"^Date: \d+", line):
             continue
         # match empty line
-        elif m := re.match(r'^\s+$', line):
+        elif m := re.match(r"^\s+$", line):
             continue
         # match heading line
-        elif m := re.match(r'^#+ \w+', line):
+        elif m := re.match(r"^#+ \w+", line):
             continue
         # match content line
         else:
@@ -63,28 +63,32 @@ def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
 
 
 def generate_changelog(lines_tree: dict[str, dict[str, list[str]]]) -> str:
-    changelog = ''
+    changelog = ""
 
-    changelog += '# Overview\n'
+    changelog += "# Overview\n"
     for section, items in lines_tree.items():
-        changelog += f'\n## {section}\n'
+        changelog += f"\n## {section}\n"
         for item in items.keys():
-            changelog += f'- {item}\n'
+            changelog += f"- {item}\n"
 
-    changelog += '\n# Detail\n'
+    changelog += "\n# Detail\n"
     for section, items in lines_tree.items():
-        changelog += f'\n## {section}\n'
+        changelog += f"\n## {section}\n"
         for item, lines in items.items():
-            changelog += f'- {item}\n'
+            changelog += f"- {item}\n"
             for line in lines:
-                changelog += f'  {line}'
+                changelog += f"  {line}"
 
     return changelog
 
 
 if __name__ == "__main__":
-    lines = read_file('logs/Personal log.md')
+    personal_log_path = "../logs/Personal log.md"
+    changelog_path = "../ChangeLog.md"
+
+    lines = read_file(personal_log_path)
     lines_tree = merge(lines)
+
     changlog = generate_changelog(lines_tree)
-    write_file('ChangeLog.md', changlog)
-    print('ChangeLog.md generated')
+    write_file(changelog_path, changlog)
+    print("ChangeLog.md generated")

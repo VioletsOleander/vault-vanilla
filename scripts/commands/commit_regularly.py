@@ -1,22 +1,34 @@
-import datetime
-import sys
-import subprocess
 import argparse
+import datetime
+import subprocess
+import sys
 
 
 class GitCommitRegularly:
     def __init__(self):
-        self.status_list = ['daily', 'weekly', 'monthly']
+        self.status_list = ["daily", "weekly", "monthly"]
 
     def parse_args(self):
         parser = argparse.ArgumentParser(
-            description="Generate daily, weekly, or montly commit message headline")
-        parser.add_argument('status', choices=self.status_list,
-                            help="specify 'daily' for a daily commit, 'weekly' for a weekly commit, or 'monthly' for a monthly commit.")
-        parser.add_argument('-l', '--late', action="store_true",
-                            help="for daily commit, if specified, generate headline for the previous day")
-        parser.add_argument('-e', '--edit', action="store_true",
-                            help="if specified, open the commit message in an editor for editing before committing")
+            description="Generate daily, weekly, or montly commit message headline"
+        )
+        parser.add_argument(
+            "status",
+            choices=self.status_list,
+            help="specify 'daily' for a daily commit, 'weekly' for a weekly commit, or 'monthly' for a monthly commit.",
+        )
+        parser.add_argument(
+            "-l",
+            "--late",
+            action="store_true",
+            help="for daily commit, if specified, generate headline for the previous day",
+        )
+        parser.add_argument(
+            "-e",
+            "--edit",
+            action="store_true",
+            help="if specified, open the commit message in an editor for editing before committing",
+        )
         args = parser.parse_args()
 
         self.args = args
@@ -27,14 +39,14 @@ class GitCommitRegularly:
         today = datetime.datetime.today()
         day = today - datetime.timedelta(days=1) if self.late else today
 
-        if self.status == 'daily':
+        if self.status == "daily":
             date_str = day.strftime("%Y-%m-%d")
             weekday_str = day.strftime("%A")
 
             self.headline = f"log(daily): {date_str} {weekday_str}"
             return
 
-        elif self.status == 'weekly':
+        elif self.status == "weekly":
             day_of_month = int(day.strftime("%d"))
             week_of_month = (day_of_month) // 7 + 1
 
@@ -44,11 +56,12 @@ class GitCommitRegularly:
             self.headline = f"log(weekly): Week{week_of_month}-of-{
                 month} {year}"
             return
-        elif self.status == 'monthly':
+        elif self.status == "monthly":
             today = datetime.datetime.today()
             start_of_month = today.replace(day=1)
-            end_of_month = (start_of_month + datetime.timedelta(days=32)
-                            ).replace(day=1) - datetime.timedelta(days=1)
+            end_of_month = (start_of_month + datetime.timedelta(days=32)).replace(
+                day=1
+            ) - datetime.timedelta(days=1)
 
             start_date_str = start_of_month.strftime("%Y-%m-%d")
             end_date_str = end_of_month.strftime("%Y-%m-%d")
@@ -65,12 +78,13 @@ class GitCommitRegularly:
         self.generate_headline()
 
         if self.args.edit:
-            subprocess.run(['git', 'commit', '--allow-empty',
-                            '-e', '-m', self.headline])
+            subprocess.run(
+                ["git", "commit", "--allow-empty", "-e", "-m", self.headline]
+            )
         else:
-            subprocess.run(['git', 'commit', '--allow-empty',
-                           '-m', self.headline])
+            subprocess.run(["git", "commit", "--allow-empty", "-m", self.headline])
+
 
 if __name__ == "__main__":
-    command=GitCommitRegularly()
+    command = GitCommitRegularly()
     command.execute()
