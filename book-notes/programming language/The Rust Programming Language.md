@@ -6176,3 +6176,476 @@ Note that the `pub use crate::front_of_house::hosting` statement in _src/lib.
 Rust lets you split a package into multiple crates and a crate into modules so you can refer to items defined in one module from another module. You can do this by specifying absolute or relative paths. These paths can be brought into scope with a `use` statement so you can use a shorter path for multiple uses of the item in that scope. Module code is private by default, but you can make definitions public by adding the `pub` keyword.
 
 In the next chapter, we’ll look at some collection data structures in the standard library that you can use in your neatly organized code.
+
+# 8 Common Collections
+Rust’s standard library includes a number of very useful data structures called _collections_. Most other data types represent one specific value, but collections can contain multiple values. Unlike the built-in array and tuple types, the data that these collections point to is stored on the heap, which means the amount of data does not need to be known at compile time and can grow or shrink as the program runs. Each kind of collection has different capabilities and costs, and choosing an appropriate one for your current situation is a skill you’ll develop over time. In this chapter, we’ll discuss three collections that are used very often in Rust programs:
+
+- A _vector_ allows you to store a variable number of values next to each other.
+- A _string_ is a collection of characters. We’ve mentioned the `String` type previously, but in this chapter we’ll talk about it in depth.
+- A _hash map_ allows you to associate a value with a specific key. It’s a particular implementation of the more general data structure called a _map_.
+
+>  Rust 标准库包含了很多有用的数据结构，称为集合
+>  大多数其他数据类型表示一个特定的值，但集合可以包含多个值
+>  和内建的数组和元组类型不同，集合类型在堆上存储数据，这意味着不需要在编译时知道数据大小，并且数据大小可以在程序运行时变化
+>  我们讨论三种常用的集合:
+>  - vector
+>  - string
+>  - hash map, 它是更通用数据结构 map 的一种具体实现
+
+To learn about the other kinds of collections provided by the standard library, see [the documentation](https://doc.rust-lang.org/std/collections/index.html).
+
+We’ll discuss how to create and update vectors, strings, and hash maps, as well as what makes each special.
+
+## 8.1 Storing Lists of Values with Vectors
+The first collection type we’ll look at is `Vec<T>`, also known as a _vector_. Vectors allow you to store more than one value in a single data structure that puts all the values next to each other in memory. Vectors can only store values of the same type. They are useful when you have a list of items, such as the lines of text in a file or the prices of items in a shopping cart.
+>  vector 只能存储相同类型的 value, vector 将 values 临近地紧密存储
+
+### Creating a New Vector
+To create a new empty vector, we call the `Vec::new` function, as shown in Listing 8-1.
+
+```rust
+let v: Vec<i32> = Vec::new();
+```
+
+[Listing 8-1](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-1): Creating a new, empty vector to hold values of type `i32`
+
+>  `Vec::new` 用于构造 vector
+
+Note that we added a type annotation here. Because we aren’t inserting any values into this vector, Rust doesn’t know what kind of elements we intend to store. This is an important point. Vectors are implemented using generics; we’ll cover how to use generics with your own types in Chapter 10. For now, know that the `Vec<T>` type provided by the standard library can hold any type. When we create a vector to hold a specific type, we can specify the type within angle brackets. In Listing 8-1, we’ve told Rust that the `Vec<T>` in `v` will hold elements of the `i32` type.
+>  注意我们这里添加了类型注释，因为 vectors 是使用泛型实现的
+
+More often, you’ll create a `Vec<T>` with initial values and Rust will infer the type of value you want to store, so you rarely need to do this type annotation. Rust conveniently provides the `vec!` macro, which will create a new vector that holds the values you give it. Listing 8-2 creates a new `Vec<i32>` that holds the values `1`, `2`, and `3`. The integer type is `i32` because that’s the default integer type, as we discussed in the [“Data Types”](https://doc.rust-lang.org/book/ch03-02-data-types.html#data-types) section of Chapter 3.
+>  通常使用初始值构造 vector 可以让 Rust 推导类型
+>  使用初始值构造 vector 需要使用 `vec!` macro
+
+```rust
+let v = vec![1, 2, 3];
+```
+
+[Listing 8-2](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-2): Creating a new vector containing values
+
+Because we’ve given initial `i32` values, Rust can infer that the type of `v` is `Vec<i32>`, and the type annotation isn’t necessary. Next, we’ll look at how to modify a vector.
+
+### Updating a Vector
+To create a vector and then add elements to it, we can use the `push` method, as shown in Listing 8-3.
+
+```rust
+let mut v = Vec::new();
+
+v.push(5);
+v.push(6);
+v.push(7);
+v.push(8);
+```
+
+[Listing 8-3](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-3): Using the `push` method to add values to a vector
+
+As with any variable, if we want to be able to change its value, we need to make it mutable using the `mut` keyword, as discussed in Chapter 3. The numbers we place inside are all of type `i32`, and Rust infers this from the data, so we don’t need the `Vec<i32>` annotation.
+
+>  要额外添加元素，可以使用 `push` 方法
+>  但注意，和任意变量一样，如果我们想要让 vector 可变，需要使用 `mut`
+
+### Reading Elements of Vectors
+There are two ways to reference a value stored in a vector: via indexing or by using the `get` method. In the following examples, we’ve annotated the types of the values that are returned from these functions for extra clarity.
+>  访问 vector 中元素的方法有两种，通过索引或者通过 `get` 方法
+
+Listing 8-4 shows both methods of accessing a value in a vector, with indexing syntax and the `get` method.
+
+```rust
+let v = vec![1, 2, 3, 4, 5];
+
+let third: &i32 = &v[2];
+println!("The third element is {third}");
+
+let third: Option<&i32> = v.get(2);
+match third {
+    Some(third) => println!("The third element is {third}"),
+    None => println!("There is no third element."),
+}
+```
+
+[Listing 8-4](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-4): Using indexing syntax and using the `get` method to access an item in a vector
+
+Note a few details here. We use the index value of `2` to get the third element because vectors are indexed by number, starting at zero. Using `&` and `[]` gives us a reference to the element at the index value. When we use the `get` method with the index passed as an argument, we get an `Option<&T>` that we can use with `match`.
+>  注意使用 `get` 方法返回的结果类型为 `Option<&T>`
+
+Rust provides these two ways to reference an element so you can choose how the program behaves when you try to use an index value outside the range of existing elements. As an example, let’s see what happens when we have a vector of five elements and then we try to access an element at index 100 with each technique, as shown in Listing 8-5.
+
+```rust
+let v = vec![1, 2, 3, 4, 5];
+
+let does_not_exist = &v[100];
+let does_not_exist = v.get(100);
+```
+
+[Listing 8-5](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-5): Attempting to access the element at index 100 in a vector containing five elements
+
+When we run this code, the first `[]` method will cause the program to panic because it references a nonexistent element. This method is best used when you want your program to crash if there’s an attempt to access an element past the end of the vector.
+
+When the `get` method is passed an index that is outside the vector, it returns `None` without panicking. You would use this method if accessing an element beyond the range of the vector may happen occasionally under normal circumstances. Your code will then have logic to handle having either `Some(&element)` or `None`, as discussed in Chapter 6. For example, the index could be coming from a person entering a number. If they accidentally enter a number that’s too large and the program gets a `None` value, you could tell the user how many items are in the current vector and give them another chance to enter a valid value. That would be more user-friendly than crashing the program due to a typo!
+
+>  使用 `[]` 访问越界元素时，程序会直接 panic
+>  使用 `get` 访问越界元素时，方法会返回 `None`，如果没有访问越界元素，则返回 `Some(&element)`
+
+When the program has a valid reference, the borrow checker enforces the ownership and borrowing rules (covered in Chapter 4) to ensure this reference and any other references to the contents of the vector remain valid. Recall the rule that states you can’t have mutable and immutable references in the same scope. That rule applies in Listing 8-6, where we hold an immutable reference to the first element in a vector and try to add an element to the end. This program won’t work if we also try to refer to that element later in the function.
+>  当程序有有效的引用时，借用检查器通过所有权和借用规则确保该引用是有效的
+>  当我们具有一个对第一个元素的不可变引用，并且尝试为 vector 尾部添加元素，程序就无法编译
+
+```rust
+let mut v = vec![1, 2, 3, 4, 5];
+
+let first = &v[0];
+
+v.push(6);
+
+println!("The first element is: {first}");
+```
+
+[Listing 8-6](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-6): Attempting to add an element to a vector while holding a reference to an item
+
+Compiling this code will result in this error:
+
+```
+$ cargo run
+   Compiling collections v0.1.0 (file:///projects/collections)
+error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immutable
+ --> src/main.rs:6:5
+  |
+4 |     let first = &v[0];
+  |                  - immutable borrow occurs here
+5 |
+6 |     v.push(6);
+  |     ^^^^^^^^^ mutable borrow occurs here
+7 |
+8 |     println!("The first element is: {first}");
+  |                                     ------- immutable borrow later used here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `collections` (bin "collections") due to 1 previous error
+```
+
+The code in Listing 8-6 might look like it should work: why should a reference to the first element care about changes at the end of the vector? This error is due to the way vectors work: because vectors put the values next to each other in memory, adding a new element onto the end of the vector might require allocating new memory and copying the old elements to the new space, if there isn’t enough room to put all the elements next to each other where the vector is currently stored. In that case, the reference to the first element would be pointing to deallocated memory. The borrowing rules prevent programs from ending up in that situation.
+>  这个错误的原因来自于 vector 的工作方式: vector 紧密排布元素，因此添加新元素可能导致 vector 重新分配内存，并且将旧元素拷贝到新空间，此时，对第一个元素的引用就会指向已经释放的内存
+>  借用规则防止了这个情况的发生
+
+Note: For more on the implementation details of the `Vec<T>` type, see [“The Rustonomicon”](https://doc.rust-lang.org/nomicon/vec/vec.html).
+
+### Iterating Over the Values in a Vector
+To access each element in a vector in turn, we would iterate through all of the elements rather than use indices to access one at a time. Listing 8-7 shows how to use a `for` loop to get immutable references to each element in a vector of `i32` values and print them.
+
+```rust
+let v = vec![100, 32, 57];
+for i in &v {
+    println!("{i}");
+}
+```
+
+[Listing 8-7](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-7): Printing each element in a vector by iterating over the elements using a `for` loop
+
+>  `for x in &vec` 可以迭代 vector 中的元素，这样获取的是不可变引用
+
+We can also iterate over mutable references to each element in a mutable vector in order to make changes to all the elements. The `for` loop in Listing 8-8 will add `50` to each element.
+>  `for x in &mut v` 则获取可变引用
+
+```rust
+let mut v = vec![100, 32, 57];
+for i in &mut v {
+    *i += 50;
+}
+```
+
+[Listing 8-8](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-8): Iterating over mutable references to elements in a vector
+
+To change the value that the mutable reference refers to, we have to use the `*` dereference operator to get to the value in `i` before we can use the `+=` operator. We’ll talk more about the dereference operator in the [“Following the Reference to the Value”](https://doc.rust-lang.org/book/ch15-02-deref.html#following-the-pointer-to-the-value-with-the-dereference-operator) section of Chapter 15.
+>  要获取 value，需要使用 `*i` 进行解引用
+
+Iterating over a vector, whether immutably or mutably, is safe because of the borrow checker’s rules. If we attempted to insert or remove items in the `for` loop bodies in Listing 8-7 and Listing 8-8, we would get a compiler error similar to the one we got with the code in Listing 8-6. The reference to the vector that the `for` loop holds prevents simultaneous modification of the whole vector.
+>  对 vector 迭代同样受借用检查器的保护，如果我们尝试在 `for` 中插入或移除 item，将得到编译错误，因为我们的引用防止了同时对整个 vector 的修改
+
+### Using an Enum to Store Multiple Types
+Vectors can only store values that are of the same type. This can be inconvenient; there are definitely use cases for needing to store a list of items of different types. Fortunately, the variants of an enum are defined under the same enum type, so when we need one type to represent elements of different types, we can define and use an enum!
+
+For example, say we want to get values from a row in a spreadsheet in which some of the columns in the row contain integers, some floating-point numbers, and some strings. We can define an enum whose variants will hold the different value types, and all the enum variants will be considered the same type: that of the enum. Then we can create a vector to hold that enum and so, ultimately, hold different types. We’ve demonstrated this in Listing 8-9.
+>  可以利用 vector 存储 enum 类型来实现存储不同类型的值，因为 enum 变体可以关联不同类型的值，但是 enum 变体都被视为相同类型
+
+```rust
+enum SpreadsheetCell {
+    Int(i32),
+    Float(f64),
+    Text(String),
+}
+
+let row = vec![
+    SpreadsheetCell::Int(3),
+    SpreadsheetCell::Text(String::from("blue")),
+    SpreadsheetCell::Float(10.12),
+];
+```
+
+[Listing 8-9](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-9): Defining an `enum` to store values of different types in one vector
+
+Rust needs to know what types will be in the vector at compile time so it knows exactly how much memory on the heap will be needed to store each element. We must also be explicit about what types are allowed in this vector. If Rust allowed a vector to hold any type, there would be a chance that one or more of the types would cause errors with the operations performed on the elements of the vector. Using an enum plus a `match` expression means that Rust will ensure at compile time that every possible case is handled, as discussed in Chapter 6.
+>  Rust 需要在编译时知道 vector 中将包含哪些类型，以便确切知道堆上应该分配多少内存来存储每个元素
+>  使用 enum 加上 `match` 表达式意味着 Rust 在编译时处理了所有可能的情况
+
+If you don’t know the exhaustive set of types a program will get at runtime to store in a vector, the enum technique won’t work. Instead, you can use a trait object, which we’ll cover in Chapter 18.
+
+Now that we’ve discussed some of the most common ways to use vectors, be sure to review [the API documentation](https://doc.rust-lang.org/std/vec/struct.Vec.html) for all of the many useful methods defined on `Vec<T>` by the standard library. For example, in addition to `push`, a `pop` method removes and returns the last element.
+
+### Dropping a Vector Drops Its Elements
+Like any other `struct`, a vector is freed when it goes out of scope, as annotated in Listing 8-10.
+
+```rust
+{
+    let v = vec![1, 2, 3, 4];
+
+    // do stuff with v
+} // <- v goes out of scope and is freed here
+```
+
+[Listing 8-10](https://doc.rust-lang.org/book/ch08-01-vectors.html#listing-8-10): Showing where the vector and its elements are dropped
+
+>  和任意其他 `struct` 一样，vector 在离开作用域之后会被释放
+
+When the vector gets dropped, all of its contents are also dropped, meaning the integers it holds will be cleaned up. The borrow checker ensures that any references to contents of a vector are only used while the vector itself is valid.
+>  vector 被释放后，其所有内容都会被释放
+
+Let’s move on to the next collection type: `String`!
+
+## 8.2 Storing UTF-8 Encoded Text with Strings
+We talked about strings in Chapter 4, but we’ll look at them in more depth now. New Rustaceans commonly get stuck on strings for a combination of three reasons: Rust’s propensity for exposing possible errors, strings being a more complicated data structure than many programmers give them credit for, and UTF-8. These factors combine in a way that can seem difficult when you’re coming from other programming languages.
+
+We discuss strings in the context of collections because strings are implemented as a collection of bytes, plus some methods to provide useful functionality when those bytes are interpreted as text. In this section, we’ll talk about the operations on `String` that every collection type has, such as creating, updating, and reading. We’ll also discuss the ways in which `String` is different from the other collections, namely how indexing into a `String` is complicated by the differences between how people and computers interpret `String` data.
+>  string 实际上就是存储 bytes 的集合类型，以及添加了一些将 bytes 解释为 text 的方法
+
+### What Is a String?
+We’ll first define what we mean by the term _string_. Rust has only one string type in the core language, which is the string slice `str` that is usually seen in its borrowed form `&str`. In Chapter 4, we talked about _string slices_, which are references to some UTF-8 encoded string data stored elsewhere. String literals, for example, are stored in the program’s binary and are therefore string slices.
+>  Rust 在核心语言中只有一种字符串类型，即字符串切片 `str`，通常以借用形式 `&str` 出现
+>  字符串切片是对其他地方存储的 UTF-8 编码的字符串数据的引用
+>  存储在程序的二进制文件中的字符串字面量也是字符串切片
+
+The `String` type, which is provided by Rust’s standard library rather than coded into the core language, is a growable, mutable, owned, UTF-8 encoded string type. When Rustaceans refer to “strings” in Rust, they might be referring to either the `String` or the string slice `&str` types, not just one of those types. Although this section is largely about `String`, both types are used heavily in Rust’s standard library, and both `String` and string slices are UTF-8 encoded.
+>  `String` 类型由 Rust 标准库提供，而不是内置于核心语言中
+>  `String` 类型是一个可增长、可变、拥有所有权的 UTF-8 编码的字符串类型
+>  Rust 中的 "strings" 既可以指 `String` 也可以指 `&str` 类型，两个类型都是 UTF-8 编码的
+
+### Creating a New String
+Many of the same operations available with `Vec<T>` are available with `String` as well because `String` is actually implemented as a wrapper around a vector of bytes with some extra guarantees, restrictions, and capabilities. An example of a function that works the same way with `Vec<T>` and `String` is the `new` function to create an instance, shown in Listing 8-11.
+>  许多 `Vec<T>` 中的方法对于 `String` 也适用，因为 `String` 实际上被实现为对 vector of bytes 的包装器，带有一些额外的保证、限制和能力
+
+```rust
+let mut s = String::new();
+```
+
+[Listing 8-11](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-11): Creating a new, empty `String`
+
+This line creates a new, empty string called `s`, into which we can then load data. Often, we’ll have some initial data with which we want to start the string. For that, we use the `to_string` method, which is available on any type that implements the `Display` trait, as string literals do. Listing 8-12 shows two examples.
+>  实现了 `Display` trait 的类型 (例如字符串字面值) 都有 `to_string` 方法，可以通过它获取 `String` 类型
+
+```rust
+let data = "initial contents";
+
+let s = data.to_string();
+
+// The method also works on a literal directly:
+let s = "initial contents".to_string();
+```
+
+[Listing 8-12](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-12): Using the `to_string` method to create a `String` from a string literal
+
+This code creates a string containing `initial contents`.
+
+We can also use the function `String::from` to create a `String` from a string literal. The code in Listing 8-13 is equivalent to the code in Listing 8-12 that uses `to_string`.
+
+```rust
+let s = String::from("initial contents");
+```
+
+[Listing 8-13](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-13): Using the `String::from` function to create a `String` from a string literal
+
+Because strings are used for so many things, we can use many different generic APIs for strings, providing us with a lot of options. Some of them can seem redundant, but they all have their place! In this case, `String::from` and `to_string` do the same thing, so which one you choose is a matter of style and readability.
+
+Remember that strings are UTF-8 encoded, so we can include any properly encoded data in them, as shown in Listing 8-14.
+
+```rust
+let hello = String::from("السلام عليكم");
+let hello = String::from("Dobrý den");
+let hello = String::from("Hello");
+let hello = String::from("שלום");
+let hello = String::from("नमस्ते");
+let hello = String::from("こんにちは");
+let hello = String::from("안녕하세요");
+let hello = String::from("你好");
+let hello = String::from("Olá");
+let hello = String::from("Здравствуйте");
+let hello = String::from("Hola");
+```
+
+[Listing 8-14](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-14): Storing greetings in different languages in strings
+
+All of these are valid `String` values.
+
+### Updating a String
+A `String` can grow in size and its contents can change, just like the contents of a `Vec<T>`, if you push more data into it. In addition, you can conveniently use the `+` operator or the `format!` macro to concatenate `String` values.
+>  `String` 类型可以使用 `+` operator 或者 `format!` macro 来拼接
+
+#### Appending to a String with `push_str` and `push`
+We can grow a `String` by using the `push_str` method to append a string slice, as shown in Listing 8-15.
+
+```rust
+let mut s = String::from("foo");
+s.push_str("bar");
+```
+
+
+[Listing 8-15](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-15): Appending a string slice to a `String` using the `push_str` method
+
+After these two lines, `s` will contain `foobar`. The `push_str` method takes a string slice because we don’t necessarily want to take ownership of the parameter. For example, in the code in Listing 8-16, we want to be able to use `s2` after appending its contents to `s1`.
+
+
+[Listing 8-16](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-16): Using a string slice after appending its contents to a `String`
+
+If the `push_str` method took ownership of `s2`, we wouldn’t be able to print its value on the last line. However, this code works as we’d expect!
+
+The `push` method takes a single character as a parameter and adds it to the `String`. Listing 8-17 adds the letter _l_ to a `String` using the `push` method.
+
+    `let mut s = String::from("lo");     s.push('l');`
+
+[Listing 8-17](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-17): Adding one character to a `String` value using `push`
+
+As a result, `s` will contain `lol`.
+
+#### [Concatenation with the `+` Operator or the `format!` Macro](https://doc.rust-lang.org/book/ch08-02-strings.html#concatenation-with-the--operator-or-the-format-macro)
+
+Often, you’ll want to combine two existing strings. One way to do so is to use the `+` operator, as shown in Listing 8-18.
+
+    `let s1 = String::from("Hello, ");     let s2 = String::from("world!");     let s3 = s1 + &s2; // note s1 has been moved here and can no longer be used`
+
+[Listing 8-18](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-18): Using the `+` operator to combine two `String` values into a new `String` value
+
+The string `s3` will contain `Hello, world!`. The reason `s1` is no longer valid after the addition, and the reason we used a reference to `s2`, has to do with the signature of the method that’s called when we use the `+` operator. The `+` operator uses the `add` method, whose signature looks something like this:
+
+`fn add(self, s: &str) -> String {`
+
+In the standard library, you’ll see `add` defined using generics and associated types. Here, we’ve substituted in concrete types, which is what happens when we call this method with `String` values. We’ll discuss generics in Chapter 10. This signature gives us the clues we need in order to understand the tricky bits of the `+` operator.
+
+First, `s2` has an `&`, meaning that we’re adding a _reference_ of the second string to the first string. This is because of the `s` parameter in the `add` function: we can only add a `&str` to a `String`; we can’t add two `String` values together. But wait—the type of `&s2` is `&String`, not `&str`, as specified in the second parameter to `add`. So why does Listing 8-18 compile?
+
+The reason we’re able to use `&s2` in the call to `add` is that the compiler can _coerce_ the `&String` argument into a `&str`. When we call the `add` method, Rust uses a _deref coercion_, which here turns `&s2` into `&s2[..]`. We’ll discuss deref coercion in more depth in Chapter 15. Because `add` does not take ownership of the `s` parameter, `s2` will still be a valid `String` after this operation.
+
+Second, we can see in the signature that `add` takes ownership of `self` because `self` does _not_ have an `&`. This means `s1` in Listing 8-18 will be moved into the `add` call and will no longer be valid after that. So, although `let s3 = s1 + &s2;` looks like it will copy both strings and create a new one, this statement actually takes ownership of `s1`, appends a copy of the contents of `s2`, and then returns ownership of the result. In other words, it looks like it’s making a lot of copies, but it isn’t; the implementation is more efficient than copying.
+
+If we need to concatenate multiple strings, the behavior of the `+` operator gets unwieldy:
+
+    `let s1 = String::from("tic");     let s2 = String::from("tac");     let s3 = String::from("toe");      let s = s1 + "-" + &s2 + "-" + &s3;`
+
+At this point, `s` will be `tic-tac-toe`. With all of the `+` and `"` characters, it’s difficult to see what’s going on. For combining strings in more complicated ways, we can instead use the `format!` macro:
+
+    `let s1 = String::from("tic");     let s2 = String::from("tac");     let s3 = String::from("toe");      let s = format!("{s1}-{s2}-{s3}");`
+
+This code also sets `s` to `tic-tac-toe`. The `format!` macro works like `println!`, but instead of printing the output to the screen, it returns a `String` with the contents. The version of the code using `format!` is much easier to read, and the code generated by the `format!` macro uses references so that this call doesn’t take ownership of any of its parameters.
+
+### [Indexing into Strings](https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings)
+
+In many other programming languages, accessing individual characters in a string by referencing them by index is a valid and common operation. However, if you try to access parts of a `String` using indexing syntax in Rust, you’ll get an error. Consider the invalid code in Listing 8-19.
+
+[![](https://doc.rust-lang.org/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
+
+    `let s1 = String::from("hi");     let h = s1[0];`
+
+[Listing 8-19](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-19): Attempting to use indexing syntax with a String
+
+This code will result in the following error:
+
+``$ cargo run    Compiling collections v0.1.0 (file:///projects/collections) error[E0277]: the type `str` cannot be indexed by `{integer}`  --> src/main.rs:3:16   | 3 |     let h = s1[0];   |                ^ string indices are ranges of `usize`   |   = note: you can use `.chars().nth()` or `.bytes().nth()`           for more information, see chapter 8 in The Book: <https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings>   = help: the trait `SliceIndex<str>` is not implemented for `{integer}`           but trait `SliceIndex<[_]>` is implemented for `usize`   = help: for that trait implementation, expected `[_]`, found `str`   = note: required for `String` to implement `Index<{integer}>`  For more information about this error, try `rustc --explain E0277`. error: could not compile `collections` (bin "collections") due to 1 previous error``
+
+The error and the note tell the story: Rust strings don’t support indexing. But why not? To answer that question, we need to discuss how Rust stores strings in memory.
+
+#### [Internal Representation](https://doc.rust-lang.org/book/ch08-02-strings.html#internal-representation)
+
+A `String` is a wrapper over a `Vec<u8>`. Let’s look at some of our properly encoded UTF-8 example strings from Listing 8-14. First, this one:
+
+    `let hello = String::from("Hola");`
+
+In this case, `len` will be `4`, which means the vector storing the string `"Hola"` is 4 bytes long. Each of these letters takes one byte when encoded in UTF-8. The following line, however, may surprise you (note that this string begins with the capital Cyrillic letter _Ze_, not the number 3):
+
+    `let hello = String::from("Здравствуйте");`
+
+If you were asked how long the string is, you might say 12. In fact, Rust’s answer is 24: that’s the number of bytes it takes to encode “Здравствуйте” in UTF-8, because each Unicode scalar value in that string takes 2 bytes of storage. Therefore, an index into the string’s bytes will not always correlate to a valid Unicode scalar value. To demonstrate, consider this invalid Rust code:
+
+[![](https://doc.rust-lang.org/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
+
+`let hello = "Здравствуйте"; let answer = &hello[0];`
+
+You already know that `answer` will not be `З`, the first letter. When encoded in UTF-8, the first byte of `З` is `208` and the second is `151`, so it would seem that `answer` should in fact be `208`, but `208` is not a valid character on its own. Returning `208` is likely not what a user would want if they asked for the first letter of this string; however, that’s the only data that Rust has at byte index 0. Users generally don’t want the byte value returned, even if the string contains only Latin letters: if `&"hi"[0]` were valid code that returned the byte value, it would return `104`, not `h`.
+
+The answer, then, is that to avoid returning an unexpected value and causing bugs that might not be discovered immediately, Rust doesn’t compile this code at all and prevents misunderstandings early in the development process.
+
+#### [Bytes and Scalar Values and Grapheme Clusters! Oh My!](https://doc.rust-lang.org/book/ch08-02-strings.html#bytes-and-scalar-values-and-grapheme-clusters-oh-my)
+
+Another point about UTF-8 is that there are actually three relevant ways to look at strings from Rust’s perspective: as bytes, scalar values, and grapheme clusters (the closest thing to what we would call _letters_).
+
+If we look at the Hindi word “नमस्ते” written in the Devanagari script, it is stored as a vector of `u8` values that looks like this:
+
+`[224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164, 224, 165, 135]`
+
+That’s 18 bytes and is how computers ultimately store this data. If we look at them as Unicode scalar values, which are what Rust’s `char` type is, those bytes look like this:
+
+`['न', 'म', 'स', '्', 'त', 'े']`
+
+There are six `char` values here, but the fourth and sixth are not letters: they’re diacritics that don’t make sense on their own. Finally, if we look at them as grapheme clusters, we’d get what a person would call the four letters that make up the Hindi word:
+
+`["न", "म", "स्", "ते"]`
+
+Rust provides different ways of interpreting the raw string data that computers store so that each program can choose the interpretation it needs, no matter what human language the data is in.
+
+A final reason Rust doesn’t allow us to index into a `String` to get a character is that indexing operations are expected to always take constant time (O(1)). But it isn’t possible to guarantee that performance with a `String`, because Rust would have to walk through the contents from the beginning to the index to determine how many valid characters there were.
+
+### [Slicing Strings](https://doc.rust-lang.org/book/ch08-02-strings.html#slicing-strings)
+
+Indexing into a string is often a bad idea because it’s not clear what the return type of the string-indexing operation should be: a byte value, a character, a grapheme cluster, or a string slice. If you really need to use indices to create string slices, therefore, Rust asks you to be more specific.
+
+Rather than indexing using `[]` with a single number, you can use `[]` with a range to create a string slice containing particular bytes:
+
+`let hello = "Здравствуйте";  let s = &hello[0..4];`
+
+Here, `s` will be a `&str` that contains the first four bytes of the string. Earlier, we mentioned that each of these characters was two bytes, which means `s` will be `Зд`.
+
+If we were to try to slice only part of a character’s bytes with something like `&hello[0..1]`, Rust would panic at runtime in the same way as if an invalid index were accessed in a vector:
+
+``$ cargo run    Compiling collections v0.1.0 (file:///projects/collections)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s      Running `target/debug/collections`  thread 'main' panicked at src/main.rs:4:19: byte index 1 is not a char boundary; it is inside 'З' (bytes 0..2) of `Здравствуйте` note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace``
+
+You should use caution when creating string slices with ranges, because doing so can crash your program.
+
+### [Methods for Iterating Over Strings](https://doc.rust-lang.org/book/ch08-02-strings.html#methods-for-iterating-over-strings)
+
+The best way to operate on pieces of strings is to be explicit about whether you want characters or bytes. For individual Unicode scalar values, use the `chars` method. Calling `chars` on “Зд” separates out and returns two values of type `char`, and you can iterate over the result to access each element:
+
+`for c in "Зд".chars() {     println!("{c}"); }`
+
+This code will print the following:
+
+`З д`
+
+Alternatively, the `bytes` method returns each raw byte, which might be appropriate for your domain:
+
+`for b in "Зд".bytes() {     println!("{b}"); }`
+
+This code will print the four bytes that make up this string:
+
+`208 151 208 180`
+
+But be sure to remember that valid Unicode scalar values may be made up of more than one byte.
+
+Getting grapheme clusters from strings, as with the Devanagari script, is complex, so this functionality is not provided by the standard library. Crates are available on [crates.io](https://crates.io/) if this is the functionality you need.
+
+### [Strings Are Not So Simple](https://doc.rust-lang.org/book/ch08-02-strings.html#strings-are-not-so-simple)
+
+To summarize, strings are complicated. Different programming languages make different choices about how to present this complexity to the programmer. Rust has chosen to make the correct handling of `String` data the default behavior for all Rust programs, which means programmers have to put more thought into handling UTF-8 data up front. This trade-off exposes more of the complexity of strings than is apparent in other programming languages, but it prevents you from having to handle errors involving non-ASCII characters later in your development life cycle.
+
+The good news is that the standard library offers a lot of functionality built off the `String` and `&str` types to help handle these complex situations correctly. Be sure to check out the documentation for useful methods like `contains` for searching in a string and `replace` for substituting parts of a string with another string.
+
+Let’s switch to something a bit less complex: hash maps!
+
+[  
+](https://doc.rust-lang.org/book/ch08-01-vectors.html "Previous chapter")
