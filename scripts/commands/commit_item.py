@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import subprocess
@@ -66,7 +67,7 @@ class GitCommitItem:
         #
         # We make the category part fully optional using (?:.+/)?
         match = re.match(
-            r"^(.+)-notes/(?:(.+)/)?([^/]+?)(?:-\d{4}(?:-[A-Z]+)?)?\.md$", file_path
+            r"^(.+)-notes/(?:(.+)/)?([^/]+?)(?:-\d{4}(?:-[A-Za-z]+)?)?\.md$", file_path
         )
         if not match:
             return None
@@ -79,9 +80,7 @@ class GitCommitItem:
             "type": note_type,
             "category": category,
             "title": title,
-            "full_title": (
-                f"{category}/{'/' if category else ''}{title}" if category else title
-            ),
+            "full_title": (f"{category}/{title}" if category else title),
         }
 
     def _is_file_committed_before(self, file_path):
@@ -94,18 +93,33 @@ class GitCommitItem:
             print("return false")
             return False
 
-    def _generate_commit_message(self, note_files):
-        """Generate commit message from the first note file."""
-        for file_path in note_files:
-            info = self._parse_note_info(file_path)
-            print(info)
-            if not info:
-                continue
+    def _generate_commit_message(self, note_file):
+        """Generate commit message from the note file."""
+        info = self._parse_note_info(note_file)
+        print(info)
 
-            status = "update" if self._is_file_committed_before(file_path) else "add"
-            return f"note({info['type']}): {status} '{info['full_title']}'"
+        if self.args.status is None:
+            status = "update" if self._is_file_committed_before(note_file) else "add"
+        else:
+            status = self.args.status
 
-        return None  # No valid note file found
+        return f"note({info['type']}): {status} '{info['full_title']}'"
+
+    def parse_args(self):
+        parser = argparse.ArgumentParser(description="Git commit item")
+        parser.add_argument(
+            "--status",
+            "-s",
+            type=str,
+            help="add or update or let the script decide",
+            default=None,
+        )
+        self.args = parser.parse_args()
+        assert self.args.status in (
+            None,
+            "add",
+            "update",
+        ), "status must be one of these: add, update"
 
     def run(self):
         staged_files = self._get_staged_files()
@@ -113,12 +127,12 @@ class GitCommitItem:
             print("No staged files found.")
             return
 
-        note_files = [f for f in staged_files if self._is_note_file(f)]
-        if not note_files:
+        note_file = next((f for f in staged_files if self._is_note_file(f)), None)
+        if not note_file:
             print("No note files (e.g., *-notes/) staged. Nothing to do.")
             return
 
-        commit_msg = self._generate_commit_message(note_files)
+        commit_msg = self._generate_commit_message(note_file)
         if not commit_msg.strip():
             print("Could not generate commit message.")
             return
@@ -151,6 +165,7 @@ class GitCommitItem:
 if __name__ == "__main__":
     try:
         commit_item = GitCommitItem()
+        commit_item.parse_args()
         commit_item.run()
     except Exception as e:
         print(f"Error: {e}")
