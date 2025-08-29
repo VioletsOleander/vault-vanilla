@@ -14,21 +14,23 @@ class GitCommitItem:
 
     def _run_cmd(self, cmd, check=True):
         result = subprocess.run(
-            cmd, shell=True, cwd=self.repo_root, capture_output=True, text=True
+            cmd,
+            shell=True,
+            cwd=self.repo_root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
         )
         if check and result.returncode != 0:
             raise RuntimeError(f"Command failed: {cmd}\n{result.stderr}")
         return result.stdout.strip()
 
     def _get_repo_root(self):
-        try:
-            return subprocess.run(
-                ["git", "rev-parse", "--show-toplevel"],
-                capture_output=True,
-                text=True,
-            ).stdout.strip()
-        except:
-            return None
+        return subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
 
     def _get_staged_files(self):
         output = self._run_cmd(["git", "diff", "--cached", "--name-only"])
@@ -37,7 +39,7 @@ class GitCommitItem:
     def _is_note_file(self, file_path):
         return re.match(r"^.+-notes/.+\.md$", file_path) is not None
 
-    def _parse_note_info(self, file_path):
+    def _parse_note_info(self, file_path) -> dict:
         """
         Parse note type, multi-level category, and title.
         Supports:
@@ -70,7 +72,7 @@ class GitCommitItem:
             r"^(.+)-notes/(?:(.+)/)?([^/]+?)(?:-\d{4}(?:-[A-Za-z]+)?)?\.md$", file_path
         )
         if not match:
-            return None
+            raise ValueError(f"Invalid note file path: {file_path}")
 
         note_type, full_category_path, title = match.groups()
 
@@ -83,15 +85,23 @@ class GitCommitItem:
             "full_title": (f"{category}/{title}" if category else title),
         }
 
-    def _is_file_committed_before(self, file_path):
-        print(file_path)
-        try:
-            self._run_cmd(["git", "ls-files", "--error-unmatch", file_path], check=True)
-            print("return true")
-            return True
-        except:
-            print("return false")
-            return False
+    def _get_all_committed_files(self):
+        """
+        Acquire all committed file paths in the current HEAD commit.
+        """
+        result = self._run_cmd(["git", "ls-tree", "-r", "HEAD", "--name-only"])
+
+        files = set()
+        for line in result.splitlines():
+            if not line:
+                continue
+            files.add(line)
+
+        return files
+
+    def _is_file_committed_before(self, file_path: str) -> bool:
+        committed_files = self._get_all_committed_files()
+        return file_path in committed_files
 
     def _generate_commit_message(self, note_file):
         """Generate commit message from the note file."""
@@ -133,9 +143,6 @@ class GitCommitItem:
             return
 
         commit_msg = self._generate_commit_message(note_file)
-        if not commit_msg.strip():
-            print("Could not generate commit message.")
-            return
 
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".txt", delete=False
