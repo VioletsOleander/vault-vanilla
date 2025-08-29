@@ -3133,3 +3133,140 @@ Date: 2025.8.11-2025.8.18
         `if let` can be used with `else`, similar to `_` in `match`.
         `let .. eles` is similar to `if let`, but have no `if` branch, only `else` branch. If pattern matches expression, the expression's value is binded to outer scope.
 
+### Week 4
+Date: 2025.8.18-2025.8.25
+
+\[Paper\]
+- [[paper-notes/mlsys/ZeRO Memory Optimizations Toward Training Trillion Parameter Models-2020-SC|2020-SC-ZeRO Memory Optimizations Toward Training Trillion Parameter Models]]
+    Abstract
+        ZeRO eliminate the memory redundency in DP or MP training, while maintaining low communication volume and high computational granularity.
+        Training models of 100B+ size on 400 GPUs with ZeRO can achieve super-linear speedup.
+    Extended Introduction
+        Basic DP does not reduce the memory requirement per device, with 1.3B model, 32 GB GPU will run out of memory.
+        The largest model currently is trained by MP. MP performs good within one node, because the inter-GPU communication is high, but performs bad beyond a single node.
+        By analysis, the memory consumption of existing systems on model training can be classified into two categories: 1. for large model, the majority of memory is occupied by model states which includes optimizer states (momentum and variances) , gradients, parameters 2. the remaining memory is occupied by activation, temporary buffers and unusable memory fragmentation, which we called residual states.
+        DP has good communication/compute efficiency (only all-reduce for gradient), but low memory efficiency (model replicas)
+        MP has good memory efficiency, but low communication/compute efficiency.
+        ZeRO-DP has three main optimization stages, corresponding to the partitioning of optimizer states, gradients, and parameters.
+        ZeRO-R optimize the residual memory from three factors: activation partition, defining appropriate size for temporary buffer, managing tensor with lifetime to avoid fragmentation.
+        Theoretically, ZeRO can achieve $N_d$ times memory reduction in each device, $N_d$ is the degree of DP. When combined with MP, it can achieve $N_m$ times memory reduction, $N_m$ is the degree of MP.
+        ZeRO-DP decrease model memory occupation with increasing DP degree, allowing larger batch size for each GPU, thus achieving super-linear accleartion.
+    Related Work
+    Where Did All the Memory Go
+        Currently, an 1.5B GPT-2 model in fp16 only needs 3GB to store its weights/parameters, but can not be trained on a single GPU with 32GB memory.
+        The fact is, during model training, most of the memory is consumed by model states, consisting of optimizer states, gradient, parameter tensors, espeically the optimizer states.
+        With mixed precision training, weights and activates is stored as fp16 to utlized the high throughput of tensor cores. In mixed precisio training, the forward and backward computation are performed using fp16 weights and activations. However, the parameter to updated and the optimizer states are stored as fp32.
+        Take Adam as an example, mixed precision training of a model wth $\Psi$ parameters using Adam requires holding fp16 parameters and gradients, thus $2\times 2\Psi$, also requires holding optimizer states including: fp32 parameter copy, momentum, variance, thus $3\times 4\Psi$.
+        If we use $K$ to denote the memory multipler of optimizer states, then $K=12$, thus using Adam requires $16\Psi$ bytes of memory.
+        For 1.5B parameters, the memory requirement is 32GB, which is much larger than 3GB to store a single copy of fp16 parameters.
+        Activation checkpointing can reduce the memory cost of activation to sub-linear. 
+        Temporary buffers to store intermediate results also consumes a large amount of memory. Operations like gradient all-reduce tend to fuse all gradients into a single flattened buffer to increase bandwidth. Although gradient itself is stored as fp16, but the fused buffer can be fp32 tensor depending on the operation.
+    ZeRO: Insights and Overview
+        ZeRO-DP aims to reduce the memory footprint of the model states. ZeRO-R aims to reduce the residual memory consumption.
+        ZeRO is based on three insights:
+        1. DP has better scaling efficiency than MP because MP will lower the granularity of computation, and increase the overhead of communication.
+        2. DP has low memory efficiency becuase model states are stored redundently across all DP processes.
+        3. Not all model states are necessary across the entire training stage.
+        Based on these insights, ZeRO retains the training efficiency of DP while achieving the memory efficiency of MP.
+        ZeRO-DP splits the model states, thus reduce the memory occupancy linearly with the incraesed DP degree, while maintaining the communication volume close to that of default DP, retaining the efficiency.
+        ZeRO-R splits the activation checkpoint, and reconstruct the activation checkpoint on demand. The insights is that the arithmetic intensity of large model is very large, and increases linearly with the dimension of hidden states. It makes it possible to hide the data movement cost of checkpoints even when the bandwidth is low.
+        ZeRO-R identifies that the memory fragmentation is the result of interleaving bewteen short lived and long lived memory objects. During forward propagation, the activation checkpoint is long lived but the activations that will be recomputed is short lived.
+        During backward propagation, the activation gradients are short lived but the parameter gradients are long lived. Based on this insight, ZeRO preforms on-the-fly memory defragmentation by moving long-lived activation checkpoint, and gradients to pre-allocated contiguous memory buffers.
+    Deep Dive into ZeRO-DP
+       ZeRO-DP splits model states (optimizer states, gradient, parameters) into DP processes to eliminate memory redundency.
+       Optimizer states partitioning: For DP degree $N_d$, we split the optimizer states (parameter copy, variance, momentum) into $N_d$  partitions, letting the $i$ the DP process only update its optimizer state partition. We perform all-gather across all DP processes to get the fully updated parameter.
+       Essentially, each DP process owns full fp16 weights and thus can compute the complete optimizer states, but only stores its partition.
+       Optimizer states partitioning makes memory occupation from $4\Psi + K \Psi$ reduce to $4\Psi + \frac K{N_d}\Psi$.
+       Gradient partitioning: For DP degree $N_d$, with optimizer states partitioning, each DP process only need to update its corresponding parameter partition. Therefore, to update this parmeter partition, DP process only need to store the gradient partition, and do all-reduce for the gradient partition. This reduce the memory requirement for storing gradient from $2\Psi$ to $\frac 2 {N_d} \Psi$. By gradient partitioning, the gradient all-reduce essentially becomes a reduce-scatter operation. We use bucketization strategy, that is, when the bucket (e.g. for 3 layers of gradient) is full, do a reduce-scatter to retain the essentially gradient partitions.
+       Parameter partitioning: partition parameters to DP processes, fetch by broadcast on demand. Notice that it is different from MP, where computation is parallized, here, the computation is finished after fetching the full parameter.
+       Using three strategy simultaneously can reduce the memory requirement from $16\Psi$ to $\frac {16} {N_d} \Psi$.
+    Deep Dive into ZeRO-R
+        Activation checkpoint partitioning: partition the activation checkpoints into DP processes. When needed during backward propagation, use all-gather to recollect it.
+        Constant size buffers: use constant size fused buffer.
+        Memory Defragmentation: during forward propagation, only activations for checkpointing is long lived, during backward propagation, only gradients for parameters is long lived. ZeRO allocates continuous memory block to store long-lived tensors.
+    Communication Analysis of ZeRO-DP
+        Partitioning optimizer states and gradients will not bring additional communication volume.
+        Partitoiniong parameters will make communication volume becomes 1.5x.
+        SOTA all-reduce use 2-step approach: 1. reduce-scatter, which reduces different part of the data on different processes. 2. all-gather, where each process gather the reduced data on all the processes. With pipeline, the communication volume of each step can be considered as $\Psi$. Therefore, the communication volume of normal DP is $2\Psi$.
+        With ZeRO-DP-2, each DP process stores its gradient partition, and need one scatter-reduce to reduce the gradient partition, with communication volume $\Psi$. After update, each DP process needs an all-gather to collect the partitions, with communication volume $\Psi$. The communication volume is the same as basic DP.
+        With ZeRO-DP-3, by using piplined all-gather to collect parameter for each DP process, the additional communication volume is $\Psi$.
+    Communication Analysis of ZeRO-R
+        In Megatron-LM with activation checkpointing, each transformer block performs two all-reduce operations of size `batch x seq_len x hidden_dim` in the forward propagation. In backward propagation, there will be two all-reduce for recomputation and two all-reducce for backward computation. Since the communication volume of all-reduce is `2 x message_size`, therefore the communication volume of transformer block is `12 x batch x seq_len x hidden_dim`.
+        With activation checkpoint partitioning, there will be 1 additional all-gather before recomputation in backward propagation. The additional communication volume is `batch x seq_len x hidden_dim`.
+        Also, when combined with MP, ZeRO's memory reduction can bring larger batch size thus lower iteration per epoch thus lower communcation for model paramteres.
+    Step Towards 1 Trillion Parameters
+    Implementation and Evaluation
+    Concluding Remarks
+
+\[Blog\]
+- [[blog-notes/Democratizing AI Compute|Democratizing AI Compute]]: CH5-CH7
+    CH5-What aboud OpenCL and CUDA C++ alternatives
+        Many have tried to create portable GPU programming model using C++, from OpenCL to SYCL to oneAPI. These alternatives aim to democratize AI compute but finally failed because of open coopetition.
+        OpenCL is supported by Clang initially and contributed to Khronos Group later.
+        OpenCL remains successful nowadays and is applied variously in mobile and embedded devices, powering GPU compute on platforms like Android.
+        OpenCL is designed for portability from its outset.
+        Hardward vendors knows the benefit of a unified software ecosystem, but in the short term they are competitors. This leads to the development of OpenCL goes very slow.
+        OpenCL only has a konwn standard, and each vendors have to implement its own OpenCL runtime fork, leading to fragmantation, which ultimately weakened its portability.
+        Unlike CUDA, OpenCL does not have high-level AI libraries and support for inference and training at scale.
+        The essential idea is that: portability to new hardware is meanlingless if you can't not unlock its full performance. For example, OpenCL does not support tensor cores so far.
+    CH6-What about TVM, XLA, and AI compilers
+        With the number of unique operators grow, writing custom operators for each new hardward is impossible.
+        This challenge force people to think using compiler to generate kernels automatically.
+        AI compiler transforms high-level oprations in DL framework into low-level efficient hardward executable code.
+        One of the most fundamental optimization of it is kernel fusion.
+        Kernel fusion can eliminate additional memory load and store, and reduce memory allocation/deallcation.
+        A hidden truth of kernel fusion is that it can not scale because of combinactorial explosion. The explosion also goes in other axes like: data types, kind of hardwares.
+        TVM apply kernel fusion automatically to improve performance. 
+        With AI hardware toward to specialized accelaration, TVM sturggled to deliver peak performance on morden AI hardware. Therefore, it suffers from one of the same problem of OpenCL: it can not unlock the hardware.
+        Also, TVM is designed for traditional AI: fuse simple opeartiors, but GenAI requires complex algorithm which deeply integrated with hardware.
+        XLA is built within Google, targetd at TPU. XLA actually has two forms: closed souce XLA-GPU compiler, open source OpenXLA. They share some code (StableHLO). Most effort of XLA is targetd for TPU. Today, XLA for GPU uses standard CUDA library for performance.
+        Like TVM, XLA is built around a fixed set of predefined operators (StableHLO). However, GenAI requries **flexibility** on datatypes, communication strategies, and hardware level innovation.
+        As a result, most critical part is hand-written, bypassing XLA, even in TPU.
+        The root cause is that XLA abstract away too many hardware details, but GenAI requries fine-grained control over accelarators.
+        For GenAI, we need a new level of hardward-software co-design that XLA and TVM does not offer nowadays.
+        Relying on hand-written can catch up with rapidly growing workloads, but relying on compiler lacks fine-grained control, this is a trade-off.
+    CH7-What about Triton and Python eDSLs
+        DSL is used for a specific domain to express thing more productively.
+        eDSL reuses existing language syntax.
+        eDSL works using Python decorator, which intercepts functions before their run and execute it with custom compiler/interpreter.
+        When Triton accepts `@triton.jit` decoratored function, it will parse the function into its AST, including operations and data dependencies. Triton apply optimization for AST, and use AST to generate code.
+        The fact of eDSL is that eDSL looks like Python but does not work like Python, because eDSL does not execute Python, just intercepts function and convert it to other things.
+        Standard Python debugger normally not work for eDSL, and Python library is not usable for eDSL.
+        CUDA requires developers to handle comlex indexing for tensors, Triton abstarct it away, works in block level.
+        Triton actually trades performance for developement efficiency.
+        Triton can not work with mature CUDA tools like Nsight series, which makes debugging Triton even harder than CUDA.
+        Like CUDA, Triton code has no performance portability across different hardwares.
+        Triton is konwn for its integration with PyTorch.
+        eDSL is not about delivering the best performance.
+
+\[Book\]
+- [[book-notes/programming language/The Rust Programming Language|The Rust Programming Language]]: CH7
+    CH7-Manging Growing Projects with Packages, Crates, and Modules
+        A pakcage can contain multiple binary crates, and a library crate.
+        Rust's module system includes:
+        1. packages: used for building, testing, sharing crates
+        2. crates: a tree of modules, which will be compiled into a library or executable
+        3. modules: used to control the organization, scope, and privacy of paths
+        4. paths: a way of naming an item.
+        Crate is the smallest amount of code that Rust compiler considers at a time. Even with `rustc` + a single source file, Rust consider it as a crate.
+        Crate has two forms: binary crate, libaray crate. Binary crate must have a main function.
+        Crate root is the source file that the compilation starts and makes up the root module of our crate.
+        Pakcages is a bundle of crates, and have `Cargo.toml` to describe how to build these crates.
+        Cargo itself is a pacakge which contains a library crate, depended by its binary crate.
+        Pakcage can only have one library crate, but unlimited binary crates.
+        By default, Cargo consider `src/main.rs` is the root of a binary crate whose name is the same as the package, and `src/lib.rs` is the root of a library crate whose name is the same as the pakcage.
+        Cargo will pass the crate root to `rustc` to build the crate.
+        Each file in `src/bin` is considered as a binary crate.
+        Path is used to name items, and `use` is used to bring path into the scope. `pub` makse item public.
+        In compilation, compiler first check the crate root, and using the module declaration there to find modules, and using the submodule declartion in module files to find submodules, and so on.
+        Code within module is private to its parent module by default. We should use `pub mod` to make it public.
+        `use` is used to create shortcut to a specific item.
+        The contents in crate root will construct a root module named `crate` in the crate's module tree.
+        In relative path, we use `self, super`. We tend to use absolute path.
+        All items are private by default in Rust.
+        Usually we define most funcationality in library crate and use binary crate to call it. Thus binary crate is like an external user of library crate.
+        If struct has private field, the struct must provide a public constructor. In constrast, public enum type will make all its varaints public.
+        `use` is only useful in current scope.
+        When bringing function into scope, we `use` its parent module. When brining struct, enum into scope, we `use` the full path.
+        We can `pub use` an item into this scope, and exporting it to other places. Re-exporting is used to writting code in a structure and expose code in another structure.
+        To use external package, add them as dependencies in `Cargo.toml`. Then `use` it.
