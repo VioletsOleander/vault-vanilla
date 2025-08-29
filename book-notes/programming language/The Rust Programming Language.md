@@ -5302,7 +5302,7 @@ The first parts of the module system we’ll cover are packages and crates.
 A _crate_ is the smallest amount of code that the Rust compiler considers at a time. Even if you run `rustc` rather than `cargo` and pass a single source code file (as we did all the way back in “Writing and Running a Rust Program” in Chapter 1), the compiler considers that file to be a crate. Crates can contain modules, and the modules may be defined in other files that get compiled with the crate, as we’ll see in the coming sections.
 >  crate 是 Rust 编译器一次处理的最小代码单元
 >  当我们使用 `rustc`，并传递单个源文件时，编译器就将这个文件视作一个 crate
->  crate 可以包含 modules, modules 也可以定义在和 create 一起编译的其他文件中
+>  crate 可以包含 modules, modules 也可以定义在和 crate 一起编译的其他文件中
 
 A crate can come in one of two forms: a binary crate or a library crate. _Binary crates_ are programs you can compile to an executable that you can run, such as a command line program or a server. Each must have a function called `main` that defines what happens when the executable runs. All the crates we’ve created so far have been binary crates.
 >  crate 有两种形式: 二进制 crate 或库 crate
@@ -5687,7 +5687,7 @@ We mentioned that a package can contain both a _src/main.rs_ binary crate root
 
 The module tree should be defined in _src/lib.rs_. Then, any public items can be used in the binary crate by starting paths with the name of the package. The binary crate becomes a user of the library crate just like a completely external crate would use the library crate: it can only use the public API. This helps you design a good API; not only are you the author, you’re also a client!
 >  对于同时有 binary crate, library crate 的 package，其 module tree 应该定义在 `src/lib.rs`，那么 binary crate 中，要使用 items，应该以 package 的名称作为 path 的起始
->  binary crate 就成为了 library crate 的用于，就像一个完全外部的 crate: 仅仅使用公共 API
+>  binary crate 就成为了 library crate 的用户，就像一个完全外部的 crate: 仅仅使用公共 API
 >  这可以帮助我们设计好的 API，即我们不仅仅是 author，也要是 client
 
 In [Chapter 12](https://doc.rust-lang.org/book/ch12-00-an-io-project.html), we’ll demonstrate this organizational practice with a command line program that will contain both a binary crate and a library crate.

@@ -110,7 +110,7 @@ Figure 2:  $ZeRO$  training throughput and speedup w.r.t SOTA baseline for varyi
 
 *Scalability* We observe super linear speedup in the regime of 64-400 GPUs, where the performance more than doubles when we double the number of GPUs. This is a property of ZeRO-DP which reduces the memory footprint of the model states as we increase the DP degree allowing us to fit larger batch sizes per GPU resulting in better performance. We expect this behaviour to continue further as we increase the number of GPUs beyond 400.
 >  可拓展性方面，我们发现 64-400 GPU 的加速比是超线性，也就是双倍 GPU 数量，性能超过了双倍
->  这是 ZeRO-DP 的特定，它随着 DP degree 的增加而减少模型状态的内存占用，从而允许每块 GPU 装载更大的 batch 大小
+>  这是 ZeRO-DP 的特性，它随着 DP degree 的增加而减少模型状态的内存占用，从而允许每块 GPU 装载更大的 batch 大小
 
 *Democratization of Large Model Training* ZeRO-100B powers data scientist to train models with up to 13B parameters without any MP or PP that requires model refactoring, where 13B is more parameters than the largest model in literature (T5 with 11B parameters). Data scientists can thus experiment freely with large models without worrying about parallelism. In comparison, exist systems (e.g., PyTorch Distributed Data Parallel) runs out of memory with 1.4B parameter models.
 >  大模型训练的民主化
@@ -254,9 +254,8 @@ ZeRO-R uses constant size buffers to avoid temporary buffers from blowing up as 
 
 ### 4.2.3 Managing fragmented Memory
 Memory fragmentation is a result of interleaving between short lived and long lived memory objects. During the forward propagation activation checkpoints are long lived but the activations that recomputed are short lived. Similarly, the backward computation, the activation gradients are short lived while the parameter gradients are long lived. Based on this insight, ZeRO performs on-the-fly memory defragmentation by moving activation checkpoints and gradients to pre-allocated contiguous memory buffers. This not only increases memory availability but also improves efficiency by reducing the time it takes for the memory allocator to find free contiguous memory.
-
 >  内存碎片是由短期和长期内存对象的交错导致的
->  在前向传播过程中，激活检查点是长期存在的，而(需要在反向传播时被) 重计算的激活值则是短期存在的 (会被丢弃)
+>  在前向传播过程中，激活检查点是长期存在的，而 (需要在反向传播时被) 重计算的激活值则是短期存在的 (会被丢弃)
 >  类似地，在反向计算中，激活梯度是短期存在的 (中间输出相对于损失的梯度，用于计算中间层的参数梯度)，参数梯度则是长期存在的
 >  基于这个观察，ZeRO 通过将激活检查点和梯度 (长期存在的内存对象) 移动到连续的内存缓冲区，实现了实时的内存去碎片化
 >  这不仅增加了可用内存，还通过减少内存分配器找到连续空闲内存的时间提高了效率
@@ -284,10 +283,10 @@ For a DP degree of  $N_{d}$ , we group the optimizer states into  $N_{d}$  equal
 As each data parallel process only updates its corresponding parameter partition, it only needs the reduced gradients for the corresponding parameters. Therefore, as each gradient of each layer becomes available during the backward propagation, we only reduce them on the data parallel process responsible for updating the corresponding parameters. After the reduction we no longer need the gradients and their memory can be released. This reduces the memory footprint required to hold the gradients from  $2\Psi$  bytes to  $\frac{2\Psi}{N_{d}}$ .
 >  因为每个数据并行进程仅更新自己对应的参数 partition，因此仅需要对应的梯度 partition 即可
 >  因此，当反向传播过程中每一层的梯度可用时，每个设备都会把梯度拆开来，然后根据梯度的 partition，仅和负责这个 partition 的设备进行 reduce 计算，使得这个设备获得这个 partition 的规约后梯度
->  在和这个设备规约后，这个 partition 的梯度就不再需要了 (因为我负责的是更新其他 partition 的参数)，存储这个 partition 梯度的内存就可以倍释放
+>  在和这个设备规约后，这个 partition 的梯度就不再需要了 (因为我负责的是更新其他 partition 的参数)，存储这个 partition 梯度的内存就可以被释放
 >  这将存储梯度所要求的内存量从 $2\Psi$ 减少到 $\frac {2\Psi} {N_d}$
 
->  标准数据并行中，每个设备有自己的梯度，所有设备在迭代后对梯度进行 all-reduce，使得每个设备都保存了完整的梯度
+>  标准数据并行中，每个设备有自己的梯度，所有设备在迭代后对梯度进行 all-reduce，使得每个设备都保存了完整的梯度数
 >  而当每个设备仅负责更新一部分参数时，它只需要知道这部分参数的平均梯度，不需要知道全部梯度
 
 Effectively this is a Reduce-Scatter operation, where gradients corresponding to different parameters are reduced to different process. To make this more efficient in practice, we use a bucketization strategy, where we bucketize all the gradients corresponding to a particular partition, and perform reduction on the entire bucket at once. This is similar in spirit to how NVIDIA's AMP [25] optimizer bucketizes the all-reduce gradient computation to overlap communication and computation. In our case we perform a reduction instead of an all-reduce at the partition boundaries to reduce memory footprint and overlap computation and communication.
@@ -369,7 +368,7 @@ Hence, to get better efficiency, high performance libraries such as NVIDIA Apex 
 >  然而，融合缓冲区的内存开销和模型大小成正比，例如对于一个 3B 的模型，32bit 的融合缓冲区将需要 12GB 的内存
 >  为了解决这个问题，当模型变得太大时，我们简单地使用一个性能高效的固定大小缓冲区，此时缓冲区大小不再依赖于模型大小，并且通过保持缓冲区足够大，我们仍然可以实现良好的效率
 
-## 6.3  $M_D$  : Memory Defragmentation
+## 6.3 $M_D$ : Memory Defragmentation
 Memory fragmentation in model training occurs as a result of activation checkpointing and gradient computation. During the forward propagation with activation checkpointing, only selected activations are stored for back propagation while most activations are discarded as they can be recomputed again during the back propagation. This creates an interleaving of short lived memory (discarded activations) and long lived memory (checkpointed activation), leading to memory fragmentation. Similarly, during the backward propagation, the parameter gradients are long lived, while activation gradients and any other buffers required to compute the parameter gradients are short lived. Once again, this interleaving of short term and long term memory causes memory fragmentation.
 >  模型训练中的内存碎片化是激活检查点和梯度计算引起的
 >  在使用激活检查点进行前向传播时，只有部分激活值会被保存，大多数激活值会被丢弃，这会导致短期内存 (被丢弃的激活) 和长期内存 (保存的激活检查点) 的叫交错，从而产生内存碎片
@@ -378,7 +377,7 @@ Memory fragmentation in model training occurs as a result of activation checkpoi
 
 Limited memory fragmentation is generally not an issue, when there is plenty of memory to spare, but for large model training running with limited memory, memory fragmentation leads to two issues, i) OOM due to lack of contiguous memory even when there is enough available memory, ii) poor efficiency as a result of the memory allocator spending significant time to search for a contiguous piece of memory to satisfy a memory request.
 >  对于在有限内存下的大模型训练，内存碎片化会导致:
->  1. 即时可用空间足够，由于缺乏连续内存也会出现 OOM
+>  1. 即使可用空间足够，由于缺乏连续内存也会出现 OOM
 >  2. 由于内存分配器需要花费大量时间搜索满足内存请求的连续内存块，效率会很低下
 
 ZeRO does memory defragmentation on-the-fly by pre-allocating contiguous memory chunks for activation checkpoints and gradients, and opening them over to the pre-allocated memory as they are produced.  $\mathrm{M}_D$  not only enables  $ZeRO$  to train larger models with larger batch sizes, but also improves efficiency when training with limited memory.
@@ -453,7 +452,7 @@ Communication volume trade-off of partitioning activation checkpoints depends on
 >  激活检查点划分的通信量权衡取决于模型大小、检查点策略和 MP 策略
 >  我们以 Transformer 模型为例，在 SOTA 的 MP 方法 Megatron-LM 下进行分析
 
-In Megatron-LM with activation checkpointing, each transformer block performs two allreduce operations of size batch  $\times$  seq_length  $\times$  hidden_dim in the forward propagation, two all-reduce for forward re-computation and two more in the backward propagation. The total communication per block is  $12\times$  seq_length  $\times$  hidden_dim since communication volume of an all-reduce is  $2\times$  message_size.
+In Megatron-LM with activation checkpointing, each transformer block performs two all-reduce operations of size batch  $\times$  seq_length  $\times$  hidden_dim in the forward propagation, two all-reduce for forward re-computation and two more in the backward propagation. The total communication per block is  $12\times$  seq_length  $\times$  hidden_dim since communication volume of an all-reduce is  $2\times$  message_size.
 >  在使用激活检查点的 Megatron-LM 中，每个 transformer block 在前向传播中执行两次大小为 `batch x seq_length x hidden_dim` 的 all-reduce 操作，在反向传播过程中，会有两次 all-reduce 用于前向重新计算，两次 all-reduce 用于反向传播
 >  由于一次 all-reduce 的通信量为 `2 x message_size` (对于大小为 `message_size` 的数据，all-reduce 的通信量为 `2 x message_size`，all-reduce 中，数据会先被规约到各个节点，再广播回去)，故 transformer block 的总通信量为 ` 12 x batch_size x seq_length x hidden_dim ` (6 次 all-reduce 的通信量)
 
@@ -463,7 +462,7 @@ When ZeRO-R partitions activation checkpoints, it requires an additional all-gat
 >  因此 $P_a$ 的通信开销就是 `batch_size x seq_length x hidden_dim` ，因为 all-gather 的通信量就等于消息大小，因此 $P_a$ 的总通信开销少于原来的 MP 通信开销的 1/10
 
 When MP is used in conjunction with DP,  $P_{a}$  can be used to reduce the data-parallel communication volume by an order of magnitude at the expense of a  $10\%$  increase in model-parallel communication volume, and significantly boost efficiency when data-parallel communication is a performance bottleneck. Notice that  $P_{a}$  reduces the activation memory consumption by the MP degree allowing for a proportional increase in batch size. 
->  MP 和 DP 一同使用的情况下，$P_a$ 可以在 MP 通信量增加 10% 的代价下，将 DP 通信量减少一个数量级，并在数据并行通信称为瓶颈时显著提升效率
+>  MP 和 DP 一同使用的情况下，$P_a$ 可以在 MP 通信量增加 10% 的代价下，将 DP 通信量减少一个数量级，并在数据并行通信成为瓶颈时显著提升效率
 >  这么说的理由是，$P_a$ 将激活内存消耗降低为原来的 $\frac 1 {\text{MP degree}}$，从而允许 batch size 按比例增加 (变为原来的 MP degree 倍)
 
 For large models, MP can be as large as 16 ( `#GPUs` on a DGX-2 node), allowing for up to 16x increase in the batch size. The communication volume of a data-parallel training is inversely proportional to the batch size. Therefore, an order of magnitude increase in batch size due to  $P_{a}$  could result in an order-of-magnitude decrease in data-parallel communication volume.
@@ -474,7 +473,7 @@ For large models, MP can be as large as 16 ( `#GPUs` on a DGX-2 node), allowing 
 
 Finally if  $P_{a + cpu}$  is applied, partitioned activation checkpoints are offloaded to CPU, reducing the activation memory requirement to nearly zero at the expense of 2x added data movement to and from CPU memory compared to  $P_{a}$ . In extreme cases where DP communication volume is the major bottleneck due to a small batch size even with  $P_{a}$ ,  $P_{a + cpu}$  can improve efficiency by increasing the batch size as long as the CPU data transfer overhead is less than the DP communication volume overhead, which is generally true for small batch sizes.
 >  如果使用 $P_{a + cpu}$，划分的激活检查点会被卸载到 CPU，将激活内存需求减少到几乎为零，但代价是需要两次额外的 CPU 和 GPU 之间的数据移动
->  在极端情况下，即时使用了 $P_a$ 也无法大幅提高 batch size 使得 DP 通讯量称为瓶颈，可以通过 $P_{a+cpu}$ 来提高 batch size，只要 CPU 数据传输开销小于 DP 通信量开销，这在小 batch size 通常是成立的
+>  在极端情况下，即时使用了 $P_a$ 也无法大幅提高 batch size 使得 DP 通讯量成为瓶颈，可以通过 $P_{a+cpu}$ 来提高 batch size，只要 CPU 数据传输开销小于 DP 通信量开销，这在小 batch size 通常是成立的
 
 Given model and hardware characteristics, we leverage the above analysis to decide if and when to apply  $P_{a}$  and  $P_{a + cpu}$ .
 
@@ -502,7 +501,6 @@ To understand the resource requirement, we present a brief comparison with Bert-
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-08-19/25877288-f38c-4883-a49c-40ce8af650c2/70553319a65ba0bfa1fb9efaf7c1b625c4d511d1bde6a5d54fd043884b44fae8.jpg)  
 
 Figure 5: SOTA Turing-NLG enabled by ZeRO.
-
 
 # 10 Implementation and Evaluation
 We focus our implementation on supporting efficient training of models with  $\sim 100$ B parameters, which are an order-of-magnitude larger than the largest published models today (e.g., T5-11B [4]) while trainable within a reasonable time frame on current hardware (e.g., with 1K V100 GPUs). 

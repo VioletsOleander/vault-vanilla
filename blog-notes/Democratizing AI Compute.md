@@ -581,7 +581,7 @@ Let’s dive in. 🚀
 
 ## CUDA C++ Alternatives: OpenCL, SYCL, and More
 There are many projects that aimed to unlock GPU programming, but the one I know best is [**OpenCL**](https://en.wikipedia.org/wiki/OpenCL). Like CUDA, OpenCL aimed to give programmers a C++-like experience for writing code that ran on the GPU.  The history is personal: in 2008, I was one of the lead engineers implementing OpenCL at Apple (it was the first production use of the [Clang compiler](https://en.wikipedia.org/wiki/Clang) I was building). After we [shipped it,](https://en.wikipedia.org/wiki/OpenCL#History) we made the pivotal decision to contribute it to the [Khronos Group](https://www.khronos.org/opencl/) so it could get adopted and standardized across the industry.
->  OpenCL 目标是给程序员类似编写 C++ 的体验来编写运行在 GPU 上的代码，蕾西与 CUDA
+>  OpenCL 目标是给程序员类似编写 C++ 的体验来编写运行在 GPU 上的代码，类似于 CUDA
 >  OpenCL 最初由 Clang 编译器支持，后来它被贡献给了 Khronos Group
 
 That decision led to broad industry adoption of OpenCL (see [the logos](https://www.khronos.org/opencl/)), particularly in mobile and embedded devices. Today, it remains hugely successful, powering GPU compute on platforms like Android, as well as in specialized applications such as DSPs. Unlike CUDA, OpenCL was designed for portability from the outset, aiming to support heterogeneous compute across CPUs, GPUs, and other accelerators. OpenCL also inspired other systems like SyCL, Vulkan, SPIR-V, oneAPI, WebCL and many others.
@@ -606,7 +606,7 @@ Hardware vendors recognized the long-term benefits of a unified software ecosyst
 Coopetition: "cooperation" amongst competitors
 
 This became a huge problem for Apple, a company that wanted to move fast in secret to make a big splash with product launches.  As such, Apple decided to abandon OpenCL: it introduced Metal instead, never brought OpenCL to iOS, and deprecated it out of macOS later. Other companies stuck with OpenCL, but these structural challenges continued to limit its ability to evolve at the pace of cutting-edge AI and GPU innovation.
->  Apple 是一家希望在保密情况快速推进，并且在发布时造成巨大影响的公司，因此 Apple 决定放弃 OpenCL: 它推出了 Metal 作为替代方案，且从未将 OpenCL 引入 iOS，并在后来从 macOS 弃用了 OpenCLL
+>  Apple 是一家希望在保密情况快速推进，并且在发布时造成巨大影响的公司，因此 Apple 决定放弃 OpenCL: 它推出了 Metal 作为替代方案，且从未将 OpenCL 引入 iOS，并在后来从 macOS 弃用了 OpenCL
 >  其他公司继续使用 OpenCL，但这些接受性挑战限制了它跟上最前沿的 AI 和 GPU 发展步伐的能力
 
 ### **Technical Problems with OpenCL**
@@ -671,7 +671,7 @@ The history above is well understood by those of us who lived through it, but th
 >  - 避免碎片化，一个分裂成不兼容分支的标准，无法为软件开发者提供有效的统一层
 
 These are the fundamental reasons why I don’t believe that committee efforts like OpenCL can ever succeed. It’s also why I’m even more skeptical of projects like [Intel’s OneAPI](https://oneapi.io/) (now [UXL Foundation](https://uxlfoundation.org/)) that are _notionally_ open, but in practice, controlled by a single hardware vendor competing with all the others.
->  这些是笔者认为像 OpenCL 这样的委员会项目能够成功的根本原因，像 Intel 的 OneAPI 项目，表面上是开放的，但实际上由一家硬件厂商控制，并与其他所有厂商竞争
+>  这些是笔者认为像 OpenCL 这样的委员会项目不能够成功的根本原因，像 Intel 的 OneAPI 项目，表面上是开放的，但实际上由一家硬件厂商控制，并与其他所有厂商竞争
 
 ## What About AI Compilers?
 At the same time that C++ approaches failed to unify AI compute for hardware makers, the AI industry faced a bigger challenge—even using CUDA on NVIDIA hardware. How can we scale AI compute if humans have to write all the code manually? There are too many chips, too many AI algorithms, and too many workload permutations to optimize by hand.
@@ -829,7 +829,7 @@ TVM is an important step for the AI compiler industry, but what can we learn fro
 TVM struggled to deliver peak performance on modern AI hardware, particularly as GPUs evolved toward TensorCores and other specialized acceleration. It added support over time but was often late and failed to fully unlock performance. As such, it suffered from one of [the same problems as OpenCL](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives#evolvingneeds): You can’t deliver performance if you can’t unlock the hardware.
 >  TVM 在现代硬件上难以实现最佳性能，尤其是在 GPU 向着 TensorCores 和其他专用加速方向发展时
 >  虽然它随着时间推移增加了对这些硬件的支持，但通常都比较滞后，并且未能充分释放性能
->  因此，它也面临了于 OpenCL 相同的问题之一: 无法解锁硬件的最优性能
+>  因此，它也面临了与 OpenCL 相同的问题之一: 无法解锁硬件的最优性能
 
 ###### **Fragmentation driven by conflicting commercial interests**
 Unlike OpenCL, TVM wasn't just a specification—it was an **actual implementation**. This made it far more useful out of the box and attracted hardware vendors. But fragmentation still reared its head: vendors forked the code, made incompatible changes, and struggled to stay in sync, slowing progress. This led to friction executing architectural changes (because downstream vendors complained about their forks being broken), which slowed development.
@@ -905,7 +905,7 @@ Datatypes supported in vLLM 0.7 by hardware type ([source](https://docs.vllm.ai/
 
 As a consequence, XLA (like TVM) suffers from being left behind by GenAI: today much of the critical workloads are written in experimental [systems like Pallas](https://docs.jax.dev/en/latest/pallas/index.html) that bypass the XLA compiler, even on TPUs. The core reason is that in its efforts to simplify AI compilation, XLA abstracted away too much of the hardware. This worked for early AI models, but GenAI demands fine-grained control over accelerators—something XLA simply wasn’t built to provide. And so, just like TVM, it’s being left behind.
 >  结果就是: XLA 和 TVM 一样，也因为 GenAI 的发展而被甩在后面: 如今，许多关键的 workload 都使用试验性系统例如 Pallas 编写，这些系统绕过了 XLA 编译器，甚至在 TPU 上也是如此
->  根本原因在于，为了简化 AI 编译，XLA 抽象掉了太多硬件细节，这在早期的 AI 模型中是可行的，但 GenAI 要求对加速器进行细粒度的控制，而这正式 XLA 根本没有设计来提供的
+>  根本原因在于，为了简化 AI 编译，XLA 抽象掉了太多硬件细节，这在早期的 AI 模型中是可行的，但 GenAI 要求对加速器进行细粒度的控制，而这正是 XLA 根本没有设计来提供的
 
 ## Lessons learned from TVM and XLA
 I take pride in the technical accomplishments we proved in XLA-TPU: XLA supported many generational research breakthroughs, including the invention of the transformer, countless model architectures, and research and product scaling that isn’t seen anywhere else. It is clearly the most successful non-NVIDIA training and inference hardware that exists, and powers Google’s (many) leading AI products and technologies. Though I know less about it, I have a lot of respect for TVM’s contribution to compiler research, autotuning and powering many early AI systems.
@@ -973,74 +973,6 @@ Of course, you already know the answer. The **CUDA Empire still reigns supreme*
 Perhaps one day, compiler technology will **alleviate our suffering without taking away our power**. Until next time, 🚀
 
 **—Chris**
-
-o# What about Triton and Python eDSLs? (Democratizing AI Compute, Part 7)
-
-![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/6428545e625193029844237f_64078db03b0c891d0c658708_Chris.jpeg)
-
-Chris Lattner
-
-Industry
-
-![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67e40ed99cb07d47a829cf1a_DCP7Hero.jpg)
-
-Browse all posts in series (11)
-
-[
-
-](https://www.modular.com/blog/democratizing-compute-part-1-deepseeks-impact-on-ai)
-
-[
-
-](https://www.modular.com/blog/democratizing-compute-part-2-what-exactly-is-cuda)
-
-[
-
-](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed)
-
-[
-
-](https://www.modular.com/blog/democratizing-ai-compute-part-4-cuda-is-the-incumbent-but-is-it-any-good)
-
-[
-
-](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives)
-
-[
-
-](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers)
-
-[
-
-](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls)
-
-[
-
-](https://www.modular.com/blog/democratizing-ai-compute-part-8-what-about-the-mlir-compiler-infrastructure)
-
-[
-
-](https://www.modular.com/blog/democratizing-ai-compute-part-9-why-do-hw-companies-struggle-to-build-ai-software)
-
-[
-
-](https://www.modular.com/blog/modulars-bet-to-break-out-of-the-matrix-democratizing-ai-compute-part-10)
-
-[
-
-](https://www.modular.com/blog/how-is-modular-democratizing-ai-compute)
-
-[
-
-](https://www.modular.com/democratizing-ai-compute)
-
-AI compilers struggle with a fundamental tradeoff: they aim to abstract low-level details for usability and scalability, yet modern GenAI workloads demand programmability and hardware control to deliver top performance. CUDA C++ provides this level of control, but it’s notoriously unwieldy and painful to use. Meanwhile, AI development happens in Python—so naturally, the industry has tried to bridge the gap by bringing GPU programming and Python together.
-
-But there’s a catch: Python can’t run on a GPU. To bridge this gap, researchers build **Embedded Domain-Specific Languages (eDSLs)**—Python-based abstractions that _look_ like Python but compile to efficient GPU code under the hood. The idea is simple: give engineers the power of CUDA without the pain of C++. But does it actually work?
-
-In this post, we’ll break down how Python eDSLs work, their strengths and weaknesses, and take a close look at **Triton**—one of the most popular approaches in this space—and a few others. Can Python eDSLs deliver both performance and usability, or are they just another detour on the road to democratized AI compute?
-
-Let’s dive in. 🚀
 
 # 7 What about Triton and Python eDSLs?
 Site: https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls
@@ -1225,7 +1157,7 @@ CUDA's complexity is offset by **a mature ecosystem** of tools—Nsight Comput
 ###### **GPU Portability Without Performance Portability or Generality**
 GPU code written in Triton can run “pretty fast” if written for one specific GPU, but that code won’t go fast on different kinds of GPU’s—even across NVIDIA hardware. For example, Triton code optimized for **A100** often performs poorly on **H100** because newer architectures requires different code structures even to get to 80% performance—Triton doesn’t abstract things like pipelining and async memory transfers.
 >  使用 Triton 针对特定 GPU 编写的代码通常可以运行得相当快，但这种代码在不同类型的 GPU 上，甚至是 NVIDIA 的不同硬件之间的性能则无法保持
->  例如，针对 A100 优化的 Triton 代码在 H100 上的表现不佳，因为即便是达到 80% 的性能，新架构也需要不同的代码结构，而 Triton 并没有抽象出像刘淑仙和异步内存传输这样的细节
+>  例如，针对 A100 优化的 Triton 代码在 H100 上的表现不佳，因为即便是达到 80% 的性能，新架构也需要不同的代码结构，而 Triton 并没有抽象出像流水线和异步内存传输这样的细节
 
 ![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67e59c944e857865efd4a94d_MemeFry.jpg)
 
@@ -1303,7 +1235,7 @@ These eDSLs are just part of NVIDIA’s sprawling Python GPU ecosystem. At **GT
 According to NVIDIA, "there's no single tool that's optimal for all applications." (Source: NVIDIA GTC 2025, [CUDA: New Features and Beyond](https://www.nvidia.com/en-us/on-demand/session/gtc24-s62400/))
 
 As a developer, I don’t think that dozens of options with subtle tradeoffs helps me. We need **fewer tools that work better**—not an ever-growing list of tradeoffs. NVIDIA is **fragmenting its own developer ecosystem**.
->  笔者作为开发者，认为我们需要的是更少但更优秀给工具，而不是不断增长的权衡列表，NVIDIA 正在破坏自己的开发者生态系统
+>  笔者作为开发者，认为我们需要的是更少但更优秀的工具，而不是不断增长的权衡列表，NVIDIA 正在破坏自己的开发者生态系统
 
 ## MLIR: A Unified Future for AI Compilers?
 As I worked to scale Google TPUs in 2017 and 2018, a pattern emerged: **first-generation AI frameworks like TensorFlow and PyTorch lacked scalability, while the second generation AI compilers like** [**XLA**](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers) **sacrificed flexibility**. To break this cycle, I led the team to build a new [**MLIR compiler framework**](https://en.wikipedia.org/wiki/MLIR_\(software\)) —a modular, extensible compiler framework designed to support AI’s rapidly evolving hardware landscape.
