@@ -60,12 +60,12 @@ $$\begin{aligned}
 
 **Learning Model**
 $$B = [b_1,\cdots,b_n]^T\in \{1,-1\}^{n\times r}$$
-根据[[Spectral Hashing-2008-NeruIPS]]提出的标准的图哈希框架，学习目标是
+根据[[paper-notes/ml/algorithm/zeroshot-hashing/Spectral Hashing-2008-NeruIPS]]提出的标准的图哈希框架，学习目标是
 $$\min_B\frac 1 2\sum_{i,j=1}^n\|b_i-b_j\|^2A_{ij}^o=tr(B^TL^oB),\ s.t.\ B\in\{\pm1\}^{n\times r},1^TB=0,B^TB=nI_r,(1)$$
 其中$L^o$是基于真实亲和矩阵得到的图拉普拉斯矩阵
 限制$1^TB$用于最大化每个哈希比特的信息，因为该限制令每个哈希比特都是对数据集$\mathcal X$的一个平衡划分(balanced partition)
 限制$B^TB=nI_r$用于最小化哈希比特之间的依赖，因为该限制令$r$个哈希比特互不相关(uncorrelated)
-该问题是NP hard问题，在[[Spectral Hashing-2008-NeruIPS]]中，作者丢弃了离散限制$B\in\{\pm 1\}^{n\times r}$，并作了数据均匀分布的假设，以解决一个松弛问题
+该问题是NP hard问题，在[[paper-notes/ml/algorithm/zeroshot-hashing/Spectral Hashing-2008-NeruIPS]]中，作者丢弃了离散限制$B\in\{\pm 1\}^{n\times r}$，并作了数据均匀分布的假设，以解决一个松弛问题
 
 本文使用Anchor graph的图拉普拉斯矩阵$L = I_n - A$代替$L^o$，故问题写为
 $$\min_B tr(B^T(I_n-A)B),\ s.t.\ B\in\{\pm1\}^{n\times r},1^TB=0,B^TB=nI_r$$

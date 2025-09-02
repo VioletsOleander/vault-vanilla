@@ -185,7 +185,7 @@ $$\begin{align}
 $$T^TJT = [Q\hat Q]\begin{bmatrix}\Omega&0\\0&0
 \end{bmatrix}[Q\hat Q]^T\tag{15}$$
 
-参考[[Discrete Graph Hashing-2014-NeurIPS]]，可以得到公式(14)的最优解为
+参考[[paper-notes/ml/algorithm/zeroshot-hashing/Discrete Graph Hashing-2014-NeurIPS]]，可以得到公式(14)的最优解为
 $$A = \sqrt n[P\bar P][Q\bar Q]^T\tag{16}$$
 其中$P = JTQ\Omega^{-1}$，$\bar P$是一个随机的正交矩阵，$\bar Q$则是对$\hat Q$做施密特正交化后得到的正交矩阵
 

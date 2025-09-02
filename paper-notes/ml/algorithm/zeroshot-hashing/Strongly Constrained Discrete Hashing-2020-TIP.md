@@ -168,7 +168,7 @@ $$Z = \sqrt N[U,\bar U][V,\bar V]^T\tag{25}$$
 $\bar U^T\bar U = I_{K-K'}, [U,\mathbf 1_N]^T\bar U = 0$
 $\bar V^T \bar V = I_{K-K'},V^T\bar V=0$
 若$K' = K$，则$\bar V, \bar U$为空
-证明参考[[Discrete Graph Hashing-2014-NeurIPS]]
+证明参考[[paper-notes/ml/algorithm/zeroshot-hashing/Discrete Graph Hashing-2014-NeurIPS]]
 
 ## 5.4 Computational Complexity
 总的计算复杂度在每轮迭代线性于$N$

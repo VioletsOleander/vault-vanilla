@@ -144,7 +144,7 @@ $$\frac{f_1(x)}{f_2(x)} = \frac{\sigma_2}{\sigma_1} e^{-\frac{(\mu_1-\mu_2)^2}{2
 )
 因此，Eq.(5)中的所有KL散度都是高斯分布之间的比较，所以它们可以以Rao-Blackwell化的方式用封闭形式表达式来计算，而不是使用高方差的蒙特卡洛估计(high variance Monte Carlo estimates)
 # A Extended derivations
-本节对Eq.(5)进行推导，即扩散模型的减少方差的变分界限，推导源于Sohl-Dickstein el al.\[[[Deep Unsupervised Learning using Nonequilibrium Thermodynamics-2015-ICML|53]]\]：
+本节对Eq.(5)进行推导，即扩散模型的减少方差的变分界限，推导源于Sohl-Dickstein el al.\[[[paper-notes/gen-ai/image/Deep Unsupervised Learning using Nonequilibrium Thermodynamics-2015-ICML|53]]\]：
 $$
 \begin{align}
 L&=\mathbb E_q\left[-\log \frac {p_{\theta}(\mathbf x_{0:T})}{q(\mathbf x_{1:T}|\mathbf x_0)}\right]\\

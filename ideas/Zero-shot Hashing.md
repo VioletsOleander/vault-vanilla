@@ -1,5 +1,5 @@
 **2024.2.28**
-很多方法都在考虑 [[Spectral Hashing-2008-NeruIPS]] 提出的问题的各种近似优化形式，但 SH 中的 $\symbfit 1^TB$ 的条件，本义在于最大化每个哈希比特的信息，但实际上是一种原问题的一个强化，强化不相似样本间的距离差距，因为原损失在 $s_{ij}\ge 0$ 的条件下实际上仅存在尽量缩小相似样本之间的距离差距的趋势
+很多方法都在考虑 [[paper-notes/ml/algorithm/zeroshot-hashing/Spectral Hashing-2008-NeruIPS]] 提出的问题的各种近似优化形式，但 SH 中的 $\symbfit 1^TB$ 的条件，本义在于最大化每个哈希比特的信息，但实际上是一种原问题的一个强化，强化不相似样本间的距离差距，因为原损失在 $s_{ij}\ge 0$ 的条件下实际上仅存在尽量缩小相似样本之间的距离差距的趋势
 因此不强求 $s_{ij} \ge 0$，不是考虑归一化 $S$，而是考虑中心化 $S$，
 令 $\symbfit 1^TS = \symbfit 0^T$，而由于 $S = S^T$，$(\symbfit 1^TS)^T = S^T\symbfit 1 =S\symbfit 1=(\symbfit 0^T)^T=\symbfit 0$，
 因此我们在中心化 $S$ 的列的同时，也中心化了 $S$ 的行，
@@ -53,7 +53,7 @@ $$\begin{align}
 直接采用松弛解的效果是不够理想的
 
 考虑优化公式 4
-参考 [[Supervised Hashing with Kernels-2012-CVPR]]，依旧假设哈希函数的形式为 $H(X) = sgn(\bar K_XP)$，即做核变换后再线性映射，并且列中心化 $\bar K_X$
+参考 [[paper-notes/ml/algorithm/zeroshot-hashing/Supervised Hashing with Kernels-2012-CVPR]]，依旧假设哈希函数的形式为 $H(X) = sgn(\bar K_XP)$，即做核变换后再线性映射，并且列中心化 $\bar K_X$
 注意 KSH 中没有关注哈希比特之间的不相关性，即 $B^TB = rI$ 约束，但 KSH 通过列中心化 $\bar K_X$，保证了 $\symbfit 1^T(\bar K_XP) = 0$，一定程度上支持了 $\symbfit 1^T B$ 的约束，
 这种做法相当于显式地规定了每一位哈希函数的偏置量
 
@@ -129,7 +129,7 @@ $$\begin{align}
 =&\max_{B,Z} tr(Z^T(rSB+\alpha B))
 \end{align}$$
 
-而 [[Discrete Graph Hashing-2014-NeurIPS]] 的目标函数则为
+而 [[paper-notes/ml/algorithm/zeroshot-hashing/Discrete Graph Hashing-2014-NeurIPS]] 的目标函数则为
 
 $$\begin{align}
 &\max_{B,Z} tr(B^TSB)+\alpha tr(B^TZ)\\
