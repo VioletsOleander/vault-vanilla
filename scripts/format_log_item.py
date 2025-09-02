@@ -1,5 +1,6 @@
 import argparse
 import re
+from pathlib import Path
 
 
 def setup_parser():
@@ -16,13 +17,13 @@ def setup_parser():
     return parser
 
 
-def open_file(file_path):
-    with open(file_path, "r", encoding="utf-8") as f:
+def open_file(file_path: Path):
+    with file_path.open("r", encoding="utf-8") as f:
         return f.readlines()
 
 
-def write_file(file_path, content):
-    with open(file_path, "w", encoding="utf-8") as f:
+def write_file(file_path: Path, content: list[str]):
+    with file_path.open("w", encoding="utf-8") as f:
         f.writelines(content)
 
 
@@ -146,11 +147,11 @@ if __name__ == "__main__":
     parser = setup_parser()
     args = parser.parse_args()
 
-    log_path = "../logs/Personal Log.md"
+    log_path = Path("../logs/Personal Log.md")
     contents = open_file(log_path)
 
     formatted_contents = format_log_item(contents, args.no_confirm)
 
-    store_path = log_path if args.inplace else "../logs/Formatted Personal Log.md"
+    store_path = log_path if args.inplace else Path("../logs/Formatted Personal Log.md")
     write_file(store_path, formatted_contents)
     print(f"Formatted log items saved to {store_path}")

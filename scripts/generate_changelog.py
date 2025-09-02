@@ -1,15 +1,16 @@
 import pprint
 import re
+from pathlib import Path
 
 
-def read_file(file_path: str) -> list[str]:
-    with open(file_path, "r", encoding="utf-8") as f:
+def read_file(file_path: Path) -> list[str]:
+    with file_path.open("r", encoding="utf-8") as f:
         lines = f.readlines()
     return lines
 
 
-def write_file(file_path: str, content: str):
-    with open(file_path, "w", encoding="utf-8") as f:
+def write_file(file_path: Path, content: str):
+    with file_path.open("w", encoding="utf-8") as f:
         f.write(content)
 
 
@@ -21,9 +22,6 @@ def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
     code_item_re = re.compile(r"^- .+")
 
     lines_tree = {section: {} for section in sections}
-
-    curr_section = None
-    curr_item = None
 
     for line in lines:
         # match section header
@@ -83,12 +81,12 @@ def generate_changelog(lines_tree: dict[str, dict[str, list[str]]]) -> str:
 
 
 if __name__ == "__main__":
-    personal_log_path = "../logs/Personal log.md"
-    changelog_path = "../ChangeLog.md"
+    personal_log_path = Path("../logs/Personal log.md")
+    changelog_path = Path("../ChangeLog.md")
 
     lines = read_file(personal_log_path)
     lines_tree = merge(lines)
 
-    changlog = generate_changelog(lines_tree)
-    write_file(changelog_path, changlog)
+    changelog = generate_changelog(lines_tree)
+    write_file(changelog_path, changelog)
     print("ChangeLog.md generated")

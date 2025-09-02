@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 
 def setup_parser():
@@ -9,8 +10,8 @@ def setup_parser():
     return parser
 
 
-def get_content_after_heading(path, heading):
-    with open(path, "r", encoding="utf-8") as file:
+def get_content_after_heading(path: Path, heading: str):
+    with path.open("r", encoding="utf-8") as file:
         lines = file.readlines()
 
     content_lines = []
@@ -31,9 +32,9 @@ if __name__ == "__main__":
     if args.source:
         exit(0)
 
-    path = "D:\\data\\vault-vanilla\\casual-notes\\Commit Message Guide.md"
+    path = Path("D:/data/vault-vanilla/other-notes/Commit Message Guide.md")
     heading = "## Commit Message Guide for Obsidian Vault"
     content_lines = get_content_after_heading(path, heading)
 
-    with open(".git/COMMIT_EDITMSG", "a", encoding="utf-8", newline="\n") as file:
+    with Path(".git/COMMIT_EDITMSG").open("a", encoding="utf-8", newline="\n") as file:
         file.writelines(content_lines)
