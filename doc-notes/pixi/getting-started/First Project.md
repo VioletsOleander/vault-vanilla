@@ -81,7 +81,7 @@ If you want to add them to your project you can do that with the `--pypi` flag
 pixi add --pypi requests
 ```
 
->  `pixi add --pypi` 依赖 PyPI 依赖, pixi 确保不会从 conda, pypi 安装相同的包，并且会避免它们之间的冲突
+>  `pixi add --pypi` 添加 PyPI 依赖, pixi 确保不会从 conda, pypi 安装相同的包，并且会避免它们之间的冲突
 
 This will add the `requests` package from PyPI to the project:
 

@@ -70,7 +70,7 @@ Tokenizers can also implement additional useful features for the users. These ra
 >  tokenizers 也为用户实现了额外的功能，包括在序列分类情况下使用的 token type 索引，以及在考虑模型特定的特殊 tokens 对序列进行阶段处理 (大多数预训练 Transformer 模型有最大序列长度)
 
 For training on very large datasets, Python-based tokenization is often undesirably slow. In the most recent release, Transformers switched its implementation to use a highly-optimized tokenization library by default. This low-level library, available at https://github.com/huggingface/tokenizers, is written in Rust to speed up the tokenization procedure both during training and deployment.
->  `Transformers` 使用的是自定义的该性能 `tokenizers` 库而不是基于 Python 的 tokenization，`tokenizers` 以 Rust 编写
+>  `Transformers` 使用的是自定义的高性能 ` tokenizers ` 库而不是基于 Python 的 tokenization，` tokenizers ` 以 Rust 编写
 
 **Heads** Each Transformer can be paired with one out of several ready-implemented heads with outputs amenable to common types of tasks. These heads are implemented as additional wrapper classes on top of the base class, adding a specific output layer, and optional loss function, on top of the Transformer's contextual embeddings. The full set of implemented heads are shown in Figure 2 (Top). These classes follow a similar naming pattern: XXXForSequenceClassification where XXX is the name of the model and can be used for adaptation (fine-tuning) or pretraining. Some heads, such as conditional generation, support extra functionality like sampling and beam search.
 >  每个 Transformer 模型可以与多个已经实现的 heads 搭配使用
@@ -92,7 +92,7 @@ Figure 1: Average daily unique downloads of the most downloaded pretrained model
 Transformers aims to facilitate easy use and distribution of pretrained models. Inherently this is a community process; a single pretraining run facilitates fine-tuning on many specific tasks. The Model Hub makes it simple for any end-user to access a model for use with their own data. This hub now contains 2,097 user models, both pretrained and fine-tuned, from across the community. Figure 1 shows the increase and distribution of popular transformers over time. While core models like BERT and GPT-2 continue to be popular, other specialized models including DistilBERT (Sanh et al., 2019), which was developed for the library, are now widely downloaded by the community.
 
 The user interface of the Model Hub is designed to be simple and open to the community. To upload a model, any user can sign up for an account and use a command-line interface to produce an archive consisting a tokenizer, transformer, and head. This bundle may be a model trained through the library or converted from a checkpoint of other popular training tools. These models are then stored and given a canonical name which a user can use to download, cache, and run the model either for finetuning or inference in two lines of code. 
->  任意用户都可以注册账户，并使用命令行界面生成一个包含分词器、transfoemre 和 head 的存档文件
+>  任意用户都可以注册账户，并使用命令行界面生成一个包含分词器、transformer 和 head 的存档文件
 >  这个文件可以是通过该库训练的模型，也可以是由其他模型的 checkpoint 转换而，这些被上传的模型会被存储并拥有一个规范的名称
 >  其他用户可以通过两行代码来下载、缓存、运行该模型
 

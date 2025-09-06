@@ -654,7 +654,7 @@ Output
 When you ran the previous command to display the help for the `Get-Help` command, you probably noticed the output scrolled by too quickly to read it.
 
 If you're using the PowerShell console, Windows Terminal, or VS Code and need to view a help article, the `help` function can be useful. It pipes the output of `Get-Help` to `more.com`, displaying one page of help content at a time. I recommend using the `help` function instead of the `Get-Help` cmdlet because it provides a better user experience and it's less to type.
->  `help` 函数会将 `Get-Help` 的输出交给 `more.com`，一次展示一叶内容
+>  `help` 函数会将 `Get-Help` 的输出交给 `more.com`，一次展示一页内容
 >  推荐使用 `help`
 
 Note

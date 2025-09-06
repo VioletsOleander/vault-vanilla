@@ -51,7 +51,7 @@ Each pretrained model inherits from three base classes.
 
 >  每个预训练模型都继承三个基类:
 >  - `PretrainedConfig`: 指定模型属性的文件，例如 attention heads 数量或词袋大小
->  - `PreTraineModel`: 由模型属性定义的模型结构，模型仅返回原始隐藏状态，针对特定任务需要使用特定的 head 将状态转化为有意义的结果，例如 `LlamaModel` + `LlamaForCausalLM`
+>  - `PreTrainedModel`: 由模型属性定义的模型结构，模型仅返回原始隐藏状态，针对特定任务需要使用特定的 head 将状态转化为有意义的结果，例如 `LlamaModel` + `LlamaForCausalLM`
 >  - `Preprocessor`: 将原始输入 (文本、图像、语音、多模态) 转化为模型的数字输入的类，例如 `PretrainedTokenizer` 将文本转化为张量
 
 We recommend using the [AutoClass](https://huggingface.co/docs/transformers/model_doc/auto) API to load models and preprocessors because it automatically infers the appropriate architecture for each task and machine learning framework based on the name or path to the pretrained weights and configuration file.

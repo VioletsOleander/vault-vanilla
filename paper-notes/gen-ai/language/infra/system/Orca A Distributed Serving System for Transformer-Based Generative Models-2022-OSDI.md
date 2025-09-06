@@ -101,7 +101,7 @@ Prior to the Attention operation, there are the layer normalization operation (L
 
 To meet such constraints, service operators often use ML inference serving systems such as Triton Inference Server [7] and TensorFlow Serving [42]. These systems can be seen as an abstraction sitting atop underlying model execution engines such as TensorFlow [6], TVM [14], TensorFlow [8], and many others [44,46], being agnostic to various kinds of ML models, execution engines, and computing hardware. While delegating the role of driving the main mathematical operations to the engines, serving systems are in charge of exposing endpoints that receive inference requests, scheduling executions of the engine, and sending responses to the requests. Accordingly, these systems focus on aspects such as batching the executions [7, 16, 35, 42, 56], selecting an appropriate model from multiple model variants [16,27,30,57], deploying multiple models (each for different inference services) on the same device [7, 29, 35, 56], and so on.
 >  ML inference serving system 会将主要的计算交给 engines，自己负责暴露接收 requests 的端点、调度 engine 的执行、以及返回回复
->   ML inference serving system 聚焦于对 requests 做 batching，选择合适的模型、部署各种模型等等
+>  ML inference serving system 聚焦于对 requests 做 batching，选择合适的模型、部署各种模型等等
 
 Among the features and optimizations provided by serving systems, batching is a key to achieve high accelerator utilization when using accelerators like GPUs. When we run the execution engine with batching enabled, the input tensors from multiple requests coalesce into a single, large input tensor before being fed to the first operation of the model. Since the accelerators prefer large input tensors over small ones to better exploit the vast amount of parallel computation units, the engine's throughput is highly dependent on the batch size, i.e., the number of inference requests the engine processes together. Reusing the model parameters loaded from off-chip memory is another merit in batched execution, especially when the model involves memory-intensive operations.
 >  batching 是提高加速器利用率的关键优化
@@ -257,7 +257,7 @@ Figure 6: An example of intra-and inter-layer parallelism. A vertical dotted lin
 
 ORCA assigns the same number of Transformer layers to each GPU. Figure 6 illustrates an example application of intra-and inter-layer parallelism to a 4-layer GPT model. The 4 layers are split into 2 inter-layer partitions, and the layers in the partition are subdivided into 3 intra-layer partitions. We assign each partition to a GPU, using a total of 6 GPUs.
 >  ORCA 为每个 GPU 分配相同数量的 Transformer layer
->  层内并行和层间并行的一个结合实例如 Figure6 所示，4 个层被划分为两个层间 partition，每个 partitoin 内的层被划分为三个层内 partition
+>  层内并行和层间并行的一个结合实例如 Figure6 所示，4 个层被划分为两个层间 partition，每个 partition 内的层被划分为三个层内 partition
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-08-22/34e13cd9-31e2-42b6-bb35-76c0ba84e79d/4aa6ca5b4b9a09b2f4f012a3fbacc6492c26ac86cdaac3967aa9797efcd0c036.jpg)  
 
@@ -338,7 +338,7 @@ Here,  $n\_ s l o t s$  is a parameter tuned by the ORCA system operator indicat
 
 Unlike the tuning of max_bs that requires quantifying the trade-off between latency and throughput, the ORCA system operator can easily configure  $n\_ slots$  without any experiments. Given a model specification (e.g., hidden size, number of layers, etc.) and degrees of intra-and inter-layer parallelism, ORCA's GPU memory usage mostly depends on  $n\_ slots$ . That is, the operator can simply use the largest possible  $n\_ slots$  under the memory constraint.
 >  `max_bs` 的调节需要在满足延迟和吞吐之间权衡，而 `n_slots` 的调节则相对容易，不需要进行任意实验
->  给定模型规范和层内以及层间的并行度，ORCA 的 GPU 显存用量主要取决于 `n_slots`，也就是说，管理员可以再内存约束下直接使用最大的可能 `n_slots` 值
+>  给定模型规范和层内以及层间的并行度，ORCA 的 GPU 显存用量主要取决于 `n_slots`，也就是说，管理员可以在内存约束下直接使用最大的可能 `n_slots` 值
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-08-22/34e13cd9-31e2-42b6-bb35-76c0ba84e79d/5c7b346124225ac041238092c2de9cbcd6381282733d38e51f28eb2718192610.jpg)  
 
