@@ -1277,32 +1277,47 @@ This is the story of MLIR: how it started, what it changed, and the power strugg
 
 ## MLIR, the Origin Story
 Modern AI systems rely on complex graphs of operations—matrix multiplications, convolutions, attention mechanisms, and more—all strung together into computational pipelines. To optimize and transform these efficiently requires a solid compiler foundation, as discussed in [part 6](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers).
+>  现代 AI 系统依赖于各种操作组成的复杂计算图 - 矩阵乘、卷积、注意力等
+>  这些操作被串联为计算流水线
+>  为了优化和转换这些计算，需要一个坚实的编译器基础
 
 But in 2018, most AI frameworks were reinventing compiler technology—and often doing it poorly. Basic techniques like [**Static Single Assignment (SSA)**](https://en.wikipedia.org/wiki/Static_single-assignment_form) were [missing from many](https://www.tensorflow.org/guide/graph_optimization). Each framework had its own ad-hoc graph system, bolted together with hacks that didn’t scale. The result was a fragmented, inefficient ecosystem, riddled with duplication.
+>  2018 年，大多数 AI 框架都在重新发明编译器技术，并且往往做得不好，像 SSA 这样的基本技术在许多框架中都缺失了
+>  每个框架都有自己的临时图系统，将一些无法拓展的技巧拼凑在一起，结果是一个碎片化、低效的生态系统，充满了冗余
 
 I knew we needed a better approach, so I pulled four like-minded folks into a small room at Google. We spent days white-boarding, sketching out what a modern, scalable compiler infrastructure for AI might look like. Our central question: **Could we build a unified representation that could support every AI framework, every hardware backend, and every kind of optimization—from algebraic simplification to** [**polyhedral analysis**](https://en.wikipedia.org/wiki/Frameworks_supporting_the_polyhedral_model)**?**
+>  MLIR 的核心问题是: 是否可以构建一个统一的**表示方式**，能够支持每个 AI 框架，每一种硬件后端，以及从代数简化到多面体分析的每一种优化
 
 ![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67f6a4f6fa55c1977bc3ef2d_6B932DBF-B757-4307-BE55-CA50E01194A5.png)
 
 Circa 2018: Yours truly and four colleagues gather in front of a whiteboard to brainstorm a next-generation compiler
 
 The breakthrough idea we created is now known as **MLIR dialects**—a way to cleanly separate **domain-specific** concerns from the **core infrastructure** of a compiler. Rather than forcing every user to adopt a rigid, one-size-fits-all intermediate representation (like [LLVM](https://llvm.org/pubs/2002-12-LattnerMSThesis.html) and other compilers), MLIR would let compiler engineers define their own representations—custom ops, types, and semantics—tailored to their domain.
+>  这个想法在现在称为 MLIR 方言 - 一种将领域特定问题与编译器的核心基础设置分离的方法
+>  与强制所有用户采用一个固定的、通用的中间表示，例如 LLVM 不同，MLIR 允许编译器工程师根据自己的领域需求定义自己的表示方式 - 自定义 ops, types, semantics
 
 > _Aside: I’m not diving deep on how MLIR works in this post. If you’re curious, check out the_ [_original technical keynote_](https://llvm.org/devmtg/2019-04/talks.html#Keynote_1) _or one of the_ [_many tutorials online_](https://lowlevelbits.org/compiling-ruby-part-3/)_._
 
 At the time, this was a radical departure from how most compilers were built. Traditional infrastructures were monolithic—forcing all frontends and passes into a single, rigid model. But MLIR embraced **heterogeneity** from day one. It let multiple levels of abstraction coexist, transform, and interoperate seamlessly.
+>  这与大多数编译器的构建方式形成了巨大差异，传统的编译器基础设置是统一化的 - 强迫所有前端和 passes 适应一个固定的模型
+>  MLIR 从设计上拥抱了多样性，它允许多个抽象层次共存、转换，并无缝地相互协作
 
 That modularity was the key. Instead of reimplementing the same infrastructure over and over, MLIR gave developers a shared foundation—whether they were working with TensorFlow graphs, PyTorch IR, or custom TPU ops. It made it possible to build specialized compilers without starting from scratch, and it enabled **true composability** across the AI compiler stack.
+>  这种模块化是关键所在，MLIR 为开发者提供了一个共享的基础 - 无论他们是在处理 TensorFlow 图, PyTorch IR, 自定义 TPU ops
+>  它使得不需要从零开始构建专用编译器，并实现了 AI 编译器栈中真正的可组合性
 
 MLIR wasn’t just another compiler: It was a framework for building **many** compilers.
+>  MLIR 不是另一个编译器，而是一个构建更多编译器的框架
 
 ## MLIR Growth Within Google and Beyond
-
 MLIR began as a research project inside [**Google Brain**](https://research.google.com/teams/brain/) as a focused team trying to rethink how AI compilers should work. My team was heads-down on the fundamentals: designing the IR, implementing transformations, and validating that the core ideas actually worked. Meanwhile, Google’s open culture and MLIR’s modular design made it easy for others to pick it up and experiment. Before long, MLIR took on a life of its own.
 
 Across Google, teams working on **custom ASICs** saw the potential. MLIR gave them a structured way to express and optimize hardware-specific operations. **Application-focused teams** started using it for **mobile AI**, and the **TensorFlow team** brought MLIR into **TensorFlow Lite**. Even individual researchers, fascinated by MLIR’s flexibility, began using it to prototype novel compiler techniques.
+>  MLIR 为 ASIC 提供了一种结构化的方式来表达和优化与硬件相关的操作
+>  TensorFlow 团队将 MLIR 引入了 TensorFlow Lite
 
 What followed was a **mini-explosion** of use cases. Every new application brought fresh feedback, often while we were still deep in iteration mode. Crucially, this validated our dialect-first approach—proving that MLIR could scale across wildly different domains, from edge devices to datacenter accelerators. Eventually, we reached a tipping point: MLIR was becoming a critical piece of infrastructure across many projects.
+>  以方言为核心的方法使得 MLIR 可以在从边缘设备到数据中心加速器等多个不同领域中拓展，MLIR 正成为许多项目中不可或缺的基础架构
 
 Many of us wanted MLIR to reach its full potential—to go beyond Google’s first-party use cases.
 
@@ -1313,66 +1328,87 @@ Above: a well-known meme within the MLIR community (Credit: Mehdi Amini)
 So we took the leap: we **open-sourced MLIR** and [contributed it to the **LLVM Foundation**](https://blog.google/technology/ai/mlir-accelerating-ai-open-source-infrastructure/), making it available for the entire industry. To support adoption, we organized regular “[open design meetings](https://mlir.llvm.org/talks/#open-design-meeting-presentations),” where external contributors could participate in MLIR’s evolution and benefit from the engineering investment behind it. This open collaboration helped catalyze MLIR’s global momentum, especially among compiler developers hungry for a modern infrastructure.
 
 **With this as fuel, MLIR took off:** It is now the [foundation for many major AI projects](https://mlir.llvm.org/users/): [OpenXLA](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers), [Triton](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls), and even parts of CUDA itself. It’s also powering compilers in quantum computing, hardware design ([via CIRCT](https://circt.llvm.org/)), and [many other domains](https://mlir.llvm.org/users/). Companies around the world—from scrappy startups to hyperscalers—started building their next-generation compilers using MLIR. Much of MLIR’s early growth and success was **directly attributable to Google’s leadership and open approach**—something I think the industry still under-appreciates.
+>  MLIR 已经成为许多 AI 项目的基础，例如 OpenXLA, Triton, 以及 CUDA 的部分组件
+>  全球各地的公司开始使用 MLIR 构建下一代编译器，MLIR 早期的增长和成功很大程度上归功于 Google 的领导作用和开放态度
 
 Yet for all that success, the grand vision remained out of reach. The ecosystem is still fractured. CUDA still reigns supreme. The dream of truly democratized AI compute remains just that—a dream.
+>  但生态系统仍然碎片化，CUDA 仍然占据主导地位
 
 So what happened? Why did MLIR succeed _technically_, but fail to break the CUDA lock-in?
 
 To understand that, we need to talk about the **politics, power struggles, and compromises** that shaped MLIR’s evolution.
 
 ## The Race to Claim an End-to-end AI Solution
-
 From the outset, MLIR was conceived as **general-purpose compiler infrastructure**—a framework designed to allow for **domain-specific compilers**. The goal was flexibility and modularity—MLIR was never just about Machine Learning. In fact, the “ML” in MLIR stood for [_everything but Machine Learning_](https://www.youtube.com/watch?si=PV49fAovBS3pkKo8&t=352&v=qzljG6DKgic&feature=youtu.be) (yep, compiler jokes are nerdy!). However, the AI community was hungry for something more. The AI world wanted an **end-to-end compiler**—something that could map TensorFlow or PyTorch models cleanly to a broad range of hardware.
+>  MLIR 最初被设计为一个通用的编译器基础设施 - 一个旨在支持**领域专用编译器**的框架
+>  MLIR 的目的是实现灵活化和模块化，而不仅仅是为了机器学习
+>  然而，AI 社区渴望更强大的编译器，AI 领域需要一个**端到端的**编译器 - 将 TensorFlow 或者 PyTorch 模型干净地映射到各种硬件平台上
 
 ![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67f6a522747a174c82c63a69_6EB9E592-117A-41BB-95C7-33BC7CA0CAA8.png)
 
 The race was on to build the first end-to-end MLIR-based AI solution
 
 As MLIR gained traction, teams inside and outside Google began racing to build an **end-to-end AI solution** on top of it. Other projects—like [OpenXLA](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers), [TritonLang](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls) and many others—adopted MLIR as an implementation detail to strengthen their own stacks. This raised a question: Everyone wanted to be the next-gen AI stack—so who would get there first?
+>  随着 MLIR 影响力扩大，Google 内外的团队开始基于 MLIR 竞相构建端到端的 AI 解决方案，例如 OpenXLA, TritonLang
+>  他们将 MLIR 作为其实现细节，以增强自身的技术栈
 
 The race was on. Years later, we know the unfortunate answer: **nobody**.
+>  问题是，每一个项目都想要成为下一代 AI stack，但没有一个成功
 
 ##### **MLIR’s AI Dialect Explosion**
-
 Contributing MLIR to the [LLVM Foundation](https://foundation.llvm.org/) supercharged adoption. It gave companies a shared foundation—and compiler engineers a chance to prove serious impact inside their organizations. The LLVM Foundation helps with oversight and legal matters, but doesn’t intervene in technical design. For that, the community is left to self-organize.
+>  LLVM 基金会负责监督和法律事务，不会干预技术设计，因此技术上的决策由社区自行组织
 
-Engineers across the industry, led by Google, started contributing **AI-specific dialects**—including [**arith, linalg, and tensor**](https://mlir.llvm.org/docs/Dialects/)—providing some bits and pieces useful for building a modern AI compiler stack. It started with Google research teams who had early access to MLIR—but the precedent was set: many “potentially useful” contributions were upstreamed, with [limited governance](https://mlir.llvm.org/getting_started/DeveloperGuide/#guidelines-on-contributing-a-new-dialect-or-important-components) that allowed project leaders to say “no” in a principled way.
+Engineers across the industry, led by Google, started contributing **AI-specific dialects**—including [**arith, linalg, and tensor**](https://mlir.llvm.org/docs/Dialects/) —providing some bits and pieces useful for building a modern AI compiler stack. It started with Google research teams who had early access to MLIR—but the precedent was set: many “potentially useful” contributions were upstreamed, with [limited governance](https://mlir.llvm.org/getting_started/DeveloperGuide/#guidelines-on-contributing-a-new-dialect-or-important-components) that allowed project leaders to say “no” in a principled way.
+>  行业内的工程师，尤其是 Google，开始贡献针对 AI 的方言，包括了 `arith, linalg, tensor` - 为构建现代 AI 编译器栈提供了部分有用的组件
+>  许多 “可能有用” 的贡献被合并到主分支中，且有限的治理机制允许项目负责人以合理的方式拒绝某些提议
 
 Unfortunately, this explosion happened very early in MLIR’s design, and many design decisions in these dialects weren’t ideal for the evolving requirements of GenAI. For example, much of this early work was directed towards improving TensorFlow and building OpenXLA, so these dialects weren’t designed with first-class PyTorch and GenAI support (as we discussed [earlier in this series](https://www.modular.com/ai-resources/mac)).
+>  这样的快速拓展发生在 MLIR 的早期阶段，这些方言中的许多设计决策并不适合 GenAI 不断变化的需求
+>  例如，早期很多工作都是针对为了改进 TensorFlow 和构建 OpenXLA，因此这些方言并没有专门设计用于支持 PyTorch 和 GenAI
 
 While many of these efforts hit their original goals, the world changed around them.
 
 ## Competitive “Coopetition” Strikes Back
-
 For a variety of reasons, almost all of the early MLIR developers (including myself) moved on from Google, with many of them ending up at hardware companies.  This spread of MLIR knowledge was a positive outcome—it meant that the technology would grow far and wide—but it also brought new challenges.
 
 The problem? MLIR’s success scattered its core developers across the industry. Former **allies and colleagues**—now at competing companies—began building proprietary AI stacks on top of shared MLIR dialects. What began as open collaboration soon collided with commercial competition. With a lack of central coordination, **communication between these teams broke down**. Competing priorities created tension, and the once-unified vision for MLIR began to splinter.
+>  MLIR 的核心开发者现在分散到了整个行业，原本的开放合作与商业竞争发生了冲突
 
 ![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67f6a964522a7c4881e1a1b2_4A67E5F5-1758-4AB7-BB8D-EA23AD89F0E1.png)
 
 MLIR's identity crisis: Machine learning solution or compiler framework?
 
 MLIR now faces is an identity crisis: Is it a general-purpose compiler framework for any domain—or an AI solution? Today, it remains unmatched as **general-purpose, reusable infrastructure**, powering everything from hardware design to quantum computing. On the other hand, the built-in AI-related dialects are contested and incomplete—but still critical to many open and proprietary downstream stacks.
+>  MLIR 如今面临身份危机: 它是一个适用于任何领域的通用编译器框架，还是一种 AI 解决方案？
 
 It started to feel **a lot like** [**OpenCL all over again**](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives): no reference stack, competing hardware vendors, and a _very polite_ battlefield—just like the old Khronos committee.
+>  这开始让人感觉像又一次的 OpenCL: 没有参考栈、竞争的硬件供应商、以及一个非常礼貌的战场，就像过去的 Khronos 委员会一样
 
 ##### **A New Hope: Improved MLIR Governance**
-
 The tensions have simmered for years—and they're deeply felt across the broader LLVM and MLIR communities.
+>  这种紧张的关系已经持续了多年
 
 Fortunately, **there’s a new hope**: LLVM is a meritocratic community with a long track record of aligning engineers—even when their companies are at war in the market. The MLIR community is filled with amazing engineers who have poured years of their hearts and souls into improving the project to work through these challenges, and progress is now happening!
 
 MLIR now has a new [Area Team](https://discourse.llvm.org/t/llvm-area-team-election-results/84601) to help guide its evolution, along with a [new organizational structure and charter](https://discourse.llvm.org/t/mlir-organization-charter/84118) and [governance group](https://mlir.llvm.org/governance/). The charter defines separate area groups: MLIR Core (the domain-independent infrastructure), and the dialects (like the machine learning-specific pieces).  I am extremely thankful to everyone who is spending time to improve MLIR and work through these issues—such work has a profound impact on everyone building into the ecosystem as well as the downstream users.
+>  MLIR 现在有了一个新的 Area Team 来指导其进展，同时还有一套新的组织结构和章程以及治理小组
+>  章程定义了不同领域的小组: MLIR Core (领域无关的基础架构)、各种方案 (例如特定于机器学习的部分)
 
 If I could have one wish, it would be for ”MLIR” to unambiguously refer to the domain-independent compiler infrastructure, and for these dialects to get a new, different name (perhaps “TensorIR”?). This would reduce confusion about **what “MLIR” actually is**!
+>  笔者希望 MLIR 能够明确地指代与领域无关的编译器基础设施，而方言则获得具体的名称
 
 ## Lessons learned from MLIR
-
 The biggest lesson I learned from MLIR is how **scaling too early**—before the core foundations are fully settled—can cause lasting problems. The early explosion of interest and contribution was exciting, but it also meant that many design decisions were made in parallel, without clear guidance or alignment. We got “many things fast” at the expense of getting “something great at each level,” and then fell prey to [Hyrum's Law](https://peterm.hashnode.dev/hyrums-law).
+>  MLIR 最大的教训就是过早地拓展 - 在核心基础尚未完全确定之前 - 会导致长期的问题
+>  早期的贡献和兴趣激增意味着许多设计决策是在缺乏明确指导和协调的情况下并行做出的
+>  我们以牺牲 “每个层面都做到极致” 为代价，快速实现了 “很多东西”，随后陷入了 Hyrum 定律的困境
 
 This also reinforced a **management lesson** I’ve learned in other places: when you have too many smart engineers running ahead in different directions, it’s hard to steer the ship later—even if the ship is made of beautifully designed IR. In this case, while I remain influential in the LLVM/MLIR community, I learned that influence is no match for the paycheck from an employer, which guides a contributor to get their work into the tree so they can move on to the next bug fix or project.
+>  这也是一个管理上的教训: 当太多聪明的工程师朝着不同方向前进时，后期很难再掌控方向
 
 Another lesson is about **infrastructure with ambition**. My goal for MLIR was to unify compiler implementations—and it succeeded beyond my hopes. But I also encouraged and catalyzed others to aim beyond that, fueled by a shared optimism that community-led projects could move the world forward. That didn’t work out, and it reinforced a lesson of mine seen across other industry-impactful projects I’ve helped build—LLVM, Clang, Swift, and “MLIR Core.” I learned, more than ever, that small teams are best at aligning on a vision of success and driving it forward. Only once a project’s identity is firmly established does it make sense to scale it to a broader community.
+>  另一个教训是关于有抱负的基础架构，小团队更适合在成功愿景上达成一致并推动其前进，只有在项目身份得到牢固确立之后，才值得将其拓展到更广泛的社区
 
 ![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67f6a56760994aeaf994beb1_494D2B28-76E8-4196-A239-E1A724E339D0.png)
 
@@ -1383,18 +1419,23 @@ As with the tradition of my last [three](https://www.modular.com/blog/democrati
 - **“Provide a reference implementation”:** While MLIR is excellent for general-purpose compiler infrastructure, it does not include an end-to-end solution that can be used directly for AI workloads, just useful building blocks with “some assembly required”. 👎
 - “**Have** **strong leadership and vision”:** MLIR AI dialects lacked clear leadership early on, with contributions often driven by individuals or different teams, resulting in fragmented direction and confusion over its core identity. While strong leadership is emerging, it remains unresolved. 👎
 - **“Run with top performance on the industry leader’s hardware”**: While _MLIR Core_ provides a strong foundation for optimization, I’m not aware of any downstream implementations built on the _MLIR AI Dialects_ that match CUDA’s performance for GenAI LLMs on NVIDIA GPUs (including [Triton](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls) or [cuTile](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls) that leave 15-20% performance on the table). 👎
+>  虽然 MLIR Core 为优化提供了坚实的基础，但尚未有任何基于 MLIR AI 方言的实现能够在 NVIDIA GPU 上达到 CUDA 的性能，包括 Triton, cuTile
+
 - **“Evolve rapidly”:** MLIR’s pace of evolution has been impressive, with contributions flooding in from a broad community. The flexibility of its design has allowed for rapid adaptation to new use cases and domains. 👍
 - **“Cultivate developer love”:** MLIR has certainly won the hearts of compiler engineers and system researchers, offering a flexible and powerful toolkit for building custom compilers. 👍  However, AI developers, especially those in the machine learning community, have found the learning curve steep and the integration with existing ML frameworks to be less seamless. 👎
 - **“Build an open community”:** MLIR has built a truly open and thriving community. Regular design meetings, open contributions, and cross-company collaboration have helped it gain broad adoption and investment from many industry players.👍👍
 - **“Avoid fragmentation”:** This is where MLIR has struggled the most. The early explosion of dialects and contributions, combined with a lack of strong central governance, led to fragmentation in downstream systems. The vision for a unified approach to AI compilation was difficult to maintain as competing projects moved in different directions.👎👎👎
+>  MLIR 最挣扎的地方就是碎片化，早期方言和贡献的爆炸式增长，加上缺乏强有力的中央治理，导致了下游系统的碎片化
 
 Ultimately, as we discussed before, this is a **wildly unfair way to measure “MLIR core”** as a compiler building toolkit—MLIR is widely used by [dozens of systems](https://mlir.llvm.org/users/) and has certainly succeeded in its original mission. The success of MLIR’s AI dialects is best measured through its impact on the countless downstream AI implementations that it gets utilized in—I’m just not sure how to do that.
 
 ## Why do HW companies struggle to build AI software?
-
 At this point in the series, a pattern has emerged: whether it’s [OpenCL/OneAPI](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives), [TVM/XLA](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers), MLIR, or some other well-meaning acronym, we’ve seen powerful attempts to build unifying AI infrastructure—but none have delivered a solution that developers _love_. Projects fragment, promises fade, and users of alternate hardware are left with tools that don’t “just work”.
+>  目前为止，这个系列中已经出现了一个模式: 无论是 OpenCL/OneAPI, TVM/XLA, MLIR，我们都看到了构建统一 AI 基础设施的有利尝试，但没有一个真正让开发者喜爱
+>  项目逐渐碎片化，承诺逐渐消失，使用其他硬件的用户最终只能得到那些 “无法直接使用” 的工具
 
-The hard truth is this: **only one company has ever truly figured this out, and that’s NVIDIA**. CUDA [isn’t just infrastructure—it’s a strategy](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed), backed by tight vertical integration, application engineers on the ground, and a relentless focus on real-world performance. It’s [not open and it’s not pretty](https://www.modular.com/blog/democratizing-ai-compute-part-4-cuda-is-the-incumbent-but-is-it-any-good)—but it works great for NVIDIA, even if [the innovator’s dilemma](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma) is alive and well in Santa Clara.
+The hard truth is this: **only one company has ever truly figured this out, and that’s NVIDIA**. CUDA [isn’t just infrastructure—it’s a strategy](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed), backed by tight vertical integration, application engineers on the ground, and a relentless focus on real-world performance. It’s [not open and it’s not pretty](https://www.modular.com/blog/democratizing-ai-compute-part-4-cuda-is-the-incumbent-but-is-it-any-good) —but it works great for NVIDIA, even if [the innovator’s dilemma](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma) is alive and well in Santa Clara.
+>  现实是真正解决这个问题的公司只有 NVIDIA, CUDA 不仅仅是基础设施，更是一种战略，依托于紧密的垂直整合、现场的应用工程师，以及对实际性能的不懈追求
 
 _So, why can’t other hardware companies pull this off?_ Why do the industry’s smartest people, backed by billions in funding, keep producing software no one _wants_ to use? When you’re competing against an entrenched, vertically integrated leader, the deck is stacked against you—and the incentives of the industry and the organizations within it shape the outcome:
 
@@ -1402,5 +1443,600 @@ _So, why can’t other hardware companies pull this off?_ Why do the industry�
 > – Charlie Munger
 
 We’ll dive deeper into that next time—and until then, let no dialect go uncanonicalized! 🛠
+
+-Chris
+
+# 9 Why do HW companies struggle to build AI software?
+Site: https://www.modular.com/blog/democratizing-ai-compute-part-9-why-do-hw-companies-struggle-to-build-ai-software
+Date: 22 April, 2025
+
+From the launch of ChatGPT in 2023, GenAI reshaped the tech industry—but GPUs didn’t suddenly appear overnight. Hardware companies have spent billions on AI chips for over a decade. Dozens of architectures. Countless engineering hours. And yet—**still**—NVIDIA dominates.
+>  自 ChatGPT 的发布开始，GenAI 重塑了科技行业
+>  硬件公司已经在 AI 芯片上持续投入了数十亿美元，持续了十多年，数十种架构，无数的工程时间，然而 NVIDIA 仍然占据主导地位
+
+**Why?**
+Because CUDA is more than an SDK. It’s a fortress of developer experience [designed to lock you in—and a business strategy](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed) engineered to keep competitors perpetually two years behind. It’s [not beloved](https://www.modular.com/blog/democratizing-ai-compute-part-4-cuda-is-the-incumbent-but-is-it-any-good). It’s not elegant. But it works, and [nothing else comes close](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed).
+>  原因在于 CUDA 不仅仅是一个 SDK，它是一个开发者体验的堡垒，旨在让你陷入其中，并且是一种商业策略，旨在让竞争对手始终落后两年
+>  它不优雅，但它有效，而且没有其他东西能接近它
+
+We’ve spent this series tracing the rise and fall of hopeful alternatives— [OpenCL and SyCL](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives), [TVM and XLA](https://www.modular.com/blog/democratizing-ai-compute-part-8-what-about-the-mlir-compiler-infrastructure), [Triton](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls), [MLIR](https://www.modular.com/blog/democratizing-ai-compute-part-8-what-about-the-mlir-compiler-infrastructure), and others. The pattern is clear: bold technical ambitions, early excitement, and eventual fragmentation. Meanwhile, the CUDA moat grows deeper.
+>  我们已经讨论了有希望的替代方案的兴衰 - OpenCL, SyCL, TVM, XLA, Triton, MLIR 等等
+>  模式很明显: 大胆的技术雄心、早期的人情、以及最终的碎片化
+
+The trillion-dollar question that keeps hardware leaders awake at night is: **Given the massive opportunity—and developers desperate for alternatives—why can't we break free?**
+
+The answer isn’t incompetence. Hardware companies are filled with brilliant engineers and seasoned execs. The problem is structural: misaligned incentives, conflicting priorities, and an underestimation of just how much software investment is required to play in this arena. You don’t just need a chip. You need a platform. And building a platform means making hard, unpopular, long-term bets—without the guarantee that anyone will care.
+>  无法出现替代方案的原因是结构性的: 激励措施不一致、优先级冲突、以及低估了在这个领域竞争所需的软件投资
+>  你不仅仅需要一块芯片，你需要一个平台，而构建一个平台意味着做出艰难的、不受欢迎、长期的赌注 - 而且没有任何保证会有人在意
+
+In this post, we'll reveal the invisible matrix of constraints that hardware companies operate within—a system that makes building competitive AI software nearly impossible by design.
+>  本文中，我们将揭示硬件公司所处的隐形约束体系 - 这是一个使得构建有竞争力的 AI 软件几乎不可能的系统
+
+## My career in HW / SW co-design
+I live and breathe innovative hardware. I read _SemiAnalysis_, _EE Times_, _Ars Technica_—anything I can get my hands on about the chips, stacks, and systems shaping the future. Over decades, I’ve fallen in love with the intricate dance of hardware/software co-design: when it works, it’s magic. When it doesn’t… well, that’s what this whole series is about.
+
+A few of my learnings:
+
+- My first real job in tech was at **Intel**, helping optimize launch titles for [the Pentium MMX](https://en.wikipedia.org/wiki/Pentium_\(original\)#P55C) —the first PC processor with SIMD instructions. There I learned the crucial lesson: without optimized software, a revolutionary silicon speedboat won’t get up to speed.  That early taste of hardware/software interplay stuck with me.
+>  笔者的第一份真正的工作是在 Intel，帮助优化奔腾 MMX 处理器的首发，这是首款具备 SIMD 指令的 PC 处理器
+>  在那里学习到的一个关键教训是: **如果没有经过优化的软件，即便是最具革命性的芯片也无法发挥其潜力**，这种早期对软硬件协作的理解一直伴随着笔者
+
+- At **Apple**, I built the compiler infrastructure enabling a transition to in-house silicon. Apple taught me that true hardware/software integration requires extraordinary organizational discipline—it succeeded because instead of settling for a compromise, the teams shared a unified vision that no business unit can override.
+>  在 Apple，笔者构建了编译器基础设施，以支持向自研芯片的过渡
+>  笔者认识到真正的软硬件整合需要以非凡的组织纪律性 - 它之所以成功，是因为团队没有选择妥协，而是共享了一个统一的愿景，没有任何业务部门可以凌驾于这个愿景之上
+
+- At **Google**, I scaled the TPU software stack alongside the hardware and AI research teams. With seemingly unlimited resources and tight HW/SW co-design, we used workload knowledge to deliver the power of specialized silicon — an incredible custom AI racing yacht.
+- At **SiFive**, I switched perspectives entirely—leading engineering at a hardware company taught me the hard truths about hardware business models and organizational values.
+
+Across all these experiences, one thing became clear: **software and hardware teams speak different languages**, move at different speeds, and measure success in different ways.  But there's something deeper at work—I came to see an invisible matrix of constraints that shapes how hardware companies approach software, and explain why software teams struggle with AI software in particular.
+>  在所有这些经验中，有一件事变得越来越清晰: 软件和硬件团队使用不同的语言，以不同的速度前进，以不同的方式衡量成功
+>  还有更深层次的东西在起作用 - 笔者逐渐意识到这是一种隐形的约束体系，它影响着硬件公司如何对待软件，并解释了为什么软件团队会在 AI 软件上挣扎
+
+Before we go further, let's step into the mindset of a hardware executive—where the matrix of constraints begins to reveal itself.
+>  在继续之前，让我们先进入硬件高管的思维模式 - 在这里，这个约束体系开始显现出来
+
+## How AI hardware companies think
+There’s no shortage of brilliant minds in hardware companies. The problem isn’t IQ—it’s worldview.
+>  硬件公司并不缺乏聪明的人才，问题不在于智商，而在于世界观
+
+The architectural ingredients for AI chips are well understood by now: systolic arrays, TensorCores, mixed-precision compute, exotic memory hierarchies. Building chips remains brutally hard, but it's no longer the bottleneck for scalable success. The real challenge is getting anyone to _use_ your silicon—and that means software.
+>  如今，AI 芯片的要素已经广为人知: 阵列结构，TensorCores，混合精度计算，复杂的内存层次结构
+>  制造芯片仍然非常困难，但已经不再是实现可拓展成功的主要瓶颈
+>  真正的挑战是让任何人使用你的芯片 - 而这意味着使用软件
+
+GenAI workloads evolve at breakneck speed. Hardware companies need to design for what developers will need **two years from now**, not just what's hot today. But they're stuck in a mental model that doesn't match reality—trying to **race in open waters** with a culture designed for land.
+>  GenAI 的 workload 以惊人的速度演变，硬件公司需要为开发者两年后的需求进行设计，而不仅仅是应对当下的热门技术
+>  但他们却困在一种与现实不符的思维模式中 - 就像使用为陆地设计的文化去在开放水域中竞速
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67ffc6013fce349d79592fc7_LLVM.jpg)
+
+Fun Fact: LLVM's mascot is a wyvern, sort of like a dragon with no claws in front.
+
+**In the CPU era, software was simpler**: build a backend for LLVM and your chip inherited an ecosystem—Linux, browsers, compiled applications all worked. AI has no such luxury. There's no central compiler or OS. You're building for a chaotic, fast-moving stack—PyTorch, vLLM, today’s agent framework of the week—while your customers are using NVIDIA's tools. You're expected to make it all _feel native_, to _just work_, for AI engineers who neither understand your chip nor want to.
+>  在 CPU 时代，软件要简单得多: 只要**为 LLVM 构建一个后端**，你的芯片就能继承一整个生态系统 - Linux, 浏览器, 编译后的应用程序都能正常运行
+>  但 AI 没有这样的便利，没有中心的编译器或 OS
+>  我们是在为一个混乱且快速演变的堆栈上开发 - PyTorch, vLLM - 而我们的客户正在使用 NVIDIA 的工具
+>  我们被期望让一切看起来原生并且能够工作，因为 AI 工程师既不了解你的芯片，也不愿意去了解
+
+Despite this, **the chip is still the product**—and the P&L makes that crystal clear. Software, docs, tooling, community? Treated like overhead. This is the first constraint of the matrix: **hardware companies are structurally incapable of seeing a software ecosystem as a standalone product**. Execs optimize for capex, BOM cost, and tapeout timelines. Software gets some budget, but it’s never enough—especially as AI software demands scale up. The result is a **demo-driven** culture: launch the chip, write a few kernels, run some benchmarks, and build a flashy keynote that proves your FLOPS are real.
+>  尽管如此，芯片仍然是产品 - 利润和损失表清楚地说明了这一点
+>  软件、文档、工具、社区？这些都视为成本
+>  这是矩阵中的第一个约束: 硬件公司在结构上无法将软件生态系统视为一个独立的产品
+>  高管们关注的是资本支出，BOM 成本和流片时间表，软件获得了一些预算，但永远不够 - 尤其是 AI 软件需要大规模扩展的情况下
+>  结果就是一种演示驱动的文化: 发布芯片，写几个 kernel，跑几个测试，然后做一个炫酷的发布会，证明你的 FLOPS 确实有效
+
+The result is painfully familiar: a technically impressive chip with software no one wants to use. The software team promises improvement next cycle. But they said that last time too. This isn't about individual failure—it's about systemic misalignment of incentives and resources in an industry structured around silicon, not ecosystems.
+>  结果是令人痛苦的熟悉: 一款技术上让人印象深刻但没人想用的芯片
+>  软件团队承诺下个周期会改进，但他们上次也这么说，这不是个人失败的问题，而是**整个行业围绕硅片而非生态系统的激励和资源系统性错配的结果**
+
+## Why is GenAI software so hard and expensive to build?
+Building GenAI software isn’t just hard—it’s a treadmill pointed uphill, on a mountain that’s constantly shifting beneath your feet. It’s less an engineering challenge than a perfect storm of fragmentation, evolving research, and brutal expectations—each components of the matrix.
+>  构建 GenAI 软件不仅仅困难 - 它就像在一个向上倾斜的跑步机上奔跑，而你脚下的山峰却在不断移动
+>  这与其说是一个工程挑战，不如说是一场由碎片化、不断演进的研究和严苛期望组成的风暴 - 这些都是矩阵中的组成部分
+
+##### **🏃The treadmill of fragmented AI research innovation**
+AI workloads aren’t static—they’re a constantly mutating zoo. One week it’s Transformers; the next it’s diffusion, MoEs, or LLM agents. Then comes a new quantization trick, a better optimizer, or some obscure operator that a research team insists must run at max performance _right now_.
+>  AI workload 不是静态的 - 他们是不断变化的
+>  这一周是 Transformers，下一周是 diffusion, MoEs, LLM agents，然后又会出现一种新的量化技巧、更好的优化器
+
+It is well known that you **must innovate in hardware to differentiate**, but often forgotten that every hardware innovation multiplies your software burden against a moving target of use cases.  Each hardware innovation demands that software engineers deeply understand it—while also understanding the rapidly moving AI research and how to connect the two together.
+>  众所周知，你必须在硬件上进行创新以**实现差异化**，但常常被遗忘的是，每一次硬件创新都会使你的软件负担乘以一个不断变化的使用场景目标
+>  每项硬件创新都**要求软件工程师深入理解它 - 同时还要理解快速演进的 AI 研究，并将两者结合起来**
+
+The result? You’re not building a “stack”—you’re building a **cross product** of models × quantization formats × batch sizes × inference/training × cloud/edge × framework-of-the-week.
+>  结果就是你不是在构建一个栈，而是在构建一个***模型 x 量化格式 x 批次大小 x 推理/训练 x 公有云/边缘计算 x 每周热门框架的交叉乘积*** 
+
+It's combinatorially explosive, which is why no one but NVIDIA can keep up. You end up with ecosystem maps that look like this:
+>  这是组合爆炸的，这也是为什么只有 NVIDIA 能够跟上节奏，最终，你会得到这样的生态系统地图:
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67fe6dc0761d451881406e3c_Screenshot%202025-04-12%20at%209.58.14%E2%80%AFPM.png)
+
+Compatibility matrix highlighting the complexity of vLLM. Source: [vLLM](https://docs.vllm.ai/en/stable/features/quantization/supported_hardware.html)
+
+##### **🌍 You're competing with an industry, not just CUDA**
+The real problem isn't just CUDA—it's that **the entire AI ecosystem writes software for NVIDIA hardware**. Every framework, paper, and library is tuned for their latest TensorCores. Every optimization is implemented there first. This is the compounding loop explored in [Part 3: CUDA is a software gravity](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed#cycles) well that bends the industry’s efforts toward NVIDIA’s hardware.
+>  真正的问题不仅仅是 CUDA - 而是整个 AI 生态系统都在为 NVIDIA 硬件编写软件
+>  每一个新框架、论文和库都针对 TensorCores 设计，每一种优化都是首先在 NVIDIA 上实现的，这就是我们在 “CUDA 是一种软件引力” 探讨过的复合循环，它很好的将整个行业努力的方向弯曲向 NVIDIA 的硬件
+
+For alternative hardware, compatibility isn't enough—you have to **outcompete** a global open-source army optimizing for NVIDIA's chips. First you have to “run” the workload, but then it has to be _better_ than the HW+SW combo they’re already using.
+>  对于替代性硬件来说，兼容性是不够的 - 你必须击败一支全球范围内的，为 NVIDIA 芯片进行优化的开源团队
+>  首先，你必须让 workload 跑起来，但之后你还要让他们比目前使用的硬件 + 软件组合更好
+
+##### **🥊 The software team is always outnumbered**
+No matter how many software engineers you have, it’s never enough to get ahead of the juggernaut - no matter how brilliant and committed, they’re just totally outmatched. Their inboxes are full of customer escalations, internal feature requests, and desperate pleas for benchmarks. They're fighting fires instead of building tools to prevent future fires, and they’re exhausted. Each major success just makes it clear how much more there is left to be done.
+>  无论你有多少软件工程师，都无法跟上 NVIDIA 的节奏 - 不管他们多么聪明和投入，他们始终处于劣势
+>  他们的邮箱里都是客户的紧急问题、内部的功能请求、以及迫切的基准测试需求
+>  他们只能疲于救火，而不是构建预防未来问题的工具
+>  每一次的重大成功只能让他们更加清楚地人时代还有多少工作尚未完成
+
+They have many ideas—they want to invest in infrastructure, build long-term abstractions, define the company’s software philosophy. But they can’t, because they can’t stop working on the current-gen chip long enough to prepare for the next one.  Meanwhile, …
+>  他们有很多想法 - 他们希望投资基础设施，构建长期的抽象层，定义公司的软件哲学
+>  但他们做不到，他们在当前芯片上的研发忙得不可开交，腾不出时间来为下一代产品做准备
+
+##### **💰The business always “chases the whale”**
+When a massive account shows up with cash and specific requirements, the business says yes. Those customers have leverage, and chasing them always makes short-term sense.
+
+But there’s a high cost: Every whale you reel in pulls the team further away from building a scalable platform. There’s no time to invest in a **scalable torso-and-tail strategy** that might unlock dozens of smaller customers later. Instead of becoming a product company, your software team is forced to operate like a consulting shop.
+>  每吸引一个大客户，团队就离构建可拓展平台的目标更远，没有时间去投资一个可拓展的 “躯干和尾部” 策略，即便这种策略可能会在未来解锁数十个小型客户
+>  结果是，你的软件团队被迫像咨询公司一样运营，而不是成为一家产品公司
+
+It starts innocently, but soon your engineers implement hacks, forks, half-integrations that make one thing fast but break five others. Eventually, your software stack becomes a haunted forest of tech debt and tribal knowledge. It’s impossible to debug, painful to extend, and barely documented—who had time to write docs? And what do we do when the engineer who understood it just left?
+>  最开始看起来无害，但是很快，工程师就会实施各种 hack 手段，让某项功能变得很快，却破坏了其他的功能
+>  最终，软件栈会变成一个充满技术债务和部落知识的 “鬼森林”，它难以调试，拓展起来痛苦不堪，几乎没有任何文档 - 谁还有时间写文档呢？
+>  而当唯一一个理解它的工程师离开后，我们该怎么办？
+
+## Challenges getting ahead in the hardware regatta
+These aren't isolated problems—they're the universal reality of building GenAI software. The race isn't a sprint—it's a [regatta](https://en.wikipedia.org/wiki/Boat_racing): chaotic, unpredictable, and shaped as much by weather as by engineering. Everyone's crossing the same sea, but in radically different boats.
+>  这些不是孤立的问题 - 他们是现在构建 GenAI 软件的普遍现状
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/67ffc6f8e0264ecef87e0bf6_Boat.jpg)
+
+##### **🚤 Speedboats: Startups aim for benchmarks, not generality or usability**
+Startups are in survival mode. Their goal is to prove the silicon works, that it goes fast, and that someone—anyone—might buy it. That means picking a few benchmark workloads and making them fly, using whatever hacks or contortions it takes. Generality and usability don’t matter—The only thing that matters is showing that the chip is real and competitive _today_. You’re not building a software stack. You’re building a pitch deck.
+>  初创公司正处于生存模式，他们的目标是证明芯片有效、运行速度块，并且有人 - 任何人 - 可能会购买它们
+>  这意味着选择几个 benchmark workloads 并让它们快速运行，不管使用什么技巧或手段
+>  通用性和易用性并不重要 - 唯一重要的是在今天证明芯片是真实的并且具有竞争力的
+>  你不是在构建一个软件栈，而是制作一份演示文稿
+
+##### **⛵ Custom Racing Yachts: Single-chip companies build vertical stacks**
+The [Mag7](https://en.wikipedia.org/wiki/Big_Tech#Magnificent_Seven) and advanced startups take a different tack. They build [TPU racing yachts](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers#xla) to win specific races with custom designs. They can be fast and beautiful—but only with their trained crew, their instruction manual, and often their own models. Because these chips leave GPU assumptions behind, they must build bespoke software stacks from scratch.
+
+They own the entire stack because they have to. The result? More fragmentation for AI engineers. Betting on one of these chips means theoretical FLOPS at a discount—but sacrificing momentum from the NVIDIA ecosystem. The most promising strategy for these companies is locking in a few large customers: frontier labs or sovereign clouds hungry for FLOPS without the NVIDIA tax.
+
+##### **🛳️ Ocean Liners: Giants struggle with legacy and scale**
+Then come the giants: Intel, AMD, Apple, Qualcomm—companies with decades of silicon experience and sprawling portfolios: CPUs, GPUs, NPUs, even FPGAs. They’ve shipped billions of units. But that scale brings a problem: divided software teams stretched across too many codebases, too many priorities. Their customers can’t keep track of all the software and versions—where to start?
+>  巨头们拥有数十年的芯片经验，产品组合庞大
+>  它们已经交付了数十亿个单元，但这种规模也带来了问题: 软件团队被分散在太多代码库和优先级之间，客户无法跟上所有的软件版本和细节
+
+One tempting approach is to just embrace CUDA with a translator. It gets you “compatibility,” but never great performance. Modern CUDA kernels are written for Hopper’s TensorCores, TMA, and memory hierarchy. Translating them to your architecture won’t make your hardware shine.
+>  一种有吸引力的方法是直接采用 CUDA，并配上一个翻译器
+>  这能带来兼容性，但永远无法实现出色的性能，现代的 CUDA kernel 是为 Hopper TensorCores, TMV 和内存层次结构设计的，将它们翻译到你的架构上，不会让你的硬件表现出色
+
+Sadly, the best-case outcome at this scale is **OneAPI from Intel**—open, portable, and community-governed, but lacking momentum or soul. It hasn’t gained traction in GenAI for [the same reasons OpenCL didn’t](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives#evolving-needs): it was designed for a previous generation of GPU workload, and AI moved too fast for it to keep up. Being open only helps if you also keep up.
+>  在这种规模下，最好的结果是 Intel OneAPI - 开发，可移植，有社区管理，但缺乏动力或灵魂
+>  它在 GenAI 时代没有获得普及，原因和 OpenCL 当年一样: 它最初是为上一代 GPU workload 设计的，而 AI 的发展速度太快，它跟不上，只有开放是不够的，还需要跟上时代的脚步
+
+##### **🚢 NVIDIA: The carrier that commands the race**
+NVIDIA is the aircraft carrier in the lead: colossal, coordinated, and surrounded by supply ships, fighter jets, and satellite comms. While others struggle to build software for one chip, NVIDIA launches torpedos at anyone who might get ahead. While others optimize for a benchmark, the _world_ optimizes for NVIDIA. The weather changes to match their runway.
+>  当其他人在努力为一款芯片开发软件时，NVIDIA 却向可能超过它的任何人发起攻击
+>  当其他人在优化 benchmark 时，整个世界为 NVIDIA 优化
+
+If you’re in the regatta, you’re sailing into their wake. The question isn’t whether you’re making progress—it’s whether the gap is closing or getting wider.
+
+## Breaking out of the matrix
+At this point in “Democratizing AI Compute”, we’ve mapped the landscape. CUDA isn't dominant by accident—it’s the result of [relentless investment, platform control, and market feedback loops](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed#cycles) that others simply can’t replicate. Billions have been poured into alternatives: vertically-integrated stacks from Mag7 companies, open platforms from industry giants, and innovative approaches from hungry startups. None have cracked it.
+>  我们已经描绘了整个格局，CUDA 并非偶然占据主导地位 - 它是持续的投入、平台控制、市场反馈循环的结果，而这是其他公司无法复制的
+>  数十亿美元被投入到替代方案中，但仍未有人成功
+
+But we’re no longer lost in the fog. We can [see the matrix](https://en.wikipedia.org/wiki/The_Matrix) now: how these dynamics work, where the traps lie, why even the most brilliant software teams can't get ahead at hardware companies. The question is no longer _why_ we’re stuck: It’s whether we can break free.
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/6807b373523be178387eebe7_spoon-lg.gif)
+
+> **Child:** "Do not try and bend the spoon. That's impossible. Instead... only try to realize the truth."
+
+> **Neo:** "What truth?"
+
+> **Child:** "**There is no spoon.** Then you'll see that it is not the spoon that bends, it is only yourself."
+
+If we want to Democratize AI Compute, someone has to challenge the assumptions we’ve all been working within. The path forward isn't incremental improvement—it's changing the rules of the game entirely.
+>  如果我们想要民主化 AI 计算，需要有人挑战我们一直以来遵循的假设
+>  前进的道路不是渐进式的改变 - 需要彻底改变游戏规则
+
+Let's explore that together in part 10.
+
+-Chris
+
+# 10 Modular’s bet to break out of the Matrix 
+Site: https://www.modular.com/blog/modulars-bet-to-break-out-of-the-matrix-democratizing-ai-compute-part-10
+Date: 8 May, 2025
+
+Over the course of this series, we’ve seen just how hard it is to break free from the matrix of constraints imposed by the status quo. Everyone wants a solution—developers, startups, hardware vendors—but nothing sticks. Promising efforts flame out. Clever hacks don’t scale. The pace of GenAI accelerates, while **Moore’s Law** fades and the stack only gets heavier.
+>  我们已经看到了，要摆脱由现状施加的限制矩阵有多难，每个人都想要一个解决方案 - 开发者、初创公司、硬件供应商 - 但似乎什么都无法持久
+
+While AI has unbounded optimism and hype, it also has problems - the purpose of this series is to shine a light on the complexities and challenges of AI infrastructure.  It’s with this experience, plenty of scars, and a bit of bull-headedness that we finally said: enough. If we want a different outcome, we have to try a different approach.
+
+That’s why Tim and I started Modular. Not because CUDA is evil—it isn’t. CUDA earned its place with brilliant engineering and relentless execution. The truth is, most people are frustrated with CUDA **because it won,** **the stakes are so high, and they yearn for something better.**
+
+After two decades, the cracks are showing. CUDA—and the cathedral of software built atop it—have grown brittle. Complexity compounds. Innovation slows. What started as an accelerator is now a constraint. The real problem isn’t CUDA itself: [**it’s the complexity it drove into the AI software stack**](https://www.youtube.com/watch?v=pdJQ8iVTwj8&t=3884s) —a weight we all carry.
+>  经历 20 年的法阵，裂痕已经显现，CUDA - 以及建立在它之上的庞大软件体系 - 正在变得脆弱
+>  复杂性不断累积，创新速度放缓，最初作为加速器 CUDA 如今却成为了限制因素
+>  真正的问题不是 CUDA 本身，而是它推动 AI 软件栈所积累的复杂性
+
+If we want a different future, we can’t just rail against the one we’ve got. We must **build something better, together**. Something that doesn’t just copy CUDA, but goes beyond it—solving the root problems it grew up around. Something simpler, more flexible, and more empowering for every AI developer.
+
+The problem is that **this isn’t an incremental step**. It takes _years_ of development from a large and focused team of experts to move the needle.  Even if you can attract the experts, how do you **get them to work together** and avoid them getting dragged into the firefight of the day… for _years_ at a time?  This post explains how we started Modular—and why we believe it’s possible to break through the matrix of constraints and build a better foundation for AI.
+
+Let’s see just how deep the rabbit hole goes. 🐇🕳️
+
+## What does “Democratizing AI Compute” mean to me?
+When we talk about democratizing AI compute, we don’t just mean “run it on more devices.” We mean rethinking **_who_ gets to build _what_—and _how_**. It means removing the gatekeepers, lowering the barriers, and leveling the playing field for developers, hardware vendors, and researchers alike.
+>  当我们讨论民主化 AI 计算时，我们仅仅是指 “在更多设备上运行”，我们指的是谁能够构建什么，以及如何构建
+>  这意味着消除中间人，降低门槛，为开发者、硬件厂商和研究人员创造一个更加公平的竞争环境
+
+Back in 2021, I gave an [industry keynote at a prominent academic conference](https://docs.google.com/presentation/d/1ZMtzT6nmfvNOlIaHRzdaXpFeaAklcT7DvfGjhgpzcxk/edit?slide=id.p#slide=id.p), laying out a vision for a unifying software layer that could finally bring the field together. I hoped someone would pick up the torch and build it. People were intrigued. Conversations sparked. But no one made it to the finish line.
+
+So we asked a different question: **What if we designed the stack for AI developers first?** What if performance engineering wasn’t the exclusive domain of chip vendors and compiler gurus? What if these tools were _programmable_, _composable_, and _understandable_—so that _anyone_ could build with them? I think we'd get more "[DeepSeek moments](https://www.modular.com/blog/democratizing-compute-part-1-deepseeks-impact-on-ai)" with innovation coming even faster from more innovators, helping the entire world.
+>  如果我们首先为 AI 开发者设计整个软件栈会怎么样？
+>  如果性能工程不再是芯片厂商和编译器专家的专属领域呢？
+>  如果这些工具是可编程、可组合、可理解的 - 那么任何人都能使用它们进行开发呢？
+
+I’ve seen this kind of transformation before. In 2010, the iPhone was an incredible technical platform—but Objective-C’s complexity was gatekeeping app development to experts. [Swift](https://www.swift.org/) changed that. It unlocked a wave of creativity, empowering an order of magnitude more developers to build great apps. Today, CUDA and other AI infrastructure face the same problem. The tools are powerful, but the complexity is crushing.
+>  笔者曾经见过这个转变，在 2010 年 Objective-C 的复杂性让 IOS 应用开发仅限于专家，Swift 改变了这一切，释放了一波创造力
+>  今天，CUDA 和其他 AI Infra 面临着同样的问题，这些工具功能强大，但复杂性却让人难以承受
+
+##### So: **how do we break past that?**
+I believe the answer lies in the intersection of **usability, portability, and performance**. After working on highly specialized stacks for TPUs and other accelerators, I saw both the upside of vertical integration—and the downside of brittle systems that can’t evolve fast enough in a rapidly changing landscape.
+>  要打破这一点，答案在于可用性、可移植性和性能的交汇点
+>  在为 TPU 开发高度专用化的软件栈时，笔者看到了垂直整合的优势，但也看到了其弊端 - 系统过于脆弱，在快速变化的环境中难以即使演进
+
+That experience defined our metrics for success—[the scorecard we’ve been building](https://www.modular.com/blog/democratizing-ai-compute-part-8-what-about-the-mlir-compiler-infrastructure) throughout this series:
+
+- Does it serve developers?
+- Does it unlock full hardware performance?
+- Does it enable innovation _above_ and _below_ the stack?
+- Does it scale across use cases and chip types?
+- Can you actually use it in production?
+
+We need something inspired by the [design of LLVM](https://aosabook.org/en/v1/llvm.html) —but reimagined for the modern era of AI. A system where hardware makers can plug in their chips, express what makes them great, and still own their performance. A system where AI software developers can build at the frontier—_without_ reinventing the stack every time.
+>  我们需要一个受 LLVM 设计启发的系统，使得硬件厂商可以插入它们的芯片，表达它们的独特优势，同时仍然掌控自己的性能，使得 AI 软件开发者可以在前沿进行开发 - 无需每次都要重新发明整个软件栈
+
+That’s what “**Democratizing AI Compute**” means to us. Not just more devices. Not just lower cost. But a fundamentally open, modern foundation—one that unlocks progress for _everyone,_ not just the trillion-dollar incumbents.
+
+## How do we tackle an industry-scale problem?
+There’s just one small challenge: building a [high-performance AI stack for a _single_ chip is already hard](https://www.modular.com/blog/democratizing-ai-compute-part-9-why-do-hw-companies-struggle-to-build-ai-software). Solving it at **industry scale**—across devices, vendors, and workloads—is an order of magnitude harder.
+>  但为单个芯片构建高性能 AI stack 已经很难了，而在整个行业规模上解决这个问题 - 覆盖各种设备、厂商和 workloads - 难度要再大一个数量级
+
+This isn’t Clayton Christensen’s [_Innovator’s Dilemma_](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma), where incumbents stumble because they ignore disruption. This is the _opposite_ problem: **everyone sees the challenge. Everyone is trying to solve it.** And yet—despite smart people, serious funding, and real effort—most attempts stall out.
+
+Let’s be honest: a lot of folks today believe the system _can’t_ be changed. Not because they love it, but because they’ve watched team after team try—and fail. Meanwhile, the world keeps moving. GenAI explodes. Moore’s Law slows. The stack grows more brittle and complex. More chips are announced, but **CUDA remains the gravitational center of it all**. So why does nothing stick? Why do smart people with serious funding at the biggest companies keep hitting the same wall?
+>  今天有很多人认为这个系统无法被改变，是因为他们看到了一支又一支的团队尝试 - 然后失败
+>  于此同时，世界仍在前进，GenAI 爆发，摩尔定律失效，软件栈变得越来越脆弱和复杂，越来越多的芯片被宣布推出，但 CUDA 仍然是一切的中心
+
+I’ve been through this before. I’ve seen—and helped solve—industry-scale problems like this. In my experience, when transformation keeps failing, it's not usually for lack of talent or funding. It's because **those projects aren’t solving the whole problem**. Instead of disruption theory, we need to understand why **new solutions** fail to stick.
+>  当转型不断失败时，通常不是因为缺乏人才和资金，而是因为这些项目没有解决整个问题
+>  我们需要理解为什么新的解决方案无法持续下去
+
+For that, I’ve come to value a different lens: the [**Lippitt-Knoster Model for Managing Complex Change**](https://sergiocaredda.eu/organisation/models-the-lippitt-knoster-model-for-managing-complex-change). It outlines six things every successful transformation needs:
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/681b51c3393c4b635c96bbe3_w%3D3840%2Cquality%3D90%2Cfit%3Dscale-down.png)
+
+The Lippitt-Knoster Model for Managing Complex Change. Image credit: [Sergio Caredda](https://sergiocaredda.eu/organisation/models-the-lippitt-knoster-model-for-managing-complex-change)
+
+**Vision, Consensus, Skills, Incentives, Resources, and Action Plan.**
+
+If any one of them is missing, change fails—and it fails in a _predictable_ way.
+
+- ❌ Weak vision → **Confusion** 😵‍💫
+- ⚔️ Weak consensus → **Conflict & Resistance** 🙅
+- 🧠 Inadequate skillset → **Stress & Anxiety** 😬
+- 💸 Misaligned incentives → **Drag & Delay** 🐌
+- 🪫 Insufficient resources → **Fatigue & Frustration** 😤
+- 🌀 No clear plan → **False starts & Chaos** 🤯
+
+>  Lippit-Knoster 复杂变革管理模型列出了成功转型所需要的六个要素:
+>  愿景、共识、技能、激励、资源、行动方案
+>  如果任意一者缺失，变革就会失败，并且是以一种可预测的方式失败:
+>  - 缺乏愿景 -> 混乱
+>  - 缺乏共识 -> 冲突和抵触
+>  - 缺乏技能 -> 压力与焦虑
+>  - 激励不一致 -> 拖延和延迟
+>  - 资源不足 -> 疲惫与挫败
+>  - 没有明确计划 -> 错误的起步和混乱
+
+We’ve seen all of this in previous blog posts: [OpenCL & SYCL](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives), [TVM & XLA](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers), [Triton](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls), and even [MLIR](https://www.modular.com/blog/democratizing-ai-compute-part-8-what-about-the-mlir-compiler-infrastructure). The patterns are real—and the failures weren’t technical, they were **systemic**.
+>  之前讨论的失败不是技术上的，而是系统上的
+
+So if we want to break the cycle, we can’t just build great tech. We have to solve the _whole equation_. That’s the bar we set at Modular—not just to write a better point solution or design a slicker API, but to align **vision, capability, and momentum** across the ecosystem.
+>  如果我们想要打破循环，不能仅仅只构建技术，而是需要解决整个问题
+>  这就是 Modular 设定的标准 - 不仅仅是编写一个更好的解决方案或设计一个更美观的 API，而是在整个生态系统中协调愿景、能力和势头
+
+Because that’s what it takes for real change to stick—and that’s exactly what we set out to do.
+
+## How we set up Modular to maximize odds of success
+Once we understood the full complexity of the problem—and the long history of failed attempts—we knew we had to build Modular differently from day one. That meant engineering great software, yes—but also designing a team, a structure, and a mission that could sustain progress where so many others had stalled.
+>  在我们理解了问题的复杂性之后，我们就知道从第一天起就需要以不同的方式构建 Modular
+>  这意味着不仅要打造优秀的软件，还要设计一个能够持续推动进展的团队、结构和使命
+
+**We started with a clear vision**: to make [AI compute accessible, performant, and programmable](https://www.modular.com/blog/the-future-of-ai-depends-on-modularity) —for everyone. Not just for billion-dollar chipmakers or compiler wizards. For researchers, developers, startups, and hardware builders. That meant [rethinking and rebuilding the _entire_ stack, not just optimizing one layer](https://www.modular.com/blog/the-case-for-a-next-generation-ai-developer-platform). We needed a system that could scale across use cases, not a point solution [destined to be thrown away](https://petewarden.com/2023/10/15/the-unstoppable-rise-of-disposable-ml-frameworks/) when AI shifts again.
+>  我们从一个清晰的愿景开始: 让 AI 计算可访问、高性能、可编程 - 对于每个人来说都是如此
+>  这意味着要重新思考和构建整个栈，而不是仅仅优化一层，我们需要一个跨各种用例拓展的系统，而不是一个在 AI 变化时被抛弃的一个 point solution
+
+**We** [**assembled a team**](https://www.modular.com/company/careers) **that had lived the pain**. Folks who helped build CUDA, TPUs, MLIR, TensorFlow, PyTorch, and many other software systems. We weren’t armchair critics—we wrote the code, built the infra, and lived the failures. That gave us a deep understanding of both the technical and human sides of the problem—and a shared sense of unfinished business.
+
+But having great people isn’t enough. To take on an industry-scale challenge, we had to **empower them** with the right [environment and values](https://www.modular.com/company/culture). We focused early on **leadership, culture, and product excellence**, because we’d seen how quickly misaligned incentives can derail even great technology. We made space to “build things right” because so little in AI actually is.
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/681b614edc8ff3f82f1ec728_66a76980a81895c66b0ab3b5_mojo-wireframe%20\(1\).jpg)
+
+**We are independent and focused on AI infrastructure**—because we knew we couldn’t truly serve the ecosystem if we were secretly trying to sell chips, cloud services, foundation models, or autonomous vehicles. Our incentive had to be aligned with the long-term success of AI software itself—not just one narrow application. We’re not building a chip. Or a cloud. Or a foundation model. We’re building the _neutral ground_—the infrastructure others can build on. An enabler, not a competitor.
+>  我们独立且专注于 AI Infra，我们的激励需要和 AI 软件长期保持一致，而不仅仅是一个狭窄的领域
+>  我们不是在构建芯片、云服务、基础模型，我们在构建中立的平台 - 其他人都可以在此基础上进行开发，我们是推动者，而不是竞争对手
+
+**We also needed scale.** This is a huge vision, and requires not just talent and alignment, but serious resources to pay for it. We were fortunate to raise enough funding to launch this mission. Even more importantly, we were backed by investors like [Dave Munichiello at GV](https://www.gv.com/team/dave-munichiello) and the [team at General Catalyst](https://www.generalcatalyst.com/team)—people who brought not only deep technical understanding, but long time horizons and conviction about what success could mean for the entire field.
+
+All of this was just the starting point. With the fundamentals in place—clear vision, the right people, aligned incentives, and enough runway—we could finally begin building. But there was still one enormous problem: **there was no shared direction in the industry.** No common foundation. No unifying plan. Just a tangle of competing tools, brittle abstractions, and hardware racing ahead of the software meant to support it. We had many ideas—but no illusions. Real progress meant solving what the industry had failed to crack for over a decade: **a massive open research problem**, with no guaranteed answers.
+
+## How to tackle a massive open research problem
+AI isn’t a sleepy industry, and the pace of system-building isn’t calm either. It’s a [hardware regatta in a turbulent sea](https://www.modular.com/blog/democratizing-ai-compute-part-9-why-do-hw-companies-struggle-to-build-ai-software) 🌊.
+
+Everyone’s racing—the startup speedboats 🚤, the focused yachts ⛵, the megacorp ocean liners 🛳️, and of course, NVIDIA’s aircraft carrier 🚢. They’re all jockeying for position—building chips and stacks, launching foundation models and platforms, locking down APIs while chasing the next GenAI breakthrough. And while they collide, the sea is littered with wreckage: churn, complexity, fragmentation… and a graveyard of half-built stacks.
+
+**We took a different path. We got out of the water and took to the air. ✈️**
+
+Instead of entering the same race and dodging torpedoes, we made space for deep research. We stepped back, recharted the map, and spent _years_ quietly working on problems others had circled for a decade but never solved. And yes, some people told us we were crazy.
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/681b53253bba9267940c2075_success-straight-768x542.jpg)
+
+(This popular meme is actually from [This is a Book](https://www.amazon.com/gp/product/0446539694?camp=1789&creative=390957&creativeASIN=0446539694) by Demetri Martin)
+
+> 🧪 Taking years for fundamental R&D sounds slow… until you realize everyone else has been stuck for a decade.
+
+While others chased accelerators and point solutions, [we proved generality on CPUs](https://www.modular.com/blog/the-worlds-fastest-unified-matrix-multiplication)—because if it works on CPUs, it can work anywhere. While the world narrowed toward vertical silos, we doubled down on programmability and flexibility. Because the only way to crack a grand challenge isn’t just to race faster—it’s to build something fundamentally new.
+
+We also stayed deliberately closed—not because we don’t know open ecosystems, but because **consensus kills research**. Sometimes, you need space to _figure things out_ before inviting the world in. I learned this the hard way with [OpenCL](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives) and [MLIR](https://www.modular.com/blog/democratizing-ai-compute-part-8-what-about-the-mlir-compiler-infrastructure): everyone has opinions, especially in infrastructure, and too many inputs and constraints too early just slows you down.
+
+We took flack for that. But let’s be clear:
+
+> We're not here to win points on Twitter. We’re willing to do the hard thing in order to make fundamental progress.
+
+## Scaling into this deliberately: one step at a time
+With space to do the fundamental work, we tackled the hard problems head-on—and scaled deliberately, one milestone at a time. First, we had to prove that a new approach to code generation could actually work. Then came syntax, usability, performance, and ecosystem fit.
+
+As we built the platform, we were our own first users. We hit the bugs, ran into the limitations, struggled through the early pain—and used that pain to guide our priorities. That kept us honest.
+
+No proxy metrics. No vague abstractions. Just one question:
+
+> Can real engineers build real systems, faster, with this?
+
+>  没有代理的指标，也没有模糊的抽象概念，只有一个问题:
+>  真正的工程师能否使用这个工具更快地构建真正的系统？
+
+We kept raising the bar. First, it was PyTorch, TorchScript, and ONNX. Then TensorRT-LLM, vLLM, and the bleeding edge of GenAI workloads. And when we finally got to H100 earlier this year—with a tiny team and no vendor hand-holding—we brought it up from scratch, tuned it ourselves, and got real models running in under two months.
+
+> Most teams don’t even have their kernel compiler booting in two months. We were already running production-grade models at performance matching the rest of the world. This was on the most popular hardware that had been tuned by _the entire world_ for years at this point.
+
+That’s the kind of pressure that forges breakthroughs. Because in this space, if you’re not catching up from behind while the bar keeps moving, you’re not even in the race.  Getting here took over three years of methodical, closed development. But from the very beginning, we weren’t building just for ourselves. We always knew this had to scale beyond us.
+
+We’re not here to build everything—we’re here to build the **foundation**. A foundation that’s fast, flexible, and open. One that can scale with the industry, adapt to new use cases, and help everyone go faster. But that only works if it's open so the whole community can participate.
+>  我们不是要打造一切 -我们是要建造基础，一个快速、灵活、开放的基础
+>  一个可以随着行业一起拓展、适应新用例、帮助每个人提速的基础
+
+## Modular is now Open!
+After more than three years of heads-down R&D, we’re officially out of the lab—and into the wild. Modular is now in full execution mode: shipping major releases every 6–8 weeks, and developer builds nearly every night. The platform is working. The stack is coming together. The APIs are starting to settle.
+>  经过三年的研发后，Modular 已经进入了执行模式: 每 6-8 周发布一个重大版本，并且每天都有开发者构建版本
+>  平台已经正常运行，整个技术栈正在逐步整合，API 也趋于稳定
+
+This means it’s time to open the doors—and see what _you_ can build with it.
+
+[We’ve just open-sourced over half a million lines](https://www.modular.com/blog/modular-platform-25-3-450k-lines-of-open-source-code-and-pip-install-modular) of high-performance GPU primitives—optimized, portable, and ready to run across multiple architectures. Alongside that, we’ve released serving infrastructure, models, and more. You can run it all for free.
+
+**This isn’t a teaser. This is real software, running real GenAI workloads, built to move at real-world  speed.**
+
+##### **Our goal is simple: finally, truly, Democratize AI Compute.**
+We’re not just here to “catch up to CUDA.” CUDA launched the AI revolution—but it’s time for the next step. We’re building a better way to program _all_ accelerators—even NVIDIA’s.
+>  我们不是为了赶上 CUDA，我们正在打造一种更好的方式来**编程所有加速器** - 包括 NVIDIA 的
+
+Because while NVIDIA makes incredible hardware, it faces the same challenges as everyone else: fragmentation, usability, and the fast moving nature of AI. That’s the problem we’ve signed up to solve—with something _portable_, _programmable_, and _powerful_ enough to serve the entire AI community.
+>  我们要解决的问题就是打造一种可移植、可编程并且强大到足以服务整个 AI 社区的解决方案
+
+Let’s end the gatekeeping. Let’s stop pretending GPU programming is just for compiler wizards or billion-dollar chip companies. It’s time to open up the frontier—to make AI compute usable and accessible for everyone. Just like Swift opened up iOS development, this is about unlocking the next wave of developer innovation.
+
+> “The best way to predict the future is to invent it.” -Alan Kay
+
+Next time, we’ll dig into how it all comes together—starting with a run-through of Modular's product line-up.
+
+Until then—stay above the waves, keep your compass steady, and chart your own path. ✈️🌊
+
+- Chris
+
+# 11 How is Modular Democratizing AI Compute? 
+Site: https://www.modular.com/blog/how-is-modular-democratizing-ai-compute
+Date: 20 June 2025
+
+Given time, budget, and expertise from a team of veterans [who’ve built this stack before](https://www.modular.com/blog/modulars-bet-to-break-out-of-the-matrix-democratizing-ai-compute-part-10), Modular set out to solve one of the defining challenges of our era: **how to Democratize AI Compute**. But what does that _really_ mean—and how does it all add up?
+
+This post is your end-to-end guide. We’ll walk through the technology, the architecture, and the underlying philosophy—before diving deeper into each layer in future posts.
+
+At the heart of it is a singular idea: to democratize AI compute, **we need to unify the scattered stars of AI**:
+
+- Unify developers—across backgrounds and skill levels.
+- Unify low-level software—across frameworks and runtimes.
+- Unify hardware makers—across vendors, devices, and use cases.
+- Unify an industry of competing interests—who have grown a chaotic software stack that consolidated around one dominant vendor.
+
+>  要民主化 AI 计算，我们需要将分散的 AI 星辰汇聚成一个整体:
+>  - 汇聚开发者 - 无论他们的背景和技能水平如何
+>  - 汇聚底层软件 - 跨越不同的框架和运行时环境
+>  - 汇聚硬件制造商 - 跨越不同的供应商、设备、使用场景
+>  - 汇聚一个利益竞争的行业 - 它已经形成了一个混乱的软件栈，并围绕一个主导供应商集中
+
+For too long, the AI software landscape has been a disconnected starfield—brilliant points of innovation, but hard to navigate, harder to connect, and spreading further apart every year. Modular is building the **infrastructure to turn that starfield into a constellation**: a coherent system that helps developers chart their path, unites the stars, and unlocks the full potential of AI.
+>  Modular 意在为这些东西构建一个基础设施，将它们汇聚: 一个连贯的系统，帮助开发者规划路径，并释放 AI 的全部潜力
+
+Success in AI isn’t just about how powerful your hardware is, it’s about how many people can _use_ it. That means lowering barriers, opening access, and **building software tools that people love to use**—not just to run benchmarks.
+
+## 🌌 The World’s First Unified AI Constellation
+Democratizing AI compute is about removing the invisible [dark matter](https://en.wikipedia.org/wiki/Dark_matter) that divides the landscape. Today, the stars of AI are scattered across vendor boundaries, siloed software stacks, and outdated abstractions. We all want higher throughput and lower latency and TCO, but AI developers & deployers are forced to choose: a “safe bet for today” or owning your destiny with portability and generality in the future.
+
+At Modular, we believe there’s a better way. One that doesn’t ask developers to compromise: **we’re building toward a unified constellation.**
+
+Our goal is to expose the _full power_ of modern hardware—NVIDIA’s Tensor Cores, AMD’s matrix units, Apple’s advanced unified memory architecture—not by hiding their complexity, but by building a system that understands it. One that lets developers scale effortlessly across clients, datacenters, and edge devices—without getting lost in a maze of incompatible compilers and fragmented runtimes.
+>  我们的目标是释放现代硬件的全部潜力 - NVIDIA Tensor Cores, AMD matrix units, Apple 的先进统一内存架构 - 不是通过隐藏他们的复杂性，而是构建一个能够理解这些复杂性的系统
+>  一个让开发者在客户端、数据中心、边缘设备无缝拓展的系统 - 而无需陷入不兼容的编译器和碎片化的运行时环境中
+
+It’s time to move beyond legacy architectures—like OpenCL and CUDA—designed in a pre-GenAI era. CUDA launched the AI revolution, and the [industry owes it a great deal](https://www.modular.com/blog/democratizing-ai-compute-part-3-how-did-cuda-succeed). But the future requires something more: **a software stack built for GenAI from the ground up**, designed for today’s workloads, today’s developers, and today’s hardware and scale.
+>  我们需要一个从零开始为 GenAI 打造的软件栈，针对如今的 workloads、如今的开发者、如今的硬件和规模设计
+
+This constellation [can’t be unified by any single hardware vendor](https://www.modular.com/blog/democratizing-ai-compute-part-9-why-do-hw-companies-struggle-to-build-ai-software): vendors build great software for _their_ chips—but the starry night sky is much broader. It spans NVIDIA, AMD, Intel, Apple, Qualcomm, and others in [the hardware regatta ⛵](https://www.modular.com/blog/democratizing-ai-compute-part-9-why-do-hw-companies-struggle-to-build-ai-software), along with [a](https://www.cerebras.net/) [wave](https://www.etched.com/) [of](https://groq.com/) [new](https://www.sifive.com/) [stars](https://tenstorrent.com/) [rising](https://www.graphcore.ai/) [across](https://mythic.ai/) the AI hardware frontier. We think the industry must link arms and build together instead of fragmenting the galaxy further.
+
+At Modular, we measure success with a simple but ambitious goal:
+
+> We want a unified, programmable system (one small binary!) that can scale across architectures from multiple vendors—while providing industry-leading performance on the most widely used GPUs (and CPUs).
+
+>  Modular，我们衡量成功的目标是:
+>  有一个统一的可编程的系统 (一个小小的二进制文件)，能够在多个厂商的架构上拓展 - 同时在最广泛使用的 GPU 上提供业界领先的性能
+
+That’s what a unified constellation means: Not uniformity—but a coherent, collaborative, and collective momentum. A system that celebrates hardware diversity while empowering developers with a common map—one they can use to build, explore, and reach further than ever before.
+
+## 🪐 A Galactic Map for AI Compute
+The AI universe is vast—and it’s rare to find two developers who work on exactly the same thing. Some operate near the core, close to the metal. Others orbit further out: building models, deploying inference pipelines, or managing massive GPU fleets. The landscape is fragmented—but it doesn’t have to be.
+
+We designed the Modular Platform to unify this space with a novel, layered architecture: a system that’s powerful when used as a whole, but modular enough to plug into your existing tools like PyTorch, vLLM, and CUDA. Whether you're writing kernels, consolidating your inference platform, or scaling your infrastructure, **Modular meets you where you are—and lights the path to where you're going.**
+>  Modular 平台使用一个层次化的架构来统一 AI 的各层开发: 一个整体使用时功能强大的系统，同时又足够模块化，可以轻松集成到现有的工具中，例如 PyTorch, vLLM, CUDA，无论你是编写 kernel，整合推理平台，还是拓展基础设施
+
+Let’s dig into how the layers stack up
+
+![](https://cdn.prod.website-files.com/64174a9fd03969ab5b930a08/68556282c5a792c6052e9a63_Group%2021.png)
+
+The central star of the solar system is the hardware, with **Mojo** closely orbiting it, while **MAX**  is a gas giant with a deep atmosphere. At the edges, we see the system is wrapped by a spiral arm of this **Mammoth** cluster.
+
+### Mojo🔥: A Programming Language for Heterogenous GenAI Compute
+[**Mojo**](https://www.modular.com/mojo) is a new language for a GenAI era, designed to solve the language fragmentation problem in AI. Developers love Mojo because it provides the speed and capability of C++, Rust, and CUDA but with familiar and easy-to-learn Python syntax that AI developers demand.
+>  Mojo 是一门面向 GenAI 的新语言，旨在解决 AI 中的语言碎片化问题
+>  Mojo 提供了 C++, Rust, CUDA 的速度和功能，同时拥有 AI 开发者所期望且易于学习的 Python 语法
+
+Mojo seamlessly integrates into existing workflows—Mojo files live side-by-side with Python modules with no bindings or extra build tools—while unlocking modern hardware: CPUs, GPUs, and custom accelerators. It offers developers great flexibility and usability, whether it’s crafting advanced GPU kernels like FlashAttention, leveraging Tensor Cores and TMAs, or implementing AI-specific optimizations with low-level control.
+>  Mojo 可以无缝集成到现有的工作流中 - Mojo 文件可以与 Python modules 共存，无需绑定或额外的构建工具 - 同时解锁现代硬件: CPUs, GPUs 和自定义加速器
+>  无论是利用 Tensor Cores, TMA 编写高级 GPU kernel 例如 FlashAttention，或者通过低级控制实现 AI 特定的优化，Mojo 都为开发者提供了灵活性和易用性
+
+> Mojo is like the inner planets of a solar system—close to the heat, close to the metal. This is where performance lives and FLOPS go brrrr.
+
+Though Modular is focused on AI, we believe Mojo's ability to accelerate _existing_ Python code opens up high-performance GPU programming to **millions more developers**, across domains. We aspire for Mojo to be the “best way to extend Python code” for developers in all domains.
+>  我们相信 Mojo 加速现存代码的能力，将高性能 GPU 编程向数百万更多开发者开放，覆盖各个领域
+>  我们希望 Mojo 成为拓展 Python 代码的最佳方式
+
+### MAX **👩‍🚀**: The Modeling and Serving Layer
+Orbiting Mojo is [**MAX**](https://www.modular.com/max) —a unified, production-grade GenAI serving framework that answers the natural follow-up to Mojo’s portability: “Why not just build in PyTorch?” MAX goes where PyTorch stops, packaging state-of-the-art inference into a slim 1 GB container that cold-starts fast.
+> 围绕 Mojo 的是 MAX - 一个统一的、适用于生产的 GenAI 服务框架，它回答了 Mojo 可移植性之后的一个自然问题: 为什么不在 PyTorch 中构建？
+> MAX 超越了 PyTorch 的限制，将 SOTA 的推理能力打包到一个仅 1GB 的轻量容器中，实现快速冷启动
+
+GenAI is about far more than a forward pass. Modern pipelines juggle KV-cache lifecycles, paged attention, speculative decoding, and hardware-aware scheduling. MAX folds all of that complexity into a familiar, PyTorch-like Python API, so you write dynamic graphs while it delivers predictable, fleet-wide performance.
+>  GenAI 远不止一次前向传播，现代的流水线需要处理 KVCache 声明周期，paged-attention，推测解码和硬件感知的调度
+>  MAX 将所有的复杂性封装在一个熟悉且类似于 PyTorch 的 Python API 中，让我们在可以编写动态图的同时，获得可预测的、全集群范围的高性能表现
+
+> Picture MAX as the massive gas giant in your GenAI solar system. Compute is the central star, and MAX’s deep “atmosphere” of KV-cache handling, paged attention, and speculative decoding provides the gravitational heft that keeps individual AI apps in orderly orbit while letting new models or hardware drift in without turbulence.
+
+Built for use in heterogeneous clusters, a single MAX binary extracts peak throughput from today’s H200’s, B200’s and MI325’s, growing into tomorrow’s MI355’s and B300’s, and even mixed CPU/GPU footprints. Aggressive batching and memory optimizations drive the highest tokens-per-dollar, while the elimination of surprise recompiles and kernel swaps keeps latency steady under spiky loads—turning research notebooks into production-ready GenAI services without sacrificing speed, flexibility, or hardware choice.
+>  MAX 专为异构集群设计，一个单独的 MAX 二进制文件可以充分发挥 H200, B200, MI325 的峰值吞吐量，并能够拓展未来的硬件，甚至支持混合 CPU/GPU 配置
+
+### Mammoth 🦣: GPU Cluster Management for the GenAI Age
+[**Mammoth**](https://www.modular.com/mammoth) is a **Kubernetes-native** platform that turns fixed GPU footprints—on-prem or in the cloud—into an elastic, high-performance inference fabric.
+>  Mammoth 是一个原生 K8S 平台，将固定的 GPU 部署 - 在云端或本地 - 转化为弹性的高性能推理网络
+
+GenAI has pushed optimizations higher up the stack: modern transformer models split their pre-fill and decode stages across _many_ GPUs, shattering two old cloud assumptions. First, workloads are no longer stateless—chatbots and agents need to preserve conversational context. Second, GPUs can’t be spun up on demand; they’re capacity-constrained assets tied to multi-year commits, so every TFLOP has to count.
+>  GenAI 将优化向堆栈的更高层推动: 现代的 transformer 将 pre-fill 和 decode 阶段分布在多个 GPU 上，打破了两个传统的云假设
+>  第一个，workloads 不再是无状态的 - chatbots, agents 需要保留对话上下文
+>  第二个，GPUs 不能按需启动，它们是受多年承诺约束的资源，因此每 TFLOPS 都必须被充分利用
+
+Because **Kubernetes is already the control plane enterprises trust**, Mammoth simply drops into existing clusters and layers on the capabilities teams are missing:
+
+- **MAX-aware orchestration** lets Mammoth coordinate with MAX for just-in-time autoscaling, intelligent placement of pre-fill and decode nodes, and fast checkpoint streaming.
+- **Dynamic, multi-hardware scheduling** treats a cluster of accelerators from multiple vendors as one resource pool, bin-packing workloads onto the best silicon in real time.
+- **A unified declarative ops model** exposes one API for on-prem and cloud clusters, so platform teams can ditch bespoke schedulers and hand-rolled scripts.
+
+>  因为 K8S 已经是企业所信任的控制平台，Mammoth 只需部署到现有的集群中，并叠加团队缺失的功能:
+>  - MAX 友好的编排: Mammoth 和 MAX 协作，实现自动按需拓展、prefill 和 decode nodes 的智能放置以及快速 checkpoint 传输
+>  - 动态、多硬件调度: 将来自多个供应商的加速器集群视作一个统一的资源池，实时将 workloads 分配到最佳的芯片上
+>  - 统一的声明式运营模型: 为本地和云集群暴露统一的 API
+
+The result is a **simple, scalable orchestration layer** that lets CIOs embrace heterogeneous hardware without vendor lock-in—while developers stay entirely inside the Kubernetes workflows they already know.
+>  这样得到的就是一个简单、可拓展的编排层，让 CIO 可以采用异构硬件而无需锁定厂商，同时开发者在他们熟悉的 K8S 工作流中工作
+
+> Mammoth is like the spiral arm of the galaxy—an overarching gravitational framework that organizes many solar systems at once. Mammoth’s scheduling gravity aligns each solar system into smooth, predictable rotation, making room for new “stars” or “planets” (hardware and workloads) without ever destabilizing the galactic whole.
+
+While each of these layers—Mojo, MAX, Mammoth—can stand on its own, together they form a **coherent galactic map** for GenAI compute: scalable, reliable, and portable across hardware and time.
+
+### 💠 High Performance Models and Kernels
+The Modular Platform is more than a CUDA-replacement—it’s a launchpad that meets two very different personas right where they work:
+
+- **AI engineers & MLOps teams want production-ready assets.** We ship complete, open-source model pipelines pre-tuned for speed and packaged in a ~1 GB container that run unchanged on CPUs and NVIDIA or AMD GPUs.
+- **AI researchers & kernel hackers crave low-level control.** Our GitHub repo at `modular/modular` exposes hand-optimized GPU kernels—FlashAttention, paged attention, KV-cache orchestration, speculative decoding—written in Mojo so you can tweak internals or invent entirely new operators without rewriting the stack.
+
+>  Modular 平台能够满足两种非常不同的角色的工作:
+>  - 对于 AI 工程师和 MLOps 团队，我们提供完整、开源的模型流水线，打包在一个 1GB 的容器中，这些容器在 CPUs 和 NVIDIA, AMD GPUs 上无需修改就能运行
+>  - 对于 AI 研究人员和 kernel 编写者，我们提供了 Mojo 编写的，手工优化的 GPUI kernels
+
+Because every model and kernel sits on a common runtime, you can start fast with proven building blocks and dive deep only when you need to. The result is the largest coherent library of portable, open-source AI components anywhere—powerful enough for enterprise teams that just want to ship, yet modular enough for researchers pushing the frontier.
+>  因为所有的模型和 kernel 都在共同的运行时上构建，故可以借用其他的构建好的 blocks 快速启动
+
+> Picture these model pipelines as comets that soar around of the solar system—the content that gives the infrastructure meaning.
+
+Open source remains the bedrock of AI progress; a unified ecosystem ensures you can start with something powerful and go further than ever before—whether that means shipping a feature on Monday or publishing a paper on Friday.
+
+### 🏛️ An Expanding Hardware Constellation
+Truly democratizing AI compute requires the ability to scale into far more hardware than any team could individually support—it requires an industry coalition and experts in the hardware to drive best-possible support for their silicon.
+
+> Hardware diversity should be the foundation of the modern AI universe, not a problem. More choice and specialized solutions will drive more progress and products into the world.
+
+The Modular stack was specifically designed to scale into a wide range of different accelerators, giving hardware innovators control over their performance and capabilities.  Now that Modular can prove portability across multiple industry standard GPUs from leaders like NVIDIA and AMD, we would like to open up our technology platform to far more hardware partners.
+>  Modular stack 专门设计用于拓展到不同的加速设备，Modular 目前已经可以证明跨多个工业标准 GPU 上的可移植性
+
+We don’t have all the details figured out yet though! If you are part of a hardware company and interested to learn more, [please get in touch](https://www.modular.com/company/democratize-hardware) and we’ll reach out at the right time. If you are an AI developer and would like expanded support for new hardware, please ask that hardware team to reach out to us!
+
+## 📋 The Mission Checklist
+A new AI platform can’t just be _clever_ or _well-intentioned_—it has to _ship_ and **_work_**. Modular's work will never be done, but we can now show real progress on every dimension we believe is critical to Democratizing AI Compute.
+
+Here’s how we judge the Modular Platform against the scorecard we’ve used in this series to evaluate [other](https://www.modular.com/blog/democratizing-ai-compute-part-7-what-about-triton-and-python-edsls) [systems](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers):
+
+- 🚤**⛵🛳️🚢 Enable portability across hardware from multiple vendors:** Compute is already diverse with many participants, and Modular has demonstrated the ability to scale from CPUs to NVIDIA and to AMD, **all from a single unified binary**—an industry first. ✅ Modular’s stack is designed to support ASIC’s and more exotic systems, but still needs to prove that. ⚠️
+>  通过单个统一的二进制文件实现跨多个供应商的可移植性 - 这是行业内的首创
+>  Modular stack 在设计上就支持 ASIC 和更复杂的系统
+
+- 🚀 **Run with top performance on the industry leader’s hardware:** NVIDIA makes great hardware, has the most widely deployed datacenter footprint, and is the most widely used by enterprises. Modular delivers peak performance on NVIDIA’s powerful Hopper and Blackwell architectures, not just alternative hardware. ✅
+>  Modular 在 NVIDIA Hopper, Blackwell 上实现了峰值性能，而不仅仅是替代硬件
+
+- 🔧 **Provide a full reference implementation:** Modular ships a complete, production-grade stack that you can download today: a language, a framework, a runtime, and a Kubernetes-scale system. This isn’t a whitepaper or committee spec—it’s real software you can run in production. ✅
+>  Modular 提供了一个完整的生产级 stack: 语言、框架、运行时、K8S-scale 系统
+
+- ⚡ **Evolve rapidly:** AI moves fast—we move faster. Modular [ships major updates every 6–8 weeks](https://docs.modular.com/max/changelog), and we’ve brought up complex platforms like H200 and AMD MI325X in record time. This velocity is only possible because of [three years of deep tech investment](https://www.modular.com/blog/modulars-bet-to-break-out-of-the-matrix-democratizing-ai-compute-part-10). ✅
+>  每 6-8 周就发布重大更新
+
+- 💻 **Cultivate developer love:** We build for developers—clean APIs, deep control, and tools that scale from hobby projects to HPC. We’re opening more of the stack every month, and we’re engaging directly through forums, Discord, hackathons, and events. ✅
+>  干净的 API，对硬件的深入控制，以及从个人项目拓展到 HPC 的工具
+
+- 🌐 **Build an open community:** [Modular is vastly open source](https://github.com/modular/modular/): hundreds of thousands of lines of high-performance models, kernels, and serving infrastructure. This is the largest portable and open AI GPU stack available today. ✅
+- 🧩 **Avoid fragmentation across implementations:** We embrace openness—but anchor it in a **single, stable release** process. This gives the ecosystem confidence, avoids version nightmares, and provides a reliable foundation that runs across CPUs and GPUs alike. ✅
+>  我们锚定在一个单一的、稳定的发布流程上，同时提供了一个在 GPU 和 CPU 上运行的底层基础
+
+- 🛠️ **Enable full programmability:** No black boxes. Mojo gives you deep control, from low-level GPU kernels to high-level orchestration, all with Pythonic clarity. Modular layers work together—but remain programmable and composable on their own. ✅
+>  没有黑盒，提供了完全的可编程性，从低层 GPU kernels 到高层编排，同时保持 Python 式的清晰度
+
+- 🦾 **Provide leverage over AI complexity:** Today’s challenge isn’t just FLOPS—it’s _complexity at scale_. Modular brings the “best of” in GenAI systems together into one place: compiler, language, and cluster orchestration. ✅
+>  Modular 将 GenAI 系统的最佳实践集中到一个地方: 编译器、语言、集群编排
+
+- 🏗️ **Enable large-scale applications:** Modular isn’t just for benchmarks—it’s for production. Stateful workloads, intelligent scheduling, and resource orchestration are first-class citizens. ✅
+- 🧭 **Have strong leadership and vision:** We’ll let our track record speak for itself. Modular is setting an ambitious course and shipping major milestones. The path ahead is long, and we’re committed to charging into it. ✅
+
+Each goal is ambitious on its own. Together, they define what a true successor to CUDA must deliver. Modular is well on its way—but we don’t support all the world’s hardware and we know that heterogeneous compute has a future far beyond AI.
+
+Democratizing AI compute is a galactic-scale mission—far too ambitious for **any one company alone**. We as an industry need to continue to come together to solve this problem as a consortium.
+
+### Stay tuned for Mojo🔥: Tackling xPU Programmability
+This post laid out the big picture—a galactic map 🗺️ of Modular’s architecture and mission. But to understand how it all works, we have to start at the core.
+
+In the next post, we’ll descend from the star clusters back toward the inner planets with **Mojo**: the foundation of Modular’s stack, and our boldest bet. It’s a new kind of programming language—designed to give developers deep, precise control over modern hardware, without giving up the clarity and flexibility of Python. It’s where performance meets programmability, where the hardware burns hot, truly where the magic begins.
+
+> _“The future is already here — it’s just not evenly distributed.”_ — William Gibson
+
+Until then, may your GPU fleets chart safe paths through the star systems—without falling into the black hole of complexity.
 
 -Chris
