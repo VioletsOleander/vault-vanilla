@@ -632,7 +632,7 @@ scopes:
     - book
     - lecture
     - course
-    - causal
+    - other
     - blog
     - wiki
     - openreview
