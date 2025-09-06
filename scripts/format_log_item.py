@@ -147,11 +147,15 @@ if __name__ == "__main__":
     parser = setup_parser()
     args = parser.parse_args()
 
-    log_path = Path("../logs/Personal Log.md")
+    log_path = Path("D:/data/vault-vanilla/logs/Personal Log.md")
     contents = open_file(log_path)
 
     formatted_contents = format_log_item(contents, args.no_confirm)
 
-    store_path = log_path if args.inplace else Path("../logs/Formatted Personal Log.md")
+    store_path = (
+        log_path
+        if args.inplace
+        else Path("D:/data/vault-vanilla/logs/Personal Log - Formatted.md")
+    )
     write_file(store_path, formatted_contents)
     print(f"Formatted log items saved to {store_path}")
