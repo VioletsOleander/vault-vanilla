@@ -80,7 +80,7 @@ Date: 2024.8.19-2024.8.26
 Date: 2024.8.26-2024.9.9
 
 \[Paper\]
-- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec1-Sec5
+- [[paper-notes/gen-ai/language/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec1-Sec5
 
 \[Book\]
 - [[Pro Git]]: CH 7.1
@@ -110,10 +110,10 @@ Date: 2024.9.2-2024.9.9
 Date: 2024.9.9-2024.9.16
 
 \[Paper\]
-- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec6
+- [[paper-notes/gen-ai/language/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec6
     Sec6-Utilization
         Prompt tricks: (input-output) pair, (input-reasoning step-output) triplet, plan
-- [[Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|2023-NeurIPS-Are Emergent Abilities of Large Language Models a Mirage]]: All
+- [[paper-notes/gen-ai/language/algorithm/Are Emergent Abilities of Large Language Models a Mirage-2023-NeurIPS|2023-NeurIPS-Are Emergent Abilities of Large Language Models a Mirage]]: All
     研究者对于度量的选取造就了 LLM 具有涌现能力的“海市蜃楼” 
 
 \[Book\]
@@ -147,7 +147,7 @@ Date: 2024.9.16-2024.9.23
 Date: 2024.9.23-2024.9.30
 
 \[Paper\]
-- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec7
+- [[paper-notes/gen-ai/language/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: Sec7
     Sec7-Capacity and Evaluation
         LLM abilities: 1. basic ability: language generation (including code), knowledge utilization (e.g. knowledge-intensive QA) , complex reasoning (e.g. math) ; 2. advanced ability: human alignment, interaction with external environment (e.g. generate proper action plan for embodied AI), tool manipulate (e.g. call proper API according to tasks); introduction to some benchmarks
 
@@ -162,11 +162,11 @@ Date: 2024.9.23-2024.9.30
 Date: 2024.9.30-2024.10.7
 
 \[Paper\]
-- [[paper-notes/llm/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: CH8-CH9
+- [[paper-notes/gen-ai/language/A Survey of Large Language Models v13-2023|2023-A Survey of Large Language Models v13]]: CH8-CH9
     CH8-Applicatoin
         LLM application in various tasks
     CH9-Conclusion and future directions
-- [[Importance Sampling A Review-2010|2010-Importance Sampling A Review]]: All
+- [[paper-notes/gen-ai/image/Importance Sampling A Review-2010|2010-Importance Sampling A Review]]: All
     IS is all about variance reduction for Monte Carlo approximation;
     Adaptive parametric Importance Sampling: $q (x)$ be defined as a multivariate normal or student distribution, then optimizing a variation correlated metric to derive an optimal parameter setting for that distribution;
     Sequential Importance Sampling: Chain decompose $p (x)$, and chain construct $q (x)$;
@@ -186,7 +186,7 @@ Date: 2024.9.30-2024.10.7
 Date: 2024.10.7-2024.10.14
 
 \[Paper\]
-- [[paper-notes/mlsys/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec0-Sec3.1
+- [[paper-notes/gen-ai/language/infra/kernel/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec0-Sec3.1
     Sec0-Abstract
     Sec1-Introduction
     Sec2-Background
@@ -211,7 +211,7 @@ Date: 2024.10.7-2024.10.14
 Date: 2024.10.14-2024.10.21
 
 \[Paper\]
-- [[paper-notes/mlsys/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec3.1-Sec5
+- [[paper-notes/gen-ai/language/infra/kernel/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: Sec3.1-Sec5
     Sec3-FlashAttention: Algorithm, Analysis and Extensions
         Sec3.1-IO Analysis
             The IO complexity of FlashAttention is $\Theta(N^2d^2M^{-1})$ while the IO complexity of the standard attention computation is $\Theta (Nd + N^2)$. The main difference is in $M$ and $N^2$. Standard attention computation does not use SRAM at all, all memory accesses are global memory access, in which the process of fetching "weight matrix" $P\in \mathbb R^{N\times N}$ contributes most of the IO complexity. FlashAttention utilized SRAM, and do not store "weight matrix" into DRAM, but keep a block of it on chip the entire time, thus effectively reduced the IO complexity.
@@ -219,7 +219,7 @@ Date: 2024.10.14-2024.10.21
             The main difference between FlashAttention is that the range of "attention" is restricted, thereby the computation and memory accesses is reduced by skipping the masked entries.
     Sec4-Experiments
         FlashAttention trains faster; FlashAttention trains more memory-efficient (linear), thus allowing longer context window in training. The reason for that is FlashAttention do not compute the entire "weight matrix" $P\in \mathbb R^{N\times N}$ one time, but do a two level loop, compute one row of $P$ each time. The FLOP is actually increased, but the memory usage is restricted to $O (N)$ instead of $O (N^2)$ and the additional computation time brought by the increased FLOP is eliminated by the time reduced by less DRAM accesses.
-- [[Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec0-Sec2
+- [[paper-notes/ml/algorithm/pgm/Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec0-Sec2
     Sec0-Summary
         This paper proposed an alternative proof of HC theorem, thereby reinforcing the importance of conditional probability models over joint probability models for modeling spatial interaction.
     Sec1-Introduction
@@ -247,7 +247,7 @@ Date: 2024.10.14-2024.10.21
 Date: 2024.10.21-2024.10.28
 
 \[Paper\]
-- [[paper-notes/mlsys/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
+- [[paper-notes/gen-ai/language/infra/kernel/FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness-2022-NeurIPS|2022-NeurIPS-FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness]]: SecA-SecE
     SecA-Related Work
     SecB-Algorithm Details
         Memory-efficient forward/backward pass: using for-loop to avoid storing $O(N^2)$ intermediate matrix; FlashAttention backward pass: In implementation, the backward algorithm of FlashAttention is actually simpler than the forward algorithm, because it's just about tiled matrix multiplication without bothering softmax rescaling
@@ -256,7 +256,7 @@ Date: 2024.10.21-2024.10.28
     SecE-Extension Details
         block-sparse implementation is just skipping masked block, nothing special
     SecF-Full Experimental Results
-- [[Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec3
+- [[paper-notes/ml/algorithm/pgm/Spatial Interaction and the Statistical Analysis of Lattice Systems-1974|1974-Spatial Interaction and the Statistical Analysis of Lattice Systems]]: Sec3
     Sec3-Markov Fields and the Hammersley-Clifford Theorem
         define ground state -> define Q function -> expand Q function -> proof the terms in Q function (G function) are only not null when their relating variables form a clique
 
@@ -270,7 +270,7 @@ Date: 2024.10.21-2024.10.28
 Date: 2024.10.28-2024.11.4
 
 \[Paper\]
-- [[FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]
+- [[paper-notes/gen-ai/language/infra/kernel/FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning-2024-ICLR|2024-ICLR-FlashAttention-2 Faster Attention with Better Parallelism and Work Partitioning]]
     FlashAttention-2: 
     (1) tweak the algorithm, reducing the non-matmul op: remove the rescale of softmax weights in each inner loop, only do it in the end of inner loop
     (2) parallize in thread blocks to improve occupancy: exchange the inner loop and outer loop,  which makes each iteration in outer loop independent of each other, therefore parallelize them by assigning $\mathbf {O}$ blocks to thread blocks
@@ -299,7 +299,7 @@ Date: 2024.10.28-2024.11.4
 Date: 2024.11.4-2024.11.11
 
 \[Paper\]
-- [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec0-Sec4.5
+- [[paper-notes/gen-ai/language/infra/system/Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec0-Sec4.5
     Sec0-Abstract
     Sec1-Introduction: 
         Existing systems preallocated a continous chunk of memory space whose size is the max length of the request. This method causes internal and external fragmentation in GPU DRAM, and do not support KV cache sharing between requests. 
@@ -346,7 +346,7 @@ Date: 2024.11.4-2024.11.11
 Date: 2024.11.11-2024.11.18
 
 \[Paper\]
-- [[Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec4.6-Sec10
+- [[paper-notes/gen-ai/language/infra/system/Efficient Memory Management for Large Language Model Serving with PagedAttention-2023-SOSP|2023-SOSP-Efficient Memory Management for Large Language Model Serving with PagedAttention]]: Sec4.6-Sec10
     Sec4-Method: 
         Sec4.1-PagedAttention:
             PagedAttention partitions each sequences KV cache into blocks, each block contains a certain number of tokens' KV cache.
@@ -633,7 +633,7 @@ Date: 2024.12.2-2024.12.9
 Date: 2024.12.9-2024.12.16
 
 \[Paper\]
-- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec1-Sec3
+- [[paper-notes/compilation/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec1-Sec3
     Sec1-Introduction
         ONNX defines a unified format to represent DL models
         DL hardware can be divided into three categories: 1. general-purpose 2. dedicated 3. neuromorphic
@@ -736,7 +736,7 @@ Date: 2024.12.16-2024.12.23
 Date: 2024.12.23-2024.12.30
 
 \[Paper\]
-- [[paper-notes/mlsys/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec4-Sec7
+- [[paper-notes/compilation/The Deep Learning Compiler A Comprehensive Survey-2020-TDPS|2020-TDPS-The Deep Learning Compiler A Comprehensive Survey]]: Sec4-Sec7
     Sec4-Key Components of DL Compilers
         Sec4.1-High-level IR
             High-level IR is also known as graph IR.
@@ -883,7 +883,7 @@ Date: 2024.12.23-2024.12.30
 Date: 2024.12.30-2025.1.6
 
 \[Paper\]
-- [[paper-notes/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]: All
+- [[paper-notes/ml/algorithm/pgm/Latent Dirichlet Allocation-2003-JMLR|2003-JMLR-Latent Dirichlet Allocation]]: All
     Sec1-Introduction
         This paper focuses on modeling collections of discrete data, and aims to find efficient and statistically meaningful representation of the member in the collections.
         A basic method of processing documents in a corpora is tf-idf scheme, whose basic idea is using a word's tf-idf value to represent a word's importance to a document, and using a tf-idf vector to represent a document.
@@ -944,7 +944,7 @@ Date: 2024.12.30-2025.1.6
 Date: 2025.1.6-2025.1.13
 
 \[Paper\]
-- [[paper-notes/precipitation-nowcasting/Skilful Nowcasting of Extreme Precipitation with NowcastNet-2023-Nature|2023-Nature-Skilful Nowcasting of Extreme Precipitation with NowcastNet]]: All
+- [[paper-notes/interdisciplinary/precipitation-nowcasting/Skilful Nowcasting of Extreme Precipitation with NowcastNet-2023-Nature|2023-Nature-Skilful Nowcasting of Extreme Precipitation with NowcastNet]]: All
     Sec0-Abstract
         Pure physics-based method can not capture convective dynamics. Data-driven learning can not obey physical laws like advective conservation. NowcastNet unify physical-evolution scheme and conditional learning methods, and optimize forecast error end-to-end.
     Sec1-Introduction
@@ -1005,7 +1005,7 @@ Date: 2025.1.6-2025.1.13
 Date: 2025.1.13-2025.1.20
 
 \[Paper\]
-- [[paper-notes/normalization/Semantic Image Synthesis with Spatially-Adaptive Normalization-2019-CVPR|2019-CVPR-Semantic Image Synthesis with Spatially-Adaptive Normalization]]: All
+- [[paper-notes/gen-ai/image/Semantic Image Synthesis with Spatially-Adaptive Normalization-2019-CVPR|2019-CVPR-Semantic Image Synthesis with Spatially-Adaptive Normalization]]: All
     Sec0-Abstract  
         Directly use semantic layout as input to the network is suboptimal, because the normalization layer tend to wash away semantic information.
         Spatially-Adaptive Normalization use semantic layout to modulate the activations in the normalization layer spatially-adaptively.
@@ -1022,7 +1022,7 @@ Date: 2025.1.13-2025.1.20
         By replacing the input noise with the embedding vector of the style image computed by the image encoder, we can further control the style of the synthesized image.
     Sec4-Experiments
     Sec5-Conclusion
-- [[paper-notes/precipitation-nowcasting/Skilful Precipitation Nowcasting Using Deep Generative Models of Radar-2021-Nature|2021-Nature-Skilful Precipitation Nowcasting Using Deep Generative Models of Radar]]: All
+- [[paper-notes/interdisciplinary/precipitation-nowcasting/Skilful Precipitation Nowcasting Using Deep Generative Models of Radar-2021-Nature|2021-Nature-Skilful Precipitation Nowcasting Using Deep Generative Models of Radar]]: All
     Sec0-Abstract
         Operational nowcasting methods typically advect precipitation fields with radar-based wind estimates, and struggle to capture non-linear events like convective initiations.
         Deep learning methods directly predict future rain rates, free of physical constraints. Deep learning methods can predict low-intensity rainfall, while the lack of constraints lead to blurry prediction at longer lead time and heavier rain events.
@@ -1670,7 +1670,7 @@ Date: 2025.3.17-2025.3.24
     9-Implementation and evaluation
     10-Related work
     11-Conclusion
-- [[paper-notes/rl/Proximal Policy Optimization Algorithms-2017|2017-Proximal Policy Optimization Algorithms]]: All
+- [[paper-notes/rl/algorithm/Proximal Policy Optimization Algorithms-2017|2017-Proximal Policy Optimization Algorithms]]: All
     Abstract
         Standard policy gradient method performs one gradient update per data sample. Whereas the new proposed objective function supports perform multiple epochs of minibatch updates based on multiple data samples collected through previous policy.
         Compared with TRPO, PPO is simpler to implement and empirically have better sample complexity.
@@ -1803,7 +1803,7 @@ Date: 2025.3.24-2025.3.31
     7-Conclusions
         ZooKeeper exposes wait-free data objects to clients to provide an approach to handle coordination problem.
         Although the consistency guarantees for read and watches is weak, but the combination of the linearizable writes and FIFO client requests are sufficient to implement sophisticated coordination protocols.
-- [[paper-notes/rl/Continuous Control with Deep Reinforcement Learning-2016-ICLR|2016-ICLR-Continuous Control with Deep Reinforcement Learning]]: All
+- [[paper-notes/rl/algorithm/Continuous Control with Deep Reinforcement Learning-2016-ICLR|2016-ICLR-Continuous Control with Deep Reinforcement Learning]]: All
     Abstract
         This paper adapt the idea of Deep Q-Learning to the continuous action domain, and leads to a model-free, actor-critic algorithm based on deterministic policy gradient.
     Introduction
@@ -1846,7 +1846,7 @@ Date: 2025.3.24-2025.3.31
 Date: 2025.3.31-2025.4.7
 
 \[Paper\]
-- [[paper-notes/rl/Approximately Optimal Approximate Reinforcement Learning-2002-ICML|2002-ICML-Approximately Optimal Approximate Reinforcement Learning]]: All (except Appendix)
+- [[paper-notes/rl/algorithm/Approximately Optimal Approximate Reinforcement Learning-2002-ICML|2002-ICML-Approximately Optimal Approximate Reinforcement Learning]]: All (except Appendix)
     0-Abstract
         The conservative policy iteration algorithm uses a restart distribution, and an approximate greedy policy chooser to find an approximately optimal policy.
     1-Introduction
@@ -1893,7 +1893,7 @@ Date: 2025.3.31-2025.4.7
         The greedy policy chooser aims to find a policy with greater policy advantage. Note that its convergence time is related to the size of the state space.
         The bounds presented in this paper show the importance of ensuring the agent starts in the state where the optimal policy tends to visit it.
         We can use the prior knowledge of which state an optimal policy tends to visit to choose $\mu$.
-- [[paper-notes/rl/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All (except Appendix)
+- [[paper-notes/rl/algorithm/Trust Region Policy Optimization-2015-ICML|2015-ICML-Trust Region Policy Optimization]]: All (except Appendix)
     0-Abstract
         TRPO is effective for optimizing large nonlinear policies such as neural networks
         Despite its approximations that deviate from the theory, TRPO tends to give monotonic improvement, with little tuning of hyperparameters.
@@ -1922,7 +1922,7 @@ Date: 2025.3.31-2025.4.7
         By approximation, we substitute the expectations with their Monte Carlo estimation, and importance sampling is also used.
     6-Practical Algorithm
     7-Connections with Prior Work
-- [[paper-notes/rl/Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML|2018-ICML-Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor]]: All (except Appendix)
+- [[paper-notes/rl/algorithm/Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor-2018-ICML|2018-ICML-Soft Actor-Critic Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor]]: All (except Appendix)
     0-Abstract
         Model-free RL algorithm suffer from two major challenges: very high sample complexity and brittle convergence properties.
         Soft actor-critic is an off-policy actor-critic deep RL algorithm based on the maximum entropy reinforcement learning framework. The actor aims to maximize the expected return as well as the entropy.
@@ -2024,7 +2024,7 @@ Date: 2025.4.7-2025.4.14
         Both protocols ensure strong consistency.
         The failure processing in chain replication protocol is faster than primary/backup protocol.
     5-Simluation Experiments
-- [[paper-notes/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]: All
+- [[paper-notes/interdisciplinary/se/Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions-2024-ICSE|2024-ICSE-Make LLM a Testing Expert Bringing Human-like Interaction to Mobile GUI Testing via Functionality-aware Decisions]]: All
     Use LLM to do automatic GUI testing.
 
 \[Doc\]
@@ -2054,7 +2054,7 @@ Date: 2025.4.7-2025.4.14
         Prefer LLVM support library when the support library provides similar functionality as the standard library.
 - [[doc-notes/cmake/reference-manuals/cmake-commands/cmake_parse_arguments|cmake/reference-manuals/cmake-commands/cmake_parse_arguments]]
 - [[doc-notes/cmake/command-line-tools/cmake|cmake/command-line-tools/cmake]]
-- [[doc-notes/github/ci,cd-and-devops/github-actions/About GitHub Actions|github/ci,cd-and-devops/github-actions/About GitHub Actions]]: All
+- [[doc-notes/github/ci,cd-and-devops/github-actions/Understand Github Actions|github/ci,cd-and-devops/github-actions/Understand Github Actions]]: All
 - [[doc-notes/YAML v1.2|YAML v1.2]]
 - [[doc-notes/go/using-and-understanding-go/Effective Go|go/using-and-understanding-go/Effective Go]]: Control Structures, Functions
     Control Structures
@@ -2193,7 +2193,7 @@ Date: 2025.4.28-2025.5.5
         Percolator lies in between the performance space between MapReduce and DBMS. Compared to DBMS, Percolator uses more resource to process a fixed amount of data, this is the cost of scalability. Compared to MapReduce, Percolator has lower latency, but at cost of of additional resources to support random lookups.
     4-Related Work
     5-Conclusion and Future Work
-- [[paper-notes/rl/RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-2023-CoRL|2023-CoRL-RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning]]
+- [[paper-notes/rl/application/RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning-2023-CoRL|2023-CoRL-RoboPanist Dexterous Piano Playing with Deep Reinforcement Learning]]
     Abstract
     Introduction
         The goal is to correctly play a variety of piano pieces in the simulated system, i.e. correctly press the sequence of keys on a keyboard, conditioned on MIDI sheet music.
@@ -2218,7 +2218,7 @@ Date: 2025.4.28-2025.5.5
         Too high control frequency will make the MDP too long-horizon, which complicates exploration, and thus hurts performance. Too low control frequency will make the discretization of MIDI file too coarse, and thus negatively impacts the timing of the notes.
         Too large discount factor will make the agent too conservative, and thus hurt exploration.
     Discussion
-- [[paper-notes/rl/PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-2024-CoRL|2024-CoRL-PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations]]
+- [[paper-notes/rl/application/PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations-2024-CoRL|2024-CoRL-PianoMime Learning a Generalist, Dexterous Piano Player from Internet Demonstrations]]
     Abstract
         PianoMime includes three stages: the data preparation stage extract informative features from the demonstration videos; the policy learning stage train sone-specific expert policies from the information extracted from the previous stage; the policy distillation stage distill policies into a single generalist agent.
         The zero-shot generalization performance of the generalist agent improves largely compared to ROBOPIANIST.
@@ -2237,7 +2237,7 @@ Date: 2025.4.28-2025.5.5
         In specialist policy training, using layered policy can largely improve performance.
         In behaviour cloning, using layered policy can largely improve performance, and using diffusion policy can also improve performance. Representation learning also has positive impact.
     Conclusion 
-- [[paper-notes/rl/RP1M A Large-Scale Motion Dataset for Piano Playing with Bimanual Dexterous Robot Hands-2024-CoRL|2024-CoRL-RP1M A Large-Scale Motion Dataset for Piano Playing with Bimanual Dexterous Robot Hands]]
+- [[paper-notes/rl/application/RP1M A Large-Scale Motion Dataset for Piano Playing with Bimanual Dexterous Robot Hands-2024-CoRL|2024-CoRL-RP1M A Large-Scale Motion Dataset for Piano Playing with Bimanual Dexterous Robot Hands]]
     Abstract
         We introduce Robot Piano 1 Million dataset, which contains one million robot piano playing trajectories, covering 2000 songs. (each song 500 trajectories)
         The finger placement problem is modeled as an optimal transport problem to enable automatic annotation of unlabeled songs.
@@ -2441,7 +2441,7 @@ Date: 2025.6.9-2025.6.16
 Date: 2025.6.16-2025.6.23
 
 \[Paper\]
-- [[paper-notes/mlsys/Compiling ONNX Neural Network Models Using MLIR-2020|2020-Compiling ONNX Neural Network Models Using MLIR]]
+- [[paper-notes/compilation/Compiling ONNX Neural Network Models Using MLIR-2020|2020-Compiling ONNX Neural Network Models Using MLIR]]
     Abstract
         ONNX aims to improve the portability of machine learning models.
         onnx-mlir is a compiler for generating native code with ONNX models as input.
@@ -2514,7 +2514,7 @@ Date: 2025.6.16-2025.6.23
 Date: 2025.6.23-2025.6.30
 
 \[Paper\]
-- [[paper-notes/rl/Policy Gradient Method for Reinforcement Learning with Function Approximation-1999-NeurIPS|1999-NeurIPS-Policy Gradient Method for Reinforcement Learning with Function Approximation]]
+- [[paper-notes/rl/algorithm/Policy Gradient Method for Reinforcement Learning with Function Approximation-1999-NeurIPS|1999-NeurIPS-Policy Gradient Method for Reinforcement Learning with Function Approximation]]
     Abstract
         The main contribution of this paper is providing the formula of policy gradient, which is suitable for estimation from experience with the aid of an approximate action-value or advantage function.
     Introduction
@@ -2528,7 +2528,7 @@ Date: 2025.6.23-2025.6.30
         Note that when using a function approximator $f_w$ to approximate the value function, to guarantee the estimated policy gradient is unbiased, $f_w$ should be compatible with the policy $\pi_\theta$.
     Applications to Deriving Algorithms and Advantages
     Convergence of Policy Iteration with Function Approximation
-- [[paper-notes/rl/Direct Preference Optimization Your Language Model is Secretly a Reward Model-2023-NeurIPS|2023-NeurIPS-Direct Preference Optimization Your Language Model is Secretly a Reward Model]]
+- [[paper-notes/gen-ai/language/algorithm/Direct Preference Optimization Your Language Model is Secretly a Reward Model-2023-NeurIPS|2023-NeurIPS-Direct Preference Optimization Your Language Model is Secretly a Reward Model]]
     Abstract
         RLHF first fitting a reward model, then fine-tuning LLM using RL to maximize the estimated reward.
         This paper introduces a new parameterization of the reward model in RLHF, which enables extracting corresponding optimal policy in closed form and optimize the policy directly with simple classification loss.
@@ -2557,7 +2557,7 @@ Date: 2025.6.23-2025.6.30
 Date: 2025.6.30-2025.7.7
 
 \[Paper\]
-- [[paper-notes/rl/Reinforcement Learning with Deep Energy-Based Policies-2017-ICML|2017-ICML-Reinforcement Learning with Deep Energy-Based Policies]]
+- [[paper-notes/rl/algorithm/Reinforcement Learning with Deep Energy-Based Policies-2017-ICML|2017-ICML-Reinforcement Learning with Deep Energy-Based Policies]]
     Abstract
         This paper propose a method for learning energy-based expressive maximum entropy policies for continuous states and actions. The algorithm is called soft Q-learning, whose benefits includes: 1. better exploration 2. better composability
     Introduction
@@ -2575,7 +2575,7 @@ Date: 2025.6.30-2025.7.7
 Date: 2025.7.7-2025.7.14
 
 \[Paper\]
-- [[paper-notes/rl/From r to Q Your Language Model is Secretly a Q-Function-2024-COLM|2024-COLM-From r to Q Your Language Model is Secretly a Q-Function]]
+- [[paper-notes/gen-ai/language/algorithm/From r to Q Your Language Model is Secretly a Q-Function-2024-COLM|2024-COLM-From r to Q Your Language Model is Secretly a Q-Function]]
     Abstract
         This paper shows that we can derive DPO in the token-level MDP as a general inverse Q-learning algorithm.
     Introduction
@@ -2598,7 +2598,7 @@ Date: 2025.7.7-2025.7.14
         The parametrization of token-level DPO shed a light that we can use policy to define token level reward function, which leads to credit assignment insights.
         Also, we can prove that using learnt value function and reward function to guide decoding in test time is equivalent to using policy likelihood to guide decoding in DPO setting (mapping Q-function to policy)
     Discussion
-- [[paper-notes/AutoPSV Automated Process-Supervised Verifier-2024-NeurIPS|2024-NeurIPS-AutoPSV Automated Process-Supervised Verifier]]
+- [[paper-notes/gen-ai/language/algorithm/AutoPSV Automated Process-Supervised Verifier-2024-NeurIPS|2024-NeurIPS-AutoPSV Automated Process-Supervised Verifier]]
     Abstract
         AUTOPSV begins by training a verification model on the correctness of final answers. The verification model assign a confidence score to each reasoning step, which indicates the probability of arriving at the final correct answer from that point onward. The process score is defined as the confidence variance between neighboring reasoning step.
         Confidence variance is actually the relative change in the verification's confidence score across reasoning steps. For example, a sudden drop of the reasoning step's confidence score indicates the associated reasoning step is wrong.
@@ -2629,7 +2629,7 @@ Date: 2025.7.7-2025.7.14
 - [[doc-notes/typst/tutorial/Formatting|typst/tutorial/Formatting]]: All
 - [[doc-notes/typst/tutorial/Advanced Styling|typst/tutorial/Advanced Styling]]: All
 - [[doc-notes/python/packages/ruff/The Ruff Linter|python/packages/ruff/The Ruff Linter]]
-- [[doc-notes/python/packages/uv/Introduction|python/packages/uv/Introduction]]
+- [[doc-notes/uv/Introduction|uv/Introduction]]
 - [[doc-notes/cmake/reference-manuals/cmake-commands/set|cmake/reference-manuals/cmake-commands/set]]
 - [[doc-notes/cmake/reference-manuals/cmake-commands/option|cmake/reference-manuals/cmake-commands/option]]
 - [[doc-notes/cmake/reference-manuals/cmake-commands/file|cmake/reference-manuals/cmake-commands/file]]
@@ -2708,7 +2708,7 @@ Date: 2025.7.14-2025.7.21
 Date: 2025.7.21-2025.7.28
 
 \[Paper\]
-- [[paper-notes/mlsys/Large Scale Distributed Deep Networks-NeurIPS-2012|2012-Large Scale Distributed Deep Networks-NeurIPS]]
+- [[paper-notes/ml/system/Large Scale Distributed Deep Networks-NeurIPS-2012|2012-Large Scale Distributed Deep Networks-NeurIPS]]
     Abstract
         This work focuses on training DL model with billion parameters using tens of thousands of CPU cores.
         The framework is called DistBelief, which includes two algorithms for large-scale distributed training: Downpour SGD, Sandblaster.
@@ -2772,7 +2772,7 @@ Date: 2025.7.21-2025.7.28
 Date: 2025.7.28-2025.8.4
 
 \[Paper\]
-- [[paper-notes/mlsys/Scaling Distributed Machine Learning with a Parameter Server-2014-OSDI|2014-OSDI-Scaling Distributed Machine Learning with a Parameter Server]]
+- [[paper-notes/ml/system/Scaling Distributed Machine Learning with a Parameter Server-2014-OSDI|2014-OSDI-Scaling Distributed Machine Learning with a Parameter Server]]
     Abstract
         This paper proposes a parameter server framework for distributed ML training.
         Data and workload are distributed over worker nodes. Server nodes maintain globally shared parameters.
@@ -2852,7 +2852,7 @@ Date: 2025.7.28-2025.8.4
 Date: 2025.8.4-2025.8.11
 
 \[Paper\]
-- [[paper-notes/mlsys/Megatron-LM Training Multi-Billion Parameter Language Model Using Model Parallelism-2019|2019-Megatron-LM Training Multi-Billion Parameter Language Model Using Model Parallelism]]
+- [[paper-notes/gen-ai/language/infra/system/Megatron-LM Training Multi-Billion Parameter Language Model Using Model Parallelism-2019|2019-Megatron-LM Training Multi-Billion Parameter Language Model Using Model Parallelism]]
     Abstract
         This work introduces techniques for training very large transformer model with a simple intra-layer model parallel approach.
         This approach is orthogonal and complementary to pipeline model parallelism, and can be fully implemented with a insertion of a few communication operations in native PyTorch.
@@ -2887,7 +2887,7 @@ Date: 2025.8.4-2025.8.11
     Experiments
         Perplexity can be understood as the exp of average information entropy of the sequence. Perplexity indicates the number of candidate tokens when the model predicts the next token.
     Conclusion and Future Work
-- [[paper-notes/mlsys/MLIR Scaling Compiler Infrastructure for Domain Specific Computation-2021-CGO|2021-CGO-MLIR Scaling Compiler Infrastructure for Domain Specific Computation]]
+- [[paper-notes/compilation/MLIR Scaling Compiler Infrastructure for Domain Specific Computation-2021-CGO|2021-CGO-MLIR Scaling Compiler Infrastructure for Domain Specific Computation]]
     Abstract
         MLIR is an complier infracture to reduce the cost of constructing a domain-specific compiler for heterogeneous hardware.
     Introduction
@@ -2934,7 +2934,7 @@ Date: 2025.8.4-2025.8.11
     Related Work
         MLIR is a compiler infrastructure akin to LLVM, while LLVM focuses on scalar optimization and homogeneous compilation. MLIR aims to model a rich set of data structures and algorithms as first-class values and operations, including tensor algebra, graph representations, heterogeneous compilation.
     Conclusion and Future Work
-- [[paper-notes/mlsys/Training Deep Nets with Sublinear Memory-2016|2016-Training Deep Nets with Sublinear Memory]]
+- [[paper-notes/ml/system/Training Deep Nets with Sublinear Memory-2016|2016-Training Deep Nets with Sublinear Memory]]
     Abstract
         We propose a systematic approach to reduce the memory cost of DNN. This approach will reduce the memory cost of intermediate feature map and gradient from $O(n)$ to $O(\sqrt n)$, at the cost of recomputation.
     Introduction
@@ -3022,7 +3022,7 @@ Date: 2025.8.4-2025.8.11
 Date: 2025.8.11-2025.8.18
 
 \[Paper\]
-- [[paper-notes/mlsys/GPipe Efficient Training of Giant Neural Networks using Pipeline Parallelism-2019-NeurIPS|2019-NeurIPS-GPipe Efficient Training of Giant Neural Networks using Pipeline Parallelism]]
+- [[paper-notes/gen-ai/language/infra/system/GPipe Efficient Training of Giant Neural Networks using Pipeline Parallelism-2019-NeurIPS|2019-NeurIPS-GPipe Efficient Training of Giant Neural Networks using Pipeline Parallelism]]
     Abstract
         GPipe allows scaling any networks that can be expressed as a sequence of layers. GPipe utilizes a batch splitting pipelining algorithm, resulting in almost linear speedup when model is partitioned across multiple accelarators.
     Introduction
@@ -3046,7 +3046,7 @@ Date: 2025.8.11-2025.8.18
     Design Features and Trade-offs
         GPipe introduces minimal communiation overhead, communication only happens at partition boundary.
     Conclusion
-- [[paper-notes/mlsys/HybridFlow A Flexible and Efficient RLHF-2025-EuroSys|2025-EuroSys-HybridFlow A Flexible and Efficient RLHF]]
+- [[paper-notes/gen-ai/language/infra/system/HybridFlow A Flexible and Efficient RLHF-2025-EuroSys|2025-EuroSys-HybridFlow A Flexible and Efficient RLHF]]
     0-Abstract
         Different from traditional RL dataflow, in RLHF, each node in the dataflow is a LLM, which is essentially a distributed LLM training or generation program.
         In traditional RL framework, the inter-node communication and intra-node computation are all instruced by a single controller. Because there is large control dispatch overhead for distributed intra-node computation, the single contoller may become the bottleneck.
@@ -3137,7 +3137,7 @@ Date: 2025.8.11-2025.8.18
 Date: 2025.8.18-2025.8.25
 
 \[Paper\]
-- [[paper-notes/mlsys/ZeRO Memory Optimizations Toward Training Trillion Parameter Models-2020-SC|2020-SC-ZeRO Memory Optimizations Toward Training Trillion Parameter Models]]
+- [[paper-notes/gen-ai/language/infra/system/ZeRO Memory Optimizations Toward Training Trillion Parameter Models-2020-SC|2020-SC-ZeRO Memory Optimizations Toward Training Trillion Parameter Models]]
     Abstract
         ZeRO eliminate the memory redundency in DP or MP training, while maintaining low communication volume and high computational granularity.
         Training models of 100B+ size on 400 GPUs with ZeRO can achieve super-linear speedup.
@@ -3270,3 +3270,95 @@ Date: 2025.8.18-2025.8.25
         When bringing function into scope, we `use` its parent module. When brining struct, enum into scope, we `use` the full path.
         We can `pub use` an item into this scope, and exporting it to other places. Re-exporting is used to writting code in a structure and expose code in another structure.
         To use external package, add them as dependencies in `Cargo.toml`. Then `use` it.
+
+## September
+### Week 1
+Date: 2025.8.25-2025.9.1
+
+\[Paper\]
+- [[paper-notes/gen-ai/language/infra/system/Orca A Distributed Serving System for Transformer-Based Generative Models-2022-OSDI|2022-OSDI-Orca A Distributed Serving System for Transformer-Based Generative Models]]
+    Abstract
+        LLM generates next token in auto-regressive manner, so one has to run the model multiple times to process a inference request, where each iteration of the model generates a single output of the request.
+        In existing systems, a batch of requests must wait the longest request to finish before return.
+        This paper proposes iteration-level schduling, which schdule execution at the granulatiry of iteration instead of request. Under this scheduling, the scheduler only invokes the execution engine to run a single iteration of the model on the batch.
+        Also, to apply batching and iteration-level scheduling simultaneously to a Transformer model, we propose selective batching, which applys batching only to a selected set of operations.
+        ORCA is implemented based on these two techniques.
+    Introduction
+        Inference service should provide low latency and high throughput for the clients
+        Inference serrving system relies on a seperately-developed DNN execution engine to perform actual tensor operations. For example, the Triton Inference Server groups multiple client requests into batches and FasterTransformer execute the batches.
+        The characteristic of LLM inference is its auto-regressive nature, which means we have to run the model multiple iterations to generate a whole response.
+        As such, if scheduled at the granularity of request, the latency will increase for early finished requests and later arrived requests.
+        We propose scheduling at the granularity of iteration, to allow requests' dynamic in and out each iteration.
+        However, in this situation, it is not easy to process the requests in batched way, because the attention calls for non-batchable tensor operations whose input tensor shape is variable depends on the number of generated tokens.
+        We propose selective batching, which splits the batch, process each requests' attention operation seperately and apply batching to other operations.
+        Not batching attention has small impact to efficiency because attention operation is not associated with any model parameters, applying batching has no benefit of reducing GPU memory reads by reusing the loaded model parameters across multiple requests.
+    Background
+        We define the run of all layers as an iteration of the model. The first iteration is prefill, generating the first token, the iteratoins afterwards are decoding, accepting one token and generating a new one.
+        Attention operation requires keys and values from all preceding tokens, therefore we consider KVCache as the internal state to maintain across multiple iterations.
+        The state to maintain will increase with the iteration number, therefore the attention operation in different iteration is operating at tensors with different shapes, which depends on the numbers of tokens processed so far.
+        ML Inference systems receives requests, batching them and handle to execution engine, receives responses and send back to clients.
+        Batching is the key optimization to achieve high accelarator utilization. Batching combines multiple requests' input tensor into a large tensor and handle it to the accelarator to achieve higher utilization of the parallel process cores of the hardware, an reuse the fetched model parameter.
+        The throughput of engine highly relies on batch size.
+    Challenges and Proposed Solutions
+        The early-finished, late-joining problem will not appear in the training of lanauge models, because the training procedure uses teacher forcing technique to finish the processing of the whole batch in a single iteration.
+        At the granularity of iteration, the scheduler repeats 1. choose the requests for next run from the pool 2. invoke the engine to execute one iteration of the requests 3. receive the execution results of this iteration 4. append the result tokens to the requests, update the pool.
+        For a pair of requests, there are three cases where the next iteration can not be batched together: 1. both in prefill but with different input tokens 2. both in decoding but with different processing token index 3. in different stages
+        To batch processing multiple requests, it requries the operations of them are exactly the same and the input shapes of their tensors are exactly the same (in order to stack multiple tensors with same shape into a single higher dimensional tensor).
+        In the first case, `seq_len` of two tensors are different. In the second case, the shape of KV matrix of two tensors are different. In the third case, prefill, decode will process different number of tokens therefore using essentially different operators.
+        Selective batching will not batch process all operations for a batch of requests, but selective batch processing to a set of operations.
+        In the previous three situation, the different shaped input tensors can not be gathered into a single large as the input for a batched operation.
+        However, actually, the operators with no concept of "requests" can be batched with irregularrly shaped tensors by flattening the tensors, like Linear, Layer-Norm, GeLU...
+        The operator with concept of "requests" is Attention, in order to compute attention between tokens of the same request.
+        Selective batching is aware of the characteristics of different operations, therefore it will split the Attention computation to handle it seperately, in the mean time, applying token-wise (instead of request-wise) batching to other operations without the notion of requests.
+    ORCA Design
+        ORCA combines inter-layer and intra-layer parallelism. Intra-layer parallelism splits matrix multiplications and associated parameters over multiple GPUs. Inter-layer parallelism splits Transformer layers over multiple GPUs.
+        Each worker process is responsible for an inter-layer partition, each worker process manages multiple CPU threads, each control a GPU for an intra-layer partition.
+        ORCA splits control plane and data plane.
+        Scheduler ensures iteration-level FCFS.
+        Increase batch is actually trade latency for throughput, therefore, just like other systems, ORCA also have a notion of max batch size.
+        The KVCache buffer for each request can not be reused until the request is finished. ORCA will allocate `max_tokens` slots for each request.
+        For pipeline paralleism, ORCA will not wait the return of scheduled batches until the scheduled batch number achieves the number of workers, to keey every worker busy processing a batch.
+    Implementation
+    Evaluation
+    Related Work and Discussion
+    Conclusion
+- [[paper-notes/gen-ai/language/infra/system/Transformers State-of-the-Art Natural Language Processing-2020-EMNLP|2020-EMNLP-Transformers State-of-the-Art Natural Language Processing]]
+    Abstract
+        `Transformers` provides a unified API for Transformer architecture models. The library consists of a collection of pretrained models. (i.e. this library provide a unified API for different pretrained model released by the community like Qwen, Llama, Grok)
+    Introduction
+        `Transformers` is a library dedicated to supporting the distribution of pretrained Transformer models. This library supports users to compare different models with the same minimal API.
+    Related Work
+        `Transformers` provide a hub for NLP models.
+    Library Design
+        `Transformers` is designed to mirror the standard NLP ML pipeline: process data, apply a model, and make predictions: process data, apply a model, make predictions.
+        Each model in the library is fully defined by three building blocks: 1. tokenizer to convert raw text to sparse index encodings 2. transformer to transform sparse indices to contextual embeddings 3. head to make task-specific predictions with contextual embeddings.
+        Each model corresponds to a base class which implements the model's computation graph.
+        Different architecture follows the same API when possible.
+        A set of `Auto` classes provides a unified API for fast switching between models.
+        Tokenizer class stores the vocabulary token-to-index mapping.
+        Heads are implemented as an additional wrapper class on top of base classes
+    Community Model Hub
+    Deployment
+    Conclusion
+
+\[Doc\]
+- [[doc-notes/python/packages/transformers/Quickstart|python/packages/transformers/Quickstart]]: All
+    `transformers` only provide three classes, and two APIs to the users. The three classes are used to initialize a model, and the two APIs are used for training and inference.
+    Each pretrained model inherite three base classes: `PretrainedConfig`, `PreTrainModel`, `Preprocessor`
+- [[doc-notes/pixi/getting-started/First Project|pixi/getting-started/First Project]]: All
+- [[doc-notes/powershell/learning-powershell/powershell-101/Introduction|powershell/learning-powershell/powershell-101/Introduction]]: All
+- [[doc-notes/powershell/learning-powershell/powershell-101/Getting started with Powershell|powershell/learning-powershell/powershell-101/Getting started with Powershell]]: CH1, CH2
+    CH1-Getting started with PowerShell
+    CH2-The Help system
+        Complied commands are called cmdlet.
+        Three cores: `Get-Help`, `Get-Command`, `Get-Member`
+        `Get-Help` do wildcard search for command names, if not found, do a full-text search across all help articles.
+        Number of blocks in SYNTAX indicates number of parameter sets. Parameter sets are mutual exclusive.
+        `Get-Command` is more brief than `Get-Help`.
+- [[doc-notes/python/library/software-packaging-and-distribution/venv - Creation of virtual environments|python/library/software-packaging-and-distribution/venv - Creation of virtual environments]]
+    Virtual environments has its own python and packages. Virtual environments is created based on the base environment.
+    When execute python interpreter in virtual environment, `sys.prefix` and `sys.exec_prefix` points to the directories of the virtual environment.
+    After activation, virtual environment will as its directory in the front of `PATH`.
+- [[doc-notes/python/library/file-and-directory-access/pathlib - Oject-oriented filesystem paths|python/library/file-and-directory-access/pathlib - Oject-oriented filesystem paths]]
+    `Path` will initialize a path based on the platform the code is running on. 
+
