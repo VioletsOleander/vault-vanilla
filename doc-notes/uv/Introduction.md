@@ -1,3 +1,7 @@
+---
+completed: true
+version: 0.8,14
+---
 # uv
 An extremely fast Python package and project manager, written in Rust.
 
@@ -53,8 +57,9 @@ Then, check out the [first steps](./getting-started/first-steps.md) or read on f
 uv may also be installed with pip, Homebrew, and more. See all of the methods on the [installation page](./getting-started/installation.md).
 
 ## Projects
-uv manages project dependencies and environments, with support for lockfiles, workspaces, and more,
-similar to `rye` or `poetry`:
+uv manages project dependencies and environments, with support for lockfiles, workspaces, and more, similar to `rye` or `poetry`:
+
+>  uv 管理项目依赖和环境，支持 lockfiles, workspaces 等
 
 ```console
 $ uv init example
@@ -84,11 +89,11 @@ Audited 1 package in 0.02ms
 
 See the [project guide](./guides/projects.md) to get started.
 
-uv also supports building and publishing projects, even if they're not managed with uv. See the
-[packaging guide](./guides/package.md) to learn more.
+uv also supports building and publishing projects, even if they're not managed with uv. See the [packaging guide](./guides/package.md) to learn more.
 
 ## Scripts
 uv manages dependencies and environments for single-file scripts.
+>  uv 支持管理单文件脚本的依赖和环境
 
 Create a new script and add inline metadata declaring its dependencies:
 
@@ -190,12 +195,9 @@ See the [installing Python guide](./guides/install-python.md) to get started.
 ## The pip interface
 uv provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
 
-uv extends their interfaces with advanced features, such as dependency version overrides,
-platform-independent resolutions, reproducible resolutions, alternative resolution strategies, and
-more.
+uv extends their interfaces with advanced features, such as dependency version overrides, platform-independent resolutions, reproducible resolutions, alternative resolution strategies, and more.
 
-Migrate to uv without changing your existing workflows — and experience a 10-100x speedup — with the
-`uv pip` interface.
+Migrate to uv without changing your existing workflows — and experience a 10-100x speedup — with the `uv pip` interface.
 
 Compile requirements into a platform-independent requirements file:
 
