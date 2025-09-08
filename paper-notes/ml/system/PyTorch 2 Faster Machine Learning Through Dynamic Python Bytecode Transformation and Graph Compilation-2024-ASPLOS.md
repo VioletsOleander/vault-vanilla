@@ -307,124 +307,398 @@ Guards are accumulated during analysis and can point to variables originating fr
 
 ## 3.4 Symbolic Evaluation
 A fundamental part of TorchDynamo is the symbolic Python bytecode evaluator which is responsible for analyzing Python bytecode and modeling effects of each instruction. Symbolic evaluation contains data structures that keep track of: 1) stack state; 2) local variables; 3) exception contexts; 4) accumulated FX graph [34]; 5) accumulated guards; and 6) side effects. The algorithm operates one Python bytecode at a time and contains a function corresponding to every Python bytecode instruction type.
+>  TorchDynamo 的一个基本部分是符号化 Python 字节码求值器，它负责分析 Python 字节码并建模每条指令的效果
+>  符号化求值包含用于跟踪以下数据结构的结构: 1. 栈状态 2. 局部变量 3. 异常上下文 4. 累积的 FX 图 5. 累积的 guards 6. 副作用
+>  该算法一次处理一条 Python 字节码，并且每个 Python 字节码指令类型都有一个对应的函数
+
+>  符号化即不使用具体的数值，而是使用抽象的符号来表示变量
 
 At the start of symbolic evaluation, function arguments are examined and converted to a symbolic representation, VariableTracker. If bytecodes access data structures such as class attributes or global variables, new symbolic representations for these constructs are added lazily. This representation is discussed more in Section 3.5. The symbolic evaluator starts at the first bytecode instruction of the function, and continues processing the function one bytecode at a time. The soundness of this analysis can be shown via induction: as long each individual bytecode is processed correctly, the overall algorithm will be correct.
+>  符号化求值开始时，函数参数会被检查并被转化为符号表示，即 `VariableTracker`
+>  如果字节码访问了诸如类属性或全局变量这样的数据结构，则会惰性地为这些结构添加新的符号表示
+>  符号求值器从函数的第一个字节码指令开始，然后字节码地处理该函数
+>  这种分析的正确性可以通过归纳法证明: 只要每条单独的字节码都被正确处理，整个算法就是正确的
 
 As an example, suppose the first instruction was LOAD_FAST, a Python bytecode that pushes a local variable on to the stack. The handler for LOAD_FAST will take the representation variable from the symbolic local variables and push it on to the symbolic stack data structure. The handler for BINARY_ADD, will pop two symbolic variables off the stack then push their result on to the stack. The result is computed depending on the types of those variables and the dispatch will vary based on those types. If the value represents a PyTorch tensor, then a new add node will be added to the FX graph [34], and a new symbolic tensor pointing to the result node will be created.
+>  例如，假设第一条指令是 `LOAD_FAST`，这是将局部变量推送到栈上的 Python 字节码，`LOAD_FAST` 的处理函数会从符号化局部变量中获取对应的表示变量，并将其推送到符号化栈数据结构中
+>  对 `BINARY_ADD` 的处理函数会从栈中弹出两个符号变量，然后将它们的运算结果推入栈上
+>  结果的计算取决于变量的类型，分发方式也会根据类型而变化，如果该值表示 PyTorch 张量，则会为 FX 图添加新的加法节点，并创建新的符号张量指向该节点
+
+>  PyTorch 中，用户写的模型代码通常是 Python 函数，例如
+
+```python
+def forward(x):
+    return x @ w + b
+```
+
+>  这些函数每次运行都有不同输入，普通的 JIT 编译器难以直接优化这种动态语言
+>  TorchDynamo 使用符号化分析，即不真正执行代码，而是模拟执行过程，使用符号代替真实数据
+>  TorchDynamo 的符号化求值器维护六个数据结构来追踪程序状态:
+>  - stack: 模拟 Python 解释器的运算栈
+>  - local variables: 记录 `a = 5, y = x + 1` 等局部变量的符号表示
+>  - execption context: 跟踪 `try-catch` 块，确保控制流正确
+>  - 累积的 FX 图
+>  - 累积的 guards
+>  - side effects: 是否修改了全局状态 (如 print, write to file)
+>  TorchDynamo 开始分析函数时，会先将函数参数转化为叫 `VariableTracker` 的符号表示
+>  逐条处理字节码时，处理对象也是符号变量
+>  例如 `a = x + 1` 的 `LOAD_FAST a` 会查找局部变量中名为 `a` 的符号，将它的 `VariableTracker` 压入符号栈
+>  例如 `x + 1` 的 `BINARY_ADD` 会判断两个变量的类型，如果是普通数字，可能进行常量折叠，如果是 PyTorch 张量，就在图中添加节点 (`aten::add`)，并创建一个新的 `VariableTracker` 表示该加法的结果，后续基于该结果的操作也能记录下来，形成完整的计算链
+>  如果每个字节码指令都能完美处理，那 TorchDynamo 的处理就完美反映了 Python 程序本来的语义，函数分析结果就是正确的
+
+>  一个完整的例子
+
+```python
+def f(x):
+    y = x + 1
+    z = y * 2
+    return z
+```
+
+>  TorchDynamo 的符号化求值过程如下：
+
+| 字节码               | 处理动作                                                       |
+| :---------------- | :--------------------------------------------------------- |
+| `LOAD_FAST x`     | 把`x`的符号（`VariableTracker(tensor)`）压入栈                      |
+| `LOAD_CONST 1`    | 把常数`1`的符号压入栈                                               |
+| `BINARY_ADD`      | 弹出`x`和`1`，发现都是 tensor → 在 FX 图中添加`aten::add`节点，生成新符号`y`并压栈 |
+| `LOAD_CONST 2`    | 把`2`压栈                                                     |
+| `BINARY_MULTIPLY` | 弹出`y`和`2`→ 添加`aten::mul`节点，生成`z`                           |
+| `RETURN_VALUE`    | 返回`z`，FX 图完成                                               |
+
+>  最终得到一个完整的计算图：`x → add(1) → mul(2) → return`
 
 ## 3.5 Modeling Python Data Structures
 Many semantics of Python are in libraries and data structures, so any Python analysis must model the behavior of these different types. To analyze the behavior of each variable or stack entry, TorchDynamo has a class hierarchy that models common behaviors of different data types. Each of these data structures is a subclass of VariableTracker. Notable types of variable trackers include:
+>  Python 的许多语义都包含在库和数据结构中，故任何 Python 分析都必须对这些不同类型的行为进行建模
+>  为了分析每个变量或栈项的行为，TorchDynamo 有一个类层次结构，用于对不同数据类型的常见行为进行建模，这些数据结构都被表示为 `VariableTracker` 的子类，一些值得注意的数据类型包括:
 
--TensorVariable represents a torch.Tensor. It does not store an underlying tensor value, but instead stores a fx.Proxy which points into the partially constructed FX graph [34] as well as a "fake" tensor (see Section 5) that represents the metadata of a tensor without its actual data.-ConstDictVariable and DataClassVariable are used to represent key/value pairs where the keys are constant strings and the values can be anything, including nested dicts/lists.-ListVariable and TupleVariable represent list/tuple and can contain any other type of symbolic variable.-UserFunctionVariable and UserMethodVariable represent user defined functions that can be inlined. They also support functions constructed dynamically containing closures.
+- *TensorVariable* represents a torch.Tensor. It does not store an underlying tensor value, but instead stores a fx.Proxy which points into the partially constructed FX graph [34] as well as a "fake" tensor (see Section 5) that represents the metadata of a tensor without its actual data.
+>  `TensorVariable` 表示 `torch.Tensor`，它不存储张量值，而是存储一个指向部分构建的 FX 图的 `fx.Proxy`，以及一个 “假” 张量，表示 tensor 的元数据而不包含实际的数据
 
--UserDefinedClassVariable represent user-defined classes and UserDefinedObjectVariable represents instances. We lazily specialize on these as their attributes are accessed, and track mutation on them (Section 3.7).
+- *ConstDictVariable* and *DataClassVariable* are used to represent key/value pairs where the keys are constant strings and the values can be anything, including nested dicts/lists.
+>  `ConstDictVariable, DataClassVariable` 用于表示键值对，其中 keys 为常量字符串，values 可以是任意内容，包括嵌套的字典/列表
+
+- *ListVariable* and *TupleVariable* represent list/tuple and can contain any other type of symbolic variable.
+>  `ListVaraible, TupleVariable` 表示列表和元组，可以包含任何其他类型的符号变量
+
+- *UserFunctionVariable* and *UserMethodVariable* represent user defined functions that can be inlined. They also support functions constructed dynamically containing closures.
+>  `UserFunctionVariable, UserMethodVariable` 表示可以内联的用户定义函数，它们还支持包含闭包的动态构造的函数
+
+- *UserDefinedClassVariable* represent user-defined classes and *UserDefinedObjectVariable* represents instances. We lazily specialize on these as their attributes are accessed, and track mutation on them (Section 3.7).
+>  `UserDefinedClassVariable` 表示用户定义的类，`UserDefinedObjectVariable` 表示其实例
+>  我们在访问其属性时会惰性地进行特化，并跟踪它们的修改
 
 There are many other variable tracker types that represent other situations. In addition to type-specific data, every VariableTracker instance also contains a set of guards, which are initialized when they are created and propagated through operations via union. Additionally, each instance also tracks where it came from so that it can be loaded or mutated in output bytecode.
+>  还有表示其他情况的许多其他 `VariableTracker` 类型
+>  每个 `VariableTracker` 实例除了包含特定于类型的数据，还包含了一组 guards，这些 guards 在实例被创建时被初始化，并通过操作之间的并集进行传播 (两个 `VariableTracker` 合并时，如 `a+b`，它们的 guards 会做并集，也就是只有所有条件满足才允许使用该图)
+>  此外，每个实例还会追踪它来自哪里，以便在输出字节码中加载或修改它 (也就是每个 `VariableTraker` 需要记住它是由哪个表达式产生的，它属于哪个局部变量名，它是否后续被修改过，才能在后续生成的字节码被正确 `LOAD_FAST, STORE_FAST`)
 
 ## 3.6 Inlining, Control Flow, and Closures
-Function calls can either happen directly from user code, or implicitly through magic methods such as __getitem__. To collect bigger graphs, TorchDynamo will attempt to inline function calls and flatten programs. When a function call is encountered, TorchDynamo first creates a checkpoint of the current symbolic state. Next, it recursively tries to symbolically evaluate the called functions, passing in any input symbolic state and recording any changes that are made. If this recursive analysis hits a case that would cause a graph break (Section 3.8) or other errors, TorchDynamo rolls back to the symbolic state before the function call and generates a graph break on that function call. Otherwise, the recursive analysis returns and the analysis of the parent function continues.
+Function calls can either happen directly from user code, or implicitly through magic methods such as `__getitem__`. To collect bigger graphs, TorchDynamo will attempt to inline function calls and flatten programs. When a function call is encountered, TorchDynamo first creates a checkpoint of the current symbolic state. Next, it recursively tries to symbolically evaluate the called functions, passing in any input symbolic state and recording any changes that are made. If this recursive analysis hits a case that would cause a graph break (Section 3.8) or other errors, TorchDynamo rolls back to the symbolic state before the function call and generates a graph break on that function call. Otherwise, the recursive analysis returns and the analysis of the parent function continues.
+>  函数调用可以直接来自于用户代码，也可以隐式通过魔法方法例如 `__getitem__`
+>  为了收集更大的图，TorchDynamo 会尝试内联函数调用并展开程序
+>  当遇到一个函数调用时，TorchDynamo 首先会创建当前符号状态的检查点，然后，它会递归地尝试对被调用的函数进行符号求值，传入任意的输入符号状态，并记录所作的任何更改
+>  如果递归分析遇到了会导致 graph break 或其他错误的情况，TorchDynamo 会回滚到函数调用之前的符号状态，并在该函数调用处生成一个 graph break
+>  否则，递归分析完成后，父函数的分析将继续进行
 
 Most cases of control flow in Python bytecode are optimized away and handled through specialization. For example, when iterating over a list of torch.nn.Module, TorchDynamo will guard that the list doesn't change and unroll the loop. For control flow based on the type, size, and shape of tensors, TorchDynamo will guard on those properties and remove the control flow. In less common cases where there is control flow that cannot be removed (for example, branching on the value of a tensor rather than the metadata), TorchDynamo will generate a graph break that will trigger the branch bytecode to run in CPython, and analysis will resume after the jump.
+>  Python 字节码中的大多数控制流情况都会被优化掉，并被专门化
+>  例如，在遍历 `torch.nn.Module` 列表时，TorchDynamo 会检查该列表是否发生变化，并展开遍历循环
+>  对于基于张量类型、大小、形状的控制流，TorchDYnamo 会针对这些属性进行检查，并移除相应的控制流
+>  在一些比较少见的情况，如果存在无法移除的控制流 (例如，根据张量的值而不是元数据进行分支)，TorchDynamo 会生成 graph break, graph break 会触发该分支的字节码在 CPython 中执行，分析在跳转之后继续进行
 
 Another challenge is closures. Consider this example:
 
-def closure_example(x): y = torch.sigmoid(x) return lambda z: y + z
+```python
+def closure_example(x):
+    y = torch.sigmoid(x)
+    return lambda z: y + z
+```
 
-Here the variable  $y$  is in a closure which is represented by what CPython calls a cell, which adds a layer of indirection to allow variables in closures to be mutated. There are a number of different cases of closures that TorchDynamo must handle:
+Here the variable  $y$  is in a closure which is represented by what CPython calls a cell, which adds a layer of indirection to allow variables in closures to be mutated. 
+>  另一个挑战是闭包
+>  在上述示例中，变量 `y` 是一个闭包，CPython 使用称为 cell 的结构表示闭包
+>  cell 增加了一层间接引用，允许对闭包中的变量进行修改
 
--Cell variables created outside the captured region must be accessed differently than other variables. If they are accessed from the top-level function, they can be accessed by generating the LOAD_DEREF and STORE_DEREF bytecodes. When inlining, this bytecode cannot be
+>  闭包: 函数可以捕获外部作用域的变量，即便外部函数已经返回，本质是一个函数 + 它所依赖的外部变量 (闭包捕获的变量)
+>  闭包的三要素是:
+>  1. 外部函数定义变量
+>  2. 内部函数引用该变量
+>  3. 内部函数被返回或传递出去
 
-used and instead TorchDynamo generates code to read-/write directly from the inlined function cell, for example fn.__closure__[0].cell_contents. If the content of a cell is mutated, TorchDynamo tracks the mutation in the same way as other mutations (Section 3.7). Cell variables both created and destroyed within the captured region are the easiest to handle and most common. In this case, TorchDynamo statically optimizes away the closure. Cell variables that are created in the captured region, but escape the frame are the most difficult to handle. In this case, TorchDynamo will optimize away all uses of the closure inside the captured region. Then, at the very end in the generated bytecode, it will create any needed cells and Python function objects to return. From the outside, callers will not be able to tell that the returned closure was created differently than the original program.
+>  Python 中，内部函数要访问外部变量，不能直接拿到值，而需要通过 cell 数据结构
+>  而要访问 cell 数据结构，需要通过 `LOAD_DEREF, STORE_DEFER` 字节码
+>  这些都是运行时机制，编译器很难直接优化
 
-# 3.7 Mutation and Side Effects
+>  示例中的 `lambda z: y + z` 就是一个闭包，它记住了 `y` 的值，即使 `closure_example()` 返回了，这个 `y` 仍然可以通过返回的函数访问
+>  在 CPython 中，这种捕获的变量不是直接存储的，而是通过叫 cell 的中间结构实现的
+>  当一个变量被闭包捕获后，它会被包装为一个 `cell` 对象，cell 中的值通过 `LOAD_DEREF, STORE_DEREF` 读写
 
-Python functions sometimes have side effects. TorchDynamo handles side effects by deferring them until after the FX graph [34] has been called, then generating output bytecode that applies all side effects at the end. To do this, TorchDynamo has a side effects data structure that tracks all side effects that the original code would have. If the code tries to read a value that would have been mutated by a pending side effect, it instead reads that pending value. After the graph is generated, a garbage collection pass removes side effects that didn't escape the analysis context, and TorchDynamo generates output code to apply the needed side effects. Handling side effects this way results in multiple writes to the same value being collapsed into a single write. TorchDynamo supports the following types of side effects:
+>  TorchDynamo 相对函数进行 JIT 编译优化，例如将 `x + 1` 优化为算子融合、提前计算常量表达式、生成高效 CUDA 代码等
+>  但由于闭包引入了不可见的间接层: cell，静态分析就十分困难
 
--Writes to global variables result in a STORE_GLOBAL bytecode if the target global is in the same file. If it is in a different file (because of inlining), code is generated to mutate the global in the other module.-Writes to attributes (such as on classes) are handled similarly and mapped to STORE_ATTR in output bytecodes. We use the source on the VariableTracker to determine how to load a reference to the object that must be mutated.-Writes to cells/closures are tracked and handled in a number of ways (see Section 3.6).-Class construction is handled by creating a placeholder symbolic object, inlining the __init__ method, and tracking all the attribute mutation on that placeholder object. If the object is live at the end of the function, the output bytecode will create the object (bypassing the constructor) and set the needed attributes.-Dictionary and list mutation can also cause side effect if the dict/list was passed in as an input or loaded from a global/attribute. The VariableTracker representations of dict/lists will guard on the initial symbolic state of these objects, then symbolically track all changes through the entire function. The captured FX graph [34] will have all of these operations optimized away. In the output bytecode, a new dict/list will be created to match the final state and the original list object will be mutated to match that object. This recreation is not needed for lists/dicts that do not escape the captured region because their mutations cannot be observed, and therefore they can be completely removed.
+There are a number of different cases of closures that TorchDynamo must handle:
+>  TorchDynamo 需要针对不同类型的闭包情况采取不同的策略
 
-a global/attribute. The VariableTracker representations of dict/lists will guard on the initial symbolic state of these objects, then symbolically track all changes through the entire function. The captured FX graph [34] will have all of these operations optimized away. In the output bytecode, a new dict/list will be created to match the final state and the original list object will be mutated to match that object. This recreation is not needed for lists/dicts that do not escape the captured region because their mutations can not be observed, and therefore they can be completely removed.
+- Cell variables created outside the captured region must be accessed differently than other variables. If they are accessed from the top-level function, they can be accessed by generating the LOAD_DEREF and STORE_DEREF bytecodes. When inlining, this bytecode cannot be used and instead TorchDynamo generates code to read-/write directly from the inlined function cell, for example `fn.__closure__[0].cell_contents`. If the content of a cell is mutated, TorchDynamo tracks the mutation in the same way as other mutations (Section 3.7). 
+>  在捕获区域之外创造的 cell 变量需要于不同于其他变量的方式进行访问
+>  如果它们是从顶层函数中访问的，可以通过生成 `LOAD_DEREF, STORE_DEFER` 字节码访问
+>  但在内联时，这些字节码无法使用，TorchDynamo 会生成代码，直接从内联的函数 cell 中读写，例如 `fn.__closure__[0].cell_contents`
+>  如果 cell 内容被修改，TorchDynamo 会以追踪其他变更的方式追踪这个变更
 
-# 3.8 Graph Breaks and Continuation Functions
+>  第一种情况是变量在外部创建，在内部被使用，例如
 
-When TorchDynamo encounters a Python bytecode it cannot handle, for example a call to an external library, it generates what we call a graph break to split the bytecode being analyzed into multiple pieces. Essentially, TorchDynamo will mix compiled fragments into the original Python code to get a hybrid execution. Any pending partial FX graph [34] is compiled. In the output code when the partial graph will be called, the unsupported bytecode will be executed, and then we will recursively use TorchDynamo to analyze the remainder of the function. To trigger this recursive analysis, TorchDynamo generates one or more continuation functions which take the form:
+```python
+def outer():
+    x = 5
+    def inner():
+        return x
+    return inner
+```
 
-def resume_at_X(... livevars ...): ... _absolute try/except/stack state ... ... _absolute try ... original function bytecode ...
+>  `x` 是在 `outer` 中定义的，被 `inner` 捕获
+>  如果在 `inner` 内部访问 `x`，CPython 会生成 `LOAD_DEREF` 字节码
+
+```python
+# 伪代码（TorchDynamo 生成的优化代码）
+def inner():
+    cell_x = fn.__closure__[0]      
+    value = cell_x.cell_contents    
+    return value + 1
+```
+
+>  而如果 `inner` 被内联，就不能使用 `LOAD_DEFER` (这是在运行时才能生效的指令)，而是直接访问 cell 的内容，例如 `fn.__closure__[0].cell_contents`，其中 `__closure__` 是函数对象的一个属性，保存所有被捕获的 cell，`cell_contents` 是 cell 中存储的值
+
+>  也就是绕开了运行时机制，在编译时就访问捕获的变量
+>  和下面的情况的区别是，这里 `x` 可能在运行时被改变，因此需要访问获取具体的值，下面的情况是直接固定为常数
+
+- Cell variables both created and destroyed within the captured region are the easiest to handle and most common. In this case, TorchDynamo statically optimizes away the closure. 
+>  完全在被捕获区域内被创建以及摧毁的 cell 变量最常见，也最容易解决，在这种情况下，TorchDynamo 会静态地优化掉闭包
+
+>  例如
+
+```python
+def make_adder(n):
+    def adder(x):
+        return x + n
+    return adder
+```
+
+>  TorchDynamo 会直接把 `adder` 函数内的 `n` 提取出来，变成常量或参数
+>  优化后相当于
+
+```python
+def adder(x, n = 5):
+    return x + n
+```
+
+>  完全消除了闭包结构，无需 cell
+
+- Cell variables that are created in the captured region, but escape the frame are the most difficult to handle. In this case, TorchDynamo will optimize away all uses of the closure inside the captured region. Then, at the very end in the generated bytecode, it will create any needed cells and Python function objects to return. From the outside, callers will not be able to tell that the returned closure was created differently than the original program.
+>  在捕获区域内被创建但逃出了当前帧的 cell 变量最难处理
+>  此时，TorchDynamo 会优化掉捕获区域内部对闭包的所有使用，然后，在生成的字节码的最后阶段，它会创建所需的 cells 和 Python 函数对象以返回
+>  从外部来看，调用者无法察觉返回的闭包和原始程序的闭包有什么不同
+
+## 3.7 Mutation and Side Effects
+Python functions sometimes have side effects. TorchDynamo handles side effects by deferring them until after the FX graph [34] has been called, then generating output bytecode that applies all side effects at the end. To do this, TorchDynamo has a side effects data structure that tracks all side effects that the original code would have. If the code tries to read a value that would have been mutated by a pending side effect, it instead reads that pending value. 
+>  有时 Python 函数存在 side effect, TorchDynamo 将推迟到 FX 图被调用之后，再生成在最后应用所有 side effects 的输出字节码
+>  为此，TorchDynamo 使用一个 side effect 数据结构来追踪原始代码中所有的 side effects
+>  如果代码尝试读取一个会被待处理的 side effect 修改的值，它会改为读取这个待处理的值
+
+After the graph is generated, a garbage collection pass removes side effects that didn't escape the analysis context, and TorchDynamo generates output code to apply the needed side effects. Handling side effects this way results in multiple writes to the same value being collapsed into a single write. 
+>  在图生成之后，一个 GC pass 会移除没有逃出分析上下文的 side effects (不会对外部产生影响的 side effects)，然后 TorchDynamo 会生成输出代码来应用剩余的，有必要应用的 side effects
+>  用这种方式处理 side effects 可以将对同一值的多次写入合并为一次写入
+
+TorchDynamo supports the following types of side effects:
+
+- Writes to global variables result in a STORE_GLOBAL bytecode if the target global is in the same file. If it is in a different file (because of inlining), code is generated to mutate the global in the other module.
+- Writes to attributes (such as on classes) are handled similarly and mapped to STORE_ATTR in output bytecodes. We use the source on the VariableTracker to determine how to load a reference to the object that must be mutated.
+- Writes to cells/closures are tracked and handled in a number of ways (see Section 3.6). 
+- Class construction is handled by creating a placeholder symbolic object, inlining the `__init__` method, and tracking all the attribute mutation on that placeholder object. If the object is live at the end of the function, the output bytecode will create the object (bypassing the constructor) and set the needed attributes.
+- Dictionary and list mutation can also cause side effect if the dict/list was passed in as an input or loaded from a global/attribute. The VariableTracker representations of dict/lists will guard on the initial symbolic state of these objects, then symbolically track all changes through the entire function. The captured FX graph [34] will have all of these operations optimized away. In the output bytecode, a new dict/list will be created to match the final state and the original list object will be mutated to match that object. This recreation is not needed for lists/dicts that do not escape the captured region because their mutations cannot be observed, and therefore they can be completely removed.
+
+>  TorchDynamo 支持的 side effects 类型有:
+>  - 对全局变量的写入: 如果目标全局变量在同一个文件中，则生成 `STORE_GLOBAL` 字节码，如果在不同文件中 (由于内联)，则生成代码来修改其他模块中的全局变量
+>  - 对属性的写入 (例如类上的属性): 处理方式类似，生成 `STORE_ATTR` 字节码，我们使用 `VariableTracker` 上的源信息来确定如何加载对要修改的对象的引用
+>  - 对 cell/closures 的写入: 前文介绍过
+>  - 类的构造: 通过创建一个占位符符号对象，内联其 `__init__` 方法 (把 `__init__` 的内容当作函数体处理，用符号追踪所有属性修改)，并跟踪该占位符对象上的所有属性修改实现，如果该对象在函数结束后仍然有效，输出字节码将创建该对象 (绕过构造函数)，并设置所需的属性
+>  - 字典和列表变更: 只有当字典/列表是作为输入传入，或者是从全局变量/属性中加载的，其变更才视作 side effect (本地创建，并变更的不视作 side effect)；字典/列表的 `VariableTracker` 表示会针对这些对象的初始符号状态进行 guard，然后在整个函数中符号化追踪对它们的修改；FX 图中会优化掉这些修改操作；在输出的字节码中，会创建一个新的字典/列表，匹配原始的字典/列表对象被修改后的最终状态，且原始的字典/列表也会被修改为与该对象一致；对于不会逃逸出捕获区域的字典/列表，不需要重新创建，因为它们的修改无法被观察到，因此可以被完全移除
+
+## 3.8 Graph Breaks and Continuation Functions
+When TorchDynamo encounters a Python bytecode it cannot handle, for example a call to an external library, it generates what we call a graph break to split the bytecode being analyzed into multiple pieces. Essentially, TorchDynamo will mix compiled fragments into the original Python code to get a hybrid execution. Any pending partial FX graph [34] is compiled. In the output code when the partial graph will be called, the unsupported bytecode will be executed, and then we will recursively use TorchDynamo to analyze the remainder of the function. 
+>  当 TorchDynamo 遇到无法处理的 Python 字节码时，例如对外部库的调用，它会生成 graph break，将正在分析的字节码分为多个部分
+>  本质上，TorchDynamo 会将编译好的代码片段混合到原始的 Python 代码中，以实现混合执行
+>  任何待处理的 FX 图都会被编译，在输出代码中，当调用该部分图时，不支持的字节码将被执行，然后我们会递归使用 TorchDynamo 分析函数的剩余部分
+
+>  TorchDynamo 遇到无法分析的字节码，会:
+>  1. 停止当前 FX 图构建
+>  2. 把前面已生成的部分编译成可执行代码
+>  3. 在该处插入一个图断点，让原生 Python 执行无法处理的部分
+>  4. 继续分析后面的代码
+
+To trigger this recursive analysis, TorchDynamo generates one or more continuation functions which take the form:
+
+```python
+def resume_at_X(... livevars ...):
+    ... restore try/except/stack state ...
+    JUMP_ABSOLUTE X
+    ... original functional bytecode ...
+```
 
 This continuation function looks very similar to the original function except for a few changes: 1) the arguments are changed to reflect whatever variables are live across the graph break; 2) a prefix is added to restore the stack/exception state, which may also be passed in as an argument; 3) a JUMP_ABSOLUTE instruction is created so execution resumes in the middle of the function.
 
+>  为了支持断点后分析，TorchDynamo 会生成连续函数，形式如上
+>  连续函数非常类似于原始的函数，一些差异在于: 1. 参数被修改，以反映哪些变量在跨越 graph break 之后还活跃 2. 添加一个前缀，用于恢复 stack/exception 状态 3. `JUMP_ABSOLUTE` 指令，使得执行从函数中间继续
+
 TorchDynamo will either generate one of these functions, or two of these functions in the case of control flow (all control flow bytecodes have exactly two branches), to continue execution right after the unsupported bytecode. The advantage of structuring continuations as Python functions is that it will recursively trigger TorchDynamo through the frame evaluation API. When TorchDynamo processes a continuation function, it treats it exactly the same as any other Python function.
+>  TorchDynamo 要么会生成一个这样的函数，或者在存在控制流时生成两个这样的函数 (所有的控制流字节码正好有两个分支)，以在不受支持的字节码之后继续执行
+>  将延续结构化为 Python 函数的优势在于它可以通过 frame evaluation API 递归地触发 TorchDynamo
+>  当 TorchDynamo 处理一个延续函数时，它会将其视为与其他任何 Python 函数完全相同
 
-# 3.9 AOTAutograd
+## 3.9 AOTAutograd
+AOTAutograd is a reusable component in PyTorch that is called by many PyTorch compiler backends to add training support and use shared operator decompositions. TorchDynamo captures the forwards of a model, but, to support training, we also need to generate the backwards pass. In Pytorch eager, the backwards graph is generated dynamically using a tape-based autograd [32]. AOTAutograd turns the forwards graph into a forwards and backwards graph in a way that supports partial program graphs. 
+>  AOTAutograd 是 PyTorch 的一个可重用组件，它被许多 PyTorch 编译器后端调用，以添加训练支持，并使用共享的算子分解
+>  TorchDynamo 会捕获模型的前向计算，但为了支持训练我们还需要生成反向过程
+>  PyTorch 即时模式下，反向图是通过基于 tape 的自动求导动态生成的，AOTAutograd 则以一种支持部分程序图的方式，将前向图转换为前向和反向图
 
-AOTAutograd is a reusable component in PyTorch that is called by many PyTorch compiler backends to add training support and use shared operator decompositions. TorchDynamo captures the forwards of a model, but, to support training, we also need to generate the backwards pass. In Pytorch eager, the backwards graph is generated dynamically using a tape-based autograd [32]. AOTAutograd turns the forwards
+AOTAutograd works by running the PyTorch eager mode autograd engine on fake tensor inputs and recording a joint forwards and backwards graph. Data-dependent operations do not work with fake tensors (since there is no backing data), so we graph break on these operations in TorchDynamo and run them outside the graph. 
+>  AOTAutograd 的原理是在 fake tensor inputs 上运行 PyTorch eager mode 的自动微分引擎，然后记录一个联合的前向和反向图
+>  依赖于数据的操作无法使用 fake tensor (因为没有实际的数据支持)，故我们在 TorchDynamo 中对这些操作 graph break，在图外执行它们
 
-graph into a forwards and backwards graph in a way that supports partial program graphs.
-
-AOTAutograd works by running the PyTorch eager mode autograd engine on fake tensor inputs and recording a joint forwards and backwards graph. Data-dependent operations do not work with fake tensors (since there is no backing data), so we graph break on these operations in TorchDynamo and run them outside the graph. AOTAutograd then uses a min-cut algorithm [55] to split this joint graph into separate forward and backward graphs in a way that optimizes for memory usage. As part of this min-cut algorithm, we apply backend-specific optimizations to rematerialize certain activations that are cheap to recompute in the backwards graph.
+AOTAutograd then uses a min-cut algorithm [55] to split this joint graph into separate forward and backward graphs in a way that optimizes for memory usage. As part of this min-cut algorithm, we apply backend-specific optimizations to rematerialize certain activations that are cheap to recompute in the backwards graph.
+>  然后 AOTAutograd 会使用一个最小割算法，以优化内存使用的方式，将联合图划分为独立的前向和反向图
+>  作为该最小割算法的一部分，我们会应用针对于后端的优化，来丢弃一些便于重计算的中间激活
 
 As part of AOTAutograd, other dispatcher-level transformations are also applied to the graph. Decompositions are where AOTAutograd maps some PyTorch operators into a smaller set of more primitive operators. AOTAutograd also makes the graph purely functional by removing operations that perform mutation and replacing them with their functional equivalents.
+>  AOTAutograd 还会对图应用其他 dispatcher-level 的转换
+>  AOTAutograd 会将一些 PyTorch 算子映射到更小的一组 primitive operators，这个过程称为 Decompositions
+>  AOTAutograd 还会通过移除执行了变更的操作，将它们替换为其函数式的等价形式，使得整个图是纯函数式的
 
 # 4 TorchInductor Design and Implementation
-
 While TorchDynamo solves the graph capture problem in PyTorch, to be useful it must be paired with a backend compiler that can take the captured FX graph [34] and generate fast code from it. We created TorchInductor as a reference compiler backend. It is designed to be general purpose and can be used both directly by users and as a starting point for other backends.
+>  TorchInductor 是 TorchDynamo 的参考编译器后端，接收 FX 图，生成代码
+>  TorchInductor 在设计上是通用的，既可以直接使用，也可以作为其他后端的起始点
 
-# 4.1 Design Principles and Key Technologies
-
+## 4.1 Design Principles and Key Technologies
 Before diving into the design of TorchInductor, let's first discuss some principles and technologies that motivated its design:
+>  TorchInductor 的一些设计原则如下:
 
-PyTorch Native: PyTorch made many design choices that differ from other frameworks and compilers: Tensors have exposed strides that can be manipulated by users, aliasing views are commonplace, and both data and metadata can be mutated in-place. Any compiler with a dramatically different model will face many challenges in representing PyTorch programs. We wanted TorchInductor to share similar abstractions to PyTorch eager to allow support of all of PyTorch, with a thin translation layer.
+**PyTorch Native**: PyTorch made many design choices that differ from other frameworks and compilers: Tensors have exposed strides that can be manipulated by users, aliasing views are commonplace, and both data and metadata can be mutated in-place. Any compiler with a dramatically different model will face many challenges in representing PyTorch programs. We wanted TorchInductor to share similar abstractions to PyTorch eager to allow support of all of PyTorch, with a thin translation layer.
+>  原生 PyTorch: PyTorch 在许多设计选择上与其他框架和编译器不同，张量具有可以被用户操作的步长，别名视图很常见，数据和元数据都可以原地修改
+>  任何采用不同的模型的编译器都难以表示 PyTorch 程序
+>  在设计上 TorchInductor 和 PyTorch eager 共享了类似的抽象，以支持对所有 PyTorch 功能的支持
 
-Python First: The majority of PyTorch users are most comfortable in Python. The Python parts of PyTorch get far more community contribution than the  $\mathrm{C + + }$  parts of PyTorch. We chose to implement TorchInductor in Python to make it easy to understand and hackable by PyTorch users.
+**Python First**: The majority of PyTorch users are most comfortable in Python. The Python parts of PyTorch get far more community contribution than the  $\mathrm{C + + }$  parts of PyTorch. We chose to implement TorchInductor in Python to make it easy to understand and hackable by PyTorch users.
+>  Python 优先: PyTorch 的大多数用户更熟悉 Python, PyTorch 的 Python 部分的社区贡献远远多于 C++ 部分
+>  我们用 Python 实现 TorchInductor 以便用户修改和自定义
 
-Breadth First: Rather than focusing on a narrow set of models (e.g. ResNet/BERT) that are already well studied, we intentionally put an early focus on supporting a wide variety of operators, hardware, and optimization. This helped make TorchInductor a general purpose compiler that can scale to many scenarios. This is also why the early focus was on training, since training is a much harder compiler problem than inference.
+**Breadth First**: Rather than focusing on a narrow set of models (e.g. ResNet/BERT) that are already well studied, we intentionally put an early focus on supporting a wide variety of operators, hardware, and optimization. This helped make TorchInductor a general purpose compiler that can scale to many scenarios. This is also why the early focus was on training, since training is a much harder compiler problem than inference.
+>  宽度优先: 不是聚焦于特定的一组模型，而是聚焦于支持更广的算子、硬件和优化
+>  即 TorchInductor 应该是通用目的的编译器，因此早期的焦点也在训练，因为训练是比推理更难的编译器问题
 
-Reuse State-Of-The-Art Languages: For an output language, we took inspiration from how PyTorch users were writing high performance kernels. We observed rapidly increasing popularity of the OpenAI Triton [46] DSL for writing GPU kernels, and those kernels are often outperforming other compilers and state-of-the-art libraries. High performance CPU kernels are typically written in  $\mathrm{C + + }$  /OpenMP [15]. TorchInductor generates both Triton and  $\mathrm{C + + }$  as output code, which allows us to leverage the technology of those projects as well as generate output code that is understandable by PyTorch users.
+**Reuse State-Of-The-Art Languages**: For an output language, we took inspiration from how PyTorch users were writing high performance kernels. We observed rapidly increasing popularity of the OpenAI Triton [46] DSL for writing GPU kernels, and those kernels are often outperforming other compilers and state-of-the-art libraries. High performance CPU kernels are typically written in  $\mathrm{C + + }$  /OpenMP [15]. TorchInductor generates both Triton and  $\mathrm{C + + }$  as output code, which allows us to leverage the technology of those projects as well as generate output code that is understandable by PyTorch users.
+>  复用 SOTA 的语言: 将 Triton 和 C++ 作为输出代码
 
-# 4.2 Decompositions
+## 4.2 Decompositions
+Rather than implementing lowerings for all operators in PyTorch to TorchInductor's IR, many operators in PyTorch are decomposed into a simpler set of operators that are easier to handle. These decompositions happen using AOTAutograd (Section 3.9), which is called by TorchInductor with a dictionary of desired decompositions. 
+>  TorchInductor 没有实现所有 PyTorch 算子到 TorchInductor IR 的下降
+>  许多 PyTorch 算子会被分解为更简单的一组算子，这个分解通过 AOTAutograd 实现，TorchInductor 会调用 AOTAutograd ，传入一个包含了期望分解的字典
 
-Rather than implementing lowerings for all operators in PyTorch to TorchInductor's IR, many operators in PyTorch are decomposed into a simpler set of operators that are easier to handle. These decompositions happen using AOTAutograd (Section 3.9), which is called by TorchInductor with a dictionary of desired decompositions. Decompositions are written as a Python implementation of a PyTorch operator in terms of other operators, for example the following decomposes log2 into log and mul:
+Decompositions are written as a Python implementation of a PyTorch operator in terms of other operators, for example the following decomposes log2 into log and mul:
 
-log2_scale = 1 / math.log(2) @register_decomposition(torch.ops.atem.log2) def log2(x): return torch.log(x) * log2_scale
+```python
+log2_scale = 1 / math.log(2)
+
+@register_decomposition(torch.ops.aten.log2)
+def log2(x):
+    return torch.log(x) * log2_scale
+```
+
+>  分解的形式是在 Python 层以其他算子实现 PyTorch 算子
+>  上例展示了 `log2` 算子的分解形式 (分解为 `log , mul`)
 
 This decomposition will be recursively traced down and normalized, and can possibly trigger additional decompositions in that process until a fixed point is reached. Note that the active decomposition set must not contain cycles.
+>  算子的分解会被递归地追踪并被规范化，并可能在过程中触发更多的分解，直到达到一个固定点
+>  注意当前激活的分解集合不能包含环 (不能出现相互依赖的情况，否则会无限循环)
 
-At the time of writing, TorchInductor used 191 decompositions (387 including overloads). The majority of these decompositions are not specific to TorchInductor and are available for any other backend to use via the torch._decomp module, while some are TorchInductor specific.
+At the time of writing, TorchInductor used 191 decompositions (387 including overloads). The majority of these decompositions are not specific to TorchInductor and are available for any other backend to use via the `torch._decomp` module, while some are TorchInductor specific.
 
-# 4.3 Lowerings and Define-By-Run Loop-Level IR
-
+## 4.3 Lowerings and Define-By-Run Loop-Level IR
 The next phase of compilation is lowering from an FX graph of PyTorch operations into TorchInductor's define-by-run IR. A define-by-run IR means the IR uses executable Python code to define the bodies of loops, giving TorchInductor's IR much of the power of full Python, removing the need for a large amount of boilerplate, and allowing lowerings to be written concisely.
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-09-07/9ed94e03-5712-4e4d-babd-00dd15e3db8a/b6440b8729a1147702f46fec9fabd5585ae5df4d41f419cdd1fa5060b3baf5b7.jpg)  
-Figure 2. TorchInductor IR for torch. log2 on a 2D tensor.
+>  编译的下一个阶段是从一个包含 PyTorch 操作的 FX 图下降到 TorchInductor 的 define-by-run IR
+>  define-by-run IR 意味着 IR 使用可执行的 Python 代码来定义循环体，这使得 TorchInductor IR 具备了大部分 Python 的功能
 
 Lowering is done by symbolically interpreting the FX graph and applying lowering functions which do the conversion for a single operator. At the time of writing, TorchInductor has lowerings for 433 PyTorch operators (1605 including overloads). If an unknown operator is encountered, it is automatically converted into a fallback kernel node which runs the original PyTorch code.
+>  下降是通过符号上解释 FX 图，并应用对单个算子执行转换的下降函数是实现的
+>  如果遇到了未知算子，它会被自动转化为 fallback kernel node，以原始 PyTorch 代码运行
 
-In the example IR shown in Figure 2, inner_fn_buf0 is a Python function that defines how to compute a single element of the tensor buf0 in terms of calls to TorchInductor's primitive operators in the ops.* namespace. The function takes a list of SymPy [28] symbols (i0 and i1) representing the symbolic coordinates of the element to be computed. SymPy symbols so and s1 represent the sizes of the tensor to be computed and are used for both sizes and strides. These size symbols are captured in a Python closure and registered on the graph object.
+![](https://cdn-mineru.openxlab.org.cn/result/2025-09-07/9ed94e03-5712-4e4d-babd-00dd15e3db8a/b6440b8729a1147702f46fec9fabd5585ae5df4d41f419cdd1fa5060b3baf5b7.jpg)  
+
+Figure 2. TorchInductor IR for `torch.log2` on a 2D tensor.
+
+In the example IR shown in Figure 2, inner_fn_buf0 is a Python function that defines how to compute a single element of the tensor buf0 in terms of calls to TorchInductor's primitive operators in the ops.* namespace. The function takes a list of SymPy [28] symbols (i0 and i1) representing the symbolic coordinates of the element to be computed. SymPy symbols s0 and s1 represent the sizes of the tensor to be computed and are used for both sizes and strides. These size symbols are captured in a Python closure and registered on the graph object.
+>  Fig2 中，`inner_fn_buf0` 是定义了如何计算 tensor `buf0` 中单个元素的 Python 函数
+>  该函数中都是对 `ops.*` 命名空间下的 TorchInductor 的 primitive 算子的调用
+>  函数接收一个 SymPy 符号 (i0, i1) 的列表，它们表示需要计算的元素的符号坐标
+>  SymPy 符号 s0, s1 表示要计算的张量大小，并用于表示大小和步长
+>  这些大小符号会被捕获到一个 Python 闭包，并注册在图对象上
 
 TensorBox and StorageBox are abstractions that match PyTorch torch.Tensor and torch.Storage objects and allow the handling of views, aliasing, and mutation during the lowering process. ComputedBuffer represents a tensor that will be computed using generated code (in contrast to ones created via fallback kernels or inputs). Pointwise represents that the ComputedBuffer is a data parallel pointwise computation. The IR also supports Reduction and Scatter for handling other types of operators.
+>  `TensorBox, StorageBox` 是匹配 `torch.Tensor, torch.Storage` 对象的抽象，允许处理视图、别名和下降过程中的变更
+>  `ComputedBuffer` 表示一个会使用生成的代码计算的张量 (而不是同故宫 fallback kernels 的张量或者输入张量)
+>  `Pointwise` 表示 `ComputedBuffer` 是一个数据并行的点对点计算
 
 The key advantage of this IR is that it is easy to construct because it has the full power of Python. One can compose different IR nodes together and embed logic within them. The example above would not be initially constructed as a single flat function, but rather many smaller function closures defined in the lowering process. The function created for ops.mul will call into another function created for ops.log, which calls into another function created for loading the input argument.
+>  这个 IR 的关键优势是容易构造，因为它具有 Python 的全部表示能力，我们可以将不同的 IR 节点组合在一起，并在其中嵌入逻辑
+>  上述示例不会一开始就构造为单一的扁平函数，而是由多个较小的函数闭包组成，这些函数是在下降过程中逐步定义和生成的
+>  为 `ops.mul` 创建的函数会调用为 `ops.log` 创建的函数，进而调用为加载输入参数调用的函数
 
-The way to compile and analyze this IR rests in the virtualized namespace for ops.*, which can be dynamically overridden to perform different functions. To perform analysis on this IR, we make ops point to an analysis pass which can perform actions like record memory accesses or high/low watermarks for strength reduction optimizations. To perform codegen with this IR, we make ops point to something which writes out Triton or C++ code. To transform this IR, we make use of FX tracing, which gives access to graph representation for these Python functions.
+The way to compile and analyze this IR rests in the virtualized namespace for `ops.*`, which can be dynamically overridden to perform different functions. To perform analysis on this IR, we make ops point to an analysis pass which can perform actions like record memory accesses or high/low watermarks for strength reduction optimizations. To perform codegen with this IR, we make ops point to something which writes out Triton or C++ code. To transform this IR, we make use of FX tracing, which gives access to graph representation for these Python functions.
+>  编译和分析这个 IR 的方式定义在虚拟化命名空间 `ops.*`，这个命名空间可以被动态重载以执行不同的函数
+>  要对 IR 执行分析，我们让 `ops` 指向一个分析 pass，该 pass 可以执行例如记录内存访问或高低水位线 (用于优化强度缩减，即用更简单的复杂替代更复杂的运算，例如移位替代乘法)
+>  为了对这个 IR 执行代码生成，我们让 `ops` 指向能够输出 Triton 或 C++ 代码的组件
+>  为了转化该 IR，我们利用 FX tracing，以访问这些 Python 函数的图表示
 
 At the time of writing, the loop-level TorchInductor IR consisted of 54 primitive operators:
 
--ops.load and ops.store access. Tensor memory from a provided buffer name and a SymPy index specifying a symbolic memory location.-ops.reduction operates like ops.store where the reduction happens implicitly inside the write. It combines stored values along the reduction dimension of the current node using a supplied reduction type. Supported reduction types are: argmin, argmax, any, max, min, prod, sum, xor_sum, and wellfold Combine [50].-ops.index_expr converts from SymPy expressions used for indexing into values used for compute.-ops.indirect_indexing converts from computed values into SymPy expressions used for indexing by introducing a new SymPy variable bound dynamically.-ops.masked implements conditional execution. It takes a condition and a Python function (recursively using the same IR) with no args. This gets mapped to masks in Triton and conditionals in C++.-ops.load_seed, ops.rand, ops.randan, and ops.randaint64 are used for computing random numbers.-The remaining ops are elementwise math operations.
+- ops.load and ops.store access. Tensor memory from a provided buffer name and a SymPy index specifying a symbolic memory location.
+- ops.reduction operates like ops.store where the reduction happens implicitly inside the write. It combines stored values along the reduction dimension of the current node using a supplied reduction type. Supported reduction types are: argmin, argmax, any, max, min, prod, sum, xor_sum, and wellfold Combine [50].
+- ops.index_expr converts from SymPy expressions used for indexing into values used for compute.
+- ops.indirect_indexing converts from computed values into SymPy expressions used for indexing by introducing a new SymPy variable bound dynamically.
+- ops.masked implements conditional execution. It takes a condition and a Python function (recursively using the same IR) with no args. This gets mapped to masks in Triton and conditionals in C++.
+- ops.load_seed, ops.rand, ops.randan, and ops.randaint64 are used for computing random numbers.
+- The remaining ops are elementwise math operations.
 
-# 4.4 Scheduling
+>  目前这一循环级别的 TorchInductor IR 包含 54 个 primitive operators:
+>  - `ops.load, ops.store`: 通过一个提供的 buffer name 访问 Tensor memory，通过一个 SymPy index 指定符号的内存位置
+>  - `ops.reduction` : 类似于 `ops.store`，但会在写入时隐式执行规约
+>  - `ops.index_expr`: 将用于索引的 SymPy 表达式转化为用于计算的值
+>  - `ops.masked`: 实现了条件执行，接收一个条件和无参数的 Python 函数 (递归地使用相同的 IR)，该 op 在 Triton 中映射为掩码，在 C++ 中映射为条件语句
+>  - `ops.load_seed, ops.rand, ops.randan, ops.randaint64`: 计算随机数
+>  - 剩余的 `ops` 为逐元素的数学运算
 
+## 4.4 Scheduling
 The scheduling phase of TorchInductor determines which operators get fused, what order kernels run in, and does memory planning for buffer removal and/or reuse. Scheduling starts by converting every buffer in the IR into a subclass of BaseSchedulerNode. SchedulerNode represents a standard kernel that TorchInductor will codegen the body of. ExternKernelSchedulerNode represents calls to library code or user-defined kernels. Additionally, NepKernelSchedulerNode maps to nothing, but is used to add dependency edges to ensure the ordering of kernels (for example, a concatenate kernel which has been handled by making producers write directly to the combined buffer). Finally, a FusedSchedulerNode represents a set of two or more SchedulerNodes fused into a single kernel.
+>  TorchInductor 的调度阶段决定哪些 operators 需要融合、kernels 的运行顺序、并执行内存规划 (缓存收集和重用)
+>  调度阶段会先将 IR 中的每个 buffer 转化为 `BaseSchedulerNode` 的一个子类
+>  `SchedulerNode` 表示一个标准的 kernel，其函数体就是 TorchInductor codegen 的结果
+>  `ExternalKernelSchedulerNode` 表示对库代码的调用或者用户定义的 kernel
+>  `NepKernelSchedulerNode` 映射到空，但会被用于添加依赖边以确保 kernel 的执行顺序  (例如在 concatenate kernel 中，生产者直接写入合并后的缓冲区，此时需要通过该节点来保证顺序)
+>  `FusedSchedulerNode` 表示融合为单个 kernel 的 `SchedulerNodes` 
 
-Next, the scheduler converts the memory read/write sets of each kernel into dependency edges between nodes. Dependency edges are annotated with the symbolic memory address being read. Symbolic memory addresses are important in determining which fusions are legal. For example, if one kernel writes buf0 in forwards order, but a consumer reads in reverse order (using ops.load("buf0", s0 -1 -i0)), then those nodes cannot be fused.
+Next, the scheduler converts the memory read/write sets of each kernel into dependency edges between nodes. Dependency edges are annotated with the symbolic memory address being read. Symbolic memory addresses are important in determining which fusions are legal. For example, if one kernel writes buf0 in forwards order, but a consumer reads in reverse order (using `ops.load("buf0", s0 -1 -i0)`), then those nodes cannot be fused.
+>  然后，调度器将每个 kernel 的内存读写集合转化为节点之间的依赖边
+>  依赖边使用被读取的符号内存地址标记
+>  符号内存地址用于决定哪些融合是合法的，例如，如果某 kernel 在前向写入了 `buf0`，但消费者
 
 Fusion is controlled by two key functions:
-
-Fusion is controlled by two key functions:-Scheduler.can_fuse(node1, node2) returns True if two nodes can be fused together. This checks dependency edges, and also checks many other properties to ensure correctness of a fusion. There are some heuristics here as well, for example, if config.aggressive_fusion=False, then can_fuse will prevent fusion of nodes that do not share any common memory accesses. There is also backend specific logic here, for example, TorchInductor supports reduction-broadcast reduction fusions for Triton but not  $\mathrm{C + + }$ .-Scheduler.score_fusion(node1, node2) is used to order different fusion possibilities. Some fusions are mutually exclusive, so TorchInductor chooses the one with the higher score. The fusion score orders fusions by: 1) the category of the fusion (e.g. pointwise/reduction/template); 2) estimated bytes of memory traffic saved by the fusion; and 3) shorter distance between nodes in the original graph
+- Scheduler.can_fuse(node1, node2) returns True if two nodes can be fused together. This checks dependency edges, and also checks many other properties to ensure correctness of a fusion. There are some heuristics here as well, for example, if config.aggressive_fusion=False, then can_fuse will prevent fusion of nodes that do not share any common memory accesses. There is also backend specific logic here, for example, TorchInductor supports reduction-broadcast reduction fusions for Triton but not  $C + +$ .
+- Scheduler.score_fusion(node1, node2) is used to order different fusion possibilities. Some fusions are mutually exclusive, so TorchInductor chooses the one with the higher score. The fusion score orders fusions by: 1) the category of the fusion (e.g. pointwise/reduction/template); 2) estimated bytes of memory traffic saved by the fusion; and 3) shorter distance between nodes in the original graph
 
 In a loop, until no additional fusions remain (since some fusions can open additional fusion opportunities), TorchInductor will perform the following greedy algorithm: 1) find all fusion opportunities; 2) score each of the fusion opportunities and sort by that score; 3) for each fusion opportunity, check if that fusion remains legal and if so apply it. When two nodes are fused, any pending fusion opportunities pointing to the constituent nodes are updated to point to the new fused node.
 
-# 4.5 Triton Code Generation
-
+## 4.5 Triton Code Generation
 Triton codegen is responsible for mapping TorchInductor's IR to output Triton [46] kernels. Figure 3 shows the code generated for the 1og2 example above. This kernel operates on a block of xBLOCK elements at a time. If the number of elements is not a multiple of xBLOCK, some elements may be masked off at the end. During codegen, we simplify indexing. For example, the 2D strided load in the IR is converted to a contiguous load in this case. Codegen is also responsible for common subexpression elimination (CSE), which is done via a cache while printing lines of code and assigning intermediate variable names starting with tmp. The pointwise decorator encodes boilerplate code used to facilitate block size heuristics, auto-tuning, and ahead-of-time kernel compilation. The decorator is the type of kernel being generated (pointwise, reduction, or template), and its arguments are required metadata about the kernel like data alignments.
 
 When generating reduction kernels, TorchInductor has two modes of codegen. For smaller reductions, it will generate a persistent reduction where the entire reduction is loaded in a single block and retained in registers/shared memory; in this case reductions map directly to Triton reduction operators. For larger reductions, TorchInductor generates a loop using an entire block as an accumulator with a call to a Triton reduction at the end of the loop.
