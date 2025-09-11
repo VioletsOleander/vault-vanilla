@@ -6491,161 +6491,546 @@ A `String` can grow in size and its contents can change, just like the content
 
 #### Appending to a String with `push_str` and `push`
 We can grow a `String` by using the `push_str` method to append a string slice, as shown in Listing 8-15.
+>  可以通过 `String` 的 `push_str` 方法，将一个 string slice 追加到 `String` 中
 
 ```rust
 let mut s = String::from("foo");
 s.push_str("bar");
 ```
 
-
 [Listing 8-15](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-15): Appending a string slice to a `String` using the `push_str` method
 
 After these two lines, `s` will contain `foobar`. The `push_str` method takes a string slice because we don’t necessarily want to take ownership of the parameter. For example, in the code in Listing 8-16, we want to be able to use `s2` after appending its contents to `s1`.
+>  `push_str` 接收 string slice 是因为我们不想获得参数的所有权
 
+```rust
+let mut s1 = String::from("foo");
+let s2 = "bar";
+s1.push_str(s2);
+println!("s2 is {s2}");
+```
 
 [Listing 8-16](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-16): Using a string slice after appending its contents to a `String`
 
 If the `push_str` method took ownership of `s2`, we wouldn’t be able to print its value on the last line. However, this code works as we’d expect!
 
 The `push` method takes a single character as a parameter and adds it to the `String`. Listing 8-17 adds the letter _l_ to a `String` using the `push` method.
+>  `push` 方法则接收单个字符作为参数
 
-    `let mut s = String::from("lo");     s.push('l');`
+```rust
+let mut s = String::from("lo");
+s.push('l');
+```
 
 [Listing 8-17](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-17): Adding one character to a `String` value using `push`
 
 As a result, `s` will contain `lol`.
 
-#### [Concatenation with the `+` Operator or the `format!` Macro](https://doc.rust-lang.org/book/ch08-02-strings.html#concatenation-with-the--operator-or-the-format-macro)
-
+#### Concatenation with the `+` Operator or the `format!` Macro
 Often, you’ll want to combine two existing strings. One way to do so is to use the `+` operator, as shown in Listing 8-18.
+>  拼接两个 `String` 的方式是使用 `+` 运算符
 
-    `let s1 = String::from("Hello, ");     let s2 = String::from("world!");     let s3 = s1 + &s2; // note s1 has been moved here and can no longer be used`
+```rust
+let s1 = String::from("Hello, ");
+let s2 = String::from("world!");
+let s3 = s1 + &s2; // note s1 has been moved here and can no longer be used
+```
 
 [Listing 8-18](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-18): Using the `+` operator to combine two `String` values into a new `String` value
 
 The string `s3` will contain `Hello, world!`. The reason `s1` is no longer valid after the addition, and the reason we used a reference to `s2`, has to do with the signature of the method that’s called when we use the `+` operator. The `+` operator uses the `add` method, whose signature looks something like this:
 
-`fn add(self, s: &str) -> String {`
+```rust
+fn add(self, s: &str) -> String {
+```
+
+>  `s1` 在运算后不再有效，以及我们使用对 `s2` 的引用的原因和 `+` 运算符的方法签名有关
+>  `+` 关联的是 `add` 方法，签名如上
 
 In the standard library, you’ll see `add` defined using generics and associated types. Here, we’ve substituted in concrete types, which is what happens when we call this method with `String` values. We’ll discuss generics in Chapter 10. This signature gives us the clues we need in order to understand the tricky bits of the `+` operator.
+>  在标准库中，`add` 是使用泛型定义的
+>  如果我们用 `String` values 调用该方法，泛型就会被替换为具体类型
 
 First, `s2` has an `&`, meaning that we’re adding a _reference_ of the second string to the first string. This is because of the `s` parameter in the `add` function: we can only add a `&str` to a `String`; we can’t add two `String` values together. But wait—the type of `&s2` is `&String`, not `&str`, as specified in the second parameter to `add`. So why does Listing 8-18 compile?
+>  从 `add` 中可以看到，我们只能将 `&str` 加到 `String` 上，而不能将两个 `String` 相加
+>  但 `&s2` 的类型实际上是 `&String`
 
 The reason we’re able to use `&s2` in the call to `add` is that the compiler can _coerce_ the `&String` argument into a `&str`. When we call the `add` method, Rust uses a _deref coercion_, which here turns `&s2` into `&s2[..]`. We’ll discuss deref coercion in more depth in Chapter 15. Because `add` does not take ownership of the `s` parameter, `s2` will still be a valid `String` after this operation.
+>  这能够正确执行的原因是编译器将 `&String` 强制转化为了 `&str`
+>  当我们调用 `add` 方法时，Rust 使用了 deref corecion，将 `&s2` 转化为 `&s2[..]`
 
 Second, we can see in the signature that `add` takes ownership of `self` because `self` does _not_ have an `&`. This means `s1` in Listing 8-18 will be moved into the `add` call and will no longer be valid after that. So, although `let s3 = s1 + &s2;` looks like it will copy both strings and create a new one, this statement actually takes ownership of `s1`, appends a copy of the contents of `s2`, and then returns ownership of the result. In other words, it looks like it’s making a lot of copies, but it isn’t; the implementation is more efficient than copying.
+>  `add` 获取了 `self` 的所有权，因为 `self` 没有 `&`
+>  故 `s1` 会被移动到 `add` 调用中，且之后不再有效
+>  `add` 返回了结果的所有权
 
 If we need to concatenate multiple strings, the behavior of the `+` operator gets unwieldy:
 
-    `let s1 = String::from("tic");     let s2 = String::from("tac");     let s3 = String::from("toe");      let s = s1 + "-" + &s2 + "-" + &s3;`
+```rust
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+
+let s = s1 + "-" + &s2 + "-" + &s3;
+```
 
 At this point, `s` will be `tic-tac-toe`. With all of the `+` and `"` characters, it’s difficult to see what’s going on. For combining strings in more complicated ways, we can instead use the `format!` macro:
 
-    `let s1 = String::from("tic");     let s2 = String::from("tac");     let s3 = String::from("toe");      let s = format!("{s1}-{s2}-{s3}");`
+```rust
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+
+let s = format!("{s1}-{s2}-{s3}");
+```
 
 This code also sets `s` to `tic-tac-toe`. The `format!` macro works like `println!`, but instead of printing the output to the screen, it returns a `String` with the contents. The version of the code using `format!` is much easier to read, and the code generated by the `format!` macro uses references so that this call doesn’t take ownership of any of its parameters.
 
-### [Indexing into Strings](https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings)
+>  如果要连续使用 `+`，我们可能会不容易看出究竟发生了什么
+>  更简单的方式是使用 `format!` macro，它和 `println!` 类似，只不过是返回一个 `String` 而不是打印
+>  `format!` 会使用引用，因此它的所有参数的所有权都不会被获取
 
+### Indexing into Strings
 In many other programming languages, accessing individual characters in a string by referencing them by index is a valid and common operation. However, if you try to access parts of a `String` using indexing syntax in Rust, you’ll get an error. Consider the invalid code in Listing 8-19.
 
-[![](https://doc.rust-lang.org/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
-
-    `let s1 = String::from("hi");     let h = s1[0];`
+```rust
+let s1 = String::from("hi");
+let h = s1[0];
+```
 
 [Listing 8-19](https://doc.rust-lang.org/book/ch08-02-strings.html#listing-8-19): Attempting to use indexing syntax with a String
 
 This code will result in the following error:
 
-``$ cargo run    Compiling collections v0.1.0 (file:///projects/collections) error[E0277]: the type `str` cannot be indexed by `{integer}`  --> src/main.rs:3:16   | 3 |     let h = s1[0];   |                ^ string indices are ranges of `usize`   |   = note: you can use `.chars().nth()` or `.bytes().nth()`           for more information, see chapter 8 in The Book: <https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings>   = help: the trait `SliceIndex<str>` is not implemented for `{integer}`           but trait `SliceIndex<[_]>` is implemented for `usize`   = help: for that trait implementation, expected `[_]`, found `str`   = note: required for `String` to implement `Index<{integer}>`  For more information about this error, try `rustc --explain E0277`. error: could not compile `collections` (bin "collections") due to 1 previous error``
+```
+$ cargo run
+   Compiling collections v0.1.0 (file:///projects/collections)
+error[E0277]: the type `str` cannot be indexed by `{integer}`
+ --> src/main.rs:3:16
+  |
+3 |     let h = s1[0];
+  |                ^ string indices are ranges of `usize`
+  |
+  = note: you can use `.chars().nth()` or `.bytes().nth()`
+          for more information, see chapter 8 in The Book: <https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings>
+  = help: the trait `SliceIndex<str>` is not implemented for `{integer}`
+          but trait `SliceIndex<[_]>` is implemented for `usize`
+  = help: for that trait implementation, expected `[_]`, found `str`
+  = note: required for `String` to implement `Index<{integer}>`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `collections` (bin "collections") due to 1 previous error
+```
 
 The error and the note tell the story: Rust strings don’t support indexing. But why not? To answer that question, we need to discuss how Rust stores strings in memory.
+>  `String` 不支持索引
 
-#### [Internal Representation](https://doc.rust-lang.org/book/ch08-02-strings.html#internal-representation)
-
+#### Internal Representation
 A `String` is a wrapper over a `Vec<u8>`. Let’s look at some of our properly encoded UTF-8 example strings from Listing 8-14. First, this one:
+>  `String` 实质上是 `Vec<u8>` 的包装器
 
-    `let hello = String::from("Hola");`
+```rust
+let hello = String::from("Hola");
+```
 
-In this case, `len` will be `4`, which means the vector storing the string `"Hola"` is 4 bytes long. Each of these letters takes one byte when encoded in UTF-8. The following line, however, may surprise you (note that this string begins with the capital Cyrillic letter _Ze_, not the number 3):
+In this case, `len` will be `4`, which means the vector storing the string `"Hola"` is 4 bytes long. Each of these letters takes one byte when encoded in UTF-8. 
+>  上例中，`Vec<u8>` 的 `len=4`，即 vector 存储了四个字节，每个字节存储一个字母的 UTF-8 编码
 
-    `let hello = String::from("Здравствуйте");`
+The following line, however, may surprise you (note that this string begins with the capital Cyrillic letter _Ze_, not the number 3):
 
-If you were asked how long the string is, you might say 12. In fact, Rust’s answer is 24: that’s the number of bytes it takes to encode “Здравствуйте” in UTF-8, because each Unicode scalar value in that string takes 2 bytes of storage. Therefore, an index into the string’s bytes will not always correlate to a valid Unicode scalar value. To demonstrate, consider this invalid Rust code:
+```rust
+let hello = String::from("Здравствуйте"); 
+```
 
-[![](https://doc.rust-lang.org/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
+If you were asked how long the string is, you might say 12. In fact, Rust’s answer is 24: that’s the number of bytes it takes to encode “Здравствуйте” in UTF-8, because each Unicode scalar value in that string takes 2 bytes of storage. 
+>  上例的 `len=24`，因为非 ASCII 字符的 UTF-8 编码需要两个字节存储
 
-`let hello = "Здравствуйте"; let answer = &hello[0];`
+Therefore, an index into the string’s bytes will not always correlate to a valid Unicode scalar value. To demonstrate, consider this invalid Rust code:
+
+```rust
+let hello = "Здравствуйте";
+let answer = &hello[0]; 
+```
 
 You already know that `answer` will not be `З`, the first letter. When encoded in UTF-8, the first byte of `З` is `208` and the second is `151`, so it would seem that `answer` should in fact be `208`, but `208` is not a valid character on its own. Returning `208` is likely not what a user would want if they asked for the first letter of this string; however, that’s the only data that Rust has at byte index 0. Users generally don’t want the byte value returned, even if the string contains only Latin letters: if `&"hi"[0]` were valid code that returned the byte value, it would return `104`, not `h`.
+>  因此，直接索引访问 `String` 存储的 byte 可能不会关联到有效的 Unicode scalar value
 
 The answer, then, is that to avoid returning an unexpected value and causing bugs that might not be discovered immediately, Rust doesn’t compile this code at all and prevents misunderstandings early in the development process.
 
-#### [Bytes and Scalar Values and Grapheme Clusters! Oh My!](https://doc.rust-lang.org/book/ch08-02-strings.html#bytes-and-scalar-values-and-grapheme-clusters-oh-my)
-
+#### Bytes and Scalar Values and Grapheme Clusters! Oh My!
 Another point about UTF-8 is that there are actually three relevant ways to look at strings from Rust’s perspective: as bytes, scalar values, and grapheme clusters (the closest thing to what we would call _letters_).
+>  从 Rust 的角度来看，有三种方式来看待 strings: as bytes, scalar values, 字型簇 (类似字母)
 
 If we look at the Hindi word “नमस्ते” written in the Devanagari script, it is stored as a vector of `u8` values that looks like this:
 
-`[224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164, 224, 165, 135]`
+```
+[224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164, 224, 165, 135]
+```
 
 That’s 18 bytes and is how computers ultimately store this data. If we look at them as Unicode scalar values, which are what Rust’s `char` type is, those bytes look like this:
 
-`['न', 'म', 'स', '्', 'त', 'े']`
+```
+['न', 'म', 'स', '्', 'त', 'े']
+```
 
 There are six `char` values here, but the fourth and sixth are not letters: they’re diacritics that don’t make sense on their own. Finally, if we look at them as grapheme clusters, we’d get what a person would call the four letters that make up the Hindi word:
 
-`["न", "म", "स्", "ते"]`
+```
+["न", "म", "स्", "ते"]
+```
 
 Rust provides different ways of interpreting the raw string data that computers store so that each program can choose the interpretation it needs, no matter what human language the data is in.
+>  Rust 提供了多种方式来解释计算机存储的原始字符串数据，程序可以根据需要选择合适的解释方式
 
 A final reason Rust doesn’t allow us to index into a `String` to get a character is that indexing operations are expected to always take constant time (O(1)). But it isn’t possible to guarantee that performance with a `String`, because Rust would have to walk through the contents from the beginning to the index to determine how many valid characters there were.
 
-### [Slicing Strings](https://doc.rust-lang.org/book/ch08-02-strings.html#slicing-strings)
-
+### Slicing Strings
 Indexing into a string is often a bad idea because it’s not clear what the return type of the string-indexing operation should be: a byte value, a character, a grapheme cluster, or a string slice. If you really need to use indices to create string slices, therefore, Rust asks you to be more specific.
+>  因为 Rust 有三种方式看待 string，故对 string 进行索引通常不确定会返回的是 byte value, character, grapheme cluter 还是 string slice
+>  如果我们真的想创建 string slices, Rust 要求我们更加具体
 
 Rather than indexing using `[]` with a single number, you can use `[]` with a range to create a string slice containing particular bytes:
 
-`let hello = "Здравствуйте";  let s = &hello[0..4];`
+```rust
+let hello = "Здравствуйте";
+
+let s = &hello[0..4];
+```
 
 Here, `s` will be a `&str` that contains the first four bytes of the string. Earlier, we mentioned that each of these characters was two bytes, which means `s` will be `Зд`.
+>  我们需要在 `[]` 提供一个 range 来创建包含特定 bytes 的 string slice
+>  这里，`s` 的类型将是 `&str`，包含了 string 的前 4 个 bytes
 
 If we were to try to slice only part of a character’s bytes with something like `&hello[0..1]`, Rust would panic at runtime in the same way as if an invalid index were accessed in a vector:
 
-``$ cargo run    Compiling collections v0.1.0 (file:///projects/collections)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s      Running `target/debug/collections`  thread 'main' panicked at src/main.rs:4:19: byte index 1 is not a char boundary; it is inside 'З' (bytes 0..2) of `Здравствуйте` note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace``
+```
+$ cargo run
+   Compiling collections v0.1.0 (file:///projects/collections)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s
+     Running `target/debug/collections`
+
+thread 'main' panicked at src/main.rs:4:19:
+byte index 1 is not a char boundary; it is inside 'З' (bytes 0..2) of `Здравствуйте`
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
 
 You should use caution when creating string slices with ranges, because doing so can crash your program.
+>  使用 ranges 创建 string slices 也要小心，如果没有索引在有效字符边界处，程序会崩溃
 
-### [Methods for Iterating Over Strings](https://doc.rust-lang.org/book/ch08-02-strings.html#methods-for-iterating-over-strings)
-
+### Methods for Iterating Over Strings
 The best way to operate on pieces of strings is to be explicit about whether you want characters or bytes. For individual Unicode scalar values, use the `chars` method. Calling `chars` on “Зд” separates out and returns two values of type `char`, and you can iterate over the result to access each element:
+>  要对 string 的片段进行操作的最好方式是明确我们要 characters 还是 bytes
+>  对于独立的 Unicode scalar values，使用 `chars` 方法，它将拆分 string，返回可以迭代的 `char` 类型列表
 
-`for c in "Зд".chars() {     println!("{c}"); }`
+```rust
+for c in "Зд".chars() {
+    println!("{c}");
+}
+```
 
 This code will print the following:
 
-`З д`
+```
+З
+д
+```
 
 Alternatively, the `bytes` method returns each raw byte, which might be appropriate for your domain:
+>  `bytes` 则返回 byte 列表
 
-`for b in "Зд".bytes() {     println!("{b}"); }`
+```rust
+for b in "Зд".bytes() {
+    println!("{b}");
+}
+```
 
 This code will print the four bytes that make up this string:
 
-`208 151 208 180`
+```
+208
+151
+208
+180
+```
 
 But be sure to remember that valid Unicode scalar values may be made up of more than one byte.
+>  明确记住有效的 Unicode scalar values 可以由多个 bytes 组成
 
 Getting grapheme clusters from strings, as with the Devanagari script, is complex, so this functionality is not provided by the standard library. Crates are available on [crates.io](https://crates.io/) if this is the functionality you need.
+>  标准库没有提供从 string 获取 grapheme clusters 的方法
 
-### [Strings Are Not So Simple](https://doc.rust-lang.org/book/ch08-02-strings.html#strings-are-not-so-simple)
-
+### Strings Are Not So Simple
 To summarize, strings are complicated. Different programming languages make different choices about how to present this complexity to the programmer. Rust has chosen to make the correct handling of `String` data the default behavior for all Rust programs, which means programmers have to put more thought into handling UTF-8 data up front. This trade-off exposes more of the complexity of strings than is apparent in other programming languages, but it prevents you from having to handle errors involving non-ASCII characters later in your development life cycle.
+>  Rust 暴露了对 UTF-8 数据的处理，即暴露了 string 的复杂性，但也避免了在开发过程中出现 non-ASCII 字符相关的错误
 
 The good news is that the standard library offers a lot of functionality built off the `String` and `&str` types to help handle these complex situations correctly. Be sure to check out the documentation for useful methods like `contains` for searching in a string and `replace` for substituting parts of a string with another string.
 
 Let’s switch to something a bit less complex: hash maps!
 
+## 8.3 Storing Keys with Associated Values in Hash Maps
+The last of our common collections is the _hash map_. The type `HashMap<K, V>` stores a mapping of keys of type `K` to values of type `V` using a _hashing function_, which determines how it places these keys and values into memory. Many programming languages support this kind of data structure, but they often use a different name, such as _hash_, _map_, _object_, _hash table_, _dictionary_, or _associative array_, just to name a few.
+>  类型 `HashMap<K, V>` 使用哈希函数存储类型为 `K` 的 keys 到类型为 `V` 的 values 的映射，哈希函数决定了如何将 keys, values 放入内存
+
+Hash maps are useful when you want to look up data not by using an index, as you can with vectors, but by using a key that can be of any type. For example, in a game, you could keep track of each team’s score in a hash map in which each key is a team’s name and the values are each team’s score. Given a team name, you can retrieve its score.
+
+We’ll go over the basic API of hash maps in this section, but many more goodies are hiding in the functions defined on `HashMap<K, V>` by the standard library. As always, check the standard library documentation for more information.
+
+### Creating a New Hash Map
+One way to create an empty hash map is to use `new` and to add elements with `insert`. In Listing 8-20, we’re keeping track of the scores of two teams whose names are _Blue_ and _Yellow_. The Blue team starts with 10 points, and the Yellow team starts with 50.
+>  使用 `new()` 创建，使用 `insert()` 加入元素
+
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Yellow"), 50);
+```
+
+[Listing 8-20](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#listing-8-20): Creating a new hash map and inserting some keys and values
+
+Note that we need to first `use` the `HashMap` from the collections portion of the standard library. Of our three common collections, this one is the least often used, so it’s not included in the features brought into scope automatically in the prelude. Hash maps also have less support from the standard library; there’s no built-in macro to construct them, for example.
+
+Just like vectors, hash maps store their data on the heap. This `HashMap` has keys of type `String` and values of type `i32`. Like vectors, hash maps are homogeneous: all of the keys must have the same type, and all of the values must have the same type.
+>  hash map 在堆上存储数据
+>  hash map 所有的 keys, values 要求类型相同
+
+### Accessing Values in a Hash Map
+We can get a value out of the hash map by providing its key to the `get` method, as shown in Listing 8-21.
+>  `get()` 通过 key 获取 value
+
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Yellow"), 50);
+
+let team_name = String::from("Blue");
+let score = scores.get(&team_name).copied().unwrap_or(0);
+```
+
+[Listing 8-21](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#listing-8-21): Accessing the score for the Blue team stored in the hash map
+
+Here, `score` will have the value that’s associated with the Blue team, and the result will be `10`. The `get` method returns an `Option<&V>`; if there’s no value for that key in the hash map, `get` will return `None`. This program handles the `Option` by calling `copied` to get an `Option<i32>` rather than an `Option<&i32>`, then `unwrap_or` to set `score` to zero if `scores` doesn’t have an entry for the key.
+>  `get` 返回的是 `Option<&V>`，如果没有找到 key，`get` 会返回 `None`
+>  对 `Option<&i32>` 调用 `copied` 获取 `Option<i32>`，调用 `unwarp_or` 在其中的值为 `None` 时设置为 0
+
+We can iterate over each key-value pair in a hash map in a similar manner as we do with vectors, using a `for` loop:
+
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Yellow"), 50);
+
+for (key, value) in &scores {
+    println!("{key}: {value}");
+}
+```
+
+>  hash map 的迭代没有顺序保证
+
+This code will print each pair in an arbitrary order:
+
+```
+Yellow: 50
+Blue: 10
+```
+
+### Hash Maps and Ownership
+For types that implement the `Copy` trait, like `i32`, the values are copied into the hash map. For owned values like `String`, the values will be moved and the hash map will be the owner of those values, as demonstrated in Listing 8-22.
+>  如果类型实现了 `Copy` trait，其 value 会被拷贝到 hash map
+>  对于 owned values，则会发生所有权转移，hash map 获得所有权
+
+```rust
+use std::collections::HashMap;
+
+let field_name = String::from("Favorite color");
+let field_value = String::from("Blue");
+
+let mut map = HashMap::new();
+map.insert(field_name, field_value);
+// field_name and field_value are invalid at this point, try using them and
+// see what compiler error you get!
+```
+
+[Listing 8-22](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#listing-8-22): Showing that keys and values are owned by the hash map once they’re inserted
+
+We aren’t able to use the variables `field_name` and `field_value` after they’ve been moved into the hash map with the call to `insert`.
+>  在 `insert` 之后，我们就不再能使用 `field_name, field_value`
+
+If we insert references to values into the hash map, the values won’t be moved into the hash map. The values that the references point to must be valid for at least as long as the hash map is valid. We’ll talk more about these issues in [“Validating References with Lifetimes”](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#validating-references-with-lifetimes) in Chapter 10.
+>  如果我们 `insert` 的是引用，则不会发生所有权移动，但在 hash map 有效期间，引用的 value 必须保证有效
+
+### Updating a Hash Map
+Although the number of key and value pairs is growable, each unique key can only have one value associated with it at a time (but not vice versa: for example, both the Blue team and the Yellow team could have the value `10` stored in the `scores` hash map).
+
+When you want to change the data in a hash map, you have to decide how to handle the case when a key already has a value assigned. You could replace the old value with the new value, completely disregarding the old value. You could keep the old value and ignore the new value, only adding the new value if the key _doesn’t_ already have a value. Or you could combine the old value and the new value. Let’s look at how to do each of these!
+
+#### Overwriting a Value
+If we insert a key and a value into a hash map and then insert that same key with a different value, the value associated with that key will be replaced. Even though the code in Listing 8-23 calls `insert` twice, the hash map will only contain one key-value pair because we’re inserting the value for the Blue team’s key both times.
+>  如果 `insert` 了相同的 key 但是有不同的 value，则新 value 会替代旧 value
+
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Blue"), 25);
+
+println!("{scores:?}");
+```
+
+[Listing 8-23](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#listing-8-23): Replacing a value stored with a particular key
+
+This code will print `{"Blue": 25}`. The original value of `10` has been overwritten.
+
+#### Adding a Key and Value Only If a Key Isn’t Present
+It’s common to check whether a particular key already exists in the hash map with a value and then to take the following actions: if the key does exist in the hash map, the existing value should remain the way it is; if the key doesn’t exist, insert it and a value for it.
+
+Hash maps have a special API for this called `entry` that takes the key you want to check as a parameter. The return value of the `entry` method is an enum called `Entry` that represents a value that might or might not exist. Let’s say we want to check whether the key for the Yellow team has a value associated with it. If it doesn’t, we want to insert the value `50`, and the same for the Blue team. Using the `entry` API, the code looks like Listing 8-24.
+>  `entry` 接收一个 key，检查 key 是否存在，其返回 `Entry` enum，表示一个值可能存在或不存在
+
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+scores.insert(String::from("Blue"), 10);
+
+scores.entry(String::from("Yellow")).or_insert(50);
+scores.entry(String::from("Blue")).or_insert(50);
+
+println!("{scores:?}");
+```
+
+[Listing 8-24](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#listing-8-24): Using the `entry` method to only insert if the key does not already have a value
+
+The `or_insert` method on `Entry` is defined to return a mutable reference to the value for the corresponding `Entry` key if that key exists, and if not, it inserts the parameter as the new value for this key and returns a mutable reference to the new value. This technique is much cleaner than writing the logic ourselves and, in addition, plays more nicely with the borrow checker.
+>  `Entry` 的 `or_insert` 方法在如果 key 存在时，返回对 value 的可变引用
+>  如果 key 不存在，则将它的参数插入作为该 key 的 value，返回对该 value 的可变引用
+
+Running the code in Listing 8-24 will print `{"Yellow": 50, "Blue": 10}`. The first call to `entry` will insert the key for the Yellow team with the value `50` because the Yellow team doesn’t have a value already. The second call to `entry` will not change the hash map because the Blue team already has the value `10`.
+
+#### Updating a Value Based on the Old Value
+Another common use case for hash maps is to look up a key’s value and then update it based on the old value. For instance, Listing 8-25 shows code that counts how many times each word appears in some text. We use a hash map with the words as keys and increment the value to keep track of how many times we’ve seen that word. If it’s the first time we’ve seen a word, we’ll first insert the value `0`.
+
+```rust
+use std::collections::HashMap;
+
+let text = "hello world wonderful world";
+
+let mut map = HashMap::new();
+
+for word in text.split_whitespace() {
+    let count = map.entry(word).or_insert(0);
+    *count += 1;
+}
+
+println!("{map:?}");
+```
+
+[Listing 8-25](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#listing-8-25): Counting occurrences of words using a hash map that stores words and counts
+
+This code will print `{"world": 2, "hello": 1, "wonderful": 1}`. You might see the same key-value pairs printed in a different order: recall from [“Accessing Values in a Hash Map”](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#accessing-values-in-a-hash-map) that iterating over a hash map happens in an arbitrary order.
+
+The `split_whitespace` method returns an iterator over subslices, separated by whitespace, of the value in `text`. The `or_insert` method returns a mutable reference (`&mut V`) to the value for the specified key. Here, we store that mutable reference in the `count` variable, so in order to assign to that value, we must first dereference `count` using the asterisk (`*`). The mutable reference goes out of scope at the end of the `for` loop, so all of these changes are safe and allowed by the borrowing rules.
+>  `split_whitespace` 方法返回对 subslices 的迭代器，由空格分开
+>  `or_insert` 方法返回对指定 key 的 value 的可变引用 `&mut V`
+
+### Hashing Functions
+By default, `HashMap` uses a hashing function called _SipHash_ that can provide resistance to denial-of-service (DoS) attacks involving hash tables [1](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#footnote-siphash). This is not the fastest hashing algorithm available, but the trade-off for better security that comes with the drop in performance is worth it. If you profile your code and find that the default hash function is too slow for your purposes, you can switch to another function by specifying a different hasher. A _hasher_ is a type that implements the `BuildHasher` trait. We’ll talk about traits and how to implement them in [Chapter 10](https://doc.rust-lang.org/book/ch10-02-traits.html). You don’t necessarily have to implement your own hasher from scratch; [crates.io](https://crates.io/) has libraries shared by other Rust users that provide hashers implementing many common hashing algorithms.
+>  hasher 是实现了 `BuildHasher` trait 的类型
+
+## Summary
+Vectors, strings, and hash maps will provide a large amount of functionality necessary in programs when you need to store, access, and modify data. Here are some exercises you should now be equipped to solve:
+
+1. Given a list of integers, use a vector and return the median (when sorted, the value in the middle position) and mode (the value that occurs most often; a hash map will be helpful here) of the list.
+2. Convert strings to pig latin. The first consonant of each word is moved to the end of the word and _ay_ is added, so _first_ becomes _irst-fay_. Words that start with a vowel have _hay_ added to the end instead (_apple_ becomes _apple-hay_). Keep in mind the details about UTF-8 encoding!
+3. Using a hash map and vectors, create a text interface to allow a user to add employee names to a department in a company; for example, “Add Sally to Engineering” or “Add Amir to Sales.” Then let the user retrieve a list of all people in a department or all people in the company by department, sorted alphabetically.
+
+The standard library API documentation describes methods that vectors, strings, and hash maps have that will be helpful for these exercises!
+
+We’re getting into more complex programs in which operations can fail, so it’s a perfect time to discuss error handling. We’ll do that next!
+
+---
+
+1. [https://en.wikipedia.org/wiki/SipHash](https://en.wikipedia.org/wiki/SipHash) [↩](https://doc.rust-lang.org/book/ch08-03-hash-maps.html#fr-siphash-1)
+
+# 9 Error Handling
+Errors are a fact of life in software, so Rust has a number of features for handling situations in which something goes wrong. In many cases, Rust requires you to acknowledge the possibility of an error and take some action before your code will compile. This requirement makes your program more robust by ensuring that you’ll discover errors and handle them appropriately before deploying your code to production!
+
+Rust groups errors into two major categories: _recoverable_ and _unrecoverable_ errors. For a recoverable error, such as a _file not found_ error, we most likely just want to report the problem to the user and retry the operation. Unrecoverable errors are always symptoms of bugs, such as trying to access a location beyond the end of an array, and so we want to immediately stop the program.
+>  Rust 将 errors 分为两类: 可恢复错误和不可恢复错误
+>  可恢复错误例如 file not found error，一般要报告给用户，并重试
+>  不可恢复错误通常来自于 bugs，例如数组访问越界，此时需要停止程序
+
+Most languages don’t distinguish between these two kinds of errors and handle both in the same way, using mechanisms such as exceptions. Rust doesn’t have exceptions. Instead, it has the type `Result<T, E>` for recoverable errors and the `panic!` macro that stops execution when the program encounters an unrecoverable error. This chapter covers calling `panic!` first and then talks about returning `Result<T, E>` values. Additionally, we’ll explore considerations when deciding whether to try to recover from an error or to stop execution.
+>  Rust 没有异常，对于可恢复错误，提供了类型 `Result<T, E>`，对于不可恢复错误，提供了 `panic!` macro 来停止程序运行
+
+
+## 9.1 Unrecoverable Errors with `panic!`
+Sometimes bad things happen in your code, and there’s nothing you can do about it. In these cases, Rust has the `panic!` macro. There are two ways to cause a panic in practice: by taking an action that causes our code to panic (such as accessing an array past the end) or by explicitly calling the `panic!` macro. In both cases, we cause a panic in our program. By default, these panics will print a failure message, unwind, clean up the stack, and quit. Via an environment variable, you can also have Rust display the call stack when a panic occurs to make it easier to track down the source of the panic.
+
+### Unwinding the Stack or Aborting in Response to a Panic
+By default, when a panic occurs the program starts _unwinding_, which means Rust walks back up the stack and cleans up the data from each function it encounters. However, walking back and cleaning up is a lot of work. Rust, therefore, allows you to choose the alternative of immediately _aborting_, which ends the program without cleaning up.
+
+Memory that the program was using will then need to be cleaned up by the operating system. If in your project you need to make the resultant binary as small as possible, you can switch from unwinding to aborting upon a panic by adding `panic = 'abort'` to the appropriate `[profile]` sections in your _Cargo.toml_ file. For example, if you want to abort on panic in release mode, add this:
+
+`[profile.release] panic = 'abort'`
+
+Let’s try calling `panic!` in a simple program:
+
+Filename: src/main.rs
+
+[![](https://doc.rust-lang.org/book/img/ferris/panics.svg "This code panics!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
+
+`fn main() {     panic!("crash and burn"); }`
+
+When you run the program, you’ll see something like this:
+
+``$ cargo run    Compiling panic v0.1.0 (file:///projects/panic)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s      Running `target/debug/panic`  thread 'main' panicked at src/main.rs:2:5: crash and burn note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace``
+
+The call to `panic!` causes the error message contained in the last two lines. The first line shows our panic message and the place in our source code where the panic occurred: _src/main.rs:2:5_ indicates that it’s the second line, fifth character of our _src/main.rs_ file.
+
+In this case, the line indicated is part of our code, and if we go to that line, we see the `panic!` macro call. In other cases, the `panic!` call might be in code that our code calls, and the filename and line number reported by the error message will be someone else’s code where the `panic!` macro is called, not the line of our code that eventually led to the `panic!` call.
+
+We can use the backtrace of the functions the `panic!` call came from to figure out the part of our code that is causing the problem. To understand how to use a `panic!` backtrace, let’s look at another example and see what it’s like when a `panic!` call comes from a library because of a bug in our code instead of from our code calling the macro directly. Listing 9-1 has some code that attempts to access an index in a vector beyond the range of valid indexes.
+
+Filename: src/main.rs
+
+[![](https://doc.rust-lang.org/book/img/ferris/panics.svg "This code panics!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
+
+`fn main() {     let v = vec![1, 2, 3];      v[99]; }`
+
+[Listing 9-1](https://doc.rust-lang.org/book/ch09-01-unrecoverable-errors-with-panic.html#listing-9-1): Attempting to access an element beyond the end of a vector, which will cause a call to `panic!`
+
+Here, we’re attempting to access the 100th element of our vector (which is at index 99 because indexing starts at zero), but the vector has only three elements. In this situation, Rust will panic. Using `[]` is supposed to return an element, but if you pass an invalid index, there’s no element that Rust could return here that would be correct.
+
+In C, attempting to read beyond the end of a data structure is undefined behavior. You might get whatever is at the location in memory that would correspond to that element in the data structure, even though the memory doesn’t belong to that structure. This is called a _buffer overread_ and can lead to security vulnerabilities if an attacker is able to manipulate the index in such a way as to read data they shouldn’t be allowed to that is stored after the data structure.
+
+To protect your program from this sort of vulnerability, if you try to read an element at an index that doesn’t exist, Rust will stop execution and refuse to continue. Let’s try it and see:
+
+``$ cargo run    Compiling panic v0.1.0 (file:///projects/panic)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s      Running `target/debug/panic`  thread 'main' panicked at src/main.rs:4:6: index out of bounds: the len is 3 but the index is 99 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace``
+
+This error points at line 4 of our _main.rs_ where we attempt to access index `99` of the vector in `v`.
+
+The `note:` line tells us that we can set the `RUST_BACKTRACE` environment variable to get a backtrace of exactly what happened to cause the error. A _backtrace_ is a list of all the functions that have been called to get to this point. Backtraces in Rust work as they do in other languages: the key to reading the backtrace is to start from the top and read until you see files you wrote. That’s the spot where the problem originated. The lines above that spot are code that your code has called; the lines below are code that called your code. These before-and-after lines might include core Rust code, standard library code, or crates that you’re using. Let’s try getting a backtrace by setting the `RUST_BACKTRACE` environment variable to any value except `0`. Listing 9-2 shows output similar to what you’ll see.
+
+``$ RUST_BACKTRACE=1 cargo run thread 'main' panicked at src/main.rs:4:6: index out of bounds: the len is 3 but the index is 99 stack backtrace:    0: rust_begin_unwind              at /rustc/4d91de4e48198da2e33413efdcd9cd2cc0c46688/library/std/src/panicking.rs:692:5    1: core::panicking::panic_fmt              at /rustc/4d91de4e48198da2e33413efdcd9cd2cc0c46688/library/core/src/panicking.rs:75:14    2: core::panicking::panic_bounds_check              at /rustc/4d91de4e48198da2e33413efdcd9cd2cc0c46688/library/core/src/panicking.rs:273:5    3: <usize as core::slice::index::SliceIndex<[T]>>::index              at file:///home/.rustup/toolchains/1.85/lib/rustlib/src/rust/library/core/src/slice/index.rs:274:10    4: core::slice::index::<impl core::ops::index::Index<I> for [T]>::index              at file:///home/.rustup/toolchains/1.85/lib/rustlib/src/rust/library/core/src/slice/index.rs:16:9    5: <alloc::vec::Vec<T,A> as core::ops::index::Index<I>>::index              at file:///home/.rustup/toolchains/1.85/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3361:9    6: panic::main              at ./src/main.rs:4:6    7: core::ops::function::FnOnce::call_once              at file:///home/.rustup/toolchains/1.85/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5 note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.``
+
+[Listing 9-2](https://doc.rust-lang.org/book/ch09-01-unrecoverable-errors-with-panic.html#listing-9-2): The backtrace generated by a call to `panic!` displayed when the environment variable `RUST_BACKTRACE` is set
+
+That’s a lot of output! The exact output you see might be different depending on your operating system and Rust version. In order to get backtraces with this information, debug symbols must be enabled. Debug symbols are enabled by default when using `cargo build` or `cargo run` without the `--release` flag, as we have here.
+
+In the output in Listing 9-2, line 6 of the backtrace points to the line in our project that’s causing the problem: line 4 of _src/main.rs_. If we don’t want our program to panic, we should start our investigation at the location pointed to by the first line mentioning a file we wrote. In Listing 9-1, where we deliberately wrote code that would panic, the way to fix the panic is to not request an element beyond the range of the vector indexes. When your code panics in the future, you’ll need to figure out what action the code is taking with what values to cause the panic and what the code should do instead.
+
+We’ll come back to `panic!` and when we should and should not use `panic!` to handle error conditions in the [“To `panic!` or Not to `panic!`”](https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html#to-panic-or-not-to-panic) section later in this chapter. Next, we’ll look at how to recover from an error using `Result`.
+
 [  
-](https://doc.rust-lang.org/book/ch08-01-vectors.html "Previous chapter")
+](https://doc.rust-lang.org/book/ch09-00-error-handling.html "Previous chapter")
