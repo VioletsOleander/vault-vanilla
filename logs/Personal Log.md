@@ -21,7 +21,7 @@ Date: 2024.7.29-2024.8.5
 - [[doc-notes/nvidia/NVIDIA Nsight Compute|nvidia/NVIDIA Nsight Compute]]: CH2
 
 \[Blog\]
-- [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
+- [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275)
     Derived Ideas:
         1. Thread Tile: 改变 Thread Tile 内矩阵的运算顺序，利用 Register 减少对 global memory 的访问次数；其中 Thread tile 的长宽 $M_{frag},N_{frag}$ 的选取与线程内 FFMA 指令对非 FFMA 指令如 LDS 指令的延迟覆盖是相关的
 
@@ -36,13 +36,13 @@ Date: 2024.8.5-2024.8.12
 - [[doc-notes/nvidia/CUDA-GDB|nvidia/CUDA-GDB]]: CH1-CH8
 
 \[Blog\] 
-- [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275): 0%-50%
+- [CUDA GEMM 理论性能分析与 kernel 优化](https://zhuanlan.zhihu.com/p/441146275)
     Derived Ideas:
         1. Arithmetic Intensity: 通过衡量计算方式的算数密度，将其乘上相应带宽，可以得到理论的 FLOPS 上限
         2. Thread Block Tile: 减少 Global Memory 读取
         3. Thread Tile & Warp Tile: 改变矩阵乘法顺序，调整 Tile 形状，提高 Arithmetic Intensity，使 FMA 可以掩盖 LDS 的延迟
         4. Pipeline: 由于改变矩阵乘法顺序增大了单线程的寄存器使用量，导致 Warp 数量降低，进一步导致 Occupancy 降低，因此考虑流水并行 Global Memory to Shared Memory、Shared Memory to Register、Computation in Register 这三个操作，提高 Warp 的指令并行度，以提高硬件占用率
-- [CUDA 矩阵乘法终极优化指南](https://zhuanlan.zhihu.com/p/410278370): All
+- [CUDA 矩阵乘法终极优化指南](https://zhuanlan.zhihu.com/p/410278370)
     Derived Ideas:
         1. Coarsening: 一个线程计算 $4\times 4$ 的结果，提高线程的算数密度
         2. `LDS.128`: 读取 `float4` 向量类型，减少 Shared Memory 访问
@@ -1100,6 +1100,7 @@ Date: 2025.1.27-2025.2.3
 
 \[Code\]
 - NowcastNet rewritten project
+    Inference Framework
 
 ### Week 2
 Date: 2025.2.3-2025.2.10
@@ -3361,4 +3362,94 @@ Date: 2025.8.25-2025.9.1
     After activation, virtual environment will as its directory in the front of `PATH`.
 - [[doc-notes/python/library/file-and-directory-access/pathlib - Oject-oriented filesystem paths|python/library/file-and-directory-access/pathlib - Oject-oriented filesystem paths]]
     `Path` will initialize a path based on the platform the code is running on. 
+
+### Week 2
+Date: 2025.9.1-2025.9.8
+
+\[Paper\]
+- [[paper-notes/ml/system/PyTorch An Imperative Style, High-Performance Deep Learning Library-NeurIPS-2019|2019-PyTorch An Imperative Style, High-Performance Deep Learning Library-NeurIPS]]
+    Abstract
+        PyTorch shows that usability and speed is compatible for a ML framework, by providing imperative and Pythonic programming style.
+        PyTorch supports code as a model, making debugging easy and is consistent with other popular scientific computing libraries.
+    Introduction
+        Most framework constructs a static dataflow graph representing the computation and can be repeatly applied to batches of data.
+        Konwing the whole computation ahead of time provides opportunity for optimization, but at the cost of ease of use, ease of debugging, and flexibility of the types that the computation can represents.
+        PyTorch is a Python library that performs immediate execution of tensor computations with automatic differentiation and GPU acceleration.
+    Background
+        PyTorch build on the major trends in scientific computing and provides an array-based programming model accelarated by GPUs and differentiable via automatic differentiation, also with integration in the Python ecosystem.
+    Design principles
+        1. Pythonic: API simple and consistent 2. Put researchers first: hide complexity inherent to machine learning 3. Provide pragmatic performance 4. Worse is better: prefer simple but slightly incomplete solution to complex but hard to maintain design.
+    Usability centric design
+        PyTorch foregoes the complexity of Graph metaprogramming based approach to preserve the imperative programming model of Python.
+        Defining layers, composing models, loading data, running optimizers, paralleling the training process are all expressed using the familiar concepts developed for general purpose programming.
+        For example, layers are represented as Python class, the constructor create and initialize its parameters, the `forward` method compute the activation. Similarily, model are represented as Python class consisting of layer classes.
+        Since PyTorch program executes eagerly, all the feature of Python are available throughout the whole design process: print statements, standard debuggers, common visualization tools.
+        Users do not have to wait for compilation before they can start running the program, and the intermediate computations can be observed.
+        PyTorch provides bidirectional data exchange of data with external libraries, like `torch.from_numpy(), tensor.numpy()`. There is no copy in data exchange: objects on both sides only describe how to interpret a memory region which is shared among them.
+        Many of the critical systems of PyTorch is designed to be extensible. The automatic differentiation system allows users to add support for custom differentiable functions, to do that, users only need implement a subclass of `torch.autograd.Function`, and implement its `forward(), backward()` method.
+        Similarily, new datasets can be added by subclassing `torch.utils.data.Dataset`, and implement `__getitem__` and `__len__` to make dataset behave like list.
+        `DataLoader` consume objects conforming to this interface, and provides an iterator, taking care of shuffling, batchin etc.
+        PyTorch use operator overloading approach, which build up a representation of the computed function every time it is executed.
+    Performance focused implementation
+        The python global interpreter lock ensures only one of any number of concurrent threads is running at any given time.
+        DL frameworks based on static dataflow graph defer the evaluation of the computation to a custom interpreter.
+        Most of PyTorch is written in C++, its core libtorch library implements the tensor data structure, GPU, CPU operators and basic parallem primitives. libtorch also provides the automatic differentiation system including gradient formulas for most built-in functions.
+        libtorch ensures the computation of the derivatives of PyTorch core operators is executed in the multi-threaded evaluator, sidesteps the global interpreter lock.
+        PyTorch strictly seperates control flow and data flow, the resolution of control flow is handled by Python and the execution of operators is handled by devices.
+        PyTorch uses CUDA stream to queue kernels and overlap Python code execution on CPU and kernel execution on GPU.
+        On GPU, `cudaFree` will block its caller untile all previously queued kernels finish execution. To sidestep it, PyTorch construct its own allocator, which progressively constructs a cache for GPU memory, and reassign it without calling CUDA API.
+        PyTorch extends `multiprocessing`, which sends tensor data to shared memory instead of sending through communication channel.
+    Evaluation
+    Conclusion and future work
+        We are working on PyTorch JIT, a suite of tool that allow PyTorch programs to be executed outside of the Python interpreter for optimization.
+
+\[Doc\]
+- [[doc-notes/uv/Introduction|uv/Introduction]]
+- [[doc-notes/uv/concepts/projects/Structure and files|uv/concepts/projects/Structure and files]]
+- [[doc-notes/uv/getting-started/Features|uv/getting-started/Features]]
+- [[doc-notes/uv/guides/Using tools|uv/guides/Using tools]]
+- [[doc-notes/uv/guides/Publishing Packages|uv/guides/Publishing Packages]]
+- [[doc-notes/uv/guides/Working on projects|uv/guides/Working on projects]]
+- [[doc-notes/uv/guides/integrations/PyTorch|uv/guides/integrations/PyTorch]]
+- [[doc-notes/uv/guides/integrations/GitHub Actions|uv/guides/integrations/GitHub Actions]]
+- [[doc-notes/uv/guides/migration/From pip to a uv project|uv/guides/migration/From pip to a uv project]]
+- [[doc-notes/github/ci,cd-and-devops/github-actions/Continuous integration|github/ci,cd-and-devops/github-actions/Continuous integration]]
+- [[doc-notes/github/ci,cd-and-devops/github-actions/Understand Github Actions|github/ci,cd-and-devops/github-actions/Understand Github Actions]]
+- [[doc-notes/python/library/python-runtime-services/dataclasses - Data Class|python/library/python-runtime-services/dataclasses - Data Class]]
+    `@dataclasses.dataclass` is a decorator to add special methods for a class.
+
+\[Blog\]
+- [[blog-notes/Democratizing AI Compute|Democratizing AI Compute]]: CH8-CH11
+    CH8-What about the MLIR compiler infrastructure
+        MLIR is a modular, extensible compiler infrastructure.
+        MLIR wants to build a unified representation to support every AI framework, every hardward backend and every kine of optimization.
+        This idea is called MLIR dialect - a way to seperate the domain specific concerns from the core infrastructure of a compiler: MLIR allows defining own presentations: types, ops instead of forcing to a single IR.
+        MLIR allows multiple levels of abstractions coexist, transforms, and interoperate.
+        MLIR provides a structured way (dialect) to express and optimize hardware-specific operations for custom ASICs.
+        Many design decision in core AI dialects like `arith, linaly, tensor` is not suitable for GenAI, but just for improving OpenXLA, TensorFlow.
+        The biggest lesson from MLIR is scaling too early can cause lasting problems.
+    CH9-Why do HW companies struggle to build AI software
+        The problem is structural: misalinged incentives, conflicting priorities, and an underestimation of how much software investment is required to play in this arena.
+        The constraints of HW companies operate with makes building competitive AI software nearly impossible by design.
+        The architecture of AI chips are well studied by now: systolic arrays, TensorCores, mixed-precision compute, exotic memory hierarchies. Building chips is no longer the bottleneck for scalable success. The real chanllenge is getting everyone to use the chip.
+        In the CPU area, software is much simpler: build a backend for LLVM, and your chip inherit the entire ecosystem. 
+        Hardware companies are structurally incapable of seeing a software ecosystem as a standalone product.
+        AI workloads are constantly changing. To differentiate, the hardware innovation multiplies the software burden against a moving target of use cases.
+        The result is we are not building a stack, but building a cross product of models x quantization formats x batch sizes x inference/training x cloud/edge x framework of the week
+        No matter how many software engineers you have, you can never catch up with NVIDIA. They are fighting fires instaed of building tools to prervent future fires.
+        They have many ideas -- invent the infrastructure, building long-term abstractions, define the company's philosophy, but they can't.
+        Every whale you reel pulls the team further away from building a scalable platform. The software team is forced to operate like a consulting shop.
+        It starts innocently, but soon your engineers implement hacks. Eventually, your software stack becomes full of tech debt and tribal knowledge.
+    CH10-Modular's bet to break out of the Matrix
+        We need a system where hardware makers can plug in their chips, where AI software developers can build at the frontier - without reinventing the stack every time.
+        We need a system that could scale across use cases.
+        Just one question: Can real engineers build real systems faster with this?
+        We are building a better way to program all accelerators - even NVIDIAs.
+    CH11-How is Modular Democratizing AI Compute
+        Our goal is to expose the full power of morden hardware - NVIDIA Tensor cores, AMD matrix units etc by building a system that understand their complexity instead of hiding its complexity.
+        A system lets developers scale effortlessly across devices, without getting lost into incompatible compilers and fragmented runtimes.
+        We want a unified, programmable system (one small binary) that can scale across arichitectures from multiple vendors.
+        Mojo is a new language for GenAI area. Mojo files lives side by side with Python modules.
+        MAX is a GenAI serving framework, designed for heterogeneous clusters.
+        Modular aims to enable portability across hardware from multiple vendors.
 
