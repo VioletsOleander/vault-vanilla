@@ -15,8 +15,17 @@ def write_file(file_path: Path, content: str):
 
 
 def merge(lines: list[str]) -> dict[str, dict[str, list[str]]]:
-    sections = ["Book", "Paper", "Doc", "Blog", "Code", "OpenReview", "Wiki"]
-    section_re = re.compile(r"^\\\[\w+\\\]")
+    sections = [
+        "Book",
+        "Paper",
+        "Doc",
+        "Blog",
+        "Code",
+        "Code-Analysis",
+        "OpenReview",
+        "Wiki",
+    ]
+    section_re = re.compile(r"^\\\[.+\\\]")
     items = []
     item_re = re.compile(r"^- \[\[.+\]\]:?")
     code_item_re = re.compile(r"^- .+")
@@ -81,8 +90,8 @@ def generate_changelog(lines_tree: dict[str, dict[str, list[str]]]) -> str:
 
 
 if __name__ == "__main__":
-    personal_log_path = Path("../logs/Personal log.md")
-    changelog_path = Path("../ChangeLog.md")
+    personal_log_path = Path("D:/data/vault-vanilla/logs/Personal Log.md")
+    changelog_path = Path("D:/data/vault-vanilla/ChangeLog.md")
 
     lines = read_file(personal_log_path)
     lines_tree = merge(lines)
