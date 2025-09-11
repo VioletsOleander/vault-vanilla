@@ -71,7 +71,7 @@ PyTorch's success stems from weaving previous ideas into a design that balances 
 ## 4.1 Deep learning models are just Python programs
 In a surprisingly short amount of time, machine learning grew from recognizing individual digits [27] into autonomously playing StarCraft [28]. Consequently, the neural networks themselves evolved rapidly from simple sequences of feed forward layers into incredibly varied numerical programs often composed of many loops and recursive functions. To support this growing complexity, PyTorch foregoes the potential benefits of a graph-metaprogramming based approach to preserve the imperative programming model of Python. This design was pioneered for model authoring by Chainer[5] and Dynet[7]. PyTorch extends this to all aspects of deep learning workflows. Defining layers, composing models, loading data, running optimizers, and parallelizing the training process are all expressed using the familiar concepts developed for general purpose programming.
 >  神经网络从 FFN 序列进化为包含循环和递归函数的复杂数值程序，为了支持这样的复杂性，PyTorch 放弃了基于图元编程方法的优势，保留 Python 的命令式编程模型
->  定义层、组合模型、加载数据、运行优化去、并行化训练过程都通过通用编程中已有的熟悉概念来表达
+>  定义层、组合模型、加载数据、运行优化器、并行化训练过程都通过通用编程中已有的熟悉概念来表达
 
 This solution ensures that any new potential neural network architecture can be easily implemented with PyTorch. For instance, layers (which in modern machine learning should really be understood as stateful functions with implicit parameters) are typically expressed as Python classes whose constructors create and initialize their parameters, and whose forward methods process an input activation. Similarly, models are usually represented as classes that compose individual layers, but let us state again that nothing forces the user to structure their code in that way. Listing 1 demonstrates how an entire model can be created by composing functionality provided by PyTorch such as 2d convolution, matrix multiplication, dropout, and softmax to classify gray-scale images. Note that linear layers are of course part of the library, but we show an example implementation to highlight how simple it is.
 >  这确保任意可能的 NN 架构都能用 PyTorch 表示
@@ -255,7 +255,7 @@ Since streams serialize execution, if the free precedes the reallocation on the 
 >  因为 stream 是串行执行指令，因此如果 CPU 发出的显存释放是在显存重分配指令之前，GPU 也会以相同的顺序先释放显存再重分配显存
 
 So the allocator can reallocate memory freed on the CPU immediately as long as the new allocation is used on the same stream as the freed region. However, if an allocation was last used on one stream and then allocated on another, additional synchronization is needed.
- >  这样，PyTorch 的 allocator 可以立刻将之前释放的显存重分配给相同的流上新分配的显存使用 (实际没有调用 `cudaMalloc, cudaFree`，就是逻辑上的重复呢配)
+ >  这样，PyTorch 的 allocator 可以立刻将之前释放的显存重分配给相同的流上新分配的显存使用 (实际没有调用 `cudaMalloc, cudaFree`，就是逻辑上的重复分配)
 >   但如果分配的显存最后在 stream A 使用，释放后被分配给 stream B，就需要额外的同步，因为 stream A 和 stream B 可能并行执行，不能让 stream B 在 stream A 完成执行之前就占用这块显存，否则就出现了数据竞争
 
 The one-pool-per-stream design seems limiting since the allocations end up fragmented per stream, but in practice PyTorch almost never uses multiple streams. It is notoriously hard to write CUDA kernels in a way that would let them cooperatively share the GPU because exact scheduling is hardware controlled. In practice, kernel writers usually resort to monolithic kernels that combine multiple tasks. 

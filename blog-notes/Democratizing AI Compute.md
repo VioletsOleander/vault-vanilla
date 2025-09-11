@@ -1567,7 +1567,7 @@ No matter how many software engineers you have, it’s never enough to get ahead
 >  无论你有多少软件工程师，都无法跟上 NVIDIA 的节奏 - 不管他们多么聪明和投入，他们始终处于劣势
 >  他们的邮箱里都是客户的紧急问题、内部的功能请求、以及迫切的基准测试需求
 >  他们只能疲于救火，而不是构建预防未来问题的工具
->  每一次的重大成功只能让他们更加清楚地人时代还有多少工作尚未完成
+>  每一次的重大成功只能让他们更加清楚地认识到还有多少工作尚未完成
 
 They have many ideas—they want to invest in infrastructure, build long-term abstractions, define the company’s software philosophy. But they can’t, because they can’t stop working on the current-gen chip long enough to prepare for the next one.  Meanwhile, …
 >  他们有很多想法 - 他们希望投资基础设施，构建长期的抽象层，定义公司的软件哲学
@@ -1610,7 +1610,7 @@ Then come the giants: Intel, AMD, Apple, Qualcomm—companies with decades of si
 
 One tempting approach is to just embrace CUDA with a translator. It gets you “compatibility,” but never great performance. Modern CUDA kernels are written for Hopper’s TensorCores, TMA, and memory hierarchy. Translating them to your architecture won’t make your hardware shine.
 >  一种有吸引力的方法是直接采用 CUDA，并配上一个翻译器
->  这能带来兼容性，但永远无法实现出色的性能，现代的 CUDA kernel 是为 Hopper TensorCores, TMV 和内存层次结构设计的，将它们翻译到你的架构上，不会让你的硬件表现出色
+>  这能带来兼容性，但永远无法实现出色的性能，现代的 CUDA kernel 是为 Hopper TensorCores, TMA 和内存层次结构设计的，将它们翻译到你的架构上，不会让你的硬件表现出色
 
 Sadly, the best-case outcome at this scale is **OneAPI from Intel**—open, portable, and community-governed, but lacking momentum or soul. It hasn’t gained traction in GenAI for [the same reasons OpenCL didn’t](https://www.modular.com/blog/democratizing-ai-compute-part-5-what-about-cuda-c-alternatives#evolving-needs): it was designed for a previous generation of GPU workload, and AI moved too fast for it to keep up. Being open only helps if you also keep up.
 >  在这种规模下，最好的结果是 Intel OneAPI - 开发，可移植，有社区管理，但缺乏动力或灵魂
@@ -1670,7 +1670,7 @@ Let’s see just how deep the rabbit hole goes. 🐇🕳️
 
 ## What does “Democratizing AI Compute” mean to me?
 When we talk about democratizing AI compute, we don’t just mean “run it on more devices.” We mean rethinking **_who_ gets to build _what_—and _how_**. It means removing the gatekeepers, lowering the barriers, and leveling the playing field for developers, hardware vendors, and researchers alike.
->  当我们讨论民主化 AI 计算时，我们仅仅是指 “在更多设备上运行”，我们指的是谁能够构建什么，以及如何构建
+>  当我们讨论民主化 AI 计算时，我们不是仅仅指 “在更多设备上运行”，我们指的是谁能够构建什么，以及如何构建
 >  这意味着消除中间人，降低门槛，为开发者、硬件厂商和研究人员创造一个更加公平的竞争环境
 
 Back in 2021, I gave an [industry keynote at a prominent academic conference](https://docs.google.com/presentation/d/1ZMtzT6nmfvNOlIaHRzdaXpFeaAklcT7DvfGjhgpzcxk/edit?slide=id.p#slide=id.p), laying out a vision for a unifying software layer that could finally bring the field together. I hoped someone would pick up the torch and build it. People were intrigued. Conversations sparked. But no one made it to the finish line.
@@ -1930,7 +1930,7 @@ Orbiting Mojo is [**MAX**](https://www.modular.com/max) —a unified, productio
 > MAX 超越了 PyTorch 的限制，将 SOTA 的推理能力打包到一个仅 1GB 的轻量容器中，实现快速冷启动
 
 GenAI is about far more than a forward pass. Modern pipelines juggle KV-cache lifecycles, paged attention, speculative decoding, and hardware-aware scheduling. MAX folds all of that complexity into a familiar, PyTorch-like Python API, so you write dynamic graphs while it delivers predictable, fleet-wide performance.
->  GenAI 远不止一次前向传播，现代的流水线需要处理 KVCache 声明周期，paged-attention，推测解码和硬件感知的调度
+>  GenAI 远不止一次前向传播，现代的流水线需要处理 KVCache 生命周期，paged-attention，推测解码和硬件感知的调度
 >  MAX 将所有的复杂性封装在一个熟悉且类似于 PyTorch 的 Python API 中，让我们在可以编写动态图的同时，获得可预测的、全集群范围的高性能表现
 
 > Picture MAX as the massive gas giant in your GenAI solar system. Compute is the central star, and MAX’s deep “atmosphere” of KV-cache handling, paged attention, and speculative decoding provides the gravitational heft that keeps individual AI apps in orderly orbit while letting new models or hardware drift in without turbulence.

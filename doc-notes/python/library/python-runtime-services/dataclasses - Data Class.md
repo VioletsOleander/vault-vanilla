@@ -43,6 +43,8 @@ Note that this method is automatically added to the class: it is not directly sp
 >  Added in version 3.7.
 
 ## Module contents
+### `@dataclasses.dataclass()`
+
 @dataclasses.dataclass(_*_, _init=True_, _repr=True_, _eq=True_, _order=False_, _unsafe_hash=False_, _frozen=False_, _match_args=True_, _kw_only=False_, _slots=False_, _weakref_slot=False_)
 
 This function is a [decorator](https://docs.python.org/3/glossary.html#term-decorator) that is used to add generated [special methods](https://docs.python.org/3/glossary.html#term-special-method) to classes, as described below.
@@ -152,3 +154,88 @@ def __init__(self, a: int, b: int = 0):
 ```
 
 [`TypeError`](https://docs.python.org/3/library/exceptions.html#TypeError "TypeError") will be raised if a field without a default value follows a field with a default value. This is true whether this occurs in a single class, or as a result of class inheritance.
+
+### `dataclasses.field()`
+
+dataclasses.field(_*_, _default=MISSING_, _default_factory=MISSING_, _init=True_, _repr=True_, _hash=None_, _compare=True_, _metadata=None_, _kw_only=MISSING_)
+
+For common and simple use cases, no other functionality is required. There are, however, some dataclass features that require additional per-field information. To satisfy this need for additional information, you can replace the default field value with a call to the provided `field()` function. For example:
+> 有时，我们需要为某个字段提供额外的信息，例如默认值不是简单的常量 (如 `None, []`) 或需要指定某些特殊的行为 (只读、可变默认值等)
+>  此时我们可以使用 `field()` 函数来替代默认值
+
+```python
+@dataclass
+class C:
+    mylist: list[int] = field(default_factory=list)
+
+c = C()
+c.mylist += [1, 2, 3]
+```
+
+>  上例中 `mylist` 的默认值是 `field(default_factory=list)`，也就是调用 `list()` 生成一个空列表作为默认值
+>  这避免了使用 `[]` 作为默认值，因为如果多个实例共享一个默认列表，可能会导致意外的行为 (比如多个对象修改同一个列表)
+
+As shown above, the [`MISSING`](https://docs.python.org/3/library/dataclasses.html#dataclasses.MISSING "dataclasses.MISSING") value is a sentinel object used to detect if some parameters are provided by the user. This sentinel is used because `None` is a valid value for some parameters with a distinct meaning. No code should directly use the [`MISSING`](https://docs.python.org/3/library/dataclasses.html#dataclasses.MISSING "dataclasses.MISSING") value.
+
+The parameters to `field()` are:
+
+- _default_: If provided, this will be the default value for this field. This is needed because the `field()` call itself replaces the normal position of the default value.
+    
+- _default_factory_: If provided, it must be a zero-argument callable that will be called when a default value is needed for this field. Among other purposes, this can be used to specify fields with mutable default values, as discussed below. It is an error to specify both _default_ and _default_factory_.
+    
+- _init_: If true (the default), this field is included as a parameter to the generated [`__init__()`](https://docs.python.org/3/reference/datamodel.html#object.__init__ "object.__init__") method.
+    
+- _repr_: If true (the default), this field is included in the string returned by the generated [`__repr__()`](https://docs.python.org/3/reference/datamodel.html#object.__repr__ "object.__repr__") method.
+    
+- _hash_: This can be a bool or `None`. If true, this field is included in the generated [`__hash__()`](https://docs.python.org/3/reference/datamodel.html#object.__hash__ "object.__hash__") method. If false, this field is excluded from the generated [`__hash__()`](https://docs.python.org/3/reference/datamodel.html#object.__hash__ "object.__hash__"). If `None` (the default), use the value of _compare_: this would normally be the expected behavior, since a field should be included in the hash if it’s used for comparisons. Setting this value to anything other than `None` is discouraged.
+    
+    One possible reason to set `hash=False` but `compare=True` would be if a field is expensive to compute a hash value for, that field is needed for equality testing, and there are other fields that contribute to the type’s hash value. Even if a field is excluded from the hash, it will still be used for comparisons.
+    
+- _compare_: If true (the default), this field is included in the generated equality and comparison methods ([`__eq__()`](https://docs.python.org/3/reference/datamodel.html#object.__eq__ "object.__eq__"), [`__gt__()`](https://docs.python.org/3/reference/datamodel.html#object.__gt__ "object.__gt__"), et al.).
+    
+- _metadata_: This can be a mapping or `None`. `None` is treated as an empty dict. This value is wrapped in [`MappingProxyType()`](https://docs.python.org/3/library/types.html#types.MappingProxyType "types.MappingProxyType") to make it read-only, and exposed on the [`Field`](https://docs.python.org/3/library/dataclasses.html#dataclasses.Field "dataclasses.Field") object. It is not used at all by Data Classes, and is provided as a third-party extension mechanism. Multiple third-parties can each have their own key, to use as a namespace in the metadata.
+    
+- _kw_only_: If true, this field will be marked as keyword-only. This is used when the generated [`__init__()`](https://docs.python.org/3/reference/datamodel.html#object.__init__ "object.__init__") method’s parameters are computed.
+    
+    Keyword-only fields are also not included in `__match_args__`.
+    
+
+> Added in version 3.10.
+
+If the default value of a field is specified by a call to `field()`, then the class attribute for this field will be replaced by the specified _default_ value. If _default_ is not provided, then the class attribute will be deleted. The intent is that after the [`@dataclass`](https://docs.python.org/3/library/dataclasses.html#dataclasses.dataclass "dataclasses.dataclass") decorator runs, the class attributes will all contain the default values for the fields, just as if the default value itself were specified. For example, after:
+>  如果使用 `field` 为字段指定默认值时，该字段的类属性会被替换为这个默认值
+>  如果没有提供默认值 (比如只写了 `field()`)，那么该字段的类属性会被删除
+>  这样的目的是装饰器 `@dataclass` 运行后，所有字段的类属性应该包含该字段的默认值，就像我们直接指定了该默认值一样
+
+```python
+@dataclass
+class C:
+    x: int
+    y: int = field(repr=False)
+    z: int = field(repr=False, default=10)
+    t: int = 20
+```
+
+The class attribute `C.z` will be `10`, the class attribute `C.t` will be `20`, and the class attributes `C.x` and `C.y` will not be set.
+
+### `dataclasses.Field`
+
+_class_ dataclasses.Field
+
+`Field` objects describe each defined field. These objects are created internally, and are returned by the [`fields()`](https://docs.python.org/3/library/dataclasses.html#dataclasses.fields "dataclasses.fields") module-level method (see below). Users should never instantiate a `Field` object directly. Its documented attributes are:
+
+- `name`: The name of the field.
+- `type`: The type of the field.
+- `default`, `default_factory`, `init`, `repr`, `hash`, `compare`, `metadata`, and `kw_only` have the identical meaning and values as they do in the [`field()`](https://docs.python.org/3/library/dataclasses.html#dataclasses.field "dataclasses.field") function.
+
+Other attributes may exist, but they are private and must not be inspected or relied on.
+
+>  `Field` 描述了每个定义的字段
+
+### `dataclasses.fields()`
+
+dataclasses.fields(_class_or_instance_)
+
+Returns a tuple of [`Field`](https://docs.python.org/3/library/dataclasses.html#dataclasses.Field "dataclasses.Field") objects that define the fields for this dataclass. Accepts either a dataclass, or an instance of a dataclass. Raises [`TypeError`](https://docs.python.org/3/library/exceptions.html#TypeError "TypeError") if not passed a dataclass or instance of one. Does not return pseudo-fields which are `ClassVar` or `InitVar`.
+>  模块级别方法 `fields()` 返回定义了 dataclass 的 `Field` 对象元组
+>  该方法接收 dataclass 或 dataclass 的实例
