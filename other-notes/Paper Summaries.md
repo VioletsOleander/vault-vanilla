@@ -30,4 +30,20 @@ tokenizer 实现为单独的库
 model 实现为 Python 类
 head 实现为对 model 类的封装类
 
+### Week 2
+**PyTorch**: [[paper-notes/ml/system/PyTorch An Imperative Style, High-Performance Deep Learning Library-NeurIPS-2019|PyTorch An Imperative Style, High-Performance Deep Learning Library-NeurIPS-2019]]
+
+在用户体验方面:
+PyTorch 的设计原则是用户体验优先，为了提高 API 的易用性，并和 Python 生态融合，PyTorch 采用 define-by-run/eager 的执行模式，也就类似于 Python 的解释型执行
+
+之前框架的静态数据流图方法就类似于编译型语言的编译型执行，要求使用提供的图 API 构造完整的计算图，编译后再执行模型
+
+这种动态的执行模式很大程度提高了 PyTorch 的易用性和灵活性，PyTorch 分离了控制流和数据流，Python 的控制流语句由 CPython 处理，实际的 kernel 执行则调用底层的 C++/CUDA 库，将计算发布到设备，也就是数据流和控制流的分离
+
+PyTorch 将深度学习中的组件例如模型、层、优化器、参数、数据集、数据加载器等都封装为 Python 类，实现自定义的这些东西就是继承这些类，实现对应的方法
+
+在性能方面:
+PyTorch 依赖于 libtorch 中编写的高性能算子执行计算，内存分配使用自己的分配器来维护内存/显存池，避免频繁调用底层 API
+
+PyTorch 也在开发自己的 JIT 编译器以允许 PyTorch 程序在 Python 解释器之外运行，以引入一定的图编译提高性能，也就是 `torch.compile`
 
