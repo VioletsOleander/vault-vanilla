@@ -47,6 +47,9 @@ version = "0.1.0"
 Do you want autocompletion of the manifest file?
 As `pixi.toml` has a JSON schema, it is possible to use IDE’s like VSCode to edit the field with autocompletion. Install the Even [Better TOML VSCode](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) extension to get the best experience. Or use the integrated schema support in PyCharm.
 
+>  schema 定义了配置文件的合法结构，例如规定 `pixi.toml` 中必须有 `[project]`，`name` 必须是字符串，`version` 必须是语义化版本格式等
+>  使用支持 schema 的编辑器可以对配置文件启用自动补全，语法检查，文档提示等功能
+
 ## Managing dependencies
 After creating the project, you can start adding dependencies to the project. Pixi uses the `pixi add` command to add dependencies to the project. This command will , by default, add the **conda** dependency to the `pixi.toml`, solve the dependencies, write the lockfile and install the package in the environment. For example, lets add `numpy` and `pytest` to the project.
 
@@ -154,9 +157,9 @@ You can then run the task using the `pixi run` command:
 pixi run hello
 ```
 
->  `pixi run` 运行任务
-
 This will execute the command `echo Hello, World!` in the environment.
+
+>  `pixi run` 在当前环境下运行任务
 
 Do you want use more powerful features?
 Tasks can be much more powerful for example:
@@ -187,7 +190,7 @@ More information about tasks can be found in the [Tasks](https://pixi.sh/v0.53.
 
 ## Environments
 Pixi always creates a virtual environment for your project. These environments are [located](https://pixi.sh/v0.53.0/reference/pixi_configuration/#detached-environments "Find out how to move this location if required") in the `.pixi/envs` directory in the root of your project.
->  Pixi 会为项目创建虚拟环境，位于 `.pixi/envs` 目录下
+>  Pixi 会为项目创建虚拟环境，位于项目根目录的 `.pixi/envs` 目录下
 
 Using these environments is as simple as running the `pixi run` or `pixi shell` command. These commands will automatically activate the environment and run the command in it.
 
