@@ -36,7 +36,7 @@ The downside of eager mode frameworks is that they make it harder to apply graph
 Unfortunately, these approaches have sacrificed much of the usability that draws users to PyTorch. Record/replay is unsound and can produce incorrect behavior [17]. Python parsing works for simple programs, but has not been able to replicate the complex semantics of all of Python, so results will show it fails on over half of real-world models. Lazy evaluation incurs high run-time overheads and adds latency to kernel launches. 
 >  这些方法牺牲了 PyTorch 的易用性
 >  记录/重放方法不安全，可能导致错误行为 (例如两次运行之间修改了变量，record/replay 会错误地重放旧行为，导致结果不对)
->  Python 解析适用于简单的程序，但无法复制 Python 的全部复杂语义，故在超过一半的真实模型中会失败
+>  Python 解析适用于简单的程序，但无法复制 Python 的全部复杂语义，故在超过一半的真实模型中会失败 (Python 解析也就是为 Python/PyTorch 语言写一个 AOT 编译器，说白了直接把 Python 语言整成编译型语言)
 >  惰性求值会带来较高的运行时开销，并增加内核启动的延迟 (惰性求值需要维护一个延迟执行的 IR，每次操作不是立即执行，而是记录下来，这带来了额外的运行时开销，并且每个 kernel 都有启动延迟)
 
 Additionally, an exclusively graph mode backend for PyTorch is intractable for some models. Due to the flexibility provided by PyTorch, many model authors take advantage of features that do not easily map to graphs, such as: dictionaries, lists, custom classes, third party libraries (numpy, logging, etc), disk/network, multiprocessing, exceptions, and handwritten kernels.
@@ -243,7 +243,7 @@ The primary API introduced in this paper is `torch.compile`. It can be used eith
 
 When you run a module with torch.compile, the module is executed with the modified CPython behavior shown in Figure 1. Specifically, a custom CPython frame evaluation hook will rewrite the bytecode of of each Python function being executed in order to extract and compile sequences of PyTorch operations. This bytecode rewriting process is cached, but the analysis relies on certain dynamic properties of the program that we use guards to check on subsequent calls.
 >  使用 `torch.compile` 运行一个 module 时，该 module 会以 Figure 1 所示的修改后的 CPython 行为执行
->  具体地说，一个自定义的 CPython 帧评估钩子将重写正在执行的每个 Python 函数的字节码，以提取并编译 PyTorch 操作序列
+>  具体地说，一个自定义的 CPython 帧评估钩子将重写正在执行的每个 Python 函数的字节码，以提取并编译 PyTorch 操作序列 (这里还是感觉类似于 Lazy Tensor)
 >  这个字节码重写过程会被缓存，但分析依赖于程序的特定动态特性，我们在后续调用中使用 guard 来检查这些特性 (如果特性检查通过，就缓存命中，否则就需要重新分析)
 
 ## 3.2 CPython Frame Evaluation Hook
@@ -397,13 +397,13 @@ There are many other variable tracker types that represent other situations. In 
 ## 3.6 Inlining, Control Flow, and Closures
 Function calls can either happen directly from user code, or implicitly through magic methods such as `__getitem__`. To collect bigger graphs, TorchDynamo will attempt to inline function calls and flatten programs. When a function call is encountered, TorchDynamo first creates a checkpoint of the current symbolic state. Next, it recursively tries to symbolically evaluate the called functions, passing in any input symbolic state and recording any changes that are made. If this recursive analysis hits a case that would cause a graph break (Section 3.8) or other errors, TorchDynamo rolls back to the symbolic state before the function call and generates a graph break on that function call. Otherwise, the recursive analysis returns and the analysis of the parent function continues.
 >  函数调用可以直接来自于用户代码，也可以隐式通过魔法方法例如 `__getitem__`
->  为了收集更大的图，TorchDynamo 会尝试内联函数调用并展开程序
+>  为了收集更大的图，TorchDynamo 会尝试内联函数调用并展平程序 (也就是函数中调用了其他函数，将这个调用内联到当前函数调用，这样多个函数调用就作为一个 frame 处理)
 >  当遇到一个函数调用时，TorchDynamo 首先会创建当前符号状态的检查点，然后，它会递归地尝试对被调用的函数进行符号求值，传入任意的输入符号状态，并记录所作的任何更改
 >  如果递归分析遇到了会导致 graph break 或其他错误的情况，TorchDynamo 会回滚到函数调用之前的符号状态，并在该函数调用处生成一个 graph break
 >  否则，递归分析完成后，父函数的分析将继续进行
 
 Most cases of control flow in Python bytecode are optimized away and handled through specialization. For example, when iterating over a list of torch.nn.Module, TorchDynamo will guard that the list doesn't change and unroll the loop. For control flow based on the type, size, and shape of tensors, TorchDynamo will guard on those properties and remove the control flow. In less common cases where there is control flow that cannot be removed (for example, branching on the value of a tensor rather than the metadata), TorchDynamo will generate a graph break that will trigger the branch bytecode to run in CPython, and analysis will resume after the jump.
->  **Python 字节码中的大多数控制流情况都会被优化掉，并被专门化**
+>  **Python 字节码中的大多数控制流情况都会被优化掉，并被专门化 (即直接移除控制流)**
 >  例如，在遍历 `torch.nn.Module` 列表时，TorchDynamo 会检查该列表是否发生变化，并展开遍历循环
 >  对于基于张量类型、大小、形状的控制流，TorchDynamo 会针对这些属性进行检查，并移除相应的控制流
 >  在一些比较少见的情况，如果存在无法移除的控制流 (例如，**根据张量的值而不是元数据进行分支**)，TorchDynamo 会生成 graph break, graph break 会触发该分支的字节码在 CPython 中执行，分析在跳转之后继续进行
