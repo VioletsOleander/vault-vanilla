@@ -3047,7 +3047,7 @@ Date: 2025.8.11-2025.8.18
     Design Features and Trade-offs
         GPipe introduces minimal communiation overhead, communication only happens at partition boundary.
     Conclusion
-- [[paper-notes/gen-ai/language/infra/system/HybridFlow A Flexible and Efficient RLHF-2025-EuroSys|2025-EuroSys-HybridFlow A Flexible and Efficient RLHF]]
+- [[paper-notes/gen-ai/language/infra/system/HybridFlow A Flexible and Efficient RLHF Framework-2025-EuroSys|2025-EuroSys-HybridFlow A Flexible and Efficient RLHF]]
     0-Abstract
         Different from traditional RL dataflow, in RLHF, each node in the dataflow is a LLM, which is essentially a distributed LLM training or generation program.
         In traditional RL framework, the inter-node communication and intra-node computation are all instruced by a single controller. Because there is large control dispatch overhead for distributed intra-node computation, the single contoller may become the bottleneck.
@@ -3453,3 +3453,60 @@ Date: 2025.9.1-2025.9.8
         MAX is a GenAI serving framework, designed for heterogeneous clusters.
         Modular aims to enable portability across hardware from multiple vendors.
 
+### Week 3
+Date: 2025.9.8-2025.9.15
+
+\[Paper\]
+- [[paper-notes/ml/system/PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation-2024-ASPLOS|2024-ASPLOS-PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation]]
+    0-Abstract
+        `torch.compile` is implemented by TorchDynamo, TorchInductor
+        TorchDynamo is a Python-level JIT compiler, which dynamically modify the byte code before execution, and extract PyTorch operations into FX graph for backend compilation to achieve graph compilation for PyTorch program.
+        TorchInductor is the default compilation backend of TorchDynamo, it converts FX graph to triton code for GPU, to C++ for CPU.
+        With minimal additional overhead, TorchDynamo can capture the graph more robustly, and TorchIndcutor can provide speedup outperforming other compilers.
+    1-Introduction
+        Eager framework use imperative define-by-run approach, where ML model is represented as code for execution at each run. Graph mode framework use declarative define-before-run approach, which provides API for constructing graph to users.
+        Eager framework is more unstandable and easiler to debug, profile.
+        Eager framework's downside is the difficulty of applying graph-level optimization through compilers since the framwork can only see one operation at a time, therefore optimiaztions across operator boundary like fusion, scheduling is impossible.
+        Methods for this problem includes: record/replay, Python parsing, lazy evaluation.
+        Record/replay may not capture full constraint of program and may lead to wrong behaviour.
+        Python parsing can not handle full semantics of Python.
+        Lazy evaluation will incur kernel launch latency and high run-time overheads.
+        Due to the flexiblity provided by PyTorch, an exclusively graph backend of PyTorch is intractable for some models. Since many models use features which are head to map to graphs, like dictionaries, litst, custom classes, third party libraries...
+        TorchDynamo hook into Python's bytecode execution with CPython's frame evaluation API, to modify the bytecode before execution and extract PyTorch operations into FX graph. TorchDynamo is designed to generate smaller graph fragment that can be mixed with Python execution to get best of both worlds: usabiilty and performance.
+    2-Prior Attempts at PyTorch Graph Capture
+        In eager framework like PyTorch, users can arbitrarily insert code from non-PyTorchl libraries, inside their models. This results frequent conversion from PyTorch tensor to other types, usage of Python constructs which do not map to a fixed graph abstraction.
+        `torch.jit.trace` uses record/replay to generate TorchScript graph. Recording is done in PyTorch dispacther level which is implemented with C++, therefore TorchScript does not capture any control flow in Python. The path is specialized for the given instance input. Moreover, any non-PyTorch operations will be not included in the TorchScript graph.
+        `torch.jit.script` uses static Python AST analysis to construct TorchScript graph. The challenge for it is that it tries to implement all of Python as a static language.
+        Lazy tensor works in C++ level, which defers the execution of operations to accumulate a graph, which is sent to the XLA compiler. By hashing this graph, Lazy tensor can avoid recompiling identical graphs at each iteration.
+        `torch.fx.symbolic_trace` introduced the FX graph format, and uses record/replay but at Python level instead of dispatcher level.
+        It runs user code with a Proxy Python object (to replace actual tensor) to record its behaviour (operations on it). This implementation replies `torch_function` proxy to intercept PyTorch function execution. `symbolic_trace` still have "all-or-nothing" problem, and the operations that does not interact with Proxy object will still be not captured.
+        `torch.onnx.export` uses `torch.jit.trace` and `torch.jit.script` internally.
+        JAX does not face the same challenges being solved by TorchDynamo, because JAX is closely coupled with XLA and JAX program should conform to the constraints built with XLA. For example, `jax.jit` requires user code to be fully functional and does not support data-dependent Python control flow.
+        In constrast, PyTorch is a purely eager mode framework with no built-in compilation related constraints. On implementation, JAX capture mechnism is simimarl to `torch.fx.symbolic_trace`, but simpler because JAX requires pure functional program so that the compiler does not worry about state.
+    3-TorchDynamo Design and Implementation
+        Different from previous graph capturing mechnism, TorchDynamo does not try to replace CPython, but work with CPython by JIT compiling Python bytecode.
+        TorchDyanmo is the Python bytecode to bytecode translator. It extracts calls to PyTorch operations from the original bytecode and replace it with the calls to the compiled artifact that fuses many PyTorch operations together.
+        The API is `torch.compile`, which can be invoked on a PyTorch Module or as a function decorator.
+        With `torch.compile`, a customed CPython frame evaluation hook will reevaluate the bytecode for each executed Python function, to extract and compile PyTorch operation sequence. This rewriting process will be cached. The analysis relies on the dynamic of program which we will use guards to check.
+        A frame is the data structure in CPython used to represent a function call. TorchDynamo defines a custom `eval_frame` function to do: 
+        - check if the frame should be skipped and handle it to CPython.
+        - check if the frame has been compiled and cached. If true, check guards, if guards passed, uses the cache and return.
+        - If not compiled and cached, analyze the bytecodes in the function to extrace FX graph, guards, side effects.
+        - Compile the extracted FX graph using the specified `backend`.
+        - Generate a Python function used to check the guards for this compilation result.
+        - Generate new Python bytecode, which will 1. call the compiled FX graph 2. store the stack state 3. execute the side effects.
+        - Handle the generated Python bytecode to CPython, return.
+        Guards is the mechnism TorchDynamo uses to check the dynamic properties used in JIT compilation to determine whether it is safe to reuse cached compilation result.
+        TorchDynamo's symbolic Python bytecode evaluator, which is responsible for analyzing Python bytecode and modeling effects of each instruction.
+        Symbolic evaluation will handle the function bytecode by bytecode.
+        TorchDynamo uses `VariableTracker` s to model Python data structure.
+        To collect bigger graphs, TorchDynamo will try to inline functions calls and flatten programs. The symbolic evaluation will normally recursively applied to the called function until a situation that graph break should be generated is met.
+        Most cases of control of Python bytecode are optimized away and handled through specialization. If control flows that are not possible to optimized are met (such as branching based on actual tensor data instead of tensor metadata), a graph break will be generated.
+        
+        
+- [[paper-notes/ml/system/PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel-2023-VLDB|2023-VLDB-PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel]]
+
+\[Doc\]
+- [[doc-notes/vscode/remote/Overview|vscode/remote/Overview]]
+- [[doc-notes/vscode/remote/SSH|vscode/remote/SSH]]
+- [[doc-notes/vscode/remote/Tips and Tricks|vscode/remote/Tips and Tricks]]
