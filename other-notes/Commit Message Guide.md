@@ -620,7 +620,6 @@ cdcdcd Agora vai
 types:
 - note
 - log
-- idea
 - doc
 - script: about python scripts
 - code: about code flow analysis

@@ -1,4 +1,8 @@
-**2024.2.28**
+# 2024
+## Feburary
+**Date: 2024.2.28**
+
+Topic: Zero-shot Hashing
 很多方法都在考虑 [[paper-notes/ml/algorithm/zeroshot-hashing/Spectral Hashing-2008-NeruIPS]] 提出的问题的各种近似优化形式，但 SH 中的 $\symbfit 1^TB$ 的条件，本义在于最大化每个哈希比特的信息，但实际上是一种原问题的一个强化，强化不相似样本间的距离差距，因为原损失在 $s_{ij}\ge 0$ 的条件下实际上仅存在尽量缩小相似样本之间的距离差距的趋势
 因此不强求 $s_{ij} \ge 0$，不是考虑归一化 $S$，而是考虑中心化 $S$，
 令 $\symbfit 1^TS = \symbfit 0^T$，而由于 $S = S^T$，$(\symbfit 1^TS)^T = S^T\symbfit 1 =S\symbfit 1=(\symbfit 0^T)^T=\symbfit 0$，
@@ -107,9 +111,12 @@ $$\begin{align}
 P&=(\bar K_X^T\bar K_X^T+\alpha I)^{-1}\bar K_X^TB
 \end{align}$$
 
-**2024.3.1**
-考虑一下 [[Strongly Constrained Discrete Hashing-2020-TIP|Strongly Constrained Discrete Hashing-2020-TIP
-]]
+## March
+**Date: 2024.3.1**
+
+Topic: Zero-shot Hashing
+考虑一下 [[Strongly Constrained Discrete Hashing-2020-TIP|Strongly Constrained Discrete Hashing-2020-TIP]]
+
 $$\begin{align}
 &\min_{B,Z}\mathcal\|BZ^T-rS\|_F^2+\alpha\|B-Z\|_F^2\\
 &s.t.\begin{cases}B\in\{-1,+1\}^{n\times r}\\
@@ -187,7 +194,9 @@ $$\max_{Z}tr(Z^T(rSB+\alpha B))$$
 
 $$\max_{Z}tr(Z^TB)$$
 
-**2024.3.4**
+**Date: 2024.3.4**
+
+Topic: Zero-shot Hashing
 激活函数平滑化
 $f(x) = x$
 $f(x) = sigmoid(x) = \frac {2}{e^{-x}+1} -1$
@@ -203,7 +212,9 @@ $$\begin{align}
 &tr(Y^TSsigmoid(Y))+\gamma tr((sigmoid(Y)^TY)
 \end{align}$$
 
-**2024.3.5**
+**Date: 2024.3.5**
+
+Topic: Zero-shot Hashing
 SCDH 在优化过程中引入了原特征空间信息 $X$，相似度信息 $S$，约束信息 $Z$
 
 应不应该引入原特征空间信息？相似度信息是绝对正确的
@@ -224,7 +235,7 @@ $\bar K_X$ 不可控制，因此应该通过哈希函数尽量满足
 
 $sgn(\bar K_X P) = B$
 $sgn换成sigmoid$
-$sigmoid(\bar K_X P) = B$ ? 增加了复杂性
+$sigmoid (\bar K_X P) = B$ ? 增加了复杂性
 
 要不考虑限制一下 $\bar K_X P$ 的范围，限制范围后感觉约束的迁移会更有效
 干脆还是对 $\bar K_X$ 做一些正则，列中心化很合适?
@@ -233,10 +244,12 @@ $sigmoid(\bar K_X P) = B$ ? 增加了复杂性
 
 特征空间的数值是什么情况，有负值吗？ResNet-101 的输出没有负值
 
-**2024.3.6**
+**Date: 2024.3.6**
+
+Topic: Zero-shot Hashing
 考虑两种情况
-1. 两个样本 $x_i,x_j$ 在特征空间相似，但是标签不同，即 $s_{ij} = -1$
-2. 两个样本 $x_i,x_j$ 在特征空间不相似，但是标签相同，即 $s_{ij} = 1$
+1. 两个样本 $x_i, x_j$ 在特征空间相似，但是标签不同，即 $s_{ij} = -1$
+2. 两个样本 $x_i, x_j$ 在特征空间不相似，但是标签相同，即 $s_{ij} = 1$
 不妨考虑对满足这两种情况其一的 $s_{ij}$ 进行放缩
 
 考虑一下原型的思想，为每一个类计算一个特征空间的类原型，简单点取就直接计算该类所有向量的均值
@@ -246,10 +259,10 @@ $sigmoid(\bar K_X P) = B$ ? 增加了复杂性
 考虑概率与统计中的 $3\sigma$ 原则，如果特征向量落在了某个类原型的 $[-3\sigma,+3\sigma]$ 范围内，就认为特征空间上它与该类的其他样本是类似的，否则是不类似的
 或者考虑统计该类所有向量与类原型的夹角余弦值，最后取中位数作为阈值
 
-相似的程度也根据该样本的特征向量与类原型向量的夹角余弦值 $cos(\theta)$ 决定
-$cos(\theta)$ 的取值范围是 $[-1,1]$，
-越相似，越接近 1，如果标签不同，$s_{ij}$ 就越需要放缩，因此放缩倍率不妨规定为 $\frac {\alpha} {1-cos(\theta)}$，即 $s_{ij}$ 从 $-1$ 放缩到 $-\frac {\alpha} {1-cos(\theta)}$，$\alpha$ 是可调节参数
-越不相似，越接近-1，如果标签相同，$s_{ij}$ 就越需要放缩，因此放缩倍率不妨规定为 $\frac {\alpha} {cos(\theta)+1}$，即 $s_{ij}$ 从 $1$ 放缩到 $\frac {\alpha} {cos(\theta)+1}$，$\alpha$ 是可调节参数
+相似的程度也根据该样本的特征向量与类原型向量的夹角余弦值 $cos (\theta)$ 决定
+$cos (\theta)$ 的取值范围是 $[-1,1]$，
+越相似，越接近 1，如果标签不同，$s_{ij}$ 就越需要放缩，因此放缩倍率不妨规定为 $\frac {\alpha} {1-cos (\theta)}$，即 $s_{ij}$ 从 $-1$ 放缩到 $-\frac {\alpha} {1-cos (\theta)}$，$\alpha$ 是可调节参数
+越不相似，越接近-1，如果标签相同，$s_{ij}$ 就越需要放缩，因此放缩倍率不妨规定为 $\frac {\alpha} {cos (\theta)+1}$，即 $s_{ij}$ 从 $1$ 放缩到 $\frac {\alpha} {cos (\theta)+1}$，$\alpha$ 是可调节参数
 
 一个项 $s_{ij}$ 可能面临多个放缩倍率 (最多面临 $c$ 个)，选最大的那一个
 
@@ -259,7 +272,9 @@ $cos(\theta)$ 的取值范围是 $[-1,1]$，
 
 因为零样本学习是从特征空间出发到哈希空间的，而该方法可以学习能更好把握特征空间和标签空间的联系的哈希函数，因此对零样本学习方法有帮助
 
-**2024.3.9**
+**Date: 2024.3.9**
+
+Topic: Zero-shot Hashing
 
 $$\begin{align}
 &\min_P\|\phi(\Phi(X)P) - B\|_F^2 + \|P\|_F^2\\
@@ -272,7 +287,9 @@ $$\begin{align}
 $f(x) = sigmoid(x)$
 $f'(x) = f(x)(1-f(x))$
 
-**2024.3.10**
+**Date: 2024.3.10**
+
+Topic: Zero-shot Hashing
 
 $$
 \begin{align}
@@ -421,11 +438,15 @@ $$\begin{align}
 
 而
 $$\frac {\partial \lambda\|P\|_1}{\partial P}=\lambda sgn(P) $$
-**2024.3.15**
+**Date: 2024.3.15**
+
+Topic: Zero-shot Hashing
 EigenDecomposition 精度不够，因为 $l$ 数量级太大
 $l$的计算中，$SB$占了主导，而$S$中，$-1$项占了绝对主导
 
-**2024.3.24**
+**Date: 2024.3.24**
+
+Topic: Zero-shot Hashing
 
 $$\begin{align}
 \min_{B,P,W,Z}\|K&\cdot S - BZ^T\|_F^2+\lambda\|\Phi(X)P-B\|_F^2+\alpha\|B-Z\|_F^2\\
@@ -511,3 +532,31 @@ $$\min_Z\|B-Z\|_F^2 = \min_Z-2\alpha Tr[Z^TB]$$
 故
 
 $$\max_ZTr[Z^T(rSB + r\eta S'\Phi' P+\alpha B)]$$
+
+# 2025
+## March
+**Date: 2025.3.16**
+
+Topic: Learning
+Q: 深度学习和强化学习能否都在极大似然的框架下统一解释？
+A (2025.9.17): RL 的优化决策过程和 DL 的拟合观测数据分布不能完全统一，但在 “控制即推断“ 的理论框架下，可以将策略优化转化为最大化 “最优轨迹” 的后验概率
+
+## June
+**Date: 2025.6.7**
+
+Topic: Information
+人类的 “处理” 为朴素的信息赋予了关系 (relationship)，进而从信息中创造了更多的信息，往往这些创造出的信息才是这些朴素的信息对于人类的意义所在
+
+## Setptember
+**Date: 2025.9.17**
+
+Topic: LLM Inference
+
+Entry 1
+Q: 现在的推理是否是完全存储 KVCache，如果在访存成为瓶颈的时候，放弃掉一部分 KVCache，执行重计算，会不会反而更优？
+
+Entry 2
+没有场景就创造场景，考虑一个 LLM 推理服务的用户感知场景，有的用户喜欢输入短的句子，有的用户喜欢输入长的句子，针对这个 workload 的特性，结合一下推荐引擎，可以硬造一个用户感知的推理框架，为不同的用户发起的对话分配不同特性的设备 (This idea is relatively cheap)
+
+
+
