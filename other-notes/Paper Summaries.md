@@ -47,3 +47,46 @@ PyTorch 依赖于 libtorch 中编写的高性能算子执行计算，内存分�
 
 PyTorch 也在开发自己的 JIT 编译器以允许 PyTorch 程序在 Python 解释器之外运行，以引入一定的图编译提高性能，也就是 `torch.compile`
 
+### Week 3
+**PyTorch 2:** [[paper-notes/ml/system/PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation-2024-ASPLOS|PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation-2024-ASPLOS]]
+
+PyTorch 引入的新特性为 `torch.compile`，该特性由 TorchDynamo 和 TorchInductor 支持
+
+TorchDynamo 是 PyTorch 引入的抓图工具，其工作机制是自定义 `eval_frame` 函数，重新解释 Python 帧中的字节码，将帧中的 PyTorch 操作提取为 FX 图
+TorchDynamo 本质还是采用 record/replay 的方式，但是它的层级比 Lazy Tensor 要高，TorchDynamo 是在 Python 字节码的层级执行 record，而 Lazy Tensor 只能在 C++ dispatcher 的层级执行 record
+
+TorchInductor 为 PyTorch 引入的图编译器，它接收 FX 图，将图下降到 TorchIndoctur IR，然后生成 Triton 或 C++ 代码，TorchInductor 执行的优化主要是: 分解 (将 PyTorch 操作分解为 ATen primitives)，融合 (融合分解后的 ATen primitives)
+
+**FSDP:** [[paper-notes/ml/system/PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel-2023-VLDB|PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel-2023-VLDB]]
+
+FSDP 基本思想和 ZeRO 一致，即本质是对基础 DP 的增强，shard 参数、优化器状态、梯度
+
+FSDP 和 ZeRO 思想上有差异的一点在于 FSDP 还会额外将模型划分为多个 units，每次 unshard 单个 unit 的参数，保持其他 units 的参数 sharded
+
+(前向传播和反向传播时) 连续 unit 的参数 unshard 通信和计算可以进行重叠
+(反向传播时) 连续 unit 的梯度 shard 规约和计算可以进行重叠
+
+示例:
+
+```
+前向传播:
+| unit1 计算
+| unit2 参数 unshard
+|                      unit2 计算
+|                      unit3 参数 unshard
+```
+
+```
+反向传播:
+| unit3 计算
+| unit2 参数 unshard
+|                   unit2 计算
+|                   unit3 梯度规约 + unit1 参数 unshard
+|                                                     unit1 计算
+|                                                     unit2 梯度规约
+```
+
+混合 shard 结合了 sharding 和 replication，每个 sharding group 内进行 sharding，各个 sharding groups 之间则进行 replication，本质是两层 DP
+
+FSDP + Pipeline Parallelism: 用 FSDP 封装每个流水线阶段
+FSDP + Tensor Parallelism: 2D mesh，一个维度为 PyTorch 分布式张量 `DTensor`，另一个维度为 FSDP
