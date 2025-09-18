@@ -3047,7 +3047,7 @@ Date: 2025.8.11-2025.8.18
     Design Features and Trade-offs
         GPipe introduces minimal communiation overhead, communication only happens at partition boundary.
     Conclusion
-- [[paper-notes/gen-ai/language/infra/system/HybridFlow A Flexible and Efficient RLHF Framework-2025-EuroSys|2025-EuroSys-HybridFlow A Flexible and Efficient RLHF]]
+- [[paper-notes/gen-ai/language/infra/system/HybridFlow A Flexible and Efficient RLHF Framework-2025-EuroSys|2025-EuroSys-HybridFlow A Flexible and Efficient RLHF Framework]]
     0-Abstract
         Different from traditional RL dataflow, in RLHF, each node in the dataflow is a LLM, which is essentially a distributed LLM training or generation program.
         In traditional RL framework, the inter-node communication and intra-node computation are all instruced by a single controller. Because there is large control dispatch overhead for distributed intra-node computation, the single contoller may become the bottleneck.
@@ -3502,11 +3502,83 @@ Date: 2025.9.8-2025.9.15
         TorchDynamo uses `VariableTracker` s to model Python data structure.
         To collect bigger graphs, TorchDynamo will try to inline functions calls and flatten programs. The symbolic evaluation will normally recursively applied to the called function until a situation that graph break should be generated is met.
         Most cases of control of Python bytecode are optimized away and handled through specialization. If control flows that are not possible to optimized are met (such as branching based on actual tensor data instead of tensor metadata), a graph break will be generated.
-        
-        
+        For side effects, TorthDynamo will defer them until after the FX graph has been called, then generating output bytecodes that apply the side effects.
+        TorchDynamo will capture the forward computation of the model, but to support training, we need caputre the backward process too.
+        In PyTorch eager, the backward graph is generated dynamically using a tape-based autograd.
+        AOTAutograd uses a way that support partial program graphs to turn the forward graphs into a forwards and backwards graph.
+        AOTAutograd is also based on PyTorch eager mode autograd engine. It runs the engine on fake tensor inputs and recording a joint forward and backward graph
+        AOTAutograd will apply other dispather-level transformations to the graph including decompositions which maps PyTorch operators to a smaller sets of primitive operators and removing operators that perform mutation and replacing them with their functional equivalents.
+    4-TorchInductor Design and Implementation
+        TorchInductor is the compiler end for TorchDynamo. It accepts FX graph and generates code. TorchIndoctor can serve as starting points for other backends.
+        TorchInductor only implements ATen operators' lowering to TorchInductor IR. TorchInductor will invoke AOTAutograd to do decomposition.
+        Decompositinos are written as a Python implementation of a PyTorch operator in terms of other operators.
+        After decomposition, the next phase of compilation is lowering a FX graph into TorchInductor define-by-run IR, which means the IR uses executable Python code to define loop bodies, equipping the IR much of the full power of Python.
+        After lowering, the scheduling phase determines which operators get fused, what order kernels run in, and does the memory planning for buffer removal/reuse.
+        The scheduler converts the memory read/write sets of each kernel into dependency edges between nodes. The edges are annotated with symbolic memory addresses, which are important to determine which fusions are legal. If two kernels access the same address and their access pattern and order do not conflict, they are legal to fuse.
+        Scheduler will order diferent fusion possibilities. The fusion scores are based on 1. the category of fusion 2. estimated by memory bytes saved by the fusion 3. distance of nodes.
+        Wrapper codegen is responsible for generating codes that calls the kernels from Triton, C++. It also does size calculations and handle memory alloation and deallocation.
+        Decompsition -> Lowering -> Scheduling -> CodeGen -> Wrapper codegen
+    5-Dynamic Shapes
+        In dynamic shape support, unlike a fully symbolic system which capture both branches of a conditional, we always specialize one branch. This specialized trace will only be used when the specialization assumption hold. This is just straight line traces.
+        Shape propagation is done by writing meta function for all operators in PyTorch, which propagates size information of input to size information of output.
+        A major motivation to support dynamic shapes is to reduce compile time, that is, avoiding re-compiling kernels for every possible combination of possible input shapes.
+    6-Experimental Results
+        On TorchBench, TorchDynamo works on more than twice as many models as TorchScript. TorchDynamo is able to capture the whole-program graph most of the time. The most common reasons for graph break are: usage of non-PyTorch libraries like numpy, conversion to Python types and data-dependent control flow operations.
+        The biggest speedups in TorchInductor comes from combining , reduction, and scatter kernels together into a smaller fused kernels. In TorchInductor, theses combinations happen in two places: 1. inlining happens during lowering 2. fusion happens during scheduling
+    7-Conclusions
 - [[paper-notes/ml/system/PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel-2023-VLDB|2023-VLDB-PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel]]
+    Abstract
+        FSDP is co-designed with core PyTorch components like Tensor implementation, dispatcher system, CUDA memory caching allocator.
+        FSDP can support larger models with near-linear scalibility in terms of TFLOPS.
+    Introduction
+        FSDP breaks down a model instance into smaller units and then flatten and shards all parameters in each unit. The sharded parameters will be recovered by communication before computation, and discarded afterwards.
+        This approach ensures FSDP only needs to materialize parameters from one unit once at a time, reducing peak memory consumption significantly.
+        To improve user experience, FSDP introduces delayed initialization, which allows user to create model at a virtual device and record operations invoked during initialization. By replaying the recorded operations on real GPU, the model can be initialized and sharded accordingly.
+        FSDP offers configurable sharding strategy to be customized to match the phsical topology of the cluster.
+        FSDP overlap computation and communication by operation reordering and parameter prefetching.
+    Background
+        PyTorch stores values as Tensor object. Each Tensor object has associated physical storage. Simple transformation like reshape, split on Tensor shares the same physical storage.
+        DDP is the first end-to-end distributed training feature on PyTorch. DDP maintains model replicas on each device and use AllReduce to gather gradients during backward propagation. DDP overlaps backward computation and gradient communication to reduce communcation overhead.
+        Model sharding has two approach: 
+        1. shard parameters, and communicate sharded activation. In this approach, the model needs not to acquire full parameter, but it is hard to overlap communcation and computation.
+        2. shard parameters, and communicate sharded parameters. In this approach, the model needs to acquire full parameter, but it can overlap parameter communication for next layer with computation in this layer.
+    System Design
+        FSDP splits model instance into units, and handle each unit independently. During forward and backward computation, FSDP materialize the parameters of one unit once, keeping other units sharded.
+        The optimizer state keeps sharded during the whole process.
+        In forward computation, FSDP materialize one unit once, after the unit's computation, FSDP keep it sharded again.
+        Similarly, in backward computation, FSDP materialize one unit once, after the unit's computation, FSDP keep it sharded again. Also, FSDP will launch ReduceScatter to reduce the shard's gradient.
+        To deliver higher communication efficiency, FSDP organizes all parameters within one FSDP unit into a `FlatParameter`.
+        If sharding factor is greater than 1 but less than number of devices $W$, we call it hybrid sharding.
+        In hybrid sharding, parameters keep sharded within each group, but keep replicated across groups.
+        For gradient reduction, the single reduce-scatter for all ranks becomes a reduce-scatter within each sharding group and an all-reduce with each replication group.
+        In datacenter, we can set each node as a sharding group to limit all-gather and reduce-scatter occurs within each node.
+        FSDP uses `torch.split(), torch.view()` to set original parameter as the view of `FlatParameter`, makeing autograd engine to allocate graident and write gradient for `FlatParameter` .
+        During backward propagation, FDSP will launch ReduceScatter for current `FlatParameter`, then launch AllGather for next `FlatParameter`. Since there is only one NCCL strem, the ReduceScatte will block the AllGather and in turn block the next gradient computation.
+        Therefore, FSDP will launch AllGather first then launch ReduceScatter to make ReduceScatter overlap with the next gradient computation.
+        The challenge is to konw which `FlatParameter` to collect next. To do so, FSDP record the reverse forward execution as the proxy of their backward execution order, also, ther forward order is freshly recorded each iteration.
+        FSDP allocates AllGather destination tensor representing the unsharded `FlatParameter` in a producer stream (communication stream), and the forward and backward computations use AllGathered parameters run in a consumer stream (computation stream/default stream).
+        For a fast CPU thread, the producer may allocate memory too fast while there are still GPU kernel computations pending, leading no block reuses between continuous memory allcation in the producer stream.
+    Implementation
+        User can access FSDP through two APIs: `FullyShardedDataParallel` model wrapper and `fully_shard` module annotator.
+        `FlatParameter` inherits `nn.Parameter`.
+        `FullyShardedDataParallel` model wrapper overlodas `nn.Module` 's `forward()` method to install pre-forward and post-forward logic.
+        For backward propagation, it is implemented through hooks provided by autograd engine.
+    Evaluation
+    Related Work
+    Discussion
+        To integrate with pipeline parallelism, we can use FSDP to warp each pipeline stage.
+        Pipeline parallelism will divide batch into microbatches. Combining pipeline parallelism with default FSDP configuration will lead to repeated unsharding for each microbatch.
+        FSDP offers other alternative sharding strategies that keep parameter unsharded after the forward pass, avoiding unnecessary Allgather communications per microbatch. This requires each store the a whole pipeline parameter.
+        `parallelize_module` can be combined with FSDP to be 2D parallelism. It organizes the devices as a 2D mesh, where PyTorch distributed tensor `DTensor` manages tensor parallelism along one dimension and FSDP manages another dimension.
+    Conclusion
 
 \[Doc\]
-- [[doc-notes/vscode/remote/Overview|vscode/remote/Overview]]
-- [[doc-notes/vscode/remote/SSH|vscode/remote/SSH]]
+- [[doc-notes/vscode/remote/Overview|vscode/remote/Overview]]: All
+- [[doc-notes/vscode/remote/SSH|vscode/remote/SSH]]: All
 - [[doc-notes/vscode/remote/Tips and Tricks|vscode/remote/Tips and Tricks]]
+
+### Week 4
+Date: 2025.9.15-2025.9.22
+
+\[Paper\]
+- [[paper-notes/ml/system/Ray A Distributed Framework for Emerging AI Applications-2018-OSDI|2018-OSDI-Ray A Distributed Framework for Emerging AI Applications]]
