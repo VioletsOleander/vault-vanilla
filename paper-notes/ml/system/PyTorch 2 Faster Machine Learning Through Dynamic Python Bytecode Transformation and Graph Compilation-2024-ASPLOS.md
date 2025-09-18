@@ -630,7 +630,7 @@ The next phase of compilation is lowering from an FX graph of PyTorch operations
 >  define-by-run IR 意味着 IR 使用可执行的 Python 代码来定义循环体，这使得 TorchInductor IR 具备了大部分 Python 的功能
 
 Lowering is done by symbolically interpreting the FX graph and applying lowering functions which do the conversion for a single operator. At the time of writing, TorchInductor has lowerings for 433 PyTorch operators (1605 including overloads). If an unknown operator is encountered, it is automatically converted into a fallback kernel node which runs the original PyTorch code.
->  下降是通过符号上解释 FX 图，并应用对单个算子执行转换的下降函数是实现的
+>  下降是通过符号上解释 FX 图，并应用对单个算子执行转换的下降函数实现的
 >  如果遇到了未知算子，它会被自动转化为 fallback kernel node，以原始 PyTorch 代码运行
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-09-07/9ed94e03-5712-4e4d-babd-00dd15e3db8a/b6440b8729a1147702f46fec9fabd5585ae5df4d41f419cdd1fa5060b3baf5b7.jpg)  
@@ -703,10 +703,10 @@ Fusion is controlled by two key functions:
 >  - `Scheduler.score_fusion(node1, node2)` 用于对不同的融合可能性进行排序，一些融合是互斥的，因此 TorchInductor 会选择得分较高的那个；融合得分按照以下顺序对融合进行排序: 1. 融合的类型 (逐点/规约/模板) 2. 融合所节省的内存流量估计字节数 3. 原始图中的节点的距离更短
 
 In a loop, until no additional fusions remain (since some fusions can open additional fusion opportunities), TorchInductor will perform the following greedy algorithm: 1) find all fusion opportunities; 2) score each of the fusion opportunities and sort by that score; 3) for each fusion opportunity, check if that fusion remains legal and if so apply it. When two nodes are fused, any pending fusion opportunities pointing to the constituent nodes are updated to point to the new fused node.
->  TorchInductor 会循环执行以下的贪心算法，知道没有更多的融合机会为止 (因为某些融合可能带来更多融合机会):
+>  TorchInductor 会循环执行以下的贪心算法，直到没有更多的融合机会为止 (因为某些融合可能带来更多融合机会):
 >  1. 查找所有可能的融合机会
 >  2. 对每个融合机会进行评分并排序
->  3. 对于每个融合机会，检查该融合是否合法，如果是，应用它，当两个节点被融合后，任何指向原始节点的代处理融合机会都会被更新为指向新的融合节点
+>  3. 对于每个融合机会，检查该融合是否合法，如果是，应用它，当两个节点被融合后，任何指向原始节点的待处理融合机会都会被更新为指向新的融合节点
 
 ## 4.5 Triton Code Generation
 
@@ -842,6 +842,10 @@ A major motivation of dynamic shapes is to reduce compile time, as a compiler wh
 >  动态形状的主要动机之一是减少编译时间，因为仅支持静态形状的编译器需要为每种输入形状的每个可能组合重新编译 kernel (动态形状允许 kernel 处理多种输入形状)
 >  但对符号形状进行推理也存在开销: 在极限情况下，输出张量的形状表达式会非常复杂 (符号形状即用变量或表达式来表示形状，而不是具体的数值，编译器需要在编译时分析这些符号表达式，以确保它们在运行时是合法的)
 
+>  这样看来，动态形状的实现就是在运行时确定输入的形状，然后通过形状传播确定全图的形状，进而用此时推理出的形状编译出具体的 kernels
+>  而在运行前的编译时可以先考虑进行符号推理，这样可以减少运行时的实际形状推理时间
+>  对于一些依赖形状的分支，只能先特殊化一个 trace，并添加 guards，在运行时的 JIT 编译中判断是否命中，如果没有命中，就需要重新特殊化 trace
+
 We employ a variety of strategies to reduce the performance impact of symbolic shapes reasoning:
 >  我们采用了多种策略来降低符号形状推理对性能的影响
 
@@ -947,7 +951,7 @@ TorchInductor is faster than other backends in most cases. nvFuser [36] and NNC 
 
 Table 4. Ablation study measuring the impact of removing optimizations from TorchInductor. Geometric mean speedups over eager PyTorch on float16 HuggingFace on an NVIDIA A100 GPU. Parenthesis is difference from All TorchInductor optimizations.  
 
-<table><tr><td></td><td>Inference</td><td>Training</td></tr><tr><td>All TorchInductor optimizations</td><td>1.91×</td><td>1.45×</td></tr><tr><td>Without loop/layout reordering</td><td>1.91× (-0.00)</td><td>1.28× (-0.17)</td></tr><tr><td>Without matmul templates</td><td>1.85× (-0.06)</td><td>1.41× (-0.04)</td></tr><tr><td>Without parameter freezing</td><td>1.85× (-0.06)</td><td>1.45× (-0.00)</td></tr><tr><td>Without pattern matching</td><td>1.83× (-0.08)</td><td>1.45× (-0.00)</td></tr><tr><td>Without cudagraphs</td><td>1.81× (-0.10)</td><td>1.37× (-0.08)</td></tr><tr><td>Without fusion</td><td>1.68× (-0.23)</td><td>1.27× (-0.18)</td></tr><tr><td>Without nlining</td><td>1.58× (-0.33)</td><td>1.31× (-0.14)</td></tr><tr><td>Without fusion and nlining</td><td>0.80× (-1.11)</td><td>0.59× (-0.86)</td></tr></table>
+<table><tr><td></td><td>Inference</td><td>Training</td></tr><tr><td>All TorchInductor optimizations</td><td>1.91×</td><td>1.45×</td></tr><tr><td>Without loop/layout reordering</td><td>1.91× (-0.00)</td><td>1.28× (-0.17)</td></tr><tr><td>Without matmul templates</td><td>1.85× (-0.06)</td><td>1.41× (-0.04)</td></tr><tr><td>Without parameter freezing</td><td>1.85× (-0.06)</td><td>1.45× (-0.00)</td></tr><tr><td>Without pattern matching</td><td>1.83× (-0.08)</td><td>1.45× (-0.00)</td></tr><tr><td>Without cudagraphs</td><td>1.81× (-0.10)</td><td>1.37× (-0.08)</td></tr><tr><td>Without fusion</td><td>1.68× (-0.23)</td><td>1.27× (-0.18)</td></tr><tr><td>Without inlining</td><td>1.58× (-0.33)</td><td>1.31× (-0.14)</td></tr><tr><td>Without fusion and inlining</td><td>0.80× (-1.11)</td><td>0.59× (-0.86)</td></tr></table>
 
 Table 4 explores where TorchInductor's speedups are coming from by disabling optimizations one at a time an measuring the impact on geometric mean speedup on HuggingFace models. If removing a specific optimization results in a bigger slowdown, this implies that it is responsible for more of the speedup.
 
@@ -963,7 +967,7 @@ There is a lot of overlap between those passes, so we also include a line withou
 
 The remaining optimizations measured in Table 4 are: 1) Loop/layout reordering uses a voting algorithm to reorder loops in kernels and change data layouts to match usage. 2) Matmul templates use Triton templates with pointwise epilogue fusion for matrix multiply instead of cuBLAS/cuDNN. There is an autotuner (enabled by mode="max-autotune") to select when to use these templates. Without this optimization, TorchInductor does not use templates at all. 3) Parameter freezing is an inference-only optimization that constant-folds away parts of the model that only depend on parameters. 4) Pattern matching uses graph-level peephole optimizations to rewrite the input graph before it is lowered to TorchInductor. 5) Cudagraphs is a way to reduce kernel launch overheads at the CUDA driver level. TorchInductor will automatically use this when static analysis shows it to be safe and it is enabled in the configuration.
 >  Table4 中测量的其余优化包括:
->  1. 循环/布局重拍: 使用投票算法对 kernel 中的循环进行重排，并改变数据布局来匹配实际使用模式
+>  1. 循环/布局重排: 使用投票算法对 kernel 中的循环进行重排，并改变数据布局来匹配实际使用模式
 >  2. 矩阵乘模板: 使用 Triton 模板实现，并融合点对点后处理，替代 cuBLAS/cuDNN，该功能由自动优化器 (`mode=max-autotune`) 来选择何时使用这些模板，没有优化时，TorchInductor 完全不使用这些模板
 >  3. 参数冻结: 一种仅适用于推理的优化技术，将仅依赖于模型参数的部分进行常量折叠，来减少计算
 >  4. 模式匹配: 在把输入图下降到 TorchInductor 之前，使用图级别的 peephole 优化对输入图进行重写
