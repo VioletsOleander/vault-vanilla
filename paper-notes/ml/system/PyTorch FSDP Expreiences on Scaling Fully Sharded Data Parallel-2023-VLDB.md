@@ -40,8 +40,8 @@ The design and implementation of FSDP faces the following challenges.
 >  虽然 FSDP 可以使用 DDP 的 API 设计，但由于更大模型无法放入单个 GPU，因此甚至无法进行高效地初始化
 
 - **Hardware Heterogeneity** often exists in modern GPU clusters, whereby interconnects are partitioned into high-bandwidth islands within each machine and low-bandwidth mesh across machines. Additionally, there may be further hierarchical structures at the rack or pod levels. Consequently, the design of FSDP must accommodate such heterogeneity and optimize accordingly.
->  硬件异构型: 机器内高速互联，机器间低速互联，且在机架和 pod (pod 是比机架更高的单位，通常包含多个机架，pod 内的设备通常有高速互联网络，pod 之间则一般通过低带宽，高延迟的网络连接) 层级还有更复杂的层次结构
->  FSDP 的设计需要适应这种异构型
+>  硬件异构性: 机器内高速互联，机器间低速互联，且在机架和 pod (pod 是比机架更高的单位，通常包含多个机架，pod 内的设备通常有高速互联网络，pod 之间则一般通过低带宽，高延迟的网络连接) 层级还有更复杂的层次结构
+>  FSDP 的设计需要适应这种异构性
 
 - **Resource Utilization** is usually tightly linked with capital and operational expenditures, especially for companies that depend on large GPU clusters to power their mission-critical systems. To ensure that GPU devices remain fully utilized during distributed training, it is essential to minimize downtime caused by non-computational operations.
 >  资源利用: 确保 GPU 设备在分布式训练保持满载，减少非计算操作引起的停机时间
@@ -117,6 +117,9 @@ Fully Sharded Data Parallel (FSDP) is capable of scaling to accommodate large mo
 >  整个训练过程中，优化器状态保持 sharded
 >  FSDP 的内存需求和 sharded model 的大小 + 最大的 fully-materialized FSDP unit 的大小成比例
 
+>  和 ZeRO 的差异就在于 ZeRO 没有考虑把模型划 units，或者说直接将整个模型当作一个 unit
+>  划 unit 实际上是为了进一步减小内存消耗而提高了通信频率，但通过重叠 units 之间的计算和通信可以降低额外的开销
+
 ![[pics/FSDP-Fig1.png]]
 
 Figure 1 demonstrates the overall workflow using a simple six layer model. Suppose FSDP decomposes the model into three parts, namely, `[layer0, layer3]`, `[layer1, layer2]`, and `[layer4, layer5]`. The decomposition behavior can be controlled by user-defined functions. FSDP then wraps each of these three parts into one FSDP unit and shards parameters accordingly. 
@@ -133,6 +136,8 @@ Similarly, during the backward computation, FSDP unit1 recovers the unsharded pa
 >  类似地，反向过程中，在达到 layer2 之前，FSDP 恢复 unit1 的 unsharded parameters
 >  在自动微分引擎完成反向计算后，FSDP 释放 shards，并发起 ReduceScatter 来规约并 shard 梯度 (和其他数据并行设备规约这个 unit 全部参数的梯度，然后保留自己的参数 shard 对应的梯度)
 >  这样，反向过程后，每个设备仅保留参数和梯度的一个 shard
+
+>  也就是计算完某个 unit 的梯度之后直接 ReduceScatter，而不是留到最后反向传播完成后在规约梯度，这样可以通过重叠计算和通信减少开销
 
 FSDP offers a wide spectrum of optimizations and knobs to account for diverse model structures and hardware capabilities. The remainder of this section delves further into the intricacies of model initialization, sharding strategies, communication optimizations, and memory management, which are all critical components of FSDP's underlying design.
 
@@ -240,6 +245,11 @@ where  $g_{r}$  represents the gradient on rank  $r$ .
 
 >  梯度规约时，原来对所有设备的 reduce-scatter 变为在每个 sharded group 内的 reduce-scatter + replication groups 之间的 all-reduce
 
+>  也就是双层的数据并行，sharding groups 之间划分了数据集，sharding groups 之内进一步划分了组内数据集
+>  规约时，先在 sharding groups 内 reduce-scatter，每个设备获取自己 sharded 参数针对组内数据集的规约梯度 shard
+>  然后在 replication groups 内 all-reduce, replication group 内的设备进一步规约 sharded 参数针对各个组内数据集的规约梯度 shard
+>  这样就获取了参数 shard 针对于整体数据集的规约梯度 shard
+
 ![[pics/FSDP-Fig4.png]]
 Hybrid sharding can take advantage of datacenter locality for accelerated training and can reduce cross host traffic to avoid as much contention in the oversubscribed environment as possible. At the same time, it provides a graduating trade-off between memory saving and throughput degradation, which is particularly helpful for models whose required memory footprint when trained with full replication is just slightly above the device capacity and do not want full sharding. Figure 4 shows one example.
 >  混合 sharding 可以利用数据中心的局部性优势，减少跨主机通信流量，从而避免在资源过载环境下的竞争冲突
@@ -342,7 +352,7 @@ optimizer.step()
 However, in contrast to DDP's backward where the AllReduce proceeds the computation with which to overlap, FSDP's forward issues the AllGather following the computation with which to overlap since in eager execution, FSDP cannot know which FlatParameter to AllGather next to reorder it before the computation. This difference in kernel-issue order makes following the async-collective-and-wait() approach infeasible for FSDP. Namely, since ProcessGroupNCCL synchronizes with the current (default) stream, the All-Gather will not run until the computation with which to overlap finishes.
 >  DDP 不需要考虑前向过程中的通信，因为每个设备都有完整参数
 >  DDP 在要重叠的计算启动之前发起通信
->  FSDP 还需要考虑前向过程中的通信，需要在要重叠的计算发起之后启动通信，这是因为在即时执行模式下，下一次执行那一层需要在知道这一次执行那一层才能确定 (例如直接跳转到了 layer2，在确定了这次执行的是 layer2 才能确定下次执行 layer3，这是我能想到的最合理的解释，或许是和 unit 有关)，也就是无法知道要提前对 `FlatParameter` 的哪一部分进行 AllGather，因此需要等到计算发起之后，确定了要收集哪些参数，再发起通信
+>  FSDP 还需要考虑前向过程中的通信，需要在要重叠的计算发起之后启动通信，这是因为在即时执行模式下，下一次执行哪一层需要在知道这一次执行哪一层才能确定 (例如直接跳转到了 layer2，在确定了这次执行的是 layer2 才能确定下次执行 layer3，这是我能想到的最合理的解释，或许是和 unit 有关)，也就是无法知道要提前对 `FlatParameter` 的哪一部分进行 AllGather，因此需要等到计算发起之后，确定了要收集哪些参数，再发起通信
 >  因为 `ProcessGroupNCCL` 会和当前默认流同步，故 AllGather 会等待它要重叠的计算结束之后再运行
  
 To address this, FSDP uses a separate CUDA stream to issue the AllGatherS, bypassing the false dependency on preceding computation in the default stream and allowing each AllGather to overlap. 
@@ -645,7 +655,7 @@ Pipeline parallel can be functionally integrated with FSDP by employing FSDP to 
 
 Fortunately, FSDP offers alternative sharding strategies that can keep parameters unsharded after the forward pass, avoiding unnecessary Allgather communications per micro-batch. Admittedly, this requires storing parameters of an entire pipeline stage on the GPU device, but FSDP can still reduce memory usage as it still shards gradients and optimizer states.
 >  FSDP 提供了其他可选的 sharding 策略，可以在前向传播之后保持参数 unsharded，避免在每个 micro-batch 上重复执行 Allgather 通信
->  这要求但 GPU 设备上存储整个流水线阶段的参数，不过 FSDP 仍然可以减少内存使用，因为它会 shard 梯度和优化器状态
+>  这要求单 GPU 设备上存储整个流水线阶段的参数，不过 FSDP 仍然可以减少内存使用，因为它会 shard 梯度和优化器状态
 
 ### 7.1.2 Tensor Parallelism.
 In contrast to FSDP, tensor parallel keeps parameters sharded during computation, which is necessary if any sub-module is too large to fit in GPU memory. Presently, PyTorch provides a prototype feature called parallelize module that can be combined with FSDP to construct 2D parallelism. It works by organizing devices into a 2D mesh where PyTorch's distributed tensor DTensor manages tensor parallelism on one dimension and FSDP applies sharded data parallelism on the other dimension. These two dimensions communicate activations and parameters, respectively. 
