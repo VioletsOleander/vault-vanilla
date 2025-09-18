@@ -45,7 +45,7 @@ To set up SSH key based authentication for your remote host. First we'll create 
 
 **Create your local SSH key pair**
 Check to see if you already have an SSH key on your **local** machine. This is typically located at `~/.ssh/id_ed25519.pub` on macOS / Linux, and the `.ssh` directory in your user profile folder on Windows (for example `C:\Users\your-user\.ssh\id_ed25519.pub`).
->  首先检查本地机器上十分已经有 SSH 密钥，通常在家目录下的 `.ssh/` 中
+>  首先检查本地机器上是否已经有 SSH 密钥，通常在家目录下的 `.ssh/` 中
 
 If you do not have a key, run the following command in a **local** terminal / PowerShell to generate an SSH key pair:
 
