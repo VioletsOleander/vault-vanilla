@@ -704,41 +704,65 @@ For example, the compressed text in Fig. 2's regex is  $\{$  summary": ", which 
 >  为了解决这个问题，我们采用原始 tokenizer 对之前所有文本以及压缩边的文本重新 tokenize，确保和 LLM 源树输入格式对齐
 
 ## B.3 Future Extension: Addressing Distorted Probability
-The challenge caused by the gap between strings and tokens also brings the problem of skewed probability distribution [50]. For example, in Fig. 2, the regex "`"[ABCD][+-]?"` suggests grades from A+ to D-, but if replaced with broader terms like Excellent|Above Average|Fair|Below Average, the runtime may inaccurately map an A to Above Average due to the term Above Average is on a compressed transition, misrepresenting the grade hierarchy. This occurs because the LLM doesn't recognize the specific range of choices, leading to inappropriate token sequences. Computing accurate probabilities for each choice requires summing the probabilities of all token sequences that result in each choice, which complicates decoding and adds overhead. One workaround is to include the choices or the regex directly in the prefill prompt, guiding the LLM to be aware of its choices and output the decision in proper token sequences. However, this approach doesn't solve the underlying issue of distorted probabilities, highlighting the need for further research to improve the compressed FSM's accuracy.
+The challenge caused by the gap between strings and tokens also brings the problem of skewed probability distribution [50]. For example, in Fig. 2, the regex "`"[ABCD][+-]?"` suggests grades from A+ to D-, but if replaced with broader terms like `Excellent|Above Average|Fair|Below Average`, the runtime may inaccurately map an A to Above Average due to the term Above Average is on a compressed transition, misrepresenting the grade hierarchy. 
+>  strings 和 tokens 之间的不匹配还带来了概率分布失真的问题
+>  例如 Fig2 中的 regex `[ABCD][+-]` 表示从 `A+` 到 `D-` 的得分，但如果将它替换为更宽泛的术语例如 `Excellent|Above Average|Fair|Below Average`，运行时可能将 `A` 映射到 `Above Average`
+
+This occurs because the LLM doesn't recognize the specific range of choices, leading to inappropriate token sequences. Computing accurate probabilities for each choice requires summing the probabilities of all token sequences that result in each choice, which complicates decoding and adds overhead. 
+>  这是因为 LLM 无法识别特定的范围选择，导致选择了不合适的 token 序列
+>  为每个选择计算正确的概率需要将该选择中的所有 token 的概率相加
+
+One workaround is to include the choices or the regex directly in the prefill prompt, guiding the LLM to be aware of its choices and output the decision in proper token sequences. However, this approach doesn't solve the underlying issue of distorted probabilities, highlighting the need for further research to improve the compressed FSM's accuracy.
+
+>  没看懂
 
 # C Additional Experimental Setups and Results
-Additional experimental setups. Fig. 5 and Fig. 6 are obtained by running Llama-7B on a single A10G (24GB) GPU. Fig. 7 are obtained by running Mixtral-8x7B on 8 A10G (24GB) GPUs with tensor parallelism. Fig. 8(c) is obtained by running Llama-7B on a single A10G (24GB) GPU. Fig. 12 are obtained by running Llama-70B on 4 A100G (80GB) GPUs with tensor parallelism. Table 2 are obtained by running LLaVA-v1.5-7B on a single A10G (24GB) GPU and running LLaVA-Next-34B on a single A100G (80GB) GPU. Each bar in the benchmark figures takes several minutes to an hour to run.
-
-Additional experimental results. Fig. 13 shows the achieved and optimal cache hit rates on the benchmarks listed in Fig. 5. Fig. 12 shows the throughput on Llama-2-70B with tensor parallelism.
-
-# D Compiler Mode
-Besides the interpreter mode used in the main body of the paper, another way to run SGLang programs is to compile them as computational graphs and execute them with a graph executor. This opens up
+**Additional experimental setups.** Fig. 5 and Fig. 6 are obtained by running Llama-7B on a single A10G (24GB) GPU. Fig. 7 are obtained by running Mixtral-8x7B on 8 A10G (24GB) GPUs with tensor parallelism. Fig. 8(c) is obtained by running Llama-7B on a single A10G (24GB) GPU. Fig. 12 are obtained by running Llama-70B on 4 A100G (80GB) GPUs with tensor parallelism. Table 2 are obtained by running LLaVA-v1.5-7B on a single A10G (24GB) GPU and running LLaVA-Next-34B on a single A100G (80GB) GPU. Each bar in the benchmark figures takes several minutes to an hour to run.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-09-02/79dce60a-bf72-47ad-80c9-b5bbd0455d68/54844b108b1311291fa031146e4c397234a3eec64004bc4f42ad7da52ff8849f.jpg)  
+
 Figure 12: Normalized throughput on Llama-2-70B models with tensor parallelism. Higher is better.
 
 ![](https://cdn-mineru.openxlab.org.cn/result/2025-09-02/79dce60a-bf72-47ad-80c9-b5bbd0455d68/601ac58eac0c2cf455bc36fcbba7462918b6751fbf49161606bcb285af30a9b1.jpg)  
+
 Figure 13: Achieved cache hit rate and optimal cache hit rate on various benchmarks.
 
-opportunities for more compilation optimizations, as we can rewrite the graph and perform more static planning.
+**Additional experimental results.** Fig. 13 shows the achieved and optimal cache hit rates on the benchmarks listed in Fig. 5. Fig. 12 shows the throughput on Llama-2-70B with tensor parallelism.
+
+# D Compiler Mode
+Besides the interpreter mode used in the main body of the paper, another way to run SGLang programs is to compile them as computational graphs and execute them with a graph executor. This opens up opportunities for more compilation optimizations, as we can rewrite the graph and perform more static planning.
+>  正文中介绍的主要是解释器模式，运行 SGLang 程序的另一种方式是将它们编译为计算图，然后使用图执行器执行它
 
 ## D.1 Design and Implementation
+
+![[pics/SGLang-Fig14.png]]
+
 We designed an intermediate representation (IR) for SGLang, which represents SGLang program structures and operations as a computational graph. This graph includes nodes for primitive operators and edges for dependencies. See Fig. 14b for the graph corresponding to the program in Fig. 14a. In the program, each call to a decorated function or fork creates a new prompt state or a stream.
+>  我们为 SGLang 设计了 IR，它使用计算图表示 SGLang 程序结构和操作
+>  图中包含了表示 primitive operators 的节点以及表示依赖的边
+>  对装饰的函数的调用或 fork 都会创建一个新的 prompt state/stream
 
 There are several types of nodes. Each operand of the operators  $+ =$  and  $+$  in a SGLang program is represented by an IR node. These include ConstantText, Argument, Gen, Select, Variable, Fork, GetForkItem, and Join. There are two types of dependencies: intra-stream dependency, where operations submitted into a stream using  $+ =$  must be executed after all preceding operations in that stream, and inter-stream dependency, which occurs when one stream needs to fetch variable values from another stream, necessitating synchronization. Operations like fork manipulate multiple streams and thus introduce inter-stream dependencies.
+>  SGLang 中的 operators `+=`， `+` 的 operand 都表示为 IR node (怎么又和上面说的不一样的)
+>  图中有两类依赖: stream 内依赖和 stream 间依赖
+>  stream 内使用 `+=` 提交的 operations 必须顺序执行，stream 之间的依赖来自于一个 stream 获取另一个 stream 的结果，需要同步
 
-To generate the graph, we use tracing to run the program with abstract arguments and construct the graph dynamically. This method is limited to programs without data-dependent control flow, a limitation we plan to address in future work. Once constructed, the graph can be executed through a graph executor, eliminating the need to reinterpret the original Python program. This results in benefits like graph rewriting optimizations, reduced runtime overhead, and program serialization. For execution, stream executors are launched for each data stream, dispatching IR nodes to the streams in topological order.
+To generate the graph, we use tracing to run the program with abstract arguments and construct the graph dynamically. This method is limited to programs without data-dependent control flow, a limitation we plan to address in future work. 
+>  我们使用抽象参数追踪程序运行，来记录图，这个方法仅适用于没有依赖于数据的控制流的程序 
+
+Once constructed, the graph can be executed through a graph executor, eliminating the need to reinterpret the original Python program. This results in benefits like graph rewriting optimizations, reduced runtime overhead, and program serialization. For execution, stream executors are launched for each data stream, dispatching IR nodes to the streams in topological order.
+>  stream executors 会为每个数据流发起执行，将 IR 节点按照拓扑顺序分发到 stream 中
 
 ## D.2 A Case Study of Compiler Optimization: Code Movement for Improving Prefix Sharing
 We explore a compilation optimization for SGLang IR: code movement for improving prefix sharing. We anticipate that more classical compiler techniques can also be applied, such as auto-tuning and instruction selection.
+>  我们探索一种为 SGLang IR 的编译优化技术: 通过代码移动来增加前缀共享
 
-This optimization aims to improve prefix sharing by reordering nodes in the graph to increase the length of the constant prefix. It does not strictly preserve the original computation, classifying it as an aggressive optimization. For instance, changing the prompt from "Here is a question  $+$  {question}. Please act as a math expert and solve the given question." to "Please act as a math expert and solve the given question. Here is a question  $+$  {question}." results in a longer shareable prefix. This optimization is interesting because traditional program analysis cannot achieve it due to the presence of natural language instructions in SGLang. Instead, we prompt GPT-4 to reorder graph nodes. We write a prompt with several examples to teach GPT-4 the concepts of SGLang IR, and we find that GPT-4 can successfully apply this optimization for some simple SGLang programs.
+This optimization aims to improve prefix sharing by reordering nodes in the graph to increase the length of the constant prefix. It does not strictly preserve the original computation, classifying it as an aggressive optimization. For instance, changing the prompt from "Here is a question  $+$  {question}. Please act as a math expert and solve the given question." to "Please act as a math expert and solve the given question. Here is a question  $+$  {question}." results in a longer shareable prefix. 
+>  该优化旨在通过重新排序图中节点，来增加常量前缀长度，他不会严格保持原来的计算顺序
+>  例如，将 prompt 从 `"Here is a question + {question}. Please act as a math expert and solve the given question."` 改为 `Please act as a math expert and solve the given question. Here is a question +{question}.` 就会得到一个更长的可共享前缀 (这样子优化会不会有点违背原本语义)
 
-![](https://cdn-mineru.openxlab.org.cn/result/2025-09-02/79dce60a-bf72-47ad-80c9-b5bbd0455d68/90b57287a0044bde15ddb4e2ed08b800e574b83452a4ac3d7044f4382f615187.jpg)  
-Figure 14: An SGLang program and its corresponding dataflow graph.
-
-![](https://cdn-mineru.openxlab.org.cn/result/2025-09-02/79dce60a-bf72-47ad-80c9-b5bbd0455d68/2a1aee96ffacb2f80c649a3049d780866ad99b216d6630d25a7b1419048fd100.jpg)  
-
-(b) A computational graph for the program in Fig. 14a. The three streams correspond to three function calls.
+This optimization is interesting because traditional program analysis cannot achieve it due to the presence of natural language instructions in SGLang. Instead, we prompt GPT-4 to reorder graph nodes. We write a prompt with several examples to teach GPT-4 the concepts of SGLang IR, and we find that GPT-4 can successfully apply this optimization for some simple SGLang programs.
+>  这种优化较为有趣，因为传统程序分析无法实现它，因为 SGLang 中包含自然语言指令，这些语义内容难以通过静态分析识别和重组
+>  我们让 GPT-4 辅助重排计算图中的节点，发现它可以为简单的 SGLang 程序实现这类优化
 
 We evaluate the effectiveness of this optimization. We collect 20 prompt templates from the internet and implement them in SGLang. We utilize 5 of these templates as few-shot training examples and the remaining 15 as test cases. Our evaluation shows that, for 12 out of the 13 templates, GPT-4 successfully reorders the graph nodes without altering the semantics, as confirmed by manual inspection of the modified prompts. On average, this optimization results in a 60-token increase in the shareable prefix length, showcasing GPT-4's effectiveness. Failures in creating optimized prompt order come from an incorrect understanding of the semantic meaning behind the graph nodes. It is too aggressive and puts all constants upfront even when such ordering changes the original semantics. This case study aims to explore the use of GPT-4 for compiler optimizations. More work is needed to make these kinds of optimizations reliable in the future.
