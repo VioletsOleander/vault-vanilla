@@ -5310,7 +5310,7 @@ A crate can come in one of two forms: a binary crate or a library crate. _Binar
 
 _Library crates_ don’t have a `main` function, and they don’t compile to an executable. Instead, they define functionality intended to be shared with multiple projects. For example, the `rand` crate we used in [Chapter 2](https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html#generating-a-random-number) provides functionality that generates random numbers. Most of the time when Rustaceans say “crate,” they mean library crate, and they use “crate” interchangeably with the general programming concept of a “library.”
 >  库 crate 没有 `main` 函数，不会编译为一个可执行文件，它们定义了旨在多个项目之间共享的功能
->  例如 `rand` crate 提供了生成随机数的功能，大多数情况下，crate 指库 crate，且 crate 和 libraray 同义
+>  例如 `rand` crate 提供了生成随机数的功能，大多数情况下，crate 指库 crate，且 crate 和 library 同义
 
 The _crate root_ is a source file that the Rust compiler starts from and makes up the root module of your crate (we’ll explain modules in depth in [“Defining Modules to Control Scope and Privacy”](https://doc.rust-lang.org/book/ch07-02-defining-modules-to-control-scope-and-privacy.html)).
 >  crate root 为 Rust 编译器**开始编译**的源文件
@@ -5373,7 +5373,7 @@ Before we get to the details of modules and paths, here we provide a quick refer
     - In the file _src/garden/vegetables.rs_
     - In the file _src/garden/vegetables/mod.rs_
 >  在除了 crate root 的其他文件中，可以声明 submodules
->  例如可以在 `src/xxx.rs` 中声明 `mode yyy`，编译器会在其 parent module 的名字相同的目录中的以下地方寻找 submodule 的代码:
+>  例如可以在 `src/xxx.rs` 中声明 `mod yyy`，编译器会在其 parent module 的名字相同的目录中的以下地方寻找 submodule 的代码:
 >  - 内联: 在 `mod yyy{}` 中的 `{}` 查找
 >  - 在文件 `src/xxx/yyy.rs` 中
 >  - 在文件 `src/xxx/yyy/mod.rs` 中
@@ -7089,7 +7089,7 @@ In the output in Listing 9-2, line 6 of the backtrace points to the line in our 
 
 We’ll come back to `panic!` and when we should and should not use `panic!` to handle error conditions in the [“To `panic!` or Not to `panic!`”](https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html#to-panic-or-not-to-panic) section later in this chapter. Next, we’ll look at how to recover from an error using `Result`.
 
-## Recoverable Errors with `Result`
+## 9.2 Recoverable Errors with `Result`
 Most errors aren’t serious enough to require the program to stop entirely. Sometimes when a function fails it’s for a reason that you can easily interpret and respond to. For example, if you try to open a file and that operation fails because the file doesn’t exist, you might want to create the file instead of terminating the process.
 >  大多数错误并不足以完全程序，一些错误可以直接解决，例如尝试打开不存在的文件时，可以直接创建该文件而不是终止程序
 
@@ -7282,6 +7282,7 @@ When a function’s implementation calls something that might fail, instead of h
 >  调用者可能有更多关于如何处理错误的上下文信息
 
 For example, Listing 9-6 shows a function that reads a username from a file. If the file doesn’t exist or can’t be read, this function will return those errors to the code that called the function.
+>  例如下面的函数就定义为返回 `Result<String, io::Error>`，如果函数中出现错误，会直接返回 `Result` 的变体
 
 Filename: src/main.rs
 
@@ -7309,12 +7310,14 @@ fn read_username_from_file() -> Result<String, io::Error> {
 [Listing 9-6](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#listing-9-6): A function that returns errors to the calling code using `match`
 
 This function can be written in a much shorter way, but we’re going to start by doing a lot of it manually in order to explore error handling; at the end, we’ll show the shorter way. Let’s look at the return type of the function first: `Result<String, io::Error>`. This means the function is returning a value of the type `Result<T, E>`, where the generic parameter `T` has been filled in with the concrete type `String` and the generic type `E` has been filled in with the concrete type `io::Error`.
+>  返回类型是 `Result<T, E>` 的具体类型 `Result<String, io::Error>`
 
 If this function succeeds without any problems, the code that calls this function will receive an `Ok` value that holds a `String`—the `username` that this function read from the file. If this function encounters any problems, the calling code will receive an `Err` value that holds an instance of `io::Error` that contains more information about what the problems were. We chose `io::Error` as the return type of this function because that happens to be the type of the error value returned from both of the operations we’re calling in this function’s body that might fail: the `File::open` function and the `read_to_string` method.
 
 The body of the function starts by calling the `File::open` function. Then we handle the `Result` value with a `match` similar to the `match` in Listing 9-4. If `File::open` succeeds, the file handle in the pattern variable `file` becomes the value in the mutable variable `username_file` and the function continues. In the `Err` case, instead of calling `panic!`, we use the `return` keyword to return early out of the function entirely and pass the error value from `File::open`, now in the pattern variable `e`, back to the calling code as this function’s error value.
 
 So, if we have a file handle in `username_file`, the function then creates a new `String` in variable `username` and calls the `read_to_string` method on the file handle in `username_file` to read the contents of the file into `username`. The `read_to_string` method also returns a `Result` because it might fail, even though `File::open` succeeded. So we need another `match` to handle that `Result`: if `read_to_string` succeeds, then our function has succeeded, and we return the username from the file that’s now in `username` wrapped in an `Ok`. If `read_to_string` fails, we return the error value in the same way that we returned the error value in the `match` that handled the return value of `File::open`. However, we don’t need to explicitly say `return`, because this is the last expression in the function.
+>  file handle 的 `read_to_string` 方法会将文件内容读入 `username`，该函数的返回类型也是 `Result`，因为它可能失败
 
 The code that calls this code will then handle getting either an `Ok` value that contains a username or an `Err` value that contains an `io::Error`. It’s up to the calling code to decide what to do with those values. If the calling code gets an `Err` value, it could call `panic!` and crash the program, use a default username, or look up the username from somewhere other than a file, for example. We don’t have enough information on what the calling code is actually trying to do, so we propagate all the success or error information upward for it to handle appropriately.
 
@@ -7325,15 +7328,33 @@ Listing 9-7 shows an implementation of `read_username_from_file` that has the 
 
 Filename: src/main.rs
 
-`use std::fs::File; use std::io::{self, Read};  fn read_username_from_file() -> Result<String, io::Error> {     let mut username_file = File::open("hello.txt")?;     let mut username = String::new();     username_file.read_to_string(&mut username)?;     Ok(username) }`
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut username_file = File::open("hello.txt")?;
+    let mut username = String::new();
+    username_file.read_to_string(&mut username)?;
+    Ok(username)
+}
+```
 
 [Listing 9-7](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#listing-9-7): A function that returns errors to the calling code using the `?` operator
 
 The `?` placed after a `Result` value is defined to work in almost the same way as the `match` expressions we defined to handle the `Result` values in Listing 9-6. If the value of the `Result` is an `Ok`, the value inside the `Ok` will get returned from this expression, and the program will continue. If the value is an `Err`, the `Err` will be returned from the whole function as if we had used the `return` keyword so the error value gets propagated to the calling code.
+>  在一个 `Result` value 之后的 `?` 运算符的工作方式和 `match` 几乎一致
+>  如果 `Result` value 是 `Ok`，则该表达式返回的就是 `Ok` 中的 value，程序会继续执行
+>  如果 value 是 `Err`，则函数会直接返回 `Err` value，就好像我们使用了 ` return ` 让 error value 传播到调用者
 
 There is a difference between what the `match` expression from Listing 9-6 does and what the `?` operator does: error values that have the `?` operator called on them go through the `from` function, defined in the `From` trait in the standard library, which is used to convert values from one type into another. When the `?` operator calls the `from` function, the error type received is converted into the error type defined in the return type of the current function. This is useful when a function returns one error type to represent all the ways a function might fail, even if parts might fail for many different reasons.
+>  `match` 表达式和 `?` 运算符的关键区别是: 在 error values 上调用 `?` 会调用标准库中定义的 `From` trait 的 `from` 函数，该函数用于将一种类型的 value 转化为另一种类型
+>  当 `?` 调用了 `from` 函数，它接收到的 error type 会被转化为定义在当前函数的返回类型中的 error type
+>  这在函数返回单一的错误类型以表示函数所有可能失败的情况时很有用
 
 For example, we could change the `read_username_from_file` function in Listing 9-7 to return a custom error type named `OurError` that we define. If we also define `impl From<io::Error> for OurError` to construct an instance of `OurError` from an `io::Error`, then the `?` operator calls in the body of `read_username_from_file` will call `from` and convert the error types without needing to add any more code to the function.
+>  例如，我们可以改变 `read_username_from_file` 函数，让它返回自定义类型 `OurError`
+>  如果我们还定义了 `From<io::Error> for OurError` 来从 `io::Error` 构造 `OurError` 的实例，那么 `?` 就会调用该 `from` 方法将错误类型转换
 
 In the context of Listing 9-7, the `?` at the end of the `File::open` call will return the value inside an `Ok` to the variable `username_file`. If an error occurs, the `?` operator will return early out of the whole function and give any `Err` value to the calling code. The same thing applies to the `?` at the end of the `read_to_string` call.
 
@@ -7341,7 +7362,18 @@ The `?` operator eliminates a lot of boilerplate and makes this function’s i
 
 Filename: src/main.rs
 
-`use std::fs::File; use std::io::{self, Read};  fn read_username_from_file() -> Result<String, io::Error> {     let mut username = String::new();      File::open("hello.txt")?.read_to_string(&mut username)?;      Ok(username) }`
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut username = String::new();
+
+    File::open("hello.txt")?.read_to_string(&mut username)?;
+
+    Ok(username)
+}
+```
 
 [Listing 9-8](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#listing-9-8): Chaining method calls after the `?` operator
 
@@ -7351,63 +7383,3734 @@ Listing 9-9 shows a way to make this even shorter using `fs::read_to_string`.
 
 Filename: src/main.rs
 
-`use std::fs; use std::io;  fn read_username_from_file() -> Result<String, io::Error> {     fs::read_to_string("hello.txt") }`
+```rust
+use std::fs;
+use std::io;
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    fs::read_to_string("hello.txt")
+}
+```
 
 [Listing 9-9](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#listing-9-9): Using `fs::read_to_string` instead of opening and then reading the file
 
 Reading a file into a string is a fairly common operation, so the standard library provides the convenient `fs::read_to_string` function that opens the file, creates a new `String`, reads the contents of the file, puts the contents into that `String`, and returns it. Of course, using `fs::read_to_string` doesn’t give us the opportunity to explain all the error handling, so we did it the longer way first.
+>  标准库提供了 `fs::read_to_string` 函数，它打开文件，创造一个新 `String`，从文件中读取内容，将内容放入该 `String`，然后返回它
 
-#### [Where the `?` Operator Can Be Used](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#where-the--operator-can-be-used)
-
+#### Where the `?` Operator Can Be Used
 The `?` operator can only be used in functions whose return type is compatible with the value the `?` is used on. This is because the `?` operator is defined to perform an early return of a value out of the function, in the same manner as the `match` expression we defined in Listing 9-6. In Listing 9-6, the `match` was using a `Result` value, and the early return arm returned an `Err(e)` value. The return type of the function has to be a `Result` so that it’s compatible with this `return`.
 
 In Listing 9-10, let’s look at the error we’ll get if we use the `?` operator in a `main` function with a return type that is incompatible with the type of the value we use `?` on.
 
 Filename: src/main.rs
 
-[![](https://doc.rust-lang.org/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
+```rust
+use std::fs::File;
 
-`use std::fs::File;  fn main() {     let greeting_file = File::open("hello.txt")?; }`
+fn main() {
+    let greeting_file = File::open("hello.txt")?;
+}
+```
 
 [Listing 9-10](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#listing-9-10): Attempting to use the `?` in the `main` function that returns `()` won’t compile.
 
 This code opens a file, which might fail. The `?` operator follows the `Result` value returned by `File::open`, but this `main` function has the return type of `()`, not `Result`. When we compile this code, we get the following error message:
 
-``$ cargo run    Compiling error-handling v0.1.0 (file:///projects/error-handling) error[E0277]: the `?` operator can only be used in a function that returns `Result` or `Option` (or another type that implements `FromResidual`)  --> src/main.rs:4:48   | 3 | fn main() {   | --------- this function should return `Result` or `Option` to accept `?` 4 |     let greeting_file = File::open("hello.txt")?;   |                                                ^ cannot use the `?` operator in a function that returns `()`   |   = help: the trait `FromResidual<Result<Infallible, std::io::Error>>` is not implemented for `()` help: consider adding return type   | 3 ~ fn main() -> Result<(), Box<dyn std::error::Error>> { 4 |     let greeting_file = File::open("hello.txt")?; 5 +     Ok(())   |  For more information about this error, try `rustc --explain E0277`. error: could not compile `error-handling` (bin "error-handling") due to 1 previous error``
+```
+$ cargo run
+   Compiling error-handling v0.1.0 (file:///projects/error-handling)
+error[E0277]: the `?` operator can only be used in a function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+ --> src/main.rs:4:48
+  |
+3 | fn main() {
+  | --------- this function should return `Result` or `Option` to accept `?`
+4 |     let greeting_file = File::open("hello.txt")?;
+  |                                                ^ cannot use the `?` operator in a function that returns `()`
+  |
+  = help: the trait `FromResidual<Result<Infallible, std::io::Error>>` is not implemented for `()`
+help: consider adding return type
+  |
+3 ~ fn main() -> Result<(), Box<dyn std::error::Error>> {
+4 |     let greeting_file = File::open("hello.txt")?;
+5 +     Ok(())
+  |
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `error-handling` (bin "error-handling") due to 1 previous error
+```
 
 This error points out that we’re only allowed to use the `?` operator in a function that returns `Result`, `Option`, or another type that implements `FromResidual`.
 
 To fix the error, you have two choices. One choice is to change the return type of your function to be compatible with the value you’re using the `?` operator on as long as you have no restrictions preventing that. The other choice is to use a `match` or one of the `Result<T, E>` methods to handle the `Result<T, E>` in whatever way is appropriate.
 
 The error message also mentioned that `?` can be used with `Option<T>` values as well. As with using `?` on `Result`, you can only use `?` on `Option` in a function that returns an `Option`. The behavior of the `?` operator when called on an `Option<T>` is similar to its behavior when called on a `Result<T, E>`: if the value is `None`, the `None` will be returned early from the function at that point. If the value is `Some`, the value inside the `Some` is the resultant value of the expression, and the function continues. Listing 9-11 has an example of a function that finds the last character of the first line in the given text.
+>  `?` 也和 `Option<T>` 类型兼容: 如果 value 是 `None`，则返回 `None`，如果是 `Some`，则返回 `Some` 中的 value
 
-`fn last_char_of_first_line(text: &str) -> Option<char> {     text.lines().next()?.chars().last() }`
+```rust
+fn last_char_of_first_line(text: &str) -> Option<char> {
+    text.lines().next()?.chars().last()
+}
+```
 
 [Listing 9-11](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#listing-9-11): Using the `?` operator on an `Option<T>` value
 
 This function returns `Option<char>` because it’s possible that there is a character there, but it’s also possible that there isn’t. This code takes the `text` string slice argument and calls the `lines` method on it, which returns an iterator over the lines in the string. Because this function wants to examine the first line, it calls `next` on the iterator to get the first value from the iterator. If `text` is the empty string, this call to `next` will return `None`, in which case we use `?` to stop and return `None` from `last_char_of_first_line`. If `text` is not the empty string, `next` will return a `Some` value containing a string slice of the first line in `text`.
+>  该函数接收 `&str`，并调用 `lines` 方法，该方法会返回一个迭代器
+>  对迭代器调用 `next` 会得到第一个 value，如果没有 value 了，会返回 `None` (也就是返回类型依旧是 `Option<T>`)，我们使用 `? ` 来判断这一点
 
 The `?` extracts the string slice, and we can call `chars` on that string slice to get an iterator of its characters. We’re interested in the last character in this first line, so we call `last` to return the last item in the iterator. This is an `Option` because it’s possible that the first line is the empty string; for example, if `text` starts with a blank line but has characters on other lines, as in `"\nhi"`. However, if there is a last character on the first line, it will be returned in the `Some` variant. The `?` operator in the middle gives us a concise way to express this logic, allowing us to implement the function in one line. If we couldn’t use the `?` operator on `Option`, we’d have to implement this logic using more method calls or a `match` expression.
+>  如果迭代器顺利返回 value (string slice)，我们对它调用 `chars` 得到对字符的迭代器
+>  要获得最后一个字符，我们调用 `last` 获取迭代器的最后一个 item (`last` 返回的也是 `Option<T>`，因为有可能 `chars` 得到的迭代器没有 value 可迭代)
 
 Note that you can use the `?` operator on a `Result` in a function that returns `Result`, and you can use the `?` operator on an `Option` in a function that returns `Option`, but you can’t mix and match. The `?` operator won’t automatically convert a `Result` to an `Option` or vice versa; in those cases, you can use methods like the `ok` method on `Result` or the `ok_or` method on `Option` to do the conversion explicitly.
+>  我们可以在返回 `Result` 的函数中对 `Result` 使用 `?`，也可以在返回 `Option` 的函数中对 `Option` 使用 `?`，但不能混合
+>  在这种情况下，我们可以使用 `Resuslt` 的 `ok` 方法或 `Option` 的 `ok_or` 方法来进行显式类型转换
 
 So far, all the `main` functions we’ve used return `()`. The `main` function is special because it’s the entry point and exit point of an executable program, and there are restrictions on what its return type can be for the program to behave as expected.
+>  目前为止，我们的 `main` 都返回 `()`
+>  对 `main` 函数的返回类型是有限制的
 
 Luckily, `main` can also return a `Result<(), E>`. Listing 9-12 has the code from Listing 9-10, but we’ve changed the return type of `main` to be `Result<(), Box<dyn Error>>` and added a return value `Ok(())` to the end. This code will now compile.
+>  `main` 可以返回 `Result<(), E>`，但不能返回 `Result<(), Box<dyn Error>>`
 
 Filename: src/main.rs
 
-`use std::error::Error; use std::fs::File;  fn main() -> Result<(), Box<dyn Error>> {     let greeting_file = File::open("hello.txt")?;      Ok(()) }`
+```rust
+use std::error::Error;
+use std::fs::File;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let greeting_file = File::open("hello.txt")?;
+
+    Ok(())
+}
+```
 
 [Listing 9-12](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#listing-9-12): Changing `main` to return `Result<(), E>` allows the use of the `?` operator on `Result` values.
 
 The `Box<dyn Error>` type is a _trait object_, which we’ll talk about in [“Using Trait Objects That Allow for Values of Different Types”](https://doc.rust-lang.org/book/ch18-02-trait-objects.html#using-trait-objects-that-allow-for-values-of-different-types) in Chapter 18. For now, you can read `Box<dyn Error>` to mean “any kind of error.” Using `?` on a `Result` value in a `main` function with the error type `Box<dyn Error>` is allowed because it allows any `Err` value to be returned early. Even though the body of this `main` function will only ever return errors of type `std::io::Error`, by specifying `Box<dyn Error>`, this signature will continue to be correct even if more code that returns other errors is added to the body of `main`.
+>  `Box<dyn Error>` 是一个特质对象，它可以理解为任意类型的错误
+>  在 `main` 中对 error type 为 `Box<dyn Error>` 的 `Err` value 使用 `?` 是允许的，但 `main` 函数本身只能返回 `std::io::Error`
 
 When a `main` function returns a `Result<(), E>`, the executable will exit with a value of `0` if `main` returns `Ok(())` and will exit with a nonzero value if `main` returns an `Err` value. Executables written in C return integers when they exit: programs that exit successfully return the integer `0`, and programs that error return some integer other than `0`. Rust also returns integers from executables to be compatible with this convention.
+>  如果 `main` 的返回值是 `Result<(), E>`，可执行文件的退出值要么是 `0` (`main` 返回 `Ok(())`)，要么是非零 (`main` 返回 `Err`)，这些值是整型值
 
 The `main` function may return any types that implement [the `std::process::Termination` trait](https://doc.rust-lang.org/std/process/trait.Termination.html), which contains a function `report` that returns an `ExitCode`. Consult the standard library documentation for more information on implementing the `Termination` trait for your own types.
+>  `main` 可以返回任意实现了 `std::process::Termination` trait 的类型，该 trait 包含了函数 `report`，返回 `ExitCode`
 
 Now that we’ve discussed the details of calling `panic!` or returning `Result`, let’s return to the topic of how to decide which is appropriate to use in which cases.
 
+## 9.3 To `panic!` or Not to `panic!`
+So how do you decide when you should call `panic!` and when you should return `Result`? When code panics, there’s no way to recover. You could call `panic!` for any error situation, whether there’s a possible way to recover or not, but then you’re making the decision that a situation is unrecoverable on behalf of the calling code. When you choose to return a `Result` value, you give the calling code options. The calling code could choose to attempt to recover in a way that’s appropriate for its situation, or it could decide that an `Err` value in this case is unrecoverable, so it can call `panic!` and turn your recoverable error into an unrecoverable one. Therefore, returning `Result` is a good default choice when you’re defining a function that might fail.
+>  当我们定义一个可能失败的函数时，返回 `Result` 是一个好的默认选择
+
+In situations such as examples, prototype code, and tests, it’s more appropriate to write code that panics instead of returning a `Result`. Let’s explore why, then discuss situations in which the compiler can’t tell that failure is impossible, but you as a human can. The chapter will conclude with some general guidelines on how to decide whether to panic in library code.
+>  对于示例代码、原型代码和测试场景，则更适合写 `panic` 的代码而不是返回 `Result`
+
+### Examples, Prototype Code, and Tests
+When you’re writing an example to illustrate some concept, also including robust error-handling code can make the example less clear. In examples, it’s understood that a call to a method like `unwrap` that could panic is meant as a placeholder for the way you’d want your application to handle errors, which can differ based on what the rest of your code is doing.
+>  当编写示例来阐述某个概念时，引入健壮的错误处理代码反而会让示例更不清晰
+>  在示例中，对例如 `unwarp` 等会导致 panic 的方法调用通常被视作一种占位符，表示这个地方我们希望应用程序以某种方式处理错误，但处理方式取决于我们剩下的代码做什么
+
+Similarly, the `unwrap` and `expect` methods are very handy when prototyping, before you’re ready to decide how to handle errors. They leave clear markers in your code for when you’re ready to make your program more robust.
+>  因此，`unwarp, expect` 方法在写原型时非常有用，在我们没决定好如何处理错误时，它们在代码中留下清晰的标记，等待我们后续的决定
+
+If a method call fails in a test, you’d want the whole test to fail, even if that method isn’t the functionality under test. Because `panic!` is how a test is marked as a failure, calling `unwrap` or `expect` is exactly what should happen.
+>  如果方法调用在测试中失败，我们希望整个测试失败，即使该方法不是该测试的核心功能
+>  因为 `panic!` 就是标记测试失败的标准方式，因此调用 `unwarp, expect` 就是我们想要的
+
+### Cases in Which You Have More Information Than the Compiler
+It would also be appropriate to call `expect` when you have some other logic that ensures the `Result` will have an `Ok` value, but the logic isn’t something the compiler understands. You’ll still have a `Result` value that you need to handle: whatever operation you’re calling still has the possibility of failing in general, even though it’s logically impossible in your particular situation. If you can ensure by manually inspecting the code that you’ll never have an `Err` variant, it’s perfectly acceptable to call `expect` and document the reason you think you’ll never have an `Err` variant in the argument text. Here’s an example:
+>  当我们有其他逻辑可以确保 `Result` 会有 `Ok` value，但这个逻辑不是编译器可以理解的，此时调用 `expect` 方法也是合适的，同时可以在文档中写下我们不处理 `Err` 变体的原因
+
+```rust
+use std::net::IpAddr;
+
+let home: IpAddr = "127.0.0.1"
+    .parse()
+    .expect("Hardcoded IP address should be valid");
+
+```
+
+We’re creating an `IpAddr` instance by parsing a hardcoded string. We can see that `127.0.0.1` is a valid IP address, so it’s acceptable to use `expect` here. However, having a hardcoded, valid string doesn’t change the return type of the `parse` method: we still get a `Result` value, and the compiler will still make us handle the `Result` as if the `Err` variant is a possibility because the compiler isn’t smart enough to see that this string is always a valid IP address. If the IP address string came from a user rather than being hardcoded into the program and therefore _did_ have a possibility of failure, we’d definitely want to handle the `Result` in a more robust way instead. Mentioning the assumption that this IP address is hardcoded will prompt us to change `expect` to better error-handling code if, in the future, we need to get the IP address from some other source instead.
+
+### Guidelines for Error Handling
+It’s advisable to have your code panic when it’s possible that your code could end up in a bad state. In this context, a _bad state_ is when some assumption, guarantee, contract, or invariant has been broken, such as when invalid values, contradictory values, or missing values are passed to your code—plus one or more of the following:
+
+- The bad state is something that is unexpected, as opposed to something that will likely happen occasionally, like a user entering data in the wrong format.
+- Your code after this point needs to rely on not being in this bad state, rather than checking for the problem at every step.
+- There’s not a good way to encode this information in the types you use. We’ll work through an example of what we mean in [“Encoding States and Behavior as Types”](https://doc.rust-lang.org/book/ch18-03-oo-design-patterns.html#encoding-states-and-behavior-as-types) in Chapter 18.
+
+>  当我们的代码有可能位于不安全状态下，应该使用 `panic!` 
+>  不安全状态即某些假设、保证、不变式被破坏，例如无效值、冲突值或缺失值，此外还要满足以下的一个或多个条件:
+>  - 这种不安全状态是出乎意料的，而不是一些偶尔可能发生的情况，例如用户输入格式错误
+>  - 在这一点之后的代码需要依赖于 “不处于该不安全状态”，它不会在每一步都检查问题
+>  - 我们使用的类型无法很好的表示这种信息
+
+If someone calls your code and passes in values that don’t make sense, it’s best to return an error if you can so the user of the library can decide what they want to do in that case. However, in cases where continuing could be insecure or harmful, the best choice might be to call `panic!` and alert the person using your library to the bug in their code so they can fix it during development. Similarly, `panic!` is often appropriate if you’re calling external code that is out of your control and it returns an invalid state that you have no way of fixing.
+>  如果是代码被调用并传入了一些无意义的值，则最后返回错误，让用户可以决定如何修改，如果是继续执行可能导致不安全或有害，则最好调用 `panic!`
+>  类似地，如果调用外部代码，它返回了我们无法处理的无效状态，也适合调用 `panic!`
+
+However, when failure is expected, it’s more appropriate to return a `Result` than to make a `panic!` call. Examples include a parser being given malformed data or an HTTP request returning a status that indicates you have hit a rate limit. In these cases, returning a `Result` indicates that failure is an expected possibility that the calling code must decide how to handle.
+>  如果失败是有预期的，则更适合返回 `Result` 而不是 `panic!`
+
+When your code performs an operation that could put a user at risk if it’s called using invalid values, your code should verify the values are valid first and panic if the values aren’t valid. This is mostly for safety reasons: attempting to operate on invalid data can expose your code to vulnerabilities. This is the main reason the standard library will call `panic!` if you attempt an out-of-bounds memory access: trying to access memory that doesn’t belong to the current data structure is a common security problem. Functions often have _contracts_: their behavior is only guaranteed if the inputs meet particular requirements. Panicking when the contract is violated makes sense because a contract violation always indicates a caller-side bug, and it’s not a kind of error you want the calling code to have to explicitly handle. In fact, there’s no reasonable way for calling code to recover; the calling _programmers_ need to fix the code. Contracts for a function, especially when a violation will cause a panic, should be explained in the API documentation for the function.
+>  如果代码对无效值进行操作会导致风险，则代码就应该先验证值的有效性，如果值无效，就 `panic!`，这主要是为了安全考虑
+>  例如标准库的内存访问越界会 `panic!`
+>  函数通常具有契约: 只有在输入满足特定要求，其行为才具有保证
+>  当契约被违反时，panic 是合理的，因为契约被违反意味着调用方存在错误，且这类错误不应该由调用方代码显式处理，这应该由调用方程序员来亲自处理
+>  函数的契约，尤其违反时会导致 panic 的契约，应该在 API 文档中解释
+
+However, having lots of error checks in all of your functions would be verbose and annoying. Fortunately, you can use Rust’s type system (and thus the type checking done by the compiler) to do many of the checks for you. If your function has a particular type as a parameter, you can proceed with your code’s logic knowing that the compiler has already ensured you have a valid value. For example, if you have a type rather than an `Option`, your program expects to have _something_ rather than _nothing_. Your code then doesn’t have to handle two cases for the `Some` and `None` variants: it will only have one case for definitely having a value. Code trying to pass nothing to your function won’t even compile, so your function doesn’t have to check for that case at runtime. Another example is using an unsigned integer type such as `u32`, which ensures the parameter is never negative.
+>  我们可以利用 Rust 的类型系统，通过编译器的类型检查帮助实现错误检查
+>  例如如果参数类型不是 `Option`，函数内就不需要处理 `Some, None` 变体
+>  又例如如果类型是 `u32`，就不需要考虑负数的情况
+
+### Creating Custom Types for Validation
+Let’s take the idea of using Rust’s type system to ensure we have a valid value one step further and look at creating a custom type for validation. Recall the guessing game in Chapter 2 in which our code asked the user to guess a number between 1 and 100. We never validated that the user’s guess was between those numbers before checking it against our secret number; we only validated that the guess was positive. In this case, the consequences were not very dire: our output of “Too high” or “Too low” would still be correct. But it would be a useful enhancement to guide the user toward valid guesses and have different behavior when the user guesses a number that’s out of range versus when the user types, for example, letters instead.
+>  让我们进一步利用 Rust 的类型系统来确保我们具有一个有效的值，并尝试创建一个自定义类型来实现验证功能
+
+One way to do this would be to parse the guess as an `i32` instead of only a `u32` to allow potentially negative numbers, and then add a check for the number being in range, like so:
+
+Filename: src/main.rs
+
+```rust
+loop {
+    // --snip--
+
+    let guess: i32 = match guess.trim().parse() {
+        Ok(num) => num,
+        Err(_) => continue,
+    };
+
+    if guess < 1 || guess > 100 {
+        println!("The secret number will be between 1 and 100.");
+        continue;
+    }
+
+    match guess.cmp(&secret_number) {
+        // --snip--
+}
+```
+
+The `if` expression checks whether our value is out of range, tells the user about the problem, and calls `continue` to start the next iteration of the loop and ask for another guess. After the `if` expression, we can proceed with the comparisons between `guess` and the secret number knowing that `guess` is between 1 and 100.
+
+However, this is not an ideal solution: if it were absolutely critical that the program only operated on values between 1 and 100, and it had many functions with this requirement, having a check like this in every function would be tedious (and might impact performance).
+
+Instead, we can make a new type in a dedicated module and put the validations in a function to create an instance of the type rather than repeating the validations everywhere. That way, it’s safe for functions to use the new type in their signatures and confidently use the values they receive. Listing 9-13 shows one way to define a `Guess` type that will only create an instance of `Guess` if the `new` function receives a value between 1 and 100.
+>  我们可以在一个专用的 module 中定义一个新类型，并将验证逻辑封装在一个用于创建该类型的实例的函数中，这样就不需要在许多地方重复验证逻辑
+>  这样一来，在函数签名中使用了这个类型后，函数就可以放心地使用接收到的值
+
+Filename: src/guessing_game.rs
+
+```rust
+pub struct Guess {
+    value: i32,
+}
+
+impl Guess {
+    pub fn new(value: i32) -> Guess {
+        if value < 1 || value > 100 {
+            panic!("Guess value must be between 1 and 100, got {value}.");
+        }
+
+        Guess { value }
+    }
+
+    pub fn value(&self) -> i32 {
+        self.value
+    }
+}
+```
+
+[Listing 9-13](https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html#listing-9-13): A `Guess` type that will only continue with values between 1 and 100
+
+Note that this code in _src/guessing_game.rs_ depends on adding a module declaration `mod guessing_game;` in _src/lib.rs_ that we haven’t shown here. Within this new module’s file, we define a struct in that module named `Guess` that has a field named `value` that holds an `i32`. This is where the number will be stored.
+
+Then we implement an associated function named `new` on `Guess` that creates instances of `Guess` values. The `new` function is defined to have one parameter named `value` of type `i32` and to return a `Guess`. The code in the body of the `new` function tests `value` to make sure it’s between 1 and 100. If `value` doesn’t pass this test, we make a `panic!` call, which will alert the programmer who is writing the calling code that they have a bug they need to fix, because creating a `Guess` with a `value` outside this range would violate the contract that `Guess::new` is relying on. The conditions in which `Guess::new` might panic should be discussed in its public-facing API documentation; we’ll cover documentation conventions indicating the possibility of a `panic!` in the API documentation that you create in Chapter 14. If `value` does pass the test, we create a new `Guess` with its `value` field set to the `value` parameter and return the `Guess`.
+>  我们在 `Guess::new` 中写上了判断逻辑，并且在逻辑不满足是 `panic!`，因为逻辑不满足即不满足 `Guess::new` 依赖的契约
+>  `Guess::new` 的契约，以及它会 `panic!` 的情况应该在 API 文档中写明
+
+Next, we implement a method named `value` that borrows `self`, doesn’t have any other parameters, and returns an `i32`. This kind of method is sometimes called a _getter_ because its purpose is to get some data from its fields and return it. This public method is necessary because the `value` field of the `Guess` struct is private. It’s important that the `value` field be private so code using the `Guess` struct is not allowed to set `value` directly: code outside the `guessing_game` module _must_ use the `Guess::new` function to create an instance of `Guess`, thereby ensuring there’s no way for a `Guess` to have a `value` that hasn’t been checked by the conditions in the `Guess::new` function.
+>  `value` 方法是一个 getter 方法，方法为公有，返回私有的 field
+
+A function that has a parameter or returns only numbers between 1 and 100 could then declare in its signature that it takes or returns a `Guess` rather than an `i32` and wouldn’t need to do any additional checks in its body.
+
+## Summary
+Rust’s error-handling features are designed to help you write more robust code. The `panic!` macro signals that your program is in a state it can’t handle and lets you tell the process to stop instead of trying to proceed with invalid or incorrect values. The `Result` enum uses Rust’s type system to indicate that operations might fail in a way that your code could recover from. You can use `Result` to tell code that calls your code that it needs to handle potential success or failure as well. Using `panic!` and `Result` in the appropriate situations will make your code more reliable in the face of inevitable problems.
+>  `panic!` 宏用于表明程序处于无法处理的状态，它会通知程序停止运行，而不是继续尝试使用无效或错误的值
+>  `Result` enum 使用 Rust 的类型系统明确表示某些操作会失效，但我们的代码也有能力从失败恢复
+
+Now that you’ve seen useful ways that the standard library uses generics with the `Option` and `Result` enums, we’ll talk about how generics work and how you can use them in your code.
+
+# 10 Generic Types, Traits, and Lifetimes
+Every programming language has tools for effectively handling the duplication of concepts. In Rust, one such tool is _generics_: abstract stand-ins for concrete types or other properties. We can express the behavior of generics or how they relate to other generics without knowing what will be in their place when compiling and running the code.
+>  Rust 处理概念的重复的工具就是泛型: 它是具体类型或其他属性的抽象占位符
+>  我们可以在不预先知道泛型在编译时和运行时实际将被替换成什么的情况下，表示泛型的行为或它们彼此之间的关系
+
+Functions can take parameters of some generic type, instead of a concrete type like `i32` or `String`, in the same way they take parameters with unknown values to run the same code on multiple concrete values. In fact, we’ve already used generics in Chapter 6 with `Option<T>`, in Chapter 8 with `Vec<T>` and `HashMap<K, V>`, and in Chapter 9 with `Result<T, E>`. In this chapter, you’ll explore how to define your own types, functions, and methods with generics!
+>  函数可以接收泛型类型的参数，而不是具体类型，这和函数接收带有未知值的参数并在实际的多个具体值上运行的逻辑类似
+
+First we’ll review how to extract a function to reduce code duplication. We’ll then use the same technique to make a generic function from two functions that differ only in the types of their parameters. We’ll also explain how to use generic types in struct and enum definitions.
+
+Then you’ll learn how to use _traits_ to define behavior in a generic way. You can combine traits with generic types to constrain a generic type to accept only those types that have a particular behavior, as opposed to just any type.
+>  我们将学习使用 traits 以通用的方法定义行为
+>  我们可以将 traits 和泛型结合，来限制一个泛型类型只能接收具有特定行为的类型，而不是任意类型
+
+Finally, we’ll discuss _lifetimes_: a variety of generics that give the compiler information about how references relate to each other. Lifetimes allow us to give the compiler enough information about borrowed values so that it can ensure references will be valid in more situations than it could without our help.
+>  我们将讨论生命周期，这是一种特殊的泛型机制，用于向编译器提供关于引用之间的关系的信息
+>  生命周期使得编译器可以获得足够多的关于借用值的信息，以确保引用将在更多的情况下都保持有效
+
+***Removing Duplication by Extracting a Function***
+Generics allow us to replace specific types with a placeholder that represents multiple types to remove code duplication. Before diving into generics syntax, let’s first look at how to remove duplication in a way that doesn’t involve generic types by extracting a function that replaces specific values with a placeholder that represents multiple values. Then we’ll apply the same technique to extract a generic function! By looking at how to recognize duplicated code you can extract into a function, you’ll start to recognize duplicated code that can use generics.
+
+We’ll begin with the short program in Listing 10-1 that finds the largest number in a list.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let mut largest = &number_list[0];
+
+    for number in &number_list {
+        if number > largest {
+            largest = number;
+        }
+    }
+
+    println!("The largest number is {largest}");
+}
+```
+
+[Listing 10-1](https://doc.rust-lang.org/book/ch10-00-generics.html#listing-10-1): Finding the largest number in a list of numbers
+
+We store a list of integers in the variable `number_list` and place a reference to the first number in the list in a variable named `largest`. We then iterate through all the numbers in the list, and if the current number is greater than the number stored in `largest`, we replace the reference in that variable. However, if the current number is less than or equal to the largest number seen so far, the variable doesn’t change, and the code moves on to the next number in the list. After considering all the numbers in the list, `largest` should refer to the largest number, which in this case is 100.
+
+We’ve now been tasked with finding the largest number in two different lists of numbers. To do so, we can choose to duplicate the code in Listing 10-1 and use the same logic at two different places in the program, as shown in Listing 10-2.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let mut largest = &number_list[0];
+
+    for number in &number_list {
+        if number > largest {
+            largest = number;
+        }
+    }
+
+    println!("The largest number is {largest}");
+
+    let number_list = vec![102, 34, 6000, 89, 54, 2, 43, 8];
+
+    let mut largest = &number_list[0];
+
+    for number in &number_list {
+        if number > largest {
+            largest = number;
+        }
+    }
+
+    println!("The largest number is {largest}");
+}
+```
+
+[Listing 10-2](https://doc.rust-lang.org/book/ch10-00-generics.html#listing-10-2): Code to find the largest number in _two_ lists of numbers
+
+Although this code works, duplicating code is tedious and error prone. We also have to remember to update the code in multiple places when we want to change it.
+
+To eliminate this duplication, we’ll create an abstraction by defining a function that operates on any list of integers passed in as a parameter. This solution makes our code clearer and lets us express the concept of finding the largest number in a list abstractly.
+
+In Listing 10-3, we extract the code that finds the largest number into a function named `largest`. Then we call the function to find the largest number in the two lists from Listing 10-2. We could also use the function on any other list of `i32` values we might have in the future.
+
+Filename: src/main.rs
+
+```rust
+fn largest(list: &[i32]) -> &i32 {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let result = largest(&number_list);
+    println!("The largest number is {result}");
+
+    let number_list = vec![102, 34, 6000, 89, 54, 2, 43, 8];
+
+    let result = largest(&number_list);
+    println!("The largest number is {result}");
+}
+```
+
+[Listing 10-3](https://doc.rust-lang.org/book/ch10-00-generics.html#listing-10-3): Abstracted code to find the largest number in two lists
+
+The `largest` function has a parameter called `list`, which represents any concrete slice of `i32` values we might pass into the function. As a result, when we call the function, the code runs on the specific values that we pass in.
+
+In summary, here are the steps we took to change the code from Listing 10-2 to Listing 10-3:
+
+1. Identify duplicate code.
+2. Extract the duplicate code into the body of the function, and specify the inputs and return values of that code in the function signature.
+3. Update the two instances of duplicated code to call the function instead.
+
+Next, we’ll use these same steps with generics to reduce code duplication. In the same way that the function body can operate on an abstract `list` instead of specific values, generics allow code to operate on abstract types.
+
+For example, say we had two functions: one that finds the largest item in a slice of `i32` values and one that finds the largest item in a slice of `char` values. How would we eliminate that duplication? Let’s find out!
+
+## 10.1 Generic Data Types
+We use generics to create definitions for items like function signatures or structs, which we can then use with many different concrete data types. Let’s first look at how to define functions, structs, enums, and methods using generics. Then we’ll discuss how generics affect code performance.
+>  函数签名和结构体都可以用泛型进行定义
+
+### In Function Definitions
+When defining a function that uses generics, we place the generics in the signature of the function where we would usually specify the data types of the parameters and return value. Doing so makes our code more flexible and provides more functionality to callers of our function while preventing code duplication.
+
+Continuing with our `largest` function, Listing 10-4 shows two functions that both find the largest value in a slice. We’ll then combine these into a single function that uses generics.
+
+Filename: src/main.rs
+
+```rust
+fn largest_i32(list: &[i32]) -> &i32 {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+fn largest_char(list: &[char]) -> &char {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let result = largest_i32(&number_list);
+    println!("The largest number is {result}");
+
+    let char_list = vec!['y', 'm', 'a', 'q'];
+
+    let result = largest_char(&char_list);
+    println!("The largest char is {result}");
+}
+```
+
+[Listing 10-4](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-4): Two functions that differ only in their names and in the types in their signatures
+
+The `largest_i32` function is the one we extracted in Listing 10-3 that finds the largest `i32` in a slice. The `largest_char` function finds the largest `char` in a slice. The function bodies have the same code, so let’s eliminate the duplication by introducing a generic type parameter in a single function.
+
+To parameterize the types in a new single function, we need to name the type parameter, just as we do for the value parameters to a function. You can use any identifier as a type parameter name. But we’ll use `T` because, by convention, type parameter names in Rust are short, often just one letter, and Rust’s type-naming convention is CamelCase. Short for _type_, `T` is the default choice of most Rust programmers.
+>  Rust 通常用单字母表示类型参数名，例如 `T`
+
+When we use a parameter in the body of the function, we have to declare the parameter name in the signature so the compiler knows what that name means. Similarly, when we use a type parameter name in a function signature, we have to declare the type parameter name before we use it. To define the generic `largest` function, we place type name declarations inside angle brackets, `<>`, between the name of the function and the parameter list, like this:
+>  当我们在函数体中使用参数时，我们必须在函数签名中声明了参数名称，编译器才知道这个名称的含义
+>  类似地，当我们在函数签名中使用一个类型参数名称时，我们需要在使用它之前声明它，因此我们在函数和参数之前放上 `<T>`
+
+```rust
+fn largest<T>(list: &[T]) -> &T {
+```
+
+We read this definition as: the function `largest` is generic over some type `T`. This function has one parameter named `list`, which is a slice of values of type `T`. The `largest` function will return a reference to a value of the same type `T`.
+>  上述定义下，函数 `largest` 是一个在某个类型 `T` 上的泛型
+>  该函数有一个参数 `list`，这是一个 values 为 `T` 的 slice
+>  该函数会返回一个对类型为 `T` 的 value 的引用
+
+Listing 10-5 shows the combined `largest` function definition using the generic data type in its signature. The listing also shows how we can call the function with either a slice of `i32` values or `char` values. Note that this code won’t compile yet.
+
+Filename: src/main.rs
+
+```rust
+fn largest<T>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let result = largest(&number_list);
+    println!("The largest number is {result}");
+
+    let char_list = vec!['y', 'm', 'a', 'q'];
+
+    let result = largest(&char_list);
+    println!("The largest char is {result}");
+}
+```
+
+[Listing 10-5](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-5): The `largest` function using generic type parameters; this doesn’t compile yet
+
+If we compile this code right now, we’ll get this error:
+
+```
+$ cargo run
+   Compiling chapter10 v0.1.0 (file:///projects/chapter10)
+error[E0369]: binary operation `>` cannot be applied to type `&T`
+ --> src/main.rs:5:17
+  |
+5 |         if item > largest {
+  |            ---- ^ ------- &T
+  |            |
+  |            &T
+  |
+help: consider restricting type parameter `T` with trait `PartialOrd`
+  |
+1 | fn largest<T: std::cmp::PartialOrd>(list: &[T]) -> &T {
+  |             ++++++++++++++++++++++
+
+For more information about this error, try `rustc --explain E0369`.
+error: could not compile `chapter10` (bin "chapter10") due to 1 previous error
+```
+
+The help text mentions `std::cmp::PartialOrd`, which is a _trait_, and we’re going to talk about traits in the next section. For now, know that this error states that the body of `largest` won’t work for all possible types that `T` could be. Because we want to compare values of type `T` in the body, we can only use types whose values can be ordered. To enable comparisons, the standard library has the `std::cmp::PartialOrd` trait that you can implement on types (see Appendix C for more on this trait). 
+>  上述信息告诉我们 `largest` 的函数体无法适用于所有可能的 `T` 类型
+>  这是因为我们在函数体中比较了类型 `T` 的 values
+>  能够比较的类型需要实现标准库的 trait `std::cmp::PartialOrd`
+
+To fix Listing 10-5, we can follow the help text’s suggestion and restrict the types valid for `T` to only those that implement `PartialOrd`. The listing will then compile, because the standard library implements `PartialOrd` on both `i32` and `char`.
+>  我们遵循帮助文本的建议，限制对 `T` 有效的类型为实现了 `PartialOrd` 的类型
+>  这样代码可以正常编译，因为标准库已经为 `i32, char` 实现了 `PartialOrd`
+
+### In Struct Definitions
+We can also define structs to use a generic type parameter in one or more fields using the `<>` syntax. Listing 10-6 defines a `Point<T>` struct to hold `x` and `y` coordinate values of any type.
+>  结构体泛型的定义类似，同样使用 `<>` 语法
+
+Filename: src/main.rs
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+fn main() {
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+}
+```
+
+[Listing 10-6](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-6): A `Point<T>` struct that holds `x` and `y` values of type `T`
+
+The syntax for using generics in struct definitions is similar to that used in function definitions. First we declare the name of the type parameter inside angle brackets just after the name of the struct. Then we use the generic type in the struct definition where we would otherwise specify concrete data types.
+>  我们首先在结构体名称后面声明类型参数的名称，然后在结构体定义中使用类型参数
+
+Note that because we’ve used only one generic type to define `Point<T>`, this definition says that the `Point<T>` struct is generic over some type `T`, and the fields `x` and `y` are _both_ that same type, whatever that type may be. If we create an instance of a `Point<T>` that has values of different types, as in Listing 10-7, our code won’t compile.
+
+Filename: src/main.rs
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+fn main() {
+    let wont_work = Point { x: 5, y: 4.0 };
+}
+```
+
+[Listing 10-7](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-7): The fields `x` and `y` must be the same type because both have the same generic data type `T`.
+
+In this example, when we assign the integer value `5` to `x`, we let the compiler know that the generic type `T` will be an integer for this instance of `Point<T>`. Then when we specify `4.0` for `y`, which we’ve defined to have the same type as `x`, we’ll get a type mismatch error like this:
+
+```
+$ cargo run
+   Compiling chapter10 v0.1.0 (file:///projects/chapter10)
+error[E0308]: mismatched types
+ --> src/main.rs:7:38
+  |
+7 |     let wont_work = Point { x: 5, y: 4.0 };
+  |                                      ^^^ expected integer, found floating-point number
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `chapter10` (bin "chapter10") due to 1 previous error
+```
+
+To define a `Point` struct where `x` and `y` are both generics but could have different types, we can use multiple generic type parameters. For example, in Listing 10-8, we change the definition of `Point` to be generic over types `T` and `U` where `x` is of type `T` and `y` is of type `U`.
+
+Filename: src/main.rs
+
+```rust
+struct Point<T, U> {
+    x: T,
+    y: U,
+}
+
+fn main() {
+    let both_integer = Point { x: 5, y: 10 };
+    let both_float = Point { x: 1.0, y: 4.0 };
+    let integer_and_float = Point { x: 5, y: 4.0 };
+}
+```
+
+[Listing 10-8](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-8): A `Point<T, U>` generic over two types so that `x` and `y` can be values of different types
+
+Now all the instances of `Point` shown are allowed! You can use as many generic type parameters in a definition as you want, but using more than a few makes your code hard to read. If you’re finding you need lots of generic types in your code, it could indicate that your code needs restructuring into smaller pieces.
+>  使用更多的泛型也是允许的，但注意如果我们发现我们的代码需要使用很多泛型类型，这说明我们的代码需要重新组织成更小的模块
+
+### In Enum Definitions
+As we did with structs, we can define enums to hold generic data types in their variants. Let’s take another look at the `Option<T>` enum that the standard library provides, which we used in Chapter 6:
+>  enum 同样可以作为泛型
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+```
+
+This definition should now make more sense to you. As you can see, the `Option<T>` enum is generic over type `T` and has two variants: `Some`, which holds one value of type `T`, and a `None` variant that doesn’t hold any value. By using the `Option<T>` enum, we can express the abstract concept of an optional value, and because `Option<T>` is generic, we can use this abstraction no matter what the type of the optional value is.
+
+Enums can use multiple generic types as well. The definition of the `Result` enum that we used in Chapter 9 is one example:
+
+```rust
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+```
+
+The `Result` enum is generic over two types, `T` and `E`, and has two variants: `Ok`, which holds a value of type `T`, and `Err`, which holds a value of type `E`. This definition makes it convenient to use the `Result` enum anywhere we have an operation that might succeed (return a value of some type `T`) or fail (return an error of some type `E`). In fact, this is what we used to open a file in Listing 9-3, where `T` was filled in with the type `std::fs::File` when the file was opened successfully and `E` was filled in with the type `std::io::Error` when there were problems opening the file.
+
+When you recognize situations in your code with multiple struct or enum definitions that differ only in the types of the values they hold, you can avoid duplication by using generic types instead.
+
+### In Method Definitions
+We can implement methods on structs and enums (as we did in Chapter 5) and use generic types in their definitions too. Listing 10-9 shows the `Point<T>` struct we defined in Listing 10-6 with a method named `x` implemented on it.
+>  为泛型 struct, enum 实现方法时，可以使用泛型类型
+
+Filename: src/main.rs
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Point<T> {
+    fn x(&self) -> &T {
+        &self.x
+    }
+}
+
+fn main() {
+    let p = Point { x: 5, y: 10 };
+
+    println!("p.x = {}", p.x());
+}
+```
+
+[Listing 10-9](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-9): Implementing a method named `x` on the `Point<T>` struct that will return a reference to the `x` field of type `T`
+
+Here, we’ve defined a method named `x` on `Point<T>` that returns a reference to the data in the field `x`.
+
+Note that we have to declare `T` just after `impl` so we can use `T` to specify that we’re implementing methods on the type `Point<T>`. By declaring `T` as a generic type after `impl`, Rust can identify that the type in the angle brackets in `Point` is a generic type rather than a concrete type. We could have chosen a different name for this generic parameter than the generic parameter declared in the struct definition, but using the same name is conventional. 
+>  我们在 `impl` 之后声明了 `T`，以使用 `T` 来表示我们正在为类型 `Point<T>` 实现方法
+>  只有在 `impl` 之后写了 `<T>`，Rust 才知道 `Point<T>` 中的 `T` 是一个泛型类型，而不是具体类型
+>  我们可以在这里为泛型类型选择一个新名字，但通常会使用类型泛型声明中的名字
+
+If you write a method within an `impl` that declares a generic type, that method will be defined on any instance of the type, no matter what concrete type ends up substituting for the generic type.
+>  如果我们在 `impl` 实现了一个声明了泛型类型的方法，则这个方法会为泛型 struct, enum 的任意实例都实现，无论最终使用什么具体类型来实例化
+
+We can also specify constraints on generic types when defining methods on the type. We could, for example, implement methods only on `Point<f32>` instances rather than on `Point<T>` instances with any generic type. In Listing 10-10 we use the concrete type `f32`, meaning we don’t declare any types after `impl`.
+>  在为泛型类型定义方法时，我们也可以声明约束
+>  例如我们可以仅为 `Point<f32>` 实例类型实现方法，而不是为 `Point<T>` 泛型类型实现
+>  为实例类型实现方法时，我们不需要为 `impl` 声明泛型类型，只需要明确是为实例类型 `Point<f32>` `impl` 即可
+
+Filename: src/main.rs
+
+```rust
+impl Point<f32> {
+    fn distance_from_origin(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+}
+```
+
+[Listing 10-10](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-10): An `impl` block that only applies to a struct with a particular concrete type for the generic type parameter `T`
+
+This code means the type `Point<f32>` will have a `distance_from_origin` method; other instances of `Point<T>` where `T` is not of type `f32` will not have this method defined. The method measures how far our point is from the point at coordinates (0.0, 0.0) and uses mathematical operations that are available only for floating-point types.
+
+Generic type parameters in a struct definition aren’t always the same as those you use in that same struct’s method signatures. Listing 10-11 uses the generic types `X1` and `Y1` for the `Point` struct and `X2` `Y2` for the `mixup` method signature to make the example clearer. The method creates a new `Point` instance with the `x` value from the `self` `Point` (of type `X1`) and the `y` value from the passed-in `Point` (of type `Y2`).
+>  struct 定义中的泛型类型参数并不总是和 struct 方法签名中的泛型类型参数相同
+>  例如下例为泛型类型 `Point<X1, Y1>` 实现了泛型方法 `mixup<X2, Y2>`，这个方法又会返回一个新的泛型 struct `Point<X1, Y2>`
+
+>  反正就是各种泛型，只要不冲突，到最后编译时再一一实例化即可
+
+Filename: src/main.rs
+
+```rust
+struct Point<X1, Y1> {
+    x: X1,
+    y: Y1,
+}
+
+impl<X1, Y1> Point<X1, Y1> {
+    fn mixup<X2, Y2>(self, other: Point<X2, Y2>) -> Point<X1, Y2> {
+        Point {
+            x: self.x,
+            y: other.y,
+        }
+    }
+}
+
+fn main() {
+    let p1 = Point { x: 5, y: 10.4 };
+    let p2 = Point { x: "Hello", y: 'c' };
+
+    let p3 = p1.mixup(p2);
+
+    println!("p3.x = {}, p3.y = {}", p3.x, p3.y);
+}
+```
+
+[Listing 10-11](https://doc.rust-lang.org/book/ch10-01-syntax.html#listing-10-11): A method that uses generic types different from its struct’s definition
+
+In `main`, we’ve defined a `Point` that has an `i32` for `x` (with value `5`) and an `f64` for `y` (with value `10.4`). The `p2` variable is a `Point` struct that has a string slice for `x` (with value `"Hello"`) and a `char` for `y` (with value `c`). Calling `mixup` on `p1` with the argument `p2` gives us `p3`, which will have an `i32` for `x` because `x` came from `p1`. The `p3` variable will have a `char` for `y` because `y` came from `p2`. The `println!` macro call will print `p3.x = 5, p3.y = c`.
+
+The purpose of this example is to demonstrate a situation in which some generic parameters are declared with `impl` and some are declared with the method definition. Here, the generic parameters `X1` and `Y1` are declared after `impl` because they go with the struct definition. The generic parameters `X2` and `Y2` are declared after `fn mixup` because they’re only relevant to the method.
+>  这个例子展示了有时有些泛型参数是在 `impl` 中声明，有些泛型参数则在方法定义中声明
+>  注意在 `impl` 中声明的泛型类型可以在 `impl` 中使用，在方法定义中声明的泛型类型则只能在方法中使用
+
+### Performance of Code Using Generics
+You might be wondering whether there is a runtime cost when using generic type parameters. The good news is that using generic types won’t make your program run any slower than it would with concrete types.
+
+Rust accomplishes this by performing monomorphization of the code using generics at compile time. _Monomorphization_ is the process of turning generic code into specific code by filling in the concrete types that are used when compiled. In this process, the compiler does the opposite of the steps we used to create the generic function in Listing 10-5: the compiler looks at all the places where generic code is called and generates code for the concrete types the generic code is called with.
+>  泛型不会带来运行时开销
+>  Rust 会在编译时为泛型代码执行单态化，即在编译时使用具体类型来填充泛型类型
+>  编译器会查找所有泛型代码的调用处，使用调用处的具体类型来生成使用具体类型的代码
+
+Let’s look at how this works by using the standard library’s generic `Option<T>` enum:
+
+```rust
+let integer = Some(5); 
+let float = Some(5.0);
+```
+
+When Rust compiles this code, it performs monomorphization. During that process, the compiler reads the values that have been used in `Option<T>` instances and identifies two kinds of `Option<T>`: one is `i32` and the other is `f64`. As such, it expands the generic definition of `Option<T>` into two definitions specialized to `i32` and `f64`, thereby replacing the generic definition with the specific ones.
+
+The monomorphized version of the code looks similar to the following (the compiler uses different names than what we’re using here for illustration):
+
+Filename: src/main.rs
+
+```rust
+enum Option_i32 {
+    Some(i32),
+    None,
+}
+
+enum Option_f64 {
+    Some(f64),
+    None,
+}
+
+fn main() {
+    let integer = Option_i32::Some(5);
+    let float = Option_f64::Some(5.0);
+}
+```
+
+The generic `Option<T>` is replaced with the specific definitions created by the compiler. Because Rust compiles generic code into code that specifies the type in each instance, we pay no runtime cost for using generics. When the code runs, it performs just as it would if we had duplicated each definition by hand. The process of monomorphization makes Rust’s generics extremely efficient at runtime.
+
+## 10.2 Traits: Defining Shared Behavior
+A _trait_ defines the functionality a particular type has and can share with other types. We can use traits to define shared behavior in an abstract way. We can use _trait bounds_ to specify that a generic type can be any type that has certain behavior.
+>  特质定义了某个特定类型所具有的功能，该功能可以和其他类型共享
+>  我们使用特质来抽象地定义共享的行为
+>  我们使用特质约束来指定泛型类型可以是任何具备特定行为的类型
+
+Note: Traits are similar to a feature often called _interfaces_ in other languages, although with some differences.
+>  特质类似于其他语言中的接口，但存在一些差异
+
+### Defining a Trait
+A type’s behavior consists of the methods we can call on that type. Different types share the same behavior if we can call the same methods on all of those types. Trait definitions are a way to group method signatures together to define a set of behaviors necessary to accomplish some purpose.
+>  类型的行为由我们可以对该类型调用的方法组成
+>  如果我们可以为不同的类型调用相同的方法，它们就共享相同的行为
+>  特质定义是一种将方法签名组合在一起并定义完成某个目的所必须的一组行为的一种方式
+
+For example, let’s say we have multiple structs that hold various kinds and amounts of text: a `NewsArticle` struct that holds a news story filed in a particular location and a `SocialPost` that can have, at most, 280 characters along with metadata that indicates whether it was a new post, a repost, or a reply to another post.
+>  例如，假设我们有多个结构体，用于存储不同种类和数量的文本
+>  `NewsArtical` struct 存储某个地方的新闻，`SoclaiPost` struct 存储帖子以及它的元数据
+
+We want to make a media aggregator library crate named `aggregator` that can display summaries of data that might be stored in a `NewsArticle` or `SocialPost` instance. To do this, we need a summary from each type, and we’ll request that summary by calling a `summarize` method on an instance. Listing 10-12 shows the definition of a public `Summary` trait that expresses this behavior.
+>  我们想编写一个 `aggregator` crate，展示存储在 `NewsArticle` 或 `SocialPost` 中的数据总结
+>  为此，我们希望这两个类型都具有 `summarize` 方法，我们通过定义一个公有特质 ` Summay ` 表示这个行为
+
+Filename: src/lib.rs
+
+```rust
+pub trait Summary {
+    fn summarize(&self) -> String;
+}
+```
+
+[Listing 10-12](https://doc.rust-lang.org/book/ch10-02-traits.html#listing-10-12): A `Summary` trait that consists of the behavior provided by a `summarize` method
+
+Here, we declare a trait using the `trait` keyword and then the trait’s name, which is `Summary` in this case. We also declare the trait as `pub` so that crates depending on this crate can make use of this trait too, as we’ll see in a few examples. Inside the curly brackets, we declare the method signatures that describe the behaviors of the types that implement this trait, which in this case is `fn summarize(&self) -> String`.
+>  我们使用 `trait` 关键字声明特质，并且将它声明为 `pub`，使得其他 crate 可以使用这个特质
+>  我们在特质中声明了方法签名，描述了实现该特质的类型的行为，既 `fn summarize(&self) -> String`
+
+After the method signature, instead of providing an implementation within curly brackets, we use a semicolon. Each type implementing this trait must provide its own custom behavior for the body of the method. The compiler will enforce that any type that has the `Summary` trait will have the method `summarize` defined with this signature exactly.
+>  编译器会要求所有实现了这个特质的类型都必须提供特质指定的方法的实现，即实现了具有相同签名的方法
+
+A trait can have multiple methods in its body: the method signatures are listed one per line, and each line ends in a semicolon.
+>  特质可以有多个方法
+
+### Implementing a Trait on a Type
+Now that we’ve defined the desired signatures of the `Summary` trait’s methods, we can implement it on the types in our media aggregator. Listing 10-13 shows an implementation of the `Summary` trait on the `NewsArticle` struct that uses the headline, the author, and the location to create the return value of `summarize`. For the `SocialPost` struct, we define `summarize` as the username followed by the entire text of the post, assuming that the post content is already limited to 280 characters.
+
+Filename: src/lib.rs
+
+```rust
+pub struct NewsArticle {
+    pub headline: String,
+    pub location: String,
+    pub author: String,
+    pub content: String,
+}
+
+impl Summary for NewsArticle {
+    fn summarize(&self) -> String {
+        format!("{}, by {} ({})", self.headline, self.author, self.location)
+    }
+}
+
+pub struct SocialPost {
+    pub username: String,
+    pub content: String,
+    pub reply: bool,
+    pub repost: bool,
+}
+
+impl Summary for SocialPost {
+    fn summarize(&self) -> String {
+        format!("{}: {}", self.username, self.content)
+    }
+}
+```
+
+[Listing 10-13](https://doc.rust-lang.org/book/ch10-02-traits.html#listing-10-13): Implementing the `Summary` trait on the `NewsArticle` and `SocialPost` types
+
+Implementing a trait on a type is similar to implementing regular methods. The difference is that after `impl`, we put the trait name we want to implement, then use the `for` keyword, and then specify the name of the type we want to implement the trait for. Within the `impl` block, we put the method signatures that the trait definition has defined. Instead of adding a semicolon after each signature, we use curly brackets and fill in the method body with the specific behavior that we want the methods of the trait to have for the particular type.
+>  在类型上实现特质类似于实现常规方法
+>  差异在于我们在 `impl` 之后写下我们要实现的特质名称，然后使用 `for` 关键字，指定实现该特质的类型
+
+Now that the library has implemented the `Summary` trait on `NewsArticle` and `SocialPost`, users of the crate can call the trait methods on instances of `NewsArticle` and `SocialPost` in the same way we call regular methods. The only difference is that the user must bring the trait into scope as well as the types. Here’s an example of how a binary crate could use our `aggregator` library crate:
+>  实现了特质之后，我们就可以像调用常规方法一样调用特质方法
+>  差异在于用户必须将特质带入作用域，就和类型一样
+
+```rust
+use aggregator::{SocialPost, Summary};
+
+fn main() {
+    let post = SocialPost {
+        username: String::from("horse_ebooks"),
+        content: String::from(
+            "of course, as you probably already know, people",
+        ),
+        reply: false,
+        repost: false,
+    };
+
+    println!("1 new post: {}", post.summarize());
+}
+```
+
+This code prints `1 new post: horse_ebooks: of course, as you probably already know, people`.
+
+Other crates that depend on the `aggregator` crate can also bring the `Summary` trait into scope to implement `Summary` on their own types. One restriction to note is that we can implement a trait on a type only if either the trait or the type, or both, are local to our crate. For example, we can implement standard library traits like `Display` on a custom type like `SocialPost` as part of our `aggregator` crate functionality because the type `SocialPost` is local to our `aggregator` crate. We can also implement `Summary` on `Vec<T>` in our `aggregator` crate because the trait `Summary` is local to our `aggregator` crate.
+>  其他依赖于 `aggregator` crate 的 crates 也可以将 `Summary` trait 带入作用域，并为它们的类型实现 `Summary` trait
+>  Rust 编译器会执行 “孤儿规则”，它要求我们这个特质或这个类型，或两者，是在当前 crate 中定义的，才能在这个类型上实现这个特质
+>  例如，我们可以在我们 crate 内定义的类型 `SocialPost` 上实现标准库特质 ` Dispaly `，因为 `SocialPost` 是定义在当前 crate 中的，我们也可以在我们的 crate 中为标准库类型 `Vec<T>` 实现特质 `Summary`，因为特质 `Summary` 是定义在当前 crate 中的
+
+But we can’t implement external traits on external types. For example, we can’t implement the `Display` trait on `Vec<T>` within our `aggregator` crate because `Display` and `Vec<T>` are both defined in the standard library and aren’t local to our `aggregator` crate. This restriction is part of a property called _coherence_, and more specifically the _orphan rule_, so named because the parent type is not present. This rule ensures that other people’s code can’t break your code and vice versa. Without the rule, two crates could implement the same trait for the same type, and Rust wouldn’t know which implementation to use.
+>  但我们不能为外部类型实现外部特质
+>  例如我们不能在 `aggregator` crate 中为 `Vec<T>` 实现 `Display` ，因为二者都定义在标准库中，不是本地的
+>  这个限制是一致性原则的一部分，即孤儿规则，之所以这么命名，是因为其父类型 (即所属的 crate) 不在当前上下文中
+>  这个规则确保不会破坏其他人的代码，如果没有这个规则，两个 crates 可以为相同类型实现相同的特质，Rust 就不知道使用哪一个
+
+### Default Implementations
+Sometimes it’s useful to have default behavior for some or all of the methods in a trait instead of requiring implementations for all methods on every type. Then, as we implement the trait on a particular type, we can keep or override each method’s default behavior.
+
+In Listing 10-14, we specify a default string for the `summarize` method of the `Summary` trait instead of only defining the method signature, as we did in Listing 10-12.
+>  我们可以为特质方法提供默认实现
+
+Filename: src/lib.rs
+
+```rust
+pub trait Summary {
+    fn summarize(&self) -> String {
+        String::from("(Read more...)")
+    }
+}
+```
+
+[Listing 10-14](https://doc.rust-lang.org/book/ch10-02-traits.html#listing-10-14): Defining a `Summary` trait with a default implementation of the `summarize` method
+
+To use a default implementation to summarize instances of `NewsArticle`, we specify an empty `impl` block with `impl Summary for NewsArticle {}`.
+>  如果我们要让类型实现特质，但不想提供自己的实现而是依赖默认实现，`impl` 一个空的 block 即可
+
+Even though we’re no longer defining the `summarize` method on `NewsArticle` directly, we’ve provided a default implementation and specified that `NewsArticle` implements the `Summary` trait. As a result, we can still call the `summarize` method on an instance of `NewsArticle`, like this:
+
+```rust
+let article = NewsArticle {
+    headline: String::from("Penguins win the Stanley Cup Championship!"),
+    location: String::from("Pittsburgh, PA, USA"),
+    author: String::from("Iceburgh"),
+    content: String::from(
+        "The Pittsburgh Penguins once again are the best \
+         hockey team in the NHL.",
+    ),
+};
+
+println!("New article available! {}", article.summarize());
+```
+
+This code prints `New article available! (Read more...)`.
+
+Creating a default implementation doesn’t require us to change anything about the implementation of `Summary` on `SocialPost` in Listing 10-13. The reason is that the syntax for overriding a default implementation is the same as the syntax for implementing a trait method that doesn’t have a default implementation.
+
+Default implementations can call other methods in the same trait, even if those other methods don’t have a default implementation. In this way, a trait can provide a lot of useful functionality and only require implementors to specify a small part of it. For example, we could define the `Summary` trait to have a `summarize_author` method whose implementation is required, and then define a `summarize` method that has a default implementation that calls the `summarize_author` method:
+>  特质的默认方法可以调用相同特质中的其他方法，即便这些方法没有默认实现
+>  通过这种方式，特质可以提供许多有用的方法，并仅要求实现者实现其中的一小部分
+>  例如，我们可以定义 `Summary` 特质具有 `summarize_author` 方法，要求实现者实现，并定义 `summarize` 方法，具有一个调用 `summarize_author` 方法的默认实现
+
+To use this version of `Summary`, we only need to define `summarize_author` when we implement the trait on a type:
+
+```rust
+impl Summary for SocialPost {
+    fn summarize_author(&self) -> String {
+        format!("@{}", self.username)
+    }
+}
+```
+
+After we define `summarize_author`, we can call `summarize` on instances of the `SocialPost` struct, and the default implementation of `summarize` will call the definition of `summarize_author` that we’ve provided. Because we’ve implemented `summarize_author`, the `Summary` trait has given us the behavior of the `summarize` method without requiring us to write any more code. Here’s what that looks like:
+
+```rust
+let post = SocialPost {
+    username: String::from("horse_ebooks"),
+    content: String::from(
+        "of course, as you probably already know, people",
+    ),
+    reply: false,
+    repost: false,
+};
+
+println!("1 new post: {}", post.summarize());
+```
+
+This code prints `1 new post: (Read more from @horse_ebooks...)`.
+
+Note that it isn’t possible to call the default implementation from an overriding implementation of that same method.
+>  注意不能从某个默认实现的覆盖实现中调用默认实现
+
+### Traits as Parameters
+Now that you know how to define and implement traits, we can explore how to use traits to define functions that accept many different types. We’ll use the `Summary` trait we implemented on the `NewsArticle` and `SocialPost` types in Listing 10-13 to define a `notify` function that calls the `summarize` method on its `item` parameter, which is of some type that implements the `Summary` trait. To do this, we use the `impl Trait` syntax, like this:
+>  我们可以使用特质来定义接收不同类型参数的函数
+
+```rust
+pub fn notify(item: &impl Summary) {
+    println!("Breaking news! {}", item.summarize());
+}
+```
+
+Instead of a concrete type for the `item` parameter, we specify the `impl` keyword and the trait name. This parameter accepts any type that implements the specified trait. In the body of `notify`, we can call any methods on `item` that come from the `Summary` trait, such as `summarize`. We can call `notify` and pass in any instance of `NewsArticle` or `SocialPost`. Code that calls the function with any other type, such as a `String` or an `i32`, won’t compile because those types don’t implement `Summary`.
+>  上述函数的参数 `item` 没有使用具体类型，其类型为 `impl Trait`
+>  `impl` 关键字 + 特质名称说明了该函数接收任意实现了该特质的类型，我们在函数体中可以对该类型调用特质中的方法
+
+#### Trait Bound Syntax
+The `impl Trait` syntax works for straightforward cases but is actually syntax sugar for a longer form known as a _trait bound_; it looks like this:
+
+```rust
+pub fn notify<T: Summary>(item: &T) {
+    println!("Breaking news! {}", item.summarize());
+}
+```
+
+This longer form is equivalent to the example in the previous section but is more verbose. We place trait bounds with the declaration of the generic type parameter after a colon and inside angle brackets.
+>  `impl Trait` 语法实际上是一种更长形式的语法糖
+>  完整的形式称为特质约束，其写法如上，可以看到实际上函数接收的是一种泛型，并且这个泛型应该满足特质约束
+
+The `impl Trait` syntax is convenient and makes for more concise code in simple cases, while the fuller trait bound syntax can express more complexity in other cases. For example, we can have two parameters that implement `Summary`. Doing so with the `impl Trait` syntax looks like this:
+
+```rust
+pub fn notify(item1: &impl Summary, item2: &impl Summary) {
+```
+
+Using `impl Trait` is appropriate if we want this function to allow `item1` and `item2` to have different types (as long as both types implement `Summary`). If we want to force both parameters to have the same type, however, we must use a trait bound, like this:
+
+```rust
+pub fn notify<T: Summary>(item1: &T, item2: &T) {
+```
+
+The generic type `T` specified as the type of the `item1` and `item2` parameters constrains the function such that the concrete type of the value passed as an argument for `item1` and `item2` must be the same.
+
+#### Specifying Multiple Trait Bounds with the `+` Syntax
+We can also specify more than one trait bound. Say we wanted `notify` to use display formatting as well as `summarize` on `item`: we specify in the `notify` definition that `item` must implement both `Display` and `Summary`. We can do so using the `+` syntax:
+
+```rust
+pub fn notify(item: &(impl Summary + Display)) {
+```
+
+The `+` syntax is also valid with trait bounds on generic types:
+
+```rust
+pub fn notify<T: Summary + Display>(item: &T) {
+```
+
+With the two trait bounds specified, the body of `notify` can call `summarize` and use `{}` to format `item`.
+>  要指定多个特质约束，我们可以使用 `+`
+
+#### Clearer Trait Bounds with `where` Clauses
+Using too many trait bounds has its downsides. Each generic has its own trait bounds, so functions with multiple generic type parameters can contain lots of trait bound information between the function’s name and its parameter list, making the function signature hard to read. For this reason, Rust has alternate syntax for specifying trait bounds inside a `where` clause after the function signature. So, instead of writing this:
+
+```rust
+fn some_function<T: Display + Clone, U: Clone + Debug>(t: &T, u: &U) -> i32 {
+```
+
+we can use a `where` clause, like this:
+
+```rust
+fn some_function<T, U>(t: &T, u: &U) -> i32
+where
+    T: Display + Clone,
+    U: Clone + Debug,
+{
+```
+
+This function’s signature is less cluttered: the function name, parameter list, and return type are close together, similar to a function without lots of trait bounds.
+
+>  为泛型指定特质约束的另一种语法是在函数签名后使用 `where` 子句
+
+### Returning Types That Implement Traits
+We can also use the `impl Trait` syntax in the return position to return a value of some type that implements a trait, as shown here:
+
+```rust
+fn returns_summarizable() -> impl Summary {
+    SocialPost {
+        username: String::from("horse_ebooks"),
+        content: String::from(
+            "of course, as you probably already know, people",
+        ),
+        reply: false,
+        repost: false,
+    }
+}
+```
+
+By using `impl Summary` for the return type, we specify that the `returns_summarizable` function returns some type that implements the `Summary` trait without naming the concrete type. In this case, `returns_summarizable` returns a `SocialPost`, but the code calling this function doesn’t need to know that.
+>  特质约束同样可以用于函数的返回类型
+
+The ability to specify a return type only by the trait it implements is especially useful in the context of closures and iterators, which we cover in Chapter 13. Closures and iterators create types that only the compiler knows or types that are very long to specify. The `impl Trait` syntax lets you concisely specify that a function returns some type that implements the `Iterator` trait without needing to write out a very long type.
+>  通过特质指定返回类型在闭包和迭代器中十分有用
+>  闭包和迭代器会生成只有编译器才知道的类型，这些类型名称非常长，难以书写
+>  而 `impl Trait` 语法可以让我们简洁地指定实现了 `Iterator` 特质的返回类型，无须写出很长的类型名称
+
+However, you can only use `impl Trait` if you’re returning a single type. For example, this code that returns either a `NewsArticle` or a `SocialPost` with the return type specified as `impl Summary` wouldn’t work:
+
+```rust
+fn returns_summarizable(switch: bool) -> impl Summary {
+    if switch {
+        NewsArticle {
+            headline: String::from(
+                "Penguins win the Stanley Cup Championship!",
+            ),
+            location: String::from("Pittsburgh, PA, USA"),
+            author: String::from("Iceburgh"),
+            content: String::from(
+                "The Pittsburgh Penguins once again are the best \
+                 hockey team in the NHL.",
+            ),
+        }
+    } else {
+        SocialPost {
+            username: String::from("horse_ebooks"),
+            content: String::from(
+                "of course, as you probably already know, people",
+            ),
+            reply: false,
+            repost: false,
+        }
+    }
+}
+```
+
+Returning either a `NewsArticle` or a `SocialPost` isn’t allowed due to restrictions around how the `impl Trait` syntax is implemented in the compiler. We’ll cover how to write a function with this behavior in the [“Using Trait Objects That Allow for Values of Different Types”](https://doc.rust-lang.org/book/ch18-02-trait-objects.html#using-trait-objects-that-allow-for-values-of-different-types) section of Chapter 18.
+>  但注意返回 `impl Trait` 的函数仍然只能返回单个类型
+
+### Using Trait Bounds to Conditionally Implement Methods
+By using a trait bound with an `impl` block that uses generic type parameters, we can implement methods conditionally for types that implement the specified traits. For example, the type `Pair<T>` in Listing 10-15 always implements the `new` function to return a new instance of `Pair<T>` (recall from the [“Defining Methods”](https://doc.rust-lang.org/book/ch05-03-method-syntax.html#defining-methods) section of Chapter 5 that `Self` is a type alias for the type of the `impl` block, which in this case is `Pair<T>`). But in the next `impl` block, `Pair<T>` only implements the `cmp_display` method if its inner type `T` implements the `PartialOrd` trait that enables comparison _and_ the `Display` trait that enables printing.
+>  在 `impl` block 中为泛型类型参数添加特质约束，可以表示为实现了特质的泛型类型实现方法
+>  例如，下面的例子说明 `Pair<T>` 只有在 `T` 实现了 `PartialOrd, Display` 特质的情况下才实现 `cmp_display` 方法
+
+Filename: src/lib.rs
+
+```rust
+use std::fmt::Display;
+
+struct Pair<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Pair<T> {
+    fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+}
+
+impl<T: Display + PartialOrd> Pair<T> {
+    fn cmp_display(&self) {
+        if self.x >= self.y {
+            println!("The largest member is x = {}", self.x);
+        } else {
+            println!("The largest member is y = {}", self.y);
+        }
+    }
+}
+```
+
+[Listing 10-15](https://doc.rust-lang.org/book/ch10-02-traits.html#listing-10-15): Conditionally implementing methods on a generic type depending on trait bounds
+
+We can also conditionally implement a trait for any type that implements another trait. Implementations of a trait on any type that satisfies the trait bounds are called _blanket implementations_ and are used extensively in the Rust standard library. For example, the standard library implements the `ToString` trait on any type that implements the `Display` trait. The `impl` block in the standard library looks similar to this code:
+>  我们也可以使用特质约束，指明为已经实现了某个特质的泛型类型实现新的特质
+>  这种在满足特质约束的任意类型上实现特质的方法称为空白实现，在 Rust 标准库中广泛使用
+>  例如，标准库为任意实现了 `Display` 特质的类型实现了 `ToString` 特质，其代码形式类似于:
+
+>  注意为泛型类型实现特质时必须有特质约束，否则无法编译
+>  因为这样就表示为所有类型实现特质，违反了 “泛化需要有限度” 的原则，我们可以为一个特定类型实现特质，可以为满足约束的一组类型实现特质，但不能为所有类型实现特质
+
+```rust
+impl<T: Display> ToString for T {
+    // --snip--
+}
+```
+
+Because the standard library has this blanket implementation, we can call the `to_string` method defined by the `ToString` trait on any type that implements the `Display` trait. For example, we can turn integers into their corresponding `String` values like this because integers implement `Display`:
+>  因为这样的空白实现，我们可以为任意实现了 `Display` 特质的类型调用特质 `ToString` 类型下的 `to_string` 方法
+
+```rust
+let s = 3.to_string(); 
+```
+
+Blanket implementations appear in the documentation for the trait in the “Implementors” section.
+
+Traits and trait bounds let us write code that uses generic type parameters to reduce duplication but also specify to the compiler that we want the generic type to have particular behavior. The compiler can then use the trait bound information to check that all the concrete types used with our code provide the correct behavior. In dynamically typed languages, we would get an error at runtime if we called a method on a type which didn’t define the method. But Rust moves these errors to compile time so we’re forced to fix the problems before our code is even able to run. Additionally, we don’t have to write code that checks for behavior at runtime because we’ve already checked at compile time. Doing so improves performance without having to give up the flexibility of generics.
+>  编译器可以使用特质约束信息来检查代码中使用的具体类型是否提供正确行为
+>  在动态类型语言中，我们将在为某个类型调用它未定义的方法时获得运行时错误 (但是这个一般静态检查器也可以检查出来吧)，但 Rust 在编译时移除了这些错误，并且，我们可以不用编写运行时检查行为的代码，因为编译时已经保证了
+>  这即提高了性能，也没有放弃泛型的灵活性
+
+## 10.3 Validating References with Lifetimes
+Lifetimes are another kind of generic that we’ve already been using. Rather than ensuring that a type has the behavior we want, lifetimes ensure that references are valid as long as we need them to be.
+>  生命周期也是一类泛型，与确保类型具备我们期望的行为不同，生命周期确保引用在其需要的有效期内始终有效
+
+One detail we didn’t discuss in the [“References and Borrowing”](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html#references-and-borrowing) section in Chapter 4 is that every reference in Rust has a _lifetime_, which is the scope for which that reference is valid. Most of the time, lifetimes are implicit and inferred, just like most of the time, types are inferred. We are only required to annotate types when multiple types are possible. In a similar way, we have to annotate lifetimes when the lifetimes of references could be related in a few different ways. Rust requires us to annotate the relationships using generic lifetime parameters to ensure the actual references used at runtime will definitely be valid.
+>  Rust 中每个引用都有生命周期，它表示该引用有效的范围
+>  大多数情况下，生命周期是隐式推断的，就像大多数情况下类型也是推断的，我们只需要具有多种可能类型时才需要标记类型
+>  类似地，我们只需要在引用的生命周期可能以不同的方式相互关联时，才需要显示标注生命周期
+>  Rust 要求我们使用泛型生命周期参数来标注这些关系，确保在运行时实际使用的引用一定是有效的
+
+Annotating lifetimes is not even a concept most other programming languages have, so this is going to feel unfamiliar. Although we won’t cover lifetimes in their entirety in this chapter, we’ll discuss common ways you might encounter lifetime syntax so you can get comfortable with the concept.
+
+### Preventing Dangling References with Lifetimes
+The main aim of lifetimes is to prevent _dangling references_, which cause a program to reference data other than the data it’s intended to reference. Consider the program in Listing 10-16, which has an outer scope and an inner scope.
+>  生命周期的主要目标是避免悬挂引用，这类引用会导致程序引用到不是它想引用的数据
+
+```rust
+fn main() {
+    let r;
+
+    {
+        let x = 5;
+        r = &x;
+    }
+
+    println!("r: {r}");
+}
+```
+
+[Listing 10-16](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-16): An attempt to use a reference whose value has gone out of scope
+
+Note: The examples in Listings 10-16, 10-17, and 10-23 declare variables without giving them an initial value, so the variable name exists in the outer scope. At first glance, this might appear to be in conflict with Rust’s having no null values. However, if we try to use a variable before giving it a value, we’ll get a compile-time error, which shows that Rust indeed does not allow null values.
+>  上述示例声明了变量但没有赋初始值，因此变量名存在于外部作用域
+>  乍一看，这似乎与 Rust 不支持空值的特性相冲突，但如果我们在尝试给变量赋值之前使用它，编译器会报错，这恰恰说明了 Rust 不允许空值存在
+
+The outer scope declares a variable named `r` with no initial value, and the inner scope declares a variable named `x` with the initial value of `5`. Inside the inner scope, we attempt to set the value of `r` as a reference to `x`. Then the inner scope ends, and we attempt to print the value in `r`. This code won’t compile because the value that `r` is referring to has gone out of scope before we try to use it. Here is the error message:
+>  外部作用域声明了名为 `r` 没有初始值的变量
+>  内部作用域声明了名为 `x` 初始值为 `5` 的变量
+>  在内部作用域，我们尝试将 `r` 的值设为对 `x` 的引用，内部作用域结束后，我们尝试打印 `r` 中的值
+>  这将编译失败，因为 `r` 引用的值在我们使用它之前就离开了作用域
+
+```
+$ cargo run
+   Compiling chapter10 v0.1.0 (file:///projects/chapter10)
+error[E0597]: `x` does not live long enough
+ --> src/main.rs:6:13
+  |
+5 |         let x = 5;
+  |             - binding `x` declared here
+6 |         r = &x;
+  |             ^^ borrowed value does not live long enough
+7 |     }
+  |     - `x` dropped here while still borrowed
+8 |
+9 |     println!("r: {r}");
+  |                  --- borrow later used here
+
+For more information about this error, try `rustc --explain E0597`.
+error: could not compile `chapter10` (bin "chapter10") due to 1 previous error
+```
+
+The error message says that the variable `x` “does not live long enough.” The reason is that `x` will be out of scope when the inner scope ends on line 7. But `r` is still valid for the outer scope; because its scope is larger, we say that it “lives longer.” If Rust allowed this code to work, `r` would be referencing memory that was deallocated when `x` went out of scope, and anything we tried to do with `r` wouldn’t work correctly. So how does Rust determine that this code is invalid? It uses a borrow checker.
+>  如果我们让这部分代码编译，那么 `r` 所引用的内存将在 `x` 离开作用域之后就被释放，导致 bug
+>  Rust 使用借用检查器来决定这样的代码是否有效
+
+### The Borrow Checker
+The Rust compiler has a _borrow checker_ that compares scopes to determine whether all borrows are valid. Listing 10-17 shows the same code as Listing 10-16 but with annotations showing the lifetimes of the variables.
+>  Rust 编译器具有借用检查其，它会比较作用域，来决定所有的借用是否有效
+>  下例展示了所有变量的声明周期
+
+```rust
+fn main() {
+    let r;                // ---------+-- 'a
+                          //          |
+    {                     //          |
+        let x = 5;        // -+-- 'b  |
+        r = &x;           //  |       |
+    }                     // -+       |
+                          //          |
+    println!("r: {r}");   //          |
+}                         // ---------+
+```
+
+[Listing 10-17](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-17): Annotations of the lifetimes of `r` and `x`, named `'a` and `'b`, respectively
+
+Here, we’ve annotated the lifetime of `r` with `'a` and the lifetime of `x` with `'b`. As you can see, the inner `'b` block is much smaller than the outer `'a` lifetime block. At compile time, Rust compares the size of the two lifetimes and sees that `r` has a lifetime of `'a` but that it refers to memory with a lifetime of `'b`. The program is rejected because `'b` is shorter than `'a`: the subject of the reference doesn’t live as long as the reference.
+>  在编译时，Rust 会比较引用本身的生命周期和它所引用变量的生命周期，如果它所引用变量的生命周期比引用本身短，就编译失败
+
+Listing 10-18 fixes the code so it doesn’t have a dangling reference and it compiles without any errors.
+
+```rust
+fn main() {
+    let x = 5;            // ----------+-- 'b
+                          //           |
+    let r = &x;           // --+-- 'a  |
+                          //   |       |
+    println!("r: {r}");   //   |       |
+                          // --+       |
+}                         // ----------+
+```
+
+[Listing 10-18](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-18): A valid reference because the data has a longer lifetime than the reference
+
+Here, `x` has the lifetime `'b`, which in this case is larger than `'a`. This means `r` can reference `x` because Rust knows that the reference in `r` will always be valid while `x` is valid.
+
+Now that you know where the lifetimes of references are and how Rust analyzes lifetimes to ensure references will always be valid, let’s explore generic lifetimes of parameters and return values in the context of functions.
+
+### Generic Lifetimes in Functions
+We’ll write a function that returns the longer of two string slices. This function will take two string slices and return a single string slice. After we’ve implemented the `longest` function, the code in Listing 10-19 should print `The longest string is abcd`.
+>  我们实现一个函数，它接收两个 string slices，返回二者中较长的 string slice
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let string1 = String::from("abcd");
+    let string2 = "xyz";
+
+    let result = longest(string1.as_str(), string2);
+    println!("The longest string is {result}");
+}
+```
+
+[Listing 10-19](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-19): A `main` function that calls the `longest` function to find the longer of two string slices
+
+Note that we want the function to take string slices, which are references, rather than strings, because we don’t want the `longest` function to take ownership of its parameters. Refer to [“String Slices as Parameters”](https://doc.rust-lang.org/book/ch04-03-slices.html#string-slices-as-parameters) in Chapter 4 for more discussion about why the parameters we use in Listing 10-19 are the ones we want.
+
+If we try to implement the `longest` function as shown in Listing 10-20, it won’t compile.
+
+Filename: src/main.rs
+
+```rust
+fn longest(x: &str, y: &str) -> &str {
+    if x.len() > y.len() { x } else { y }
+}
+```
+
+[Listing 10-20](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-20): An implementation of the `longest` function that returns the longer of two string slices but does not yet compile
+
+Instead, we get the following error that talks about lifetimes:
+
+```
+$ cargo run
+   Compiling chapter10 v0.1.0 (file:///projects/chapter10)
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:9:33
+  |
+9 | fn longest(x: &str, y: &str) -> &str {
+  |               ----     ----     ^ expected named lifetime parameter
+  |
+  = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `x` or `y`
+help: consider introducing a named lifetime parameter
+  |
+9 | fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+  |           ++++     ++          ++          ++
+
+For more information about this error, try `rustc --explain E0106`.
+error: could not compile `chapter10` (bin "chapter10") due to 1 previous error
+```
+
+The help text reveals that the return type needs a generic lifetime parameter on it because Rust can’t tell whether the reference being returned refers to `x` or `y`. Actually, we don’t know either, because the `if` block in the body of this function returns a reference to `x` and the `else` block returns a reference to `y`!
+>  朴素地实现这个函数将不能编译，帮助信息说明返回类型需要有一个泛型生命周期参数，因为 Rust 无法判断函数所返回的引用是指向 `x` 还是 `y` 的
+
+When we’re defining this function, we don’t know the concrete values that will be passed into this function, so we don’t know whether the `if` case or the `else` case will execute. We also don’t know the concrete lifetimes of the references that will be passed in, so we can’t look at the scopes as we did in Listings 10-17 and 10-18 to determine whether the reference we return will always be valid. The borrow checker can’t determine this either, because it doesn’t know how the lifetimes of `x` and `y` relate to the lifetime of the return value. To fix this error, we’ll add generic lifetime parameters that define the relationship between the references so the borrow checker can perform its analysis.
+>  我们在定义该函数时，无法确定传给函数的具体值，因此我们不知道是否是执行 `if` 还是 `else`
+>  我们也不知道传入的引用的具体生命周期，因此我们无法通过作用域判断是否我们返回的引用总是有效的
+>  借用检查器也无法判断，因为它不知道 `x,y` 的生命周期是如何和返回值的生命周期相关联的
+>  为此，我们需要添加泛型生命周期参数，它定义了引用之间的关系，便于借用检查器执行它的分析
+
+>  Rust 的借用检查器不能静态判断返回的引用生命周期和哪个输入的生命周期相关联，也就是它不知道返回的引用是 “借自” `x` 还是 `y`
+
+>  假设 Rust 允许这样写
+
+```rust
+fn longest(x: &str, y: &str) -> &str {
+    if x.len() > y.len() { x } else { y }
+}
+```
+
+>  然后我们这样调用：
+
+```rust
+fn main() {
+    let string1 = String::from("long string");
+    let result;
+    {
+        let string2 = String::from("xyz");
+        result = longest(string1.as_str(), string2.as_str());
+        // 👆 string2 在这里结束作用域！
+    }
+    println!("The longest string is {}", result); // ❗️使用 result
+}
+```
+
+>  `string2` 是一个局部变量，在 `{}` 结束时被释放，而 `longest` 函数可能返回的是 `string2.as_str()` —— 也就是指向 `string2` 的引用。
+>  但 `string2` 已经被销毁了，因此在 `{}` 之外， `result` 就是一个悬挂引用，在 `println!` 时访问它，就是未定义行为
+
+### Lifetime Annotation Syntax
+Lifetime annotations don’t change how long any of the references live. Rather, they describe the relationships of the lifetimes of multiple references to each other without affecting the lifetimes. Just as functions can accept any type when the signature specifies a generic type parameter, functions can accept references with any lifetime by specifying a generic lifetime parameter.
+>  生命周期标注不会改变任何引用的实际存活时间，它们只是描述多个引用的生命周期之间的关系
+>  类似于函数可以在签名为泛型类型参数时接收任意类型，函数可以在指定泛型生命周期参数时接收具有任意生命周期的引用
+
+Lifetime annotations have a slightly unusual syntax: the names of lifetime parameters must start with an apostrophe (`'`) and are usually all lowercase and very short, like generic types. Most people use the name `'a` for the first lifetime annotation. We place lifetime parameter annotations after the `&` of a reference, using a space to separate the annotation from the reference’s type.
+>  生命周期参数的名字必须以 `'` 开头，通常为小写且非常短，类似于泛型类型
+>  我们在一个引用的 `&` 之后写下生命周期参数标注，使用空格分开引用的类型和引用的生命周期参数
+
+Here are some examples: a reference to an `i32` without a lifetime parameter, a reference to an `i32` that has a lifetime parameter named `'a`, and a mutable reference to an `i32` that also has the lifetime `'a`.
+
+```rust
+&i32        // a reference
+&'a i32     // a reference with an explicit lifetime
+&'a mut i32 // a mutable reference with an explicit lifetime
+```
+
+One lifetime annotation by itself doesn’t have much meaning because the annotations are meant to tell Rust how generic lifetime parameters of multiple references relate to each other. Let’s examine how the lifetime annotations relate to each other in the context of the `longest` function.
+>  仅有一个生命周期标注没有太多意义，因为这些标注的目的是告诉 Rust 多个引用的泛型生命周期参数是如何互相关联的
+
+### Lifetime Annotations in Function Signatures
+To use lifetime annotations in function signatures, we need to declare the generic _lifetime_ parameters inside angle brackets between the function name and the parameter list, just as we did with generic _type_ parameters.
+>  要在函数签名中使用生命周期标注，我们需要在 `<>` 中声明泛型生命周期参数，和声明泛型类型参数类似
+
+We want the signature to express the following constraint: the returned reference will be valid as long as both the parameters are valid. This is the relationship between lifetimes of the parameters and the return value. We’ll name the lifetime `'a` and then add it to each reference, as shown in Listing 10-21.
+>  我们希望签名表示以下的约束:
+>  返回的引用的将和参数的有效期保持一致，这就是参数的生命周期和返回值的生命周期之间的关系
+>  我们将泛型生命周期参数命名为 `'a`，并为每个引用都加上这个泛型生命周期参数
+
+Filename: src/main.rs
+
+```rust
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
+}
+```
+
+[Listing 10-21](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-21): The `longest` function definition specifying that all the references in the signature must have the same lifetime `'a`
+
+This code should compile and produce the result we want when we use it with the `main` function in Listing 10-19.
+
+The function signature now tells Rust that for some lifetime `'a`, the function takes two parameters, both of which are string slices that live at least as long as lifetime `'a`. The function signature also tells Rust that the string slice returned from the function will live at least as long as lifetime `'a`. In practice, it means that the lifetime of the reference returned by the `longest` function is the same as the smaller of the lifetimes of the values referred to by the function arguments. These relationships are what we want Rust to use when analyzing this code.
+>  现在的函数签名告诉 Rust: 对于某个生命周期 `'a`，该函数接受两个参数，这两个参数都是至少与生命周期 `'a` 存活时间一样长的 string slice
+>  该函数签名还告诉 Rust 该桉树返回的 string slice  的存活时间也至少和生命周期 `'a` 一样长
+>  实际上，这意味着 `longest` 函数返回的引用的生命周期和它的参数所引用的值的生命周期中较短的那个相同
+>  这正是我们希望 Rust 分析代码时使用的关系
+
+Remember, when we specify the lifetime parameters in this function signature, we’re not changing the lifetimes of any values passed in or returned. Rather, we’re specifying that the borrow checker should reject any values that don’t adhere to these constraints. Note that the `longest` function doesn’t need to know exactly how long `x` and `y` will live, only that some scope can be substituted for `'a` that will satisfy this signature.
+>  我们在函数签名中指定生命周期参数时，我们并不会改变传入或传出的值的生命周期，我们是在告诉借用检查器: 拒绝不遵循这些约束的值
+>  注意 `longest` 函数不需要准确知道 `x,y` 具体会存活多久，它只需要知道**存在某个作用域可以替换 `'a` 来满足签名中的要求**
+
+When annotating lifetimes in functions, the annotations go in the function signature, not in the function body. The lifetime annotations become part of the contract of the function, much like the types in the signature. Having function signatures contain the lifetime contract means the analysis the Rust compiler does can be simpler. If there’s a problem with the way a function is annotated or the way it is called, the compiler errors can point to the part of our code and the constraints more precisely. 
+>  当在函数中注解生命周期时，标注应该放在函数签名中，而不是函数体中
+>  生命周期注解构成了函数的契约的一部分，就像函数签名中的类型
+>  让函数签名包含生命周期契约意味着 Rust 编译器做的分析可以更简单，如果函数的标注或其调用的方式存在问题，编译器错误就可以更精确地指向代码中的具体部分和约束条件
+
+If, instead, the Rust compiler made more inferences about what we intended the relationships of the lifetimes to be, the compiler might only be able to point to a use of our code many steps away from the cause of the problem.
+>  相反，如果让 Rust 编译器自行对生命周期的关系进行推断，编译器可能指出距离问题根源更远的代码位置，使得调试更困难
+
+When we pass concrete references to `longest`, the concrete lifetime that is substituted for `'a` is the part of the scope of `x` that overlaps with the scope of `y`. In other words, the generic lifetime `'a` will get the concrete lifetime that is equal to the smaller of the lifetimes of `x` and `y`. Because we’ve annotated the returned reference with the same lifetime parameter `'a`, the returned reference will also be valid for the length of the smaller of the lifetimes of `x` and `y`.
+>  当我们向 `longest` 传入具体的引用时，将 `'a` 替换掉的具体生命周期将会是 `x` 的生命周期和 `y` 的生命周期重叠的那一部分
+>  换句话说，泛型生命周期 `'a` 将获得的具体生命周期等于 `x,y` 的生命周期中较小的那个
+>  因为我们已经将返回引用的生命周期标记为和生命周期参数 `'a` 相同，返回的引用的有效期就等于 `x,y` 的生命周期中较小的那个
+
+Let’s look at how the lifetime annotations restrict the `longest` function by passing in references that have different concrete lifetimes. Listing 10-22 is a straightforward example.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let string1 = String::from("long string is long");
+
+    {
+        let string2 = String::from("xyz");
+        let result = longest(string1.as_str(), string2.as_str());
+        println!("The longest string is {result}");
+    }
+}
+```
+
+[Listing 10-22](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-22): Using the `longest` function with references to `String` values that have different concrete lifetimes
+
+In this example, `string1` is valid until the end of the outer scope, `string2` is valid until the end of the inner scope, and `result` references something that is valid until the end of the inner scope. Run this code and you’ll see that the borrow checker approves; it will compile and print `The longest string is long string is long`.
+
+Next, let’s try an example that shows that the lifetime of the reference in `result` must be the smaller lifetime of the two arguments. We’ll move the declaration of the `result` variable outside the inner scope but leave the assignment of the value to the `result` variable inside the scope with `string2`. Then we’ll move the `println!` that uses `result` to outside the inner scope, after the inner scope has ended. The code in Listing 10-23 will not compile.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let string1 = String::from("long string is long");
+    let result;
+    {
+        let string2 = String::from("xyz");
+        result = longest(string1.as_str(), string2.as_str());
+    }
+    println!("The longest string is {result}");
+}
+```
+
+[Listing 10-23](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-23): Attempting to use `result` after `string2` has gone out of scope
+
+When we try to compile this code, we get this error:
+
+```
+$ cargo run
+   Compiling chapter10 v0.1.0 (file:///projects/chapter10)
+error[E0597]: `string2` does not live long enough
+ --> src/main.rs:6:44
+  |
+5 |         let string2 = String::from("xyz");
+  |             ------- binding `string2` declared here
+6 |         result = longest(string1.as_str(), string2.as_str());
+  |                                            ^^^^^^^ borrowed value does not live long enough
+7 |     }
+  |     - `string2` dropped here while still borrowed
+8 |     println!("The longest string is {result}");
+  |                                     -------- borrow later used here
+
+For more information about this error, try `rustc --explain E0597`.
+error: could not compile `chapter10` (bin "chapter10") due to 1 previous error
+```
+
+The error shows that for `result` to be valid for the `println!` statement, `string2` would need to be valid until the end of the outer scope. Rust knows this because we annotated the lifetimes of the function parameters and return values using the same lifetime parameter `'a`.
+
+As humans, we can look at this code and see that `string1` is longer than `string2`, and therefore, `result` will contain a reference to `string1`. Because `string1` has not gone out of scope yet, a reference to `string1` will still be valid for the `println!` statement. However, the compiler can’t see that the reference is valid in this case. We’ve told Rust that the lifetime of the reference returned by the `longest` function is the same as the smaller of the lifetimes of the references passed in. Therefore, the borrow checker disallows the code in Listing 10-23 as possibly having an invalid reference.
+
+Try designing more experiments that vary the values and lifetimes of the references passed in to the `longest` function and how the returned reference is used. Make hypotheses about whether or not your experiments will pass the borrow checker before you compile; then check to see if you’re right!
+
+### Thinking in Terms of Lifetimes
+The way in which you need to specify lifetime parameters depends on what your function is doing. For example, if we changed the implementation of the `longest` function to always return the first parameter rather than the longest string slice, we wouldn’t need to specify a lifetime on the `y` parameter. The following code will compile:
+>  我们需要如何指定生命周期参数取决于我们函数具体的功能，例如如果我们修改了 `longest` 的实现，让他永远返回第一个参数而不是更长的 string slice，我们就不需要为 `y` 指定生命周期
+
+Filename: src/main.rs
+
+```rust
+fn longest<'a>(x: &'a str, y: &str) -> &'a str {
+    x
+}
+```
+
+We’ve specified a lifetime parameter `'a` for the parameter `x` and the return type, but not for the parameter `y`, because the lifetime of `y` does not have any relationship with the lifetime of `x` or the return value.
+
+When returning a reference from a function, the lifetime parameter for the return type needs to match the lifetime parameter for one of the parameters. If the reference returned does _not_ refer to one of the parameters, it must refer to a value created within this function. However, this would be a dangling reference because the value will go out of scope at the end of the function. Consider this attempted implementation of the `longest` function that won’t compile:
+>  当函数返回一个引用时，返回类型的生命周期参数必须与函数的某个参数的生命周期参数匹配
+>  如果返回的引用并不引用函数的任何一个参数，那么它只能指向函数内创建的值，而这就会导致悬挂引用
+
+Filename: src/main.rs
+
+```rust
+fn longest<'a>(x: &str, y: &str) -> &'a str {
+    let result = String::from("really long string");
+    result.as_str()
+}
+```
+
+Here, even though we’ve specified a lifetime parameter `'a` for the return type, this implementation will fail to compile because the return value lifetime is not related to the lifetime of the parameters at all. Here is the error message we get:
+>  上例中，即使我们指定了生命周期参数，该实现也无法编译，因为返回值的生命周期和参数的生命周期没有关系
+
+```
+$ cargo run
+   Compiling chapter10 v0.1.0 (file:///projects/chapter10)
+error[E0515]: cannot return value referencing local variable `result`
+  --> src/main.rs:11:5
+   |
+11 |     result.as_str()
+   |     ------^^^^^^^^^
+   |     |
+   |     returns a value referencing data owned by the current function
+   |     `result` is borrowed here
+
+For more information about this error, try `rustc --explain E0515`.
+error: could not compile `chapter10` (bin "chapter10") due to 1 previous error
+```
+
+The problem is that `result` goes out of scope and gets cleaned up at the end of the `longest` function. We’re also trying to return a reference to `result` from the function. There is no way we can specify lifetime parameters that would change the dangling reference, and Rust won’t let us create a dangling reference. In this case, the best fix would be to return an owned data type rather than a reference so the calling function is then responsible for cleaning up the value.
+>  如果我们要返回函数内创建的值，最好的方式是返回一个拥有所有权的数据类型，而不是引用，让 Rust 为我们转移所有权
+
+Ultimately, lifetime syntax is about connecting the lifetimes of various parameters and return values of functions. Once they’re connected, Rust has enough information to allow memory-safe operations and disallow operations that would create dangling pointers or otherwise violate memory safety.
+>  归根结底，生命周期语法是关于将函数的各种参数和返回值的生命周期关联起来，一旦建立了这种关联，Rust 就有了足够的信息，以允许内存安全的操作，并禁止会创建悬挂指针或者违反内存安全的操作
+
+### Lifetime Annotations in Struct Definitions
+So far, the structs we’ve defined all hold owned types. We can define structs to hold references, but in that case we would need to add a lifetime annotation on every reference in the struct’s definition. Listing 10-24 has a struct named `ImportantExcerpt` that holds a string slice.
+>  目前为止，我们定义的所有结构体都拥有具有所有权的类型
+>  我们可以定义持有引用的结构体，要求是我们需要为结构体中的每个引用加上生命周期标记
+
+Filename: src/main.rs
+
+```rust
+struct ImportantExcerpt<'a> {
+    part: &'a str,
+}
+
+fn main() {
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence = novel.split('.').next().unwrap();
+    let i = ImportantExcerpt {
+        part: first_sentence,
+    };
+}
+```
+
+[Listing 10-24](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-24): A struct that holds a reference, requiring a lifetime annotation
+
+This struct has the single field `part` that holds a string slice, which is a reference. As with generic data types, we declare the name of the generic lifetime parameter inside angle brackets after the name of the struct so we can use the lifetime parameter in the body of the struct definition. This annotation means an instance of `ImportantExcerpt` can’t outlive the reference it holds in its `part` field.
+>  上例中的结构体的 field `part` 是 string slice，即引用
+>  和泛型数据类型一样，我们在 `<>` 中声明泛型生命周期参数，这样我们就可以在结构体定义中使用使用该生命周期参数
+>  这个生命周期的含义是结构体 `ImportantExcerpt` 的实例的存活时间不能比其 `part` 字段引用的值的存活时间更久 `
+
+The `main` function here creates an instance of the `ImportantExcerpt` struct that holds a reference to the first sentence of the `String` owned by the variable `novel`. The data in `novel` exists before the `ImportantExcerpt` instance is created. In addition, `novel` doesn’t go out of scope until after the `ImportantExcerpt` goes out of scope, so the reference in the `ImportantExcerpt` instance is valid.
+
+### Lifetime Elision
+You’ve learned that every reference has a lifetime and that you need to specify lifetime parameters for functions or structs that use references. However, we had a function in Listing 4-9, shown again in Listing 10-25, that compiled without lifetime annotations.
+>  我们已经知道，每个引用都有生命周期，而在使用引用的函数和结构体中，我们需要指定生命周期参数
+>  但是下面的函数不需要指定生命周期参数也可以编译
+
+Filename: src/lib.rs
+
+```rust
+fn first_word(s: &str) -> &str {
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+
+    &s[..]
+}
+```
+
+[Listing 10-25](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#listing-10-25): A function we defined in Listing 4-9 that compiled without lifetime annotations, even though the parameter and return type are references
+
+The reason this function compiles without lifetime annotations is historical: in early versions (pre-1.0) of Rust, this code wouldn’t have compiled because every reference needed an explicit lifetime. At that time, the function signature would have been written like this:
+>  该函数在没有生命周期标注的情况下可以编译是出于历史原因，在 Rust 早期版本，这段代码无法编译，因为每个引用都需要显式地指定生命周期，故函数签名应该被写为:
+
+```rust
+fn first_word<'a>(s: &'a str) -> &'a str {
+```
+
+After writing a lot of Rust code, the Rust team found that Rust programmers were entering the same lifetime annotations over and over in particular situations. These situations were predictable and followed a few deterministic patterns. The developers programmed these patterns into the compiler’s code so the borrow checker could infer the lifetimes in these situations and wouldn’t need explicit annotations.
+>  后来 Rust 团队发现 Rust 程序员在特定情况下反复输入相同的生命周期标注
+>  这些情况是可以预测的，并遵循一些特定的模式，开发者将这些模式加入了编译器中，故借用检查器可以在这些情况下自己推导生命周期，不需要显式标注
+
+This piece of Rust history is relevant because it’s possible that more deterministic patterns will emerge and be added to the compiler. In the future, even fewer lifetime annotations might be required.
+>  在将来，可能会出现更多确定性的模式，并被加入到编译器中，因此在将来或许要编写的生命周期标注会更少
+
+The patterns programmed into Rust’s analysis of references are called the _lifetime elision rules_. These aren’t rules for programmers to follow; they’re a set of particular cases that the compiler will consider, and if your code fits these cases, you don’t need to write the lifetimes explicitly.
+>  这些被嵌入到 Rust 引用分析中的模式被称为生命周期省略规则，这些规则不是要求程序员遵循的规则，而是编译器在分析代码时会考虑的一组特定情况，如果我们的代码符合这些情况，我们就不需要显式写生命周期
+
+The elision rules don’t provide full inference. If there is still ambiguity about what lifetimes the references have after Rust applies the rules, the compiler won’t guess what the lifetime of the remaining references should be. Instead of guessing, the compiler will give you an error that you can resolve by adding the lifetime annotations.
+>  省略规则不提供完整的推断，如果 Rust 编译器在应用了这些规则之后，引用的生命周期仍然存在歧义，编译器不会猜测，而会报错，让我们通过生命周期标注指定
+
+Lifetimes on function or method parameters are called _input lifetimes_, and lifetimes on return values are called _output lifetimes_.
+>  函数或方法参数上的生命周期称为输入生命周期，返回值上的生命周期称为输出生命周期
+
+The compiler uses three rules to figure out the lifetimes of the references when there aren’t explicit annotations. The first rule applies to input lifetimes, and the second and third rules apply to output lifetimes. If the compiler gets to the end of the three rules and there are still references for which it can’t figure out lifetimes, the compiler will stop with an error. These rules apply to `fn` definitions as well as `impl` blocks.
+>  当没有显式标注时，编译器会使用三个规则来推断引用的生命周期
+>  第一条规则适用于输入生命周期，第二条规则和第三条规则适用于输出生命周期
+>  如果编译器用完了三条规则后仍然存在不清楚的生命周期，它就会报错
+>  这些规则既适用于 `fn` 定义，也适用于 `impl` 块
+
+The first rule is that the compiler assigns a lifetime parameter to each parameter that’s a reference. In other words, a function with one parameter gets one lifetime parameter: `fn foo<'a>(x: &'a i32)`; a function with two parameters gets two separate lifetime parameters: `fn foo<'a, 'b>(x: &'a i32, y: &'b i32)`; and so on.
+>  第一条规则是编译器为每个是引用的参数赋予一个生命周期参数
+>  换句话说，只有一个类型的函数获得一个生命周期参数: `fn foo<'a>(x: &'a i32)`，有两个参数的函数得到两个独立的生命周期参数: `fn foo<'a, 'b>(x: &'a i32, y: &'b i32)`
+
+The second rule is that, if there is exactly one input lifetime parameter, that lifetime is assigned to all output lifetime parameters: `fn foo<'a>(x: &'a i32) -> &'a i32`.
+>  第二个规则是如果正好有一个输入生命周期参数，它会被赋予给所有输出生命周期参数: `fn foo<'a>(x: &'a i32) -> &'a i32`
+
+The third rule is that, if there are multiple input lifetime parameters, but one of them is `&self` or `&mut self` because this is a method, the lifetime of `self` is assigned to all output lifetime parameters. This third rule makes methods much nicer to read and write because fewer symbols are necessary.
+>  第三条规则是如果有多个输入生命周期参数，但其中一个是 `&self or &mut sef` (因为这个一个方法)，则 `self` 的生命周期会被赋予所有输出生命周期参数
+>  这个规则使得方法更容易编写和阅读
+
+Let’s pretend we’re the compiler. We’ll apply these rules to figure out the lifetimes of the references in the signature of the `first_word` function in Listing 10-25. The signature starts without any lifetimes associated with the references:
+
+```rust
+fn first_word(s: &str) -> &str {
+```
+
+Then the compiler applies the first rule, which specifies that each parameter gets its own lifetime. We’ll call it `'a` as usual, so now the signature is this:
+
+```rust
+fn first_word<'a>(s: &'a str) -> &str {
+```
+
+The second rule applies because there is exactly one input lifetime. The second rule specifies that the lifetime of the one input parameter gets assigned to the output lifetime, so the signature is now this:
+
+```rust
+fn first_word<'a>(s: &'a str) -> &'a str {
+```
+
+Now all the references in this function signature have lifetimes, and the compiler can continue its analysis without needing the programmer to annotate the lifetimes in this function signature.
+
+Let’s look at another example, this time using the `longest` function that had no lifetime parameters when we started working with it in Listing 10-20:
+
+```rust
+fn longest(x: &str, y: &str) -> &str {
+```
+
+Let’s apply the first rule: each parameter gets its own lifetime. This time we have two parameters instead of one, so we have two lifetimes:
+
+```rust
+fn longest<'a, 'b>(x: &'a str, y: &'b str) -> &str {
+```
+
+You can see that the second rule doesn’t apply because there is more than one input lifetime. The third rule doesn’t apply either, because `longest` is a function rather than a method, so none of the parameters are `self`. After working through all three rules, we still haven’t figured out what the return type’s lifetime is. This is why we got an error trying to compile the code in Listing 10-20: the compiler worked through the lifetime elision rules but still couldn’t figure out all the lifetimes of the references in the signature.
+
+Because the third rule really only applies in method signatures, we’ll look at lifetimes in that context next to see why the third rule means we don’t have to annotate lifetimes in method signatures very often.
+
+### Lifetime Annotations in Method Definitions
+When we implement methods on a struct with lifetimes, we use the same syntax as that of generic type parameters, as shown in Listing 10-11. Where we declare and use the lifetime parameters depends on whether they’re related to the struct fields or the method parameters and return values.
+>  当我们在具有生命周期的结构体上实现方法时，我们使用和泛型类型参数相同的语法
+>  生命周期参数声明和使用的位置取决于它们是和结构体字段相关还是和方法参数或返回类型相关
+
+Lifetime names for struct fields always need to be declared after the `impl` keyword and then used after the struct’s name because those lifetimes are part of the struct’s type.
+>  结构体字段的声明周期名称必须在 `impl` 关键字之后声明，然后在结构体名称后使用，因为这些生命周期是**结构体类型的一部分**
+
+In method signatures inside the `impl` block, references might be tied to the lifetime of references in the struct’s fields, or they might be independent. In addition, the lifetime elision rules often make it so that lifetime annotations aren’t necessary in method signatures. Let’s look at some examples using the struct named `ImportantExcerpt` that we defined in Listing 10-24.
+>  在 `impl` 块内的方法签名中的引用可能和结构体字段中的引用的生命周期关联，也可能独立
+>  此外，生命周期省略规则经常使得方法签名中无需添加生命周期标注
+
+First we’ll use a method named `level` whose only parameter is a reference to `self` and whose return value is an `i32`, which is not a reference to anything:
+
+```rust
+impl<'a> ImportantExcerpt<'a> {
+    fn level(&self) -> i32 {
+        3
+    }
+}
+```
+
+The lifetime parameter declaration after `impl` and its use after the type name are required, but we’re not required to annotate the lifetime of the reference to `self` because of the first elision rule.
+>  因为第一条规则，虽然我们是接收 `&self`，我们不需要标记生命周期
+
+Here is an example where the third lifetime elision rule applies:
+
+```rust
+impl<'a> ImportantExcerpt<'a> {
+    fn announce_and_return_part(&self, announcement: &str) -> &str {
+        println!("Attention please: {announcement}");
+        self.part
+    }
+}
+```
+
+There are two input lifetimes, so Rust applies the first lifetime elision rule and gives both `&self` and `announcement` their own lifetimes. Then, because one of the parameters is `&self`, the return type gets the lifetime of `&self`, and all lifetimes have been accounted for.
+
+>  因为结构体存储了引用，故结构体实例的生命周期是由它内部字段的生命周期决定的，因此如果返回的是结构体字段引用，可以直接定义它的生命周期是结构体生命周期
+>  注意如果返回 `announcement`，则不能编译，需要额外标注，必须声明 “我返回的引用至少活到 `announcement` 死为止”
+>  生命周期就是要告诉调用者我返回的东西的生命周期是什么，Rust 编译器函数明确这个信息，因为函数里面具体做什么它不知道，Rust 编译器通过这个信息对代码进行分析，判断是否存在悬空引用
+
+### The Static Lifetime
+One special lifetime we need to discuss is `'static`, which denotes that the affected reference _can_ live for the entire duration of the program. All string literals have the `'static` lifetime, which we can annotate as follows:
+>  `'static` 表示引用的存活时间和整个程序一样
+>  所有的字符串字面值的生命周期都是 `'static`
+
+```rust
+let s: &'static str = "I have a static lifetime.";
+```
+
+The text of this string is stored directly in the program’s binary, which is always available. Therefore, the lifetime of all string literals is `'static`.
+>  字符串字面值的文本存储在程序的二进制文件中，故总是可用，因此所有字符串字面值的生命周期都是 `'static`
+
+You might see suggestions in error messages to use the `'static` lifetime. But before specifying `'static` as the lifetime for a reference, think about whether the reference you have actually lives the entire lifetime of your program or not, and whether you want it to. Most of the time, an error message suggesting the `'static` lifetime results from attempting to create a dangling reference or a mismatch of the available lifetimes. In such cases, the solution is to fix those problems, not to specify the `'static` lifetime.
+
+## Generic Type Parameters, Trait Bounds, and Lifetimes Together
+Let’s briefly look at the syntax of specifying generic type parameters, trait bounds, and lifetimes all in one function!
+
+```rust
+use std::fmt::Display;
+
+fn longest_with_an_announcement<'a, T>(
+    x: &'a str,
+    y: &'a str,
+    ann: T,
+) -> &'a str
+where
+    T: Display,
+{
+    println!("Announcement! {ann}");
+    if x.len() > y.len() { x } else { y }
+}
+```
+
+This is the `longest` function from Listing 10-21 that returns the longer of two string slices. But now it has an extra parameter named `ann` of the generic type `T`, which can be filled in by any type that implements the `Display` trait as specified by the `where` clause. This extra parameter will be printed using `{}`, which is why the `Display` trait bound is necessary. Because lifetimes are a type of generic, the declarations of the lifetime parameter `'a` and the generic type parameter `T` go in the same list inside the angle brackets after the function name.
+>  因为生命周期也是一种泛型，因此生命周期参数和泛型类型参数都位于 `<>` 中
+
+## Summary
+We covered a lot in this chapter! Now that you know about generic type parameters, traits and trait bounds, and generic lifetime parameters, you’re ready to write code without repetition that works in many different situations. Generic type parameters let you apply the code to different types. Traits and trait bounds ensure that even though the types are generic, they’ll have the behavior the code needs. You learned how to use lifetime annotations to ensure that this flexible code won’t have any dangling references. And all of this analysis happens at compile time, which doesn’t affect runtime performance!
+
+Believe it or not, there is much more to learn on the topics we discussed in this chapter: Chapter 18 discusses trait objects, which are another way to use traits. There are also more complex scenarios involving lifetime annotations that you will only need in very advanced scenarios; for those, you should read the [Rust Reference](https://doc.rust-lang.org/reference/index.html). But next, you’ll learn how to write tests in Rust so you can make sure your code is working the way it should.
+
+# 11 Writing Automated Tests
+In his 1972 essay “The Humble Programmer,” Edsger W. Dijkstra said that “program testing can be a very effective way to show the presence of bugs, but it is hopelessly inadequate for showing their absence.” That doesn’t mean we shouldn’t try to test as much as we can!
+
+Correctness in our programs is the extent to which our code does what we intend it to do. Rust is designed with a high degree of concern about the correctness of programs, but correctness is complex and not easy to prove. Rust’s type system shoulders a huge part of this burden, but the type system cannot catch everything. As such, Rust includes support for writing automated software tests.
+
+Say we write a function `add_two` that adds 2 to whatever number is passed to it. This function’s signature accepts an integer as a parameter and returns an integer as a result. When we implement and compile that function, Rust does all the type checking and borrow checking that you’ve learned so far to ensure that, for instance, we aren’t passing a `String` value or an invalid reference to this function. But Rust _can’t_ check that this function will do precisely what we intend, which is return the parameter plus 2 rather than, say, the parameter plus 10 or the parameter minus 50! That’s where tests come in.
+
+We can write tests that assert, for example, that when we pass `3` to the `add_two` function, the returned value is `5`. We can run these tests whenever we make changes to our code to make sure any existing correct behavior has not changed.
+
+Testing is a complex skill: although we can’t cover in one chapter every detail about how to write good tests, in this chapter we will discuss the mechanics of Rust’s testing facilities. We’ll talk about the annotations and macros available to you when writing your tests, the default behavior and options provided for running your tests, and how to organize tests into unit tests and integration tests.
+
+## 11.1 How to Write Tests
+Tests are Rust functions that verify that the non-test code is functioning in the expected manner. The bodies of test functions typically perform these three actions:
+
+- Set up any needed data or state.
+- Run the code you want to test.
+- Assert that the results are what you expect.
+
+>  测试函数的函数体通常执行以下动作:
+>  - 设定好需要的数据和状态
+>  - 运行需要测试的代码
+>  - 断言结果是所期望的
+
+Let’s look at the features Rust provides specifically for writing tests that take these actions, which include the `test` attribute, a few macros, and the `should_panic` attribute.
+
+### The Anatomy of a Test Function
+At its simplest, a test in Rust is a function that’s annotated with the `test` attribute. Attributes are metadata about pieces of Rust code; one example is the `derive` attribute we used with structs in Chapter 5. To change a function into a test function, add `#[test]` on the line before `fn`. When you run your tests with the `cargo test` command, Rust builds a test runner binary that runs the annotated functions and reports on whether each test function passes or fails.
+>  Rust 中的 test 是一个用 `test` 属性注解的函数
+>  属性是关于 Rust 代码片段的**元数据**，例如我们之前使用过 `derive` 属性
+>  要将函数变为测试函数，我们在 `fn` 上添加 `#[test]`
+>  使用 `cargo test` 时，Rust 会构造运行测试的二进制函数，运行标记的函数，并报告是否每个测试函数通过
+
+Whenever we make a new library project with Cargo, a test module with a test function in it is automatically generated for us. This module gives you a template for writing your tests so you don’t have to look up the exact structure and syntax every time you start a new project. You can add as many additional test functions and as many test modules as you want!
+>  使用 Cargo 构造新的库项目时，都会自动生成带有 test 函数的 test module
+>  该 module 会提供编写测试的模板代码
+>  我们可以自行添加 test modules 和 test functions
+
+We’ll explore some aspects of how tests work by experimenting with the template test before we actually test any code. Then we’ll write some real-world tests that call some code that we’ve written and assert that its behavior is correct.
+
+Let’s create a new library project called `adder` that will add two numbers:
+
+```
+$ cargo new adder --lib
+     Created library `adder` project
+$ cd adder
+```
+
+The contents of the _src/lib.rs_ file in your `adder` library should look like Listing 11-1.
+
+Filename: src/lib.rs
+
+```rust
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+}
+```
+
+[Listing 11-1](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-1): The code generated automatically by `cargo new`
+
+The file starts with an example `add` function, so that we have something to test.
+
+For now, let’s focus solely on the `it_works` function. Note the `#[test]` annotation: this attribute indicates this is a test function, so the test runner knows to treat this function as a test. We might also have non-test functions in the `tests` module to help set up common scenarios or perform common operations, so we always need to indicate which functions are tests.
+>  `#[test]` 属性表示函数为测试函数
+>  在 `tests` module 中也可以有不是测试函数的函数
+
+The example function body uses the `assert_eq!` macro to assert that `result`, which contains the result of calling `add` with 2 and 2, equals 4. This assertion serves as an example of the format for a typical test. Let’s run it to see that this test passes.
+
+The `cargo test` command runs all tests in our project, as shown in Listing 11-2.
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.57s
+     Running unittests src/lib.rs (target/debug/deps/adder-01ad14159ff659ab)
+
+running 1 test
+test tests::it_works ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+[Listing 11-2](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-2): The output from running the automatically generated test
+
+Cargo compiled and ran the test. We see the line `running 1 test`. The next line shows the name of the generated test function, called `tests::it_works`, and that the result of running that test is `ok`. The overall summary `test result: ok.` means that all the tests passed, and the portion that reads `1 passed; 0 failed` totals the number of tests that passed or failed.
+
+It’s possible to mark a test as ignored so it doesn’t run in a particular instance; we’ll cover that in the [“Ignoring Some Tests Unless Specifically Requested”](https://doc.rust-lang.org/book/ch11-02-running-tests.html#ignoring-some-tests-unless-specifically-requested) section later in this chapter. Because we haven’t done that here, the summary shows `0 ignored`. We can also pass an argument to the `cargo test` command to run only tests whose name matches a string; this is called _filtering_ and we’ll cover it in the [“Running a Subset of Tests by Name”](https://doc.rust-lang.org/book/ch11-02-running-tests.html#running-a-subset-of-tests-by-name) section. Here we haven’t filtered the tests being run, so the end of the summary shows `0 filtered out`.
+
+The `0 measured` statistic is for benchmark tests that measure performance. Benchmark tests are, as of this writing, only available in nightly Rust. See [the documentation about benchmark tests](https://doc.rust-lang.org/unstable-book/library-features/test.html) to learn more.
+
+The next part of the test output starting at `Doc-tests adder` is for the results of any documentation tests. We don’t have any documentation tests yet, but Rust can compile any code examples that appear in our API documentation. This feature helps keep your docs and your code in sync! We’ll discuss how to write documentation tests in the [“Documentation Comments as Tests”](https://doc.rust-lang.org/book/ch14-02-publishing-to-crates-io.html#documentation-comments-as-tests) section of Chapter 14. For now, we’ll ignore the `Doc-tests` output.
+>  Rust 可以编译出现在我们 API 文档中的代码示例，doc-test 保持我们的文档和代码是一致的
+
+Let’s start to customize the test to our own needs. First, change the name of the `it_works` function to a different name, such as `exploration`, like so:
+
+Filename: src/lib.rs
+
+```rust
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exploration() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+}
+```
+
+Then run `cargo test` again. The output now shows `exploration` instead of `it_works`:
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 1 test
+test tests::exploration ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+Now we’ll add another test, but this time we’ll make a test that fails! Tests fail when something in the test function panics. Each test is run in a new thread, and when the main thread sees that a test thread has died, the test is marked as failed. In Chapter 9, we talked about how the simplest way to panic is to call the `panic!` macro. Enter the new test as a function named `another`, so your _src/lib.rs_ file looks like Listing 11-3.
+>  如果 test function panic，测试失败
+>  每个 test 都在新线程中运行，主线程发现测试线程失败，就将测试标记为失败
+
+Filename: src/lib.rs
+
+```rust
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exploration() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn another() {
+        panic!("Make this test fail");
+    }
+}
+```
+
+[Listing 11-3](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-3): Adding a second test that will fail because we call the `panic!` macro
+
+Run the tests again using `cargo test`. The output should look like Listing 11-4, which shows that our `exploration` test passed and `another` failed.
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 2 tests
+test tests::another ... FAILED
+test tests::exploration ... ok
+
+failures:
+
+---- tests::another stdout ----
+
+thread 'tests::another' panicked at src/lib.rs:17:9:
+Make this test fail
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::another
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+[Listing 11-4](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-4): Test results when one test passes and one test fails
+
+Instead of `ok`, the line `test tests::another` shows `FAILED`. Two new sections appear between the individual results and the summary: the first displays the detailed reason for each test failure. In this case, we get the details that `tests::another` failed because it panicked with the message `Make this test fail` on line 17 in the _src/lib.rs_ file. The next section lists just the names of all the failing tests, which is useful when there are lots of tests and lots of detailed failing test output. We can use the name of a failing test to run just that test to more easily debug it; we’ll talk more about ways to run tests in the [“Controlling How Tests Are Run”](https://doc.rust-lang.org/book/ch11-02-running-tests.html#controlling-how-tests-are-run) section.
+
+The summary line displays at the end: overall, our test result is `FAILED`. We had one test pass and one test fail.
+
+Now that you’ve seen what the test results look like in different scenarios, let’s look at some macros other than `panic!` that are useful in tests.
+
+### Checking Results with the `assert!` Macro
+The `assert!` macro, provided by the standard library, is useful when you want to ensure that some condition in a test evaluates to `true`. We give the `assert!` macro an argument that evaluates to a Boolean. If the value is `true`, nothing happens and the test passes. If the value is `false`, the `assert!` macro calls `panic!` to cause the test to fail. Using the `assert!` macro helps us check that our code is functioning in the way we intend.
+>  `assert!` macro 接受评估为布尔值的参数，如果值为 `false`，会调用 `panic!`
+
+In Chapter 5, Listing 5-15, we used a `Rectangle` struct and a `can_hold` method, which are repeated here in Listing 11-5. Let’s put this code in the _src/lib.rs_ file, then write some tests for it using the `assert!` macro.
+
+Filename: src/lib.rs
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+```
+
+[Listing 11-5](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-5): The `Rectangle` struct and its `can_hold` method from Chapter 5
+
+The `can_hold` method returns a Boolean, which means it’s a perfect use case for the `assert!` macro. In Listing 11-6, we write a test that exercises the `can_hold` method by creating a `Rectangle` instance that has a width of 8 and a height of 7 and asserting that it can hold another `Rectangle` instance that has a width of 5 and a height of 1.
+
+Filename: src/lib.rs
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn larger_can_hold_smaller() {
+        let larger = Rectangle {
+            width: 8,
+            height: 7,
+        };
+        let smaller = Rectangle {
+            width: 5,
+            height: 1,
+        };
+
+        assert!(larger.can_hold(&smaller));
+    }
+}
+```
+
+[Listing 11-6](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-6): A test for `can_hold` that checks whether a larger rectangle can indeed hold a smaller rectangle
+
+Note the `use super::*;` line inside the `tests` module. The `tests` module is a regular module that follows the usual visibility rules we covered in Chapter 7 in the [“Paths for Referring to an Item in the Module Tree”](https://doc.rust-lang.org/book/ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html) section. Because the `tests` module is an inner module, we need to bring the code under test in the outer module into the scope of the inner module. We use a glob here, so anything we define in the outer module is available to this `tests` module.
+>  `tests` module 中的 `use super::*` 表示将外部 module 的代码带入内部 module
+
+We’ve named our test `larger_can_hold_smaller`, and we’ve created the two `Rectangle` instances that we need. Then we called the `assert!` macro and passed it the result of calling `larger.can_hold(&smaller)`. This expression is supposed to return `true`, so our test should pass. Let’s find out!
+
+```
+$ cargo test
+   Compiling rectangle v0.1.0 (file:///projects/rectangle)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s
+     Running unittests src/lib.rs (target/debug/deps/rectangle-6584c4561e48942e)
+
+running 1 test
+test tests::larger_can_hold_smaller ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rectangle
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+It does pass! Let’s add another test, this time asserting that a smaller rectangle cannot hold a larger rectangle:
+
+Filename: src/lib.rs
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn larger_can_hold_smaller() {
+        // --snip--
+    }
+
+    #[test]
+    fn smaller_cannot_hold_larger() {
+        let larger = Rectangle {
+            width: 8,
+            height: 7,
+        };
+        let smaller = Rectangle {
+            width: 5,
+            height: 1,
+        };
+
+        assert!(!smaller.can_hold(&larger));
+    }
+}
+```
+
+Because the correct result of the `can_hold` function in this case is `false`, we need to negate that result before we pass it to the `assert!` macro. As a result, our test will pass if `can_hold` returns `false`:
+
+```
+$ cargo test
+   Compiling rectangle v0.1.0 (file:///projects/rectangle)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s
+     Running unittests src/lib.rs (target/debug/deps/rectangle-6584c4561e48942e)
+
+running 2 tests
+test tests::larger_can_hold_smaller ... ok
+test tests::smaller_cannot_hold_larger ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rectangle
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+Two tests that pass! Now let’s see what happens to our test results when we introduce a bug in our code. We’ll change the implementation of the `can_hold` method by replacing the greater-than sign with a less-than sign when it compares the widths:
+
+```rust
+// --snip--
+impl Rectangle {
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width < other.width && self.height > other.height
+    }
+}
+```
+
+Running the tests now produces the following:
+
+```
+$ cargo test
+   Compiling rectangle v0.1.0 (file:///projects/rectangle)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s
+     Running unittests src/lib.rs (target/debug/deps/rectangle-6584c4561e48942e)
+
+running 2 tests
+test tests::larger_can_hold_smaller ... FAILED
+test tests::smaller_cannot_hold_larger ... ok
+
+failures:
+
+---- tests::larger_can_hold_smaller stdout ----
+
+thread 'tests::larger_can_hold_smaller' panicked at src/lib.rs:28:9:
+assertion failed: larger.can_hold(&smaller)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::larger_can_hold_smaller
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+Our tests caught the bug! Because `larger.width` is `8` and `smaller.width` is `5`, the comparison of the widths in `can_hold` now returns `false`: 8 is not less than 5.
+
+### Testing Equality with the `assert_eq!` and `assert_ne!` Macros
+A common way to verify functionality is to test for equality between the result of the code under test and the value you expect the code to return. You could do this by using the `assert!` macro and passing it an expression using the `==` operator. However, this is such a common test that the standard library provides a pair of macros— `assert_eq!` and `assert_ne!` —to perform this test more conveniently. These macros compare two arguments for equality or inequality, respectively. 
+
+They’ll also print the two values if the assertion fails, which makes it easier to see _why_ the test failed; conversely, the `assert!` macro only indicates that it got a `false` value for the `==` expression, without printing the values that led to the `false` value.
+>  `assert_eq!, assert_ne!` 会打印出两个 values 如果 assertion 失败
+
+In Listing 11-7, we write a function named `add_two` that adds `2` to its parameter, then we test this function using the `assert_eq!` macro.
+
+Filename: src/lib.rs
+
+```rust
+pub fn add_two(a: u64) -> u64 {
+    a + 2
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_adds_two() {
+        let result = add_two(2);
+        assert_eq!(result, 4);
+    }
+}
+```
+
+[Listing 11-7](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-7): Testing the function `add_two` using the `assert_eq!` macro
+
+Let’s check that it passes!
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 1 test
+test tests::it_adds_two ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+We create a variable named `result` that holds the result of calling `add_two(2)`. Then we pass `result` and `4` as the arguments to the `assert_eq!` macro. The output line for this test is `test tests::it_adds_two ... ok`, and the `ok` text indicates that our test passed!
+
+Let’s introduce a bug into our code to see what `assert_eq!` looks like when it fails. Change the implementation of the `add_two` function to instead add `3`:
+
+```rust
+pub fn add_two(a: u64) -> u64 {
+    a + 3
+}
+```
+
+Run the tests again:
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 1 test
+test tests::it_adds_two ... FAILED
+
+failures:
+
+---- tests::it_adds_two stdout ----
+
+thread 'tests::it_adds_two' panicked at src/lib.rs:12:9:
+assertion `left == right` failed
+  left: 5
+ right: 4
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::it_adds_two
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+Our test caught the bug! The `tests::it_adds_two` test failed, and the message tells us that the assertion that failed was `left == right` and what the `left` and `right` values are. This message helps us start debugging: the `left` argument, where we had the result of calling `add_two(2)`, was `5` but the `right` argument was `4`. You can imagine that this would be especially helpful when we have a lot of tests going on.
+
+Note that in some languages and test frameworks, the parameters to equality assertion functions are called `expected` and `actual`, and the order in which we specify the arguments matters. However, in Rust, they’re called `left` and `right`, and the order in which we specify the value we expect and the value the code produces doesn’t matter. We could write the assertion in this test as `assert_eq!(4, result)`, which would result in the same failure message that displays ``assertion `left == right` failed``.
+
+The `assert_ne!` macro will pass if the two values we give it are not equal and fail if they’re equal. This macro is most useful for cases when we’re not sure what a value _will_ be, but we know what the value definitely _shouldn’t_ be. For example, if we’re testing a function that is guaranteed to change its input in some way, but the way in which the input is changed depends on the day of the week that we run our tests, the best thing to assert might be that the output of the function is not equal to the input.
+
+Under the surface, the `assert_eq!` and `assert_ne!` macros use the operators `==` and `!=`, respectively. When the assertions fail, these macros print their arguments using debug formatting, which means the values being compared must implement the `PartialEq` and `Debug` traits. All primitive types and most of the standard library types implement these traits. For structs and enums that you define yourself, you’ll need to implement `PartialEq` to assert equality of those types. You’ll also need to implement `Debug` to print the values when the assertion fails. Because both traits are derivable traits, as mentioned in Listing 5-12 in Chapter 5, this is usually as straightforward as adding the `#[derive(PartialEq, Debug)]` annotation to your struct or enum definition. See Appendix C, [“Derivable Traits,”](https://doc.rust-lang.org/book/appendix-03-derivable-traits.html) for more details about these and other derivable traits.
+>  `assert_eq!, assert_ne!` macro 使用的是 `==, !=` 运算符
+>  断言失败时，它们会以 debug 格式打印参数
+>  因此比较的 values 必须实现 `PartialEq, Debug` 特质，所有的 primitive 类型和大多数标准库类型都实现了这两个特质
+>  对于自己定义的 structs, enums，我们需要自行实现 `PartialEq` 和 `Debug`，但这两个特质都是可自动推导的，我们可以直接在定义上加 `#[derive(PartialEq, Debug)]` 标记
+
+### Adding Custom Failure Messages
+You can also add a custom message to be printed with the failure message as optional arguments to the `assert!`, `assert_eq!`, and `assert_ne!` macros. Any arguments specified after the required arguments are passed along to the `format!` macro (discussed in [“Concatenation with the `+` Operator or the `format!` Macro”](https://doc.rust-lang.org/book/ch08-02-strings.html#concatenation-with-the--operator-or-the-format-macro) in Chapter 8), so you can pass a format string that contains `{}` placeholders and values to go in those placeholders. Custom messages are useful for documenting what an assertion means; when a test fails, you’ll have a better idea of what the problem is with the code.
+
+For example, let’s say we have a function that greets people by name and we want to test that the name we pass into the function appears in the output:
+
+Filename: src/lib.rs
+
+```rust
+pub fn greeting(name: &str) -> String {
+    format!("Hello {name}!")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn greeting_contains_name() {
+        let result = greeting("Carol");
+        assert!(result.contains("Carol"));
+    }
+}
+```
+
+The requirements for this program haven’t been agreed upon yet, and we’re pretty sure the `Hello` text at the beginning of the greeting will change. We decided we don’t want to have to update the test when the requirements change, so instead of checking for exact equality to the value returned from the `greeting` function, we’ll just assert that the output contains the text of the input parameter.
+
+Now let’s introduce a bug into this code by changing `greeting` to exclude `name` to see what the default test failure looks like:
+
+```rust
+pub fn greeting(name: &str) -> String {
+    String::from("Hello!")
+}
+```
+
+Running this test produces the following:
+
+```
+$ cargo test
+   Compiling greeter v0.1.0 (file:///projects/greeter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.91s
+     Running unittests src/lib.rs (target/debug/deps/greeter-170b942eb5bf5e3a)
+
+running 1 test
+test tests::greeting_contains_name ... FAILED
+
+failures:
+
+---- tests::greeting_contains_name stdout ----
+
+thread 'tests::greeting_contains_name' panicked at src/lib.rs:12:9:
+assertion failed: result.contains("Carol")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::greeting_contains_name
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+
+This result just indicates that the assertion failed and which line the assertion is on. A more useful failure message would print the value from the `greeting` function. Let’s add a custom failure message composed of a format string with a placeholder filled in with the actual value we got from the `greeting` function:
+
+```rust
+#[test]
+fn greeting_contains_name() {
+    let result = greeting("Carol");
+    assert!(
+        result.contains("Carol"),
+        "Greeting did not contain name, value was `{result}`"
+    );
+}
+```
+
+Now when we run the test, we’ll get a more informative error message:
+
+```
+$ cargo test
+   Compiling greeter v0.1.0 (file:///projects/greeter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.93s
+     Running unittests src/lib.rs (target/debug/deps/greeter-170b942eb5bf5e3a)
+
+running 1 test
+test tests::greeting_contains_name ... FAILED
+
+failures:
+
+---- tests::greeting_contains_name stdout ----
+
+thread 'tests::greeting_contains_name' panicked at src/lib.rs:12:9:
+Greeting did not contain name, value was `Hello!`
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::greeting_contains_name
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+We can see the value we actually got in the test output, which would help us debug what happened instead of what we were expecting to happen.
+
+### Checking for Panics with `should_panic`
+In addition to checking return values, it’s important to check that our code handles error conditions as we expect. For example, consider the `Guess` type that we created in Chapter 9, Listing 9-13. Other code that uses `Guess` depends on the guarantee that `Guess` instances will contain only values between 1 and 100. We can write a test that ensures that attempting to create a `Guess` instance with a value outside that range panics.
+
+We do this by adding the attribute `should_panic` to our test function. The test passes if the code inside the function panics; the test fails if the code inside the function doesn’t panic.
+>  要测试是否函数可以处理错误情况，可以在测试函数上添加属性 `should_panic`，如果函数内代码 panic，则测试通过，否则测试失败
+
+Listing 11-8 shows a test that checks that the error conditions of `Guess::new` happen when we expect them to.
+
+Filename: src/lib.rs
+
+```rust
+pub struct Guess {
+    value: i32,
+}
+
+impl Guess {
+    pub fn new(value: i32) -> Guess {
+        if value < 1 || value > 100 {
+            panic!("Guess value must be between 1 and 100, got {value}.");
+        }
+
+        Guess { value }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn greater_than_100() {
+        Guess::new(200);
+    }
+}
+```
+
+[Listing 11-8](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-8): Testing that a condition will cause a `panic!`
+
+We place the `#[should_panic]` attribute after the `#[test]` attribute and before the test function it applies to. Let’s look at the result when this test passes:
+
+```
+$ cargo test
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running unittests src/lib.rs (target/debug/deps/guessing_game-57d70c3acb738f4d)
+
+running 1 test
+test tests::greater_than_100 - should panic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guessing_game
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+Looks good! Now let’s introduce a bug in our code by removing the condition that the `new` function will panic if the value is greater than 100:
+
+```rust
+// --snip--
+impl Guess {
+    pub fn new(value: i32) -> Guess {
+        if value < 1 {
+            panic!("Guess value must be between 1 and 100, got {value}.");
+        }
+
+        Guess { value }
+    }
+}
+```
+
+When we run the test in Listing 11-8, it will fail:
+
+```
+$ cargo test
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.62s
+     Running unittests src/lib.rs (target/debug/deps/guessing_game-57d70c3acb738f4d)
+
+running 1 test
+test tests::greater_than_100 - should panic ... FAILED
+
+failures:
+
+---- tests::greater_than_100 stdout ----
+note: test did not panic as expected
+
+failures:
+    tests::greater_than_100
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+We don’t get a very helpful message in this case, but when we look at the test function, we see that it’s annotated with `#[should_panic]`. The failure we got means that the code in the test function did not cause a panic.
+
+Tests that use `should_panic` can be imprecise. A `should_panic` test would pass even if the test panics for a different reason from the one we were expecting. To make `should_panic` tests more precise, we can add an optional `expected` parameter to the `should_panic` attribute. The test harness will make sure that the failure message contains the provided text. For example, consider the modified code for `Guess` in Listing 11-9 where the `new` function panics with different messages depending on whether the value is too small or too large.
+> 要让 `should_panic` 更精确，我们可以为 `should_panic` 属性添加 `expected` 参数，这会让测试确保失败信息包含所提供的文本，确保函数是因为正确的原因 panic
+
+Filename: src/lib.rs
+
+```rust
+// --snip--
+
+impl Guess {
+    pub fn new(value: i32) -> Guess {
+        if value < 1 {
+            panic!(
+                "Guess value must be greater than or equal to 1, got {value}."
+            );
+        } else if value > 100 {
+            panic!(
+                "Guess value must be less than or equal to 100, got {value}."
+            );
+        }
+
+        Guess { value }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "less than or equal to 100")]
+    fn greater_than_100() {
+        Guess::new(200);
+    }
+}
+```
+
+[Listing 11-9](https://doc.rust-lang.org/book/ch11-01-writing-tests.html#listing-11-9): Testing for a `panic!` with a panic message containing a specified substring
+
+This test will pass because the value we put in the `should_panic` attribute’s `expected` parameter is a substring of the message that the `Guess::new` function panics with. We could have specified the entire panic message that we expect, which in this case would be `Guess value must be less than or equal to 100, got 200`. What you choose to specify depends on how much of the panic message is unique or dynamic and how precise you want your test to be. In this case, a substring of the panic message is enough to ensure that the code in the test function executes the `else if value > 100` case.
+>  我们也可以指定我们期望的完整 panic message
+
+To see what happens when a `should_panic` test with an `expected` message fails, let’s again introduce a bug into our code by swapping the bodies of the `if value < 1` and the `else if value > 100` blocks:
+
+```rust
+if value < 1 {
+    panic!(
+        "Guess value must be less than or equal to 100, got {value}."
+    );
+} else if value > 100 {
+    panic!(
+        "Guess value must be greater than or equal to 1, got {value}."
+    );
+}
+```
+
+This time when we run the `should_panic` test, it will fail:
+
+```
+$ cargo test
+   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s
+     Running unittests src/lib.rs (target/debug/deps/guessing_game-57d70c3acb738f4d)
+
+running 1 test
+test tests::greater_than_100 - should panic ... FAILED
+
+failures:
+
+---- tests::greater_than_100 stdout ----
+
+thread 'tests::greater_than_100' panicked at src/lib.rs:12:13:
+Guess value must be greater than or equal to 1, got 200.
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+note: panic did not contain expected string
+      panic message: `"Guess value must be greater than or equal to 1, got 200."`,
+ expected substring: `"less than or equal to 100"`
+
+failures:
+    tests::greater_than_100
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+The failure message indicates that this test did indeed panic as we expected, but the panic message did not include the expected string `less than or equal to 100`. The panic message that we did get in this case was `Guess value must be greater than or equal to 1, got 200.` Now we can start figuring out where our bug is!
+
+### Using `Result<T, E>` in Tests
+Our tests so far all panic when they fail. We can also write tests that use `Result<T, E>`! Here’s the test from Listing 11-1, rewritten to use `Result<T, E>` and return an `Err` instead of panicking:
+
+```rust
+#[test]
+fn it_works() -> Result<(), String> {
+    let result = add(2, 2);
+
+    if result == 4 {
+        Ok(())
+    } else {
+        Err(String::from("two plus two does not equal four"))
+    }
+}
+```
+
+The `it_works` function now has the `Result<(), String>` return type. In the body of the function, rather than calling the `assert_eq!` macro, we return `Ok(())` when the test passes and an `Err` with a `String` inside when the test fails.
+>  测试函数也可以返回 `Result<(), String>` 表示测试是否通过，而不是使用 panic
+
+Writing tests so they return a `Result<T, E>` enables you to use the question mark operator in the body of tests, which can be a convenient way to write tests that should fail if any operation within them returns an `Err` variant.
+
+You can’t use the `#[should_panic]` annotation on tests that use `Result<T, E>`. To assert that an operation returns an `Err` variant, _don’t_ use the question mark operator on the `Result<T, E>` value. Instead, use `assert!(value.is_err())`.
+>  使用 `Result<T, E>` 的测试函数不能使用 `#[should_panic]` 标记
+>  要断言一个操作返回 `Err` 变体，不要在 `Result<T, E>` value 上使用 `?`，而是使用 `assert!(value.is_err())`
+
+Now that you know several ways to write tests, let’s look at what is happening when we run our tests and explore the different options we can use with `cargo test`.
+
+## 11.2 Controlling How Tests Are Run
+Just as `cargo run` compiles your code and then runs the resultant binary, `cargo test` compiles your code in test mode and runs the resultant test binary. The default behavior of the binary produced by `cargo test` is to run all the tests in parallel and capture output generated during test runs, preventing the output from being displayed and making it easier to read the output related to the test results. You can, however, specify command line options to change this default behavior.
+>  `cargo test` 以测试模式编译我们的代码，运行得到的二进制
+>  `cargo test` 产生的二进制的默认行为是并行运行所有测试，并在测试运行时捕获生成的输出，避免输出被展示并且让测试结果相关的输出更易读
+
+Some command line options go to `cargo test`, and some go to the resultant test binary. To separate these two types of arguments, you list the arguments that go to `cargo test` followed by the separator `--` and then the ones that go to the test binary. Running `cargo test --help` displays the options you can use with `cargo test`, and running `cargo test -- --help` displays the options you can use after the separator. Those options are also documented in [the “Tests” section](https://doc.rust-lang.org/rustc/tests/index.html) of the [the rustc book](https://doc.rust-lang.org/rustc/index.html).
+>  一些命令行选项传递给 `cargo test`，一些传递给生成的测试二进制文件
+>  `cargo test` 之后跟传递给 `cargo test` 的选项，`--` 之后跟传递给二进制文件的选项
+
+### Running Tests in Parallel or Consecutively
+When you run multiple tests, by default they run in parallel using threads, meaning they finish running faster and you get feedback quicker. Because the tests are running at the same time, you must make sure your tests don’t depend on each other or on any shared state, including a shared environment, such as the current working directory or environment variables.
+>  运行多个测试时，它们默认多线程并行运行，因此要注意测试不会相互依赖或依赖于共享状态 (包括了共享环境，例如当前工作目录或环境变量)
+
+For example, say each of your tests runs some code that creates a file on disk named _test-output.txt_ and writes some data to that file. Then each test reads the data in that file and asserts that the file contains a particular value, which is different in each test. Because the tests run at the same time, one test might overwrite the file in the time between another test writing and reading the file. The second test will then fail, not because the code is incorrect but because the tests have interfered with each other while running in parallel. One solution is to make sure each test writes to a different file; another solution is to run the tests one at a time.
+
+If you don’t want to run the tests in parallel or if you want more fine-grained control over the number of threads used, you can send the `--test-threads` flag and the number of threads you want to use to the test binary. Take a look at the following example:
+
+```
+$ cargo test -- --test-threads=1 
+```
+
+>  如果要控制运行测试的线程数，可以如上指定
+>  设置为 1 时，就顺序运行
+
+We set the number of test threads to `1`, telling the program not to use any parallelism. Running the tests using one thread will take longer than running them in parallel, but the tests won’t interfere with each other if they share state.
+
+### Showing Function Output
+By default, if a test passes, Rust’s test library captures anything printed to standard output. For example, if we call `println!` in a test and the test passes, we won’t see the `println!` output in the terminal; we’ll see only the line that indicates the test passed. If a test fails, we’ll see whatever was printed to standard output with the rest of the failure message.
+>  测试库或捕获所有对标准输出的打印，如果测试成功，我们不会看到它们，如果测试失败，我们会看到它们
+
+As an example, Listing 11-10 has a silly function that prints the value of its parameter and returns 10, as well as a test that passes and a test that fails.
+
+Filename: src/lib.rs
+
+```rust
+fn prints_and_returns_10(a: i32) -> i32 {
+    println!("I got the value {a}");
+    10
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn this_test_will_pass() {
+        let value = prints_and_returns_10(4);
+        assert_eq!(value, 10);
+    }
+
+    #[test]
+    fn this_test_will_fail() {
+        let value = prints_and_returns_10(8);
+        assert_eq!(value, 5);
+    }
+}
+```
+
+[Listing 11-10](https://doc.rust-lang.org/book/ch11-02-running-tests.html#listing-11-10): Tests for a function that calls `println!`
+
+When we run these tests with `cargo test`, we’ll see the following output:
+
+```
+$ cargo test
+   Compiling silly-function v0.1.0 (file:///projects/silly-function)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running unittests src/lib.rs (target/debug/deps/silly_function-160869f38cff9166)
+
+running 2 tests
+test tests::this_test_will_fail ... FAILED
+test tests::this_test_will_pass ... ok
+
+failures:
+
+---- tests::this_test_will_fail stdout ----
+I got the value 8
+
+thread 'tests::this_test_will_fail' panicked at src/lib.rs:19:9:
+assertion `left == right` failed
+  left: 10
+ right: 5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::this_test_will_fail
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+Note that nowhere in this output do we see `I got the value 4`, which is printed when the test that passes runs. That output has been captured. The output from the test that failed, `I got the value 8`, appears in the section of the test summary output, which also shows the cause of the test failure.
+
+If we want to see printed values for passing tests as well, we can tell Rust to also show the output of successful tests with `--show-output`:
+
+```
+$ cargo test -- --show-output 
+```
+
+>  如果我们想在测试成功时也看到输出，可以如上指定
+
+When we run the tests in Listing 11-10 again with the `--show-output` flag, we see the following output:
+
+```
+$ cargo test -- --show-output
+   Compiling silly-function v0.1.0 (file:///projects/silly-function)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.60s
+     Running unittests src/lib.rs (target/debug/deps/silly_function-160869f38cff9166)
+
+running 2 tests
+test tests::this_test_will_fail ... FAILED
+test tests::this_test_will_pass ... ok
+
+successes:
+
+---- tests::this_test_will_pass stdout ----
+I got the value 4
+
+
+successes:
+    tests::this_test_will_pass
+
+failures:
+
+---- tests::this_test_will_fail stdout ----
+I got the value 8
+
+thread 'tests::this_test_will_fail' panicked at src/lib.rs:19:9:
+assertion `left == right` failed
+  left: 10
+ right: 5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::this_test_will_fail
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+```
+
+### Running a Subset of Tests by Name
+Sometimes, running a full test suite can take a long time. If you’re working on code in a particular area, you might want to run only the tests pertaining to that code. You can choose which tests to run by passing `cargo test` the name or names of the test(s) you want to run as an argument.
+
+To demonstrate how to run a subset of tests, we’ll first create three tests for our `add_two` function, as shown in Listing 11-11, and choose which ones to run.
+
+Filename: src/lib.rs
+
+```rust
+pub fn add_two(a: u64) -> u64 {
+    a + 2
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn add_two_and_two() {
+        let result = add_two(2);
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn add_three_and_two() {
+        let result = add_two(3);
+        assert_eq!(result, 5);
+    }
+
+    #[test]
+    fn one_hundred() {
+        let result = add_two(100);
+        assert_eq!(result, 102);
+    }
+}
+```
+
+[Listing 11-11](https://doc.rust-lang.org/book/ch11-02-running-tests.html#listing-11-11): Three tests with three different names
+
+If we run the tests without passing any arguments, as we saw earlier, all the tests will run in parallel:
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.62s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 3 tests
+test tests::add_three_and_two ... ok
+test tests::add_two_and_two ... ok
+test tests::one_hundred ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+#### Running Single Tests
+We can pass the name of any test function to `cargo test` to run only that test:
+
+```
+$ cargo test one_hundred
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.69s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 1 test
+test tests::one_hundred ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+```
+
+Only the test with the name `one_hundred` ran; the other two tests didn’t match that name. The test output lets us know we had more tests that didn’t run by displaying `2 filtered out` at the end.
+
+>  可以传递测试名称使得只运行一个测试
+
+We can’t specify the names of multiple tests in this way; only the first value given to `cargo test` will be used. But there is a way to run multiple tests.
+
+#### Filtering to Run Multiple Tests
+We can specify part of a test name, and any test whose name matches that value will be run. For example, because two of our tests’ names contain `add`, we can run those two by running `cargo test add`:
+
+```
+$ cargo test add
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 2 tests
+test tests::add_three_and_two ... ok
+test tests::add_two_and_two ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+```
+
+This command ran all tests with `add` in the name and filtered out the test named `one_hundred`. Also note that the module in which a test appears becomes part of the test’s name, so we can run all the tests in a module by filtering on the module’s name.
+
+>  实际上包含了传递的字符串的测试名都会被运行
+>  如果要运行 module 内的所有测试，指定 module name 即可
+
+### Ignoring Some Tests Unless Specifically Requested
+Sometimes a few specific tests can be very time-consuming to execute, so you might want to exclude them during most runs of `cargo test`. Rather than listing as arguments all tests you do want to run, you can instead annotate the time-consuming tests using the `ignore` attribute to exclude them, as shown here:
+
+Filename: src/lib.rs
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    #[ignore]
+    fn expensive_test() {
+        // code that takes an hour to run
+    }
+}
+```
+
+After `#[test]`, we add the `#[ignore]` line to the test we want to exclude. Now when we run our tests, `it_works` runs, but `expensive_test` doesn’t:
+>  使用 `#[ignore]` 属性可以忽略一些测试
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.60s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 2 tests
+test tests::expensive_test ... ignored
+test tests::it_works ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+The `expensive_test` function is listed as `ignored`. If we want to run only the ignored tests, we can use `cargo test -- --ignored`:
+
+```
+$ cargo test -- --ignored
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 1 test
+test tests::expensive_test ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+By controlling which tests run, you can make sure your `cargo test` results will be returned quickly. When you’re at a point where it makes sense to check the results of the `ignored` tests and you have time to wait for the results, you can run `cargo test -- --ignored` instead. If you want to run all tests whether they’re ignored or not, you can run `cargo test -- --include-ignored`.
+>  也可以仅运行被忽略的测试: `cargo test -- --ignored`
+>  如果要运行所有: `cargo test -- --include-ignored`
+
+## 11.3 Test Organization
+As mentioned at the start of the chapter, testing is a complex discipline, and different people use different terminology and organization. The Rust community thinks about tests in terms of two main categories: unit tests and integration tests. _Unit tests_ are small and more focused, testing one module in isolation at a time, and can test private interfaces. _Integration tests_ are entirely external to your library and use your code in the same way any other external code would, using only the public interface and potentially exercising multiple modules per test.
+>  Rust 社区主要将测试分为两类: 单元测试和集成测试
+>  单元测试通常规模小且集中，一次对一个模块进行隔离测试，且可以测试私有接口
+>  集成测试完全位于库之外，如同使用其他代码一样使用我们的代码，仅使用贡藕给你接口，并且每个测试可能涉及多个模块
+
+Writing both kinds of tests is important to ensure that the pieces of your library are doing what you expect them to, separately and together.
+
+### Unit Tests
+The purpose of unit tests is to test each unit of code in isolation from the rest of the code to quickly pinpoint where code is and isn’t working as expected. You’ll put unit tests in the _src_ directory in each file with the code that they’re testing. The convention is to create a module named `tests` in each file to contain the test functions and to annotate the module with `cfg(test)`.
+>  单元测试的目的是独立测试每个代码单元，以快速定位哪里的代码正常/不正常工作
+>  单元测试可以放在 `src` 目录下的各个文件中，与被测试代码位于同一个文件
+>  通常的做法是在每个文件中创建要给名为 `tests` 的 module，包含测试函数，并且使用 `cfg(test)` 标注该 module
+
+#### The Tests Module and `#[cfg(test)]`
+The `#[cfg(test)]` annotation on the `tests` module tells Rust to compile and run the test code only when you run `cargo test`, not when you run `cargo build`. This saves compile time when you only want to build the library and saves space in the resultant compiled artifact because the tests are not included. You’ll see that because integration tests go in a different directory, they don’t need the `#[cfg(test)]` annotation. However, because unit tests go in the same files as the code, you’ll use `#[cfg(test)]` to specify that they shouldn’t be included in the compiled result.
+>  `#[cfg(test)]` 标记告诉 Rust 仅在使用 `cargo test` 时编译并运行测试代码
+>  在正常 `cargo build` 的产物中不会包含测试相关内容
+>  因为集成测试位于不同的目录，它们就不需要 `#[cfg(test)]` 标记，但单元测试位于同一文件中，因此标记是有必要的
+
+Recall that when we generated the new `adder` project in the first section of this chapter, Cargo generated this code for us:
+
+Filename: src/lib.rs
+
+```rust
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+}
+```
+
+On the automatically generated `tests` module, the attribute `cfg` stands for _configuration_ and tells Rust that the following item should only be included given a certain configuration option. In this case, the configuration option is `test`, which is provided by Rust for compiling and running tests. By using the `cfg` attribute, Cargo compiles our test code only if we actively run the tests with `cargo test`. This includes any helper functions that might be within this module, in addition to the functions annotated with `#[test]`.
+>  属性 `cfg` 表示配置，它告诉 Rust 下面的 item 应该在给定特定配置选项时才被包含
+>  配置选项为 `test` 时，就是在编译和运行测试时才包含
+
+#### Testing Private Functions
+There’s debate within the testing community about whether or not private functions should be tested directly, and other languages make it difficult or impossible to test private functions. Regardless of which testing ideology you adhere to, Rust’s privacy rules do allow you to test private functions. Consider the code in Listing 11-12 with the private function `internal_adder`.
+>  Rust 的隐私规则允许我们测试私有函数
+
+Filename: src/lib.rs
+
+```rust
+pub fn add_two(a: u64) -> u64 {
+    internal_adder(a, 2)
+}
+
+fn internal_adder(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn internal() {
+        let result = internal_adder(2, 2);
+        assert_eq!(result, 4);
+    }
+}
+```
+
+[Listing 11-12](https://doc.rust-lang.org/book/ch11-03-test-organization.html#listing-11-12): Testing a private function
+
+Note that the `internal_adder` function is not marked as `pub`. Tests are just Rust code, and the `tests` module is just another module. As we discussed in [“Paths for Referring to an Item in the Module Tree”](https://doc.rust-lang.org/book/ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html), items in child modules can use the items in their ancestor modules. In this test, we bring all of the `tests` module’s parent’s items into scope with `use super::*`, and then the test can call `internal_adder`. If you don’t think private functions should be tested, there’s nothing in Rust that will compel you to do so.
+>  `tests` module 是另外的 module，但子 module 可以使用祖先 module 的东西
+
+### Integration Tests
+In Rust, integration tests are entirely external to your library. They use your library in the same way any other code would, which means they can only call functions that are part of your library’s public API. Their purpose is to test whether many parts of your library work together correctly. Units of code that work correctly on their own could have problems when integrated, so test coverage of the integrated code is important as well. To create integration tests, you first need a _tests_ directory.
+>  集成测试完全在我们的库之外，它们只调用库的公共 API，它们的目的是测试是否库的各个组件能一同工作，有时各个组件独立工作没问题，但是协同会有问题，因此对集成代码的测试覆盖也很重要
+
+#### The _tests_ Directory
+We create a _tests_ directory at the top level of our project directory, next to _src_. Cargo knows to look for integration test files in this directory. We can then make as many test files as we want, and Cargo will compile each of the files as an individual crate.
+>  我们需要在项目目录顶部创建 `tests` 目录，Cargo 默认在这个目录寻找集成测试文件
+>  我们在里面添加测试文件，Cargo 会将它们逐一编译为单独的 crate
+
+Let’s create an integration test. With the code in Listing 11-12 still in the _src/lib.rs_ file, make a _tests_ directory, and create a new file named _tests/integration_test.rs_. Your directory structure should look like this:
+
+```
+adder
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   └── lib.rs
+└── tests
+    └── integration_test.rs
+```
+
+Enter the code in Listing 11-13 into the _tests/integration_test.rs_ file.
+
+Filename: tests/integration_test.rs
+
+```rust
+use adder::add_two;
+
+#[test]
+fn it_adds_two() {
+    let result = add_two(2);
+    assert_eq!(result, 4);
+}
+```
+
+[Listing 11-13](https://doc.rust-lang.org/book/ch11-03-test-organization.html#listing-11-13): An integration test of a function in the `adder` crate
+
+Each file in the _tests_ directory is a separate crate, so we need to bring our library into each test crate’s scope. For that reason we add `use adder::add_two;` at the top of the code, which we didn’t need in the unit tests.
+>  `tests` 目录下的每个文件都是独立的 crate，因此我们需要将库带入 test crate 的作用域
+
+We don’t need to annotate any code in _tests/integration_test.rs_ with `#[cfg(test)]`. Cargo treats the _tests_ directory specially and compiles files in this directory only when we run `cargo test`. Run `cargo test` now:
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.31s
+     Running unittests src/lib.rs (target/debug/deps/adder-1082c4b063a8fbe6)
+
+running 1 test
+test tests::internal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration_test.rs (target/debug/deps/integration_test-1082c4b063a8fbe6)
+
+running 1 test
+test it_adds_two ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+>  Cargo 只会在 `cargo test` 编译 `tests` 下的文件，因此不需要特别注明 `#[cfg(test)]`
+
+The three sections of output include the unit tests, the integration test, and the doc tests. Note that if any test in a section fails, the following sections will not be run. For example, if a unit test fails, there won’t be any output for integration and doc tests because those tests will only be run if all unit tests are passing.
+>  测试的三部分包括单元测试、集成测试、文档测试
+>  如果任意测试部分失败，后续的测试部分不会运行
+
+The first section for the unit tests is the same as we’ve been seeing: one line for each unit test (one named `internal` that we added in Listing 11-12) and then a summary line for the unit tests.
+
+The integration tests section starts with the line `Running tests/integration_test.rs`. Next, there is a line for each test function in that integration test and a summary line for the results of the integration test just before the `Doc-tests adder` section starts.
+
+Each integration test file has its own section, so if we add more files in the _tests_ directory, there will be more integration test sections.
+
+We can still run a particular integration test function by specifying the test function’s name as an argument to `cargo test`. To run all the tests in a particular integration test file, use the `--test` argument of `cargo test` followed by the name of the file:
+>  使用 `--test` 可以指定集成测试文件
+
+```
+$ cargo test --test integration_test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s
+     Running tests/integration_test.rs (target/debug/deps/integration_test-82e7799c1bc62298)
+
+running 1 test
+test it_adds_two ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+This command runs only the tests in the _tests/integration_test.rs_ file.
+
+#### Submodules in Integration Tests
+As you add more integration tests, you might want to make more files in the _tests_ directory to help organize them; for example, you can group the test functions by the functionality they’re testing. As mentioned earlier, each file in the _tests_ directory is compiled as its own separate crate, which is useful for creating separate scopes to more closely imitate the way end users will be using your crate. However, this means files in the _tests_ directory don’t share the same behavior as files in _src_ do, as you learned in Chapter 7 regarding how to separate code into modules and files.
+
+The different behavior of _tests_ directory files is most noticeable when you have a set of helper functions to use in multiple integration test files and you try to follow the steps in the [“Separating Modules into Different Files”](https://doc.rust-lang.org/book/ch07-05-separating-modules-into-different-files.html) section of Chapter 7 to extract them into a common module. For example, if we create _tests/common.rs_ and place a function named `setup` in it, we can add some code to `setup` that we want to call from multiple test functions in multiple test files:
+
+Filename: tests/common.rs
+
+```rust
+pub fn setup() {
+    // setup code specific to your library's tests would go here
+}
+```
+
+When we run the tests again, we’ll see a new section in the test output for the _common.rs_ file, even though this file doesn’t contain any test functions nor did we call the `setup` function from anywhere:
+
+```
+$ cargo test
+   Compiling adder v0.1.0 (file:///projects/adder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.89s
+     Running unittests src/lib.rs (target/debug/deps/adder-92948b65e88960b4)
+
+running 1 test
+test tests::internal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/common.rs (target/debug/deps/common-92948b65e88960b4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration_test.rs (target/debug/deps/integration_test-92948b65e88960b4)
+
+running 1 test
+test it_adds_two ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests adder
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+Having `common` appear in the test results with `running 0 tests` displayed for it is not what we wanted. We just wanted to share some code with the other integration test files. To avoid having `common` appear in the test output, instead of creating _tests/common.rs_, we’ll create _tests/common/mod.rs_. The project directory now looks like this:
+
+```
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   └── lib.rs
+└── tests
+    ├── common
+    │   └── mod.rs
+    └── integration_test.rs
+```
+
+This is the older naming convention that Rust also understands that we mentioned in [“Alternate File Paths”](https://doc.rust-lang.org/book/ch07-05-separating-modules-into-different-files.html#alternate-file-paths) in Chapter 7. Naming the file this way tells Rust not to treat the `common` module as an integration test file. When we move the `setup` function code into _tests/common/mod.rs_ and delete the _tests/common.rs_ file, the section in the test output will no longer appear. Files in subdirectories of the _tests_ directory don’t get compiled as separate crates or have sections in the test output.
+>  `tests` 的子目录中的文件不会被编译为独立的 crate 或在 test 输出中有 section
+
+After we’ve created _tests/common/mod.rs_, we can use it from any of the integration test files as a module. Here’s an example of calling the `setup` function from the `it_adds_two` test in _tests/integration_test.rs_:
+
+Filename: tests/integration_test.rs
+
+```rust
+use adder::add_two;
+
+mod common;
+
+#[test]
+fn it_adds_two() {
+    common::setup();
+
+    let result = add_two(2);
+    assert_eq!(result, 4);
+}
+```
+
+Note that the `mod common;` declaration is the same as the module declaration we demonstrated in Listing 7-21. Then, in the test function, we can call the `common::setup()` function.
+
+#### Integration Tests for Binary Crates
+If our project is a binary crate that only contains a _src/main.rs_ file and doesn’t have a _src/lib.rs_ file, we can’t create integration tests in the _tests_ directory and bring functions defined in the _src/main.rs_ file into scope with a `use` statement. Only library crates expose functions that other crates can use; binary crates are meant to be run on their own.
+>  只有库 crate 可以向其他 crate 暴露 API
+
+This is one of the reasons Rust projects that provide a binary have a straightforward _src/main.rs_ file that calls logic that lives in the _src/lib.rs_ file. Using that structure, integration tests _can_ test the library crate with `use` to make the important functionality available. If the important functionality works, the small amount of code in the _src/main.rs_ file will work as well, and that small amount of code doesn’t need to be tested.
+
+## Summary
+Rust’s testing features provide a way to specify how code should function to ensure it continues to work as you expect, even as you make changes. Unit tests exercise different parts of a library separately and can test private implementation details. Integration tests check that many parts of the library work together correctly, and they use the library’s public API to test the code in the same way external code will use it. Even though Rust’s type system and ownership rules help prevent some kinds of bugs, tests are still important to reduce logic bugs having to do with how your code is expected to behave.
+
+Let’s combine the knowledge you learned in this chapter and in previous chapters to work on a project!
+
+# 12 An I/O Project: Building a Command Line Program
+This chapter is a recap of the many skills you’ve learned so far and an exploration of a few more standard library features. We’ll build a command line tool that interacts with file and command line input/output to practice some of the Rust concepts you now have under your belt.
+
+Rust’s speed, safety, single binary output, and cross-platform support make it an ideal language for creating command line tools, so for our project, we’ll make our own version of the classic command line search tool `grep` (**g**lobally search a **r**egular **e**xpression and **p**rint). In the simplest use case, `grep` searches a specified file for a specified string. To do so, `grep` takes as its arguments a file path and a string. Then it reads the file, finds lines in that file that contain the string argument, and prints those lines.
+
+Along the way, we’ll show how to make our command line tool use the terminal features that many other command line tools use. We’ll read the value of an environment variable to allow the user to configure the behavior of our tool. We’ll also print error messages to the standard error console stream (`stderr`) instead of standard output (`stdout`) so that, for example, the user can redirect successful output to a file while still seeing error messages onscreen.
+
+One Rust community member, Andrew Gallant, has already created a fully featured, very fast version of `grep`, called `ripgrep`. By comparison, our version will be fairly simple, but this chapter will give you some of the background knowledge you need to understand a real-world project such as `ripgrep`.
+
+Our `grep` project will combine a number of concepts you’ve learned so far:
+
+- Organizing code ([Chapter 7](https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html))
+- Using vectors and strings ([Chapter 8](https://doc.rust-lang.org/book/ch08-00-common-collections.html))
+- Handling errors ([Chapter 9](https://doc.rust-lang.org/book/ch09-00-error-handling.html))
+- Using traits and lifetimes where appropriate ([Chapter 10](https://doc.rust-lang.org/book/ch10-00-generics.html))
+- Writing tests ([Chapter 11](https://doc.rust-lang.org/book/ch11-00-testing.html))
+
+We’ll also briefly introduce closures, iterators, and trait objects, which [Chapter 13](https://doc.rust-lang.org/book/ch13-00-functional-features.html) and [Chapter 18](https://doc.rust-lang.org/book/ch18-00-oop.html) will cover in detail.
+
+## 12.1 Accepting Command Line Arguments
+Let’s create a new project with, as always, `cargo new`. We’ll call our project `minigrep` to distinguish it from the `grep` tool that you might already have on your system.
+
+```
+$ cargo new minigrep
+     Created binary (application) `minigrep` project
+$ cd minigrep
+```
+
+The first task is to make `minigrep` accept its two command line arguments: the file path and a string to search for. That is, we want to be able to run our program with `cargo run`, two hyphens to indicate the following arguments are for our program rather than for `cargo`, a string to search for, and a path to a file to search in, like so:
+
+```
+$ cargo run -- searchstring example-filename.txt 
+```
+
+>  使用 `--` 作为分隔符，后面的参数会交给二进制文件
+
+Right now, the program generated by `cargo new` cannot process arguments we give it. Some existing libraries on [crates.io](https://crates.io/) can help with writing a program that accepts command line arguments, but because you’re just learning this concept, let’s implement this capability ourselves.
+
+### Reading the Argument Values
+To enable `minigrep` to read the values of command line arguments we pass to it, we’ll need the `std::env::args` function provided in Rust’s standard library. This function returns an iterator of the command line arguments passed to `minigrep`. We’ll cover iterators fully in [Chapter 13](https://doc.rust-lang.org/book/ch13-00-functional-features.html). For now, you only need to know two details about iterators: iterators produce a series of values, and we can call the `collect` method on an iterator to turn it into a collection, such as a vector, that contains all the elements the iterator produces.
+>  `std::env::args` 函数返回传递给二进制文件的命令行参数的迭代器
+>  我们对迭代器调用 `collect` 方法将它转为集合类型
+
+The code in Listing 12-1 allows your `minigrep` program to read any command line arguments passed to it, and then collect the values into a vector.
+
+Filename: src/main.rs
+
+```rust
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    dbg!(args);
+}
+```
+
+[Listing 12-1](https://doc.rust-lang.org/book/ch12-01-accepting-command-line-arguments.html#listing-12-1): Collecting the command line arguments into a vector and printing them
+
+First we bring the `std::env` module into scope with a `use` statement so we can use its `args` function. Notice that the `std::env::args` function is nested in two levels of modules. As we discussed in [Chapter 7](https://doc.rust-lang.org/book/ch07-04-bringing-paths-into-scope-with-the-use-keyword.html#creating-idiomatic-use-paths), in cases where the desired function is nested in more than one module, we’ve chosen to bring the parent module into scope rather than the function. By doing so, we can easily use other functions from `std::env`. It’s also less ambiguous than adding `use std::env::args` and then calling the function with just `args`, because `args` might easily be mistaken for a function that’s defined in the current module.
+
+***The `args` Function and Invalid Unicode***
+Note that `std::env::args` will panic if any argument contains invalid Unicode. If your program needs to accept arguments containing invalid Unicode, use `std::env::args_os` instead. That function returns an iterator that produces `OsString` values instead of `String` values. We’ve chosen to use `std::env::args` here for simplicity because `OsString` values differ per platform and are more complex to work with than `String` values.
+>  `std::env::args` 会在命令行参数包含无效 Unicode 字符时 panic
+
+On the first line of `main`, we call `env::args`, and we immediately use `collect` to turn the iterator into a vector containing all the values produced by the iterator. We can use the `collect` function to create many kinds of collections, so we explicitly annotate the type of `args` to specify that we want a vector of strings. Although you very rarely need to annotate types in Rust, `collect` is one function you do often need to annotate because Rust isn’t able to infer the kind of collection you want.
+>  `collect` 要求我们注解返回类型，以确定我们要哪一类集合类型
+
+Finally, we print the vector using the debug macro. Let’s try running the code first with no arguments and then with two arguments:
+
+```
+$ cargo run
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running `target/debug/minigrep`
+[src/main.rs:5:5] args = [
+    "target/debug/minigrep",
+]
+```
+
+```
+$ cargo run -- needle haystack
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.57s
+     Running `target/debug/minigrep needle haystack`
+[src/main.rs:5:5] args = [
+    "target/debug/minigrep",
+    "needle",
+    "haystack",
+]
+```
+
+Notice that the first value in the vector is `"target/debug/minigrep"`, which is the name of our binary. This matches the behavior of the arguments list in C, letting programs use the name by which they were invoked in their execution. It’s often convenient to have access to the program name in case you want to print it in messages or change the behavior of the program based on what command line alias was used to invoke the program. But for the purposes of this chapter, we’ll ignore it and save only the two arguments we need.
+>  第一个参数是二进制文件的名称
+
+### Saving the Argument Values in Variables
+The program is currently able to access the values specified as command line arguments. Now we need to save the values of the two arguments in variables so we can use the values throughout the rest of the program. We do that in Listing 12-2.
+
+Filename: src/main.rs
+
+```rust
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let query = &args[1];
+    let file_path = &args[2];
+
+    println!("Searching for {query}");
+    println!("In file {file_path}");
+}
+```
+
+[Listing 12-2](https://doc.rust-lang.org/book/ch12-01-accepting-command-line-arguments.html#listing-12-2): Creating variables to hold the query argument and file path argument
+
+As we saw when we printed the vector, the program’s name takes up the first value in the vector at `args[0]`, so we’re starting arguments at index 1. The first argument `minigrep` takes is the string we’re searching for, so we put a reference to the first argument in the variable `query`. The second argument will be the file path, so we put a reference to the second argument in the variable `file_path`.
+
+We temporarily print the values of these variables to prove that the code is working as we intend. Let’s run this program again with the arguments `test` and `sample.txt`:
+
+```
+$ cargo run -- test sample.txt
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.0s
+     Running `target/debug/minigrep test sample.txt`
+Searching for test
+In file sample.txt
+```
+
+Great, the program is working! The values of the arguments we need are being saved into the right variables. Later we’ll add some error handling to deal with certain potential erroneous situations, such as when the user provides no arguments; for now, we’ll ignore that situation and work on adding file-reading capabilities instead.
+
+## 12.2 Reading a File
+Now we’ll add functionality to read the file specified in the `file_path` argument. First we need a sample file to test it with: we’ll use a file with a small amount of text over multiple lines with some repeated words. Listing 12-3 has an Emily Dickinson poem that will work well! Create a file called _poem.txt_ at the root level of your project, and enter the poem “I’m Nobody! Who are you?”
+
+Filename: poem.txt
+
+```
+I'm nobody! Who are you?
+Are you nobody, too?
+Then there's a pair of us - don't tell!
+They'd banish us, you know.
+
+How dreary to be somebody!
+How public, like a frog
+To tell your name the livelong day
+To an admiring bog!
+```
+
+[Listing 12-3](https://doc.rust-lang.org/book/ch12-02-reading-a-file.html#listing-12-3): A poem by Emily Dickinson makes a good test case.
+
+With the text in place, edit _src/main.rs_ and add code to read the file, as shown in Listing 12-4.
+
+Filename: src/main.rs
+
+```rust
+use std::env;
+use std::fs;
+
+fn main() {
+    // --snip--
+    println!("In file {file_path}");
+
+    let contents = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    println!("With text:\n{contents}");
+}
+```
+
+[Listing 12-4](https://doc.rust-lang.org/book/ch12-02-reading-a-file.html#listing-12-4): Reading the contents of the file specified by the second argument
+
+First we bring in a relevant part of the standard library with a `use` statement: we need `std::fs` to handle files.
+
+In `main`, the new statement `fs::read_to_string` takes the `file_path`, opens that file, and returns a value of type `std::io::Result<String>` that contains the file’s contents.
+>  `fs::read_to_string` 接受文件路径，打开文件，返回包含文件内容的 `std::io::Result<String>`
+
+After that, we again add a temporary `println!` statement that prints the value of `contents` after the file is read, so we can check that the program is working so far.
+
+Let’s run this code with any string as the first command line argument (because we haven’t implemented the searching part yet) and the _poem.txt_ file as the second argument:
+
+```
+$ cargo run -- the poem.txt
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.0s
+     Running `target/debug/minigrep the poem.txt`
+Searching for the
+In file poem.txt
+With text:
+I'm nobody! Who are you?
+Are you nobody, too?
+Then there's a pair of us - don't tell!
+They'd banish us, you know.
+
+How dreary to be somebody!
+How public, like a frog
+To tell your name the livelong day
+To an admiring bog!
+```
+
+Great! The code read and then printed the contents of the file. But the code has a few flaws. At the moment, the `main` function has multiple responsibilities: generally, functions are clearer and easier to maintain if each function is responsible for only one idea. The other problem is that we’re not handling errors as well as we could. The program is still small, so these flaws aren’t a big problem, but as the program grows, it will be harder to fix them cleanly. It’s a good practice to begin refactoring early on when developing a program because it’s much easier to refactor smaller amounts of code. We’ll do that next.
+
+## 12.3 Refactoring to Improve Modularity and Error Handling
+To improve our program, we’ll fix four problems that have to do with the program’s structure and how it’s handling potential errors. First, our `main` function now performs two tasks: it parses arguments and reads files. As our program grows, the number of separate tasks the `main` function handles will increase. As a function gains responsibilities, it becomes more difficult to reason about, harder to test, and harder to change without breaking one of its parts. It’s best to separate functionality so each function is responsible for one task.
+
+This issue also ties into the second problem: although `query` and `file_path` are configuration variables to our program, variables like `contents` are used to perform the program’s logic. The longer `main` becomes, the more variables we’ll need to bring into scope; the more variables we have in scope, the harder it will be to keep track of the purpose of each. It’s best to group the configuration variables into one structure to make their purpose clear.
+
+The third problem is that we’ve used `expect` to print an error message when reading the file fails, but the error message just prints `Should have been able to read the file`. Reading a file can fail in a number of ways: for example, the file could be missing, or we might not have permission to open it. Right now, regardless of the situation, we’d print the same error message for everything, which wouldn’t give the user any information!
+
+Fourth, we use `expect` to handle an error, and if the user runs our program without specifying enough arguments, they’ll get an `index out of bounds` error from Rust that doesn’t clearly explain the problem. It would be best if all the error-handling code were in one place so future maintainers had only one place to consult the code if the error-handling logic needed to change. Having all the error-handling code in one place will also ensure that we’re printing messages that will be meaningful to our end users.
+
+Let’s address these four problems by refactoring our project.
+
+### Separation of Concerns for Binary Projects
+The organizational problem of allocating responsibility for multiple tasks to the `main` function is common to many binary projects. As a result, many Rust programmers find it useful to split up the separate concerns of a binary program when the `main` function starts getting large. This process has the following steps:
+
+- Split your program into a _main.rs_ file and a _lib.rs_ file and move your program’s logic to _lib.rs_.
+- As long as your command line parsing logic is small, it can remain in the `main` function.
+- When the command line parsing logic starts getting complicated, extract it from the `main` function into other functions or types.
+
+>  分离程序逻辑的方法:
+>  - 将程序分为 `main.rs, lib.rs`，将逻辑移动到 `lib.rs`
+>  - 逻辑复杂时，将逻辑从 `main` 函数提取出来成为其他函数
+
+The responsibilities that remain in the `main` function after this process should be limited to the following:
+
+- Calling the command line parsing logic with the argument values
+- Setting up any other configuration
+- Calling a `run` function in _lib.rs_
+- Handling the error if `run` returns an error
+
+This pattern is about separating concerns: _main.rs_ handles running the program and _lib.rs_ handles all the logic of the task at hand. Because you can’t test the `main` function directly, this structure lets you test all of your program’s logic by moving it out of the `main` function. The code that remains in the `main` function will be small enough to verify its correctness by reading it. Let’s rework our program by following this process.
+>  `main.rs` 运行程序，`lib.rs` 处理任务逻辑
+
+#### Extracting the Argument Parser
+We’ll extract the functionality for parsing arguments into a function that `main` will call. Listing 12-5 shows the new start of the `main` function that calls a new function `parse_config`, which we’ll define in _src/main.rs_.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let (query, file_path) = parse_config(&args);
+
+    // --snip--
+}
+
+fn parse_config(args: &[String]) -> (&str, &str) {
+    let query = &args[1];
+    let file_path = &args[2];
+
+    (query, file_path)
+}
+```
+
+[Listing 12-5](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-5): Extracting a `parse_config` function from `main`
+
+We’re still collecting the command line arguments into a vector, but instead of assigning the argument value at index 1 to the variable `query` and the argument value at index 2 to the variable `file_path` within the `main` function, we pass the whole vector to the `parse_config` function. The `parse_config` function then holds the logic that determines which argument goes in which variable and passes the values back to `main`. We still create the `query` and `file_path` variables in `main`, but `main` no longer has the responsibility of determining how the command line arguments and variables correspond.
+
+This rework may seem like overkill for our small program, but we’re refactoring in small, incremental steps. After making this change, run the program again to verify that the argument parsing still works. It’s good to check your progress often, to help identify the cause of problems when they occur.
+
+#### Grouping Configuration Values
+We can take another small step to improve the `parse_config` function further. At the moment, we’re returning a tuple, but then we immediately break that tuple into individual parts again. This is a sign that perhaps we don’t have the right abstraction yet.
+
+Another indicator that shows there’s room for improvement is the `config` part of `parse_config`, which implies that the two values we return are related and are both part of one configuration value. We’re not currently conveying this meaning in the structure of the data other than by grouping the two values into a tuple; we’ll instead put the two values into one struct and give each of the struct fields a meaningful name. Doing so will make it easier for future maintainers of this code to understand how the different values relate to each other and what their purpose is.
+
+Listing 12-6 shows the improvements to the `parse_config` function.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = parse_config(&args);
+
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.file_path);
+
+    let contents = fs::read_to_string(config.file_path)
+        .expect("Should have been able to read the file");
+
+    // --snip--
+}
+
+struct Config {
+    query: String,
+    file_path: String,
+}
+
+fn parse_config(args: &[String]) -> Config {
+    let query = args[1].clone();
+    let file_path = args[2].clone();
+
+    Config { query, file_path }
+}
+```
+
+[Listing 12-6](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-6): Refactoring `parse_config` to return an instance of a `Config` struct
+
+We’ve added a struct named `Config` defined to have fields named `query` and `file_path`. The signature of `parse_config` now indicates that it returns a `Config` value. In the body of `parse_config`, where we used to return string slices that reference `String` values in `args`, we now define `Config` to contain owned `String` values. The `args` variable in `main` is the owner of the argument values and is only letting the `parse_config` function borrow them, which means we’d violate Rust’s borrowing rules if `Config` tried to take ownership of the values in `args`.
+
+There are a number of ways we could manage the `String` data; the easiest, though somewhat inefficient, route is to call the `clone` method on the values. This will make a full copy of the data for the `Config` instance to own, which takes more time and memory than storing a reference to the string data. However, cloning the data also makes our code very straightforward because we don’t have to manage the lifetimes of the references; in this circumstance, giving up a little performance to gain simplicity is a worthwhile trade-off.
+
+### The Trade-Offs of Using `clone`
+There’s a tendency among many Rustaceans to avoid using `clone` to fix ownership problems because of its runtime cost. In [Chapter 13](https://doc.rust-lang.org/book/ch13-00-functional-features.html), you’ll learn how to use more efficient methods in this type of situation. But for now, it’s okay to copy a few strings to continue making progress because you’ll make these copies only once and your file path and query string are very small. It’s better to have a working program that’s a bit inefficient than to try to hyperoptimize code on your first pass. As you become more experienced with Rust, it’ll be easier to start with the most efficient solution, but for now, it’s perfectly acceptable to call `clone`.
+
+We’ve updated `main` so it places the instance of `Config` returned by `parse_config` into a variable named `config`, and we updated the code that previously used the separate `query` and `file_path` variables so it now uses the fields on the `Config` struct instead.
+
+Now our code more clearly conveys that `query` and `file_path` are related and that their purpose is to configure how the program will work. Any code that uses these values knows to find them in the `config` instance in the fields named for their purpose.
+
+#### Creating a Constructor for `Config`
+So far, we’ve extracted the logic responsible for parsing the command line arguments from `main` and placed it in the `parse_config` function. Doing so helped us see that the `query` and `file_path` values were related, and that relationship should be conveyed in our code. We then added a `Config` struct to name the related purpose of `query` and `file_path` and to be able to return the values’ names as struct field names from the `parse_config` function.
+
+So now that the purpose of the `parse_config` function is to create a `Config` instance, we can change `parse_config` from a plain function to a function named `new` that is associated with the `Config` struct. Making this change will make the code more idiomatic. We can create instances of types in the standard library, such as `String`, by calling `String::new`. Similarly, by changing `parse_config` into a `new` function associated with `Config`, we’ll be able to create instances of `Config` by calling `Config::new`. Listing 12-7 shows the changes we need to make.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = Config::new(&args);
+
+    // --snip--
+}
+
+// --snip--
+
+impl Config {
+    fn new(args: &[String]) -> Config {
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+
+        Config { query, file_path }
+    }
+}
+```
+
+[Listing 12-7](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-7): Changing `parse_config` into `Config::new`
+
+We’ve updated `main` where we were calling `parse_config` to instead call `Config::new`. We’ve changed the name of `parse_config` to `new` and moved it within an `impl` block, which associates the `new` function with `Config`. Try compiling this code again to make sure it works.
+
+### Fixing the Error Handling
+Now we’ll work on fixing our error handling. Recall that attempting to access the values in the `args` vector at index 1 or index 2 will cause the program to panic if the vector contains fewer than three items. Try running the program without any arguments; it will look like this:
+
+```
+$ cargo run
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.0s
+     Running `target/debug/minigrep`
+
+thread 'main' panicked at src/main.rs:27:21:
+index out of bounds: the len is 1 but the index is 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+The line `index out of bounds: the len is 1 but the index is 1` is an error message intended for programmers. It won’t help our end users understand what they should do instead. Let’s fix that now.
+
+#### Improving the Error Message
+In Listing 12-8, we add a check in the `new` function that will verify that the slice is long enough before accessing index 1 and index 2. If the slice isn’t long enough, the program panics and displays a better error message.
+
+Filename: src/main.rs
+
+```rust
+// --snip--
+fn new(args: &[String]) -> Config {
+    if args.len() < 3 {
+        panic!("not enough arguments");
+    }
+    // --snip--
+```
+
+[Listing 12-8](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-8): Adding a check for the number of arguments
+
+This code is similar to [the `Guess::new` function we wrote in Listing 9-13](https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html#creating-custom-types-for-validation), where we called `panic!` when the `value` argument was out of the range of valid values. Instead of checking for a range of values here, we’re checking that the length of `args` is at least `3` and the rest of the function can operate under the assumption that this condition has been met. If `args` has fewer than three items, this condition will be `true`, and we call the `panic!` macro to end the program immediately.
+
+With these extra few lines of code in `new`, let’s run the program without any arguments again to see what the error looks like now:
+
+```
+$ cargo run
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.0s
+     Running `target/debug/minigrep`
+
+thread 'main' panicked at src/main.rs:26:13:
+not enough arguments
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+This output is better: we now have a reasonable error message. However, we also have extraneous information we don’t want to give to our users. Perhaps the technique we used in Listing 9-13 isn’t the best one to use here: a call to `panic!` is more appropriate for a programming problem than a usage problem, [as discussed in Chapter 9](https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html#guidelines-for-error-handling). Instead, we’ll use the other technique you learned about in Chapter 9— [returning a `Result`](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html) that indicates either success or an error.
+>  对 `panic!` 的调用更适合于针对编程问题而不是使用问题
+
+#### Returning a `Result` Instead of Calling `panic!`
+We can instead return a `Result` value that will contain a `Config` instance in the successful case and will describe the problem in the error case. We’re also going to change the function name from `new` to `build` because many programmers expect `new` functions to never fail. When `Config::build` is communicating to `main`, we can use the `Result` type to signal there was a problem. Then we can change `main` to convert an `Err` variant into a more practical error for our users without the surrounding text about `thread 'main'` and `RUST_BACKTRACE` that a call to `panic!` causes.
+>  `new` 通常永不失败，故我们需要定义 `build`
+
+Listing 12-9 shows the changes we need to make to the return value of the function we’re now calling `Config::build` and the body of the function needed to return a `Result`. Note that this won’t compile until we update `main` as well, which we’ll do in the next listing.
+
+Filename: src/main.rs
+
+```rust
+impl Config {
+    fn build(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+
+        Ok(Config { query, file_path })
+    }
+}
+```
+
+[Listing 12-9](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-9): Returning a `Result` from `Config::build`
+
+Our `build` function returns a `Result` with a `Config` instance in the success case and a string literal in the error case. Our error values will always be string literals that have the `'static` lifetime.
+
+We’ve made two changes in the body of the function: instead of calling `panic!` when the user doesn’t pass enough arguments, we now return an `Err` value, and we’ve wrapped the `Config` return value in an `Ok`. These changes make the function conform to its new type signature.
+
+Returning an `Err` value from `Config::build` allows the `main` function to handle the `Result` value returned from the `build` function and exit the process more cleanly in the error case.
+
+#### Calling `Config::build` and Handling Errors
+To handle the error case and print a user-friendly message, we need to update `main` to handle the `Result` being returned by `Config::build`, as shown in Listing 12-10. We’ll also take the responsibility of exiting the command line tool with a nonzero error code away from `panic!` and instead implement it by hand. A nonzero exit status is a convention to signal to the process that called our program that the program exited with an error state.
+
+Filename: src/main.rs
+
+```rust
+use std::process;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
+
+    // --snip--
+```
+
+[Listing 12-10](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-10): Exiting with an error code if building a `Config` fails
+
+In this listing, we’ve used a method we haven’t covered in detail yet: `unwrap_or_else`, which is defined on `Result<T, E>` by the standard library. Using `unwrap_or_else` allows us to define some custom, non- `panic!` error handling. If the `Result` is an `Ok` value, this method’s behavior is similar to `unwrap`: it returns the inner value that `Ok` is wrapping. However, if the value is an `Err` value, this method calls the code in the _closure_, which is an anonymous function we define and pass as an argument to `unwrap_or_else`. We’ll cover closures in more detail in [Chapter 13](https://doc.rust-lang.org/book/ch13-00-functional-features.html). For now, you just need to know that `unwrap_or_else` will pass the inner value of the `Err`, which in this case is the static string `"not enough arguments"` that we added in Listing 12-9, to our closure in the argument `err` that appears between the vertical pipes. The code in the closure can then use the `err` value when it runs.
+>  `unwrap_or_else` 方法允许我们自定义一些非 `panic!` 错误处理
+>  如果 `Result` 是 `Ok`，则方法行为类似于 `unwrap`: 返回内部的值
+>  如果是 `Err`，则方法调用闭包中的代码，闭包是一个匿名函数，作为参数传给 `unwrap_or_else`
+>  闭包的写法如上所示，它捕获 `err` 参数，执行逻辑
+
+We’ve added a new `use` line to bring `process` from the standard library into scope. The code in the closure that will be run in the error case is only two lines: we print the `err` value and then call `process::exit`. The `process::exit` function will stop the program immediately and return the number that was passed as the exit status code. This is similar to the `panic!` -based handling we used in Listing 12-8, but we no longer get all the extra output. Let’s try it:
+>  `process:exit` 函数会停止程序，返回数字
+
+```
+$ cargo run
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.48s
+     Running `target/debug/minigrep`
+Problem parsing arguments: not enough arguments
+```
+
+Great! This output is much friendlier for our users.
+
+### Extracting Logic from the `main` Function
+Now that we’ve finished refactoring the configuration parsing, let’s turn to the program’s logic. As we stated in [“Separation of Concerns for Binary Projects”](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#separation-of-concerns-for-binary-projects), we’ll extract a function named `run` that will hold all the logic currently in the `main` function that isn’t involved with setting up configuration or handling errors. When we’re done, the `main` function will be concise and easy to verify by inspection, and we’ll be able to write tests for all the other logic.
+>  `main` 负责设置配置或处理错误，逻辑交给 `run` 函数
+
+Listing 12-11 shows the small, incremental improvement of extracting a `run` function.
+
+Filename: src/main.rs
+
+```rust
+fn main() {
+    // --snip--
+
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.file_path);
+
+    run(config);
+}
+
+fn run(config: Config) {
+    let contents = fs::read_to_string(config.file_path)
+        .expect("Should have been able to read the file");
+
+    println!("With text:\n{contents}");
+}
+
+// --snip--
+```
+
+[Listing 12-11](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-11): Extracting a `run` function containing the rest of the program logic
+
+The `run` function now contains all the remaining logic from `main`, starting from reading the file. The `run` function takes the `Config` instance as an argument.
+
+#### Returning Errors from the `run` Function
+With the remaining program logic separated into the `run` function, we can improve the error handling, as we did with `Config::build` in Listing 12-9. Instead of allowing the program to panic by calling `expect`, the `run` function will return a `Result<T, E>` when something goes wrong. This will let us further consolidate the logic around handling errors into `main` in a user-friendly way. Listing 12-12 shows the changes we need to make to the signature and body of `run`.
+
+Filename: src/main.rs
+
+```rust
+use std::error::Error;
+
+// --snip--
+
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.file_path)?;
+
+    println!("With text:\n{contents}");
+
+    Ok(())
+}
+```
+
+[Listing 12-12](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-12): Changing the `run` function to return `Result`
+
+We’ve made three significant changes here. First, we changed the return type of the `run` function to `Result<(), Box<dyn Error>>`. This function previously returned the unit type, `()`, and we keep that as the value returned in the `Ok` case.
+
+For the error type, we used the _trait object_ `Box<dyn Error>` (and we’ve brought `std::error::Error` into scope with a `use` statement at the top). We’ll cover trait objects in [Chapter 18](https://doc.rust-lang.org/book/ch18-00-oop.html). For now, just know that `Box<dyn Error>` means the function will return a type that implements the `Error` trait, but we don’t have to specify what particular type the return value will be. This gives us flexibility to return error values that may be of different types in different error cases. The `dyn` keyword is short for _dynamic_.
+
+Second, we’ve removed the call to `expect` in favor of the `?` operator, as we talked about in [Chapter 9](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#a-shortcut-for-propagating-errors-the--operator). Rather than `panic!` on an error, `?` will return the error value from the current function for the caller to handle.
+
+Third, the `run` function now returns an `Ok` value in the success case. We’ve declared the `run` function’s success type as `()` in the signature, which means we need to wrap the unit type value in the `Ok` value. This `Ok(())` syntax might look a bit strange at first, but using `()` like this is the idiomatic way to indicate that we’re calling `run` for its side effects only; it doesn’t return a value we need.
+
+When you run this code, it will compile but will display a warning:
+
+```
+$ cargo run -- the poem.txt
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+warning: unused `Result` that must be used
+  --> src/main.rs:19:5
+   |
+19 |     run(config);
+   |     ^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+   |
+19 |     let _ = run(config);
+   |     +++++++
+
+warning: `minigrep` (bin "minigrep") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.71s
+     Running `target/debug/minigrep the poem.txt`
+Searching for the
+In file poem.txt
+With text:
+I'm nobody! Who are you?
+Are you nobody, too?
+Then there's a pair of us - don't tell!
+They'd banish us, you know.
+
+How dreary to be somebody!
+How public, like a frog
+To tell your name the livelong day
+To an admiring bog!
+```
+
+Rust tells us that our code ignored the `Result` value and the `Result` value might indicate that an error occurred. But we’re not checking to see whether or not there was an error, and the compiler reminds us that we probably meant to have some error-handling code here! Let’s rectify that problem now.
+
+#### Handling Errors Returned from `run` in `main`
+We’ll check for errors and handle them using a technique similar to one we used with `Config::build` in Listing 12-10, but with a slight difference:
+
+Filename: src/main.rs
+
+`fn main() {     // --snip--      println!("Searching for {}", config.query);     println!("In file {}", config.file_path);      if let Err(e) = run(config) {         println!("Application error: {e}");         process::exit(1);     } }`
+
+We use `if let` rather than `unwrap_or_else` to check whether `run` returns an `Err` value and to call `process::exit(1)` if it does. The `run` function doesn’t return a value that we want to `unwrap` in the same way that `Config::build` returns the `Config` instance. Because `run` returns `()` in the success case, we only care about detecting an error, so we don’t need `unwrap_or_else` to return the unwrapped value, which would only be `()`.
+
+The bodies of the `if let` and the `unwrap_or_else` functions are the same in both cases: we print the error and exit.
+
+### [Splitting Code into a Library Crate](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#splitting-code-into-a-library-crate)
+
+Our `minigrep` project is looking good so far! Now we’ll split the _src/main.rs_ file and put some code into the _src/lib.rs_ file. That way, we can test the code and have a _src/main.rs_ file with fewer responsibilities.
+
+Let’s define the code responsible for searching text in _src/lib.rs_ rather than in _src/main.rs_, which will let us (or anyone else using our `minigrep` library) call the searching function from more contexts than our `minigrep` binary.
+
+First, let’s define the `search` function signature in _src/lib.rs_ as shown in Listing 12-13, with a body that calls the `unimplemented!` macro. We’ll explain the signature in more detail when we fill in the implementation.
+
+Filename: src/lib.rs
+
+[![](https://doc.rust-lang.org/book/img/ferris/does_not_compile.svg "This code does not compile!")](https://doc.rust-lang.org/book/ch00-00-introduction.html#ferris)
+
+`pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {     unimplemented!(); }`
+
+[Listing 12-13](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-13): Defining the `search` function in _src/lib.rs_
+
+We’ve used the `pub` keyword on the function definition to designate `search` as part of our library crate’s public API. We now have a library crate that we can use from our binary crate and that we can test!
+
+Now we need to bring the code defined in _src/lib.rs_ into the scope of the binary crate in _src/main.rs_ and call it, as shown in Listing 12-14.
+
+Filename: src/main.rs
+
+`// --snip-- use minigrep::search;  fn main() {     // --snip-- }  // --snip--  fn run(config: Config) -> Result<(), Box<dyn Error>> {     let contents = fs::read_to_string(config.file_path)?;      for line in search(&config.query, &contents) {         println!("{line}");     }      Ok(()) }`
+
+[Listing 12-14](https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#listing-12-14): Using the `minigrep` library crate’s `search` function in _src/main.rs_
+
+We add a `use minigrep::search` line to bring the `search` function from the library crate into the binary crate’s scope. Then, in the `run` function, rather than printing out the contents of the file, we call the `search` function and pass the `config.query` value and `contents` as arguments. Then `run` will use a `for` loop to print each line returned from `search` that matched the query. This is also a good time to remove the `println!` calls in the `main` function that displayed the query and the file path so that our program only prints the search results (if no errors occur).
+
+Note that the search function will be collecting all the results into a vector it returns before any printing happens. This implementation could be slow to display results when searching large files because results aren’t printed as they’re found; we’ll discuss a possible way to fix this using iterators in Chapter 13.
+
+Whew! That was a lot of work, but we’ve set ourselves up for success in the future. Now it’s much easier to handle errors, and we’ve made the code more modular. Almost all of our work will be done in _src/lib.rs_ from here on out.
+
+Let’s take advantage of this newfound modularity by doing something that would have been difficult with the old code but is easy with the new code: we’ll write some tests!
+
 [  
-](https://doc.rust-lang.org/book/ch09-01-unrecoverable-errors-with-panic.html "Previous chapter")
+](https://doc.rust-lang.org/book/ch12-02-reading-a-file.html "Previous chapter")
