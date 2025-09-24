@@ -214,15 +214,18 @@ This section introduces RadixAttention, a novel technique for automatic and syst
 
 We implement an LRU eviction policy and a cache-aware scheduling policy to enhance the cache hit rate. RadixAttention is compatible with techniques like continuous batching [60], paged attention [23], and tensor parallelism [44]. In addition, it introduces only negligible memory and time overhead when there is no cache hit.
 >  我们实现了 LRU 淘汰策略和缓存感知的调度策略来提高缓存命中率
->  RadisAttention 和 continuous batching, paged attention, tensor parallelism 等技术兼容，并且它在没有缓存命中时引入的内存和时间开销很小
+>  RadixAttention 和 continuous batching, paged attention, tensor parallelism 等技术兼容，并且它在没有缓存命中时引入的内存和时间开销很小
 
 **RadixAttention.** A radix tree is a data structure that serves as a space-efficient alternative to a classical trie (prefix tree). Unlike typical trees, the edges of a radix tree can be labeled not just with single elements but also with sequences of elements of varying lengths, significantly enhancing efficiency. In our system, we utilize a radix tree to manage a mapping between sequences of tokens, and their corresponding KV cache tensors. These KV cache tensors are stored in a non-contiguous, paged layout, where the size of each page is equivalent to one token. 
->  基数树是一种数据结果，作为传统前缀树的空间高效的替代方案
+>  基数树是一种数据结构，作为传统前缀树的空间高效的替代方案
 >  和普通的树不同，基数树的边不仅可以标记单个元素，还可以标记变长的元素序列
 >  我们使用基数树来管理 token 序列和其对应的 KVCache 张量的映射关系，这些 KVCache 张量以非连续的分页布局存储，每页的大小等于单个 token 的数据量
 
->  one page one token 的分页方法在 vLLM 中提到这样会导致内存开销过大，同时会因为元数据管理过多和内存碎片化导致性能下降
+>  one page one token 的分页方法在 vLLM 中提到这样会导致内存开销过大，同时会因为元数据管理过多导致性能下降
 >  不过 SGLang 为了精确淘汰叶节点和自动重用共享前缀，采用了细粒度的控制
+
+>  或许 SGLang 内部实现了 one token page 的合并
+>  one page one token 确实能实现最大限度的 prefix 重用，但是感觉开销还是太大了
 
 Because GPU memory is quickly filled by the KV cahce, we introduce a simple LRU eviction policy that evicts the least recently used leaf first. By evicting leaves first, we enable the re-use of their common ancestors until those ancestors become leaves and are also evicted.
 >  由于 GPU 显存会迅速被 KVCache 填满，我们引入了一个简单的 LRU 淘汰策略，首先淘汰最近最少使用的叶
@@ -375,6 +378,9 @@ In certain cases, with careful prompt engineering, the model can correctly match
 # 6 Evaluation
 We evaluate the performance of SGLang across diverse LLM workloads. Subsequently, we conduct ablation studies and case studies to demonstrate the effectiveness of specific components. SGLang is implemented in PyTorch [37] with custom CUDA kernels from FlashInfer [59] and Triton [48].
 >  SGLang 基于 PyTorch 实现，并使用了基于 FlashInfer 和 Trition 的自定义 CUDA kernels
+
+>  实现上，一是对上层原语 API 的封装，二是底层针对 requests 的 radix tree 维护以及 cache-aware 调度
+>  Attention kernel 应该不需要修改，处理为 Attention kernel 取 KV cache 的逻辑即可
 
 ## 6.1 Setup
 **Models.** We test dense Llama-2 models [49], sparse mixture of experts Mixtral models [17], multimodal LLaVA image [27] and video models [62], and API model OpenAI's GPT-3.5. For open-weight models, the number of parameters ranges from 7 billion to 70 billion, and we use float16 precision.
