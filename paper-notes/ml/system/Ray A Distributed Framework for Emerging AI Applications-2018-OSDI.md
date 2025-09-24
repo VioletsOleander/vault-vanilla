@@ -28,12 +28,14 @@ The central goal of an RL application is to learn a policy - a mapping from the 
 >  close-loop 指闭环控制/状态反馈控制，其定义是策略在每一步都基于当前观测到的状态来选择动作，这种策略形式在 RL 中最常见
 
 These characteristics drive new systems requirements: a system for RL must support fine-grained computations (e.g., rendering actions in milliseconds when interacting with the real world, and performing vast numbers of sim ulations), must support heterogeneity both in time (e.g., a simulation may take milliseconds or hours) and in resource usage (e.g., GPUs for training and CPUs for simulations), and must support dynamic execution, as results of simulations or interactions with the environment can change future computations. Thus, we need a dynamic computation framework that handles millions of heterogeneous tasks per second at millisecond-level latencies.
->  面向 RL 的系统必须支持细粒度计算 (例如在和现实时间交互时，在毫秒内渲染动作，并执行大量的模拟)，必须支持时间和资源使用上的异构性 (例如模拟可以需要数毫秒也可以需要数消失；例如 GPU 做训练，CPU 做模拟)，必须支持动态执行，因为模拟或和环境交互的结构会改变未来的运算
+>  面向 RL 的系统必须支持细粒度计算 (例如在和现实时间交互时，在毫秒内渲染动作，并执行大量的模拟)，必须支持时间和资源使用上的异构性 (例如模拟可以需要数毫秒也可以需要数小时；例如 GPU 做训练，CPU 做模拟)，必须支持动态执行，因为模拟或和环境交互的结构会改变未来的运算
 >  因此，我们需要一个能够每秒动态处理百万个任务，提供毫秒级延迟的动态计算框架
+
+>  模拟就是环境动态，即接受状态和动作，给出状态转移
 
 Existing frameworks that have been developed for Big Data workloads or for supervised learning workloads fall short of satisfying these new requirements for RL. Bulk-synchronous parallel systems such as MapReduce [20], Apache Spark [64], and Dryad [28] do not support fine-grained simulation or policy serving. Task-parallel systems such as CIEL [40] and Dask [48] provide little support for distributed training and serving. The same is true for streaming systems such as Naiad [39] and Storm [31]. Distributed deep-learning frameworks such as TensorFlow [7] and MXNet [18] do not naturally support simulation and serving. Finally, model-serving systems such as TensorFlow Serving [6] and Clipper [19] support neither training nor simulation.
 >  批量同步并行系统不支持细粒度模拟或策略服务
->  任务并行系统和六十系统在分布式训练或服务方面支持有限
+>  任务并行系统在分布式训练或服务方面支持有限
 >  分布式 DL 框架不天然支持模拟和策略服务
 >  模型服务系统则既不支持训练也不支持模拟
 
@@ -47,6 +49,10 @@ In this paper, we propose Ray, a general-purpose cluster-computing framework tha
 >  Task: 使 Ray 可以高效且动态地对模拟进行负载均衡，处理大规模输入和状态空间，并具备故障恢复能力
 >  Actor: 使 Ray 可以支持有状态计算，例如模型训练，并向客户端暴露可变的共享状态 (例如参数服务器)
 >  Ray 在一个可拓展且容错的动态执行引擎上实现了 actor 和 task 抽象
+
+>  实际上模拟也是训练的一部分，如果细粒度地分，这里的模拟是指训练过程中的环境动态，环境动态给出的下一个状态会交给价值函数，用于计算策略梯度，这里的训练是指训练过程中的策略梯度下降
+>  模拟是无状态计算，给定输入动作和输入状态，给出输出状态即可，不需要维护什么状态，Ray 的 task-parallel 计算就是针对模拟
+>  训练是有状态计算，需要维护 policy/actor 的梯度状态，Ray 的 actor-based 计算就是针对训练
 
 To meet the performance requirements, Ray distributes two components that are typically centralized in existing frameworks [64, 28, 40]: (1) the task scheduler and (2) a metadata store which maintains the computation lineage and a directory for data objects. This allows Ray to schedule millions of tasks per second with millisecond-level latencies. Furthermore, Ray provides lineage-based fault tolerance for tasks and actors, and replication-based fault tolerance for the metadata store.
 >  为了满足性能需求，Ray 将两个通常在现有框架中中心化的组件进行了分布式:
@@ -81,6 +87,9 @@ We begin by considering the basic components of an RL system and fleshing out th
 To learn a policy, an agent typically employs a two-step process: (1) policy evaluation and (2) policy improvement. To evaluate the policy, the agent interacts with the environment (e.g., with a simulation of the environment) to generate trajectories, where a trajectory consists of a sequence of (state, reward) tuples produced by the current policy. Then, the agent uses these trajectories to improve the policy; i.e., to update the policy in the direction of the gradient that maximizes the reward. 
 >  要学习策略，agent 采用两步过程: 1. policy evaluation 2. policy improvement
 >  为了评估策略，agent 和环境交互，生成轨迹，轨迹包含了当前策略生成的 (state, reward) 序列，然后 agent 使用该序列来提升策略，也就是朝着最大化奖励的梯度方向更新策略
+
+>  RL 的两大基础方法 1. Value Iteration 2. Policy Iteration
+>  这里考虑的就是 Policy Iteration，所有策略梯度方法都归于这个框架，总体来说它就是两步迭代 1. policy evaluation 2. policy improvement
 
 ![[pics/Ray-Fig2.png]]
 
@@ -120,7 +129,7 @@ This state of affairs calls for the development of new distributed frameworks fo
 *Flexible computation model*. RL applications require both stateless and stateful computations. Stateless computations can be executed on any node in the system, which makes it easy to achieve load balancing and movement of computation to data, if needed. Thus stateless computations are a good fit for fine-grained simulation and data processing, such as extracting features from images or videos. In contrast stateful computations are a good fit for implementing parameter servers, performing repeated computation on GPU-backed data, or running third-party simulators that do not expose their state.
 >  灵活的计算模型: RL 应用同时需要无状态计算和有状态计算
 >  无状态计算可以在系统中任意节点上执行，这使得实现负载均衡和在必要时将计算迁移到数据所在处十分容易，因此无状态计算非常是和细粒度模拟和数据处理任务，例如从图像或视频中提取特征
->  相交之下，有状态计算则更适合实现参数服务器，在基于 GPU 的数据上执行反复的计算，或者运行那些不暴露它们状态的第三方模拟器
+>  相较之下，有状态计算则更适合实现参数服务器，在基于 GPU 的数据上执行反复的计算，或者运行那些不暴露它们状态的第三方模拟器
 
 *Dynamic execution*. Several components of RL applications require dynamic execution, as the order in which computations finish is not always known in advance (e.g., the order in which simulations finish), and the results of a computation can determine future computations (e.g., the results of a simulation will determine whether we need to perform more simulations).
 >  动态执行: RL 应用的多个组件都要求动态执行，因为计算完成的顺序往往无法预先知道 (例如不同模拟任务的完成顺序不确定)，以及计算的结果会决定未来计算 (例如模拟的结果会决定我们是否需要执行更多模拟，即是否达到终止状态)
@@ -169,6 +178,8 @@ Table 2 summarizes the properties of tasks and actors. Tasks enable fine-grained
 >  相较之下，actors 提供了更高效的细粒度更新，因为这些更新直接作用于内部状态，而非外部状态 - 后者通常需要额外的序列化和反序列化操作
 >  例如，actor 可以被用于实现参数服务器和基于 GPU 的迭代计算 (例如训练)
 >  此外，actors 可以被用于封装第三方模拟器和其他难以序列化的不透明句柄
+
+>  Task 和 Actor 抽象还是比较 low-level 的，它们是在 RL 的 context 之下，就是纯粹地表示无状态计算和有状态计算的抽象，使用者需要将 Task 和 Actor 映射到 RL 的 context
 
 To satisfy the requirements for heterogeneity and flexibility (Section 2), we augment the API in three ways. First, to handle concurrent tasks with heterogeneous durations, we introduce ray.wait(), which waits for the first  $k$  available results, instead of waiting for all results like ray.get(). Second, to handle resource-heterogeneous tasks, we enable developers to specify resource requirements so that the Ray scheduler can efficiently manage resources. Third, to improve flexibility, we enable nested remote functions, meaning that remote functions can invoke other remote functions. This is also critical for achieving high scalability (Section 4), as it enables multiple processes to invoke remote functions in a distributed fashion.
 >  为了满足异构型和灵活性的要求，我们以三种方式增强了 API
@@ -229,6 +240,15 @@ Ray employs a dynamic task graph computation model [21], in which the execution 
 >  Ray 采用了动态任务图计算模型，其中系统会在远程函数和 actor 方法的输入可用的时候自动调用它们
 >  本节描述 Ray 如何根据用户程序构造该计算图 (Fig4)，Fig3 中的程序使用了 Table1 中的 API，实现了 Fig2 中的伪代码
 
+>  所谓计算图，实际上就是由 task, actor methods 之间的 future 依赖而构造出的数据流图
+>  静态的依赖关系应该通过静态程序分析就可以得到了，但是每个任务的实际执行时间需要实际执行才能确定，因此图的实际数据流动是在运行时决定的
+
+>  所谓动态，也就是 PyTorch 的 define-by-run 概念，Python 的字节码执行时，再发送出执行调用，而不是用一堆图 API 构造好图再把整张图交给运行时
+>  这样好处一是 API 风格简单，Python 化，另一个是可以任意嵌入 Python 控制流和对各种 Python 库的调用，还有一个好处是实现起来也比较方便
+>  坏处就是缺失了对计算图的编译优化机会
+
+>  分布式背景下，对计算图的优化应该是可以获得不少性能便利的，主要应该是在通讯和计算的重叠方面 (但是这方面的优化也需要对图中的计算和通讯操作所耗时间的启发式知识)
+
 Ignoring actors first, there are two types of nodes in a computation graph: data objects and remote function invocations, or tasks. There are also two types of edges: data edges and control edges. Data edges capture the de pendencies between data objects and tasks. More precisely, if data object  $D$  is an output of task  $T$  we add a data edge from  $T$  to  $D$  .Similarly, if  $D$  is an input to  $T$  we add a data edge from  $D$  to  $T$  . Control edges capture the computation dependencies that result from nested remote functions (Section 3.1): if task  $T_{1}$  invokes task  $T_{2}$  then we add a control edge from  $T_{1}$  to  $T_{2}$
 >  忽略 actors，我们可以看到计算图中有两类节点: 数据对象和远程函数调用 (tasks)，也有两类边: 数据边和控制边
 >  数据边捕获数据对象和 task 之间的依赖，具体地说，如果数据对象 $D$ 是任务 $T$ 的输出，我们就添加一个 $T$ 到 $D$ 的数据边，类似地，如果 $D$ 是任务 $T$ 的输入边，我们就添加一个 $D$ 到 $T$ 的数据边
@@ -256,7 +276,7 @@ The application layer consists of three types of processes:
 
 >  应用层由三类进程组成:
 >  - 驱动程序: 执行用户程序的进程
->  - 工作进程: 一个执行任务 (远程函数) 的**无状态的进程**，它由 driver 或者其他 worker 调用；工作进程会由系统层自动启动并分配任务，当一个远程函数被生命，该函数会自动被推送到所有工作进程；worker 顺序执行任务，任务之间不会维护局部状态
+>  - 工作进程: 一个执行任务 (远程函数) 的**无状态的进程**，它由 driver 或者其他 worker 调用；工作进程会由系统层自动启动并分配任务，当一个远程函数被声明，该函数会自动被推送到所有工作进程；worker 顺序执行任务，任务之间不会维护局部状态
 >  - 参与者: 一个**有状态的进程**，当被调用时，仅执行它暴露的方法；和 worker 不同，actor 需要被 worker 或者 driver 显式地实例化；和 worker 类似的是，actor 顺序执行方法，只不过每个方法所依赖的状态都和之前的方法执行有关
 
 ## 4.2 System Layer
@@ -290,8 +310,11 @@ Maintaining low latency requires minimizing overheads in task scheduling, which 
 >  Ray 针对的规模和粒度则要求中心化调度器不能在关键路径上，让每次对象传输都涉及中心化调度器，对于分布式训练中至关重要的原语，例如 allreduce，是不可接受的，因为这些原语即通信密集又对延迟敏感
 >  因此，我们将对象元数据存储在 GCS 而不是调度器，完全解耦任务分发和任务调度
 
+>  对于异步执行调用，其延迟就是任务调度所花的时间，任务调度之后，函数就返回 future 了
+>  Ray 考虑了 tasks 极多的场景，因此中心化调度器的 load 非常大，很自然的想法就是去中心化
+
 In summary, the GCS significantly simplifies Ray's overall design, as it enables every component in the system to be stateless. This not only simplifies support for fault tolerance (i.e., on failure, components simply restart and read the lineage from the GCS), but also makes it easy to scale the distributed object store and scheduler independently, as all components share the needed state via the GCS. An added benefit is the easy development of debugging, profiling, and visualization tools.
->  总的来说，GCS 显著简化了 Ray 的总体涉及，因为它使得系统中的每个组件都是无状态的
+>  总的来说，GCS 显著简化了 Ray 的总体设计，因为它使得系统中的每个组件都是无状态的
 >  这不仅简化了对容错的支持 (即故障时，组件简单地重启，并从 GCS 读取血缘即可)，也使得分布式对象存储和调度器可以独立拓展，因为所有的组件都通过 GCS 共享所需的状态
 >  还有的好处就是易于 debugging, profiling, visualization
 
@@ -307,12 +330,16 @@ To satisfy the above requirements, we design a two-level hierarchical scheduler 
 >  本地调度器在本地调度任务，除非节点过载 (即本地任务队列超过了预定义的阈值)，或者它无法满足任务需求 (例如没有 GPU)，如果本地调度器决定不在本地调度任务，它将任务发送给全局调度器
 >  因为这个两层的调度器首先尝试在本地调度 (即在调度结构的底层)，我们称其为自底向上调度器
 
+>  先在本地调度，本地没办法满足了再把调度的责任交给全局调度器 (具有全局知识)
+
 The global scheduler considers each node's load and task's constraints to make scheduling decisions. More precisely, the global scheduler identifies the set of nodes that have enough resources of the type requested by the task, and of these nodes selects the node which provides the lowest estimated waiting time. At a given node, this time is the sum of (i) the estimated time the task will be queued at that node (i.e., task queue size times average task execution), and (ii) the estimated transfer time of task's remote inputs (i.e., total size of remote inputs divided by average bandwidth). 
 >  全局调度器会考虑每个节点的负载和任务约束来调度任务
 >  具体地说，全局调度器识别具有能够满足所请求的任务需求的节点集合，然后从这些节点中选择具有估计最短等待时间的节点
 >  在一个给定的节点上，这个等待时间是以下的和:
 >  1. 该任务在该节点上的估计排队时间 (任务队列大小 x 平均任务执行时间)
 >  2. 任务的远程输入的估计传输时间 (远程输入的总大小 / 平均带宽)
+
+>  全局调度器的调度决策依据依旧是调度时间开销，即延迟
 
 The global scheduler gets the queue size at each node and the node resource availability via heartbeats, and the location of the task's inputs and their sizes from GCS. Furthermore, the global scheduler computes the average task execution and the average transfer bandwidth using simple exponential averaging. If the global scheduler becomes a bottleneck, we can instantiate more replicas all sharing the same information via GCS. This makes our scheduler architecture highly scalable.
 >  全局调度器通过 heartbeats 获取每个节点的队列大小和节点资源可用性，并且从 GCS 获取任务的输入和其大小
@@ -351,7 +378,7 @@ If a task's inputs are not local, the inputs are replicated to the local object 
 >  通过数据复制，可以消除因热点数据对象带来的潜在瓶颈，并最小化任务执行时间，因为任务只需要从本地内存读写数据，这为 computation-bound workloads 增加了吞吐
 
 For low latency, we keep objects entirely in memory and evict them as needed to disk using an LRU policy.
->  为了实现低延迟，我们将数据对象完全保持在对象中，并使用 LRU (最近最少使用) 策略将它们写入到磁盘
+>  为了实现低延迟，我们将数据对象完全保持在内存中，并使用 LRU (最近最少使用) 策略将它们写入到磁盘
 
 As with existing cluster computing frameworks, such as Spark [64], and Dryad [28], the object store is limited to immutable data. This obviates the need for complex consistency protocols (as objects are not updated), and simplifies support for fault tolerance. In the case of node failure, Ray recovers any needed objects through lineage re-execution. The lineage stored in the GCS tracks both stateless tasks and stateful actors during initial execution; we use the former to reconstruct objects in the store.
 >  在现存的集群计算框架中，对象存储限制在不可变数据，这避免了对复杂一致性协议的支持 (因为对象不会被更新)，同时也简化了容错支持
@@ -439,6 +466,9 @@ All experiments were run on Amazon Web Services. Unless otherwise stated, we use
 >  End-to-end scalability
 >  GCS 和自底向上的调度器的一个关键优势就是横向拓展系统以支持细粒度任务的高吞吐，同时把保持容错和低延迟任务调度
 >  Fig8b 中，我们用极其并行的空任务 workload 来评估这个能力，我们发现任务吞吐量随着集群大小增长呈现出近乎完美的线性关系
+
+>  老实说，空任务都可以本地调度当然线性拓展
+>  不过，RL context 下，如果每个节点都有环境，那环境交互的任务确实可以线性拓展
 
 Ray exceeds 1 million tasks per second throughput at 60 nodes and continues to scale linearly beyond 1.8 million tasks per second at 100 nodes. The rightmost datapoint shows that Ray can process 100 million tasks in less than a minute (54s), with minimum variability. As expected, increasing task duration reduces throughput proportionally to mean task duration, but the overall scalability remains linear. While many realistic workloads may exhibit more limited scalability due to object dependencies and inherent limits to application parallelism, this demonstrates the scalability of our overall architecture under high load.
 
@@ -642,7 +672,7 @@ The GCS was also instrumental to Ray's horizontal scalability. In Section 5, we 
 # 8 Conclusion
 No general-purpose system today can efficiently support the tight loop of training, serving, and simulation. To express these core building blocks and meet the demands of emerging AI applications, Ray unifies task-parallel and actor programming models in a single dynamic task graph and employs a scalable architecture enabled by the global control store and a bottom-up distributed scheduler. 
 >  目前尚没有任何通用目的的系统可以高效支持 training, serving, simulation 之间的紧密循环
->  为了表达这些核心构建模块，并满足新型 AI 应用的要求，Ray 在一个单一动态任务图中统一了 task-parallel 和 actor programming model，并借助全局控制存储和自底向上的分布式调度器实现了可拓展的架构
+>  为了表达这些核心构建模块，并满足新型 AI 应用的要求，Ray 在一个**单一动态任务图**中统一了 task-parallel 和 actor programming model，并借助全局控制存储和自底向上的分布式调度器实现了可拓展的架构
 
 The programming flexibility, high throughput, and low latencies simultaneously achieved by this architecture is particularly important for emerging artificial intelligence workloads, which produce tasks diverse in their resource requirements, duration, and functionality. 
 >  这个架构同时达成的编程灵活性、高吞吐、低延迟对于新型的 AI workloads 非常重要，这些 workloads 在资源需求、持续时间和功能上都具有高度的多样性
