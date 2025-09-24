@@ -28,7 +28,7 @@ For local LLMs, there are two major methods to guide the model to generate JSON 
 This method involves transforming the JSON schema into a regular expression. We can then construct a [Finite State Machine(FSM)](https://en.wikipedia.org/wiki/Finite-state_machine) based on the regular expression. The FSM is used to guide the LLM generation. For every state within the FSM, we can calculate the permissible transitions and identify the acceptable next tokens. This allows us to track the current state during decoding and filter out invalid tokens by applying logit bias to the output. You can learn more about this method in the [outlines](https://arxiv.org/abs/2307.09702) paper.
 >  基于 FSM 的方法将 JSON 模式转化为正则表达式，然后基于正则表达式构建 FSM
 >  FSM 用于引导 LLM 生成，对于 FSM 中的每个状态，我们可以计算出它允许的转移路径，以确定下一个可接收的 tokens
->  FSM 使得我们在解码时可以追踪当前所处的状态，并对输出引用 logit bias，过滤无效 tokens
+>  FSM 使得我们在解码时可以追踪当前所处的状态，并对输出应用 logit bias，过滤无效 tokens
 
 ![](https://lmsys.org/images/blog/compressed_fsm/method1.png)
 
@@ -65,7 +65,7 @@ Figure 4: Interleaved JSON Decoding in Guidance
 
 >  基于交错的方法要求自定义语法，比 regex 的形式更不通用
 >  不容易处理 tokenization 边界，decode 和 chunked prefill 片段可能存在冲突 (这个问题感觉可以解决，用模型的 tokenizer 处理一下给定的 schema 即可)
->  解释器和后端的频繁通信带来可开销
+>  解释器和后端的频繁通信带来额外开销
 
 ## Our Method: Jump-Forward Decoding With a Compressed Finite State Machine
 We can combine the advantages of FSM-based and interleaved-based methods by introducing a new decoding algorithm, **jump-forward** decoding, based on the compressed finite state machine.

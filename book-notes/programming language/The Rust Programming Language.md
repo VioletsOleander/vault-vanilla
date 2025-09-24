@@ -7091,7 +7091,7 @@ We’ll come back to `panic!` and when we should and should not use `panic!`�
 
 ## 9.2 Recoverable Errors with `Result`
 Most errors aren’t serious enough to require the program to stop entirely. Sometimes when a function fails it’s for a reason that you can easily interpret and respond to. For example, if you try to open a file and that operation fails because the file doesn’t exist, you might want to create the file instead of terminating the process.
->  大多数错误并不足以完全程序，一些错误可以直接解决，例如尝试打开不存在的文件时，可以直接创建该文件而不是终止程序
+>  大多数错误并不足以完全停止程序，一些错误可以直接解决，例如尝试打开不存在的文件时，可以直接创建该文件而不是终止程序
 
 Recall from [“Handling Potential Failure with `Result`”](https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html#handling-potential-failure-with-result) in Chapter 2 that the `Result` enum is defined as having two variants, `Ok` and `Err`, as follows:
 
@@ -7128,7 +7128,7 @@ The return type of `File::open` is a `Result<T, E>`. The generic parameter `
 In the case where `File::open` succeeds, the value in the variable `greeting_file_result` will be an instance of `Ok` that contains a file handle. In the case where it fails, the value in `greeting_file_result` will be an instance of `Err` that contains more information about the kind of error that occurred.
 
 We need to add to the code in Listing 9-3 to take different actions depending on the value `File::open` returns. Listing 9-4 shows one way to handle the `Result` using a basic tool, the `match` expression that we discussed in Chapter 6.
->  我们对结果使用 `matchb` 表达式，根据是否成功执行不同的路径
+>  我们对结果使用 `match` 表达式，根据是否成功执行不同的路径
 
 Filename: src/main.rs
 
@@ -8597,7 +8597,7 @@ The error message says that the variable `x` “does not live long enough.” 
 
 ### The Borrow Checker
 The Rust compiler has a _borrow checker_ that compares scopes to determine whether all borrows are valid. Listing 10-17 shows the same code as Listing 10-16 but with annotations showing the lifetimes of the variables.
->  Rust 编译器具有借用检查其，它会比较作用域，来决定所有的借用是否有效
+>  Rust 编译器具有借用检查器，它会比较作用域，来决定所有的借用是否有效
 >  下例展示了所有变量的声明周期
 
 ```rust
@@ -8770,7 +8770,7 @@ This code should compile and produce the result we want when we use it with the�
 
 The function signature now tells Rust that for some lifetime `'a`, the function takes two parameters, both of which are string slices that live at least as long as lifetime `'a`. The function signature also tells Rust that the string slice returned from the function will live at least as long as lifetime `'a`. In practice, it means that the lifetime of the reference returned by the `longest` function is the same as the smaller of the lifetimes of the values referred to by the function arguments. These relationships are what we want Rust to use when analyzing this code.
 >  现在的函数签名告诉 Rust: 对于某个生命周期 `'a`，该函数接受两个参数，这两个参数都是至少与生命周期 `'a` 存活时间一样长的 string slice
->  该函数签名还告诉 Rust 该桉树返回的 string slice  的存活时间也至少和生命周期 `'a` 一样长
+>  该函数签名还告诉 Rust 该函数返回的 string slice  的存活时间也至少和生命周期 `'a` 一样长
 >  实际上，这意味着 `longest` 函数返回的引用的生命周期和它的参数所引用的值的生命周期中较短的那个相同
 >  这正是我们希望 Rust 分析代码时使用的关系
 
