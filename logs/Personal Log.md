@@ -3323,7 +3323,7 @@ Date: 2025.8.25-2025.9.1
     Evaluation
     Related Work and Discussion
     Conclusion
-- [[paper-notes/gen-ai/language/infra/system/Transformers State-of-the-Art Natural Language Processing-2020-EMNLP|2020-EMNLP-Transformers State-of-the-Art Natural Language Processing]]
+- [[paper-notes/gen-ai/language/infra/library/Transformers State-of-the-Art Natural Language Processing-2020-EMNLP|2020-EMNLP-Transformers State-of-the-Art Natural Language Processing]]
     Abstract
         `Transformers` provides a unified API for Transformer architecture models. The library consists of a collection of pretrained models. (i.e. this library provide a unified API for different pretrained model released by the community like Qwen, Llama, Grok)
     Introduction
@@ -3457,7 +3457,7 @@ Date: 2025.9.1-2025.9.8
 Date: 2025.9.8-2025.9.15
 
 \[Paper\]
-- [[paper-notes/ml/system/PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation-2024-ASPLOS|2024-ASPLOS-PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation]]
+- [[paper-notes/compilation/PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation-2024-ASPLOS|2024-ASPLOS-PyTorch 2 Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation]]
     0-Abstract
         `torch.compile` is implemented by TorchDynamo, TorchInductor
         TorchDynamo is a Python-level JIT compiler, which dynamically modify the byte code before execution, and extract PyTorch operations into FX graph for backend compilation to achieve graph compilation for PyTorch program.
@@ -3526,7 +3526,7 @@ Date: 2025.9.8-2025.9.15
         On TorchBench, TorchDynamo works on more than twice as many models as TorchScript. TorchDynamo is able to capture the whole-program graph most of the time. The most common reasons for graph break are: usage of non-PyTorch libraries like numpy, conversion to Python types and data-dependent control flow operations.
         The biggest speedups in TorchInductor comes from combining , reduction, and scatter kernels together into a smaller fused kernels. In TorchInductor, theses combinations happen in two places: 1. inlining happens during lowering 2. fusion happens during scheduling
     7-Conclusions
-- [[paper-notes/ml/system/PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel-2023-VLDB|2023-VLDB-PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel]]
+- [[paper-notes/gen-ai/language/infra/system/PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel-2023-VLDB|2023-VLDB-PyTorch FSDP Expreiences on Scaling Fully Sharded Data Parallel]]
     Abstract
         FSDP is co-designed with core PyTorch components like Tensor implementation, dispatcher system, CUDA memory caching allocator.
         FSDP can support larger models with near-linear scalibility in terms of TFLOPS.
@@ -3582,3 +3582,126 @@ Date: 2025.9.15-2025.9.22
 
 \[Paper\]
 - [[paper-notes/ml/system/Ray A Distributed Framework for Emerging AI Applications-2018-OSDI|2018-OSDI-Ray A Distributed Framework for Emerging AI Applications]]
+    Abstract
+        Ray implements a unified interface to support task-parallel and actor-based computation.
+        The interface is supported by a single dynamic execution engine.
+        Ray employs a distributed scheduler and a distributed fault-tolerant store to manage the systems' control state.
+    Introduction
+        A system for RL must support fine-grained computations (rendering actions in milliseconds when interacting with the real world and perform a vast number of simulations), support dynamic execution, as results of simulation or interactions with the environment can change future computations.
+        Ray is a general-purpose cluster-computing framework that enables simulation, training, serving for RL applications. The requirements for these workloads range from lightweight and stateless computations like simulation to long-running and stateful computations like training.
+        To satisfy these two requirements simultaneously, Ray implements a unified interface to express task-parallel and actor-based computations.
+        `Task` allows Ray to load balance simulation, processing large state spaces (images, videos) and recover from failures.
+        `Actor` enables Ray to support stateful computation like training, and maintain shared mutable state and expose it the clients.
+        Task and actor abstraction is implemented on top of a dynamic, scalable, fault-tolerant execution engine.
+        To meet performance requirements, Ray distribute two componenets that are typically centralized in existing frameworks: 1. the task scheduler 2. a metadata store. This allows Ray to schedule millons of tasks per second with milisecond-level latency.
+        In addiition, metadata store is fault-tolerant by replication. The metadata store stores computation lineage to provide fault-tolrance for computation tasks.
+        This paper:
+        1. design and construct a unified framework for traning, serving and simulation
+        2. unified actor, task-parallel abstraction on top of an execution engine.
+        3. propose a system design princiiple that control states are store in shared metadata store, and other system components are stateless.
+        4. propse a bottom-up distributed scheduling strategy.
+    Motivation and Requirements
+        Policy improvement requires two step iteration: 1. policy evaluation 2. policy improvement.
+        In policy evaluation, the policy interact with the environment, generating rollout which consists of a sequence of (state, reward) tuples. (Typically we will concurrently run multiple policies to collect multiple rollouts, as the gradient is in expectation form, the more data we get, the more accurate we will estimate the gradient)
+        In policy improvement, the policy uses these rollouts to update current policy.
+        Therefore, a framework for RL must provide efficient support for training, serving, and simulation, we describe these workloads:
+        Training involves running distributed SGD (policy instances are distributed across workers, each of them holds a gradient estimate for the rollouts it generated). Typically it relies on allreduce aggregation step or a parameter server. (essentially, it is just data parallel, the difference is that the training data is not given by split dataset by generated from the interaction of the local policy and environment).
+        Serving uses trained policy to give the action. A serving system aims to minimize the latency and maximize the throughput. To scale, load is balancing across multiple serving instances.
+    Programming and Computation Model
+        Ray implements a dynamic task graph computation model, that is, it models an application as a graph of dependent tasks that evolves during execution.
+        Ray provides an actor and a task-parallel abstraction on top of the task graph.
+        In Ray, a task represents the execution of a remote functino in a stateless worker. The remote invokation will return a future variable immediately. Futures can be passed to other remote function to capture data dependency.
+        Remote function is expected to be purely functional. This implies idempotence, simplfying fault tolerance through re-execution on failure.
+        In Ray, an actor represents a stateful computation. Each actor exposes methods, whose execution is the same as task. The difference is that methods are executed on a stateful worker.
+        Ray implements load balancing, input data locality, low overhead recovery on tasks.
+        Ray employs a dynamic task graph computation model, where the execution of task and actor methods will be trigger by the system when their inputs become available.
+        Data and computation are both presented as nodes in the computation graph. Edges are used to express dependencies.
+        Edges help us trace the data lineage to enable reconstruction for fault tolerance.
+    Architecture
+        The architecture consists of 1. an application layer implements the API 2. a system layer supports the API and provide scalability, fault tolerance.
+        Application layer consists of 1. Driver: the process executing the user program 2. Worker: a stateless process 3. Actor: a stateful process
+        System layer consists of three components: global control store, distributed scheduler, distributed object store.
+        Global control store is essentially a key-value store for maintaining system control state. GCS simplify the system design and make debugging, viauslation easier.
+        Scheduler is designed as two-layer: local scheduler first, if it is not able to handle, transfer the scheduling responsiblity to the global scheduler.
+        Global scheduler decide the scheduling based on the latency to schedule the task.
+    Evavluation
+    Related Work
+    Dicussion and Experiences
+    Conclusion
+- [[paper-notes/gen-ai/language/infra/system/SGLang Efficient Execution of Structured Language Modeling Programs-2024-NeurIPS|2024-NeurIPS-SGLang Efficient Execution of Structured Language Modeling Programs]]
+    Abstact
+        SGLang consists of its frontend language and its runtime. Users use frontend langauge to write LM program. The runtime uses RadixAttention, compressed FSM to achieve faster decoding.
+    Introduction
+        SGLang is a embeded DSL in Python. SGLang interpreter manage prompt state as stream. The primitives will be submitted to the stream for asynchronous execution.
+    Programming Model
+        SGLang provides primitives like `gen, select, fork, extend`. Primitives are submitted to the related prompt state' stream for asynchronous execution. Each prompt state corresponds to a background thread responsible for the stream.
+    Efficient KV Cache Reuse with RadixAttention
+        SGLang optimization focuses on reuse prefix KV Cache across multiple instances and calls. Note that so far, most inference service maintain KV cache for each request independently.
+        SGLang introduces a radix tree for manage shared prefix across requests. The evication policy is LRU.
+        SGLang runtimes maintains KV cache as non-continguous pages, one tokne one page.
+        Each leave in the radix tree maintains a reference counter indicating how manay requests relies on it. The leave is evitable once the counter goes to 0.
+        SGLang designs cache-aware scheduling (instead of FCFS), which will sort the received requests for batching to improve caching hit rate.
+        It is proved that in offline scenario. DFS for the radix tree will achieve optimal cache hit rate.
+        RadixAttention is scalable for distribution. In TP, each GPU maintains a sharded KV cache.
+    Efficient Constrainted Decoding with Compressed Finite State Machine
+        See blog for deeper explanation.
+    Efficient Endpoint Calling with API Speculative Execution
+    Evaluation
+    Related Work
+    Future Directions and Conclusion
+
+\[Book\]
+- [[book-notes/programming language/The Rust Programming Language|The Rust Programming Language]]: CH7-CH12
+    CH7-Managing Growing Projects with Packages, Crates, and Moduels
+        A package can contain multiple binary crates and one library crates.
+        Package contains crates, which contains modules, which contains paths.
+        The smallest compilation unit is crate. Binary crate is required to have `main` entry point.
+        Compilcation starts with crate root.
+        Each package contains `Cargo.toml` which describes how to build the crates within it.
+        `pub use` can be used for re-exporting names.
+        `use xxx::*` is mainly used for scenario where bring all things into `tests` module.
+        Compiler will recursively search for module files according to the `mod` declaration in the crate root.
+    CH8-Common Collections
+        vector continguously store values with the same type.
+        `get` method will return `None` if accessing across boundary.
+        Using vector to store enum's different variant can achieve effects like storing different values.
+        string is essentially the collection to store bytes, with methods to interpret the bytes to text.
+        Rust has only one string in its core language: string slice `str`, representing references to some UTF-8 encoded string data.
+        Rust std library provides `String`, which is a owned, mutable UTF-8 encoded type.
+        `String` is essentially implemented a wrapper of `Vec<u8>`.
+        Any type implements `Display` trait has `to_string`.
+        `push_str` accepts string slice, `push` accepts char.
+    CH9-Error Handling
+        Errors are classified as recoverable error and unrecoverable error.
+        Rust provides `Result<T, E>` for recoverable error and `panic!` for unrecoverable error.
+        `panic!` will unroll the stack and clean it.
+        prefer `expect` to `unwarp` to provide more information when panic.
+        `?` will invoke `from` function from `From` trait in the received error type to convert it to the function return type.
+        `?` can also be applied for `Option<T>`, not only limited to `Result<T, E>`
+    CH10-Generic Types, Traits, and Lifetimes
+        `impl Trait` is a syntax sugar for trait bound. Another way to define trait bound is using `where` clause. Trait bound can also be used for the return type.
+        When implementing generic type, we must specify trait bound.
+        Each reference has its lifetime, and its lifetime should not be longer than the referred value.
+        Lifetime annotation just describe the lifetime relationship between multiple references. The lifetime annotation will be replaced with an actual scope.
+    CH11-Writing Automatic Tests
+        test is a function annotated with `test`.
+        Tests are orgainzed as unit tests and integration tests.
+    CH12-An I/O Project: Buiding a Command Line Program
+
+\[Blog\]
+- [[blog-notes/Fast JSON Decoding for Local LLMs with Compressed Finite State Machine|Fast JSON Decoding for Local LLMs with Compressed Finite State Machine]]
+    FSM based method convert schema into regex, and construct FSM based on the regex. In decoding, we trace the state in FSM and uses FSM to filter out invalid tokens.
+    Interleaved-based method interleave prefill and decoding. It's challenge is about managing tokenization boundary.
+    Jump-forward is based on compressed FSM. RadixAttention simplify the implementation of jump-forward. On encountering jump-forward in `gen`, we end this `gen` immediately, and enqueue new `extend` request. The previous KV cache will be reused by radix attention.
+    To handle the tokenization bounary problem, jump-forward will append string into the original output, and retokenization the whole string, then send it to prefill.
+
+\[Doc\]
+- [[doc-notes/Keep a ChangeLog|Keep a ChangeLog]]: All
+- [[doc-notes/pixi/tutorials/python/Basic Usage|pixi/tutorials/python/Basic Usage]]: All
+- [[doc-notes/pixi/tutorials/python/pyproject.toml|pixi/tutorials/python/pyproject.toml]]
+- [[doc-notes/python/library/python-runtime-services/__future__ - Future statement definitions|python/library/python-runtime-services/__future__ - Future statement definitions]]: All
+- [[doc-notes/python/library/Built-in Functions|python/library/Built-in Functions]]
+- [[doc-notes/uv/concepts/Build backend|uv/concepts/Build backend]]
+- [[doc-notes/python/packages/pre-commit|python/packages/pre-commit]]
+- [[doc-notes/pyo3/Getting Started|pyo3/Getting Started]]: All
+- [[doc-notes/pyo3/Python Modules|pyo3/Python Modules]]: All
