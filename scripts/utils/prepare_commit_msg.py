@@ -32,9 +32,12 @@ if __name__ == "__main__":
     if args.source:
         exit(0)
 
-    path = Path("D:/data/vault-vanilla/other-notes/Commit Message Guide.md")
+    work_dir = Path.cwd()
+    path = work_dir / "other-notes" / "Commit Message Guide.md"
     heading = "## Commit Message Guide for Obsidian Vault"
     content_lines = get_content_after_heading(path, heading)
 
-    with Path(".git/COMMIT_EDITMSG").open("a", encoding="utf-8", newline="\n") as file:
+    commit_msg_path = work_dir / ".git" / "COMMIT_EDITMSG"
+
+    with commit_msg_path.open("a", encoding="utf-8", newline="\n") as file:
         file.writelines(content_lines)

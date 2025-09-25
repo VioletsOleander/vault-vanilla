@@ -90,8 +90,9 @@ def generate_changelog(lines_tree: dict[str, dict[str, list[str]]]) -> str:
 
 
 if __name__ == "__main__":
-    personal_log_path = Path("D:/data/vault-vanilla/logs/Personal Log.md")
-    changelog_path = Path("D:/data/vault-vanilla/ChangeLog.md")
+    work_dir = Path.cwd()
+    personal_log_path = work_dir / "logs" / "Personal Log.md"
+    changelog_path = work_dir / "ChangeLog.md"
 
     lines = read_file(personal_log_path)
     lines_tree = merge(lines)
